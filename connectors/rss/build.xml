@@ -91,8 +91,9 @@
     
     <target name="build-tests" depends="jar-tests"/>
     
+    <target name="run-tests-derby"/>
     <target name="run-tests-postgresql"/>
     <target name="run-tests-HSQLDB"/>
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql,run-tests-HSQLDB"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
     
 </project>

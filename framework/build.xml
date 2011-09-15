@@ -567,8 +567,10 @@
             
         </junit>
     </target>
-    
-    <target name="run-tests" depends="compile-tests,run-script-engine-tests">
+
+    <target name="run-tests" depends="compile-tests,run-script-engine-tests"/>
+
+    <target name="run-tests-derby" depends="compile-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -655,6 +657,6 @@
     
     <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example,script-engine"/>
     
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql"/>
     
 </project>

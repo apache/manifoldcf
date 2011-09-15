@@ -74,8 +74,10 @@
     </target>
 
     <target name="jar-tests" depends="jar-connector-tests"/>
-    
-    <target name="run-tests" depends="compile-tests">
+
+    <target name="run-tests" depends="compile-tests"/>
+
+    <target name="run-tests-derby" depends="compile-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true" haltonfailure="true">
             <classpath>
@@ -122,6 +124,6 @@
 
     <target name="build" depends="lib"/>
     <target name="build-tests" depends="jar-tests"/>
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-postgresql,run-tests-HSQLDB"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
     
 </project>

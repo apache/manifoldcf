@@ -183,6 +183,10 @@
         <ant dir="framework" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-framework" depends="setup-framework">
+        <ant dir="framework" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-framework" depends="setup-framework">
         <ant dir="framework" target="run-tests-postgresql"/>
     </target>
@@ -222,6 +226,10 @@
 
     <target name="run-tests-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
         <ant dir="connectors/activedirectory" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
+        <ant dir="connectors/activedirectory" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
@@ -283,6 +291,10 @@
         <ant dir="connectors/cmis" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
+        <ant dir="connectors/cmis" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
         <ant dir="connectors/cmis" target="run-tests-postgresql"/>
     </target>
@@ -322,6 +334,10 @@
 
     <target name="run-tests-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests">
         <ant dir="connectors/documentum" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests">
+        <ant dir="connectors/documentum" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests">
@@ -365,6 +381,10 @@
         <ant dir="connectors/filenet" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests">
+        <ant dir="connectors/filenet" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests">
         <ant dir="connectors/filenet" target="run-tests-postgresql"/>
     </target>
@@ -404,6 +424,10 @@
 
     <target name="run-tests-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
         <ant dir="connectors/filesystem" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
+        <ant dir="connectors/filesystem" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
@@ -450,6 +474,10 @@
         <ant dir="connectors/gts" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests">
+        <ant dir="connectors/gts" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests">
         <ant dir="connectors/gts" target="run-tests-postgresql"/>
     </target>
@@ -487,6 +515,10 @@
 
     <target name="run-tests-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
         <ant dir="connectors/jcifs" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
+        <ant dir="connectors/jcifs" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
@@ -530,6 +562,10 @@
         <ant dir="connectors/jdbc" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests">
+        <ant dir="connectors/jdbc" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests">
         <ant dir="connectors/jdbc" target="run-tests-postgresql"/>
     </target>
@@ -569,6 +605,10 @@
 
     <target name="run-tests-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
         <ant dir="connectors/livelink" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
+        <ant dir="connectors/livelink" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
@@ -612,6 +652,10 @@
         <ant dir="connectors/solr" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests">
+        <ant dir="connectors/solr" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests">
         <ant dir="connectors/solr" target="run-tests-postgresql"/>
     </target>
@@ -651,6 +695,10 @@
 
     <target name="run-tests-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
         <ant dir="connectors/memex" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
+        <ant dir="connectors/memex" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
@@ -705,6 +753,10 @@
         <ant dir="connectors/meridio" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests">
+        <ant dir="connectors/meridio" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests">
         <ant dir="connectors/meridio" target="run-tests-postgresql"/>
     </target>
@@ -744,6 +796,10 @@
 
     <target name="run-tests-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
         <ant dir="connectors/opensearchserver" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
+        <ant dir="connectors/opensearchserver" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
@@ -787,6 +843,10 @@
         <ant dir="connectors/nullauthority" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests">
+        <ant dir="connectors/nullauthority" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests">
         <ant dir="connectors/nullauthority" target="run-tests-postgresql"/>
     </target>
@@ -828,6 +888,10 @@
         <ant dir="connectors/nulloutput" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests">
+        <ant dir="connectors/nulloutput" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests">
         <ant dir="connectors/nulloutput" target="run-tests-postgresql"/>
     </target>
@@ -867,6 +931,10 @@
 
     <target name="run-tests-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
         <ant dir="connectors/rss" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
+        <ant dir="connectors/rss" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
@@ -919,6 +987,10 @@
         <ant dir="connectors/sharepoint" target="run-tests"/>
     </target>
 
+    <target name="run-tests-derby-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests">
+        <ant dir="connectors/sharepoint" target="run-tests-derby"/>
+    </target>
+
     <target name="run-tests-postgresql-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests">
         <ant dir="connectors/sharepoint" target="run-tests-postgresql"/>
     </target>
@@ -958,6 +1030,10 @@
 
     <target name="run-tests-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
         <ant dir="connectors/webcrawler" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
+        <ant dir="connectors/webcrawler" target="run-tests-derby"/>
     </target>
 
     <target name="run-tests-postgresql-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
@@ -1784,9 +1860,70 @@
         </javac>
     </target>
 
+    <target name="compile-filesystem-loadtests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,calculate-filesystem-tests-condition,build-tests-filesystem-connector,build-tests-nulloutput-connector" if="filesystem-tests.include">
+        <mkdir dir="build/filesystem-loadtests/classes"/>
+        <javac srcdir="loadtests/filesystem/src/test/java" destdir="build/filesystem-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
     <target name="compile-sharepoint-tests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
         <mkdir dir="build/sharepoint-tests/classes"/>
         <javac srcdir="tests/sharepoint/src/test/java" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-sharepoint-loadtests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
+        <mkdir dir="build/sharepoint-loadtests/classes"/>
+        <javac srcdir="loadtests/sharepoint/src/test/java" destdir="build/sharepoint-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -1848,7 +1985,42 @@
         </javac>
     </target>
 
-    <target name="run-filesystem-tests" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+    <target name="compile-cmis-loadtests" depends="build-framework,build-cmis-connector,build-nulloutput-connector,calculate-cmis-tests-condition,build-tests-cmis-connector,build-tests-nulloutput-connector" if="cmis-tests.include">
+        <mkdir dir="build/cmis-loadtests/classes"/>
+        <javac srcdir="loadtests/cmis/src/test/java" destdir="build/cmis-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="run-filesystem-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
         <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -1885,7 +2057,40 @@
         </junit>
     </target>
 
-    <target name="run-cmis-tests" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
+    <target name="run-filesystem-loadtests-derby" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-cmis-tests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-output/cmis"/>
         <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -1922,7 +2127,43 @@
         </junit>
     </target>
 
-    <target name="run-sharepoint-tests" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+    <target name="run-cmis-loadtests-derby" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-sharepoint-tests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-output/sharepoint"/>
         <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -1948,6 +2189,39 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/sharepoint-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-sharepoint-loadtests-derby" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <mkdir dir="test-output/sharepoint"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/sharepoint-loadtests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -1992,6 +2266,111 @@
         </junit>
     </target>
 
+    <target name="run-filesystem-loadtests-postgresql" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-postgresql-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-cmis-tests-postgresql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-cmis-loadtests-postgresql" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-filesystem-tests-HSQLDB" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-HSQLDB-output/filesystem"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -2029,6 +2408,39 @@
         </junit>
     </target>
 
+    <target name="run-filesystem-loadtests-HSQLDB" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-HSQLDB-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-sharepoint-tests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -2058,6 +2470,111 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-sharepoint-loadtests-postgresql" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <mkdir dir="test-postgresql-output/sharepoint"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/sharepoint-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-cmis-tests-HSQLDB" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-cmis-loadtests-HSQLDB" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
             <!-- MHL -->
         </junit>
     </target>
@@ -2095,23 +2612,67 @@
         </junit>
     </target>
 
+    <target name="run-sharepoint-loadtests-HSQLDB" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <mkdir dir="test-postgresql-output/sharepoint"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/sharepoint-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-jdbc-connector"/>
     <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
     <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
+
+    <target name="run-tests-derby-open-connectors" depends="run-tests-derby-activedirectory-connector,run-tests-derby-cmis-connector,run-tests-derby-filesystem-connector,run-tests-derby-nullauthority-connector,run-tests-derby-nulloutput-connector,run-tests-derby-rss-connector,run-tests-derby-solr-connector,run-tests-derby-webcrawler-connector,run-tests-derby-jdbc-connector"/>
+    <target name="run-tests-derby-lgpl-connectors" depends="run-tests-derby-jcifs-connector"/>
+    <target name="run-tests-derby-proprietary-connectors" depends="run-tests-derby-documentum-connector,run-tests-derby-filenet-connector,run-tests-derby-livelink-connector,run-tests-derby-memex-connector,run-tests-derby-meridio-connector,run-tests-derby-sharepoint-connector"/>
     
-    <target name="end-to-end-tests" depends="run-filesystem-tests,run-cmis-tests,run-sharepoint-tests"/>
+    <target name="end-to-end-tests-derby" depends="run-filesystem-tests-derby,run-cmis-tests-derby,run-sharepoint-tests-derby"/>
 
     <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector"/>
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-sharepoint-tests-postgresql"/>
+    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
     <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
     <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
+    <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-cmis-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
+
+    <target name="end-to-end-loadtests-derby" depends="run-filesystem-loadtests-derby,run-cmis-loadtests-derby,run-sharepoint-loadtests-derby"/>
+
+    <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
+
+    <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
+
 
     <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-jdbc-connector"/>
     <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-jdbc-connector-doc"/>
@@ -2200,14 +2761,22 @@
 
     <target name="image" depends="create-source-zip,create-source-tar,create-bin-zip,create-bin-tar"/>
     
-    <target name="test-dr" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,end-to-end-tests"/>
+    <target name="test-dr" depends="run-tests-derby-framework,run-tests-derby-open-connectors,run-tests-derby-lgpl-connectors,run-tests-derby-proprietary-connectors,end-to-end-tests-derby"/>
 
     <target name="test-pg" depends="run-tests-postgresql-framework,run-tests-postgresql-open-connectors,run-tests-postgresql-lgpl-connectors,run-tests-postgresql-proprietary-connectors,end-to-end-tests-postgresql"/>
 
     <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
 
-    <target name="test" depends="test-dr,test-hs"/>
-    
+    <target name="load-dr" depends="end-to-end-loadtests-derby"/>
+
+    <target name="load-pg" depends="end-to-end-loadtests-postgresql"/>
+
+    <target name="load-hs" depends="end-to-end-loadtests-HSQLDB"/>
+
+    <target name="test" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,test-dr,test-hs"/>
+
+    <target name="load" depends="load-dr,load-hs"/>
+
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-pg,test-hs"/>
 
     <target name="help">
@@ -2215,7 +2784,7 @@
 ManifoldCF build file.  Use this file to build ManifoldCF, generate
 javadocs, generate site docs, run tests, or build distributables.
 
-Valid targets are:
+Useful targets are:
 
 clean   - Clean the build area
 build   - Build executable code, jars, processes, and example,
@@ -2225,6 +2794,11 @@ test-dr - Compile and run Derby-based tests
 test-pg - Compile and run postgresql-based tests (needs Postgresql)
 test-hs - Compile and run HSQLDB-based tests
 test    - Compile and run all local tests (Derby and HSQLDB)
+load-dr - Compile and run Derby-based load tests
+load-pg - Compile and run postgresql-based load tests (needs
+          Postgresql)
+load-hs - Compile and run HSQLDB-based load tests
+load    - Compile and run all local load tests (Derby and HSQLDB)
 doc     - Build html site, under the 'dist/doc' directory
           (requires Apache Forrest)
 image   - Build release image, under the '.' directory (requires
@@ -2233,10 +2807,10 @@ all     - Do it all (requires Apache Forrest and Postgresql)
 
 run-script-interpreter - Run the ManifoldCF script interpreter
 
-download-dependencies  - Picking up the non-redistributable
-                         dependencies for all connectors
+download-dependencies  - Fetch non-redistributable dependencies
+                         for all connectors, where possible
 
-build-dev              - Build for development
+build-dev              - Build for development (don't clean up)
 
 Use Apache Forrest version forrest-0.9-dev or higher.
       </echo>
