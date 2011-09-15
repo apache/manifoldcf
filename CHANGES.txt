@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-202: Add commit-within parameter to Solr output connector.
+(Jan Høydahl, Karl Wright)
+
 CONNECTORS-251: Add target "download-dependencies" to build.xml.
 (Shinichiro Abe)
 

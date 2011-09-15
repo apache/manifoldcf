@@ -53,6 +53,8 @@ public class SolrConfig
   public static final String PARAM_PASSWORD = "Password";
   /** Enable commits */
   public static final String PARAM_COMMITS = "Commits";
+  /** Commit within time */
+  public static final String PARAM_COMMITWITHIN = "Commit within";
   /** Keystore */
   public static final String PARAM_KEYSTORE = "Keystore";
   /** Maximum document length */

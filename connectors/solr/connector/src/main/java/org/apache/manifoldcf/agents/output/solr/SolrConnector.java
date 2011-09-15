@@ -146,6 +146,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       
       doCommits = commits.equals("true");
       
+      String commitWithin = params.getParameter(SolrConfig.PARAM_COMMITWITHIN);
+      if (commitWithin == null || commitWithin.length() == 0)
+        commitWithin = null;
+      
       String docMax = params.getParameter(SolrConfig.PARAM_MAXLENGTH);
       if (docMax == null || docMax.length() == 0)
         maxDocumentLength = null;
@@ -206,7 +210,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       try
       {
         poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
-          allowAttributeName,denyAttributeName,idAttributeName,keystoreManager,maxDocumentLength);
+          allowAttributeName,denyAttributeName,idAttributeName,keystoreManager,maxDocumentLength,commitWithin);
       }
       catch (NumberFormatException e)
       {
@@ -649,6 +653,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
+"  {\n"+
+"    alert(\"Commit-within value must be an integer\");\n"+
+"    editconnection.commitwithin.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -715,6 +725,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    alert(\"Maximum document length must be an integer\");\n"+
 "    SelectTab(\"Documents\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
+"  {\n"+
+"    alert(\"Commit-within value must be an integer\");\n"+
+"    SelectTab(\"Commits\");\n"+
+"    editconnection.commitwithin.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -816,6 +833,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (commits == null)
       commits = "true";
     
+    String commitWithin = parameters.getParameter(SolrConfig.PARAM_COMMITWITHIN);
+    if (commitWithin == null)
+      commitWithin = "";
+
     String solrKeystore = parameters.getParameter(SolrConfig.PARAM_KEYSTORE);
     IKeystoreManager localKeystore;
     if (solrKeystore == null)
@@ -1050,6 +1071,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "      <input name=\"commits\" type=\"checkbox\" value=\"true\""+(commits.equals("true")?" checked=\"yes\"":"")+"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Commit each document within (ms):</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"commitwithin\" type=\"text\" size=\"16\" value=\""+commitWithin+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -1057,7 +1084,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     {
       out.print(
 "<input type=\"hidden\" name=\"commits_present\" value=\"true\"/>\n"+
-"<input name=\"commits\" type=\"hidden\" value=\""+commits+"\"/>\n"
+"<input name=\"commits\" type=\"hidden\" value=\""+commits+"\"/>\n"+
+"<input name=\"commitwithin\" type=\"hidden\" value=\""+commitWithin+"\"/>\n"
       );
     }
 
@@ -1273,6 +1301,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         commits = "false";
       parameters.setParameter(SolrConfig.PARAM_COMMITS,commits);
     }
+    
+    String commitWithin = variableContext.getParameter("commitwithin");
+    if (commitWithin != null)
+      parameters.setParameter(SolrConfig.PARAM_COMMITWITHIN,commitWithin);
     
     String keystoreValue = variableContext.getParameter("keystoredata");
     IKeystoreManager mgr;

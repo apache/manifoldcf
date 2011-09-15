@@ -70,9 +70,12 @@ public class HttpPoster
   
   private Long maxDocumentLength;
 
+  private String commitWithin;
+  
   private static final String LITERAL = "literal.";
   private static final String NOTHING = "__NOTHING__";
   private static final String ID_METADATA = "lcf_metadata_id";
+  private static final String COMMITWITHIN_METADATA = "commitWithin";
   
   private int buffersize = 32768;  // default buffer size
   double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
@@ -131,9 +134,12 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    IKeystoreManager keystoreManager, Long maxDocumentLength)
+    IKeystoreManager keystoreManager, Long maxDocumentLength,
+    String commitWithin)
     throws ManifoldCFException
   {
+    this.commitWithin = commitWithin;
+    
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
@@ -300,7 +306,7 @@ public class HttpPoster
     {
       try
       {
-        IngestThread t = new IngestThread(documentURI,document,arguments,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls);
+        IngestThread t = new IngestThread(documentURI,document,arguments,sourceTargets,shareAcls,shareDenyAcls,acls,denyAcls,commitWithin);
         try
         {
           t.start();
@@ -1024,7 +1030,8 @@ public class HttpPoster
     protected String[] shareDenyAcls;
     protected String[] acls;
     protected String[] denyAcls;
-
+    protected String commitWithin;
+    
     protected Long activityStart = null;
     protected Long activityBytes = null;
     protected String activityCode = null;
@@ -1034,7 +1041,7 @@ public class HttpPoster
     protected boolean rval = false;
 
     public IngestThread(String documentURI, RepositoryDocument document, Map arguments, Map sourceTargets,
-      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls)
+      String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
     {
       super();
       setDaemon(true);
@@ -1046,6 +1053,7 @@ public class HttpPoster
       this.acls = acls;
       this.denyAcls = denyAcls;
       this.sourceTargets = sourceTargets;
+      this.commitWithin = commitWithin;
     }
 
     public void run()
@@ -1134,6 +1142,9 @@ public class HttpPoster
                     }
                   }
                 }
+                // Count the commitWithin parameter
+                if (commitWithin != null)
+                  totalLength += lengthField(COMMITWITHIN_METADATA,commitWithin);
                 // Count the binary data
                 totalLength += lengthPreamble();
                 totalLength += lengthBoundary("application/octet-stream","myfile","docname");
@@ -1198,6 +1209,10 @@ public class HttpPoster
                     }
                   }
                 }
+                
+                // Write the commitWithin parameter
+                if (commitWithin != null)
+                  writeField(out,COMMITWITHIN_METADATA,commitWithin);
 
                 // Write the content
                 writePreamble(out);
