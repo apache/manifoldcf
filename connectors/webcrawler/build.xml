@@ -74,7 +74,7 @@
     
     <target name="run-tests" depends="compile-tests">
         <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -82,6 +82,8 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
+            <formatter type="brief" usefile="false"/>
+
             <test name="org.apache.manifoldcf.crawler.connectors.webcrawler.tests.URLTest" todir="test-output"/>
             <!-- MHL -->
         </junit>
