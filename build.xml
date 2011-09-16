@@ -2295,7 +2295,9 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
+            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlPostgresqlTest" todir="test-postgresql-output/filesystem"/>
             <!-- MHL -->
+            
         </junit>
     </target>
 
