@@ -649,6 +649,14 @@ public class Robots
           {
             // We don't complain about this, but right now we don't listen to it either.
           }
+          else if (lowercaseLine.startsWith("sitemap:"))
+          {
+            // We don't complain about this, but right now we don't listen to it either.
+          }
+          else if (lowercaseLine.startsWith("sitemap"))
+          {
+            // We don't complain about this, but right now we don't listen to it either.
+          }
           else
           {
             // If it's not just a blank line, complain

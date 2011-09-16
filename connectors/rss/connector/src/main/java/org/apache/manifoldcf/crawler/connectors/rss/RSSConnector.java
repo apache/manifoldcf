@@ -3493,7 +3493,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         outerTagCount++;
         return new FeedContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
       }
-
+      else if (qName.equals("urlset") || qName.equals("sitemapindex"))
+      {
+        // Sitemap detected
+        outerTagCount++;
+        return new UrlsetContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
+      }
+      
       // The default action is to establish a new default context.
       return super.beginTag(namespaceURI,localName,qName,atts);
     }
@@ -3515,6 +3521,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else if (tagName.equals("feed"))
       {
         rescanTimeSet = ((FeedContextClass)context).process();
+      }
+      else if (tagName.equals("urlset") || tagName.equals("sitemapindex"))
+      {
+        rescanTimeSet = ((UrlsetContextClass)context).process();
       }
       else
         super.endTag();
@@ -4745,6 +4755,214 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found an unincluded URL '"+rawURL+"'");
+          }
+        }
+      }
+    }
+  }
+  
+  protected class UrlsetContextClass extends XMLContext
+  {
+    /** The document identifier */
+    protected String documentIdentifier;
+    /** Activities interface */
+    protected IProcessActivity activities;
+    /** Filter */
+    protected Filter filter;
+
+    /** ttl value */
+    protected String ttlValue = null;
+
+    public UrlsetContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentIdentifier, IProcessActivity activities, Filter filter)
+    {
+      super(theStream,namespaceURI,localName,qName,atts);
+      this.documentIdentifier = documentIdentifier;
+      this.activities = activities;
+      this.filter = filter;
+    }
+
+    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // The tags we care about are "url", nothing else.
+      if (qName.equals("url") || qName.equals("sitemap"))
+      {
+        // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
+        return new UrlsetItemContextClass(theStream,namespaceURI,localName,qName,atts);
+      }
+      // Skip everything else.
+      return super.beginTag(namespaceURI,localName,qName,atts);
+    }
+
+    protected void endTag()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      XMLContext theContext = theStream.getContext();
+      String theTag = theContext.getQname();
+      if (theTag.equals("url") || theTag.equals("sitemap"))
+      {
+        // It's an item.
+        UrlsetItemContextClass itemContext = (UrlsetItemContextClass)theContext;
+        // Presumably, since we are done parsing, we've recorded all the information we need in the context, object including:
+        // (1) File name (if any), containing dechromed content
+        // (2) Link name(s)
+        // (3) Pubdate
+        // (4) Title
+        // The job now is to pull this info out and call the activities interface appropriately.
+
+        // NOTE: After this endTag() method is called, tagCleanup() will be called for the item context.  This should clean up
+        // all dangling files etc. that need to be removed.
+        // If an exception or error is thrown during the parse, this endTag() method will NOT be called, but the tagCleanup()
+        // method will be called regardless.
+        itemContext.process(documentIdentifier,activities,filter);
+      }
+      else
+        super.endTag();
+    }
+
+    /** Process this data */
+    protected boolean process()
+      throws ManifoldCFException
+    {
+      // Deal with the ttlvalue, if it was found
+      // Use the ttl value as a signal for when we ought to look at this feed again.  If not present, use the default.
+      long currentTime = System.currentTimeMillis();
+      Long rescanTime = filter.getDefaultRescanTime(currentTime);
+      if (ttlValue != null)
+      {
+        try
+        {
+          int minutes = Integer.parseInt(ttlValue);
+          long nextTime = currentTime + minutes * 60000L;
+          rescanTime = new Long(nextTime);
+          // Set the upper bound time; we want to scan the feeds aggressively.
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("RSS: In SiteMap document '"+documentIdentifier+"', found a ttl value of "+ttlValue+"; setting refetch time accordingly");
+        }
+        catch (NumberFormatException e)
+        {
+          Logging.connectors.warn("RSS: SiteMap document '"+documentIdentifier+"' has illegal ttl value '"+ttlValue+"'");
+        }
+      }
+
+      if (rescanTime != null)
+      {
+        Long minimumTime = filter.getMinimumRescanTime(currentTime);
+        if (minimumTime != null)
+        {
+          if (rescanTime.longValue() < minimumTime.longValue())
+            rescanTime = minimumTime;
+        }
+      }
+
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("RSS: In SiteMap document '"+documentIdentifier+"' setting rescan time to "+((rescanTime==null)?"null":rescanTime.toString()));
+
+      activities.setDocumentScheduleBounds(documentIdentifier,rescanTime,rescanTime,null,null);
+      return true;
+    }
+  }
+
+  protected class UrlsetItemContextClass extends XMLContext
+  {
+    protected String linkField = null;
+    protected String pubDateField = null;
+
+    public UrlsetItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    {
+      super(theStream,namespaceURI,localName,qName,atts);
+    }
+
+    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // The tags we care about are "loc" and "lastmod", nothing else.
+      if (qName.equals("loc"))
+      {
+        // "loc" tag
+        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+      }
+      else if (qName.equals("lastmod"))
+      {
+        // "lastmod" tag
+        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+      }
+      else
+      {
+        // Skip everything else.
+        return super.beginTag(namespaceURI,localName,qName,atts);
+      }
+    }
+
+    /** Convert the individual sub-fields of the item context into their final forms */
+    protected void endTag()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      XMLContext theContext = theStream.getContext();
+      String theTag = theContext.getQname();
+      if (theTag.equals("loc"))
+      {
+        linkField = ((XMLStringContext)theContext).getValue();
+      }
+      else if (theTag.equals("lastmod"))
+      {
+        pubDateField = ((XMLStringContext)theContext).getValue();
+      }
+      else
+      {
+        super.endTag();
+      }
+    }
+
+    protected void tagCleanup()
+      throws ManifoldCFException
+    {
+    }
+
+    /** Process the data accumulated for this item */
+    public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
+      throws ManifoldCFException
+    {
+      if (linkField != null && linkField.length() > 0)
+      {
+        Long origDate = null;
+        if (pubDateField != null && pubDateField.length() > 0)
+          origDate = parseZuluDate(pubDateField);
+
+        String[] links = linkField.split(", ");
+        int l = 0;
+        while (l < links.length)
+        {
+          String rawURL = links[l++].trim();
+          // Process the link
+          String newIdentifier = makeDocumentIdentifier(filter.getCanonicalizationPolicies(),documentIdentifier,rawURL);
+          if (newIdentifier != null)
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("RSS: In SiteMap document '"+documentIdentifier+"', found a link to '"+newIdentifier+"', which has origination date "+
+              ((origDate==null)?"null":origDate.toString()));
+            if (filter.isLegalURL(newIdentifier))
+            {
+              // It's a reference!  Add it.
+              String[] dataNames = new String[]{"pubdate","source"};
+              String[][] dataValues = new String[dataNames.length][];
+              if (origDate != null)
+                dataValues[0] = new String[]{origDate.toString()};
+              dataValues[1] = new String[]{documentIdentifier};
+                  
+              // Add document reference, including the data to pass down
+              activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: Identifier '"+newIdentifier+"' is excluded");
+            }
+          }
+          else
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("RSS: In SiteMap document '"+documentIdentifier+"', found an unincluded URL '"+rawURL+"'");
           }
         }
       }
