@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-87: Add a framework load test.
+(Karl Wright)
+
 CONNECTORS-255: Add ability to process site map documents, in both
 RSS connector and Web connector.
 (Karl Wright)

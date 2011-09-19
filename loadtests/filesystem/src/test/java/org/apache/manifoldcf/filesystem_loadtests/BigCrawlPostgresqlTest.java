@@ -83,6 +83,7 @@ public class BigCrawlPostgresqlTest extends BasePostgresql
       e.printStackTrace();
       throw e;
     }
+    System.out.println("Done generating files");
   }
   
   @After
@@ -102,7 +103,7 @@ public class BigCrawlPostgresqlTest extends BasePostgresql
   }
   
   @Test
-  public void sanityCheck()
+  public void bigCrawl()
     throws Exception
   {
     try

@@ -92,7 +92,7 @@
             The properties.xml parameter that controls this is <em>org.apache.manifoldcf.database.maxhandles</em>.  The formula you should use to properly set the value is below.
           </p>
           <p></p>
-          <p>worker_thread_count + delete_thread_count + expiration_thread_count + 10 &lt; manifoldcf_db_pool_size</p>
+          <p>worker_thread_count + delete_thread_count + expiration_thread_count + cleanup_thread_count + 10 &lt; manifoldcf_db_pool_size</p>
           <p></p>
         </section>
         <section>
