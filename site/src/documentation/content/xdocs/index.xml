@@ -42,7 +42,7 @@
     
     <section>
 	<title>Project status</title>
-	<p>Apache ManifoldCF 0.2-incubating is available!  Download it <a href="download.html">here</a>.</p>
+	<p>Apache ManifoldCF 0.3-incubating is available!  Download it <a href="download.html">here</a>.</p>
     </section>
 
     <section>
@@ -54,8 +54,16 @@
     <section>
         <title>News</title>
           <section>
-             <title>07 Sep 2011 - ManifoldCF 0.3-incubating RC0 is built!</title>
-                <p>Developer community reviews the third ManifoldCF release.</p>
+             <title>08 Nov 2011 - ManifoldCF in Vancouver</title>
+                <p>ManifoldCF general talk planned for Apache North America 2011, Vancouver, British Columbia, Canada</p>
+          </section>
+          <section>
+             <title>19 Oct 2011 - ManifoldCF in Barcelona</title>
+                <p>ManifoldCF authorization talk planned for Apache Eurocon 2011, Barcelona, Catalonia, Spain</p>
+          </section>
+          <section>
+             <title>20 Sep 2011 - ManifoldCF 0.3-incubating is released!</title>
+                <p>Developer community and Apache Incubator sign off on third release</p>
           </section>
 	  <section>
 	     <title>17 May 2011 - ManifoldCF 0.2-incubating is released!</title>
