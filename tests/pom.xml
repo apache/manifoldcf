@@ -37,10 +37,5 @@
     <module>filesystem</module>
     <module>sharepoint</module>
   </modules>
-  
-  <build>
-    <defaultGoal>test</defaultGoal>
-  </build>
-  
 
 </project>
