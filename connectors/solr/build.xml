@@ -51,7 +51,17 @@
         <copy todir="dist/lib" file="build/jar/mcf-solr-connector.jar"/>
     </target>
 
-    <target name="build" depends="lib"/>
+    <target name="integration">
+        <mkdir dir="dist/integration"/>
+        <copy todir="dist/integration">
+          <fileset dir="integration">
+              <include name="*.jar"/>
+              <include name="*.txt"/>
+          </fileset>
+        </copy>
+    </target>
+    
+    <target name="build" depends="lib,integration"/>
     <target name="build-tests">
       <mkdir dir="build/test-jar"/>
     </target>

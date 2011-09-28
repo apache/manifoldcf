@@ -1362,6 +1362,10 @@
         <copy todir="dist/lib">
             <fileset dir="connectors/solr/dist/lib"/>
         </copy>
+        <mkdir dir="dist/solr-integration"/>
+        <copy todir="dist/solr-integration">
+            <fileset dir="connectors/solr/dist/integration"/>
+        </copy>
     </target>
     
     <target name="deliver-solr-connector-doc" depends="calculate-solr-doc-condition" if="solr-doc.include">
