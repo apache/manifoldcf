@@ -46,6 +46,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   private String password = null;
   private String authentication = null;
   private String userACLsUsername = null;
+  private String cacheLifetime = null;
+  private String cacheLRUsize = null;
+  private long responseLifetime = 60000L;
+  private int LRUsize = 1000;
+
 
   /** Cache manager. */
   private ICacheManager cacheManager = null;
@@ -107,6 +112,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     userACLsUsername = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
     if (userACLsUsername == null)
       userACLsUsername = "sAMAccountName";
+    cacheLifetime = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    cacheLRUsize = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
   }
 
   // All methods below this line will ONLY be called if a connect() call succeeded
@@ -163,6 +174,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     password = null;
     authentication = null;
     userACLsUsername = null;
+    cacheLifetime = null;
+    cacheLRUsize = null;
     super.disconnect();
   }
 
@@ -176,7 +189,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException
   {
     // Construct a cache description object
-    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,domainControllerName,this.userName,this.password);
+    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,domainControllerName,
+      this.userName,this.password,this.responseLifetime,this.LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -329,6 +343,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Domain Controller");
+    tabsArray.add("Cache");
+    
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -358,6 +374,34 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "    alert(\"Authentication cannot be null\");\n"+
 "    SelectTab(\"Domain Controller\");\n"+
 "    editconnection.authentication.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Cache lifetime cannot be null\");\n"+
+"    SelectTab(\"Cache\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
+"  {\n"+
+"    alert(\"Cache lifetime must be an integer\");\n"+
+"    SelectTab(\"Cache\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value == \"\")\n"+
+"  {\n"+
+"    alert(\"Cache LRU size cannot be null\");\n"+
+"    SelectTab(\"Cache\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
+"  {\n"+
+"    alert(\"Cache LRU size must be an integer\");\n"+
+"    SelectTab(\"Cache\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -396,6 +440,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String userACLsUsername = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
     if (userACLsUsername == null)
     	userACLsUsername = "sAMAccountName";
+    String cacheLifetime = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELIFETIME);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    String cacheLRUsize = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
     
     // The "Domain Controller" tab
     if (tabName.equals("Domain Controller"))
@@ -441,6 +491,31 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "<input type=\"hidden\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/>\n"
       );
     }
+    // The "Cache" tab
+    if (tabName.equals("Cache"))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Cache lifetime:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime)+"\"/> minutes</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Cache LRU size:</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Domain Controller tab
+      out.print(
+"<input type=\"hidden\" name=\"cachelifetime\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime)+"\"/>\n"+
+"<input type=\"hidden\" name=\"cachelrusize\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize)+"\"/>\n"
+      );
+    }    
   }
   
   /** Process a configuration post.
@@ -471,6 +546,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String userACLsUsername = variableContext.getParameter("userACLsUsername");
     if (userACLsUsername != null)
       parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERACLsUSERNAME,userACLsUsername);
+    String cacheLifetime = variableContext.getParameter("cachelifetime");
+    if (cacheLifetime != null)
+      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELIFETIME,cacheLifetime);
+    String cacheLRUsize = variableContext.getParameter("cachelrusize");
+    if (cacheLRUsize != null)
+      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELRUSIZE,cacheLRUsize);
+    
     return null;
   }
   
@@ -502,6 +584,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
         );
       }
+      else if (param.length() >="cache lifetime".length() && param.substring(param.length()-"cache lifetime".length()).equalsIgnoreCase("cache lifetime"))
+      {
+        out.print(
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+" minutes</nobr><br/>\n"
+        );
+      }      
       else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
@@ -589,6 +677,17 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     }
     
     expiration = System.currentTimeMillis() + expirationInterval;
+    
+    try
+    {
+      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+      LRUsize = Integer.parseInt(this.cacheLRUsize);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+    }
+    
   }
   
   /** Parse a user name into an ldap search base. */
@@ -719,8 +818,6 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     return strSID.toString();
   }
 
-  protected static long responseLifetime = 60000L;
-  protected static int LRUsize = 1000;
   protected static StringSet emptyStringSet = new StringSet();
   
   /** This is the cache object descriptor for cached access tokens from
@@ -736,18 +833,21 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     protected String adminUserName;
     /** The admin password */
     protected String adminPassword;
+    /** The response lifetime */
+    protected long responseLifetime;
     /** The expiration time */
     protected long expirationTime = -1;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String domainControllerName,
-      String adminUserName, String adminPassword)
+      String adminUserName, String adminPassword, long responseLifetime, int LRUsize)
     {
       super("ActiveDirectoryAuthority",LRUsize);
       this.userName = userName;
       this.domainControllerName = domainControllerName;
       this.adminUserName = adminUserName;
       this.adminPassword = adminPassword;
+      this.responseLifetime = responseLifetime;
     }
 
     /** Return the invalidation keys for this object. */

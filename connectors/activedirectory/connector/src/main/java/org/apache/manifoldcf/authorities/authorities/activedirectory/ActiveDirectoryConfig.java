@@ -37,5 +37,9 @@ public class ActiveDirectoryConfig
   public static final String PARAM_AUTHENTICATION = "Authentication";
   /** UserACLs username attribute */
   public static final String PARAM_USERACLsUSERNAME = "UserACLs username attribute";
+  /** Cache lifetime */
+  public static final String PARAM_CACHELIFETIME = "Cache lifetime";
+  /** Cache LRU size */
+  public static final String PARAM_CACHELRUSIZE = "Cache LRU size";
 
 }
