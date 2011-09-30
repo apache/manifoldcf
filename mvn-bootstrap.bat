@@ -23,4 +23,6 @@ cmd /c mvn install:install-file -Dfile=lib/commons-httpclient-mcf.jar -DgroupId=
 cmd /c mvn install:install-file -Dfile=lib/xercesImpl-mcf.jar -DgroupId=xerces -DartifactId=xercesImpl-mcf -Dversion=2.9.1  -Dpackaging=jar
 cmd /c mvn install:install-file -Dfile=connectors/jcifs/jcifs/jcifs.jar -DgroupId=org.samba.jcifs -DartifactId=jcifs -Dversion=1.3.16  -Dpackaging=jar
 
+cmd /c mvn install:install-file -Dfile=lib/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT.war -DgroupId=org.apache.chemistry.opencmis -DartifactId=chemistry-opencmis-server-inmemory-war -Dversion=0.5.0-SNAPSHOT -Dpackaging=war
+
 echo Dependencies installed
