@@ -48,6 +48,7 @@
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
           </excludes>
+          <forkMode>always</forkMode>
         </configuration>
       </plugin>
     </plugins>
