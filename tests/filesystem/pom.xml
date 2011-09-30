@@ -79,6 +79,9 @@
             <authorityserviceWarPath>target/dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
             <apiWarPath>target/dependency/mcf-api-service-${project.version}.war</apiWarPath>
           </systemPropertyVariables>
+          <excludes>
+            <exclude>**/*Postgresql*.java</exclude>
+          </excludes>
         </configuration>
       </plugin>
 

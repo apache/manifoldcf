@@ -96,6 +96,9 @@
             <apiWarPath>target/dependency/mcf-api-service-${project.version}.war</apiWarPath>
             <openCmisServerWarPath>target/dependency/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT.war</openCmisServerWarPath>
           </systemPropertyVariables>
+          <excludes>
+            <exclude>**/*Postgresql*.java</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>
