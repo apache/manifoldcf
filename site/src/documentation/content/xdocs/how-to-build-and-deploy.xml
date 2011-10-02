@@ -87,12 +87,14 @@
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes)</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
+          <tr><td><em>xxx-integration</em></td><td>pre-built integration components to deploy on target system "xxx", e.g. Solr</td></tr>
         </table>
         <p></p>
         <p>For all of the <em>dist</em> subdirectories above (except for <em>wsdd</em>, which does not correspond to a process), any scripts resulting from the build that pertain to that process will be placed in a <em>script</em> subdirectory.  Thus, the command for executing a command under Windows for the <em>processes</em> subdirectory will be found in <em>dist/processes/script/executecommand.bat</em>.  (This script requires two variables to be set before execution: JAVA_HOME, and MCF_HOME, which should point to ManifoldCF's home execution directory, described below.)  Indeed, everything you need to run an ManifoldCF process can be found under <em>dist/processes</em> when the ant build completes: a <em>define</em> subdirectory containing -D switch description files, a <em>jar</em> subdirectory where jars are placed, and a <em>war</em> subdirectory where war files are output.  </p>
         <p></p>
-        <p>The supplied scripts in the <em>script</em> directory for a process generally take care of building an appropriate classpath and set of -D switches.  If you need to construct a classpath by hand, it is important to remember that "more" is not necessarily "better".  The process deployment strategy implied by the build structure has been carefully thought out to avoid jar conflicts.  Indeed, several connectors are structured using multiple processes precisely for that reason.</p>
+        <p>The supplied scripts in the <em>script</em> directory for a process generally take care of building an appropriate classpath and set of -D switches.  (Note: none of the current connectors require special -D switches at this time.)  If you need to construct a classpath by hand, it is important to remember that "more" is not necessarily "better".  The process deployment strategy implied by the build structure has been carefully thought out to avoid jar conflicts.  Indeed, several connectors are structured using multiple processes precisely for that reason.</p>
         <p></p>
+        <p>The <em>xxx-integration</em> directories contain components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr connector includes plug-in classes for enforcing ManifoldCF security on Solr 3.x and 4.x.  See the README file in each directory for detailed instructions on how to deploy the components.</p>
         
         <section>
           <title>Building the Documentum connector</title>
@@ -111,14 +113,14 @@
         <section>
           <title>Building the JDBC connector, including Oracle, SQLServer, or Sybase JDBC drivers</title>
           <p></p>
-          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  For Oracle, download the appropriate Oracle JDBC jar from the Oracle site, and copy it into the directory "connectors/jdbc/jdbc-drivers".  For SQLServer and Sybase, download jtds.jar, and copy it into the same directory.</p>
+          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  For Oracle, download the appropriate Oracle JDBC jar from the Oracle site, and copy it into the directory "connectors/jdbc/jdbc-drivers".  For SQLServer and Sybase, download jtds.jar, and copy it into the same directory.  The jtds.jar download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the jCIFS connector</title>
           <p></p>
-          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.</p>
+          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.  You can also just type "ant download-dependencies" and this step will be done for you.</p>
           <p></p>
         </section>
         
