@@ -105,6 +105,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     catch (Exception e)
     {
       // Never any exception!
+      e.printStackTrace();
     }
   }
 
@@ -524,7 +525,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    File f = new File(databaseName);
+    File f = new File(databaseName + ".properties");
     if (f.exists())
     {
       // Try to guarantee that all connections are discarded before we shut the database down.  Otherwise we get pool warnings from bitstream.
@@ -532,7 +533,12 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       // Make sure database is shut down.
       closeDatabase();
       // Now, it's OK to delete
-      recursiveDelete(f);
+      singleDelete(f);
+      singleDelete(new File(databaseName + ".data"));
+      singleDelete(new File(databaseName + ".lck"));
+      singleDelete(new File(databaseName + ".log"));
+      singleDelete(new File(databaseName + ".script"));
+      recursiveDelete(new File(databaseName + ".tmp"));
     }
   }
   
@@ -548,13 +554,19 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         if (newf.isDirectory())
           recursiveDelete(newf);
         else
-          newf.delete();
+          singleDelete(newf);
       }
     }
     if (!f.delete())
-      System.out.println("Failed to delete file "+f.toString());
+      System.out.println("Failed to delete directory "+f.toString());
   }
 
+  protected static void singleDelete(File f)
+  {
+    if (!f.delete())
+      System.out.println("Failed to delete file "+f.toString());
+  }
+  
   /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
   * should be thrown.
   *@param theException is the exception to reinterpret
