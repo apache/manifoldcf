@@ -100,7 +100,10 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     // For the shutdown itself, eat the exception
     try
     {
-      DriverManager.getConnection(_url+databaseName+";shutdown=true",userName,password).close();
+      Connection c = DriverManager.getConnection(_url+databaseName,userName,password);
+      Statement s = c.createStatement();
+      s.execute("SHUTDOWN");
+      c.close();
     }
     catch (Exception e)
     {
