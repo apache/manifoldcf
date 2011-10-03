@@ -81,6 +81,7 @@
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
+            <exclude>**/*HSQLDB*.java</exclude>
           </excludes>
           <forkMode>always</forkMode>
           <workingDirectory>.</workingDirectory>
