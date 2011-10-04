@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-268: Move sources for, and prebuild, the MCPermissions
+web service plugin for the SharePoint connector.
+(Karl Wright)
+
 CONNECTORS-257: Add cache control fields to make Active Directory authority
 configuration more flexible with regards to cache.
 (Karl Wright, Shinichiro Abe)

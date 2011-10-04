@@ -1570,6 +1570,10 @@
         <copy todir="dist/wsdd">
             <fileset dir="connectors/sharepoint/dist/wsdd"/>
         </copy>
+        <mkdir dir="dist/sharepoint-integration"/>
+        <copy todir="dist/sharepoint-integration">
+            <fileset dir="connectors/sharepoint/dist/integration"/>
+        </copy>
     </target>
     
     <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">
