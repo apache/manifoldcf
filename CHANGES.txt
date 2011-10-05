@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-264: Changing the repositoryId to an empty value is not possible
+(Piergiorgio Lucidi)
+
+CONNECTORS-265: removed from the CMIS Connector all the HTML snippets from the Java code
+(Piergiorgio Lucidi)
+
 CONNECTORS-268: Move sources for, and prebuild, the MCPermissions
 web service plugin for the SharePoint connector.
 (Karl Wright)

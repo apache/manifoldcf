@@ -16,9 +16,12 @@
  */
 package org.apache.manifoldcf.crawler.connectors.cmis;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.rmi.NotBoundException;
@@ -46,6 +49,7 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.impl.Constants;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -88,6 +92,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
   private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ssZ");
+  
+  private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
+  private static final String EDIT_CONFIG_FORWARD = "editConfiguration.html";
+  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
+  
+  private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
+  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
 
   /**
    * CMIS Session handle
@@ -565,6 +577,60 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   }
 
   /**
+   * Read the content of a resource, replace the variable ${PARAMNAME} with the
+   * value and copy it to the out.
+   * 
+   * @param resName
+   * @param out
+   * @throws ManifoldCFException
+   */
+  private void outputResource(String resName, IHTTPOutput out,
+      ConfigParams params) throws ManifoldCFException {
+    InputStream is = getClass().getResourceAsStream(resName);
+    BufferedReader br = null;
+    try {
+      br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+      String line;
+      while ((line = br.readLine()) != null) {
+        if (params != null){
+          Iterator i = params.listParameters();
+          boolean parsedLine = false;
+          while(i.hasNext()){
+            String key = (String) i.next();
+            String value = params.getParameter(key);
+            String replacer = "${"+key.toUpperCase()+"}";
+            if(StringUtils.contains(line, replacer)){  
+              if(StringUtils.isEmpty(value)){
+                out.println(StringUtils.replace(line, replacer, StringUtils.EMPTY));
+                parsedLine=true;
+              } else {
+                out.println(StringUtils.replace(line, replacer, value));
+                parsedLine=true;
+              }
+            } else if(StringUtils.contains(line, "${")){
+                parsedLine=true;
+            } else if(!parsedLine){
+                out.println(line);
+                parsedLine=true;
+            }
+          }
+        } else {
+            break;
+        }
+      }
+    } catch (UnsupportedEncodingException e) {
+      throw new ManifoldCFException(e);
+    } catch (IOException e) {
+      throw new ManifoldCFException(e);
+    } finally {
+      if (br != null)
+        IOUtils.closeQuietly(br);
+      if (is != null)
+        IOUtils.closeQuietly(is);
+    }
+  }
+  
+  /**
    * View configuration. This method is called in the body section of the
    * connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML that
@@ -582,28 +648,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       ConfigParams parameters) throws ManifoldCFException, IOException {
-    out.print("<table class=\"displaytable\">\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"
-        + "    <td class=\"value\" colspan=\"3\">\n");
-    Iterator iter = parameters.listParameters();
-    while (iter.hasNext()) {
-      String param = (String) iter.next();
-      String value = parameters.getParameter(param);
-      if (param.length() >= "password".length()
-          && param.substring(param.length() - "password".length())
-              .equalsIgnoreCase("password")) {
-        out.print("      <nobr>"
-            + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)
-            + "=********</nobr><br/>\n");
-      } else {
-        out.print("      <nobr>"
-            + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param) + "="
-            + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)
-            + "</nobr><br/>\n");
-      }
-    }
-    out.print("</td>\n" + "  </tr>\n" + "</table>\n");
+    String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+    if(StringUtils.isEmpty(repositoryId))
+      repositoryId = StringUtils.EMPTY;
+    parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+    outputResource(VIEW_CONFIG_FORWARD, out, parameters);
   }
 
   /**
@@ -627,91 +676,18 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void outputConfigurationHeader(IThreadContext threadContext,
       IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    out.print("<script type=\"text/javascript\">\n" + "<!--\n"
-        + "function checkConfig()\n" + "{\n"
-        + "  if (editconnection.username.value == \"\")\n" + "  {\n"
-        + "    alert(\"The username must be not null\");\n"
-        + "    editconnection.username.focus();\n" + "    return false;\n"
-        + "  }\n" + "  if (editconnection.password.value == \"\")\n" + "  {\n"
-        + "    alert(\"The password must be not null\");\n"
-        + "    editconnection.password.focus();\n" + "    return false;\n"
-        + "  }\n" + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
-        + "    alert(\"The endpoint must be not null\");\n"
-        + "    editconnection.endpoint.focus();\n" + "    return false;\n"
-        + "  }\n" + "  if (editconnection.binding.value == \"\")\n" + "  {\n"
-        + "    alert(\"The binding must be not null\");\n"
-        + "    editconnection.binding.focus();\n" + "    return false;\n"
-        + "  }\n" + "\n" + "  return true;\n" + "}\n" + " \n"
-        + "function checkConfigForSave()\n" + "{\n"
-        + "  if (editconnection.username.value == \"\")\n" + "  {\n"
-        + "    alert(\"The username must be not null\");\n"
-        + "    editconnection.username.focus();\n" + "    return false;\n"
-        + "  }\n" + "  if (editconnection.password.value == \"\")\n" + "  {\n"
-        + "    alert(\"The password must be not null\");\n"
-        + "    editconnection.password.focus();\n" + "    return false;\n"
-        + "  }\n" + "  if (editconnection.binding.value == \"\")\n" + "  {\n"
-        + "    alert(\"The binding must be not null\");\n"
-        + "    editconnection.binding.focus();\n" + "    return false;\n"
-        + "  }\n" + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
-        + "    alert(\"The endpoint must be not null\");\n"
-        + "    editconnection.endpoint.focus();\n" + "    return false;\n"
-        + "  }\n" + "  return true;\n" + "}\n" + "\n" + "//-->\n"
-        + "</script>\n");
+    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, parameters);
   }
 
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
       IHTTPOutput out, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
-    
-    String username = parameters.getParameter(CONFIG_PARAM_USERNAME);
-    String password = parameters.getParameter(CONFIG_PARAM_PASSWORD);
-    String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
     String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
-    String binding = parameters.getParameter(CONFIG_PARAM_BINDING);
-    
-    if(StringUtils.isEmpty(username))
-      username = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(password))
-      password = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(endpoint))
-      endpoint = StringUtils.EMPTY;
     if(StringUtils.isEmpty(repositoryId))
       repositoryId = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(binding))
-      binding = BINDING_ATOM_VALUE;
-    
-    out.print("<table class=\"displaytable\">\n"
-        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
-    out.print(
-         "<tr><td class=\"description\"><nobr>Binding:</nobr></td>\n"
-        +"<td class=\"value\"><select name=\"binding\">");
-    
-    if(BINDING_ATOM_VALUE.equals(binding)){    
-      out.print("<option value=\""+BINDING_ATOM_VALUE+"\" selected=\"selected\">AtomPub</option>"
-          +"<option value=\""+BINDING_WS_VALUE+"\">Web Services</option>"
-          +"</select></td></tr>");
-      
-    } else if(BINDING_WS_VALUE.equals(binding)) {
-      out.print("<option value=\""+BINDING_ATOM_VALUE+"\">AtomPub</option>"
-          +"<option value=\""+BINDING_WS_VALUE+"\" selected=\"selected\">Web Services</option>"
-          +"</select></td></tr>");
-    }
-    
-    out.print("<tr><td class=\"description\"><nobr>Username:</nobr></td>\n"
-        +"<td class=\"value\"><input type=\"text\" name=\""
-        + CONFIG_PARAM_USERNAME + "\" value=\""+username+"\"/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>Password:</nobr></td>" +
-    		"<td class=\"value\"><input type=\"password\" name=\""
-        + CONFIG_PARAM_PASSWORD + "\" value=\""+password+"\"/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>Endpoint:</nobr></td>" +
-    		"<td class=\"value\"><input type=\"text\" name=\""
-        + CONFIG_PARAM_ENDPOINT + "\" value=\""+endpoint+"\" size=\"50\"/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>Repository ID:</nobr></td>" +
-    		"<td class=\"value\"><input type=\"text\" name=\""
-        + CONFIG_PARAM_REPOSITORY_ID + "\" value=\""+repositoryId+"\"/><nobr>(optional)</nobr></td></tr>\n");
-    out.print("</table>\n");
-    
+    parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+    outputResource(EDIT_CONFIG_FORWARD, out, parameters);
   }
 
   /**
@@ -754,10 +730,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     if (StringUtils.isNotEmpty(endpoint) && endpoint.length() > 0)
       parameters.setParameter(CONFIG_PARAM_ENDPOINT, endpoint);
 
-    String repositoryId = variableContext
-        .getParameter(CONFIG_PARAM_REPOSITORY_ID);
-    if (StringUtils.isNotEmpty(repositoryId))
-      parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+    String repositoryId = variableContext.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+    parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
 
     return null;
   }
@@ -776,31 +750,20 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
-
-    out.print("<table class=\"displaytable\">\n");
     int i = 0;
     boolean seenAny = false;
+    ConfigParams specificationParams = new ConfigParams();
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
         if (seenAny == false) {
           seenAny = true;
         }
-        out.print("  <tr>\n"
-            + "    <td class=\"description\">CMIS Query:</td>\n"
-            + "    <td class=\"value\">\n"
-            + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn
-                .getAttributeValue(CONFIG_PARAM_CMIS_QUERY)));
-        out.print("    </td>\n" + "  </tr>\n");
+        specificationParams.setParameter(CONFIG_PARAM_CMIS_QUERY.toUpperCase(), sn.getAttributeValue(CONFIG_PARAM_CMIS_QUERY));
       }
       i++;
     }
-
-    if (seenAny == false) {
-      out.print("  <tr><td class=\"message\">No documents specified</td></tr>\n");
-    }
-    out.print("</table>\n");
-
+    outputResource(VIEW_SPEC_FORWARD, out, specificationParams);
   }
 
   /**
@@ -881,19 +844,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         }
         i++;
       }
-
-      out.print("<table class=\"displaytable\">\n"
-          + "  <tr><td class=\"separator\" colspan=\"3\"><hr/></td></tr>\n"
-          + "        <tr>\n"
-          + "       <td class=\"description\"><nobr>CMIS Query:</nobr></td>"
-          + "          <td class=\"value\">\n"
-          + "            <nobr>\n"
-          + "              <input type=\"text\" size=\"120\" name=\"cmisQuery\" value=\""+cmisQuery+"\"/>\n"
-          + "            </nobr>\n"
-          + "          </td>\n"
-          + "  			</tr>\n"
-          + "  </tr>"
-          + "</table>\n");
+      
+      ConfigParams params = new ConfigParams();
+      params.setParameter(CONFIG_PARAM_CMIS_QUERY, cmisQuery);
+      outputResource(EDIT_SPEC_FORWARD, out, params);
     }
   }
 
@@ -916,14 +870,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     tabsArray.add(TAB_LABEL_CMIS_QUERY);
-
-    out.print("<script type=\"text/javascript\">\n"
-        + "function checkSpecification()\n" + "{\n"
-        + "  // Does nothing right now.\n" + "  return true;\n" + "}\n" + "\n"
-        + "function SpecOp(n, opValue, anchorvalue)\n" + "{\n"
-        + "  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"
-        + "  postFormSetAnchor(anchorvalue);\n" + "}\n" + "</script>\n");
-
+    outputResource(EDIT_SPEC_HEADER_FORWARD, out, params);
   }
 
   @Override
