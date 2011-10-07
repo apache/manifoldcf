@@ -186,7 +186,7 @@
              <li>webs.wsdl</li>
           </ul>
           <p></p>
-          <p>To download a wsdl, use Microsoft's <strong>disco.exe</strong> tool, which is part of Visual Studio, typically under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".  You'd want to interrogate the following urls:</p>
+          <p>To download a wsdl, use Microsoft's <strong>disco.exe</strong> tool, which is part of Microsoft's Visual Studio, typically under <em>c:\Program Files\Microsoft SDKs\Windows\V6.x\bin</em>.  You'd want to interrogate the following urls:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;server_name&#62;/_vti_bin/Permissions.asmx</li>
@@ -197,19 +197,10 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>When the wsdl files have been downloaded, copy them to: "connectors/sharepoint/wsdls".</p>
+          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/wsdls</em> before building.</p>
           <p></p>
-          <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.</p>
-          <p></p>
-          <p>In order to build the service, you need to have access to a Windows machine that has a reasonably current version of Microsoft Visual Studio available, with .NET installed and (at least) SharePoint 2.0 installed as well.  The fastest way to build the service is to do the following <strong>after</strong> building everything else:</p>
-          <p></p>
-          <source>
-cd connectors/sharepoint
-ant build-webservice
-cd webservice/Package
-          </source>
-          <p></p>
-          <p>Then, follow the directions in the file "Installation Readme.txt", found in that directory.</p>
+          <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.  This service can be found in the directory <em>dist/sharepoint-integration</em> after ManifoldCF is built.
+            To install it on your SharePoint 3.0 machine, follow the directions in the file <strong>Installation Readme.txt</strong>, found in that directory.</p>
           <p></p>
           <p></p>
         </section>
