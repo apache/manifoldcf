@@ -547,26 +547,29 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   
   protected static void recursiveDelete(File f)
   {
-    File[] files = f.listFiles();
-    if (files != null)
+    if (f.exists())
     {
-      int i = 0;
-      while (i < files.length)
+      File[] files = f.listFiles();
+      if (files != null)
       {
-        File newf = files[i++];
-        if (newf.isDirectory())
-          recursiveDelete(newf);
-        else
-          singleDelete(newf);
+        int i = 0;
+        while (i < files.length)
+        {
+          File newf = files[i++];
+          if (newf.isDirectory())
+            recursiveDelete(newf);
+          else
+            singleDelete(newf);
+        }
       }
+      if (!f.delete())
+        System.out.println("Failed to delete directory "+f.toString());
     }
-    if (!f.delete())
-      System.out.println("Failed to delete directory "+f.toString());
   }
 
   protected static void singleDelete(File f)
   {
-    if (!f.delete())
+    if (f.exists() && !f.delete())
       System.out.println("Failed to delete file "+f.toString());
   }
   
