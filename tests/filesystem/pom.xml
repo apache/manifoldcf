@@ -75,16 +75,16 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <systemPropertyVariables>
-            <crawlerWarPath>target/dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
-            <authorityserviceWarPath>target/dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
-            <apiWarPath>target/dependency/mcf-api-service-${project.version}.war</apiWarPath>
+            <crawlerWarPath>../dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
+            <authorityserviceWarPath>../dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
+            <apiWarPath>../dependency/mcf-api-service-${project.version}.war</apiWarPath>
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
             <exclude>**/*HSQLDB*.java</exclude>
           </excludes>
           <forkMode>always</forkMode>
-          <workingDirectory>.</workingDirectory>
+          <workingDirectory>target/test-output</workingDirectory>
         </configuration>
       </plugin>
 

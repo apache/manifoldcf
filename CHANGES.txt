@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-269: Get the maven build working properly again, including
+the HSQLDB tests, and the clean operation.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-264: Changing the repositoryId to an empty value is not possible
 (Piergiorgio Lucidi)
 

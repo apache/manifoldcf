@@ -50,6 +50,7 @@
             <exclude>**/*Postgresql*.java</exclude>
           </excludes>
           <forkMode>always</forkMode>
+          <workingDirectory>target/test-output</workingDirectory>
         </configuration>
       </plugin>
     </plugins>
