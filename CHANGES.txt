@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-270: The OpenSearchServer connector pom.xml was incorrect,
+and skipped the resources needed to run the connector properly.
+(Karl Wright)
+
 CONNECTORS-269: Get the maven build working properly again, including
 the HSQLDB tests, and the clean operation.
 (Piergiorgio Lucidi, Karl Wright)
