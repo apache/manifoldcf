@@ -40,6 +40,7 @@
         <tr><td>JDBC</td><td> Pure Java </td><td> Various </td><td> Supports JDBC V2, V3, V4; tested with Oracle 10, JTDS 1.2, Postgresql 8.3 drivers </td><td> Various </td></tr>
         <tr><td>RSS</td><td> Pure Java </td><td> N/A </td><td> N/A </td><td>Atom, RSS 2.0, others </td></tr>
         <tr><td>Web</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>HTML Version 1.0, 1.1, 2.0, Atom, RSS 2.0, others </td></tr>
+        <tr><td>Wiki</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>Wiki version 1.8 and above </td></tr>
         <tr><td>LiveLink (OpenText)</td><td> Pure Java </td><td> Win </td><td> LAPI 9.7.1 </td><td> Tested with 9.2.0 - 9.7.1 </td></tr>
         <tr><td>OpenSearchServer</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with OpenSearchServer 1.2.1, 1.2.2, 1.2.3 </td></tr>
         <tr><td>Documentum (EMC)</td><td> Win, RedHat </td><td> Win, RedHat </td><td> Tested with DFC 5.3 SP5 </td><td> Tested against 5.3, 6.0, and 6.5 servers </td></tr>

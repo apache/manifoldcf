@@ -88,7 +88,7 @@
                 <title>Defining Authority Connections</title>
                 <p>The Framework UI's left-side menu contains a link for listing authority connections.  An authority connection is a connection to a system that defines a particular security environment.
                        For example, if you want to index some documents that are protected by Active Directory, you would need to configure an Active Directory authority connection.</p>
-                <p>You may not need an authority if you do not mind that portions of all the documents you want to index are visible to everyone.  For web crawling and RSS crawling, this might be the
+                <p>You may not need an authority if you do not mind that portions of all the documents you want to index are visible to everyone.  For web, RSS, and Wiki crawling, this might be the
                        situation.  Most other repositories have some security mechanism, however.</p>
                 <p>You should define your authority connections <b>before</b> setting up your repository connections.  While it is possible to change the relationship between a repository connection
                        and its authority after-the-fact, in practice such changes may cause many documents to require reindexing.</p>
@@ -1225,6 +1225,11 @@
 
             </section>
 
+            <section id="wikirepository">
+                <title>Wiki Repository Connection</title>
+                <p>COMING SOON</p>
+            </section>
+            
             <section id="jdbcrepository">
                 <title>Generic Database Repository Connection</title>
                 <p>The generic database connection type allows you to index content from a database table, served by one of the following databases:</p>

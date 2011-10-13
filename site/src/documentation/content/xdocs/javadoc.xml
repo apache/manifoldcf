@@ -49,6 +49,7 @@
       <p><a href="api/sharepoint/index.html">SharePoint connector</a></p>
       <p><a href="api/solr/index.html">Solr output connector</a></p>
       <p><a href="api/webcrawler/index.html">Web connector</a></p>
+      <p><a href="api/wiki/index.html">Wiki connector</a></p>
     </section>
   </body>
 </document>
