@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-256: Add a Wiki connector, including basic sanity tests
+and build logic.
+(Karl Wright, Tobias Wunderlich)
+
 CONNECTORS-270: The OpenSearchServer connector pom.xml was incorrect,
 and skipped the resources needed to run the connector properly.
 (Karl Wright)

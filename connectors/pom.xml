@@ -46,6 +46,7 @@
     <module>webcrawler</module>
     <module>cmis</module>
     <module>opensearchserver</module>
+    <module>wiki</module>
   </modules>
 
 </project>

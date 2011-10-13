@@ -1,0 +1,138 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project default="all">
+
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+        <delete dir="test-output"/>
+        <delete dir="test-output-postgresql"/>
+        <delete dir="test-output-HSQLDB"/>
+    </target>
+
+    <target name="doc">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" source="1.5">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+            <fileset dir="connector/src/main/java" includes="**/*.java"/>
+        </javadoc>
+    </target>
+
+    <target name="compile-connector">
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-connector-tests" depends="compile-connector">
+        <mkdir dir="build/connector-tests/classes"/>
+        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+            </classpath>
+        </javac>
+    </target>
+    
+    <target name="compile-tests" depends="compile-connector-tests"/>
+
+    <target name="jar-connector" depends="compile-connector">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-wiki-connector.jar" basedir="build/connector/classes"/>
+    </target>
+
+    <target name="lib" depends="jar-connector">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib" file="build/jar/mcf-wiki-connector.jar"/>
+    </target>
+
+    <target name="jar-connector-tests" depends="compile-connector-tests">
+        <mkdir dir="build/test-jar"/>
+        <jar destfile="build/test-jar/mcf-wiki-connector-tests.jar" basedir="build/connector-tests/classes"/>
+    </target>
+
+    <target name="build" depends="lib"/>
+    
+    <target name="build-tests" depends="jar-tests"/>
+
+    <target name="jar-tests" depends="jar-connector-tests"/>
+
+    <target name="run-tests" depends="compile-tests"/>
+    
+    <target name="run-tests-derby" depends="compile-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.crawler.connectors.wiki.tests.SanityDerbyTest" todir="test-output"/>
+            <!-- MHL -->
+            
+        </junit>
+    </target>
+    
+    <target name="run-tests-postgresql" depends="compile-tests">
+        <mkdir dir="test-output-postgresql"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            
+            <test name="org.apache.manifoldcf.crawler.connectors.wiki.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
+            <!-- MHL -->
+            
+        </junit>
+    </target>
+
+    <target name="run-tests-HSQLDB" depends="compile-tests">
+        <mkdir dir="test-output-HSQLDB"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            
+            <test name="org.apache.manifoldcf.crawler.connectors.wiki.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
+            <!-- MHL -->
+            
+        </junit>
+    </target>
+    
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
+    
+</project>
