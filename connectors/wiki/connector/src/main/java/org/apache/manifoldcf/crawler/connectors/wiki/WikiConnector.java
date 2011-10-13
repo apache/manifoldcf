@@ -114,7 +114,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         portString = null;
       String path = params.getParameter(WikiConfig.PARAM_PATH);
       if (path == null)
-        path = "";
+        path = "/w";
       
       baseURL = protocol + "://" + server + ((portString!=null)?":" + portString:"") + path + "/api.php?format=xml&";
 
@@ -385,7 +385,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String path = parameters.getParameter(WikiConfig.PARAM_PATH);
     if (path == null)
-      path = "";
+      path = "/w";
 
     if (tabName.equals("Server"))
     {
