@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-274: Fix long-standing problem with XML parsing, which
+affected the wiki connector in a big way.
+(Tobias Wunderlich, Karl Wright)
+
 CONNECTORS-256: Add a Wiki connector, including basic sanity tests
 and build logic.
 (Karl Wright, Tobias Wunderlich)

@@ -182,7 +182,7 @@ public class XMLWriterContext extends XMLContext
   /** Escapes sequence of characters to output writer */
   protected static void escapeCharData(char [] chars, int start, int length, Writer out) throws IOException
   {
-    for (int i=start; i<length; i++) {
+    for (int i=start; i<start+length; i++) {
       char x = chars[i];
       if (x == '<' || x == '>' || x == '&'|| (x < ' ' && x >= 0))
       {
