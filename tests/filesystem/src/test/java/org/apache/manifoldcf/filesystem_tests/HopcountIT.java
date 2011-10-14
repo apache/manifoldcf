@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a test which checks to be sure hopcount functionality is working properly. */
-public class HopcountPostgresqlTest extends BasePostgresql
+public class HopcountIT extends Base
 {
   
   @Before

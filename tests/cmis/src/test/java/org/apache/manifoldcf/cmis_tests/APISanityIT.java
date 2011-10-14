@@ -1,4 +1,5 @@
-/* $Id: APISanity.java 996524 2010-09-13 13:38:01Z kwright $ */
+package org.apache.manifoldcf.cmis_tests;
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,20 +17,133 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.filesystem_tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.QueryResult;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.client.api.SessionFactory;
+import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.BindingType;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.chemistry.opencmis.commons.spi.ObjectService;
+import org.apache.commons.lang.StringUtils;
+import org.apache.manifoldcf.core.interfaces.Configuration;
+import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.io.*;
-import java.util.*;
-import org.junit.*;
-
-/** This is a very basic sanity check */
-public class APISanityPostgresqlTest extends BasePostgresql
+/**
+ * @author Piergiorgio Lucidi
+ */
+public class APISanityIT extends Base
 {
+  private static final String REPLACER = "?";
+  private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
+  private static final String CMIS_TEST_QUERY = "SELECT * FROM cmis:folder WHERE cmis:name='testdata'";
+  
+  private static final String CMIS_ENDPOINT_TEST_SERVER = "http://localhost:9090/chemistry-opencmis-server-inmemory/atom";
+  private static final String CMIS_USERNAME = "dummyuser"; 
+  private static final String CMIS_PASSWORD = "dummysecret";
+  private static final String CMIS_BINDING = "atom";
+  
+  private Session cmisClientSession = null;
+  
+  private Session getCmisClientSession(){
+    // default factory implementation
+    SessionFactory factory = SessionFactoryImpl.newInstance();
+    Map<String, String> parameters = new HashMap<String, String>();
+
+    // user credentials
+    parameters.put(SessionParameter.USER, CMIS_USERNAME);
+    parameters.put(SessionParameter.PASSWORD, CMIS_PASSWORD);
+
+    // connection settings
+    parameters.put(SessionParameter.ATOMPUB_URL, CMIS_ENDPOINT_TEST_SERVER);
+    parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+
+    // create session
+    return factory.getRepositories(parameters).get(0).createSession();
+  }
+  
+  public Folder getTestFolder(Session session){
+    Folder testFolder = null;
+    ItemIterable<QueryResult> results = session.query(CMIS_TEST_QUERY, false);
+    for (QueryResult result : results) {
+      String folderId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+      testFolder = (Folder)session.getObject(folderId);
+    }
+    return testFolder;
+  }
+  
+  public void createNewDocument(Folder folder, String name) throws IOException{
+    // properties 
+    // (minimal set: name and object type id)
+    Map<String, Object> contentProperties = new HashMap<String, Object>();
+    contentProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+    contentProperties.put(PropertyIds.NAME, name);
+  
+    // content
+    String contentString = "CMIS Testdata "+name;
+    byte[] content = contentString.getBytes();
+    InputStream stream = new ByteArrayInputStream(content);
+    ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(content), "text/plain", stream);
+  
+    // create a major version
+    folder.createDocument(contentProperties, contentStream, null);
+    stream.close();
+  }
+  
+  /**
+   * change the document content with the new one provided as an argument
+   * @param session
+   * @param name
+   * @param newContent
+   */
+  public void changeDocument(Session session, String name, String newContent){
+    String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
+    ItemIterable<QueryResult> results = session.query(cmisQuery, false);
+    String objectId = StringUtils.EMPTY;
+    for (QueryResult result : results) {
+      objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+    }
+    String repositoryId = session.getRepositoryInfo().getId();
+    Holder<String> objectIdHolder = new Holder<String>(objectId);
+    Boolean overwriteFlag = true;
+    byte[] newContentByteArray = newContent.getBytes();
+    InputStream stream = new ByteArrayInputStream(newContentByteArray);
+    ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(newContentByteArray), "text/plain", stream);
+    ObjectService objectService = session.getBinding().getObjectService();
+    objectService.setContentStream(repositoryId, objectIdHolder, overwriteFlag, null, contentStream, null);
+  }
+  
+  public void removeDocument(Session session, String name){
+    String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
+    ItemIterable<QueryResult> results = session.query(cmisQuery, false);
+    String objectId = StringUtils.EMPTY;
+    for (QueryResult result : results) {
+      objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+    }
+    String repositoryId = session.getRepositoryInfo().getId();
+    ObjectService objectService = session.getBinding().getObjectService();
+    objectService.deleteObject(repositoryId, objectId, true, null);
+  }
   
   @Before
   public void createTestArea()
@@ -37,9 +151,30 @@ public class APISanityPostgresqlTest extends BasePostgresql
   {
     try
     {
-      File f = new File("testdata");
-      removeDirectory(f);
-      createDirectory(f);
+      cmisClientSession = getCmisClientSession();
+
+      //creating a new folder
+      Folder root = cmisClientSession.getRootFolder();
+      
+      ItemIterable<QueryResult> results = cmisClientSession.query(CMIS_TEST_QUERY, false);
+      for (QueryResult result : results) {
+         String repositoryId = cmisClientSession.getRepositoryInfo().getId();
+        String folderId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+        cmisClientSession.getBinding().getObjectService().deleteTree(repositoryId, folderId, true, null, false, null);
+      }
+
+      Map<String, Object> folderProperties = new HashMap<String, Object>();
+      folderProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+      folderProperties.put(PropertyIds.NAME, "testdata");
+  
+      Folder newFolder = root.createFolder(folderProperties);
+
+      String name = "testdata1.txt";
+      createNewDocument(newFolder, name);
+      
+      name = "testdata2.txt";
+      createNewDocument(newFolder,name);
+      
     }
     catch (Exception e)
     {
@@ -52,16 +187,7 @@ public class APISanityPostgresqlTest extends BasePostgresql
   public void removeTestArea()
     throws Exception
   {
-    try
-    {
-      File f = new File("testdata");
-      removeDirectory(f);
-    }
-    catch (Exception e)
-    {
-      e.printStackTrace();
-      throw e;
-    }
+    // we don't need to remove anything
   }
   
   @Test
@@ -70,11 +196,8 @@ public class APISanityPostgresqlTest extends BasePostgresql
   {
     try
     {
-      // Hey, we were able to install the file system connector etc.
-      // Now, create a local test job and run it.
-      IThreadContext tc = ThreadContextFactory.make();
+      
       int i;
-      IJobManager jobManager = JobManagerFactory.make(tc);
 
       // Create a basic file system connection, and save it.
       ConfigurationNode connectionObject;
@@ -85,25 +208,55 @@ public class APISanityPostgresqlTest extends BasePostgresql
       connectionObject = new ConfigurationNode("repositoryconnection");
       
       child = new ConfigurationNode("name");
-      child.setValue("File Connection");
+      child.setValue("CMIS Connection");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("class_name");
-      child.setValue("org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector");
+      child.setValue("org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("description");
-      child.setValue("File Connection");
+      child.setValue("CMIS Connection");
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
-      child.setValue("100");
+      child.setValue("10");
+      connectionObject.addChild(connectionObject.getChildCount(),child);
+      
+      child = new ConfigurationNode("configuration");
+      
+      //CMIS Repository Connector parameters
+      
+      //binding
+      ConfigurationNode cmisBindingNode = new ConfigurationNode("_PARAMETER_");
+      cmisBindingNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_BINDING);
+      cmisBindingNode.setValue(CMIS_BINDING);
+      child.addChild(child.getChildCount(), cmisBindingNode);
+      
+      //username
+      ConfigurationNode cmisUsernameNode = new ConfigurationNode("_PARAMETER_");
+      cmisUsernameNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_USERNAME);
+      cmisUsernameNode.setValue(CMIS_USERNAME);
+      child.addChild(child.getChildCount(), cmisUsernameNode);
+      
+      //password
+      ConfigurationNode cmisPasswordNode = new ConfigurationNode("_PARAMETER_");
+      cmisPasswordNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_PASSWORD);
+      cmisPasswordNode.setValue(CMIS_PASSWORD);
+      child.addChild(child.getChildCount(), cmisPasswordNode);
+      
+      //endpoint
+      ConfigurationNode cmisEndpointNode = new ConfigurationNode("_PARAMETER_");
+      cmisEndpointNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_ENDPOINT);
+      cmisEndpointNode.setValue(CMIS_ENDPOINT_TEST_SERVER);
+      child.addChild(child.getChildCount(), cmisEndpointNode);
+      
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       requestObject = new Configuration();
       requestObject.addChild(0,connectionObject);
       
-      result = performAPIPutOperationViaNodes("repositoryconnections/File%20Connection",201,requestObject);
+      result = performAPIPutOperationViaNodes("repositoryconnections/CMIS%20Connection",201,requestObject);
       
       i = 0;
       while (i < result.getChildCount())
@@ -153,7 +306,7 @@ public class APISanityPostgresqlTest extends BasePostgresql
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("repository_connection");
-      child.setValue("File Connection");
+      child.setValue("CMIS Connection");
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("output_connection");
@@ -173,22 +326,12 @@ public class APISanityPostgresqlTest extends BasePostgresql
       jobObject.addChild(jobObject.getChildCount(),child);
 
       child = new ConfigurationNode("document_specification");
-      // Crawl everything underneath the 'testdata' area
-      File testDataFile = new File("testdata").getCanonicalFile();
-      if (!testDataFile.exists())
-        throw new ManifoldCFException("Test data area not found!  Looking in "+testDataFile.toString());
-      if (!testDataFile.isDirectory())
-        throw new ManifoldCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
+      
+      
+      //Job configuration
       ConfigurationNode sn = new ConfigurationNode("startpoint");
-      sn.setAttribute("path",testDataFile.toString());
-      ConfigurationNode n = new ConfigurationNode("include");
-      n.setAttribute("type","file");
-      n.setAttribute("match","*");
-      sn.addChild(sn.getChildCount(),n);
-      n = new ConfigurationNode("include");
-      n.setAttribute("type","directory");
-      n.setAttribute("match","*");
-      sn.addChild(sn.getChildCount(),n);
+      sn.setAttribute("cmisQuery",CMIS_TEST_QUERY);
+      
       child.addChild(child.getChildCount(),sn);
       jobObject.addChild(jobObject.getChildCount(),child);
       
@@ -210,16 +353,6 @@ public class APISanityPostgresqlTest extends BasePostgresql
       if (jobIDString == null)
         throw new Exception("Missing job_id from return!");
       
-      Long jobID = new Long(jobIDString);
-      
-      // Create the test data files.
-      createFile(new File("testdata/test1.txt"),"This is a test file");
-      createFile(new File("testdata/test2.txt"),"This is another test file");
-      createDirectory(new File("testdata/testdir"));
-      createFile(new File("testdata/testdir/test3.txt"),"This is yet another test file");
-      
-      ConfigurationNode requestNode;
-      
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
       waitJobInactive(jobIDString, 120000L);
@@ -228,11 +361,13 @@ public class APISanityPostgresqlTest extends BasePostgresql
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       long count;
       count = getJobDocumentsProcessed(jobIDString);
-      if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(count).toString());
+      if (count != 3)
+        throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+new Long(count).toString());
       
       // Add a file and recrawl
-      createFile(new File("testdata/testdir/test4.txt"),"Added file");
+      Folder testFolder = getTestFolder(cmisClientSession);
+      createNewDocument(testFolder, "testdata3.txt");
+      createNewDocument(testFolder, "testdata4.txt");
 
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
@@ -240,11 +375,11 @@ public class APISanityPostgresqlTest extends BasePostgresql
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
-      if (count != 6)
-        throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(count).toString());
+      if (count != 5)
+        throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+new Long(count).toString());
 
-      // Change a file, and recrawl
-      changeFile(new File("testdata/test1.txt"),"Modified contents");
+      // Change a document, and recrawl
+      changeDocument(cmisClientSession,"testdata1.txt","MODIFIED - CMIS Testdata - MODIFIED");
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
@@ -252,13 +387,14 @@ public class APISanityPostgresqlTest extends BasePostgresql
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
-      if (count != 6)
-        throw new ManifoldCFException("Wrong number of documents processed after change - expected 6, saw "+new Long(count).toString());
+      if (count != 5)
+        throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
+      
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
       
       // Delete a file, and recrawl
-      removeFile(new File("testdata/test2.txt"));
+      removeDocument(cmisClientSession, "testdata2.txt");
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
@@ -267,7 +403,7 @@ public class APISanityPostgresqlTest extends BasePostgresql
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
-      if (count != 5)
+      if (count != 4)
         throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
 
       // Now, delete the job.

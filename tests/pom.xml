@@ -38,10 +38,7 @@
     <module>filesystem</module>
     <module>sharepoint</module>
   </modules>
-  
   <build>
-    <defaultGoal>test</defaultGoal>
+    <defaultGoal>integration-test</defaultGoal>
   </build>
-  
-
 </project>

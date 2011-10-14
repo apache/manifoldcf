@@ -27,8 +27,8 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a test which checks to see if document expiration works properly. */
-public class ExpirationPostgresqlTest extends BasePostgresql
+/** This is a test which checks to be sure hopcount functionality is working properly. */
+public class HopcountPostgresqlIT extends BasePostgresql
 {
   
   @Before
@@ -65,7 +65,7 @@ public class ExpirationPostgresqlTest extends BasePostgresql
   }
   
   @Test
-  public void expirationCheck()
+  public void hopcountCheck()
     throws Exception
   {
     try
@@ -103,12 +103,7 @@ public class ExpirationPostgresqlTest extends BasePostgresql
       job.setType(job.TYPE_SPECIFIED);
       job.setStartMethod(job.START_DISABLE);
       job.setHopcountMode(job.HOPCOUNT_ACCURATE);
-      // 60-second expiration for all documents..
-      job.setExpiration(new Long(60000L));
-      // Infinite rescan interval.
-      job.setInterval(null);
-      // Continuous job.
-      job.setType(IJobDescription.TYPE_CONTINUOUS);
+      job.addHopCountFilter("child",new Long(2));
       
       // Now, set up the document specification.
       DocumentSpecification ds = job.getSpecification();
@@ -145,36 +140,20 @@ public class ExpirationPostgresqlTest extends BasePostgresql
       createDirectory(new File("testdata/testdir/seconddir"));
       createFile(new File("testdata/testdir/seconddir/test4.txt"),"Lowest test file");
       
-      // Now, start the job, and wait until it is running.
+      // Now, start the job, and wait until it completes.
       jobManager.manualStart(job.getID());
-      waitJobRunning(jobManager,job.getID(),30000L);
-      
-      JobStatus status;
-      
-      // Now we wait, and we should see 7 documents eventually.
-      long startTime = System.currentTimeMillis();
-      while (System.currentTimeMillis() < startTime + 120000L)
-      {
-        status = jobManager.getStatus(job.getID());
-        if (status.getDocumentsProcessed() == 7)
-          break;
+      waitJobInactive(jobManager,job.getID(),120000L);
 
-        ManifoldCF.sleep(1000L);
-      }
+      // Check to be sure we actually processed the right number of documents.
+      JobStatus status = jobManager.getStatus(job.getID());
+      // The test data area has 4 documents and 2 directories and we have to count the root directory too.
+      // But the max hopcount is 2, so one file will be left behind, so the count should be 6, not 7.
+      if (status.getDocumentsProcessed() != 6)
+        throw new ManifoldCFException("Wrong number of documents processed - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
       
-      // At this point there should be 7 documents.
-      // OK, documents should expire starting a minute later.  The number of documents will go quickly to zero after this time. 
-      // So all we need to do is confirm that the job stops within 2 minutes.
-      waitJobInactive(jobManager,job.getID(),180000L);
-
-      status = jobManager.getStatus(job.getID());
-      if (status.getDocumentsProcessed() != 0)
-        throw new ManifoldCFException("Wrong number of documents processed - expected 0, saw "+new Long(status.getDocumentsProcessed()).toString());
-      
-
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
-      waitJobDeleted(jobManager,job.getID(),120000L);
+      waitJobDeleted(jobManager,job.getID(), 120000L);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }
@@ -212,35 +191,6 @@ public class ExpirationPostgresqlTest extends BasePostgresql
     throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
   }
   
-  protected void waitJobRunning(IJobManager jobManager, Long jobID, long maxTime)
-    throws ManifoldCFException, InterruptedException
-  {
-    long startTime = System.currentTimeMillis();
-    while (System.currentTimeMillis() < startTime + maxTime)
-    {
-      JobStatus status = jobManager.getStatus(jobID);
-      if (status == null)
-        throw new ManifoldCFException("No such job: '"+jobID+"'");
-      int statusValue = status.getStatus();
-      switch (statusValue)
-      {
-        case JobStatus.JOBSTATUS_NOTYETRUN:
-          throw new ManifoldCFException("Job was never started.");
-        case JobStatus.JOBSTATUS_COMPLETED:
-          throw new ManifoldCFException("Job ended on its own!");
-        case JobStatus.JOBSTATUS_ERROR:
-          throw new ManifoldCFException("Job reports error status: "+status.getErrorText());
-        case JobStatus.JOBSTATUS_RUNNING:
-          break;
-        default:
-          ManifoldCF.sleep(1000L);
-          continue;
-      }
-      return;
-    }
-    throw new ManifoldCFException("ManifoldCF did not start in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
-  }
-
   protected void waitJobDeleted(IJobManager jobManager, Long jobID, long maxTime)
     throws ManifoldCFException, InterruptedException
   {

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,110 +16,52 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.wiki_tests;
+package org.apache.manifoldcf.filesystem_tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
-import org.apache.manifoldcf.crawler.connectors.wiki.WikiConfig;
-
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class SanityDerbyTest extends BaseDerby
+public class SanityIT extends Base
 {
-  protected static Map<String,String> initialCheckResources;
-  protected static Map<String,String> initialListResources;
-  protected static Map<String,String> initialTimestampQueryResources;
-  protected static Map<String,String> initialURLQueryResources;
-  protected static Map<String,String> initialDocInfoQueryResources;
   
-  static
+  @Before
+  public void createTestArea()
+    throws Exception
   {
-    initialCheckResources = new HashMap<String,String>();
-    initialCheckResources.put("","list_one.xml");
-    
-    initialListResources = new HashMap<String,String>();
-    initialListResources.put("","list_full.xml");
-    initialListResources.put("Kre Mbaye","list_full_last.xml");
-    
-    initialTimestampQueryResources = new HashMap<String,String>();
-    addCombinations(initialTimestampQueryResources,new String[]{"14773725","19219017","19319577","19839654","30955295"},"get_timestamps.xml");
-    // Use some individual overrides too
-    // MHL
-    
-    initialURLQueryResources = new HashMap<String,String>();
-    addCombinations(initialURLQueryResources,new String[]{"14773725","19219017","19319577","19839654","30955295"},"get_urls.xml");
-    // Use some individual overrides too
-    // MHL
-    
-    initialDocInfoQueryResources = new HashMap<String,String>();
-    initialDocInfoQueryResources.put("14773725","14773725.xml");
-    initialDocInfoQueryResources.put("19219017","19219017.xml");
-    initialDocInfoQueryResources.put("19319577","19319577.xml");
-    initialDocInfoQueryResources.put("19839654","19839654.xml");
-    initialDocInfoQueryResources.put("30955295","30955295.xml");
-    
+    try
+    {
+      File f = new File("testdata");
+      removeDirectory(f);
+      createDirectory(f);
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
-
-  protected static void addCombinations(Map<String,String> target, String[] values, String resource)
+  
+  @After
+  public void removeTestArea()
+    throws Exception
   {
-    boolean[] vector = new boolean[values.length];
-    for (int i = 0 ; i < vector.length ; i++)
+    try
     {
-      vector[i] = false;
+      File f = new File("testdata");
+      removeDirectory(f);
     }
-    
-    // Iterate through all the combinations.  Only take the ones that can exist.
-    while (true)
+    catch (Exception e)
     {
-      int result = 0;
-      for (int i = 0 ; i < vector.length ; i++)
-      {
-        result += vector[i]?1:0;
-      }
-      if (result != 0 && result <= 20)
-      {
-        // found one
-        StringBuilder sb = new StringBuilder();
-        boolean isFirst = true;
-        for (int i = 0 ; i < vector.length ; i++)
-        {
-          if (vector[i])
-          {
-            if (!isFirst)
-              sb.append("|");
-            else
-              isFirst = false;
-            sb.append(values[i]);
-          }
-        }
-        target.put(sb.toString(),resource);
-      }
-      // Now we increment.
-      int incLevel = 0;
-      while (incLevel < vector.length)
-      {
-        if (!vector[incLevel])
-        {
-          vector[incLevel] = true;
-          break;
-        }
-        // Had a carry
-        incLevel++;
-        for (int i = 0 ; i < incLevel ; i++)
-        {
-          vector[i] = false;
-        }
-      }
-      if (incLevel == vector.length)
-        break;
+      e.printStackTrace();
+      throw e;
     }
-        
   }
   
   @Test
@@ -135,16 +77,10 @@ public class SanityDerbyTest extends BaseDerby
       // Create a basic file system connection, and save it.
       IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
       IRepositoryConnection conn = mgr.create();
-      conn.setName("Wiki Connection");
-      conn.setDescription("Wiki Connection");
-      conn.setClassName("org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector");
-      conn.setMaxConnections(10);
-      ConfigParams cp = conn.getConfigParams();
-      cp.setParameter(WikiConfig.PARAM_PROTOCOL,"http");
-      cp.setParameter(WikiConfig.PARAM_SERVER,"localhost");
-      cp.setParameter(WikiConfig.PARAM_PORT,"8089");
-      cp.setParameter(WikiConfig.PARAM_PATH,"/w");
-      
+      conn.setName("File Connection");
+      conn.setDescription("File Connection");
+      conn.setClassName("org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector");
+      conn.setMaxConnections(100);
       // Now, save
       mgr.save(conn);
       
@@ -162,15 +98,31 @@ public class SanityDerbyTest extends BaseDerby
       IJobManager jobManager = JobManagerFactory.make(tc);
       IJobDescription job = jobManager.createJob();
       job.setDescription("Test Job");
-      job.setConnectionName("Wiki Connection");
+      job.setConnectionName("File Connection");
       job.setOutputConnectionName("Null Connection");
       job.setType(job.TYPE_SPECIFIED);
       job.setStartMethod(job.START_DISABLE);
       job.setHopcountMode(job.HOPCOUNT_ACCURATE);
       
       // Now, set up the document specification.
-      // Right now we don't need any...
       DocumentSpecification ds = job.getSpecification();
+      // Crawl everything underneath the 'testdata' area
+      File testDataFile = new File("testdata").getCanonicalFile();
+      if (!testDataFile.exists())
+        throw new ManifoldCFException("Test data area not found!  Looking in "+testDataFile.toString());
+      if (!testDataFile.isDirectory())
+        throw new ManifoldCFException("Test data area not a directory!  Looking in "+testDataFile.toString());
+      SpecificationNode sn = new SpecificationNode("startpoint");
+      sn.setAttribute("path",testDataFile.toString());
+      SpecificationNode n = new SpecificationNode("include");
+      n.setAttribute("type","file");
+      n.setAttribute("match","*");
+      sn.addChild(sn.getChildCount(),n);
+      n = new SpecificationNode("include");
+      n.setAttribute("type","directory");
+      n.setAttribute("match","*");
+      sn.addChild(sn.getChildCount(),n);
+      ds.addChild(ds.getChildCount(),sn);
       
       // Set up the output specification.
       OutputSpecification os = job.getOutputSpecification();
@@ -179,13 +131,12 @@ public class SanityDerbyTest extends BaseDerby
       // Save the job.
       jobManager.save(job);
 
-      // Initialize the mock service
-      wikiService.setResources(initialCheckResources,
-        initialListResources,
-        initialTimestampQueryResources,
-        initialURLQueryResources,
-        initialDocInfoQueryResources);
-        
+      // Create the test data files.
+      createFile(new File("testdata/test1.txt"),"This is a test file");
+      createFile(new File("testdata/test2.txt"),"This is another test file");
+      createDirectory(new File("testdata/testdir"));
+      createFile(new File("testdata/testdir/test3.txt"),"This is yet another test file");
+      
       // Now, start the job, and wait until it completes.
       jobManager.manualStart(job.getID());
       waitJobInactive(jobManager,job.getID(),120000L);
@@ -196,7 +147,6 @@ public class SanityDerbyTest extends BaseDerby
       if (status.getDocumentsProcessed() != 5)
         throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
       
-      /*
       // Add a file and recrawl
       createFile(new File("testdata/testdir/test4.txt"),"Added file");
 
@@ -235,8 +185,7 @@ public class SanityDerbyTest extends BaseDerby
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       if (status.getDocumentsProcessed() != 5)
         throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
-      */
-      
+
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
       waitJobDeleted(jobManager,job.getID(),120000L);

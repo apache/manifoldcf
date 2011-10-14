@@ -57,11 +57,6 @@
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.9</version>
-        </plugin> 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.3.1</version>
         </plugin>
@@ -87,16 +82,6 @@
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>2.4.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <forkMode>always</forkMode>
-          <excludes>
-            <exclude>**/*PostgresqlTest.java</exclude>
-          </excludes>
-        </configuration>
       </plugin>
     </plugins>
   </build>

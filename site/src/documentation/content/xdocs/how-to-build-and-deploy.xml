@@ -244,11 +244,15 @@ mvn install:install-file -Dfile=lib/hsqldb.jar -DgroupId=org.hsqldb -DartifactId
 mvn clean install
           </source>
           <p>This should generate all the necessary artifacts to run with, and also run the Apache Derby-based tests.</p>
+          <p>To build and skip only the integration tests, type:</p>
+          <source>
+mvn clean install -DskipITs   
+          </source>
           <p>When you have the default package installed locally in your Maven repository, to only build ManifoldCF artifacts, type:</p>
           <source>
 mvn clean package
           </source>
-          <p>To reinstall all the new artifacts in your local Maven repository without running tests, type:</p>
+          <p>To reinstall all the new artifacts in your local Maven repository without running unit tests and integration tests, type:</p>
           <source>
 mvn clean install -Dmaven.test.skip
           </source>

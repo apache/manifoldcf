@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: APISanity.java 996524 2010-09-13 13:38:01Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class APISanityHSQLDBTest extends BaseHSQLDB
+public class APISanityPostgresqlIT extends BasePostgresql
 {
   
   @Before

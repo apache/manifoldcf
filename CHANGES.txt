@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-263: Long-running tests should all be moved to Maven's integration-test phase
+(Piergiorgio Lucidi)
+
 CONNECTORS-273: Add last-modified metadata to indexing for the
 Wiki connector.
 (Tobias Wunderlich, Karl Wright)
