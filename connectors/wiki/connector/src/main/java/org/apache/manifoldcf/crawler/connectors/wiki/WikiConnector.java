@@ -2054,6 +2054,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             String author = t.getAuthor();
             String comment = t.getComment();
             String title = t.getTitle();
+            String lastModified = t.getLastModified();
             
             RepositoryDocument rd = new RepositoryDocument();
             dataSize = contentFile.length();
@@ -2067,6 +2068,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 rd.addField("author",author);
               if (title != null)
                 rd.addField("title",title);
+              if (lastModified != null)
+                rd.addField("last-modified",lastModified);
               activities.ingestDocument(documentIdentifier,documentVersion,fullURL,rd);
             }
             finally
@@ -2157,7 +2160,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
   
-  /** Thread to execute a "get timestamp" operation.  This thread both executes the operation and parses the result. */
+  /** Thread to execute a "get doc info" operation.  This thread both executes the operation and parses the result. */
   protected static class ExecuteGetDocInfoThread extends Thread
   {
     protected HttpClient client;
@@ -2168,6 +2171,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String author = null;
     protected String title = null;
     protected String comment = null;
+    protected String lastModified = null;
     
     protected String statusCode = null;
     protected String errorMessage = null;
@@ -2221,6 +2225,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               title = c.getTitle();
               author = c.getAuthor();
               comment = c.getComment();
+              lastModified = c.getLastModified();
               statusCode = "OK";
             }
             catch (IOException e)
@@ -2290,6 +2295,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return title;
     }
+
+    public String getLastModified()
+    {
+      return lastModified;
+    }
     
     public void cleanup()
     {
@@ -2308,7 +2318,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String getGetDocInfoURL(String documentIdentifier)
     throws ManifoldCFException
   {
-    return baseURL + "action=query&prop=revisions&pageids="+documentIdentifier+"&rvprop=user%7ccomment%7ccontent";
+    return baseURL + "action=query&prop=revisions&pageids="+documentIdentifier+"&rvprop=user%7ccomment%7ccontent%7ctimestamp";
   }
 
   /** Class representing the "api" context of a "get doc info" response */
@@ -2322,6 +2332,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String author = null;
     /** Comment */
     protected String comment = null;
+    /** Last modified */
+    protected String lastModified = null;
     
     public WikiGetDocInfoAPIContext(XMLStream theStream)
     {
@@ -2342,6 +2354,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       contentFile = pc.getContentFile();
       author = pc.getAuthor();
       comment = pc.getComment();
+      lastModified = pc.getLastModified();
     }
     
     protected void tagCleanup()
@@ -2370,6 +2383,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getAuthor()
     {
       return author;
+    }
+
+    public String getLastModified()
+    {
+      return lastModified;
     }
     
     public String getComment()
@@ -2390,6 +2408,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String author = null;
     /** Comment */
     protected String comment = null;
+    /** Last modified */
+    protected String lastModified = null;
     
     public WikiGetDocInfoQueryContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
     {
@@ -2410,6 +2430,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       contentFile = pc.getContentFile();
       author = pc.getAuthor();
       comment = pc.getComment();
+      lastModified = pc.getLastModified();
     }
     
     protected void tagCleanup()
@@ -2439,6 +2460,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return author;
     }
+
+    public String getLastModified()
+    {
+      return lastModified;
+    }
     
     public String getComment()
     {
@@ -2458,6 +2484,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String author = null;
     /** Comment */
     protected String comment = null;
+    /** Last modified */
+    protected String lastModified = null;
     
     public WikiGetDocInfoPagesContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
     {
@@ -2477,6 +2505,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       title = pc.getTitle();
       contentFile = pc.getContentFile();
       author = pc.getAuthor();
+      lastModified = pc.getLastModified();
       comment = pc.getComment();
     }
     
@@ -2507,6 +2536,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return author;
     }
+
+    public String getLastModified()
+    {
+      return lastModified;
+    }
     
     public String getComment()
     {
@@ -2526,6 +2560,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String author = null;
     /** Comment */
     protected String comment = null;
+    /** Last modified */
+    protected String lastModified = null;
     
     public WikiGetDocInfoPageContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
     {
@@ -2556,6 +2592,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         contentFile = rc.getContentFile();
         author = rc.getAuthor();
         comment = rc.getComment();
+        lastModified = rc.getLastModified();
       }
       super.endTag();
     }
@@ -2592,6 +2629,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return comment;
     }
+
+    public String getLastModified()
+    {
+      return lastModified;
+    }
     
   }
 
@@ -2601,6 +2643,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected File contentFile = null;
     protected String author = null;
     protected String comment = null;
+    protected String lastModified = null;
     
     public WikiGetDocInfoRevisionsContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
     {
@@ -2620,6 +2663,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       contentFile = rc.getContentFile();
       author = rc.getAuthor();
       comment = rc.getComment();
+      lastModified = rc.getLastModified();
     }
     
     protected void tagCleanup()
@@ -2650,6 +2694,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return comment;
     }
     
+    public String getLastModified()
+    {
+      return lastModified;
+    }
   }
 
   /** Class looking for the "api/query/pages/page/revisions/rev" context of a "get doc info" response */
@@ -2658,6 +2706,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String author = null;
     protected String comment = null;
     protected File contentFile = null;
+    protected String lastModified = null;
     
     public WikiGetDocInfoRevContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
     {
@@ -2671,6 +2720,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         author = atts.getValue("user");
         comment = atts.getValue("comment");
+        lastModified = atts.getValue("timestamp");
         try
         {
           File tempFile = File.createTempFile("_wikidata_","tmp");
@@ -2722,6 +2772,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getAuthor()
     {
       return author;
+    }
+
+    public String getLastModified()
+    {
+      return lastModified;
     }
     
     public String getComment()

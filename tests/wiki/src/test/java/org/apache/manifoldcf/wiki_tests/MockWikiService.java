@@ -139,7 +139,7 @@ public class MockWikiService
             if (resourceName == null)
               throw new IOException("Could not find a matching resource for the timestamp parameters; pageids = '"+pageIds+"'");
           }
-          else if (rvprop != null && rvprop.equals("user|comment|content"))
+          else if (rvprop != null && rvprop.equals("user|comment|content|timestamp"))
           {
             // Doc info query
             if (pageIds == null)
@@ -148,7 +148,7 @@ public class MockWikiService
               throw new IOException("cannot do more than one docinfo request at once");
             resourceName = docInfoQueryResources.get(pageIds);
             if (resourceName == null)
-              throw new IOException("Could not find a matching resource for the user|comment|content parameters; pageids = '"+pageIds+"'");
+              throw new IOException("Could not find a matching resource for the user|comment|content|timestamp parameters; pageids = '"+pageIds+"'");
           }
           else
             throw new IOException("rvprop parameter missing or incorrect: "+rvprop);

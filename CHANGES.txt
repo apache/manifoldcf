@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-273: Add last-modified metadata to indexing for the
+Wiki connector.
+(Tobias Wunderlich, Karl Wright)
+
 CONNECTORS-274: Fix long-standing problem with XML parsing, which
 affected the wiki connector in a big way.
 (Tobias Wunderlich, Karl Wright)
