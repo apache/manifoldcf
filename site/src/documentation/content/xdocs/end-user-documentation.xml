@@ -1227,7 +1227,15 @@
 
             <section id="wikirepository">
                 <title>Wiki Repository Connection</title>
-                <p>COMING SOON</p>
+                <p>The Wiki repository connection type allows you to index content from the main space of a Wiki or MediaWiki site.  The connection type uses the Wiki API
+                  in order to fetch content.  Only publicly visible documents will be indexed, and there is thus no need of an authority for Wiki content.</p>
+                <p>A Wiki connection has only one special tab on the repository connection editing screen: the "Server" tab.  The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/wiki-configure-server.PNG" alt="Wiki Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>The protocol must be selected in the "Protocol" field.  At the moment only the "http" protocol is supported.  The server name must be provided in the "Server name" field.
+                      The server port must be provided in the "Port" field.  Finally, the path part of the Wiki URL must be provided in the "Path name" field and must start with a "/" character.</p>
+                <p>When you configure a job to use a repository connection of the Wiki type, no additional tabs are currently presented.</p>
             </section>
             
             <section id="jdbcrepository">
