@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-187: Fix how the worker threads handle document deletion
+service interruptions.
+(Karl Wright
+
 CONNECTORS-271: Wiki connector now has end-user documentation.
 (Karl Wright)
 
