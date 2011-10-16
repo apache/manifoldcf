@@ -3274,6 +3274,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-dependencies">
         <ant dir="connectors/jcifs" target="download-dependencies"/>
         <ant dir="connectors/jdbc" target="download-dependencies"/>
+        <ant dir="connectors/sharepoint" target="download-dependencies"/>
     </target>
 
 </project>

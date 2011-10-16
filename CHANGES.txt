@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-262: Pull down .wsdls from SharePoint 3.0 example site
+in the ant build (download-dependencies target).
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-276: Pull down jtds and mysql drivers from maven repository
 in the ant build (download-dependencies target),
 and add these dependencies in appropriate places in the maven build as

@@ -165,5 +165,15 @@
     <target name="run-tests-postgresql"/>
     <target name="run-tests-HSQLDB"/>
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
-    
+
+    <target name="download-dependencies">
+        <get src="http://www.wssdemo.com/_vti_bin/Permissions.asmx?wsdl=true" dest="wsdls/Permissions.wsdl"/>
+        <get src="http://www.wssdemo.com/_vti_bin/DspSts.asmx?wsdl=true" dest="wsdls/DspSts.wsdl"/>
+        <get src="http://www.wssdemo.com/_vti_bin/Lists.asmx?wsdl=true" dest="wsdls/Lists.wsdl"/>
+        <get src="http://www.wssdemo.com/_vti_bin/usergroup.asmx?wsdl=true" dest="wsdls/usergroup.wsdl"/>
+        <get src="http://www.wssdemo.com/_vti_bin/versions.asmx?wsdl=true" dest="wsdls/versions.wsdl"/>
+        <get src="http://www.wssdemo.com/_vti_bin/webs.asmx?wsdl=true" dest="wsdls/webs.wsdl"/>
+
+    </target>
+
 </project>
