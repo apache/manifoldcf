@@ -67,14 +67,13 @@
     <target name="download-ojdbc"/>
 
     <target name="download-jtds">
-        <property name="version" value="1.2.5"/>
-        <mkdir dir="download/jtds"/>
-        <get src="http://sourceforge.net/projects/jtds/files/jtds/${version}/jtds-${version}-dist.zip" dest="download"/>
-        <unzip src="download/jtds-${version}-dist.zip" dest="download/jtds"/>
-        <copy todir="jdbc-drivers" file="download/jtds/jtds-${version}.jar"/>
-        <delete dir="download"/>
+        <get src="http://repo1.maven.org/maven2/net/sourceforge/jtds/jtds/1.2.4/jtds-1.2.4.jar" dest="jdbc-drivers"/>
     </target>
 
-    <target name="download-dependencies" depends="download-ojdbc,download-jtds"/>
+    <target name="download-mysql">
+        <get src="http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.18/mysql-connector-java-5.1.18.jar" dest="jdbc-drivers"/>
+    </target>
+    
+    <target name="download-dependencies" depends="download-ojdbc,download-jtds,download-mysql"/>
     
 </project>
