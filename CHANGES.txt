@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-259: Enable support for MySQL in JDBC connector.
+(Karl Wright)
+
 CONNECTORS-187: Fix how the worker threads handle document deletion
 service interruptions.
 (Karl Wright

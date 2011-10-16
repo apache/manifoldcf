@@ -46,9 +46,9 @@ public class JDBCConnectionFactory
     driverMap = new HashMap();
     driverMap.put("oracle:thin:@","oracle.jdbc.OracleDriver");
     driverMap.put("postgresql:","org.postgresql.Driver");
-    driverMap.put("mysql:","org.gjt.mm.mysql.Driver");
     driverMap.put("jtds:sqlserver:","net.sourceforge.jtds.jdbc.Driver");
     driverMap.put("jtds:sybase:","net.sourceforge.jtds.jdbc.Driver");
+    driverMap.put("mysql:","com.mysql.jdbc.Driver");
     try
     {
       _pool = new ConnectionPoolManager(120);
