@@ -266,7 +266,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     cmisServer = new Server(9090);
     cmisServer.setStopAtShutdown(true);
 
-    String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT.war";
+    String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory-war-0.5.0.war";
 
     if (System.getProperty("openCmisServerWarPath") != null)
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");

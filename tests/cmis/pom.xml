@@ -35,6 +35,11 @@
     </developer>
   </developers>
   
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+  
   <artifactId>mcf-cmis-test</artifactId>
   <name>ManifoldCF - Test - CMIS</name>
   
@@ -56,7 +61,7 @@
                 <artifactItem>
                   <groupId>org.apache.chemistry.opencmis</groupId>
                   <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
-                  <version>0.5.0-SNAPSHOT</version>
+                  <version>0.5.0</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
                 </artifactItem>
@@ -95,7 +100,7 @@
             <crawlerWarPath>../dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
             <apiWarPath>../dependency/mcf-api-service-${project.version}.war</apiWarPath>
-            <openCmisServerWarPath>../dependency/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT.war</openCmisServerWarPath>
+            <openCmisServerWarPath>../dependency/chemistry-opencmis-server-inmemory-war-0.5.0.war</openCmisServerWarPath>
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
@@ -125,7 +130,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
-      <version>0.5.0-SNAPSHOT</version>
+      <version>0.5.0</version>
       <type>war</type>
     </dependency>
     <dependency>
@@ -263,7 +268,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-client-impl</artifactId>
-      <version>0.4.0</version>
+      <version>0.5.0</version>
   </dependency>
   <dependency>
       <groupId>commons-lang</groupId>

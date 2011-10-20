@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-266: Upgraded the CMIS Connector libraries to OpenCMIS 0.5.0
+(Piergiorgio Lucidi)
+
+CONNECTORS-278: Wrong default parameters values for CMIS Connector in a clean installation
+(Piergiorgio Lucidi)
+
 CONNECTORS-262: Pull down .wsdls from SharePoint 3.0 example site
 in the ant build (download-dependencies target).
 (Shinichiro Abe, Karl Wright)
@@ -18,7 +24,7 @@ CONNECTORS-259: Enable support for MySQL in JDBC connector.
 
 CONNECTORS-187: Fix how the worker threads handle document deletion
 service interruptions.
-(Karl Wright
+(Karl Wright)
 
 CONNECTORS-271: Wiki connector now has end-user documentation.
 (Karl Wright)
