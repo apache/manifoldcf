@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-277: Add the ability to select namespaces and title
+prefixes to the Wiki connector.
+(Tobias Wunderlich, Karl Wright)
+
 CONNECTORS-266: Upgraded the CMIS Connector libraries to OpenCMIS 0.5.0
 (Piergiorgio Lucidi)
 

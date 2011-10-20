@@ -36,6 +36,13 @@ public class WikiConfig
   /** Path */
   public static final String PARAM_PATH = "Server path";
 	
-  // Output specification
+  // Document specification
 
+  /** Namespace and title prefix */
+  public static final String NODE_NAMESPACE_TITLE_PREFIX = "namespaceandprefix";
+  /** Namespace attribute */
+  public static final String ATTR_NAMESPACE = "namespace";
+  /** Title prefix attribute */
+  public static final String ATTR_TITLEPREFIX = "titleprefix";
+  
 }

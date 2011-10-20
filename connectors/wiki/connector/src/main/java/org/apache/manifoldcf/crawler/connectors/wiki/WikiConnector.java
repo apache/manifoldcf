@@ -220,7 +220,21 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
   {
-    listAllPages(activities,startTime,endTime);
+    // Scan specification nodes and extract prefixes and namespaces
+    boolean seenAny = false;
+    for (int i = 0 ; i < spec.getChildCount() ; i++)
+    {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX))
+      {
+        String namespace = sn.getAttributeValue(WikiConfig.ATTR_NAMESPACE);
+        String titleprefix = sn.getAttributeValue(WikiConfig.ATTR_TITLEPREFIX);
+        listAllPages(activities,namespace,titleprefix,startTime,endTime);
+        seenAny = true;
+      }
+    }
+    if (!seenAny)
+      listAllPages(activities,null,null,startTime,endTime);
   }
 
   /** Get document versions given an array of document identifiers.
@@ -528,6 +542,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    tabsArray.add("Namespace and Titles");
+    
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -536,6 +552,23 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  // Does nothing right now.\n"+
 "  return true;\n"+
 "}\n"+
+"\n"+
+"function NsDelete(k)\n"+
+"{\n"+
+"  SpecOp(\"nsop\"+k, \"Delete\", \"ns_\"+k);\n"+
+"}\n"+
+"\n"+
+"function NsAdd(k)\n"+
+"{\n"+
+"  SpecOp(\"nsop\", \"Add\", \"ns_\"+k);\n"+
+"}\n"+
+"\n"+
+"function SpecOp(n, opValue, anchorvalue)\n"+
+"{\n"+
+"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
+"  postFormSetAnchor(anchorvalue);\n"+
+"}\n"+
+"\n"+
 "//-->\n"+
 "</script>\n"
     );
@@ -553,6 +586,167 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
+    if (tabName.equals("Namespace and Titles"))
+    {
+      boolean seenAny = false;
+      // Output table column headers
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Namespaces and titles:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Namespace</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Title prefix</nobr></td>\n"+
+"        </tr>\n"
+      );
+
+      int k = 0;
+      for (int i = 0 ; i < ds.getChildCount() ; i++)
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX))
+        {
+          String namespace = sn.getAttributeValue(WikiConfig.ATTR_NAMESPACE);
+          String titlePrefix = sn.getAttributeValue(WikiConfig.ATTR_TITLEPREFIX);
+          
+          String nsOpName = "nsop_"+k;
+          String nsNsName = "nsnsname_"+k;
+          String nsTitlePrefix = "nstitleprefix_"+k;
+          out.print(
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <a name=\""+"ns_"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+nsOpName+"\" value=\"\"/>\n"+
+"              <input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+nsTitlePrefix+"\" value=\""+((titlePrefix==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"+
+"              <input type=\"button\" value=\"Delete\" onClick='Javascript:NsDelete("+Integer.toString(k)+")' alt=\""+"Delete namespace/title #"+Integer.toString(k)+"\"/>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+((namespace==null)?"(default)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(namespace))+"\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+((titlePrefix==null)?"(all titles)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(titlePrefix))+"\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+          );
+          k++;
+        }
+      }
+
+      if (k == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td colspan=\"3\" class=\"formmessage\">No specification; all default namespace documents currently included</td></tr>\n"
+        );
+      }
+
+      // Add area
+      out.print(
+"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"
+      );
+
+      // Obtain the list of namespaces
+      Map<String,String> namespaces = new HashMap<String,String>();
+      try
+      {
+        getNamespaces(namespaces);
+        // Extract and sort the names we're going to present
+        String[] nameSpaceNames = new String[namespaces.size()];
+        Iterator<String> keyIter = namespaces.keySet().iterator();
+        int j = 0;
+        while (keyIter.hasNext())
+        {
+          nameSpaceNames[j++] = keyIter.next();
+        }
+        java.util.Arrays.sort(nameSpaceNames);
+      
+        out.print(
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <a name=\""+"ns_"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"hidden\" name=\"nsop\" value=\"\"/>\n"+
+"              <input type=\"hidden\" name=\"nscount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"Add\" onClick='Javascript:NsAdd("+Integer.toString(k)+")' alt=\"Add namespace/prefix\"/>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <select name=\"nsnsname\">\n"+
+"                <option value=\"\" selected=\"true\">-- Use default --</option>\n"
+        );
+        for (int l = 0 ; l < nameSpaceNames.length ; l++)
+        {
+          String prettyName = nameSpaceNames[l];
+          String canonicalName = namespaces.get(prettyName);
+          out.print(
+"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(canonicalName)+"\">"+
+  org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prettyName)+"</option>\n"
+          );
+        }
+        out.print(
+"              </select>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <input type=\"text\" name=\"nstitleprefix\" size=\"16\" value=\"\"/>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+        );
+      }
+      catch (ServiceInterruption e)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td colspan=\"3\" class=\"formmessage\">Transient error: "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td></tr>\n"
+        );
+      }
+
+      out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+
+    }
+    else
+    {
+      // Generate hiddens
+      int k = 0;
+      for (int i = 0 ; i < ds.getChildCount() ; i++)
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX))
+        {
+          String namespace = sn.getAttributeValue(WikiConfig.ATTR_NAMESPACE);
+          String titlePrefix = sn.getAttributeValue(WikiConfig.ATTR_TITLEPREFIX);
+          
+          String nsNsName = "nsnsname_"+k;
+          String nsTitlePrefix = "nstitleprefix_"+k;
+
+          out.print(
+"<input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace == null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
+"<input type=\"hidden\" name=\""+titlePrefix+"\" value=\""+((titlePrefix == null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      out.print(
+"<input type=\"hidden\" name=\"nscount\" value=\""+new Integer(k)+"\"/>\n"
+      );
+    }
   }
   
   /** Process a specification post.
@@ -567,6 +761,61 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
     throws ManifoldCFException
   {
+    String countString = variableContext.getParameter("nscount");
+    if (countString != null)
+    {
+      for (int i = 0 ; i < ds.getChildCount() ; i++)
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      
+      int nsCount = Integer.parseInt(countString);
+      for (int i = 0 ; i < nsCount ; i++)
+      {
+        String nsOpName = "nsop_"+i;
+        String nsNsName = "nsnsname_"+i;
+        String nsTitlePrefix = "nstitleprefix_"+i;
+        
+        String nsOp = variableContext.getParameter(nsOpName);
+        if (nsOp != null && !nsOp.equals("Delete"))
+        {
+          String namespaceName = variableContext.getParameter(nsNsName);
+          if (namespaceName != null && namespaceName.length() == 0)
+            namespaceName = null;
+          String titlePrefix = variableContext.getParameter(nsTitlePrefix);
+          if (titlePrefix != null && titlePrefix.length() == 0)
+            titlePrefix = null;
+          SpecificationNode sn = new SpecificationNode(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX);
+          if (namespaceName != null)
+            sn.setAttribute(WikiConfig.ATTR_NAMESPACE,namespaceName);
+          if (titlePrefix != null)
+            sn.setAttribute(WikiConfig.ATTR_TITLEPREFIX,titlePrefix);
+          ds.addChild(ds.getChildCount(),sn);
+        }
+      }
+      
+      String newOp = variableContext.getParameter("nsop");
+      if (newOp != null && newOp.equals("Add"))
+      {
+        String namespaceName = variableContext.getParameter("nsnsname");
+        if (namespaceName != null && namespaceName.length() == 0)
+          namespaceName = null;
+        String titlePrefix = variableContext.getParameter("nstitleprefix");
+        if (titlePrefix != null && titlePrefix.length() == 0)
+          titlePrefix = null;
+        SpecificationNode sn = new SpecificationNode(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX);
+        if (namespaceName != null)
+          sn.setAttribute(WikiConfig.ATTR_NAMESPACE,namespaceName);
+        if (titlePrefix != null)
+          sn.setAttribute(WikiConfig.ATTR_TITLEPREFIX,titlePrefix);
+        ds.addChild(ds.getChildCount(),sn);
+      }
+    }
+
     return null;
   }
   
@@ -580,6 +829,60 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"
+    );
+    out.print(
+"    <td class=\"description\"><nobr>Namespace and title:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>Namespace</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Title prefix</nobr></td>\n"+
+"        </tr>\n"
+    );
+
+    int k = 0;
+    for (int i = 0 ; i < ds.getChildCount() ; i++)
+    {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals(WikiConfig.NODE_NAMESPACE_TITLE_PREFIX))
+      {
+        String namespace = sn.getAttributeValue(WikiConfig.ATTR_NAMESPACE);
+        String titlePrefix = sn.getAttributeValue(WikiConfig.ATTR_TITLEPREFIX);
+        out.print(
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+((namespace==null)?"(default)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(namespace))+"\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+((titlePrefix==null)?"(all documents)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(titlePrefix))+"\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+        );
+        k++;
+      }
+    }
+    
+    if (k == 0)
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\">All default namespace documents included</td></tr>\n"
+      );
+    
+    out.print(
+"      </table>\n"+
+"    </td>\n"
+    );
+
+    out.print(
+"  </tr>\n"+
+"</table>\n"
+    );
   }
 
   // Protected static classes and methods
@@ -901,7 +1204,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Perform a series of listPages() operations, so that we fully obtain the documents we're looking for even though
   * we're limited to 500 of them per request.
   */
-  protected void listAllPages(ISeedingActivity activities, long startTime, long endTime)
+  protected void listAllPages(ISeedingActivity activities, String namespace, String prefix, long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -911,7 +1214,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       activities.checkJobStillActive();
       
       // Start with the last title seen in the previous round. 
-      String newLastTitle = executeListPagesViaThread(lastTitle,activities);
+      String newLastTitle = executeListPagesViaThread(lastTitle,namespace,prefix,activities);
       if (newLastTitle == null)
         break;
       lastTitle = newLastTitle;
@@ -919,11 +1222,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
   
   /** Execute a listPages() operation via a thread.  Returns the last page title. */
-  protected String executeListPagesViaThread(String startPageTitle, ISeedingActivity activities)
+  protected String executeListPagesViaThread(String startPageTitle, String namespace, String prefix, ISeedingActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     HttpClient client = getInitializedClient();
-    HttpMethodBase executeMethod = getInitializedMethod(getListPagesURL(startPageTitle));
+    HttpMethodBase executeMethod = getInitializedMethod(getListPagesURL(startPageTitle,namespace,prefix));
     try
     {
       PageBuffer pageBuffer = new PageBuffer();
@@ -1037,12 +1340,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Create a URL to obtain the next 500 pages.
   */
-  protected String getListPagesURL(String startingTitle)
+  protected String getListPagesURL(String startingTitle, String namespace, String prefix)
     throws ManifoldCFException
   {
     try
     {
       return baseURL + "action=query&list=allpages" +
+        ((prefix != null)?"&apprefix="+URLEncoder.encode(prefix,"utf-8"):"") +
+        ((namespace != null)?"&apnamespace="+URLEncoder.encode(namespace,"utf-8"):"") +
         ((startingTitle!=null)?"&apfrom="+URLEncoder.encode(startingTitle,"utf-8"):"") +
         "&aplimit=500";
     }
@@ -1997,7 +2302,335 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return timestamp;
     }
   }
+  
+  // -- Methods and classes to perform a "get namespaces" operation. --
+  
+  /** Obtain the set of namespaces, as a map keyed by the canonical namespace name
+  * where the value is the descriptive name.
+  */
+  protected void getNamespaces(Map<String,String> namespaces)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSession();
+    HttpClient client = getInitializedClient();
+    HttpMethodBase executeMethod = getInitializedMethod(getGetNamespacesURL());
     
+    try
+    {
+      ExecuteGetNamespacesThread t = new ExecuteGetNamespacesThread(client,executeMethod,namespaces);
+      try
+      {
+        t.start();
+        t.join();
+        
+        Throwable thr = t.getException();
+        if (thr != null)
+        {
+          if (thr instanceof ManifoldCFException)
+          {
+            if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
+              throw new InterruptedException(thr.getMessage());
+            throw (ManifoldCFException)thr;
+          }
+          else if (thr instanceof ServiceInterruption)
+            throw (ServiceInterruption)thr;
+          else if (thr instanceof IOException)
+            throw (IOException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
+          else
+            throw (Error)thr;
+        }
+ 
+      }
+      catch (ManifoldCFException e)
+      {
+        t.interrupt();
+        throw e;
+      }
+      catch (ServiceInterruption e)
+      {
+        t.interrupt();
+        throw e;
+      }
+      catch (IOException e)
+      {
+        t.interrupt();
+        throw e;
+      }
+      catch (InterruptedException e)
+      {
+        t.interrupt();
+        // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
+        throw e;
+      }
+    }
+    catch (InterruptedException e)
+    {
+      // Drop the connection on the floor
+      executeMethod = null;
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    catch (ManifoldCFException e)
+    {
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+        // Drop the connection on the floor
+        executeMethod = null;
+      throw e;
+    }
+    catch (java.net.SocketTimeoutException e)
+    {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Get namespaces timed out reading from the Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
+    }
+    catch (java.net.SocketException e)
+    {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Get namespaces received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
+    }
+    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Get namespaces connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
+    }
+    catch (InterruptedIOException e)
+    {
+      executeMethod = null;
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+    catch (IOException e)
+    {
+      throw new ManifoldCFException("Get namespaces had an IO failure: "+e.getMessage(),e);
+    }
+    finally
+    {
+      if (executeMethod != null)
+        executeMethod.releaseConnection();
+    }
+  }
+  
+  /** Thread to execute a "get namespaces" operation.  This thread both executes the operation and parses the result. */
+  protected static class ExecuteGetNamespacesThread extends Thread
+  {
+    protected HttpClient client;
+    protected HttpMethodBase executeMethod;
+    protected Throwable exception = null;
+    protected Map<String,String> namespaces;
+
+    public ExecuteGetNamespacesThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> namespaces)
+    {
+      super();
+      setDaemon(true);
+      this.client = client;
+      this.executeMethod = executeMethod;
+      this.namespaces = namespaces;
+    }
+
+    public void run()
+    {
+      try
+      {
+        // Call the execute method appropriately
+        int rval = client.executeMethod(executeMethod);
+        if (rval != 200)
+        {
+          throw new ManifoldCFException("Unexpected response code "+rval+": "+executeMethod.getResponseBodyAsString());
+        }
+
+        // Read response and make sure it's valid
+        InputStream is = executeMethod.getResponseBodyAsStream();
+        try
+        {
+          // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
+          //<api>
+          //  <query>
+          //    <namespaces>
+          //      <ns id="-2" case="first-letter" canonical="Media" xml:space="preserve">Media</ns>
+          //      <ns id="-1" case="first-letter" canonical="Special" xml:space="preserve">Special</ns>
+          //      <ns id="0" case="first-letter" subpages="" content="" xml:space="preserve" />
+          //      <ns id="1" case="first-letter" subpages="" canonical="Talk" xml:space="preserve">Talk</ns>
+          //      <ns id="2" case="first-letter" subpages="" canonical="User" xml:space="preserve">User</ns>
+          //      <ns id="90" case="first-letter" canonical="Thread" xml:space="preserve">Thread</ns>
+          //      <ns id="91" case="first-letter" canonical="Thread talk" xml:space="preserve">Thread talk</ns>
+          //    </namespaces>
+          //  </query>
+          //</api>
+          XMLStream x = new XMLStream();
+          WikiGetNamespacesAPIContext c = new WikiGetNamespacesAPIContext(x,namespaces);
+          x.setContext(c);
+          try
+          {
+            try
+            {
+              x.parse(is);
+            }
+            catch (IOException e)
+            {
+              long time = System.currentTimeMillis();
+              throw new ServiceInterruption(e.getMessage(),e,time + 300000L,time + 12L * 60000L,-1,false);
+            }
+          }
+          finally
+          {
+            x.cleanup();
+          }
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IllegalStateException e)
+          {
+            // Ignore this error
+          }
+        }
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+  }
+
+  /** Create a URL to obtain the namespaces.
+  */
+  protected String getGetNamespacesURL()
+    throws ManifoldCFException
+  {
+    return baseURL + "action=query&meta=siteinfo&siprop=namespaces";
+  }
+
+  /** Class representing the "api" context of a "get namespaces" response */
+  protected static class WikiGetNamespacesAPIContext extends SingleLevelContext
+  {
+    protected Map<String,String> namespaces;
+    
+    public WikiGetNamespacesAPIContext(XMLStream theStream, Map<String,String> namespaces)
+    {
+      super(theStream,"api");
+      this.namespaces = namespaces;
+    }
+
+    protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
+    {
+      return new WikiGetNamespacesQueryContext(theStream,namespaceURI,localName,qName,atts,namespaces);
+    }
+    
+    protected void finishChild(BaseProcessingContext child)
+      throws ManifoldCFException
+    {
+    }
+
+  }
+
+  /** Class representing the "api/query" context of a "get namespaces" response */
+  protected static class WikiGetNamespacesQueryContext extends SingleLevelContext
+  {
+    protected Map<String,String> namespaces;
+    
+    public WikiGetNamespacesQueryContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
+      Map<String,String> namespaces)
+    {
+      super(theStream,namespaceURI,localName,qName,atts,"query");
+      this.namespaces = namespaces;
+    }
+
+    protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
+    {
+      return new WikiGetNamespacesNamespacesContext(theStream,namespaceURI,localName,qName,atts,namespaces);
+    }
+
+    protected void finishChild(BaseProcessingContext child)
+      throws ManifoldCFException
+    {
+    }
+    
+  }
+
+  /** Class representing the "api/query/namespaces" context of a "get namespaces" response */
+  protected static class WikiGetNamespacesNamespacesContext extends SingleLevelContext
+  {
+    protected Map<String,String> namespaces;
+    
+    public WikiGetNamespacesNamespacesContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
+      Map<String,String> namespaces)
+    {
+      super(theStream,namespaceURI,localName,qName,atts,"namespaces");
+      this.namespaces = namespaces;
+    }
+
+    protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
+    {
+      return new WikiGetNamespacesNsContext(theStream,namespaceURI,localName,qName,atts,namespaces);
+    }
+
+    protected void finishChild(BaseProcessingContext child)
+      throws ManifoldCFException
+    {
+    }
+    
+  }
+
+  /** Class representing the "api/query/pages/page" context of a "get doc info" response */
+  protected static class WikiGetNamespacesNsContext extends BaseProcessingContext
+  {
+    protected Map<String,String> namespaces;
+    protected String canonical = null;
+    
+    public WikiGetNamespacesNsContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
+      Map<String,String> namespaces)
+    {
+      super(theStream,namespaceURI,localName,qName,atts);
+      this.namespaces = namespaces;
+    }
+
+    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      if (qName.equals("ns"))
+      {
+        canonical = atts.getValue("canonical");
+        if (canonical != null)
+          return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+      }
+      return super.beginTag(namespaceURI,localName,qName,atts);
+    }
+    
+    protected void endTag()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      XMLContext theContext = theStream.getContext();
+      String theTag = theContext.getQname();
+      if (theTag.equals("ns"))
+      {
+        if (canonical != null)
+        {
+          // Pull down the data
+          XMLStringContext sc = (XMLStringContext)theContext;
+          namespaces.put(sc.getValue(),canonical);
+        }
+        else
+          super.endTag();
+      }
+      else
+        super.endTag();
+    }
+
+    protected void tagCleanup()
+      throws ManifoldCFException
+    {
+    }
+   
+  }
+  
   // -- Methods and classes to perform a "get Docinfo" operation. --
 
   /** Get document info and index the document.
