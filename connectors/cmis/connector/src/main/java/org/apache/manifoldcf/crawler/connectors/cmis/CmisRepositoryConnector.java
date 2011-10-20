@@ -683,10 +683,29 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void outputConfigurationBody(IThreadContext threadContext,
       IHTTPOutput out, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
+    
+    String username = parameters.getParameter(CONFIG_PARAM_USERNAME);
+    String password = parameters.getParameter(CONFIG_PARAM_PASSWORD);
+    String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
     String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+    String binding = parameters.getParameter(CONFIG_PARAM_BINDING);
+    
+    if(StringUtils.isEmpty(username))
+      username = StringUtils.EMPTY;
+    if(StringUtils.isEmpty(password))
+      password = StringUtils.EMPTY;
+    if(StringUtils.isEmpty(endpoint))
+      endpoint = StringUtils.EMPTY;
     if(StringUtils.isEmpty(repositoryId))
       repositoryId = StringUtils.EMPTY;
+    if(StringUtils.isEmpty(binding))
+      binding = BINDING_ATOM_VALUE;
+    
+    parameters.setParameter(CONFIG_PARAM_USERNAME, username);
+    parameters.setParameter(CONFIG_PARAM_PASSWORD, password);
+    parameters.setParameter(CONFIG_PARAM_ENDPOINT, endpoint);
     parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+    parameters.setParameter(CONFIG_PARAM_BINDING, binding);
     outputResource(EDIT_CONFIG_FORWARD, out, parameters);
   }
 
