@@ -6441,6 +6441,7 @@ public class JobManager implements IJobManager
       case Jobs.STATUS_READYFORSTARTUP:
         rstatus = JobStatus.JOBSTATUS_STARTING;
         break;
+      case Jobs.STATUS_DELETESTARTINGUP:
       case Jobs.STATUS_READYFORDELETE:
       case Jobs.STATUS_DELETING:
       case Jobs.STATUS_DELETING_NOOUTPUT:
@@ -6518,6 +6519,7 @@ public class JobManager implements IJobManager
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
     
     list.add(jobQueue.actionToString(jobQueue.ACTION_RESCAN));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
@@ -6590,9 +6592,9 @@ public class JobManager implements IJobManager
       .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(")")
       .append(" THEN 'Waiting forever'")
-      .append(" WHEN (").append("t0.").append(jobQueue.statusField).append("=?")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
-      .append(")")
+      .append(" OR ").append("t0.").append(jobQueue.statusField).append("=?")
       .append(" THEN 'Deleting'")
       .append(" WHEN ")
       .append("(t0.").append(jobQueue.checkActionField).append(" IS NULL OR t0.").append(jobQueue.checkActionField).append("=?)")

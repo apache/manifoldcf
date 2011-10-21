@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-280: The job state "DELETESTARTINGUP" was not being
+checked for in the status.  This meant that during the time that a
+job delete was beginning, "Not yet run" would be displayed as the status.
+(Karl Wright)
+
 CONNECTORS-277: Add the ability to select namespaces and title
 prefixes to the Wiki connector.
 (Tobias Wunderlich, Karl Wright)
