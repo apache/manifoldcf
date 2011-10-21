@@ -738,7 +738,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
           out.print(
 "<input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace == null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
-"<input type=\"hidden\" name=\""+titlePrefix+"\" value=\""+((titlePrefix == null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"
+"<input type=\"hidden\" name=\""+nsTitlePrefix+"\" value=\""+((titlePrefix == null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"
           );
           k++;
         }
