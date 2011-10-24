@@ -1905,6 +1905,15 @@
       </condition>
     </target>
 
+    <target name="calculate-rss-tests-condition" depends="calculate-rss-condition,calculate-nulloutput-condition">
+      <condition property="rss-tests.include">
+        <and>
+            <isset property="rss.include"/>
+            <isset property="nulloutput.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-sharepoint-tests-condition" depends="calculate-sharepoint-condition,calculate-nulloutput-condition">
       <condition property="sharepoint-tests.include">
         <and>
@@ -1984,6 +1993,38 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-rss-loadtests" depends="build-framework,build-rss-connector,build-nulloutput-connector,calculate-rss-tests-condition,build-tests-rss-connector,build-tests-nulloutput-connector" if="rss-tests.include">
+        <mkdir dir="build/rss-loadtests/classes"/>
+        <javac srcdir="loadtests/rss/src/test/java" destdir="build/rss-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/jar">
@@ -2254,6 +2295,107 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-rss-loadtests-derby" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+        <mkdir dir="test-output/rss"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/rss-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-rss-loadtests-postgresql" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+        <mkdir dir="test-postgresql-output/rss"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/rss-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlPostgresqlTest" todir="test-postgresql-output/rss"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-rss-loadtests-HSQLDB" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+        <mkdir dir="test-HSQLDB-output/rss"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/rss-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            
             <!-- MHL -->
         </junit>
     </target>
@@ -2745,6 +2887,8 @@
                 <pathelement location="build/filesystem-loadtests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
+	    
+            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlHSQLDBTest" todir="test-postgresql-output/filesystem"/>
 
             <!-- MHL -->
         </junit>
@@ -3044,11 +3188,11 @@
     
     <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-wiki-tests-HSQLDB,run-cmis-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
 
-    <target name="end-to-end-loadtests-derby" depends="run-filesystem-loadtests-derby,run-wiki-loadtests-derby,run-cmis-loadtests-derby,run-sharepoint-loadtests-derby"/>
+    <target name="end-to-end-loadtests-derby" depends="run-filesystem-loadtests-derby,run-rss-loadtests-derby,run-wiki-loadtests-derby,run-cmis-loadtests-derby,run-sharepoint-loadtests-derby"/>
 
-    <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-wiki-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
+    <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-rss-loadtests-postgresql,run-wiki-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
 
-    <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
+    <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
 
     <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>

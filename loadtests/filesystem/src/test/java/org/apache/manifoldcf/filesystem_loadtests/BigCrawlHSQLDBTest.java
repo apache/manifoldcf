@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class BigCrawlPostgresqlTest extends BasePostgresql
+public class BigCrawlHSQLDBTest extends BaseHSQLDB
 {
   
   @Before
