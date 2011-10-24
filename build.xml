@@ -2268,7 +2268,7 @@
 
     <target name="run-filesystem-loadtests-derby" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2301,7 +2301,7 @@
 
     <target name="run-rss-loadtests-derby" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-output/rss"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2334,7 +2334,7 @@
 
     <target name="run-rss-loadtests-postgresql" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-postgresql-output/rss"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2369,7 +2369,7 @@
 
     <target name="run-rss-loadtests-HSQLDB" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-HSQLDB-output/rss"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2438,7 +2438,7 @@
 
     <target name="run-wiki-loadtests-derby" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2509,7 +2509,7 @@
 
     <target name="run-cmis-loadtests-derby" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2578,7 +2578,7 @@
 
     <target name="run-sharepoint-loadtests-derby" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2648,7 +2648,7 @@
 
     <target name="run-filesystem-loadtests-postgresql" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-postgresql-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2717,7 +2717,7 @@
 
     <target name="run-wiki-loadtests-postgresql" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-postgresql-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2788,7 +2788,7 @@
 
     <target name="run-cmis-loadtests-postgresql" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2861,7 +2861,7 @@
 
     <target name="run-filesystem-loadtests-HSQLDB" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-HSQLDB-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2930,7 +2930,7 @@
 
     <target name="run-wiki-loadtests-HSQLDB" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-HSQLDB-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2997,7 +2997,7 @@
 
     <target name="run-sharepoint-loadtests-postgresql" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -3066,7 +3066,7 @@
 
     <target name="run-cmis-loadtests-HSQLDB" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -3135,7 +3135,7 @@
 
     <target name="run-sharepoint-loadtests-HSQLDB" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
