@@ -1307,6 +1307,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     long ingestTime, String documentURI, String documentURIHash)
     throws ManifoldCFException
   {
+    HashMap map = new HashMap();
     while (true)
     {
       // The table can have at most one row per URI, for non-null URIs.  It can also have at most one row per document identifier.
@@ -1327,53 +1328,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // If the UPDATE does not appear to modify any rows, this is also a signal that the INSERT must be retried.
       //
 
-      // Set up for insert
-      HashMap map = new HashMap();
-      map.put(lastVersionField,documentVersion);
-      map.put(lastOutputVersionField,outputVersion);
-      map.put(lastIngestField,new Long(ingestTime));
-      if (documentURI != null)
-      {
-        map.put(docURIField,documentURI);
-        map.put(uriHashField,documentURIHash);
-      }
-      if (authorityNameString != null)
-        map.put(authorityNameField,authorityNameString);
-      else
-        map.put(authorityNameField,"");
-
-      Long id = new Long(IDFactory.make(threadContext));
-      map.put(idField,id);
-      map.put(outputConnNameField,outputConnectionName);
-      map.put(docKeyField,docKey);
-      map.put(changeCountField,new Long(1));
-      map.put(firstIngestField,map.get(lastIngestField));
-      beginTransaction();
-      try
-      {
-        performInsert(map,null);
-        noteModifications(1,0,0);
-        return;
-      }
-      catch (ManifoldCFException e)
-      {
-        signalRollback();
-        // If this is simply a constraint violation, we just want to fall through and try the update!
-        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
-          throw e;
-        // Otherwise, exit transaction and fall through to 'update' attempt
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
-      }
-      finally
-      {
-        endTransaction();
-      }
-
-      // Insert must have failed.  Attempt an update.
+      // Try the update first.  Typically this succeeds except in the case where a doc is indexed for the first time.
       map.clear();
       map.put(lastVersionField,documentVersion);
       map.put(lastOutputVersionField,outputVersion);
@@ -1419,7 +1374,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
             return;
           }
 
-          // Update failed to find a matching record, so cycle back to retry the insert
+          // Update failed to find a matching record, so try the insert
+          break;
         }
         catch (ManifoldCFException e)
         {
@@ -1445,6 +1401,54 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           sleepFor(sleepAmt);
         }
       }
+
+      // Set up for insert
+      map.clear();
+      map.put(lastVersionField,documentVersion);
+      map.put(lastOutputVersionField,outputVersion);
+      map.put(lastIngestField,new Long(ingestTime));
+      if (documentURI != null)
+      {
+        map.put(docURIField,documentURI);
+        map.put(uriHashField,documentURIHash);
+      }
+      if (authorityNameString != null)
+        map.put(authorityNameField,authorityNameString);
+      else
+        map.put(authorityNameField,"");
+
+      Long id = new Long(IDFactory.make(threadContext));
+      map.put(idField,id);
+      map.put(outputConnNameField,outputConnectionName);
+      map.put(docKeyField,docKey);
+      map.put(changeCountField,new Long(1));
+      map.put(firstIngestField,map.get(lastIngestField));
+      beginTransaction();
+      try
+      {
+        performInsert(map,null);
+        noteModifications(1,0,0);
+        return;
+      }
+      catch (ManifoldCFException e)
+      {
+        signalRollback();
+        // If this is simply a constraint violation, we just want to fall through and try the update!
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        // Otherwise, exit transaction and fall through to 'update' attempt
+      }
+      catch (Error e)
+      {
+        signalRollback();
+        throw e;
+      }
+      finally
+      {
+        endTransaction();
+      }
+
+      // Insert must have failed.  Attempt an update.
     }
   }
 

@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-282: Change order in which the incremental ingester does
+things so we don't typically get unique constraint violation warnings in
+the log.
+(Karl Wright)
+
 CONNECTORS-280: The job state "DELETESTARTINGUP" was not being
 checked for in the status.  This meant that during the time that a
 job delete was beginning, "Not yet run" would be displayed as the status.
