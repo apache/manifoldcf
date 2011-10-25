@@ -124,13 +124,14 @@ public class DataCache
           os.close();
         }
 
+        deleteData(documentIdentifier);
+        
         synchronized(this)
         {
-          deleteData(documentIdentifier);
           cacheData.put(documentIdentifier,new DocumentData(tempFile,contentType));
-          return checkSum;
         }
-
+        
+        return checkSum;
       }
       catch (IOException e)
       {
@@ -170,10 +171,14 @@ public class DataCache
   *@param documentIdentifier is the document identifier.
   *@return the length.
   */
-  public synchronized long getDataLength(String documentIdentifier)
+  public long getDataLength(String documentIdentifier)
     throws ManifoldCFException
   {
-    DocumentData f = cacheData.get(documentIdentifier);
+    DocumentData f;
+    synchronized (this)
+    {
+      f = cacheData.get(documentIdentifier);
+    }
     if (f == null)
       return 0L;
     return f.getData().length();
@@ -183,10 +188,14 @@ public class DataCache
   *@param documentIdentifier is the document identifier (url).
   *@return a binary data stream.
   */
-  public synchronized InputStream getData(String documentIdentifier)
+  public InputStream getData(String documentIdentifier)
     throws ManifoldCFException
   {
-    DocumentData f = cacheData.get(documentIdentifier);
+    DocumentData f;
+    synchronized (this)
+    {
+      f = cacheData.get(documentIdentifier);
+    }
     if (f == null)
       return null;
     try
@@ -203,9 +212,13 @@ public class DataCache
   *@param documentIdentifier is the document identifier.
   *@return the content type, or null if there is none.
   */
-  public synchronized String getContentType(String documentIdentifier)
+  public String getContentType(String documentIdentifier)
   {
-    DocumentData dd = cacheData.get(documentIdentifier);
+    DocumentData dd;
+    synchronized (this)
+    {
+      dd = cacheData.get(documentIdentifier);
+    }
     if (dd == null)
       return null;
     return dd.getContentType();
@@ -214,10 +227,13 @@ public class DataCache
   /** Delete specified item of data.
   *@param documentIdentifier is the document identifier (url).
   */
-  public synchronized void deleteData(String documentIdentifier)
+  public void deleteData(String documentIdentifier)
   {
-    DocumentData f = cacheData.get(documentIdentifier);
-    cacheData.remove(documentIdentifier);
+    DocumentData f;
+    synchronized (this)
+    {
+      f = cacheData.remove(documentIdentifier);
+    }
     if (f != null)
     {
       ManifoldCF.deleteFile(f.getData());

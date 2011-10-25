@@ -1164,7 +1164,7 @@ public class ManifoldCF
   protected static class FileTrack implements IShutdownHook
   {
     /** Key and value are both File objects */
-    protected HashMap filesToDelete = new HashMap();
+    protected Map<File,File> filesToDelete = new HashMap<File,File>();
 
     /** Constructor */
     public FileTrack()
@@ -1172,17 +1172,25 @@ public class ManifoldCF
     }
 
     /** Add a file to track */
-    public synchronized void addFile(File f)
+    public void addFile(File f)
     {
-      filesToDelete.put(f,f);
+      synchronized (this)
+      {
+        filesToDelete.put(f,f);
+      }
     }
 
     /** Delete a file */
-    public synchronized void deleteFile(File f)
+    public void deleteFile(File f)
     {
+      // Because we never reuse file names, it is OK to delete twice.
+      // So the delete() can be outside the synchronizer.
       f.delete();
-      filesToDelete.remove(f);
-    }
+      synchronized (this)
+      {
+        filesToDelete.remove(f);
+      }
+  }
 
     /** Delete all remaining files */
     public void doCleanup()
