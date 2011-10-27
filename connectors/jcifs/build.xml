@@ -78,7 +78,7 @@
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
 
     <target name="download-jcifs">
-        <property name="version" value="1.3.16"/>
+        <property name="version" value="1.3.17"/>
         <get src="http://jcifs.samba.org/src/jcifs-${version}.jar" dest="jcifs/jcifs.jar"/>
     </target>
 
