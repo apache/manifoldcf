@@ -1309,7 +1309,8 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param modifyCount is the number of updates.
   *@param deleteCount is the number of deletions.
   */
-  public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
+  @Override
+  protected void noteModificationsNoTransactions(String tableName, int insertCount, int modifyCount, int deleteCount)
     throws ManifoldCFException
   {
     String tableStatisticsLock;

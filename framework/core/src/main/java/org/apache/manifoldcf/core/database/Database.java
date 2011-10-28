@@ -48,6 +48,9 @@ public class Database
   protected Connection connection = null;
   protected boolean doRollback = false;
   protected int delayedTransactionDepth = 0;
+  protected Map<String,Modifications> modificationsSet = new HashMap<String,Modifications>();
+
+  protected static Random random = new Random();
 
   protected final static String _TRANSACTION_ = "_TRANSACTION_";
 
@@ -340,8 +343,29 @@ public class Database
       else
         cacheManager.commitTransaction(th.getTransactionID());
       th = parentTransaction;
+      if (th == null)
+      {
+        if (doRollback)
+          modificationsSet.clear();
+        else
+          playbackModifications();
+      }
     }
 
+  }
+
+  /** Playback modifications */
+  private void playbackModifications()
+    throws ManifoldCFException
+  {
+    Iterator<String> modIterator = modificationsSet.keySet().iterator();
+    while (modIterator.hasNext())
+    {
+      String tableName = modIterator.next();
+      Modifications c = modificationsSet.get(tableName);
+      noteModificationsNoTransactions(tableName,c.getInsertCount(),c.getModifyCount(),c.getDeleteCount());
+    }
+    modificationsSet.clear();
   }
 
   /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
@@ -353,10 +377,29 @@ public class Database
   public void noteModifications(String tableName, int insertCount, int modifyCount, int deleteCount)
     throws ManifoldCFException
   {
+    if (th != null)
+    {
+      // In a transaction; record for later
+      Modifications c = modificationsSet.get(tableName);
+      if (c == null)
+      {
+        c = new Modifications();
+        modificationsSet.put(tableName,c);
+      }
+      c.update(insertCount,modifyCount,deleteCount);
+    }
+    else
+      noteModificationsNoTransactions(tableName,insertCount,modifyCount,deleteCount);
   }
 
-  protected static Random random = new Random();
-
+  /** Protected method for receiving information about inserts, modifications, or deletions OUTSIDE of all transactions.
+  */
+  protected void noteModificationsNoTransactions(String tableName, int insertCount, int modifyCount, int deleteCount)
+    throws ManifoldCFException
+  {
+  }
+  
+      
   /** Sleep a random amount of time after a transaction abort.
   */
   public long getSleepAmt()
@@ -383,6 +426,41 @@ public class Database
     }
   }
 
+  /** Class to keep track of modifications while we're in a transaction.
+  */
+  protected static class Modifications
+  {
+    protected int insertCount = 0;
+    protected int modifyCount = 0;
+    protected int deleteCount = 0;
+    
+    public Modifications()
+    {
+    }
+    
+    public void update(int insertCount, int modifyCount, int deleteCount)
+    {
+      this.insertCount += insertCount;
+      this.modifyCount += modifyCount;
+      this.deleteCount += deleteCount;
+    }
+    
+    public int getInsertCount()
+    {
+      return insertCount;
+    }
+    
+    public int getModifyCount()
+    {
+      return modifyCount;
+    }
+    
+    public int getDeleteCount()
+    {
+      return deleteCount;
+    }
+  }
+  
   /** Thread used to execute queries.  An instance of this thread is spun up every time a query is executed.  This is necessary because JDBC does not
   * guarantee interruptability, and the Postgresql JDBC driver unfortunately eats all thread interrupts.  So, we fire up a thread to do each interaction with
   * the database server, thus insuring that the owning thread remains interruptable and will therefore not block shutdown.

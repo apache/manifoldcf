@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-279: Prevent reindex or analyze from taking place within
+a transaction.  This was causing hangs on our load tests.
+(Karl Wright)
+
 CONNECTORS-283: Upgrade to jcifs.jar 1.3.17 in the ant build (download-dependencies target).
 (Shinichiro Abe)
 
