@@ -1184,7 +1184,24 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     else
       throw new ManifoldCFException("Transaction nesting error!");
   }
-  
+
+  /** Abstract method for explaining a query */
+  protected void explainQuery(String query, List params)
+    throws ManifoldCFException
+  {
+    IResultSet x = executeUncachedQuery("EXPLAIN PLAN FOR "+query,null,true,
+      -1,null,null);
+    int k = 0;
+    while (k < x.getRowCount())
+    {
+      IResultRow row = x.getRow(k++);
+      Iterator<String> iter = row.getColumns();
+      String colName = (String)iter.next();
+      Logging.db.warn(" Plan: "+row.getValue(colName).toString());
+    }
+    Logging.db.warn("");
+  }
+
   /** Abstract method for mapping a column name from resultset */
   protected String mapColumnName(String rawColumnName)
   {

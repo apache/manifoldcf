@@ -766,7 +766,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       list.add(statusToString(STATUS_STARTINGUP));
       list.add(statusToString(STATUS_ABORTINGSTARTINGUP));
       map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
-      performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,invKey);
+      performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,invKey);
 
       // Aborting starting up for restart state goes to ABORTINGFORRESTART
       list.clear();

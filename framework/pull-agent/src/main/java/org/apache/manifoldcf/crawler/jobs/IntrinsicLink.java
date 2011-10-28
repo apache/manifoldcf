@@ -187,7 +187,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     map.put(newField,statusToString(LINKSTATUS_BASE));
     list.add(statusToString(LINKSTATUS_NEW));
     list.add(statusToString(LINKSTATUS_EXISTING));
-    performUpdate(map,"WHERE "+newField+"=? OR "+newField+"=?",list,null);
+    performUpdate(map,"WHERE "+newField+" IN (?,?)",list,null);
   }
 
   /** Record a references from source to targets.  These references will be marked as either "new" or "existing".
@@ -463,7 +463,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     StringBuilder sb = new StringBuilder("WHERE (");
-    sb.append(query).append(") AND (").append(newField).append("=? OR ").append(newField).append("=?)");
+    sb.append(query).append(") AND ").append(newField).append(" IN (?,?)");
     list.add(statusToString(LINKSTATUS_EXISTING));
     list.add(statusToString(LINKSTATUS_NEW));
     HashMap map = new HashMap();

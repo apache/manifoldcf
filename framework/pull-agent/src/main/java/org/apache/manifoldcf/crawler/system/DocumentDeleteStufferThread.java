@@ -88,7 +88,7 @@ public class DocumentDeleteStufferThread extends Thread
 
           // Wait until the delete queue is "empty" (meaning that some delete threads
           // can run out of work if we don't act).
-          if (documentDeleteQueue.checkIfEmpty(n) == false)
+          if (documentDeleteQueue.checkIfEmpty(n * 3) == false)
           {
             ManifoldCF.sleep(100L);
             continue;

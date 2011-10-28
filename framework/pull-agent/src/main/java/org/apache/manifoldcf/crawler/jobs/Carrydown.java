@@ -118,9 +118,8 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       // Now do index management
 
       IndexDescription uniqueIndex = new IndexDescription(true,new String[]{jobIDField,parentIDHashField,childIDHashField,dataNameField,dataValueHashField});
-      IndexDescription jobParentIndex = new IndexDescription(false,new String[]{jobIDField,parentIDHashField});
       IndexDescription jobChildDataIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField,dataNameField});
-      IndexDescription jobChildNewIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField,newField});
+      IndexDescription newIndex = new IndexDescription(false,new String[]{newField});
 
       Map indexes = getTableIndexes(null,null);
       Iterator iter = indexes.keySet().iterator();
@@ -131,12 +130,10 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
         if (uniqueIndex != null && id.equals(uniqueIndex))
           uniqueIndex = null;
-        else if (jobParentIndex != null && id.equals(jobParentIndex))
-          jobParentIndex = null;
         else if (jobChildDataIndex != null && id.equals(jobChildDataIndex))
           jobChildDataIndex = null;
-        else if (jobChildNewIndex != null && id.equals(jobChildNewIndex))
-          jobChildNewIndex = null;
+        else if (newIndex != null && id.equals(newIndex))
+          newIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
@@ -144,14 +141,11 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
       // Create the indexes we are missing
 
-      if (jobParentIndex != null)
-        performAddIndex(null,jobParentIndex);
-
       if (jobChildDataIndex != null)
         performAddIndex(null,jobChildDataIndex);
 
-      if (jobChildNewIndex != null)
-        performAddIndex(null,jobChildNewIndex);
+      if (newIndex != null)
+        performAddIndex(null,newIndex);
 
       // This index is the constraint.  Only one row per job,dataname,datavalue,parent,and child.
       if (uniqueIndex != null)
@@ -294,13 +288,14 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
             if (i > 0)
               sb.append(" OR");
             sb.append("(").append(jobIDField).append("=? AND ")
-              .append(dataNameField).append("=? AND ")
-              .append(parentIDHashField).append("=? AND ").append(childIDHashField).append("=? AND ");
+              .append(parentIDHashField).append("=? AND ")
+              .append(childIDHashField).append("=? AND ")
+              .append(dataNameField).append("=? AND ");
 
             list.add(jobID);
-            list.add(documentDataName);
             list.add(parentDocumentIDHash);
             list.add(childDocumentIDHash);
+            list.add(documentDataName);
 
             if (documentDataValueHash == null)
             {
@@ -361,14 +356,15 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       {
         sb = new StringBuilder();
         sb.append("WHERE ").append(jobIDField).append("=? AND ")
-          .append(dataNameField).append("=? AND ")
-          .append(parentIDHashField).append("=? AND ").append(childIDHashField).append("=? AND ");
+          .append(parentIDHashField).append("=? AND ")
+          .append(childIDHashField).append("=? AND ")
+          .append(dataNameField).append("=? AND ");
 
         ArrayList updateList = new ArrayList();
         updateList.add(jobID);
-        updateList.add(dataName);
         updateList.add(parentDocumentIDHash);
         updateList.add(childDocumentIDHash);
+        updateList.add(dataName);
         if (dataValueHash != null)
         {
           sb.append(dataValueHashField).append("=?");
@@ -425,7 +421,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = getMaxOrClause();
+      int maxClause = getMaxInClause();
       StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
       int i = 0;
@@ -434,23 +430,21 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       {
         if (k == maxClause)
         {
-          performRestoreRecords(sb.toString(),list);
+          performRestoreRecords(sb.toString(),jobID,list);
           sb.setLength(0);
           list.clear();
           k = 0;
         }
         if (k > 0)
-          sb.append(" OR");
-        sb.append("(").append(jobIDField).append("=? AND ")
-          .append(parentIDHashField).append("=?)");
+          sb.append(",");
+        sb.append("?");
         String parentDocumentIDHash = parentDocumentIDHashes[i++];
-        list.add(jobID);
         list.add(parentDocumentIDHash);
         k++;
       }
 
       if (k > 0)
-        performRestoreRecords(sb.toString(),list);
+        performRestoreRecords(sb.toString(),jobID,list);
     }
     catch (ManifoldCFException e)
     {
@@ -468,24 +462,38 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
-  protected void performRestoreRecords(String query, ArrayList list)
+  protected void performRestoreRecords(String query, Long jobID, ArrayList list)
     throws ManifoldCFException
   {
     // Delete
-    StringBuilder sb = new StringBuilder("WHERE (");
-    sb.append(query).append(") AND (").append(newField).append("=?)");
-    ArrayList newList = (ArrayList)list.clone();
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList newList = new ArrayList();
+    
+    sb.append(jobIDField).append("=? AND ").append(parentIDHashField).append(" IN (")
+      .append(query).append(") AND ");
+    newList.add(jobID);
+    newList.addAll(list);
+    sb.append(newField).append("=?");
     newList.add(statusToString(ISNEW_BASE));
     performDelete(sb.toString(),newList,null);
 
     // Restore new values
-    sb = new StringBuilder("WHERE (");
-    sb.append(query).append(") AND (").append(newField).append("=? OR ").append(newField).append("=?)");
-    list.add(statusToString(ISNEW_EXISTING));
-    list.add(statusToString(ISNEW_NEW));
+    sb = new StringBuilder("WHERE ");
+    newList.clear();
+
+    sb.append(jobIDField).append("=? AND ").append(parentIDHashField).append(" IN (")
+      .append(query).append(") AND ");
+    newList.add(jobID);
+    newList.addAll(list);
+
+    sb.append(newField).append(" IN (?,?)");
+    newList.add(statusToString(ISNEW_EXISTING));
+    newList.add(statusToString(ISNEW_NEW));
+    
     HashMap map = new HashMap();
     map.put(newField,statusToString(ISNEW_BASE));
-    performUpdate(map,sb.toString(),list,null);
+    performUpdate(map,sb.toString(),newList,null);
+    
     noteModifications(0,list.size(),0);
   }
 
@@ -497,45 +505,34 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = getMaxOrClause();
+      int maxClause = getMaxInClause();
       StringBuilder sb = new StringBuilder();
-      StringBuilder sb2 = new StringBuilder();
       ArrayList list = new ArrayList();
-      ArrayList list2 = new ArrayList();
       int i = 0;
       int k = 0;
       while (i < documentIDHashes.length)
       {
         if (k == maxClause)
         {
-          performDeleteRecords(sb.toString(),sb2.toString(),list,list2);
+          performDeleteRecords(sb.toString(),jobID,list);
           sb.setLength(0);
-          sb2.setLength(0);
           list.clear();
-          list2.clear();
           k = 0;
         }
         if (k > 0)
         {
-          sb.append(" OR");
-          sb2.append(" OR");
+          sb.append(",");
         }
 
-        sb.append("(").append(jobIDField).append("=? AND ")
-          .append(childIDHashField).append("=?)");
-        sb2.append("(").append(jobIDField).append("=? AND ")
-          .append(parentIDHashField).append("=?)");
+        sb.append("?");
 
         String documentIDHash = documentIDHashes[i++];
-        list.add(jobID);
         list.add(documentIDHash);
-        list2.add(jobID);
-        list2.add(documentIDHash);
         k++;
       }
 
       if (k > 0)
-        performDeleteRecords(sb.toString(),sb2.toString(),list,list2);
+        performDeleteRecords(sb.toString(),jobID,list);
 
 
     }
@@ -556,12 +553,28 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  protected void performDeleteRecords(String query, String query2, ArrayList list, ArrayList list2)
+  protected void performDeleteRecords(String query, Long jobID, ArrayList list)
     throws ManifoldCFException
   {
-    performDelete("WHERE "+query,list,null);
-    performDelete("WHERE "+query2,list2,null);
-    noteModifications(0,0,list.size()+list2.size());
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList newList = new ArrayList();
+    
+    sb.append(jobIDField).append("=? AND ").append(childIDHashField).append(" IN (")
+      .append(query).append(")");
+    newList.add(jobID);
+    newList.addAll(list);
+    performDelete(sb.toString(),newList,null);
+    
+    sb = new StringBuilder("WHERE ");
+    newList.clear();
+    
+    sb.append(jobIDField).append("=? AND ").append(parentIDHashField).append(" IN (")
+      .append(query).append(")");
+    newList.add(jobID);
+    newList.addAll(list);
+    performDelete(sb.toString(),newList,null);
+
+    noteModifications(0,0,list.size()*2);
   }
 
   /** Get unique values given a document identifier, data name, an job identifier */
@@ -570,11 +583,11 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
-    list.add(dataName);
     list.add(documentIdentifierHash);
+    list.add(dataName);
 
     IResultSet set = getDBInterface().performQuery("SELECT "+dataValueHashField+","+dataValueField+" FROM "+getTableName()+" WHERE "+
-      jobIDField+"=? AND "+dataNameField+"=? AND "+childIDHashField+"=? ORDER BY 1 ASC",list,null,null,-1,null,new ResultDuplicateEliminator());
+      jobIDField+"=? AND "+childIDHashField+"=? AND "+dataNameField+"=? ORDER BY 1 ASC",list,null,null,-1,null,new ResultDuplicateEliminator());
 
     String[] rval = new String[set.getRowCount()];
     int i = 0;
@@ -595,13 +608,13 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   {
     ArrayList list = new ArrayList();
     list.add(jobID);
-    list.add(dataName);
     list.add(documentIdentifierHash);
+    list.add(dataName);
 
     ResultSpecification rs = new ResultSpecification();
     rs.setForm(dataValueField,ResultSpecification.FORM_STREAM);
     IResultSet set = getDBInterface().performQuery("SELECT "+dataValueHashField+","+dataValueField+" FROM "+getTableName()+" WHERE "+
-      jobIDField+"=? AND "+dataNameField+"=? AND "+childIDHashField+"=? ORDER BY 1 ASC",list,null,null,-1,rs,new ResultDuplicateEliminator());
+      jobIDField+"=? AND "+childIDHashField+"=? AND "+dataNameField+"=? ORDER BY 1 ASC",list,null,null,-1,rs,new ResultDuplicateEliminator());
 
     CharacterInput[] rval = new CharacterInput[set.getRowCount()];
     int i = 0;

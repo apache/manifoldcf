@@ -2861,7 +2861,7 @@
 
     <target name="run-filesystem-loadtests-HSQLDB" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-HSQLDB-output/filesystem"/>
-        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>

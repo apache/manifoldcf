@@ -204,10 +204,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription uniqueIndex = new IndexDescription(true,new String[]{docHashField,jobIDField});
       IndexDescription jobStatusIndex = new IndexDescription(false,new String[]{jobIDField,statusField});
       IndexDescription jobSeedIndex = new IndexDescription(false,new String[]{jobIDField,isSeedField});
-      IndexDescription jobHashStatusIndex = new IndexDescription(false,new String[]{jobIDField,docHashField,statusField});
-      IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField});
-      IndexDescription actionTimeStatusIndex = new IndexDescription(false,new String[]{checkActionField,checkTimeField,statusField});
-      IndexDescription prioritysetStatusIndex = new IndexDescription(false,new String[]{prioritySetField,statusField});
+      IndexDescription jobHashStatusIndex = new IndexDescription(false,new String[]{docHashField,statusField});
+      IndexDescription actionTimeStatusIndex = new IndexDescription(false,new String[]{statusField,checkActionField,checkTimeField});
+      IndexDescription prioritysetStatusIndex = new IndexDescription(false,new String[]{prioritySetField,statusField,checkActionField});
       IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField});
 
       // Get rid of unused indexes
@@ -226,8 +225,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
           jobSeedIndex = null;
         else if (jobHashStatusIndex != null && id.equals(jobHashStatusIndex))
           jobHashStatusIndex = null;
-        else if (statusIndex != null && id.equals(statusIndex))
-          statusIndex = null;
         else if (actionTimeStatusIndex != null && id.equals(actionTimeStatusIndex))
           actionTimeStatusIndex = null;
         else if (prioritysetStatusIndex != null && id.equals(prioritysetStatusIndex))
@@ -249,9 +246,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
       if (jobHashStatusIndex != null)
         performAddIndex(null,jobHashStatusIndex);
-
-      if (statusIndex != null)
-        performAddIndex(null,statusIndex);
 
       if (actionTimeStatusIndex != null)
         performAddIndex(null,actionTimeStatusIndex);
@@ -320,14 +314,14 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(statusToString(STATUS_ACTIVE));
     list.add(statusToString(STATUS_ACTIVENEEDRESCAN));
-    performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,null);
+    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     list.clear();
     list.add(statusToString(STATUS_ACTIVEPURGATORY));
     list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
-    performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,null);
+    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
 
     // Map BEINGDELETED to ELIGIBLEFORDELETE
     map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
@@ -388,14 +382,14 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     list.add(statusToString(STATUS_ACTIVE));
     list.add(statusToString(STATUS_ACTIVENEEDRESCAN));
-    performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,null);
+    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     list.clear();
     list.add(statusToString(STATUS_ACTIVEPURGATORY));
     list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
-    performUpdate(map,"WHERE "+statusField+"=? OR "+statusField+"=?",list,null);
+    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
   }
 
   /** Reset doc delete worker status.
