@@ -137,21 +137,31 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(name);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(ownerNameField,name)});
     return performQuery("SELECT "+descriptionField+" AS description,"+matchField+" AS match,"+throttleField+" AS value FROM "+
-      getTableName()+" WHERE "+ownerNameField+"=?",list,null,null);
+      getTableName()+" WHERE "+query,list,null,null);
   }
 
+  /** Calculate the maximum number of clauses we can use with getRows.
+  */
+  public int maxClauseGetRows()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+    
   /** Fill in a set of throttles corresponding to a set of connection names.
   *@param connections is the set of connections to fill in.
   *@param indexMap maps the connection name to the index in the connections array.
-  *@param ownerNameList is the list of connection names.
   *@param ownerNameParams is the corresponding set of connection name parameters.
   */
-  public void getRows(IRepositoryConnection[] connections, Map indexMap, String ownerNameList, ArrayList ownerNameParams)
+  public void getRows(IRepositoryConnection[] connections, Map indexMap, ArrayList ownerNameParams)
     throws ManifoldCFException
   {
-    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerNameField+" IN ("+ownerNameList+")",ownerNameParams,
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(ownerNameField,ownerNameParams)});
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+query,list,
       null,null);
     int i = 0;
     while (i < set.getRowCount())
@@ -217,8 +227,9 @@ public class ThrottleSpecManager extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(owner);
-    performDelete("WHERE "+ownerNameField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(ownerNameField,owner)});
+    performDelete("WHERE "+query,list,null);
   }
 
 }

@@ -16,52 +16,45 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.cmis_tests;
+package org.apache.manifoldcf.rss_loadtests;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.manifoldcf.core.interfaces.Configuration;
-import org.apache.manifoldcf.core.interfaces.ILockManager;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
-import org.apache.manifoldcf.crawler.interfaces.IJobDescription;
-import org.apache.manifoldcf.crawler.interfaces.IJobManager;
-import org.apache.manifoldcf.crawler.interfaces.JobManagerFactory;
-import org.apache.manifoldcf.crawler.interfaces.JobStatus;
+import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
-import org.junit.After;
-import org.junit.Before;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
 
-/** Tests that run the "agents daemon" should be derived from this 
- * 
- *  @author Piergiorgio Lucidi
- * 
- * */
-public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
+import java.io.*;
+import java.util.*;
+import org.junit.*;
+
+import org.mortbay.jetty.Handler;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.Connector;
+import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.jetty.servlet.Context;
+import org.mortbay.jetty.servlet.FilterHolder;
+import org.mortbay.log.Logger;
+
+import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.methods.*;
+
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBase
 {
   public static final String agentShutdownSignal = "agent-process";
   public static final int testPort = 8346;
   
   protected DaemonThread daemonThread = null;
   protected Server server = null;
-  protected Server cmisServer = null;
 
-  
   protected String[] getConnectorNames()
   {
-    return new String[]{"CMIS"};
+    return new String[]{"File Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"};
   }
   
   protected String[] getOutputNames()
@@ -237,6 +230,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     // Start jetty
     server = new Server( testPort );    
     server.setStopAtShutdown( true );
+
     
     String crawlerWarPath = "../../framework/dist/web/war/mcf-crawler-ui.war";
     String authorityserviceWarPath = "../../framework/dist/web/war/mcf-authority-service.war";
@@ -248,7 +242,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     	authorityserviceWarPath = System.getProperty("authorityserviceWarPath");
     if (System.getProperty("apiWarPath") != null)
     	apiWarPath = System.getProperty("apiWarPath");
-
+    
     // Initialize the servlets
     WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
@@ -263,40 +257,14 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     server.addHandler(lcfApi);
     server.start();
 
-    cmisServer = new Server(9090);
-    cmisServer.setStopAtShutdown(true);
+    // If all worked, then we can start the daemon.
+    // Clear the agents shutdown signal.
+    IThreadContext tc = ThreadContextFactory.make();
+    ILockManager lockManager = LockManagerFactory.make(tc);
+    lockManager.clearGlobalFlag(agentShutdownSignal);
 
-    String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory-war.war";
-
-    if (System.getProperty("openCmisServerWarPath") != null)
-      openCmisServerWarPath = System.getProperty("openCmisServerWarPath");
-    
-    //Initialize OpenCMIS Server bindings
-    WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory");
-    openCmisServerApi.setParentLoaderPriority(false);
-    cmisServer.addHandler(openCmisServerApi);
-    
-    cmisServer.start();
-    boolean entered = false;
-    
-    while(server.isStarted() 
-        && cmisServer.isStarted() 
-        && openCmisServerApi.isStarted()
-        && lcfApi.isStarted()
-        && lcfAuthorityService.isStarted()
-        && lcfCrawlerUI.isStarted()
-        && !entered){
-      entered = true;
-      ManifoldCF.sleep(5000);
-      // If all worked, then we can start the daemon.
-      // Clear the agents shutdown signal.
-      IThreadContext tc = ThreadContextFactory.make();
-      ILockManager lockManager = LockManagerFactory.make(tc);
-      lockManager.clearGlobalFlag(agentShutdownSignal);
-  
-      daemonThread = new DaemonThread();
-      daemonThread.start();
-    }
+    daemonThread = new DaemonThread();
+    daemonThread.start();
   }
   
   @After

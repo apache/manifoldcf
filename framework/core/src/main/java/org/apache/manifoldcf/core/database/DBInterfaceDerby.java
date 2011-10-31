@@ -108,6 +108,16 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     this.password = password;
   }
 
+  public DBInterfaceDerby(IThreadContext tc, String databaseName)
+    throws ManifoldCFException
+  {
+    super(tc,_url+databaseName,_driver,databaseName,"","");
+    cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+    lockManager = LockManagerFactory.make(tc);
+    this.userName = "";
+    this.password = "";
+  }
+  
   /** Initialize.  This method is called once per JVM instance, in order to set up
   * database communication.
   */
@@ -704,7 +714,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    Database rootDatabase = new Database(context,_url+databaseName,_driver,databaseName,"","");
+    Database rootDatabase = new DBInterfaceDerby(context,databaseName);
     IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,null,null,null,true,-1,null,null);
     if (set.getRowCount() == 0)
     {

@@ -387,7 +387,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Connect to super database
-    Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
+    Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
     List list = new ArrayList();
     list.add("utf8");
     masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ?",list,
@@ -412,7 +412,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Connect to super database
-    Database masterDatabase = new Database(context,_url+"mysql",_driver,"mysql",adminUserName,adminPassword);
+    Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
     masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
   }
 

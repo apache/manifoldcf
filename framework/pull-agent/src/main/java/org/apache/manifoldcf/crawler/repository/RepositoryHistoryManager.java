@@ -165,8 +165,9 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     throws ManifoldCFException
   {
     ArrayList params = new ArrayList();
-    params.add(owner);
-    performDelete("WHERE "+ownerNameField+"=?",params,invKeys);
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(ownerNameField,owner)});
+    performDelete("WHERE "+query,params,invKeys);
   }
 
   /** Add row to table, and reanalyze if necessary.
@@ -691,10 +692,6 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
         sb.append(field);
 	// Always make it DESC order...
 	sb.append(" DESC");
-        //if (j == 0)
-	//  sb.append(" DESC");
-        //else
-        //  sb.append(" ASC");
         i++;
       }
       j++;

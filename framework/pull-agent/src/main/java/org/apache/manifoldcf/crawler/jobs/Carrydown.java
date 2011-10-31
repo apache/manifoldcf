@@ -182,8 +182,9 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    performDelete("WHERE "+jobIDField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+    performDelete("WHERE "+query,list,null);
   }
 
   // The strategy here is to leave all rows that have a given document as a parent labelled as "BASE" at the start of the
@@ -204,14 +205,16 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     // Delete "new" rows
     HashMap map = new HashMap();
     ArrayList list = new ArrayList();
-    list.add(statusToString(ISNEW_NEW));
-    performDelete("WHERE "+newField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(newField,statusToString(ISNEW_NEW))});
+    performDelete("WHERE "+query,list,null);
 
     // Convert "existing" rows to base
     map.put(newField,statusToString(ISNEW_BASE));
     list.clear();
-    list.add(statusToString(ISNEW_EXISTING));
-    performUpdate(map,"WHERE "+newField+"=?",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(newField,statusToString(ISNEW_EXISTING))});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Add carrydown data for a given parent/child pair.
@@ -286,27 +289,16 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
               list.clear();
             }
             if (i > 0)
-              sb.append(" OR");
-            sb.append("(").append(jobIDField).append("=? AND ")
-              .append(parentIDHashField).append("=? AND ")
-              .append(childIDHashField).append("=? AND ")
-              .append(dataNameField).append("=? AND ");
-
-            list.add(jobID);
-            list.add(parentDocumentIDHash);
-            list.add(childDocumentIDHash);
-            list.add(documentDataName);
-
-            if (documentDataValueHash == null)
-            {
-              sb.append(dataValueHashField).append(" IS NULL");
-            }
-            else
-            {
-              sb.append(dataValueHashField).append("=?");
-              list.add(documentDataValueHash);
-            }
-            sb.append(")");
+              sb.append(" OR ");
+            
+            sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(jobIDField,jobID),
+              new UnitaryClause(parentIDHashField,parentDocumentIDHash),
+              new UnitaryClause(childIDHashField,childDocumentIDHash),
+              new UnitaryClause(dataNameField,documentDataName),
+              (documentDataValueHash==null)?
+                new NullCheckClause(dataValueHashField,true):
+                new UnitaryClause(dataValueHashField,documentDataValueHash)}));
 
             i++;
             p++;
@@ -469,10 +461,10 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     StringBuilder sb = new StringBuilder("WHERE ");
     ArrayList newList = new ArrayList();
     
-    sb.append(jobIDField).append("=? AND ").append(parentIDHashField).append(" IN (")
-      .append(query).append(") AND ");
-    newList.add(jobID);
-    newList.addAll(list);
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list)})).append(" AND ");
+      
     sb.append(newField).append("=?");
     newList.add(statusToString(ISNEW_BASE));
     performDelete(sb.toString(),newList,null);
@@ -481,10 +473,9 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     sb = new StringBuilder("WHERE ");
     newList.clear();
 
-    sb.append(jobIDField).append("=? AND ").append(parentIDHashField).append(" IN (")
-      .append(query).append(") AND ");
-    newList.add(jobID);
-    newList.addAll(list);
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list)})).append(" AND ");
 
     sb.append(newField).append(" IN (?,?)");
     newList.add(statusToString(ISNEW_EXISTING));
@@ -505,8 +496,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = getMaxInClause();
-      StringBuilder sb = new StringBuilder();
+      int maxClause = maxClausePerformDeleteRecords(jobID);
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -514,25 +504,16 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       {
         if (k == maxClause)
         {
-          performDeleteRecords(sb.toString(),jobID,list);
-          sb.setLength(0);
+          performDeleteRecords(jobID,list);
           list.clear();
           k = 0;
         }
-        if (k > 0)
-        {
-          sb.append(",");
-        }
-
-        sb.append("?");
-
-        String documentIDHash = documentIDHashes[i++];
-        list.add(documentIDHash);
+        list.add(documentIDHashes[i++]);
         k++;
       }
 
       if (k > 0)
-        performDeleteRecords(sb.toString(),jobID,list);
+        performDeleteRecords(jobID,list);
 
 
     }
@@ -553,25 +534,29 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  protected void performDeleteRecords(String query, Long jobID, ArrayList list)
+  protected int maxClausePerformDeleteRecords(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+  }
+    
+  protected void performDeleteRecords(Long jobID, ArrayList list)
     throws ManifoldCFException
   {
     StringBuilder sb = new StringBuilder("WHERE ");
     ArrayList newList = new ArrayList();
     
-    sb.append(jobIDField).append("=? AND ").append(childIDHashField).append(" IN (")
-      .append(query).append(")");
-    newList.add(jobID);
-    newList.addAll(list);
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(childIDHashField,list)}));
     performDelete(sb.toString(),newList,null);
     
     sb = new StringBuilder("WHERE ");
     newList.clear();
     
-    sb.append(jobIDField).append("=? AND ").append(parentIDHashField).append(" IN (")
-      .append(query).append(")");
-    newList.add(jobID);
-    newList.addAll(list);
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list)}));
     performDelete(sb.toString(),newList,null);
 
     noteModifications(0,0,list.size()*2);
@@ -582,12 +567,13 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(documentIdentifierHash);
-    list.add(dataName);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(childIDHashField,documentIdentifierHash),
+      new UnitaryClause(dataNameField,dataName)});
 
     IResultSet set = getDBInterface().performQuery("SELECT "+dataValueHashField+","+dataValueField+" FROM "+getTableName()+" WHERE "+
-      jobIDField+"=? AND "+childIDHashField+"=? AND "+dataNameField+"=? ORDER BY 1 ASC",list,null,null,-1,null,new ResultDuplicateEliminator());
+      query+" ORDER BY 1 ASC",list,null,null,-1,null,new ResultDuplicateEliminator());
 
     String[] rval = new String[set.getRowCount()];
     int i = 0;
@@ -607,14 +593,15 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(documentIdentifierHash);
-    list.add(dataName);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(childIDHashField,documentIdentifierHash),
+      new UnitaryClause(dataNameField,dataName)});
 
     ResultSpecification rs = new ResultSpecification();
     rs.setForm(dataValueField,ResultSpecification.FORM_STREAM);
     IResultSet set = getDBInterface().performQuery("SELECT "+dataValueHashField+","+dataValueField+" FROM "+getTableName()+" WHERE "+
-      jobIDField+"=? AND "+childIDHashField+"=? AND "+dataNameField+"=? ORDER BY 1 ASC",list,null,null,-1,rs,new ResultDuplicateEliminator());
+      query+" ORDER BY 1 ASC",list,null,null,-1,rs,new ResultDuplicateEliminator());
 
     CharacterInput[] rval = new CharacterInput[set.getRowCount()];
     int i = 0;

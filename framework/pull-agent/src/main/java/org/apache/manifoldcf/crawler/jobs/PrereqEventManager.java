@@ -133,20 +133,33 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
     throws ManifoldCFException
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("WHERE EXISTS(SELECT 'x' FROM ").append(parentTableName).append(" WHERE ").append(joinField).append("=")
-      .append(getTableName()).append(".").append(ownerField);
+    ArrayList newList = new ArrayList();
+    
+    sb.append("WHERE EXISTS(SELECT 'x' FROM ").append(parentTableName).append(" WHERE ")
+      .append(buildConjunctionClause(newList,new ClauseDescription[]{
+        new JoinClause(joinField,getTableName() + "." + ownerField)}));
+
     if (parentCriteria != null)
+    {
       sb.append(" AND ").append(parentCriteria);
+      if (list != null)
+        newList.addAll(list);
+    }
+    
     sb.append(")");
-    performDelete(sb.toString(),list,null);
+    
+    performDelete(sb.toString(),newList,null);
     noteModifications(0,0,1);
   }
 
   /** Delete specified rows, as directly specified without a join. */
-  public void deleteRows(String ownerQueryPart, ArrayList list)
+  public void deleteRows(ArrayList list)
     throws ManifoldCFException
   {
-    performDelete("WHERE "+ownerField+" IN("+ownerQueryPart+")",list,null);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(ownerField,list)});
+    performDelete("WHERE "+query,newList,null);
     noteModifications(0,0,1);
   }
 
@@ -155,8 +168,9 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(recordID);
-    performDelete(" WHERE "+ownerField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(ownerField,recordID)});
+    performDelete(" WHERE "+query,list,null);
     noteModifications(0,0,1);
   }
 

@@ -302,6 +302,19 @@ public interface IDBInterface
   public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
     String[] distinctFields, String[] orderFields, boolean[] orderFieldsAscending, Map<String,String> otherFields);
   
+  /* Calculate the number of values a particular clause can have, given the values for all the other clauses.
+  * For example, if in the expression x AND y AND z, x has 2 values and z has 1, find out how many values x can legally have
+  * when using the buildConjunctionClause() method below.
+  */
+  public int findConjunctionClauseMax(ClauseDescription[] otherClauseDescriptions);
+  
+  /* Construct a conjunction clause, e.g. x AND y AND z, where there is expected to be an index (x,y,z,...), and where x, y, or z
+  * can have multiple distinct values, The proper implementation of this method differs from database to database, because some databases
+  * only permit index operations when there are OR's between clauses, such as x1 AND y1 AND z1 OR x2 AND y2 AND z2 ..., where others
+  * only recognize index operations when there are lists specified for each, such as x IN (x1,x2) AND y IN (y1,y2) AND z IN (z1,z2).
+  */
+  public String buildConjunctionClause(List outputParameters, ClauseDescription[] clauseDescriptions);
+  
   /** Obtain the maximum number of individual items that should be
   * present in an IN clause.  Exceeding this amount will potentially cause the query performance
   * to drop.

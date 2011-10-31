@@ -109,6 +109,10 @@ public class ManifoldCF
   /** Database handle timeout property */
   public static final String databaseHandleTimeoutProperty = "org.apache.manifoldcf.database.handletimeout";
 
+  // Database performance monitoring properties
+  /** Elapsed time a query can take before a warning is output to the log, in seconds */
+  public static final String databaseQueryMaxTimeProperty = "org.apache.manifoldcf.database.maxquerytime";
+  
   // Log configuration properties
   /** Location of log configuration file */
   public static final String logConfigFileProperty = "org.apache.manifoldcf.logconfigfile";

@@ -2301,7 +2301,7 @@
 
     <target name="run-rss-loadtests-derby" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-output/rss"/>
-        <junit fork="true" maxmemory="256m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="384m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2328,13 +2328,15 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
+            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlDerbyTest" todir="test-output/rss"/>
+
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-rss-loadtests-postgresql" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-postgresql-output/rss"/>
-        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="384m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2369,7 +2371,7 @@
 
     <target name="run-rss-loadtests-HSQLDB" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-HSQLDB-output/rss"/>
-        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2395,7 +2397,9 @@
                 <pathelement location="build/rss-loadtests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
-            
+
+            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlHSQLDBTest" todir="test-HSQLDB-output/rss"/>
+
             <!-- MHL -->
         </junit>
     </target>

@@ -285,7 +285,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       hopFilterManager.install(getTableName(),idField);
 
       // Index management
-      IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField});
+      IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
+      IndexDescription connectionIndex = new IndexDescription(false,new String[]{connectionNameField});
+      IndexDescription outputIndex = new IndexDescription(false,new String[]{outputNameField});
 
       // Get rid of indexes that shouldn't be there
       Map indexes = getTableIndexes(null,null);
@@ -297,6 +299,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
         if (statusIndex != null && id.equals(statusIndex))
           statusIndex = null;
+        else if (connectionIndex != null && id.equals(connectionIndex))
+          connectionIndex = null;
+        else if (outputIndex != null && id.equals(outputIndex))
+          outputIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
@@ -305,6 +311,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       // Add the ones we didn't find
       if (statusIndex != null)
         performAddIndex(null,statusIndex);
+      if (connectionIndex != null)
+        performAddIndex(null,connectionIndex);
+      if (outputIndex != null)
+        performAddIndex(null,outputIndex);
 
       break;
 
@@ -374,28 +384,23 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
-      int maxIn = getMaxInClause();
+      int maxIn = scheduleManager.maxClauseGetRowsAlternate();
       Iterator iter = uniqueIDs.keySet().iterator();
       while (iter.hasNext())
       {
         if (j == maxIn)
         {
-          scheduleManager.getRowsAlternate(returnValues,sb.toString(),params);
-          sb.setLength(0);
+          scheduleManager.getRowsAlternate(returnValues,params);
           params.clear();
           j = 0;
         }
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
-        params.add((Long)iter.next());
+        params.add(iter.next());
         j++;
       }
       if (j > 0)
-        scheduleManager.getRowsAlternate(returnValues,sb.toString(),params);
+        scheduleManager.getRowsAlternate(returnValues,params);
     }
     catch (Error e)
     {

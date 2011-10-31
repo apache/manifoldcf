@@ -87,9 +87,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
       }
 
       // Index management
-      IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerIDField});
-      IndexDescription jobIndex = new IndexDescription(false,new String[]{jobIDField});
-      IndexDescription completeIndex = new IndexDescription(true,new String[]{ownerIDField,linkTypeField,parentIDHashField,childIDHashField});
+      IndexDescription completeIndex = new IndexDescription(true,new String[]{ownerIDField,parentIDHashField,linkTypeField,childIDHashField});
       IndexDescription jobChildIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField});
 
       // Get rid of indexes that shouldn't be there
@@ -100,11 +98,7 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
         String indexName = (String)iter.next();
         IndexDescription id = (IndexDescription)indexes.get(indexName);
 
-        if (ownerIndex != null && id.equals(ownerIndex))
-          ownerIndex = null;
-        else if (jobIndex != null && id.equals(jobIndex))
-          jobIndex = null;
-        else if (completeIndex != null && id.equals(completeIndex))
+        if (completeIndex != null && id.equals(completeIndex))
           completeIndex = null;
         else if (jobChildIndex != null && id.equals(jobChildIndex))
           jobChildIndex = null;
@@ -114,10 +108,6 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
       }
 
       // Add the ones we didn't find
-      if (ownerIndex != null)
-        performAddIndex(null,ownerIndex);
-      if (jobIndex != null)
-        performAddIndex(null,jobIndex);
       if (completeIndex != null)
         performAddIndex(null,completeIndex);
       if (jobChildIndex != null)
@@ -151,8 +141,9 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    performDelete("WHERE "+jobIDField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+    performDelete("WHERE "+query,list,null);
     // Log one event - it may not be enough, but it's the best we can do without overhead
     noteModifications(0,0,1);
   }
@@ -178,19 +169,12 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   public void deleteOwnerRows(Long[] ownerIDs)
     throws ManifoldCFException
   {
-    StringBuilder sb = new StringBuilder("WHERE ");
-    sb.append(ownerIDField).append(" IN(");
     ArrayList list = new ArrayList();
-    int i = 0;
-    while (i < ownerIDs.length)
-    {
-      if (i > 0)
-        sb.append(",");
-      sb.append("?");
-      list.add(ownerIDs[i++]);
-    }
-    sb.append(")");
-    performDelete(sb.toString(),list,null);
+    
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(ownerIDField,ownerIDs)});
+      
+    performDelete("WHERE "+query,list,null);
     noteModifications(0,0,ownerIDs.length);
   }
 
@@ -201,9 +185,11 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(ownerID);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,ownerID)});
+      
     IResultSet set = performQuery("SELECT "+linkTypeField+", "+parentIDHashField+", "+
-      childIDHashField+" FROM "+getTableName()+" WHERE "+ownerIDField+"=?",list,null,null);
+      childIDHashField+" FROM "+getTableName()+" WHERE "+query,list,null,null);
     DeleteDependency[] rval = new DeleteDependency[set.getRowCount()];
     int i = 0;
     while (i < rval.length)
@@ -222,26 +208,17 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    StringBuilder sb = new StringBuilder("WHERE ");
-    sb.append(ownerIDField).append("=? AND ");
-    list.add(ownerID);
-    if (dd.getLinkType().length() > 0)
-    {
-      sb.append(linkTypeField).append("=? AND ");
-      list.add(dd.getLinkType());
-    }
-    else
-      sb.append(linkTypeField).append(" IS NULL AND ");
-    sb.append(parentIDHashField).append("=? AND ");
-    list.add(dd.getParentIDHash());
-    if (dd.getChildIDHash().length() > 0)
-    {
-      sb.append(childIDHashField).append("=?");
-      list.add(dd.getChildIDHash());
-    }
-    else
-      sb.append(childIDHashField).append(" IS NULL");
-    performDelete(sb.toString(),list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,ownerID),
+      new UnitaryClause(parentIDHashField,dd.getParentIDHash()),
+      (dd.getLinkType().length() > 0)?
+        new UnitaryClause(linkTypeField,dd.getLinkType()):
+        new NullCheckClause(linkTypeField,true),
+      (dd.getChildIDHash().length() > 0)?
+        new UnitaryClause(childIDHashField,dd.getChildIDHash()):
+        new NullCheckClause(childIDHashField,true)});
+        
+    performDelete("WHERE "+query,list,null);
     noteModifications(0,0,1);
   }
 

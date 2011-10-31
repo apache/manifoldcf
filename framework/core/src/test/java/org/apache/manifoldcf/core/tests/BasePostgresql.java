@@ -99,6 +99,7 @@ public class BasePostgresql
       "  <property name=\"org.apache.manifoldcf.databaseimplementationclass\" value=\"org.apache.manifoldcf.core.database.DBInterfacePostgreSQL\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.database.name\" value=\"testdb\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.database.username\" value=\"testuser\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"30\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.crawler.threads\" value=\"30\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.crawler.expirethreads\" value=\"10\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.crawler.cleanupthreads\" value=\"10\"/>\n" +

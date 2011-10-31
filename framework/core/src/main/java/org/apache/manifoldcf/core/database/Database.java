@@ -33,7 +33,7 @@ import javax.sql.*;
 * the transaction management will get screwed up (i.e. nobody will know what happened to the connection
 * handles...)
 */
-public class Database
+public abstract class Database
 {
   public static final String _rcsid = "@(#)$Id: Database.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -50,6 +50,8 @@ public class Database
   protected int delayedTransactionDepth = 0;
   protected Map<String,Modifications> modificationsSet = new HashMap<String,Modifications>();
 
+  protected long maxQueryTime;
+  
   protected static Random random = new Random();
 
   protected final static String _TRANSACTION_ = "_TRANSACTION_";
@@ -63,6 +65,8 @@ public class Database
     this.databaseName = databaseName;
     this.userName = userName;
     this.password = password;
+    
+    this.maxQueryTime = ((long)ManifoldCF.getIntProperty(ManifoldCF.databaseQueryMaxTimeProperty,60)) * 1000L;
     this.cacheManager = CacheManagerFactory.make(context);
   }
 
@@ -424,6 +428,71 @@ public class Database
     {
       throw new ManifoldCFException("Interrupted",e,ManifoldCFException.INTERRUPTED);
     }
+  }
+
+  /* Calculate the number of values a particular clause can have, given the values for all the other clauses.
+  * For example, if in the expression x AND y AND z, x has 2 values and z has 1, find out how many values x can legally have
+  * when using the buildConjunctionClause() method below.
+  */
+  public int findConjunctionClauseMax(ClauseDescription[] otherClauseDescriptions)
+  {
+    // Base implementation uses "IN" for multiple values, since this seems to be widely accepted.
+    return getMaxInClause();
+  }
+  
+  /** Obtain the maximum number of individual items that should be
+  * present in an IN clause.  Exceeding this amount will potentially cause the query performance
+  * to drop.
+  *@return the maximum number of IN clause members.
+  */
+  public abstract int getMaxInClause();
+
+  /* Construct a conjunction clause, e.g. x AND y AND z, where there is expected to be an index (x,y,z,...), and where x, y, or z
+  * can have multiple distinct values, The proper implementation of this method differs from database to database, because some databases
+  * only permit index operations when there are OR's between clauses, such as x1 AND y1 AND z1 OR x2 AND y2 AND z2 ..., where others
+  * only recognize index operations when there are lists specified for each, such as x IN (x1,x2) AND y IN (y1,y2) AND z IN (z1,z2).
+  */
+  public String buildConjunctionClause(List outputParameters, ClauseDescription[] clauseDescriptions)
+  {
+    // Base implementation uses "IN" for multiple values, since this seems to be widely accepted.
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0 ; i < clauseDescriptions.length ; i++)
+    {
+      ClauseDescription cd = clauseDescriptions[i];
+      if (i > 0)
+        sb.append(" AND ");
+      sb.append(cd.getColumnName());
+      String operation = cd.getOperation();
+      List values = cd.getValues();
+      String joinColumn = cd.getJoinColumnName();
+      if (values != null)
+      {
+        if (values.size() > 1)
+        {
+          sb.append(" IN (");
+          for (int j = 0 ; j < values.size() ; j++)
+          {
+            if (j > 0)
+              sb.append(",");
+            sb.append("?");
+            outputParameters.add(values.get(j));
+          }
+          sb.append(")");
+        }
+        else
+        {
+          sb.append(operation).append("?");
+          outputParameters.add(values.get(0));
+        }
+      }
+      else if (joinColumn != null)
+      {
+        sb.append(operation).append(joinColumn);
+      }
+      else
+        sb.append(operation);
+    }
+    return sb.toString();
   }
 
   /** Class to keep track of modifications while we're in a transaction.
@@ -1231,10 +1300,10 @@ public class Database
           description.getMaxReturn(),spec,limit);
 
         long endTime = System.currentTimeMillis();
-        if (endTime-startTime > 60000L && description.getQuery().length() >= 6 &&
+        if (endTime-startTime > database.maxQueryTime && description.getQuery().length() >= 6 &&
           ("SELECT".equalsIgnoreCase(description.getQuery().substring(0,6)) || "UPDATE".equalsIgnoreCase(description.getQuery().substring(0,6))))
         {
-          Logging.db.warn("Found a query that took more than a minute ("+new Long(endTime-startTime).toString()+" ms): ["+description.getQuery()+"]");
+          Logging.db.warn("Found a long-running query ("+new Long(endTime-startTime).toString()+" ms): ["+description.getQuery()+"]");
           if (description.getParameters() != null)
           {
             int j = 0;

@@ -203,11 +203,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       // Handle indexes
       IndexDescription uniqueIndex = new IndexDescription(true,new String[]{docHashField,jobIDField});
       IndexDescription jobStatusIndex = new IndexDescription(false,new String[]{jobIDField,statusField});
-      IndexDescription jobSeedIndex = new IndexDescription(false,new String[]{jobIDField,isSeedField});
-      IndexDescription jobHashStatusIndex = new IndexDescription(false,new String[]{docHashField,statusField});
+      IndexDescription jobSeedIndex = new IndexDescription(false,new String[]{isSeedField,jobIDField});
+      IndexDescription failTimeIndex = new IndexDescription(false,new String[]{failTimeField,jobIDField});
       IndexDescription actionTimeStatusIndex = new IndexDescription(false,new String[]{statusField,checkActionField,checkTimeField});
-      IndexDescription prioritysetStatusIndex = new IndexDescription(false,new String[]{prioritySetField,statusField,checkActionField});
-      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField});
+      IndexDescription prioritysetStatusIndex = new IndexDescription(false,new String[]{statusField,prioritySetField});
+      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField});
 
       // Get rid of unused indexes
       Map indexes = getTableIndexes(null,null);
@@ -223,8 +223,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
           jobStatusIndex = null;
         else if (jobSeedIndex != null && id.equals(jobSeedIndex))
           jobSeedIndex = null;
-        else if (jobHashStatusIndex != null && id.equals(jobHashStatusIndex))
-          jobHashStatusIndex = null;
+        else if (failTimeIndex != null && id.equals(failTimeIndex))
+          failTimeIndex = null;
         else if (actionTimeStatusIndex != null && id.equals(actionTimeStatusIndex))
           actionTimeStatusIndex = null;
         else if (prioritysetStatusIndex != null && id.equals(prioritysetStatusIndex))
@@ -244,9 +244,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       if (jobSeedIndex != null)
         performAddIndex(null,jobSeedIndex);
 
-      if (jobHashStatusIndex != null)
-        performAddIndex(null,jobHashStatusIndex);
-
+      if (failTimeIndex != null)
+        performAddIndex(null,failTimeIndex);
+      
       if (actionTimeStatusIndex != null)
         performAddIndex(null,actionTimeStatusIndex);
 
@@ -312,42 +312,52 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDING));
     ArrayList list = new ArrayList();
-    list.add(statusToString(STATUS_ACTIVE));
-    list.add(statusToString(STATUS_ACTIVENEEDRESCAN));
-    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVE),
+        statusToString(STATUS_ACTIVENEEDRESCAN)})});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     list.clear();
-    list.add(statusToString(STATUS_ACTIVEPURGATORY));
-    list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
-    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVEPURGATORY),
+        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Map BEINGDELETED to ELIGIBLEFORDELETE
     map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
     map.put(checkTimeField,new Long(0L));
     list.clear();
-    list.add(statusToString(STATUS_BEINGDELETED));
-    performUpdate(map,"WHERE "+statusField+"=?",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Map BEINGCLEANED to PURGATORY
     map.put(statusField,statusToString(STATUS_PURGATORY));
     map.put(checkTimeField,new Long(0L));
     list.clear();
-    list.add(statusToString(STATUS_BEINGCLEANED));
-    performUpdate(map,"WHERE "+statusField+"=?",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Map newseed fields to seed
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
     list.clear();
-    list.add(seedstatusToString(SEEDSTATUS_NEWSEED));
-    performUpdate(map,"WHERE "+isSeedField+"=?",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED))});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
     // running)
     map = new HashMap();
     map.put(failTimeField,null);
-    performUpdate(map,"WHERE "+failTimeField+" IS NOT NULL",null,null);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new NullCheckClause(failTimeField,false)});
+    performUpdate(map,"WHERE "+query,list,null);
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
     unconditionallyAnalyzeTables();
@@ -361,11 +371,13 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void clearFailTimes(Long jobID)
     throws ManifoldCFException
   {
-    ArrayList list = new ArrayList();
-    list.add(jobID);
     Map map = new HashMap();
     map.put(failTimeField,null);
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+failTimeField+" IS NOT NULL",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new NullCheckClause(failTimeField,false),
+      new UnitaryClause(jobIDField,jobID)});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Reset as part of restoring document worker threads.
@@ -380,16 +392,20 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDING));
     ArrayList list = new ArrayList();
-    list.add(statusToString(STATUS_ACTIVE));
-    list.add(statusToString(STATUS_ACTIVENEEDRESCAN));
-    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVE),
+        statusToString(STATUS_ACTIVENEEDRESCAN)})});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     list.clear();
-    list.add(statusToString(STATUS_ACTIVEPURGATORY));
-    list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
-    performUpdate(map,"WHERE "+statusField+" IN (?,?)",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVEPURGATORY),
+        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Reset doc delete worker status.
@@ -398,13 +414,13 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    ArrayList list = new ArrayList();
     // Map BEINGDELETED to ELIGIBLEFORDELETE
     map.put(statusField,statusToString(STATUS_ELIGIBLEFORDELETE));
     map.put(checkTimeField,new Long(0L));
-    list.clear();
-    list.add(statusToString(STATUS_BEINGDELETED));
-    performUpdate(map,"WHERE "+statusField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Reset doc cleaning worker status.
@@ -413,13 +429,13 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    ArrayList list = new ArrayList();
     // Map BEINGCLEANED to PURGATORY
     map.put(statusField,statusToString(STATUS_PURGATORY));
     map.put(checkTimeField,new Long(0L));
-    list.clear();
-    list.add(statusToString(STATUS_BEINGCLEANED));
-    performUpdate(map,"WHERE "+statusField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Prepare for a job delete pass.  This will not be called
@@ -438,7 +454,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.add(statusToString(STATUS_PENDING));
     // Clean out prereqevents table first
     prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
-    performDelete("WHERE "+jobIDField+"=? AND "+statusField+"=?",list,null);
+    list.clear();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_PENDING))});
+    performDelete("WHERE "+query,list,null);
 
     // Turn PENDINGPURGATORY, PURGATORY, COMPLETED into ELIGIBLEFORDELETE.
     HashMap map = new HashMap();
@@ -448,11 +468,13 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(failTimeField,null);
     map.put(failCountField,null);
     list.clear();
-    list.add(jobID);
-    list.add(statusToString(STATUS_PENDINGPURGATORY));
-    list.add(statusToString(STATUS_COMPLETE));
-    list.add(statusToString(STATUS_PURGATORY));
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+" IN (?,?,?)",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_PENDINGPURGATORY),
+        statusToString(STATUS_COMPLETE),
+        statusToString(STATUS_PURGATORY)})});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Not accurate, but best we can do without overhead
     noteModifications(0,2,0);
@@ -478,7 +500,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.add(statusToString(STATUS_PENDING));
     // Clean out prereqevents table first
     prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
-    performDelete("WHERE "+jobIDField+"=? AND "+statusField+"=?",list,null);
+    list.clear();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_PENDING))});
+    performDelete("WHERE "+query,list,null);
 
     // Turn PENDINGPURGATORY, COMPLETED into PURGATORY.
     HashMap map = new HashMap();
@@ -493,10 +519,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // without for now.
 
     list.clear();
-    list.add(jobID);
-    list.add(statusToString(STATUS_PENDINGPURGATORY));
-    list.add(statusToString(STATUS_COMPLETE));
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+" IN (?,?)",list,null);
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(statusField,new Object[]{  
+        statusToString(STATUS_PENDINGPURGATORY),
+        statusToString(STATUS_COMPLETE)})});
+    performUpdate(map,"WHERE "+query,list,null);
 
     // Not accurate, but best we can do without overhead
     noteModifications(0,2,0);
@@ -528,9 +556,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(failTimeField,null);
     map.put(failCountField,null);
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(statusToString(STATUS_COMPLETE));
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+statusField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_COMPLETE))});
+    performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
@@ -545,17 +574,13 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    StringBuilder sb = new StringBuilder();
     int i = 0;
     while (i < identifiers.length)
     {
-      if (i > 0)
-        sb.append(',');
-      sb.append('?');
       list.add(identifiers[i].getID());
       i++;
     }
-    doDeletes(list,sb.toString());
+    doDeletes(list);
     noteModifications(0,0,identifiers.length);
   }
 
@@ -564,13 +589,15 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(statusToString(STATUS_ACTIVE));
-    list.add(statusToString(STATUS_ACTIVEPURGATORY));
-    list.add(statusToString(STATUS_ACTIVENEEDRESCAN));
-    list.add(statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ACTIVE),
+        statusToString(STATUS_ACTIVEPURGATORY),
+        statusToString(STATUS_ACTIVENEEDRESCAN),
+        statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
     IResultSet set = performQuery("SELECT "+docHashField+" FROM "+getTableName()+
-      " WHERE "+jobIDField+"=? AND "+statusField+" IN (?,?,?,?) "+constructOffsetLimitClause(0,1),list,null,null,1);
+      " WHERE "+query+" "+constructOffsetLimitClause(0,1),list,null,null,1);
     return set.getRowCount() > 0;
   }
 
@@ -584,7 +611,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.add(jobID);
     // Clean out prereqevents table first
     prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=?",list);
-    performDelete("WHERE "+jobIDField+"=?",list,null);
+    list.clear();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+    performDelete("WHERE "+query,list,null);
     noteModifications(0,0,1);
   }
 
@@ -596,8 +626,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(prioritySetField,new Long(currentTime));
     map.put(docPriorityField,new Double(priority));
     ArrayList list = new ArrayList();
-    list.add(rowID);
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,rowID)});
+    performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
   }
 
@@ -638,8 +669,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     //map.put(docPriorityField,new Double(1.0));
     //map.put(prioritySetField,new Long(0L));
     ArrayList list = new ArrayList();
-    list.add(recID);
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,recID)});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Set the status to active on a record, leaving alone priority or check time.
@@ -662,11 +694,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       throw new ManifoldCFException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
     }
 
-    ArrayList list = new ArrayList();
-    list.add(id);
     HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id)});
+    performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
   }
 
@@ -679,8 +712,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     Long checkTime, int action, long failTime, int failCount)
     throws ManifoldCFException
   {
-    ArrayList list = new ArrayList();
-    list.add(id);
     HashMap map = new HashMap();
     map.put(statusField,statusToString(status));
     map.put(checkTimeField,checkTime);
@@ -695,7 +726,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       map.put(failCountField,new Long(failCount));
     // This does not need to set docPriorityField, because we want to preserve whatever
     // priority was in place from before.
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id)});
+    performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
   }
 
@@ -704,11 +738,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void setDeletingStatus(Long id)
     throws ManifoldCFException
   {
-    ArrayList list = new ArrayList();
-    list.add(id);
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGDELETED));
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id)});
+    performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
   }
 
@@ -723,8 +758,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(failTimeField,null);
     map.put(failCountField,null);
     ArrayList list = new ArrayList();
-    list.add(id);
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id)});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
   }
 
   /** Set the status of a document to "being cleaned".
@@ -732,11 +769,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void setCleaningStatus(Long id)
     throws ManifoldCFException
   {
-    ArrayList list = new ArrayList();
-    list.add(id);
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_BEINGCLEANED));
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id)});
+    performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
   }
 
@@ -751,8 +789,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     map.put(failTimeField,null);
     map.put(failCountField,null);
     ArrayList list = new ArrayList();
-    list.add(id);
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id)});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
   }
 
   /** Remove multiple records entirely.
@@ -762,39 +802,44 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // Delete in chunks
-    int maxInClause = getMaxInClause();
+    int maxClause = maxClauseDoDeletes();
     ArrayList list = new ArrayList();
-    StringBuilder sb = new StringBuilder();
     int j = 0;
     int i = 0;
     while (i < ids.length)
     {
-      if (j == maxInClause)
+      if (j == maxClause)
       {
-        doDeletes(list,sb.toString());
+        doDeletes(list);
         list.clear();
-        sb.setLength(0);
         j = 0;
       }
-      if (j > 0)
-        sb.append(',');
-      sb.append('?');
       list.add(ids[i++]);
       j++;
     }
     if (j > 0)
-      doDeletes(list,sb.toString());
+      doDeletes(list);
     noteModifications(0,0,ids.length);
   }
 
+  /** Calculate the number of deletes we can do at once.
+  */
+  protected int maxClauseDoDeletes()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+    
   /** Do a batch of deletes.
   */
-  protected void doDeletes(ArrayList list, String queryPart)
+  protected void doDeletes(ArrayList list)
     throws ManifoldCFException
   {
     // Clean out prereqevents table first
-    prereqEventManager.deleteRows(queryPart,list);
-    performDelete("WHERE "+idField+" IN("+queryPart+")",list,null);
+    prereqEventManager.deleteRows(list);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(idField,list)});
+    performDelete("WHERE "+query,newList,null);
   }
 
   /** Remove a record entirely.
@@ -886,11 +931,12 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     }
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
-    ArrayList list = new ArrayList();
-    list.add(recordID);
     // Delete any existing prereqevent entries first
     prereqEventManager.deleteRows(recordID);
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,recordID)});
+    performUpdate(map,"WHERE "+query,list,null);
     // Insert prereqevent entries, if any
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(0,1,0);
@@ -951,12 +997,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     HashMap idMap = new HashMap();
     int k = 0;
-    int maxInClause = getMaxInClause();
 
     // To avoid deadlock, use 1 instead of something larger.  The docIDs are presumed to come in in sorted order.
     int maxClause = 1;
 
-    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
     j = 0;
     while (j < docIDHashes.length)
@@ -965,56 +1009,56 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
       if (k == maxClause)
       {
-        processRemainingDocuments(idMap,sb.toString(),list,inSet);
-        sb.setLength(0);
+        processRemainingDocuments(idMap,jobID,list,inSet);
         k = 0;
         list.clear();
       }
 
-      if (k > 0)
-        sb.append(" OR");
-      sb.append("(").append(jobIDField).append("=? AND ").append(docHashField).append("=? AND ").append(isSeedField)
-        .append("=?)");
-      list.add(jobID);
       list.add(docIDHash);
-      list.add(seedstatusToString(SEEDSTATUS_SEED));
       k++;
     }
     if (k > 0)
-      processRemainingDocuments(idMap,sb.toString(),list,inSet);
+      processRemainingDocuments(idMap,jobID,list,inSet);
 
     // We have a set of id's.  Process those in bulk.
     k = 0;
-    sb.setLength(0);
     list.clear();
+    maxClause = maxClauseUpdateRemainingDocuments();
     Iterator idValues = idMap.keySet().iterator();
     while (idValues.hasNext())
     {
-      if (k == maxInClause)
+      if (k == maxClause)
       {
-        updateRemainingDocuments(sb.toString(),list);
-        sb.setLength(0);
+        updateRemainingDocuments(list);
         k = 0;
         list.clear();
       }
-      Long idValue = (Long)idValues.next();
-      if (k > 0)
-        sb.append(",");
-      sb.append("?");
-      list.add(idValue);
+      list.add(idValues.next());
       k++;
     }
     if (k > 0)
-      updateRemainingDocuments(sb.toString(),list);
+      updateRemainingDocuments(list);
     noteModifications(0,docIDHashes.length,0);
   }
 
+  /** Calculate max */
+  protected int maxClauseProcessRemainingDocuments(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+  }
+  
   /** Process the specified set of documents. */
-  protected void processRemainingDocuments(Map idMap, String query, ArrayList list, Map inSet)
+  protected void processRemainingDocuments(Map idMap, Long jobID, ArrayList list, Map inSet)
     throws ManifoldCFException
   {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(docHashField,list),
+      new UnitaryClause(jobIDField,jobID)});
+    newList.add(seedstatusToString(SEEDSTATUS_SEED));
     IResultSet set = performQuery("SELECT "+idField+","+docHashField+" FROM "+getTableName()+
-      " WHERE "+query+" FOR UPDATE",list,null,null);
+      " WHERE "+query+" AND "+isSeedField+"=? FOR UPDATE",newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -1028,13 +1072,22 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Get the maximum count */
+  protected int maxClauseUpdateRemainingDocuments()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+  
   /** Update the specified set of documents to be "NEWSEED" */
-  protected void updateRemainingDocuments(String query, ArrayList list)
+  protected void updateRemainingDocuments(ArrayList list)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_NEWSEED));
-    performUpdate(map,"WHERE "+idField+" IN("+query+")",list,null);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(idField,list)});
+    performUpdate(map,"WHERE "+query,newList,null);
   }
 
   /** Complete the initial set of documents.  This method converts the seeding statuses for the
@@ -1048,19 +1101,22 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
+    String query;
     HashMap map = new HashMap();
     if (!isPartial)
     {
-      list.add(jobID);
-      list.add(seedstatusToString(SEEDSTATUS_SEED));
+      query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_SEED)),
+        new UnitaryClause(jobIDField,jobID)});
       map.put(isSeedField,seedstatusToString(SEEDSTATUS_NOTSEED));
-      performUpdate(map,"WHERE "+jobIDField+"=? AND "+isSeedField+"=?",list,null);
+      performUpdate(map,"WHERE "+query,list,null);
       list.clear();
     }
-    list.add(jobID);
-    list.add(seedstatusToString(SEEDSTATUS_NEWSEED));
+    query =  buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_SEED)),
+      new UnitaryClause(jobIDField,jobID)});
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
-    performUpdate(map,"WHERE "+jobIDField+"=? AND "+isSeedField+"=?",list,null);
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Get all the current seeds.
@@ -1072,9 +1128,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(seedstatusToString(SEEDSTATUS_SEED));
-    IResultSet set = performQuery("SELECT "+docHashField+" FROM "+getTableName()+" WHERE "+jobIDField+"=? AND "+isSeedField+"=?",
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(isSeedField,seedstatusToString(SEEDSTATUS_SEED)),
+      new UnitaryClause(jobIDField,jobID)});
+    IResultSet set = performQuery("SELECT "+docHashField+" FROM "+getTableName()+" WHERE "+query,
       list,null,null);
     String[] rval = new String[set.getRowCount()];
     int i = 0;
@@ -1206,10 +1263,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     default:
       return rval;
     }
-    ArrayList list = new ArrayList();
-    list.add(recordID);
     prereqEventManager.deleteRows(recordID);
-    performUpdate(map,"WHERE "+idField+"=?",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,recordID)});
+    performUpdate(map,"WHERE "+query,list,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(0,1,0);
     return rval;

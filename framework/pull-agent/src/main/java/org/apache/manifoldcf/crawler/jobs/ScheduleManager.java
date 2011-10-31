@@ -177,15 +177,25 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
     }
   }
 
+  /** Get the max clauses that can be used with getRowsAlternate.
+  */
+  public int maxClauseGetRowsAlternate()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+    
   /** Fill in a set of schedules corresponding to a set of owner id's.
   *@param returnValues is a map keyed by ownerID, with a value that is an ArrayList of ScheduleRecord objects.
-  *@param ownerIDList is the list of owner id's.
   *@param ownerIDParams is the corresponding set of owner id parameters.
   */
-  public void getRowsAlternate(Map returnValues, String ownerIDList, ArrayList ownerIDParams)
+  public void getRowsAlternate(Map returnValues, ArrayList ownerIDParams)
     throws ManifoldCFException
   {
-    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+ownerIDField+" IN ("+ownerIDList+") ORDER BY "+ordinalField+" ASC",ownerIDParams,
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(ownerIDField,ownerIDParams)});
+      
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+query+" ORDER BY "+ordinalField+" ASC",list,
       null,null);
     int i = 0;
     while (i < set.getRowCount())
@@ -264,8 +274,10 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(ownerID);
-    performDelete("WHERE "+ownerIDField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(ownerIDField,ownerID)});
+      
+    performDelete("WHERE "+query,list,null);
   }
 
   /** Go from string to enumerated value.

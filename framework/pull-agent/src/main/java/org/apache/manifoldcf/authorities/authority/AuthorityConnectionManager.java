@@ -258,6 +258,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     StringSet cacheKeys = new StringSet(ssb);
     while (true)
     {
+      long sleepAmt = 0L;
       try
       {
         ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -271,9 +272,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             boolean isNew = object.getIsNew();
             // See whether the instance exists
             ArrayList params = new ArrayList();
-            params.add(object.getName());
+            String query = buildConjunctionClause(params,new ClauseDescription[]{
+              new UnitaryClause(nameField,object.getName())});
             IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              nameField+"=? FOR UPDATE",params,null,null);
+              query+" FOR UPDATE",params,null,null);
             HashMap values = new HashMap();
             values.put(descriptionField,object.getDescription());
             values.put(classNameField,object.getClassName());
@@ -290,8 +292,9 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
               isCreated = false;
               // Update
               params.clear();
-              params.add(object.getName());
-              performUpdate(values," WHERE "+nameField+"=?",params,null);
+              query = buildConjunctionClause(params,new ClauseDescription[]{
+                new UnitaryClause(nameField,object.getName())});
+              performUpdate(values," WHERE "+query,params,null);
             }
             else
             {
@@ -333,19 +336,16 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         // Is this a deadlock exception?  If so, we want to try again.
         if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
           throw e;
-        try
-        {
-          ManifoldCF.sleep((long)(random.nextDouble() * 60000.0 + 500.0));
-        }
-        catch (InterruptedException e2)
-        {
-          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-        }
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
       }
     }
   }
 
-  /** Delete a repository connection.
+  /** Delete an authority connection.
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
@@ -370,8 +370,9 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
           throw new ManifoldCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
-        params.add(name);
-        performDelete("WHERE "+nameField+"=?",params,null);
+        String query = buildConjunctionClause(params,new ClauseDescription[]{
+          new UnitaryClause(nameField,name)});
+        performDelete("WHERE "+query,params,null);
         cacheManager.invalidateKeys(ch);
       }
       catch (ManifoldCFException e)
@@ -446,28 +447,23 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     try
     {
       i = 0;
-      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
-      int maxIn = getMaxInClause();
+      int maxIn = maxClauseGetAuthorityConnectionsChunk();
       while (i < connectionNames.length)
       {
         if (j == maxIn)
         {
-          getAuthorityConnectionsChunk(rval,returnIndex,sb.toString(),params);
-          sb.setLength(0);
+          getAuthorityConnectionsChunk(rval,returnIndex,params);
           params.clear();
           j = 0;
         }
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
         params.add(connectionNames[i]);
         i++;
         j++;
       }
       if (j > 0)
-        getAuthorityConnectionsChunk(rval,returnIndex,sb.toString(),params);
+        getAuthorityConnectionsChunk(rval,returnIndex,params);
       return rval;
     }
     catch (Error e)
@@ -486,18 +482,26 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     }
   }
 
+  /** Find the maximum number of clauses for getAuthorityConnectionsChunk.
+  */
+  protected int maxClauseGetAuthorityConnectionsChunk()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+    
   /** Read a chunk of authority connections.
   *@param rval is the place to put the read policies.
   *@param returnIndex is a map from the object id (resource id) and the rval index.
-  *@param idList is the list of id's.
   *@param params is the set of parameters.
   */
-  protected void getAuthorityConnectionsChunk(AuthorityConnection[] rval, Map returnIndex, String idList, ArrayList params)
+  protected void getAuthorityConnectionsChunk(AuthorityConnection[] rval, Map returnIndex, ArrayList params)
     throws ManifoldCFException
   {
-    IResultSet set;
-    set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-      nameField+" IN ("+idList+")",params,null,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(nameField,params)});
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+      query,list,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {

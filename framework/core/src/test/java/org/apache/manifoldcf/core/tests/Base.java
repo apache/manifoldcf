@@ -95,6 +95,12 @@ public class Base
       "<configuration>\n"+
       "  <property name=\"org.apache.manifoldcf.databaseimplementationclass\" value=\"org.apache.manifoldcf.core.database.DBInterfaceDerby\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.derbydatabasepath\" value=\""+currentPathString.replaceAll("\\\\","/")+"\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"30\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.crawler.threads\" value=\"30\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.crawler.expirethreads\" value=\"10\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.crawler.cleanupthreads\" value=\"10\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.crawler.deletethreads\" value=\"10\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.database.maxhandles\" value=\"80\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n" +
       "</configuration>\n");
 

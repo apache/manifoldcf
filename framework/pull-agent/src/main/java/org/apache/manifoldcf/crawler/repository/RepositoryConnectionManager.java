@@ -121,8 +121,34 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       historyManager.install(getTableName(),nameField);
       throttleSpecManager.install(getTableName(),nameField);
 
-      // Index management goes here.
+      // Index management
+      IndexDescription authorityIndex = new IndexDescription(false,new String[]{authorityNameField});
+      IndexDescription classIndex = new IndexDescription(false,new String[]{classNameField});
+      
+      // Get rid of indexes that shouldn't be there
+      Map indexes = getTableIndexes(null,null);
+      Iterator iter = indexes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String indexName = (String)iter.next();
+        IndexDescription id = (IndexDescription)indexes.get(indexName);
 
+        if (authorityIndex != null && id.equals(authorityIndex))
+          authorityIndex = null;
+        else if (classIndex != null && id.equals(classIndex))
+          classIndex = null;
+        else if (indexName.indexOf("_pkey") == -1)
+          // This index shouldn't be here; drop it
+          performRemoveIndex(indexName);
+      }
+
+      // Add the ones we didn't find
+      if (authorityIndex != null)
+        performAddIndex(null,authorityIndex);
+
+      if (classIndex != null)
+        performAddIndex(null,classIndex);
+      
       break;
     }
   }
@@ -320,6 +346,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     while (true)
     {
       // Catch deadlock condition
+      long sleepAmt = 0L;
       try
       {
         ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -334,9 +361,10 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
             boolean isNew = object.getIsNew();
             // See whether the instance exists
             ArrayList params = new ArrayList();
-            params.add(object.getName());
+            String query = buildConjunctionClause(params,new ClauseDescription[]{
+              new UnitaryClause(nameField,object.getName())});
             IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              nameField+"=? FOR UPDATE",params,null,null);
+              query+" FOR UPDATE",params,null,null);
             HashMap values = new HashMap();
             values.put(descriptionField,object.getDescription());
             values.put(classNameField,object.getClassName());
@@ -360,8 +388,9 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
               
               // Update
               params.clear();
-              params.add(object.getName());
-              performUpdate(values," WHERE "+nameField+"=?",params,null);
+              query = buildConjunctionClause(params,new ClauseDescription[]{
+                new UnitaryClause(nameField,object.getName())});
+              performUpdate(values," WHERE "+query,params,null);
               throttleSpecManager.deleteRows(object.getName());
             }
             else
@@ -414,14 +443,11 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
         // Is this a deadlock exception?  If so, we want to try again.
         if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
           throw e;
-        try
-        {
-          ManifoldCF.sleep((long)(random.nextDouble() * 60000.0 + 500.0));
-        }
-        catch (InterruptedException e2)
-        {
-          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-        }
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
       }
     }
   }
@@ -453,8 +479,9 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
         throttleSpecManager.deleteRows(name);
         historyManager.deleteOwner(name,null);
         ArrayList params = new ArrayList();
-        params.add(name);
-        performDelete("WHERE "+nameField+"=?",params,null);
+        String query = buildConjunctionClause(params,new ClauseDescription[]{
+          new UnitaryClause(nameField,name)});
+        performDelete("WHERE "+query,params,null);
         cacheManager.invalidateKeys(ch);
       }
       catch (ManifoldCFException e)
@@ -490,8 +517,9 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     ssb.add(getRepositoryConnectionsKey());
     StringSet localCacheKeys = new StringSet(ssb);
     ArrayList params = new ArrayList();
-    params.add(authorityName);
-    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+authorityNameField+"=?",params,
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(authorityNameField,authorityName)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
       localCacheKeys,null);
     return set.getRowCount() > 0;
   }
@@ -507,8 +535,9 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     ssb.add(getRepositoryConnectionsKey());
     StringSet localCacheKeys = new StringSet(ssb);
     ArrayList params = new ArrayList();
-    params.add(className);
-    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+classNameField+"=?",params,
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(classNameField,className)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
       localCacheKeys,null);
     String[] rval = new String[set.getRowCount()];
     int i = 0;
@@ -536,8 +565,9 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
       ssb.add(getRepositoryConnectionKey(name));
       StringSet localCacheKeys = new StringSet(ssb);
       ArrayList params = new ArrayList();
-      params.add(name);
-      IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
+      String query = buildConjunctionClause(params,new ClauseDescription[]{
+        new UnitaryClause(nameField,name)});
+      IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+query,params,
         localCacheKeys,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("No such connection: '"+name+"'");
@@ -770,28 +800,23 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     try
     {
       i = 0;
-      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
-      int maxIn = getMaxInClause();
+      int maxIn = maxClauseGetRepositoryConnectionsChunk();
       while (i < connectionNames.length)
       {
         if (j == maxIn)
         {
-          getRepositoryConnectionsChunk(rval,returnIndex,sb.toString(),params);
-          sb.setLength(0);
+          getRepositoryConnectionsChunk(rval,returnIndex,params);
           params.clear();
           j = 0;
         }
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
         params.add(connectionNames[i]);
         i++;
         j++;
       }
       if (j > 0)
-        getRepositoryConnectionsChunk(rval,returnIndex,sb.toString(),params);
+        getRepositoryConnectionsChunk(rval,returnIndex,params);
       return rval;
     }
     catch (Error e)
@@ -810,18 +835,27 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     }
   }
 
+  /** Calculate how many repository connections to get at once.
+  */
+  protected int maxClauseGetRepositoryConnectionsChunk()
+  {
+    return Math.min(findConjunctionClauseMax(new ClauseDescription[]{}),
+      throttleSpecManager.maxClauseGetRows());
+  }
+  
   /** Read a chunk of repository connections.
   *@param rval is the place to put the read policies.
   *@param returnIndex is a map from the object id (resource id) and the rval index.
-  *@param idList is the list of id's.
   *@param params is the set of parameters.
   */
-  protected void getRepositoryConnectionsChunk(RepositoryConnection[] rval, Map returnIndex, String idList, ArrayList params)
+  protected void getRepositoryConnectionsChunk(RepositoryConnection[] rval, Map returnIndex, ArrayList params)
     throws ManifoldCFException
   {
-    IResultSet set;
-    set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-      nameField+" IN ("+idList+")",params,null,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(nameField,params)});
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+      query,list,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -842,7 +876,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
     }
 
     // Do throttle part
-    throttleSpecManager.getRows(rval,returnIndex,idList,params);
+    throttleSpecManager.getRows(rval,returnIndex,params);
   }
 
   // The cached instance will be a RepositoryConnection.  The cached version will be duplicated when it is returned

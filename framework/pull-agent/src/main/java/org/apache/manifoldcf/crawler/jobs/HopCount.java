@@ -191,9 +191,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       deleteDepsManager.install(jobsTable,jobsColumn,getTableName(),idField);
 
       // Do indexes
-      IndexDescription jobLinktypeParentIndex = new IndexDescription(true,new String[]{jobIDField,linkTypeField,parentIDHashField});
-      IndexDescription jobParentIndex = new IndexDescription(false,new String[]{jobIDField,parentIDHashField});
-      IndexDescription jobDeathIndex = new IndexDescription(false,new String[]{jobIDField,markForDeathField});
+      IndexDescription jobLinktypeParentIndex = new IndexDescription(true,new String[]{jobIDField,parentIDHashField,linkTypeField});
+      IndexDescription jobDeathIndex = new IndexDescription(false,new String[]{jobIDField,markForDeathField,parentIDHashField,linkTypeField});
 
       Map indexes = getTableIndexes(null,null);
       Iterator iter = indexes.keySet().iterator();
@@ -204,8 +203,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
         if (jobLinktypeParentIndex != null && id.equals(jobLinktypeParentIndex))
           jobLinktypeParentIndex = null;
-        else if (jobParentIndex != null && id.equals(jobParentIndex))
-          jobParentIndex = null;
         else if (jobDeathIndex != null && id.equals(jobDeathIndex))
           jobDeathIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
@@ -215,9 +212,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       if (jobLinktypeParentIndex != null)
         performAddIndex(null,jobLinktypeParentIndex);
-
-      if (jobParentIndex != null)
-        performAddIndex(null,jobParentIndex);
 
       if (jobDeathIndex != null)
         performAddIndex(null,jobDeathIndex);
@@ -304,8 +298,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       // Delete our own rows.
       ArrayList list = new ArrayList();
-      list.add(jobID);
-      performDelete("WHERE "+jobIDField+"=?",list,null);
+      String query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(jobIDField,jobID)});
+      performDelete("WHERE "+query,list,null);
       noteModifications(0,0,1);
     }
     catch (ManifoldCFException e)
@@ -450,25 +445,22 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         }
         else
         {
-          ArrayList list = new ArrayList();
           StringBuilder sb = new StringBuilder("SELECT ");
-          sb.append(idField).append(",").append(distanceField).append(",").append(linkTypeField)
+          ArrayList list = new ArrayList();
+          
+          sb.append(idField).append(",")
+            .append(distanceField).append(",")
+            .append(linkTypeField)
             .append(" FROM ").append(getTableName()).append(" WHERE ");
-          int i = 0;
-          while (i < legalLinkTypes.length)
-          {
-            if (i > 0)
-              sb.append(" OR ");
-            sb.append("(").append(jobIDField).append("=? AND ")
-              .append(linkTypeField).append("=? AND ").append(parentIDHashField).append("=?)");
-            list.add(jobID);
-            list.add(legalLinkTypes[i++]);
-            list.add(sourceDocumentIDHash);
-          }
+          
+          sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobIDField,jobID),
+            new UnitaryClause(parentIDHashField,sourceDocumentIDHash),
+            new MultiClause(linkTypeField,legalLinkTypes)}));
 
           IResultSet set = performQuery(sb.toString(),list,null,null);
           HashMap answerMap = new HashMap();
-          i = 0;
+          int i = 0;
           while (i < estimates.length)
           {
             estimates[i] = new Answer(ANSWER_INFINITY);
@@ -609,7 +601,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     // No transaction, since we can happily interpret whatever comes back.
-    StringBuilder sb = new StringBuilder();
     ArrayList list = new ArrayList();
 
     int[] rval = new int[parentIdentifierHashes.length];
@@ -622,40 +613,48 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       i++;
     }
 
-    int maxClause = getMaxOrClause();
+    int maxClause = maxClauseProcessFind(jobID,linkType);
     i = 0;
     int k = 0;
     while (i < parentIdentifierHashes.length)
     {
       if (k == maxClause)
       {
-        processFind(rval,rvalMap,sb.toString(),list);
+        processFind(rval,rvalMap,jobID,linkType,list);
         k = 0;
-        sb.setLength(0);
         list.clear();
       }
-      if (k > 0)
-        sb.append(" OR");
-      sb.append("(").append(jobIDField).append("=? AND ").append(linkTypeField)
-        .append("=? AND ").append(parentIDHashField).append("=?)");
-      list.add(jobID);
-      list.add(linkType);
       list.add(parentIdentifierHashes[i]);
       k++;
       i++;
     }
     if (k > 0)
-      processFind(rval,rvalMap,sb.toString(),list);
+      processFind(rval,rvalMap,jobID,linkType,list);
 
     return rval;
   }
 
+  /** Find max clause count.
+  */
+  protected int maxClauseProcessFind(Long jobID, String linkType)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(linkTypeField,linkType)});
+  }
+  
   /** Process a portion of a find request for hopcount information.
   */
-  protected void processFind(int[] rval, Map rvalMap, String query, ArrayList list)
+  protected void processFind(int[] rval, Map rvalMap, Long jobID, String linkType, ArrayList list)
     throws ManifoldCFException
   {
-    IResultSet set = performQuery("SELECT "+distanceField+","+parentIDHashField+" FROM "+getTableName()+" WHERE "+query,list,null,null);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list),
+      new UnitaryClause(linkTypeField,linkType)});
+      
+    IResultSet set = performQuery("SELECT "+distanceField+","+parentIDHashField+" FROM "+getTableName()+" WHERE "+query,newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -683,11 +682,12 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     // then we wind up delaying other threads too much), nor do we want to do one at a time
     // (because that is inefficient against the database), so I picked 200 as being 200+x faster
     // than 1...
-    list.clear();
-    list.add(jobID);
-    list.add(markToString(MARK_QUEUED));
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(markForDeathField,markToString(MARK_QUEUED))});
+      
     IResultSet set = performQuery("SELECT "+linkTypeField+","+parentIDHashField+" FROM "+
-      getTableName()+" WHERE "+jobIDField+"=? AND "+markForDeathField+"=? "+constructOffsetLimitClause(0,200)+" FOR UPDATE",list,null,null,200);
+      getTableName()+" WHERE "+query+" "+constructOffsetLimitClause(0,200)+" FOR UPDATE",list,null,null,200);
 
     // No more entries == we are done
     if (set.getRowCount() == 0)
@@ -721,16 +721,29 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     return false;
   }
 
-
+  /** Calculate max clauses */
+  protected int maxClausePerformFindMissingRecords(Long jobID, String[] affectedLinkTypes)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(linkTypeField,affectedLinkTypes)});
+  }
+  
   /** Limited find for missing records.
   */
-  protected void performFindMissingRecords(String query, ArrayList list, Map matchMap)
+  protected void performFindMissingRecords(Long jobID, String[] affectedLinkTypes, ArrayList list, Map matchMap)
     throws ManifoldCFException
   {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list),
+      new MultiClause(linkTypeField,affectedLinkTypes)});
+      
     // The naive query is this - but postgres does not find the index this way:
     //IResultSet set = performQuery("SELECT "+parentIDField+","+linkTypeField+" FROM "+getTableName()+" WHERE "+
     //      parentIDField+" IN("+query+") AND "+jobIDField+"=?",list,null,null);
-    IResultSet set = performQuery("SELECT "+parentIDHashField+","+linkTypeField+","+distanceField+" FROM "+getTableName()+" WHERE "+query,list,null,null);
+    IResultSet set = performQuery("SELECT "+parentIDHashField+","+linkTypeField+","+distanceField+" FROM "+getTableName()+" WHERE "+query,newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -820,43 +833,28 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // I don't think we have to throw a table lock here, because even though we base decisions for insertion on the lack of existence
       // of a record, there can be only one thread in here at a time.
 
-      // Sigh.  Postgresql is not smart enough to recognize that it can use an index when there's
-      // an IN clause for one index field, and = clauses for the others.  So I have to generate this
-      // as ORed together match tuples.  I do 25 at a pop, which is arbitrary.
-
-      int maxClause = getMaxOrClause();
-      StringBuilder sb = new StringBuilder();
+      int maxClause = maxClausePerformFindMissingRecords(jobID,affectedLinkTypes);
       ArrayList list = new ArrayList();
+      
       int i = 0;
       int k = 0;
       while (i < documentIDHashes.length)
       {
         String documentIDHash = documentIDHashes[i];
-        int j = 0;
-        while (j < affectedLinkTypes.length)
+        
+        if (k == maxClause)
         {
-          String affectedLinkType = affectedLinkTypes[j];
-          if (k == maxClause)
-          {
-            performFindMissingRecords(sb.toString(),list,matchMap);
-            k = 0;
-            list.clear();
-            sb.setLength(0);
-          }
-          if (k > 0)
-            sb.append(" OR");
-          sb.append(" (").append(jobIDField).append("=? AND ")
-            .append(linkTypeField).append("=? AND ").append(parentIDHashField).append("=?)");
-          list.add(jobID);
-          list.add(affectedLinkType);
-          list.add(documentIDHash);
-          k++;
-          j++;
+          performFindMissingRecords(jobID,affectedLinkTypes,list,matchMap);
+          k = 0;
+          list.clear();
         }
+        
+        list.add(documentIDHash);
+        k++;
         i++;
       }
       if (k > 0)
-        performFindMissingRecords(sb.toString(),list,matchMap);
+        performFindMissingRecords(jobID,affectedLinkTypes,list,matchMap);
 
       // Repeat our pass through the documents and legal link types.  For each document/legal link type,
       // see if there was an existing row.  If not, we create a row.  If so, we compare the recorded
@@ -939,7 +937,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // but postgresql is stupid and won't use the index that way.  So do this instead:
       // UPDATE hopcount SET markfordeath='Q' WHERE (jobID=? AND parentid=?) OR (jobid=? AND parentid=?)...
 
-      sb = new StringBuilder();
+      maxClause = getMaxOrClause();
+      StringBuilder sb = new StringBuilder();
       list = new ArrayList();
       k = 0;
       i = 0;
@@ -962,7 +961,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
               list.clear();
             }
             if (i > 0)
-              sb.append(" OR");
+              sb.append(" OR ");
 
             // We only want to queue up hopcount records that correspond to the affected link types.
             //
@@ -971,13 +970,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
             //
             if (Logging.hopcount.isDebugEnabled())
               Logging.hopcount.debug("Queuing '"+documentIDHash+"' linktype '"+affectedLinkType+"' for job "+jobID);
-            sb.append(" (").append(jobIDField).append("=? AND ")
-              .append(linkTypeField).append("=? AND ").append(parentIDHashField).append("=? AND ").append(markForDeathField)
-              .append("!=?)");
-            list.add(jobID);
-            list.add(affectedLinkType);
-            list.add(documentIDHash);
-            list.add(markToString(MARK_QUEUED));
+            
+            sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(jobIDField,jobID),
+              new UnitaryClause(markForDeathField,markToString(MARK_QUEUED)),
+              new UnitaryClause(parentIDHashField,documentIDHash),
+              new UnitaryClause(linkTypeField,affectedLinkType)}));
+              
             i++;
           }
           j++;
@@ -1126,32 +1125,24 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         //       ...
         //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
 
-        int maxClause = getMaxOrClause();
+        int maxClause = maxClauseMarkForDelete(jobID);
         ArrayList list = new ArrayList();
-        StringBuilder sb = new StringBuilder();
         int i = 0;
         int k = 0;
         while (i < sourceDocumentHashes.length)
         {
           if (k == maxClause)
           {
-            markForDelete(sb.toString(),list,commonNewExpression,commonNewList);
-            sb.setLength(0);
+            markForDelete(jobID,list,commonNewExpression,commonNewList);
             list.clear();
             k = 0;
           }
-          if (k > 0)
-            sb.append(" OR");
-          sb.append("(t0.").append(deleteDepsManager.jobIDField).append("=? AND t0.")
-            .append(deleteDepsManager.childIDHashField).append("=?)");
-          String sourceDocumentHash = sourceDocumentHashes[i];
-          list.add(jobID);
-          list.add(sourceDocumentHash);
+          list.add(sourceDocumentHashes[i]);
           i++;
           k++;
         }
         if (k > 0)
-          markForDelete(sb.toString(),list,commonNewExpression,commonNewList);
+          markForDelete(jobID,list,commonNewExpression,commonNewList);
         noteModifications(0,sourceDocumentHashes.length,0);
       }
       else
@@ -1163,27 +1154,33 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         //      t0.childidhash=t99.dochash and t0.childid=t99.docid and t99.status='P' and
         //      t0.parentidhash=t1.parentidhash and t0.childidhash=t1.childidhash and t0.linktype=t1.linktype and
         //      t0.parentid=t1.parentid and t0.childid=t1.childid)
+        
+        // MHL to figure out the "correct" way to state this for all databases
 
         StringBuilder sb = new StringBuilder("WHERE ");
         ArrayList list = new ArrayList();
-        list.add(jobID);
-        list.add(jobID);
-        list.add(jobID);
-        list.addAll(sourceTableParams);
+        
         sb.append(idField).append(" IN(SELECT t0.").append(deleteDepsManager.ownerIDField).append(" FROM ")
           .append(deleteDepsManager.getTableName()).append(" t0,").append(sourceTableName).append(",")
-          .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ")
+          .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ");
 
-          .append("t0.").append(deleteDepsManager.jobIDField).append("=? AND ").append(sourceTableJobColumn)
-          .append("=? AND t1.").append(intrinsicLinkManager.jobIDField).append("=? AND ")
+        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)})).append(" AND ");
 
-          .append("t0.").append(deleteDepsManager.childIDHashField).append("=").append(sourceTableIDColumn)
-          .append(" AND ").append(sourceTableCriteria)
-          .append(" AND t0.").append(deleteDepsManager.linkTypeField).append("=t1.").append(intrinsicLinkManager.linkTypeField)
-          .append(" AND t0.").append(deleteDepsManager.parentIDHashField).append("=t1.").append(intrinsicLinkManager.parentIDHashField)
-          .append(" AND t0.").append(deleteDepsManager.childIDHashField).append("=t1.").append(intrinsicLinkManager.childIDHashField)
+        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause("t1."+intrinsicLinkManager.jobIDField,jobID),
+          new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
+          new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
+          new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
 
-          .append(")");
+        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(sourceTableJobColumn,jobID),
+          new JoinClause(sourceTableIDColumn,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
+          
+        sb.append(sourceTableCriteria);
+        list.addAll(sourceTableParams);
+
+        sb.append(")");
 
         HashMap map = new HashMap();
         // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
@@ -1206,14 +1203,15 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       // Remove the delete dependencies of the nodes marked as being queued, with distance infinity.
       ArrayList queryList = new ArrayList();
-      queryList.add(jobID);
-      queryList.add(markToString(MARK_DELETING));
-      deleteDepsManager.removeMarkedRows(getTableName(),idField,jobIDField+"=? AND "+markForDeathField+"=?",queryList);
+      String query = buildConjunctionClause(queryList,new ClauseDescription[]{
+        new UnitaryClause(jobIDField,jobID),
+        new UnitaryClause(markForDeathField,markToString(MARK_DELETING))});
+      deleteDepsManager.removeMarkedRows(getTableName(),idField,query,queryList);
 
       // Set the hopcount rows back to just "queued".
       HashMap newMap = new HashMap();
       newMap.put(markForDeathField,markToString(MARK_QUEUED));
-      performUpdate(newMap,"WHERE "+jobIDField+"=? AND "+markForDeathField+"=?",queryList,null);
+      performUpdate(newMap,"WHERE "+query,queryList,null);
 
       // At this point, we have a queue that contains all the hopcount entries that our dependencies told us
       // needed to change as a result of the deletions.  Evaluating the queue will clean up hopcount entries
@@ -1226,22 +1224,31 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     }
 
   }
+  
+  protected int maxClauseMarkForDelete(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)});
+  }
 
-  protected void markForDelete(String query, ArrayList list, String commonNewExpression, ArrayList commonNewList)
+  protected void markForDelete(Long jobID, ArrayList list, String commonNewExpression, ArrayList commonNewList)
     throws ManifoldCFException
   {
-    ArrayList thisList = new ArrayList();
-    thisList.addAll(list);
     StringBuilder sb = new StringBuilder("WHERE ");
-    sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ")
-      .append(deleteDepsManager.getTableName()).append(" t0 WHERE (").append(query).append(") AND EXISTS(SELECT 'x' FROM ")
-      .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE t1.")
-      .append(intrinsicLinkManager.linkTypeField).append("=t0.").append(deleteDepsManager.linkTypeField)
-      .append(" AND t1.")
-      .append(intrinsicLinkManager.jobIDField).append("=t0.").append(deleteDepsManager.jobIDField)
-      .append(" AND t1.").append(intrinsicLinkManager.parentIDHashField).append("=t0.")
-      .append(deleteDepsManager.parentIDHashField).append(" AND t1.").append(intrinsicLinkManager.childIDHashField)
-      .append("=t0.").append(deleteDepsManager.childIDHashField);
+    ArrayList thisList = new ArrayList();
+
+    sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ").append(deleteDepsManager.getTableName()).append(" t0 WHERE ")
+      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
+        new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID),
+        new MultiClause("t0."+deleteDepsManager.childIDHashField,list)})).append(" AND ");
+        
+    sb.append("EXISTS(SELECT 'x' FROM ").append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ")
+      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
+        new JoinClause("t1."+intrinsicLinkManager.jobIDField,"t0."+deleteDepsManager.jobIDField),
+        new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
+        new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
+        new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)}));
+        
     if (commonNewExpression != null)
     {
       sb.append(" AND t1.").append(commonNewExpression);
@@ -1283,9 +1290,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // We should not ever get requests that are duplications, or are not germane (e.g.
       // for the root).
 
-      ArrayList list = new ArrayList();
-      StringBuilder sb = new StringBuilder();
-
       DocumentNode[] rval = new DocumentNode[unansweredQuestions.length];
 
       // Set the node up as being "infinity" first; we'll change it around later
@@ -1320,56 +1324,48 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // Accumulate the ids of rows where I need deps too.  This is keyed by id and has the right answer object as a value.
       Map depsMap = new HashMap();
 
-      int maxClause = getMaxOrClause();
+      int maxClause = maxClausePerformGetCachedDistances(jobID);
+      ArrayList list = new ArrayList();
+      ArrayList ltList = new ArrayList();
+      
       i = 0;
       int k = 0;
       while (i < unansweredQuestions.length)
       {
         if (k == maxClause)
         {
-          performGetCachedDistances(rval,indexMap,depsMap,sb.toString(),list);
+          performGetCachedDistances(rval,indexMap,depsMap,jobID,ltList,list);
           k = 0;
-          sb.setLength(0);
           list.clear();
+          ltList.clear();
         }
-        if (k > 0)
-          sb.append(" OR");
         Question q = unansweredQuestions[i++];
-        sb.append("(").append(jobIDField).append("=? AND ").append(linkTypeField).append("=? AND ")
-          .append(parentIDHashField).append("=?)");
-        list.add(jobID);
-        list.add(q.getLinkType());
+        ltList.add(q.getLinkType());
         list.add(q.getDocumentIdentifierHash());
         k++;
       }
       if (k > 0)
-        performGetCachedDistances(rval,indexMap,depsMap,sb.toString(),list);
+        performGetCachedDistances(rval,indexMap,depsMap,jobID,ltList,list);
 
-      // Now, find the required delete dependencies too.  We seem to be able to use an IN() clause for this and
-      // still get reasonable results from postgresql - so do as many as we can at once.
-      int maxInClause = getMaxInClause();
-      sb.setLength(0);
+      // Now, find the required delete dependencies too.
+      maxClause = maxClausePerformGetCachedDistanceDeps();
       list.clear();
       k = 0;
       Iterator iter = depsMap.keySet().iterator();
       while (iter.hasNext())
       {
         Long id = (Long)iter.next();
-        if (k == maxInClause)
+        if (k == maxClause)
         {
-          performGetCachedDistanceDeps(depsMap,sb.toString(),list);
+          performGetCachedDistanceDeps(depsMap,list);
           k = 0;
-          sb.setLength(0);
           list.clear();
         }
-        if (k > 0)
-          sb.append(",");
-        sb.append("?");
         list.add(id);
         k++;
       }
       if (k > 0)
-        performGetCachedDistanceDeps(depsMap,sb.toString(),list);
+        performGetCachedDistanceDeps(depsMap,list);
 
       return rval;
     }
@@ -1389,15 +1385,24 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  protected int maxClausePerformGetCachedDistanceDeps()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+  
   /** Do a limited fetch of cached distance dependencies */
-  protected void performGetCachedDistanceDeps(Map depsMap, String query, ArrayList list)
+  protected void performGetCachedDistanceDeps(Map depsMap, ArrayList list)
     throws ManifoldCFException
   {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(deleteDepsManager.ownerIDField,list)});
+      
     IResultSet set = performQuery("SELECT "+deleteDepsManager.ownerIDField+","+
       deleteDepsManager.linkTypeField+","+
       deleteDepsManager.parentIDHashField+","+
       deleteDepsManager.childIDHashField+" FROM "+deleteDepsManager.getTableName()+
-      " WHERE "+deleteDepsManager.ownerIDField+" IN("+query+")",list,null,null);
+      " WHERE "+query,newList,null,null);
 
     // Each dependency needs to be filed by owner id, so let's populate a hash.  The
     // hash will be keyed by owner id and contain an arraylist of deletedependency
@@ -1453,13 +1458,35 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Calculate the max clauses.
+  */
+  protected int maxClausePerformGetCachedDistances(Long jobID)
+  {
+    // Always OR clauses, so it's maxORClause.
+    return getMaxOrClause();
+  }
+  
   /** Do a limited fetch of cached distances */
-  protected void performGetCachedDistances(DocumentNode[] rval, Map indexMap, Map depsMap, String query, ArrayList list)
+  protected void performGetCachedDistances(DocumentNode[] rval, Map indexMap, Map depsMap, Long jobID, ArrayList ltList, ArrayList list)
     throws ManifoldCFException
   {
-    IResultSet set = performQuery("SELECT "+idField+","+parentIDHashField+","+linkTypeField+","+distanceField+","+markForDeathField+
-      " FROM "+getTableName()+" WHERE "+query,list,null,null);
+    ArrayList newList = new ArrayList();
+    StringBuilder sb = new StringBuilder();
+    
+    for (int i = 0 ; i < list.size() ; i++)
+    {
+      if (i > 0)
+        sb.append(" OR ");
+      sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+        new UnitaryClause(jobIDField,jobID),
+        new UnitaryClause(parentIDHashField,list.get(i)),
+        new UnitaryClause(linkTypeField,ltList.get(i))}));
+    }
+    
+    String query = sb.toString();
 
+    IResultSet set = performQuery("SELECT "+idField+","+parentIDHashField+","+linkTypeField+","+distanceField+","+markForDeathField+
+      " FROM "+getTableName()+" WHERE "+query,newList,null,null);
 
     // Go through results and create answers
     int i = 0;
@@ -1572,8 +1599,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           deleteDepsManager.deleteOwnerRows(new Long[]{existingID});
 
           ArrayList list = new ArrayList();
-          list.add(existingID);
-          performDelete("WHERE "+idField+"=?",list,null);
+          String query = buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(idField,existingID)});
+
+          performDelete("WHERE "+query,list,null);
           noteModifications(0,0,1);
           // Since infinity is not a reduction of any kind, we're done here.
           return;
@@ -1660,8 +1689,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           map.put(distanceField,new Long((long)answerValue));
           map.put(markForDeathField,markToString(MARK_NORMAL));
           ArrayList list = new ArrayList();
-          list.add(existingID);
-          performUpdate(map,"WHERE "+idField+"=?",list,null);
+          String query = buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(idField,existingID)});
+          performUpdate(map,"WHERE "+query,list,null);
           noteModifications(0,1,0);
 
           if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
@@ -1739,10 +1769,11 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       else
       {
         // Take the row off the queue.
-        ArrayList list = new ArrayList();
-        list.add(existingID);
         map.put(markForDeathField,markToString(MARK_NORMAL));
-        performUpdate(map,"WHERE "+idField+"=?",list,null);
+        ArrayList list = new ArrayList();
+        String query = buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(idField,existingID)});
+        performUpdate(map,"WHERE "+query,list,null);
         noteModifications(0,1,0);
       }
 
@@ -2869,8 +2900,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       HashMap referenceMap = new HashMap();
 
-      int maxClause = getMaxOrClause();
-      StringBuilder sb = new StringBuilder();
+      int maxClause = maxClauseFindChildren(jobID);
       ArrayList list = new ArrayList();
       k = 0;
       Iterator iter = parentMap.keySet().iterator();
@@ -2880,21 +2910,16 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         referenceMap.put(parentIDHash,new ArrayList());
         if (k == maxClause)
         {
-          findChildren(referenceMap,sb.toString(),list);
+          findChildren(referenceMap,jobID,list);
           k = 0;
-          sb.setLength(0);
           list.clear();
         }
-        if (k > 0)
-          sb.append(" OR");
-        sb.append("(").append(intrinsicLinkManager.jobIDField).append("=? AND ").append(intrinsicLinkManager.parentIDHashField).append("=?)");
-        list.add(jobID);
         list.add(parentIDHash);
         k++;
       }
 
       if (k > 0)
-        findChildren(referenceMap,sb.toString(),list);
+        findChildren(referenceMap,jobID,list);
 
       // Go through the 'nodes needing children'.  For each node, look up the child references, and create a set
       // of questions for all the node children.  We'll refer directly to this list when putting together the
@@ -3052,15 +3077,28 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       }
     }
 
-
+    /** Get the max clauses.
+    */
+    protected int maxClauseFindChildren(Long jobID)
+    {
+      return findConjunctionClauseMax(new ClauseDescription[]{
+        new UnitaryClause(intrinsicLinkManager.jobIDField,jobID)});
+    }
+    
     /** Get the children of a bunch of nodes.
     */
-    protected void findChildren(Map referenceMap, String query, ArrayList list)
+    protected void findChildren(Map referenceMap, Long jobID, ArrayList list)
       throws ManifoldCFException
     {
+      ArrayList newList = new ArrayList();
+
+      String query = buildConjunctionClause(newList,new ClauseDescription[]{
+        new UnitaryClause(intrinsicLinkManager.jobIDField,jobID),
+        new MultiClause(intrinsicLinkManager.parentIDHashField,list)});
+        
       // Grab the appropriate rows from the intrinsic link table.
       IResultSet set = performQuery("SELECT "+intrinsicLinkManager.childIDHashField+","+intrinsicLinkManager.linkTypeField+","+
-        intrinsicLinkManager.parentIDHashField+" FROM "+intrinsicLinkManager.getTableName()+" WHERE "+query,list,null,null);
+        intrinsicLinkManager.parentIDHashField+" FROM "+intrinsicLinkManager.getTableName()+" WHERE "+query,newList,null,null);
 
       // What I want to produce from this is a filled-in reference map, where the parentid is the
       // key, and the value is an ArrayList of DocumentReference objects.

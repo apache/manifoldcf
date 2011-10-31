@@ -102,7 +102,27 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
         // Upgrade code, if needed, goes here.
       }
 
-      // Index management code goes here.
+      // Index management
+      IndexDescription classIndex = new IndexDescription(false,new String[]{classNameField});
+      
+      // Get rid of indexes that shouldn't be there
+      Map indexes = getTableIndexes(null,null);
+      Iterator iter = indexes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String indexName = (String)iter.next();
+        IndexDescription id = (IndexDescription)indexes.get(indexName);
+
+        if (classIndex != null && id.equals(classIndex))
+          classIndex = null;
+        else if (indexName.indexOf("_pkey") == -1)
+          // This index shouldn't be here; drop it
+          performRemoveIndex(indexName);
+      }
+
+      // Add the ones we didn't find
+      if (classIndex != null)
+        performAddIndex(null,classIndex);
 
       break;
     }
@@ -261,6 +281,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     while (true)
     {
       // Catch deadlock condition
+      long sleepAmt = 0L;
       try
       {
         ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
@@ -275,9 +296,10 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
             boolean isNew = object.getIsNew();
             // See whether the instance exists
             ArrayList params = new ArrayList();
-            params.add(object.getName());
+            String query = buildConjunctionClause(params,new ClauseDescription[]{
+              new UnitaryClause(nameField,object.getName())});
             IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-              nameField+"=? FOR UPDATE",params,null,null);
+              query+" FOR UPDATE",params,null,null);
             HashMap values = new HashMap();
             values.put(descriptionField,object.getDescription());
             values.put(classNameField,object.getClassName());
@@ -300,8 +322,9 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
 
               // Update
               params.clear();
-              params.add(object.getName());
-              performUpdate(values," WHERE "+nameField+"=?",params,null);
+              query = buildConjunctionClause(params,new ClauseDescription[]{
+                new UnitaryClause(nameField,object.getName())});
+              performUpdate(values," WHERE "+query,params,null);
             }
             else
             {
@@ -347,14 +370,11 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
         // Is this a deadlock exception?  If so, we want to try again.
         if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
           throw e;
-        try
-        {
-          ManifoldCF.sleep((long)(random.nextDouble() * 60000.0 + 500.0));
-        }
-        catch (InterruptedException e2)
-        {
-          throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-        }
+        sleepAmt = getSleepAmt();
+      }
+      finally
+      {
+        sleepFor(sleepAmt);
       }
     }
   }
@@ -381,8 +401,9 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
           throw new ManifoldCFException("Can't delete output connection '"+name+"': existing entities refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
-        params.add(name);
-        performDelete("WHERE "+nameField+"=?",params,null);
+        String query = buildConjunctionClause(params,new ClauseDescription[]{
+          new UnitaryClause(nameField,name)});
+        performDelete("WHERE "+query,params,null);
         cacheManager.invalidateKeys(ch);
       }
       catch (ManifoldCFException e)
@@ -418,8 +439,9 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     ssb.add(getOutputConnectionsKey());
     StringSet localCacheKeys = new StringSet(ssb);
     ArrayList params = new ArrayList();
-    params.add(className);
-    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+classNameField+"=?",params,
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(classNameField,className)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
       localCacheKeys,null);
     String[] rval = new String[set.getRowCount()];
     int i = 0;
@@ -447,8 +469,9 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
       ssb.add(getOutputConnectionKey(name));
       StringSet localCacheKeys = new StringSet(ssb);
       ArrayList params = new ArrayList();
-      params.add(name);
-      IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+nameField+"=?",params,
+      String query = buildConjunctionClause(params,new ClauseDescription[]{
+        new UnitaryClause(nameField,name)});
+      IResultSet set = performQuery("SELECT "+classNameField+" FROM "+getTableName()+" WHERE "+query,params,
         localCacheKeys,null);
       if (set.getRowCount() == 0)
         throw new ManifoldCFException("No such connection: '"+name+"'");
@@ -524,28 +547,23 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     try
     {
       i = 0;
-      StringBuilder sb = new StringBuilder();
       ArrayList params = new ArrayList();
       int j = 0;
-      int maxIn = getMaxInClause();
+      int maxIn = maxClauseGetOutputConnectionsChunk();
       while (i < connectionNames.length)
       {
         if (j == maxIn)
         {
-          getOutputConnectionsChunk(rval,returnIndex,sb.toString(),params);
-          sb.setLength(0);
+          getOutputConnectionsChunk(rval,returnIndex,params);
           params.clear();
           j = 0;
         }
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
         params.add(connectionNames[i]);
         i++;
         j++;
       }
       if (j > 0)
-        getOutputConnectionsChunk(rval,returnIndex,sb.toString(),params);
+        getOutputConnectionsChunk(rval,returnIndex,params);
       return rval;
     }
     catch (Error e)
@@ -564,18 +582,26 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
     }
   }
 
+  /** Calculate max number of clauses to send to getOutputConnectionsChunk.
+  */
+  protected int maxClauseGetOutputConnectionsChunk()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+    
   /** Read a chunk of output connections.
   *@param rval is the place to put the read policies.
   *@param returnIndex is a map from the object id (resource id) and the rval index.
-  *@param idList is the list of id's.
   *@param params is the set of parameters.
   */
-  protected void getOutputConnectionsChunk(OutputConnection[] rval, Map returnIndex, String idList, ArrayList params)
+  protected void getOutputConnectionsChunk(OutputConnection[] rval, Map returnIndex, ArrayList params)
     throws ManifoldCFException
   {
-    IResultSet set;
-    set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-      nameField+" IN ("+idList+")",params,null,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(nameField,params)});
+    IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+      query,list,null,null);
     int i = 0;
     while (i < set.getRowCount())
     {

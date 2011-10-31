@@ -126,8 +126,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       }
 
       // Now, do indexes
-      IndexDescription keyIndex = new IndexDescription(true,new String[]{outputConnNameField,docKeyField});
-      IndexDescription uriHashIndex = new IndexDescription(false,new String[]{uriHashField});
+      IndexDescription keyIndex = new IndexDescription(true,new String[]{docKeyField,outputConnNameField});
+      IndexDescription uriHashIndex = new IndexDescription(false,new String[]{uriHashField,outputConnNameField});
+      IndexDescription outputConnIndex = new IndexDescription(false,new String[]{outputConnNameField});
 
       // Get rid of indexes that shouldn't be there
       Map indexes = getTableIndexes(null,null);
@@ -141,6 +142,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           keyIndex = null;
         else if (uriHashIndex != null && id.equals(uriHashIndex))
           uriHashIndex = null;
+        else if (outputConnIndex != null && id.equals(outputConnIndex))
+          outputConnIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
@@ -153,6 +156,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       if (keyIndex != null)
         performAddIndex(null,keyIndex);
 
+      if (outputConnIndex != null)
+        performAddIndex(null,outputConnIndex);
+      
       // All done; break out of loop
       break;
     }
@@ -385,18 +391,20 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     String oldURIHash = null;
     String oldOutputVersion = null;
 
-    // See what uri was used before for this doc, if any
-    ArrayList list = new ArrayList();
-    list.add(docKey);
-    list.add(connection.getName());
     
     while (true)
     {
       long sleepAmt = 0L;
       try
       {
+        // See what uri was used before for this doc, if any
+        ArrayList list = new ArrayList();
+        String query = buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(docKeyField,docKey),
+          new UnitaryClause(outputConnNameField,connection.getName())});
+          
         IResultSet set = performQuery("SELECT "+docURIField+","+uriHashField+","+lastOutputVersionField+" FROM "+getTableName()+
-          " WHERE "+docKeyField+"=? AND "+outputConnNameField+"=?",list,null,null);
+          " WHERE "+query,list,null,null);
 
         if (set.getRowCount() > 0)
         {
@@ -447,16 +455,17 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     try
     {
 
+      ArrayList list = new ArrayList();
+      
       if (oldURI != null && (documentURI == null || !oldURI.equals(documentURI)))
       {
         // Delete all records from the database that match the old URI, except for THIS record.
         list.clear();
-        list.add(oldURIHash);
-	// Ideally, we should include the actual string, but that's hard because of database limitations
-        //list.add(oldURI);
+        String query = buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(uriHashField,"=",oldURIHash),
+          new UnitaryClause(outputConnNameField,"=",connection.getName())});
         list.add(docKey);
-        list.add(connection.getName());
-        performDelete("WHERE "+uriHashField+"=? AND "+ /* docURIField+"=? AND "+ */ docKeyField+"!=? AND "+outputConnNameField+"=?",list,null);
+        performDelete("WHERE "+query+" AND "+docKeyField+"!=?",list,null);
         removeDocument(connection,oldURI,oldOutputVersion,activities);
       }
 
@@ -464,12 +473,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       {
         // Get rid of all records that match the NEW uri, except for this record.
         list.clear();
-        list.add(documentURIHash);
-        // Database limitations prevent this
-        // list.add(documentURI);
+        String query = buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(uriHashField,"=",documentURIHash),
+          new UnitaryClause(outputConnNameField,"=",connection.getName())});
         list.add(docKey);
-        list.add(connection.getName());
-        performDelete("WHERE "+uriHashField+"=? AND "+ /* docURIField+"=? AND "+ */ docKeyField+"!=? AND "+outputConnNameField+"=?",list,null);
+        performDelete("WHERE "+query+" AND "+ docKeyField+"!=?",list,null);
       }
 
       // Now, we know we are ready for the ingest.
@@ -524,8 +532,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     beginTransaction();
     try
     {
-      int maxInClause = getMaxInClause();
-
+      int maxClauses;
+      
       HashMap docIDValues = new HashMap();
       int j = 0;
       while (j < identifierHashes.length)
@@ -541,51 +549,41 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Iterator iter = docIDValues.keySet().iterator();
       j = 0;
       ArrayList list = new ArrayList();
-      StringBuilder sb = new StringBuilder();
+      maxClauses = maxClausesRowIdsForDocIds(outputConnectionName);
       while (iter.hasNext())
       {
-        if (j == maxInClause)
+        if (j == maxClauses)
         {
-          findRowIdsForDocIds(outputConnectionName,rowIDSet,list,sb.toString());
+          findRowIdsForDocIds(outputConnectionName,rowIDSet,list);
           list.clear();
-          sb.setLength(0);
           j = 0;
         }
-        String idValue = (String)iter.next();
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
-        list.add(idValue);
+        list.add(iter.next());
         j++;
       }
 
       if (j > 0)
-        findRowIdsForDocIds(outputConnectionName,rowIDSet,list,sb.toString());
+        findRowIdsForDocIds(outputConnectionName,rowIDSet,list);
 
       // Now, break row id's into chunks too; submit one chunk at a time
       j = 0;
       list.clear();
-      sb.setLength(0);
       iter = rowIDSet.keySet().iterator();
+      maxClauses = maxClausesUpdateRowIds();
       while (iter.hasNext())
       {
-        if (j == maxInClause)
+        if (j == maxClauses)
         {
-          updateRowIds(list,sb.toString(),checkTime);
+          updateRowIds(list,checkTime);
           list.clear();
-          sb.setLength(0);
           j = 0;
         }
-        Long idValue = (Long)iter.next();
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
-        list.add(idValue);
+        list.add(iter.next());
         j++;
       }
 
       if (j > 0)
-        updateRowIds(list,sb.toString(),checkTime);
+        updateRowIds(list,checkTime);
     }
     catch (ManifoldCFException e)
     {
@@ -618,14 +616,25 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     documentCheckMultiple(outputConnectionName,new String[]{identifierClass},new String[]{identifierHash},checkTime);
   }
 
+  /** Calculate the number of clauses.
+  */
+  protected int maxClausesUpdateRowIds()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+  
   /** Update a chunk of row ids.
   */
-  protected void updateRowIds(ArrayList list, String queryPart, long checkTime)
+  protected void updateRowIds(ArrayList list, long checkTime)
     throws ManifoldCFException
   {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(idField,list)});
+      
     HashMap map = new HashMap();
     map.put(lastIngestField,new Long(checkTime));
-    performUpdate(map,"WHERE "+idField+" IN ("+queryPart+")",list,null);
+    performUpdate(map,"WHERE "+query,newList,null);
   }
 
   /** Delete multiple documents from the search engine index.
@@ -755,8 +764,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         // so the first step is to come up with ALL the doc hash values before looping
         // over them.
 
-        int maxInClause = getMaxInClause();
-
+        int maxClauses;
+        
         // Find all the documents that match this set of URIs
         HashMap docURIHashValues = new HashMap();
         HashMap docURIValues = new HashMap();
@@ -775,51 +784,41 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         Iterator iter = docURIHashValues.keySet().iterator();
         j = 0;
         ArrayList hashList = new ArrayList();
-        StringBuilder sb = new StringBuilder();
+        maxClauses = maxClausesRowIdsForURIs(outputConnectionName);
         while (iter.hasNext())
         {
-          if (j == maxInClause)
+          if (j == maxClauses)
           {
-            findRowIdsForURIs(outputConnectionName,rowIDSet,docURIValues,hashList,sb.toString());
+            findRowIdsForURIs(outputConnectionName,rowIDSet,docURIValues,hashList);
             hashList.clear();
-            sb.setLength(0);
             j = 0;
           }
-          String hashValue = (String)iter.next();
-          if (j > 0)
-            sb.append(',');
-          sb.append('?');
-          hashList.add(hashValue);
+          hashList.add(iter.next());
           j++;
         }
 
         if (j > 0)
-          findRowIdsForURIs(outputConnectionName,rowIDSet,docURIValues,hashList,sb.toString());
+          findRowIdsForURIs(outputConnectionName,rowIDSet,docURIValues,hashList);
 
         // Next, go through the list of row IDs, and delete them in chunks
         j = 0;
         ArrayList list = new ArrayList();
-        sb.setLength(0);
         iter = rowIDSet.keySet().iterator();
+        maxClauses = maxClausesDeleteRowIds();
         while (iter.hasNext())
         {
-          if (j == maxInClause)
+          if (j == maxClauses)
           {
-            deleteRowIds(list,sb.toString());
+            deleteRowIds(list);
             list.clear();
-            sb.setLength(0);
             j = 0;
           }
-          Long idValue = (Long)iter.next();
-          if (j > 0)
-            sb.append(',');
-          sb.append('?');
-          list.add(idValue);
+          list.add(iter.next());
           j++;
         }
 
         if (j > 0)
-          deleteRowIds(list,sb.toString());
+          deleteRowIds(list);
 
         // Now, find the set of documents that remain that match the document identifiers.
         HashMap docIdValues = new HashMap();
@@ -837,51 +836,41 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         iter = docIdValues.keySet().iterator();
         j = 0;
         list.clear();
-        sb.setLength(0);
+        maxClauses = maxClausesRowIdsForDocIds(outputConnectionName);
         while (iter.hasNext())
         {
-          if (j == maxInClause)
+          if (j == maxClauses)
           {
-            findRowIdsForDocIds(outputConnectionName,rowIDSet,list,sb.toString());
+            findRowIdsForDocIds(outputConnectionName,rowIDSet,list);
             list.clear();
-            sb.setLength(0);
             j = 0;
           }
-          String hashValue = (String)iter.next();
-          if (j > 0)
-            sb.append(',');
-          sb.append('?');
-          list.add(hashValue);
+          list.add(iter.next());
           j++;
         }
 
         if (j > 0)
-          findRowIdsForDocIds(outputConnectionName,rowIDSet,list,sb.toString());
+          findRowIdsForDocIds(outputConnectionName,rowIDSet,list);
 
         // Next, go through the list of row IDs, and delete them in chunks
         j = 0;
         list.clear();
-        sb.setLength(0);
         iter = rowIDSet.keySet().iterator();
+        maxClauses = maxClausesDeleteRowIds();
         while (iter.hasNext())
         {
-          if (j == maxInClause)
+          if (j == maxClauses)
           {
-            deleteRowIds(list,sb.toString());
+            deleteRowIds(list);
             list.clear();
-            sb.setLength(0);
             j = 0;
           }
-          Long idValue = (Long)iter.next();
-          if (j > 0)
-            sb.append(',');
-          sb.append('?');
-          list.add(idValue);
+          list.add(iter.next());
           j++;
         }
 
         if (j > 0)
-          deleteRowIds(list,sb.toString());
+          deleteRowIds(list);
 
       }
       catch (ManifoldCFException e)
@@ -905,16 +894,28 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Calculate the clauses.
+  */
+  protected int maxClausesRowIdsForURIs(String outputConnectionName)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+  }
+  
   /** Given values and parameters corresponding to a set of hash values, add corresponding
   * table row id's to the output map.
   */
-  protected void findRowIdsForURIs(String outputConnectionName, HashMap rowIDSet, HashMap uris, ArrayList hashParamValues,
-    String paramList)
+  protected void findRowIdsForURIs(String outputConnectionName, HashMap rowIDSet, HashMap uris, ArrayList hashParamValues)
     throws ManifoldCFException
   {
-    hashParamValues.add(outputConnectionName);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(uriHashField,hashParamValues),
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
     IResultSet set = performQuery("SELECT "+idField+","+docURIField+" FROM "+
-      getTableName()+" WHERE "+uriHashField+" IN ("+paramList+") AND "+outputConnNameField+"=?",hashParamValues,null,null);
+      getTableName()+" WHERE "+query,list,null,null);
+      
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -931,16 +932,28 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Calculate the maximum number of doc ids we should use.
+  */
+  protected int maxClausesRowIdsForDocIds(String outputConnectionName)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+  }
+  
   /** Given values and parameters corresponding to a set of hash values, add corresponding
   * table row id's to the output map.
   */
-  protected void findRowIdsForDocIds(String outputConnectionName, HashMap rowIDSet, ArrayList paramValues,
-    String paramList)
+  protected void findRowIdsForDocIds(String outputConnectionName, HashMap rowIDSet, ArrayList paramValues)
     throws ManifoldCFException
   {
-    paramValues.add(outputConnectionName);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(docKeyField,paramValues),
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
     IResultSet set = performQuery("SELECT "+idField+" FROM "+
-      getTableName()+" WHERE "+docKeyField+" IN ("+paramList+") AND "+outputConnNameField+"=?",paramValues,null,null);
+      getTableName()+" WHERE "+query,list,null,null);
+      
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -950,12 +963,22 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Calculate the maximum number of clauses.
+  */
+  protected int maxClausesDeleteRowIds()
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{});
+  }
+    
   /** Delete a chunk of row ids.
   */
-  protected void deleteRowIds(ArrayList list, String queryPart)
+  protected void deleteRowIds(ArrayList list)
     throws ManifoldCFException
   {
-    performDelete("WHERE "+idField+" IN ("+queryPart+")",list,null);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(idField,list)});
+    performDelete("WHERE "+query,newList,null);
   }
 
   /** Delete a document from the search engine index.
@@ -993,28 +1016,23 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     beginTransaction();
     try
     {
-      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
-      int maxCount = getMaxInClause();
+      int maxCount = maxClauseDocumentURIChunk(outputConnectionName);
       int j = 0;
       Iterator iter = map.keySet().iterator();
       while (iter.hasNext())
       {
         if (j == maxCount)
         {
-          getDocumentURIChunk(rval,map,outputConnectionName,sb.toString(),list);
+          getDocumentURIChunk(rval,map,outputConnectionName,list);
           j = 0;
-          sb.setLength(0);
           list.clear();
         }
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
         list.add(iter.next());
         j++;
       }
       if (j > 0)
-        getDocumentURIChunk(rval,map,outputConnectionName,sb.toString(),list);
+        getDocumentURIChunk(rval,map,outputConnectionName,list);
       return rval;
     }
     catch (ManifoldCFException e)
@@ -1116,28 +1134,23 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     beginTransaction();
     try
     {
-      StringBuilder sb = new StringBuilder();
       ArrayList list = new ArrayList();
-      int maxCount = getMaxInClause();
+      int maxCount = maxClauseDocumentIngestDataChunk(outputConnectionName);
       int j = 0;
       Iterator iter = indexMap.keySet().iterator();
       while (iter.hasNext())
       {
         if (j == maxCount)
         {
-          getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,sb.toString(),list);
+          getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,list);
           j = 0;
-          sb.setLength(0);
           list.clear();
         }
-        if (j > 0)
-          sb.append(',');
-        sb.append('?');
         list.add(iter.next());
         j++;
       }
       if (j > 0)
-        getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,sb.toString(),list);
+        getDocumentIngestDataChunk(rval,indexMap,outputConnectionName,list);
       return rval;
     }
     catch (ManifoldCFException e)
@@ -1212,51 +1225,56 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
 
     // Get the chunk size
-    int maxInClause = getMaxInClause();
-
+    int maxClause = maxClauseGetIntervals(outputConnectionName);
 
     // Loop through the hash codes
     Iterator iter = idCodes.keySet().iterator();
     ArrayList list = new ArrayList();
-    StringBuilder sb = new StringBuilder();
     j = 0;
     while (iter.hasNext())
     {
-      if (j == maxInClause)
+      if (j == maxClause)
       {
-        getIntervals(rval,outputConnectionName,list,sb.toString(),returnMap);
+        getIntervals(rval,outputConnectionName,list,returnMap);
         list.clear();
-        sb.setLength(0);
         j = 0;
       }
 
-      if (j > 0)
-        sb.append(',');
-      sb.append('?');
       list.add(iter.next());
       j++;
     }
 
     if (j > 0)
-      getIntervals(rval,outputConnectionName,list,sb.toString(),returnMap);
+      getIntervals(rval,outputConnectionName,list,returnMap);
 
     return rval;
   }
 
-
+  /** Calculate the number of clauses.
+  */
+  protected int maxClauseGetIntervals(String outputConnectionName)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+    }
+    
   /** Query for and calculate the interval for a bunch of hashcodes.
   *@param rval is the array to stuff calculated return values into.
   *@param list is the list of parameters.
   *@param queryPart is the part of the query pertaining to the list of hashcodes
   *@param returnMap is a mapping from document id to rval index.
   */
-  protected void getIntervals(long[] rval, String outputConnectionName, ArrayList list, String queryPart, HashMap returnMap)
+  protected void getIntervals(long[] rval, String outputConnectionName, ArrayList list, HashMap returnMap)
     throws ManifoldCFException
   {
-    list.add(outputConnectionName);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(docKeyField,list),
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
     IResultSet set = performQuery("SELECT "+docKeyField+","+changeCountField+","+firstIngestField+","+lastIngestField+
-      " FROM "+getTableName()+" WHERE "+
-      docKeyField+" IN("+queryPart+") AND "+outputConnNameField+"=?",list,null,null);
+      " FROM "+getTableName()+" WHERE "+query,newList,null,null);
+
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -1286,8 +1304,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     HashMap map = new HashMap();
     map.put(lastVersionField,null);
     ArrayList list = new ArrayList();
-    list.add(outputConnectionName);
-    performUpdate(map,"WHERE "+outputConnNameField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Note the ingestion of a document, or the "update" of a document.
@@ -1353,10 +1373,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         {
           // Look for existing row.
           ArrayList list = new ArrayList();
-          list.add(docKey);
-          list.add(outputConnectionName);
+          String query = buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(docKeyField,docKey),
+            new UnitaryClause(outputConnNameField,outputConnectionName)});
           IResultSet set = performQuery("SELECT "+idField+","+changeCountField+" FROM "+getTableName()+" WHERE "+
-            docKeyField+"=? AND "+outputConnNameField+"=? FOR UPDATE",list,null,null);
+            query+" FOR UPDATE",list,null,null);
           IResultRow row = null;
           if (set.getRowCount() > 0)
             row = set.getRow(0);
@@ -1365,11 +1386,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           {
             // Update the record
             list.clear();
-            list.add(row.getValue(idField));
+            query = buildConjunctionClause(list,new ClauseDescription[]{
+              new UnitaryClause(idField,row.getValue(idField))});
             long changeCount = ((Long)row.getValue(changeCountField)).longValue();
             changeCount++;
             map.put(changeCountField,new Long(changeCount));
-            performUpdate(map,"WHERE "+idField+"=?",list,null);
+            performUpdate(map,"WHERE "+query,list,null);
             // Update successful!
             return;
           }
@@ -1452,18 +1474,31 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Calculate how many clauses at a time
+  */
+  protected int maxClauseDocumentURIChunk(String outputConnectionName)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+  }
+  
   /** Get a chunk of document uris.
   *@param rval is the string array where the uris should be put.
   *@param map is the map from id to index.
   *@param clause is the in clause for the query.
   *@param list is the parameter list for the query.
   */
-  protected void getDocumentURIChunk(DeleteInfo[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
+  protected void getDocumentURIChunk(DeleteInfo[] rval, Map map, String outputConnectionName, ArrayList list)
     throws ManifoldCFException
   {
-    list.add(outputConnectionName);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(docKeyField,list),
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
     IResultSet set = performQuery("SELECT "+docKeyField+","+docURIField+","+lastOutputVersionField+" FROM "+getTableName()+" WHERE "+
-      docKeyField+" IN ("+clause+") AND "+outputConnNameField+"=?",list,null,null);
+      query,newList,null,null);
+
     // Go through list and put into buckets.
     int i = 0;
     while (i < set.getRowCount())
@@ -1482,19 +1517,31 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     }
   }
 
+  /** Count the clauses
+  */
+  protected int maxClauseDocumentIngestDataChunk(String outputConnectionName)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+  }
+  
   /** Get a chunk of document ingest data records.
   *@param rval is the document ingest status array where the data should be put.
   *@param map is the map from id to index.
   *@param clause is the in clause for the query.
   *@param list is the parameter list for the query.
   */
-  protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map map, String outputConnectionName, String clause, ArrayList list)
+  protected void getDocumentIngestDataChunk(DocumentIngestStatus[] rval, Map map, String outputConnectionName, ArrayList list)
     throws ManifoldCFException
   {
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new MultiClause(docKeyField,list),
+      new UnitaryClause(outputConnNameField,outputConnectionName)});
+      
     // Get the primary records associated with this hash value
-    list.add(outputConnectionName);
     IResultSet set = performQuery("SELECT "+idField+","+docKeyField+","+lastVersionField+","+lastOutputVersionField+","+authorityNameField+" FROM "+getTableName()+" WHERE "+
-      docKeyField+" IN ("+clause+") AND "+outputConnNameField+"=?",list,null,null);
+      query,newList,null,null);
 
     // Now, go through the original request once more, this time building the result
     int i = 0;

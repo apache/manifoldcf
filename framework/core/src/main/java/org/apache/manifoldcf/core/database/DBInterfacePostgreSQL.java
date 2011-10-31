@@ -523,7 +523,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Create a connection to the master database, using the credentials supplied
-    Database masterDatabase = new Database(context,getJdbcUrl("template1"),_driver,"template1",adminUserName,adminPassword);
+    Database masterDatabase = new DBInterfacePostgreSQL(context,"template1",adminUserName,adminPassword);
     try
     {
       // Create user
@@ -577,7 +577,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Create a connection to the master database, using the credentials supplied
-    Database masterDatabase = new Database(context,getJdbcUrl("template1"),_driver,"template1",adminUserName,adminPassword);
+    Database masterDatabase = new DBInterfacePostgreSQL(context,"template1",adminUserName,adminPassword);
     try
     {
       // Drop database

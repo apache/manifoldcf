@@ -107,9 +107,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       }
 
       // Indexes
-      IndexDescription uniqueIndex = new IndexDescription(true,new String[]{jobIDField,linkTypeField,parentIDHashField,childIDHashField});
-      IndexDescription jobParentIndex = new IndexDescription(false,new String[]{jobIDField,parentIDHashField});
+      IndexDescription uniqueIndex = new IndexDescription(true,new String[]{jobIDField,parentIDHashField,linkTypeField,childIDHashField});
       IndexDescription jobChildNewIndex = new IndexDescription(false,new String[]{jobIDField,childIDHashField,newField});
+      IndexDescription newIndex = new IndexDescription(false,new String[]{newField});
 
       Map indexes = getTableIndexes(null,null);
       Iterator iter = indexes.keySet().iterator();
@@ -120,22 +120,22 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
 
         if (uniqueIndex != null && id.equals(uniqueIndex))
           uniqueIndex = null;
-        else if (jobParentIndex != null && id.equals(jobParentIndex))
-          jobParentIndex = null;
         else if (jobChildNewIndex != null && id.equals(jobChildNewIndex))
           jobChildNewIndex = null;
+        else if (newIndex != null && id.equals(newIndex))
+          newIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
       }
 
-      if (jobParentIndex != null)
-        performAddIndex(null,jobParentIndex);
-
+      // Create the indexes we are still missing
       if (jobChildNewIndex != null)
         performAddIndex(null,jobChildNewIndex);
 
-      // Create the indexes we are still missing
+      if (newIndex != null)
+        performAddIndex(null,newIndex);
+
       if (uniqueIndex != null)
         performAddIndex(null,uniqueIndex);
       
@@ -169,8 +169,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    performDelete("WHERE "+jobIDField+"=?",list,null);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+    performDelete("WHERE "+query,list,null);
     noteModifications(0,0,1);
   }
 
@@ -183,11 +184,13 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
-    ArrayList list = new ArrayList();
     map.put(newField,statusToString(LINKSTATUS_BASE));
-    list.add(statusToString(LINKSTATUS_NEW));
-    list.add(statusToString(LINKSTATUS_EXISTING));
-    performUpdate(map,"WHERE "+newField+" IN (?,?)",list,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(newField,new Object[]{
+        statusToString(LINKSTATUS_NEW),
+        statusToString(LINKSTATUS_EXISTING)})});
+    performUpdate(map,"WHERE "+query,list,null);
   }
 
   /** Record a references from source to targets.  These references will be marked as either "new" or "existing".
@@ -204,8 +207,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       // one thread can make it into here at any given time for any given parent.
       //performLock();
       HashMap duplicateRemoval = new HashMap();
-      int maxClause = getMaxOrClause();
-      StringBuilder sb = new StringBuilder();
+      int maxClause = maxClausePerformExistsCheck(jobID,linkType,sourceDocumentIDHash);
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -220,24 +222,15 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         if (i == maxClause)
         {
           // Do the query and record the results
-          performExistsCheck(presentMap,sb.toString(),list);
+          performExistsCheck(presentMap,jobID,linkType,sourceDocumentIDHash,list);
           i = 0;
-          sb.setLength(0);
           list.clear();
         }
-        if (i > 0)
-          sb.append(" OR");
-        sb.append("(").append(jobIDField).append("=? AND ")
-          .append(linkTypeField).append("=? AND ")
-          .append(parentIDHashField).append("=? AND ").append(childIDHashField).append("=?)");
-        list.add(jobID);
-        list.add(linkType);
         list.add(targetDocumentIDHash);
-        list.add(sourceDocumentIDHash);
         i++;
       }
       if (i > 0)
-        performExistsCheck(presentMap,sb.toString(),list);
+        performExistsCheck(presentMap,jobID,linkType,sourceDocumentIDHash,list);
 
       // Go through the list again, and based on the results above, decide to do either an insert or
       // an update.
@@ -272,15 +265,15 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         }
         else
         {
-          ArrayList updateList = new ArrayList();
-          updateList.add(jobID);
-          updateList.add(linkType);
-          updateList.add(targetDocumentIDHash);
-          updateList.add(sourceDocumentIDHash);
           HashMap map = new HashMap();
           map.put(newField,statusToString(LINKSTATUS_EXISTING));
-          performUpdate(map,"WHERE "+jobIDField+"=? AND "+linkTypeField+"=? AND "+
-            parentIDHashField+"=? AND "+childIDHashField+"=?",updateList,null);
+          ArrayList updateList = new ArrayList();
+          String query = buildConjunctionClause(updateList,new ClauseDescription[]{
+            new UnitaryClause(jobIDField,jobID),
+            new UnitaryClause(parentIDHashField,targetDocumentIDHash),
+            new UnitaryClause(linkTypeField,linkType),
+            new UnitaryClause(childIDHashField,sourceDocumentIDHash)});
+          performUpdate(map,"WHERE "+query,updateList,null);
           noteModifications(0,1,0);
         }
       }
@@ -303,11 +296,28 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
+  /** Calculate the max clauses for the exists check
+  */
+  protected int maxClausePerformExistsCheck(Long jobID, String linkType, String childIDHash)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(linkTypeField,linkType),
+      new UnitaryClause(childIDHashField,childIDHash)});
+  }
+    
   /** Do the exists check, in batch. */
-  protected void performExistsCheck(Map presentMap, String query, ArrayList list)
+  protected void performExistsCheck(Map presentMap, Long jobID, String linkType, String childIDHash, ArrayList list)
     throws ManifoldCFException
   {
-    IResultSet result = performQuery("SELECT "+parentIDHashField+" FROM "+getTableName()+" WHERE "+query+" FOR UPDATE",list,null,null);
+    ArrayList newList = new ArrayList();
+    String query = buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list),
+      new UnitaryClause(linkTypeField,linkType),
+      new UnitaryClause(childIDHashField,childIDHash)});
+
+    IResultSet result = performQuery("SELECT "+parentIDHashField+" FROM "+getTableName()+" WHERE "+query+" FOR UPDATE",newList,null,null);
     int i = 0;
     while (i < result.getRowCount())
     {
@@ -333,8 +343,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     {
       if (sourceDocumentIDHashes != null)
       {
-        int maxClause = getMaxOrClause();
-        StringBuilder sb = new StringBuilder();
+        int maxClause = maxClausePerformRemoveLinks(jobID);
         ArrayList list = new ArrayList();
         int i = 0;
         int k = 0;
@@ -342,34 +351,33 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
         {
           if (k == maxClause)
           {
-            performRemoveLinks(sb.toString(),list,commonNewExpression,commonNewParams);
-            sb.setLength(0);
+            performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
             list.clear();
             k = 0;
           }
-          if (k > 0)
-            sb.append(" OR");
-          sb.append("(").append(jobIDField).append("=? AND ")
-            .append(childIDHashField).append("=?)");
-          String sourceDocumentIDHash = sourceDocumentIDHashes[i++];
-          list.add(jobID);
-          list.add(sourceDocumentIDHash);
+          list.add(sourceDocumentIDHashes[i++]);
           k++;
         }
 
         if (k > 0)
-          performRemoveLinks(sb.toString(),list,commonNewExpression,commonNewParams);
+          performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
         noteModifications(0,0,sourceDocumentIDHashes.length);
       }
       else
       {
+        StringBuilder sb = new StringBuilder("WHERE ");
         ArrayList list = new ArrayList();
-        list.add(jobID);
+        
+        sb.append("EXISTS(SELECT 'x' FROM ").append(sourceTableName).append(" WHERE ")
+          .append(buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(sourceTableJobColumn,jobID),
+            new JoinClause(sourceTableIDColumn,getTableName()+"."+childIDHashField)})).append(" AND ");
+
+        sb.append(sourceTableCriteria);
         list.addAll(sourceTableParams);
-        StringBuilder sb = new StringBuilder("WHERE EXISTS(SELECT 'x' FROM ");
-        sb.append(sourceTableName).append(" WHERE ").append(sourceTableJobColumn).append("=? AND ")
-          .append(sourceTableIDColumn).append("=").append(getTableName()).append(".").append(childIDHashField)
-          .append(" AND ").append(sourceTableCriteria).append(")");
+            
+        sb.append(")");
+            
         performDelete(sb.toString(),list,null);
         noteModifications(0,0,1);
       }
@@ -390,19 +398,27 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     }
 
   }
-
-  protected void performRemoveLinks(String query, ArrayList list, String commonNewExpression,
+  
+  protected int maxClausePerformRemoveLinks(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+  }
+    
+  protected void performRemoveLinks(ArrayList list, Long jobID, String commonNewExpression,
     ArrayList commonNewParams)
     throws ManifoldCFException
   {
+    StringBuilder sb = new StringBuilder("WHERE ");
     ArrayList thisList = new ArrayList();
-    thisList.addAll(list);
-    StringBuilder sb = new StringBuilder("WHERE (");
-    sb.append(query).append(")");
+
+    sb.append(buildConjunctionClause(thisList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(childIDHashField,list)}));
     if (commonNewExpression != null)
     {
-      thisList.addAll(commonNewParams);
       sb.append(" AND ").append(commonNewExpression);
+      thisList.addAll(commonNewParams);
     }
     performDelete(sb.toString(),thisList,null);
   }
@@ -415,8 +431,7 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
-      int maxClause = getMaxOrClause();
-      StringBuilder sb = new StringBuilder();
+      int maxClause = maxClausesPerformRestoreLinks(jobID);
       ArrayList list = new ArrayList();
       int i = 0;
       int k = 0;
@@ -424,23 +439,16 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       {
         if (k == maxClause)
         {
-          performRestoreLinks(sb.toString(),list);
-          sb.setLength(0);
+          performRestoreLinks(jobID,list);
           list.clear();
           k = 0;
         }
-        if (k > 0)
-          sb.append(" OR");
-        sb.append("(").append(jobIDField).append("=? AND ")
-          .append(childIDHashField).append("=?)");
-        String sourceDocumentIDHash = sourceDocumentIDHashes[i++];
-        list.add(jobID);
-        list.add(sourceDocumentIDHash);
+        list.add(sourceDocumentIDHashes[i++]);
         k++;
       }
 
       if (k > 0)
-        performRestoreLinks(sb.toString(),list);
+        performRestoreLinks(jobID,list);
     }
     catch (ManifoldCFException e)
     {
@@ -459,16 +467,28 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,sourceDocumentIDHashes.length,0);
   }
 
-  protected void performRestoreLinks(String query, ArrayList list)
+  protected int maxClausesPerformRestoreLinks(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+  }
+  
+  protected void performRestoreLinks(Long jobID, ArrayList list)
     throws ManifoldCFException
   {
-    StringBuilder sb = new StringBuilder("WHERE (");
-    sb.append(query).append(") AND ").append(newField).append(" IN (?,?)");
-    list.add(statusToString(LINKSTATUS_EXISTING));
-    list.add(statusToString(LINKSTATUS_NEW));
     HashMap map = new HashMap();
     map.put(newField,statusToString(LINKSTATUS_BASE));
-    performUpdate(map,sb.toString(),list,null);
+    
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList newList = new ArrayList();
+    
+    sb.append(buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(childIDHashField,list)})).append(" AND ")
+      .append(newField).append(" IN (?,?)");
+    newList.add(statusToString(LINKSTATUS_EXISTING));
+    newList.add(statusToString(LINKSTATUS_NEW));
+    performUpdate(map,sb.toString(),newList,null);
   }
 
   /** Get document's children.
@@ -478,10 +498,11 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(parentIDHash);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(parentIDHashField,parentIDHash)});
     return performQuery("SELECT "+linkTypeField+" AS linktype,"+childIDHashField+" AS childidentifier FROM "+
-      getTableName()+" WHERE "+jobIDField+"=? AND "+parentIDHashField+"=?",list,null,null);
+      getTableName()+" WHERE "+query,list,null,null);
   }
 
   /** Get document's parents.
@@ -491,10 +512,12 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(childIDHash);
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(childIDHashField,childIDHash)});
+      
     IResultSet set = performQuery("SELECT DISTINCT "+parentIDHashField+" FROM "+
-      getTableName()+" WHERE "+jobIDField+"=? AND "+childIDHashField+"=?",list,null,null);
+      getTableName()+" WHERE "+query,list,null,null);
     String[] rval = new String[set.getRowCount()];
     int i = 0;
     while (i < rval.length)
