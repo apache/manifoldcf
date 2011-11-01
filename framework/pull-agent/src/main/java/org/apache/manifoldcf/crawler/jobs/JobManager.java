@@ -1495,7 +1495,7 @@ public class JobManager implements IJobManager
     sb.append(database.constructOffsetLimitClause(0,n));
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
-    jobQueue.unconditionallyAnalyzeTables();
+    //jobQueue.unconditionallyAnalyzeTables();
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,n,null);
 
@@ -1665,7 +1665,7 @@ public class JobManager implements IJobManager
     String query = sb.toString();
 
     // Analyze jobqueue tables unconditionally, since it's become much more sensitive in 8.3 than it used to be.
-    jobQueue.unconditionallyAnalyzeTables();
+    //jobQueue.unconditionallyAnalyzeTables();
 
     ArrayList answers = new ArrayList();
 
@@ -2038,7 +2038,7 @@ public class JobManager implements IJobManager
 
     // Always analyze jobqueue before this query.  Otherwise stuffing may get a bad plan, interfering with performance.
     // This turned out to be needed in postgresql 8.3, even though 8.2 worked fine.
-    jobQueue.unconditionallyAnalyzeTables();
+    //jobQueue.unconditionallyAnalyzeTables();
 
     // Loop through priority values
     int currentPriority = 1;
@@ -2612,7 +2612,22 @@ public class JobManager implements IJobManager
     // object for return, and so a join is necessary against the jobqueue table.
     StringBuilder sb = new StringBuilder("SELECT ");
     ArrayList newList = new ArrayList();
-    
+
+    sb.append("t0.").append(jobQueue.idField).append(",")
+      .append("t0.").append(jobQueue.docHashField).append(",")
+      .append("t0.").append(jobQueue.docIDField)
+      .append(" FROM ").append(carryDown.getTableName()).append(" t1, ")
+        .append(jobQueue.getTableName()).append(" t0 WHERE ");
+
+    sb.append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+      new UnitaryClause("t1."+carryDown.jobIDField,jobID),
+      new MultiClause("t1."+carryDown.parentIDHashField,list)})).append(" AND ");
+        
+    sb.append(database.buildConjunctionClause(newList,new ClauseDescription[]{
+      new JoinClause("t0."+jobQueue.docHashField,"t1."+carryDown.childIDHashField),
+      new JoinClause("t0."+jobQueue.jobIDField,"t1."+carryDown.jobIDField)}));
+
+    /*
     sb.append("t0.").append(jobQueue.idField).append(",")
       .append("t0.").append(jobQueue.docHashField).append(",")
       .append("t0.").append(jobQueue.docIDField)
@@ -2626,7 +2641,8 @@ public class JobManager implements IJobManager
         new MultiClause("t1."+carryDown.parentIDHashField,list),
         new JoinClause("t1."+carryDown.childIDHashField,"t0."+jobQueue.docHashField)}))
       .append(")");
-        
+      */
+    
     IResultSet set = database.performQuery(sb.toString(),newList,null,null);
     int i = 0;
     while (i < set.getRowCount())
@@ -4099,6 +4115,24 @@ public class JobManager implements IJobManager
     sb.append("t0.").append(jobQueue.idField).append(",")
       .append("t0.").append(jobQueue.docHashField).append(",")
       .append("t0.").append(jobQueue.docIDField)
+      .append(" FROM ").append(carryDown.getTableName()).append(" t1, ")
+        .append(jobQueue.getTableName()).append(" t0 WHERE ");
+
+    sb.append(database.buildConjunctionClause(newlist,new ClauseDescription[]{
+      new UnitaryClause("t1."+carryDown.jobIDField,jobID),
+      new MultiClause("t1."+carryDown.parentIDHashField,list)})).append(" AND ");
+      
+    sb.append(database.buildConjunctionClause(newlist,new ClauseDescription[]{
+      new JoinClause("t0."+jobQueue.docHashField,"t1."+carryDown.childIDHashField),
+      new JoinClause("t0."+jobQueue.jobIDField,"t1."+carryDown.jobIDField)})).append(" AND ");
+      
+    sb.append("t1.").append(carryDown.newField).append("=?");
+    newlist.add(carryDown.statusToString(carryDown.ISNEW_BASE));
+
+    /*
+    sb.append("t0.").append(jobQueue.idField).append(",")
+      .append("t0.").append(jobQueue.docHashField).append(",")
+      .append("t0.").append(jobQueue.docIDField)
       .append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE ")
       .append(database.buildConjunctionClause(newlist,new ClauseDescription[]{
         new UnitaryClause("t0."+jobQueue.jobIDField,jobID)})).append(" AND ");
@@ -4112,7 +4146,8 @@ public class JobManager implements IJobManager
       .append(")");
         
     newlist.add(carryDown.statusToString(carryDown.ISNEW_BASE));
-
+    */
+    
     IResultSet set = database.performQuery(sb.toString(),newlist,null,null);
     int i = 0;
     while (i < set.getRowCount())

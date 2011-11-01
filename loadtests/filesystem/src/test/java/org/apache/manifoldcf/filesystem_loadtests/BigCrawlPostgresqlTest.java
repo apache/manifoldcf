@@ -171,8 +171,10 @@ public class BigCrawlPostgresqlTest extends BasePostgresql
       jobManager.save(job);
 
       // Now, start the job, and wait until it completes.
+      long startTime = System.currentTimeMillis();
       jobManager.manualStart(job.getID());
       waitJobInactive(jobManager,job.getID(),18000000L);
+      System.out.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
       // Check to be sure we actually processed the right number of documents.
       JobStatus status = jobManager.getStatus(job.getID());
