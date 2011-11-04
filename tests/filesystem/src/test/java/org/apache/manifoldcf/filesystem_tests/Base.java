@@ -367,7 +367,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
           // Wait for this job to stop
           while (true)
           {
-            JobStatus status = jobManager.getStatus(desc.getID());
+            JobStatus status = jobManager.getStatus(desc.getID(),false);
             if (status != null)
             {
               int statusValue = status.getStatus();
@@ -408,7 +408,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
           // Wait for this job to disappear
           while (true)
           {
-            JobStatus status = jobManager.getStatus(desc.getID());
+            JobStatus status = jobManager.getStatus(desc.getID(),false);
             if (status != null)
             {
               ManifoldCF.sleep(10000);

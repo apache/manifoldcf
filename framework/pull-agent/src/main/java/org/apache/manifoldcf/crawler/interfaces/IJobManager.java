@@ -877,6 +877,34 @@ public interface IJobManager
   public JobStatus[] getFinishedJobs()
     throws ManifoldCFException;
 
+  /** Get the status of a job.
+  *@param includeCounts is true if document counts should be included.
+  *@return the status object for the specified job.
+  */
+  public JobStatus getStatus(Long jobID, boolean includeCounts)
+    throws ManifoldCFException;
+
+  /** Get a list of all jobs, and their status information.
+  *@param includeCounts is true if document counts should be included.
+  *@return an ordered array of job status objects.
+  */
+  public JobStatus[] getAllStatus(boolean includeCounts)
+    throws ManifoldCFException;
+
+  /** Get a list of running jobs.  This is for status reporting.
+  *@param includeCounts is true if document counts should be included.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getRunningJobs(boolean includeCounts)
+    throws ManifoldCFException;
+
+  /** Get a list of completed jobs, and their statistics.
+  *@param includeCounts is true if document counts should be included.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getFinishedJobs(boolean includeCounts)
+    throws ManifoldCFException;
+
   // The following commands generate reports based on the queue.
 
   /** Run a 'document status' report.
