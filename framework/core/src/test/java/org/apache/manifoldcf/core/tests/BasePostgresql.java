@@ -107,6 +107,7 @@ public class BasePostgresql
       "  <property name=\"org.apache.manifoldcf.crawler.cleanupthreads\" value=\"10\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.crawler.deletethreads\" value=\"10\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.database.maxhandles\" value=\"80\"/>\n" +
+      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"15\"/>\n" +
       "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n" +
       "</configuration>\n");
 

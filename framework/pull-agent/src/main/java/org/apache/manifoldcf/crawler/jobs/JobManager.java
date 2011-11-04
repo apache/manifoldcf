@@ -2094,6 +2094,7 @@ public class JobManager implements IJobManager
       .append(" t0 WHERE ");
       
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
+      //new UnitaryClause(jobQueue.docPriorityField,">=",new Long(0L)),
       new MultiClause(jobQueue.statusField,
         new Object[]{jobQueue.statusToString(JobQueue.STATUS_PENDING),
           jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)}),
@@ -2108,7 +2109,12 @@ public class JobManager implements IJobManager
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
       .append(") ");
       
-    sb.append(" ORDER BY ").append(jobQueue.docPriorityField).append(" ASC ").append(database.constructOffsetLimitClause(0,1));
+    sb.append(" ORDER BY ")
+      .append(jobQueue.docPriorityField).append(" ASC,")
+      .append(jobQueue.statusField).append(" ASC,")
+      .append(jobQueue.checkActionField).append(" ASC,")
+      .append(jobQueue.checkTimeField).append(" ASC ")
+      .append(database.constructOffsetLimitClause(0,1));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
     if (set.getRowCount() > 0)
@@ -2144,6 +2150,7 @@ public class JobManager implements IJobManager
       .append(jobQueue.prioritySetField).append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE ");
     
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
+      //new UnitaryClause("t0."+jobQueue.docPriorityField,">=",new Long(0L)),
       new MultiClause("t0."+jobQueue.statusField,new Object[]{
         jobQueue.statusToString(JobQueue.STATUS_PENDING),
         jobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)}),
@@ -2179,7 +2186,12 @@ public class JobManager implements IJobManager
       .append(jobQueue.prereqEventManager.eventNameField).append("=t4.").append(eventManager.eventNameField)
       .append(")");
 
-    sb.append(" ORDER BY t0.").append(jobQueue.docPriorityField).append(" ASC ");
+    sb.append(" ORDER BY ")
+      .append("t0.").append(jobQueue.docPriorityField).append(" ASC,")
+      .append("t0.").append(jobQueue.statusField).append(" ASC,")
+      .append("t0.").append(jobQueue.checkActionField).append(" ASC,")
+      .append("t0.").append(jobQueue.checkTimeField).append(" ASC ");
+
 
     // Before entering the transaction, we must provide the throttlelimit object with all the connector
     // instances it could possibly need.  The purpose for doing this is to prevent a deadlock where

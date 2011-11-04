@@ -208,7 +208,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       IndexDescription actionTimeStatusIndex = new IndexDescription(false,new String[]{statusField,checkActionField,checkTimeField});
       IndexDescription prioritysetStatusIndex = new IndexDescription(false,new String[]{statusField,prioritySetField});
       // No evidence that the extra fields help at all, for any database...
-      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField/*,statusField,checkActionField,checkTimeField*/});
+      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField});
 
       // Get rid of unused indexes
       Map indexes = getTableIndexes(null,null);
