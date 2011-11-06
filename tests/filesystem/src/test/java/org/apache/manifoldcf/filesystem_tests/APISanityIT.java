@@ -316,7 +316,7 @@ public class APISanityIT extends Base
   protected String getJobStatus(String jobIDString)
     throws Exception
   {
-    Configuration result = performAPIGetOperationViaNodes("jobstatuses/"+jobIDString,200);
+    Configuration result = performAPIGetOperationViaNodes("jobstatusesnocounts/"+jobIDString,200);
     String status = null;
     int i = 0;
     while (i < result.getChildCount())

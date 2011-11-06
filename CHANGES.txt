@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-285: Provide a way through the IJobManager interface
+and through the API to check on the status of a job without asking
+for the counts of documents, which yields a full table scan.
+(Karl Wright)
+
 CONNECTORS-279: Prevent reindex or analyze from taking place within
 a transaction.  This was causing hangs on our load tests.
 (Karl Wright)

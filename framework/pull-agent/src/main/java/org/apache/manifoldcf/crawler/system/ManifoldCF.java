@@ -1441,6 +1441,26 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         createErrorNode(output,e);
       }
     }
+    else if (path.startsWith("jobstatusesnocounts/"))
+    {
+      String jobID = path.substring("jobstatusesnocounts/".length());
+
+      try
+      {
+        IJobManager jobManager = JobManagerFactory.make(tc);
+        JobStatus status = jobManager.getStatus(new Long(jobID),false);
+	if (status != null)
+        {
+          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+          formatJobStatus(jobStatusNode,status);
+          output.addChild(output.getChildCount(),jobStatusNode);
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        createErrorNode(output,e);
+      }
+    }
     else if (path.equals("outputconnections"))
     {
       try
