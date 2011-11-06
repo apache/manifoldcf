@@ -26,6 +26,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.mortbay.thread.QueuedThreadPool;
+
 import java.io.*;
 import java.util.*;
 
@@ -38,6 +40,7 @@ public class MockRSSService
   public MockRSSService(int docsPerFeed)
   {
     server = new Server(8189);
+    server.setThreadPool(new QueuedThreadPool(35));
     servlet = new RSSServlet(docsPerFeed);
     Context asContext = new Context(server,"/rss",Context.SESSIONS);
     asContext.addServlet(new ServletHolder(servlet), "/gen.php");
