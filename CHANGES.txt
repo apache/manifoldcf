@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-289: Wrong version of the OpenCMIS InMemory Server war in the page How to build and deploy
+(Piergiorgio Lucidi)
+
 CONNECTORS-285: Provide a way through the IJobManager interface
 and through the API to check on the status of a job without asking
 for the counts of documents, which yields a full table scan.
