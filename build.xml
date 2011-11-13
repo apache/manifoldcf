@@ -27,6 +27,7 @@
         <delete dir="test-output"/>
         <delete dir="test-postgresql-output"/>
         <delete dir="test-HSQLDB-output"/>
+        <delete dir="test-HSQLDBext-output"/>
         <ant dir="site" target="clean"/>
         <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
@@ -197,6 +198,10 @@
 
     <target name="run-tests-HSQLDB-framework" depends="setup-framework">
         <ant dir="framework" target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="run-tests-HSQLDBext-framework" depends="setup-framework">
+        <ant dir="framework" target="run-tests-HSQLDBext"/>
     </target>
 
     <target name="setup-activedirectory-connector" depends="build-framework">
@@ -3291,7 +3296,7 @@
 
     <target name="test-pg" depends="run-tests-postgresql-framework,run-tests-postgresql-open-connectors,run-tests-postgresql-lgpl-connectors,run-tests-postgresql-proprietary-connectors,end-to-end-tests-postgresql"/>
 
-    <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
+    <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
 
     <target name="load-dr" depends="end-to-end-loadtests-derby"/>
 

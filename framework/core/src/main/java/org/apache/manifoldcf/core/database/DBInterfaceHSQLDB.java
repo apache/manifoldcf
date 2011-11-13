@@ -31,25 +31,96 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private static final String _url = "jdbc:hsqldb:file:";
+  private static final String _localUrl = "jdbc:hsqldb:file:";
+  private static final String _remoteUrl = "jdbc:hsqldb:";
   private static final String _driver = "org.hsqldb.jdbcDriver";
 
+  private static Map<String,String> legalProtocolValues;
+  static
+  {
+    legalProtocolValues = new HashMap<String,String>();
+    legalProtocolValues.put("hsql","hsql");
+    legalProtocolValues.put("http","http");
+    legalProtocolValues.put("https","https");
+  }
+  
   public final static String databasePathProperty = "org.apache.manifoldcf.hsqldbdatabasepath";
-
+  public final static String databaseProtocolProperty = "org.apache.manifoldcf.hsqldbdatabaseprotocol";
+  public final static String databaseServerProperty = "org.apache.manifoldcf.hsqldbdatabaseserver";
+  public final static String databasePortProperty = "org.apache.manifoldcf.hsqldbdatabaseport";
+  public final static String databaseInstanceProperty = "org.apache.manifoldcf.hsqldbdatabaseinstance";
+  
   protected String cacheKey;
-  // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
-  // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
   protected int serializableDepth = 0;
-
+  protected boolean isRemote;
+  protected String schemaName;
+  
   public DBInterfaceHSQLDB(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,_url+getFullDatabasePath(databaseName),_driver,getFullDatabasePath(databaseName),userName,password);
+    super(tc,getJDBCString(databaseName),_driver,getDatabaseString(databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+    this.isRemote = ManifoldCF.getProperty(databaseProtocolProperty) != null;
     this.userName = userName;
     this.password = password;
+    if (this.isRemote)
+      schemaName = databaseName;
+    else
+      schemaName = null;
   }
 
+  protected void setupSchema()
+    throws ManifoldCFException
+  {
+    if (schemaName != null)
+    {
+      String localSchemaName = schemaName;
+      schemaName = null;
+      try
+      {
+        performModification("SET SCHEMA "+localSchemaName,null,null);
+        localSchemaName = null;
+      }
+      finally
+      {
+        schemaName = localSchemaName;
+      }
+    }
+  }
+
+  protected static String getJDBCString(String databaseName)
+    throws ManifoldCFException
+  {
+    // For local, we use the database name as the name of the database files.
+    // For remote, we connect to an instance specified by a different property, and use the database name as the schema name.
+    String protocol = ManifoldCF.getProperty(databaseProtocolProperty);
+    if (protocol == null)
+      return _localUrl+getFullDatabasePath(databaseName);
+    
+    // Remote instance.  Build the URL.
+    if (legalProtocolValues.get(protocol) == null)
+      throw new ManifoldCFException("The value of the '"+databaseProtocolProperty+"' property was illegal; try hsql, http, or https");
+    String server = ManifoldCF.getProperty(databaseServerProperty);
+    if (server == null)
+      throw new ManifoldCFException("HSQLDB remote mode requires '"+databaseServerProperty+"' property, containing a server name or IP address");
+    String port = ManifoldCF.getProperty(databasePortProperty);
+    if (port != null && port.length() > 0)
+      server += ":"+port;
+    String instanceName = ManifoldCF.getProperty(databaseInstanceProperty);
+    if (instanceName != null && instanceName.length() > 0)
+      server += "/" + instanceName;
+    return _remoteUrl + protocol + "://" + server;
+  }
+  
+  protected static String getDatabaseString(String databaseName)
+    throws ManifoldCFException
+  {
+    String protocol = ManifoldCF.getProperty(databaseProtocolProperty);
+    if (protocol == null)
+      return getFullDatabasePath(databaseName);
+    return databaseName;
+  }
+  
   protected static String getFullDatabasePath(String databaseName)
     throws ManifoldCFException
   {
@@ -68,17 +139,20 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void openDatabase()
     throws ManifoldCFException
   {
-    try
+    if (!isRemote)
     {
-      // Force a load of the appropriate JDBC driver
-      Class.forName(_driver).newInstance();
-      DriverManager.getConnection(_url+databaseName,userName,password).close();
+      try
+      {
+        // Force a load of the appropriate JDBC driver
+        Class.forName(_driver).newInstance();
+        DriverManager.getConnection(_localUrl+databaseName,userName,password).close();
+      }
+      catch (Exception e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+      }
+      performModification("SET DATABASE TRANSACTION CONTROL MVCC",null,null);
     }
-    catch (Exception e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-    }
-    performModification("SET DATABASE TRANSACTION CONTROL MVCC",null,null);
   }
   
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
@@ -87,28 +161,31 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void closeDatabase()
     throws ManifoldCFException
   {
-    try
+    if (!isRemote)
     {
-      // Force a load of the appropriate JDBC driver
-      Class.forName(_driver).newInstance();
-    }
-    catch (Exception e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+      try
+      {
+        // Force a load of the appropriate JDBC driver
+        Class.forName(_driver).newInstance();
+      }
+      catch (Exception e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e);
+      }
 
-    // For the shutdown itself, eat the exception
-    try
-    {
-      Connection c = DriverManager.getConnection(_url+databaseName,userName,password);
-      Statement s = c.createStatement();
-      s.execute("SHUTDOWN");
-      c.close();
-    }
-    catch (Exception e)
-    {
-      // Never any exception!
-      e.printStackTrace();
+      // For the shutdown itself, eat the exception
+      try
+      {
+        Connection c = DriverManager.getConnection(_localUrl+databaseName,userName,password);
+        Statement s = c.createStatement();
+        s.execute("SHUTDOWN");
+        c.close();
+      }
+      catch (Exception e)
+      {
+        // Never any exception!
+        e.printStackTrace();
+      }
     }
   }
 
@@ -517,7 +594,53 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    performModification("SET FILES SCALE 512",null,null);
+    if (isRemote)
+    {
+      // Create a connection using the admin credentials
+      Database masterDatabase = new DBInterfaceHSQLDB(context,"administration",adminUserName,adminPassword);
+      ArrayList params = new ArrayList();
+      // First, look for user
+      params.add(userName);
+      IResultSet userResult = masterDatabase.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE USER_NAME=?",params,
+        null,null,null,true,-1,null,null);
+      if (userResult.getRowCount() == 0)
+      {
+        // Create the user
+	masterDatabase.executeQuery("CREATE USER "+quoteString(userName)+" PASSWORD "+quoteString(password),null,
+          null,invalidateKeys,null,false,0,null,null);
+      }
+      
+      // Now, look for schema
+      params.clear();
+      params.add(databaseName);
+      IResultSet schemaResult = masterDatabase.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_SCHEMAS WHERE TABLE_SCHEM=?",params,
+        null,null,null,true,-1,null,null);
+      if (schemaResult.getRowCount() == 0)
+      {
+        // Create the schema
+	masterDatabase.executeQuery("CREATE SCHEMA "+databaseName+" AUTHORIZATION "+quoteString(userName),null,
+          null,invalidateKeys,null,false,0,null,null);
+      }
+    }
+    else
+      performModification("SET FILES SCALE 512",null,null);
+  }
+
+  private static String quoteString(String password)
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("\"");
+    int i = 0;
+    while (i < password.length())
+    {
+      char x = password.charAt(i);
+      if (x == '\"')
+        sb.append("\"");
+      sb.append(x);
+      i++;
+    }
+    sb.append("\"");
+    return sb.toString();
   }
 
   /** Drop user and database.
@@ -528,20 +651,39 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    File f = new File(databaseName + ".properties");
-    if (f.exists())
+    if (isRemote)
     {
-      // Try to guarantee that all connections are discarded before we shut the database down.  Otherwise we get pool warnings from bitstream.
-      ConnectionFactory.releaseAll();
-      // Make sure database is shut down.
-      closeDatabase();
-      // Now, it's OK to delete
-      singleDelete(f);
-      singleDelete(new File(databaseName + ".data"));
-      singleDelete(new File(databaseName + ".lck"));
-      singleDelete(new File(databaseName + ".log"));
-      singleDelete(new File(databaseName + ".script"));
-      recursiveDelete(new File(databaseName + ".tmp"));
+      // Drop the schema, then the user
+      Database masterDatabase = new DBInterfaceHSQLDB(context,"administration",adminUserName,adminPassword);
+      try
+      {
+        // Drop schema
+        masterDatabase.executeQuery("DROP SCHEMA "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
+        // Drop user
+        masterDatabase.executeQuery("DROP USER "+userName,null,null,invalidateKeys,null,false,0,null,null);
+      }
+      catch (ManifoldCFException e)
+      {
+        throw reinterpretException(e);
+      }
+    }
+    else
+    {
+      File f = new File(databaseName + ".properties");
+      if (f.exists())
+      {
+        // Try to guarantee that all connections are discarded before we shut the database down.  Otherwise we get pool warnings from bitstream.
+        ConnectionFactory.releaseAll();
+        // Make sure database is shut down.
+        closeDatabase();
+        // Now, it's OK to delete
+        singleDelete(f);
+        singleDelete(new File(databaseName + ".data"));
+        singleDelete(new File(databaseName + ".lck"));
+        singleDelete(new File(databaseName + ".log"));
+        singleDelete(new File(databaseName + ".script"));
+        recursiveDelete(new File(databaseName + ".tmp"));
+      }
     }
   }
   
@@ -616,6 +758,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
+    setupSchema();
     try
     {
       executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
@@ -778,6 +921,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
+    setupSchema();
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
@@ -802,6 +946,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
+    setupSchema();
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
@@ -827,6 +972,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
+    setupSchema();
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);

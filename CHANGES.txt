@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-209: Add support for remote HSQLDB instances.  There are
+now configuration parameters for specifying protocol, server, and instance
+name, which if specified cause the HSQLDB driver to communicate to the
+specified remote instance.
+(Karl Wright)
+
 CONNECTORS-289: Wrong version of the OpenCMIS InMemory Server war in the page How to build and deploy
 (Piergiorgio Lucidi)
 

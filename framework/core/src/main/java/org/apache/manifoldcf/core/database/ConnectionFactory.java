@@ -78,16 +78,18 @@ public class ConnectionFactory
 
         // Logging.db.debug("adding pool alias [" + database + "]");
         // I had to up the timeout from one hour to 3 due to the webconnector keeping some connections open a very long time...
+	//System.out.println("jdbcUrl = '"+jdbcUrl+"', userName='"+userName+"', password='"+password+"'");
         _pool.addAlias(database, jdbcDriver, jdbcUrl,
           userName, password,
           maxDBConnections,
-          300,                    // Idle timeout: idle time before closing connection: 5 minutes
-        timeoutValue,   // Checkout timeout: Time a thread can have connection checked out: 24 hours
-        30,                     // Number of times you can check out a connection before it gets closed: 30
-        false);
+          300,                      // Idle timeout: idle time before closing connection: 5 minutes
+          timeoutValue,         // Checkout timeout: Time a thread can have connection checked out: 24 hours
+          30,                       // Number of times you can check out a connection before it gets closed: 30
+          false);
         cp = _pool.getPool(database);
       }
       rval = getConnectionWithRetries(ConnectionPoolManager.URL_PREFIX + database, null, null);
+      //rval = getConnectionWithRetries(ConnectionPoolManager.URL_PREFIX + database, userName, password);
 
       // Enter it in the pool so we can figure out whether it closed
       // synchronized (checkedOutConnections)
