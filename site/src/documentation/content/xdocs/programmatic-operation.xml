@@ -262,7 +262,7 @@
           <table>
             <tr><th>Field</th><th>Meaning</th></tr>
             <tr><td>"job_id"</td><td>The job identifier</td></tr>
-            <tr><td>"status"</td><td>The job status, having the possible values: "not yet run", "running", "paused", "done", "waiting", "starting up", "cleaning up", "error", "aborting", "restarting", "running no connector", and "terminating"</td></tr>
+            <tr><td>"status"</td><td>The job status, having the possible values: "not yet run", "running", "paused", "done", "waiting", "stopping", "resuming", "starting up", "cleaning up", "error", "aborting", "restarting", "running no connector", and "terminating"</td></tr>
             <tr><td>"error_text"</td><td>The error text, if the status is "error"</td></tr>
             <tr><td>"start_time"</td><td>The job start time, in milliseconds since Jan 1, 1970</td></tr>
             <tr><td>"end_time"</td><td>The job end time, in milliseconds since Jan 1, 1970</td></tr>

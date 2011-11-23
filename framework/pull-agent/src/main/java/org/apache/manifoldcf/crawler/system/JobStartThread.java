@@ -73,7 +73,7 @@ public class JobStartThread extends Thread
             Long jobID = (Long)unwaitJobs.get(k++);
             IJobDescription desc = jobManager.load(jobID);
             connectionManager.recordHistory(desc.getConnectionName(),
-              null,connectionManager.ACTIVITY_JOBCONTINUE,null,
+              null,connectionManager.ACTIVITY_JOBUNWAIT,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
           }
           // Cause jobs out of window to stop.

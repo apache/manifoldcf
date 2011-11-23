@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-290: Revamp the way docpriorities are handled so as to avoid
+flooding the jobqueue with documents that have a docpriority value but
+a job or document status incompatible with stuffing.  This should help a lot
+in very large crawls with multiple jobs.
+(Karl Wright)
+
 CONNECTORS-291: Active Directory authority reconnect logic had a
 pathological case when server forcibly closed connection.
 (Karl Wright)

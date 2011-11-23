@@ -1470,25 +1470,28 @@ public class JobManager implements IJobManager
 
     list.add(jobQueue.actionToString(JobQueue.ACTION_RESCAN));
 
+    // Per CONNECTORS-290, we need to be leaving priorities blank for jobs that aren't using them,
+    // so this will be changed to not include jobs where the priorities have been bashed to null.
+    //
+    // I've included ALL states that might have non-null doc priorities.  This includes states
+    // corresponding to uninstalled connectors, since there is no transition that cleans out the
+    // document priorities in these states.  The time during which a connector is uninstalled is
+    // expected to be short, because typically this state is the result of an installation procedure
+    // rather than willful action on the part of a user.
+        
     sb.append("EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new MultiClause("t1."+jobs.statusField,new Object[]{
-          Jobs.statusToString(Jobs.STATUS_ACTIVE),
-          Jobs.statusToString(Jobs.STATUS_PAUSED),
-          Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT),
-          Jobs.statusToString(Jobs.STATUS_PAUSEDWAIT),
-          Jobs.statusToString(Jobs.STATUS_ACTIVE),
-          Jobs.statusToString(Jobs.STATUS_READYFORSTARTUP),
           Jobs.statusToString(Jobs.STATUS_STARTINGUP),
-          Jobs.statusToString(Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART),
-          Jobs.statusToString(Jobs.STATUS_ABORTINGSTARTINGUP),
+          Jobs.statusToString(Jobs.STATUS_ACTIVE),
           Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
-          Jobs.statusToString(Jobs.STATUS_PAUSEDSEEDING),
-          Jobs.statusToString(Jobs.STATUS_ACTIVEWAITSEEDING),
-          Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING),
-          Jobs.statusToString(Jobs.STATUS_ABORTING),
-          Jobs.statusToString(Jobs.STATUS_ABORTINGFORRESTART),
-          Jobs.statusToString(Jobs.STATUS_ABORTINGFORRESTARTSEEDING)}),
+          Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
+          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_UNINSTALLED),
+          Jobs.statusToString(Jobs.STATUS_ACTIVE_NOOUTPUT),
+          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NOOUTPUT),
+          Jobs.statusToString(Jobs.STATUS_ACTIVE_NEITHER),
+          Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING_NEITHER)
+          }),
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
       .append(") ");
 
@@ -2121,7 +2124,8 @@ public class JobManager implements IJobManager
     {
       IResultRow row = set.getRow(0);
       Double docPriority = (Double)row.getValue(jobQueue.docPriorityField);
-      scanRecord.addBins(docPriority);
+      if (docPriority != null)
+        scanRecord.addBins(docPriority);
     }
     return rval;
   }
@@ -4563,21 +4567,7 @@ public class JobManager implements IJobManager
           break;
         case Jobs.STATUS_ACTIVEWAIT:
           unwaitList.add(jobID);
-          if (connectionMgr.checkConnectorExists(connectionName))
-          {
-            if (outputMgr.checkConnectorExists(outputName))
-              newJobState = jobs.STATUS_ACTIVE;
-            else
-              newJobState = jobs.STATUS_ACTIVE_NOOUTPUT;
-          }
-          else
-          {
-            if (outputMgr.checkConnectorExists(outputName))
-              newJobState = jobs.STATUS_ACTIVE_UNINSTALLED;
-            else
-              newJobState = jobs.STATUS_ACTIVE_NEITHER;
-          }
-          jobs.unwaitJob(jobID,newJobState,windowEnd);
+          jobs.unwaitJob(jobID,Jobs.STATUS_RESUMING,windowEnd);
           jobQueue.clearFailTimes(jobID);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -4586,21 +4576,7 @@ public class JobManager implements IJobManager
           break;
         case Jobs.STATUS_ACTIVEWAITSEEDING:
           unwaitList.add(jobID);
-          if (connectionMgr.checkConnectorExists(connectionName))
-          {
-            if (outputMgr.checkConnectorExists(outputName))
-              newJobState = jobs.STATUS_ACTIVESEEDING;
-            else
-              newJobState = jobs.STATUS_ACTIVESEEDING_NOOUTPUT;
-          }
-          else
-          {
-            if (outputMgr.checkConnectorExists(outputName))
-              newJobState = jobs.STATUS_ACTIVESEEDING_UNINSTALLED;
-            else
-              newJobState = jobs.STATUS_ACTIVESEEDING_NEITHER;
-          }
-          jobs.unwaitJob(jobID,newJobState,windowEnd);
+          jobs.unwaitJob(jobID,Jobs.STATUS_RESUMINGSEEDING,windowEnd);
           jobQueue.clearFailTimes(jobID);
           if (Logging.jobs.isDebugEnabled())
           {
@@ -4618,6 +4594,22 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_PAUSEDWAITSEEDING:
           unwaitList.add(jobID);
           jobs.unwaitJob(jobID,jobs.STATUS_PAUSEDSEEDING,windowEnd);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
+          }
+          break;
+        case Jobs.STATUS_PAUSINGWAITING:
+          unwaitList.add(jobID);
+          jobs.unwaitJob(jobID,jobs.STATUS_PAUSING,windowEnd);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
+          }
+          break;
+        case Jobs.STATUS_PAUSINGWAITINGSEEDING:
+          unwaitList.add(jobID);
+          jobs.unwaitJob(jobID,jobs.STATUS_PAUSINGSEEDING,windowEnd);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
@@ -4644,7 +4636,7 @@ public class JobManager implements IJobManager
       database.endTransaction();
     }
   }
-
+  
   /** Put active or paused jobs in wait state, if they've exceeded their window.
   *@param currentTime is the current time in milliseconds since epoch.
   *@param waitList is filled in with the set of job ID's that were put into a wait state.
@@ -4701,7 +4693,7 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
         case Jobs.STATUS_ACTIVE_NOOUTPUT:
         case Jobs.STATUS_ACTIVE_NEITHER:
-          jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAIT);
+          jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITING);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Job "+jobID+" now in 'wait' state due to window end");
@@ -4711,7 +4703,7 @@ public class JobManager implements IJobManager
         case Jobs.STATUS_ACTIVESEEDING_UNINSTALLED:
         case Jobs.STATUS_ACTIVESEEDING_NOOUTPUT:
         case Jobs.STATUS_ACTIVESEEDING_NEITHER:
-          jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITSEEDING);
+          jobs.waitJob(jobID,Jobs.STATUS_ACTIVEWAITINGSEEDING);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Job "+jobID+" now in 'wait' state due to window end");
@@ -4726,6 +4718,20 @@ public class JobManager implements IJobManager
           break;
         case Jobs.STATUS_PAUSEDSEEDING:
           jobs.waitJob(jobID,Jobs.STATUS_PAUSEDWAITSEEDING);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Job "+jobID+" now in 'wait paused' state due to window end");
+          }
+          break;
+        case Jobs.STATUS_PAUSING:
+          jobs.waitJob(jobID,Jobs.STATUS_PAUSINGWAITING);
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Job "+jobID+" now in 'wait paused' state due to window end");
+          }
+          break;
+        case Jobs.STATUS_PAUSINGSEEDING:
+          jobs.waitJob(jobID,Jobs.STATUS_PAUSINGWAITINGSEEDING);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Job "+jobID+" now in 'wait paused' state due to window end");
@@ -6166,111 +6172,119 @@ public class JobManager implements IJobManager
     }
   }
   
-  /** Complete the sequence that aborts jobs and makes them runnable again.
-  *@param timestamp is the current time.
-  *@param abortJobs is the set of IJobDescription objects that were aborted (and stopped).
+  /** Complete the sequence that resumes jobs, either from a pause or from a scheduling window
+  * wait.  The logic will restore the job to an active state (many possibilities depending on
+  * connector status), and will record the jobs that have been so modified.
+  *@param timestamp is the current time in milliseconds since epoch.
+  *@param modifiedJobs is filled in with the set of IJobDescription objects that were resumed.
   */
-  public void finishJobAborts(long timestamp, ArrayList abortJobs)
+  public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
     throws ManifoldCFException
   {
-    while (true)
+    // Do the first query, getting the candidate jobs to be considered
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
+        
+    sb.append(jobs.idField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+        new MultiClause(jobs.statusField,new Object[]{
+          jobs.statusToString(jobs.STATUS_RESUMING),
+          jobs.statusToString(jobs.STATUS_RESUMINGSEEDING)
+          })}));
+        
+    IResultSet set = database.performQuery(sb.toString(),list,null,null);
+
+    int i = 0;
+    while (i < set.getRowCount())
     {
-      long sleepAmt = 0L;
-      database.beginTransaction();
-      try
-      {
-        // The query I used to emit was:
-        // SELECT jobid FROM jobs t0 WHERE t0.status='X' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-        //              t0.id=t1.jobid AND t1.status IN ('A','F'))
-        // Now the query is broken up so that Postgresql behaves more efficiently.
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
 
-        // Do the first query, getting the candidate jobs to be considered
-        StringBuilder sb = new StringBuilder("SELECT ");
-        ArrayList list = new ArrayList();
-        
-        sb.append(jobs.idField).append(",")
-          .append(jobs.statusField)
-          .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new MultiClause(jobs.statusField,new Object[]{
-              jobs.statusToString(jobs.STATUS_ABORTING),
-              jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART)})}))
-          .append(" FOR UPDATE");
-        
-        IResultSet set = database.performQuery(sb.toString(),list,null,null);
+      // There are no secondary checks that need to be made; just resume
+      IJobDescription jobDesc = jobs.load(jobID,true);
+      modifiedJobs.add(jobDesc);
 
-        int i = 0;
-        while (i < set.getRowCount())
-        {
-          IResultRow row = set.getRow(i++);
-          Long jobID = (Long)row.getValue(jobs.idField);
-
-          sb = new StringBuilder("SELECT ");
-          list.clear();
+      jobs.finishResumeJob(jobID,timestamp);
           
-          sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
-            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new UnitaryClause(jobQueue.jobIDField,jobID),
-              new MultiClause(jobQueue.statusField,new Object[]{
-                jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
-                jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
-                jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
-                jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)})}))
-            .append(" ").append(database.constructOffsetLimitClause(0,1));
-
-          IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
-
-          if (confirmSet.getRowCount() > 0)
-            continue;
-
-          int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
-          IJobDescription jobDesc = jobs.load(jobID,true);
-          abortJobs.add(jobDesc);
-
-          switch (status)
-          {
-          case Jobs.STATUS_ABORTING:
-            // Mark status of job as "inactive"
-            jobs.finishAbortJob(jobID,timestamp);
-            if (Logging.jobs.isDebugEnabled())
-            {
-              Logging.jobs.debug("Completed abort of job "+jobID);
-            }
-            break;
-          case Jobs.STATUS_ABORTINGFORRESTART:
-            // Do the restart sequence!  Log the abort here; the startup thread will log the start.
-            jobs.startJob(jobID,null);
-            {
-              Logging.jobs.debug("Completed restart of job "+jobID);
-            }
-            break;
-          default:
-            throw new ManifoldCFException("Unexpected value for job status: "+Integer.toString(status));
-          }
-        }
-        return;
-      }
-      catch (ManifoldCFException e)
+      if (Logging.jobs.isDebugEnabled())
       {
-        database.signalRollback();
-        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-        {
-          if (Logging.perf.isDebugEnabled())
-            Logging.perf.debug("Aborted finishing job aborts: "+e.getMessage());
-          sleepAmt = getRandomAmount();
-          continue;
-        }
-        throw e;
+        Logging.jobs.debug("Resumed job "+jobID);
       }
-      catch (Error e)
+    }
+  }
+
+  /** Complete the sequence that stops jobs, either for abort, pause, or because of a scheduling
+  * window.  The logic will move the job to its next state (INACTIVE, PAUSED, ACTIVEWAIT),
+  * and will record the jobs that have been so modified.
+  *@param timestamp is the current time in milliseconds since epoch.
+  *@param modifiedJobs is filled in with the set of IJobDescription objects that were stopped.
+  */
+  public void finishJobStops(long timestamp, ArrayList modifiedJobs)
+    throws ManifoldCFException
+  {
+    // The query I used to emit was:
+    // SELECT jobid FROM jobs t0 WHERE t0.status='X' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
+    //              t0.id=t1.jobid AND t1.status IN ('A','F'))
+    // Now the query is broken up so that Postgresql behaves more efficiently.
+
+    // Do the first query, getting the candidate jobs to be considered
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
+        
+    sb.append(jobs.idField)
+      .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+        new MultiClause(jobs.statusField,new Object[]{
+          jobs.statusToString(jobs.STATUS_ABORTING),
+          jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART),
+          jobs.statusToString(jobs.STATUS_PAUSING),
+          jobs.statusToString(jobs.STATUS_PAUSINGSEEDING),
+          jobs.statusToString(jobs.STATUS_ACTIVEWAITING),
+          jobs.statusToString(jobs.STATUS_ACTIVEWAITINGSEEDING),
+          jobs.statusToString(jobs.STATUS_PAUSINGWAITING),
+          jobs.statusToString(jobs.STATUS_PAUSINGWAITINGSEEDING)
+          })}));
+        
+    IResultSet set = database.performQuery(sb.toString(),list,null,null);
+
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+          
+      sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(jobQueue.jobIDField,jobID),
+          new MultiClause(jobQueue.statusField,new Object[]{
+            jobQueue.statusToString(jobQueue.STATUS_ACTIVE),
+            jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY),
+            jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCAN),
+            jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY)})}))
+        .append(" ").append(database.constructOffsetLimitClause(0,1));
+
+      IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
+
+      if (confirmSet.getRowCount() > 0)
+        continue;
+
+      // All the job's documents need to have their docpriority set to null, to clear dead wood out of the docpriority index.
+      // See CONNECTORS-290.
+      // We do this BEFORE updating the job state.
+      jobQueue.clearDocPriorities(jobID);
+          
+      IJobDescription jobDesc = jobs.load(jobID,true);
+      modifiedJobs.add(jobDesc);
+
+      jobs.finishStopJob(jobID,timestamp);
+          
+      if (Logging.jobs.isDebugEnabled())
       {
-        database.signalRollback();
-        throw e;
-      }
-      finally
-      {
-        database.endTransaction();
-        sleepFor(sleepAmt);
+        Logging.jobs.debug("Stopped job "+jobID);
       }
     }
   }
@@ -6287,115 +6301,83 @@ public class JobManager implements IJobManager
   public void resetJobs(long currentTime, ArrayList resetJobs)
     throws ManifoldCFException
   {
-    while (true)
-    {
-      long sleepAmt = 0L;
-      database.beginTransaction();
-      try
-      {
-        // Query for all jobs that fulfill the criteria
-        // The query used to look like:
-        //
-        // SELECT id FROM jobs t0 WHERE status='D' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
-        //      t0.id=t1.jobid AND t1.status='P')
-        //
-        // Now, the query is broken up, for performance
+    // Query for all jobs that fulfill the criteria
+    // The query used to look like:
+    //
+    // SELECT id FROM jobs t0 WHERE status='D' AND NOT EXISTS(SELECT 'x' FROM jobqueue t1 WHERE
+    //      t0.id=t1.jobid AND t1.status='P')
+    //
+    // Now, the query is broken up, for performance
 
-        // Do the first query, getting the candidate jobs to be considered
-        StringBuilder sb = new StringBuilder("SELECT ");
-        ArrayList list = new ArrayList();
+    // Do the first query, getting the candidate jobs to be considered
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
         
-        sb.append(jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_SHUTTINGDOWN))}))
-          .append(" FOR UPDATE");
+    sb.append(jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_SHUTTINGDOWN))}));
             
-        IResultSet set = database.performQuery(sb.toString(),list,null,null);
+    IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-        int i = 0;
-        while (i < set.getRowCount())
+    int i = 0;
+    while (i < set.getRowCount())
+    {
+      IResultRow row = set.getRow(i++);
+      Long jobID = (Long)row.getValue(jobs.idField);
+
+      // Check to be sure the job is a candidate for shutdown
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+          
+      sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(jobQueue.jobIDField,jobID),
+          new MultiClause(jobQueue.statusField,new Object[]{
+            jobQueue.statusToString(jobQueue.STATUS_PURGATORY),
+            jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
+        .append(" ").append(database.constructOffsetLimitClause(0,1));
+
+      IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
+
+      if (confirmSet.getRowCount() > 0)
+        continue;
+
+      // The shutting-down phase is complete.  However, we need to check if there are any outstanding
+      // PENDING or PENDINGPURGATORY records before we can decide what to do.
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+          
+      sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
+        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(jobQueue.jobIDField,jobID),
+          new MultiClause(jobQueue.statusField,new Object[]{
+            jobQueue.statusToString(jobQueue.STATUS_PENDING),
+            jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)})}))
+        .append(" ").append(database.constructOffsetLimitClause(0,1));
+
+      confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
+
+      if (confirmSet.getRowCount() > 0)
+      {
+        // This job needs to re-enter the active state.  Make that happen.
+        jobs.returnJobToActive(jobID);
+        if (Logging.jobs.isDebugEnabled())
         {
-          IResultRow row = set.getRow(i++);
-          Long jobID = (Long)row.getValue(jobs.idField);
-
-          // Check to be sure the job is a candidate for shutdown
-          sb = new StringBuilder("SELECT ");
-          list.clear();
-          
-          sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
-            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new UnitaryClause(jobQueue.jobIDField,jobID),
-              new MultiClause(jobQueue.statusField,new Object[]{
-                jobQueue.statusToString(jobQueue.STATUS_PURGATORY),
-                jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED)})}))
-            .append(" ").append(database.constructOffsetLimitClause(0,1));
-
-          IResultSet confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
-
-          if (confirmSet.getRowCount() > 0)
-            continue;
-
-          // The shutting-down phase is complete.  However, we need to check if there are any outstanding
-          // PENDING or PENDINGPURGATORY records before we can decide what to do.
-          sb = new StringBuilder("SELECT ");
-          list.clear();
-          
-          sb.append(jobQueue.idField).append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ")
-            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new UnitaryClause(jobQueue.jobIDField,jobID),
-              new MultiClause(jobQueue.statusField,new Object[]{
-                jobQueue.statusToString(jobQueue.STATUS_PENDING),
-                jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)})}))
-            .append(" ").append(database.constructOffsetLimitClause(0,1));
-
-          confirmSet = database.performQuery(sb.toString(),list,null,null,1,null);
-
-          if (confirmSet.getRowCount() > 0)
-          {
-            // This job needs to re-enter the active state.  Make that happen.
-            jobs.returnJobToActive(jobID);
-            if (Logging.jobs.isDebugEnabled())
-            {
-              Logging.jobs.debug("Job "+jobID+" is re-entering active state");
-            }
-          }
-          else
-          {
-            // This job should be marked as finished.
-            IJobDescription jobDesc = jobs.load(jobID,true);
-            resetJobs.add(jobDesc);
+          Logging.jobs.debug("Job "+jobID+" is re-entering active state");
+        }
+      }
+      else
+      {
+        // This job should be marked as finished.
+        IJobDescription jobDesc = jobs.load(jobID,true);
+        resetJobs.add(jobDesc);
             
-            // Label the job "finished"
-            jobs.finishJob(jobID,currentTime);
-            if (Logging.jobs.isDebugEnabled())
-            {
-              Logging.jobs.debug("Job "+jobID+" now completed");
-            }
-          }
-        }
-        return;
-      }
-      catch (ManifoldCFException e)
-      {
-        database.signalRollback();
-        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        // Label the job "finished"
+        jobs.finishJob(jobID,currentTime);
+        if (Logging.jobs.isDebugEnabled())
         {
-          if (Logging.perf.isDebugEnabled())
-            Logging.perf.debug("Aborted resetting jobs: "+e.getMessage());
-          sleepAmt = getRandomAmount();
-          continue;
+          Logging.jobs.debug("Job "+jobID+" now completed");
         }
-        throw e;
-      }
-      catch (Error e)
-      {
-        database.signalRollback();
-        throw e;
-      }
-      finally
-      {
-        database.endTransaction();
-        sleepFor(sleepAmt);
       }
     }
   }
@@ -6490,7 +6472,16 @@ public class JobManager implements IJobManager
         Jobs.statusToString(Jobs.STATUS_ACTIVEWAIT),
         Jobs.statusToString(Jobs.STATUS_ACTIVEWAITSEEDING),
         Jobs.statusToString(Jobs.STATUS_PAUSEDWAIT),
-        Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING)})});
+        Jobs.statusToString(Jobs.STATUS_PAUSEDWAITSEEDING),
+        Jobs.statusToString(Jobs.STATUS_PAUSING),
+        Jobs.statusToString(Jobs.STATUS_PAUSINGSEEDING),
+        Jobs.statusToString(Jobs.STATUS_ACTIVEWAITING),
+        Jobs.statusToString(Jobs.STATUS_ACTIVEWAITINGSEEDING),
+        Jobs.statusToString(Jobs.STATUS_PAUSINGWAITING),
+        Jobs.statusToString(Jobs.STATUS_PAUSINGWAITINGSEEDING),
+        Jobs.statusToString(Jobs.STATUS_RESUMING),
+        Jobs.statusToString(Jobs.STATUS_RESUMINGSEEDING)
+        })});
     
     return makeJobStatus(whereClause,whereParams,includeCounts);
   }
@@ -6713,6 +6704,18 @@ public class JobManager implements IJobManager
       case Jobs.STATUS_ABORTINGFORRESTARTSEEDING:
       case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART:
         rstatus = JobStatus.JOBSTATUS_RESTARTING;
+        break;
+      case Jobs.STATUS_PAUSING:
+      case Jobs.STATUS_PAUSINGSEEDING:
+      case Jobs.STATUS_ACTIVEWAITING:
+      case Jobs.STATUS_ACTIVEWAITINGSEEDING:
+      case Jobs.STATUS_PAUSINGWAITING:
+      case Jobs.STATUS_PAUSINGWAITINGSEEDING:
+        rstatus = JobStatus.JOBSTATUS_STOPPING;
+        break;
+      case Jobs.STATUS_RESUMING:
+      case Jobs.STATUS_RESUMINGSEEDING:
+        rstatus = JobStatus.JOBSTATUS_RESUMING;
         break;
       case Jobs.STATUS_PAUSED:
       case Jobs.STATUS_PAUSEDSEEDING:

@@ -826,13 +826,24 @@ public interface IJobManager
   public boolean errorAbort(Long jobID, String errorText)
     throws ManifoldCFException;
 
-  /** Complete the sequence that aborts jobs and makes them runnable again.
+  /** Complete the sequence that stops jobs, either for abort, pause, or because of a scheduling
+  * window.  The logic will move the job to its next state (INACTIVE, PAUSED, ACTIVEWAIT),
+  * and will record the jobs that have been so modified.
   *@param timestamp is the current time in milliseconds since epoch.
-  *@param abortJobs is filled in with the set of IJobDescription objects that were aborted.
+  *@param modifiedJobs is filled in with the set of IJobDescription objects that were stopped.
   */
-  public void finishJobAborts(long timestamp, ArrayList abortJobs)
+  public void finishJobStops(long timestamp, ArrayList modifiedJobs)
     throws ManifoldCFException;
 
+  /** Complete the sequence that resumes jobs, either from a pause or from a scheduling window
+  * wait.  The logic will restore the job to an active state (many possibilities depending on
+  * connector status), and will record the jobs that have been so modified.
+  *@param timestamp is the current time in milliseconds since epoch.
+  *@param modifiedJobs is filled in with the set of IJobDescription objects that were resumed.
+  */
+  public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
+    throws ManifoldCFException;
+    
   /** Put all eligible jobs in the "shutting down" state.
   */
   public void finishJobs()

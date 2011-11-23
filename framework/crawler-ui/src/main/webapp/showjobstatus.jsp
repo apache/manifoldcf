@@ -131,6 +131,12 @@ if (maintenanceUnderway == false)
 		case JobStatus.JOBSTATUS_RESTARTING:
 			statusName = "Restarting";
 			break;
+		case JobStatus.JOBSTATUS_STOPPING:
+			statusName = "Stopping";
+			break;
+		case JobStatus.JOBSTATUS_RESUMING:
+			statusName = "Resuming";
+			break;
 		case JobStatus.JOBSTATUS_PAUSED:
 			statusName = "Paused";
 			break;
@@ -180,24 +186,53 @@ if (maintenanceUnderway == false)
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
-<% if (status == JobStatus.JOBSTATUS_NOTYETRUN || status == JobStatus.JOBSTATUS_COMPLETED || status == JobStatus.JOBSTATUS_ERROR) { %>
-	<a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%="Start job "+js.getJobID()%>'>Start</a>&nbsp;
-<% } %>
-<% if (status == JobStatus.JOBSTATUS_RUNNING || status == JobStatus.JOBSTATUS_RUNNING_UNINSTALLED || status == JobStatus.JOBSTATUS_WINDOWWAIT ||
-	status == JobStatus.JOBSTATUS_PAUSED || status == JobStatus.JOBSTATUS_STARTING) { %>
-	<a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%="Restart job "+js.getJobID()%>'>Restart</a>&nbsp;
-<% } %>
-<% if (status == JobStatus.JOBSTATUS_RUNNING || status == JobStatus.JOBSTATUS_RUNNING_UNINSTALLED || status == JobStatus.JOBSTATUS_WINDOWWAIT) { %>
-	<a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%="Pause job "+js.getJobID()%>'>Pause</a>&nbsp;
-<% } %>
-<% if (status == JobStatus.JOBSTATUS_RUNNING || status == JobStatus.JOBSTATUS_RUNNING_UNINSTALLED || status == JobStatus.JOBSTATUS_WINDOWWAIT ||
-	status == JobStatus.JOBSTATUS_PAUSED || status == JobStatus.JOBSTATUS_STARTING || status == JobStatus.JOBSTATUS_RESTARTING) { %>
-	<a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%="Abort job "+js.getJobID()%>'>Abort</a>&nbsp;
-<% } %>
-<% if (status == JobStatus.JOBSTATUS_PAUSED) { %>
-	<a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%="Resume job "+js.getJobID()%>'>Resume</a>&nbsp;
-<% } %>
-
+<%
+		if (status == JobStatus.JOBSTATUS_NOTYETRUN ||
+			status == JobStatus.JOBSTATUS_COMPLETED ||
+			status == JobStatus.JOBSTATUS_ERROR)
+		{
+%>
+				<a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%="Start job "+js.getJobID()%>'>Start</a>&nbsp;
+<%
+		}
+		if (status == JobStatus.JOBSTATUS_RUNNING ||
+			status == JobStatus.JOBSTATUS_RUNNING_UNINSTALLED ||
+			status == JobStatus.JOBSTATUS_WINDOWWAIT ||
+			status == JobStatus.JOBSTATUS_PAUSED ||
+			status == JobStatus.JOBSTATUS_STARTING)
+		{
+%>
+				<a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%="Restart job "+js.getJobID()%>'>Restart</a>&nbsp;
+<%
+		}
+		if (status == JobStatus.JOBSTATUS_RUNNING ||
+			status == JobStatus.JOBSTATUS_RUNNING_UNINSTALLED ||
+			status == JobStatus.JOBSTATUS_WINDOWWAIT)
+		{
+%>
+				<a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%="Pause job "+js.getJobID()%>'>Pause</a>&nbsp;
+<%
+		}
+		if (status == JobStatus.JOBSTATUS_RUNNING ||
+			status == JobStatus.JOBSTATUS_RUNNING_UNINSTALLED ||
+			status == JobStatus.JOBSTATUS_STOPPING ||
+			status == JobStatus.JOBSTATUS_RESUMING ||
+			status == JobStatus.JOBSTATUS_WINDOWWAIT ||
+			status == JobStatus.JOBSTATUS_PAUSED ||
+			status == JobStatus.JOBSTATUS_STARTING ||
+			status == JobStatus.JOBSTATUS_RESTARTING)
+		{
+%>
+				<a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%="Abort job "+js.getJobID()%>'>Abort</a>&nbsp;
+<%
+		}
+		if (status == JobStatus.JOBSTATUS_PAUSED)
+		{
+%>
+				<a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%="Resume job "+js.getJobID()%>'>Resume</a>&nbsp;
+<%
+		}
+%>
 			</td>
 			<td class="columncell"><%="<!--jobid="+js.getJobID()+"-->"%><%=js.getDescription()%></td><td class="columncell"><%=statusName%></td><td class="columncell"><%=startTime%></td><td class="columncell"><%=endTime%></td>
 			<td class="columncell"><%=new Long(js.getDocumentsInQueue()).toString()%></td>

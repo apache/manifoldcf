@@ -28,17 +28,19 @@ public class JobStatus
   // Job status values
   public final static int JOBSTATUS_NOTYETRUN = 0;
   public final static int JOBSTATUS_RUNNING = 1;
-  public final static int JOBSTATUS_PAUSED = 2;
-  public final static int JOBSTATUS_COMPLETED = 3;
-  public final static int JOBSTATUS_WINDOWWAIT = 4;
-  public final static int JOBSTATUS_STARTING = 5;
-  public final static int JOBSTATUS_DESTRUCTING = 6;
-  public final static int JOBSTATUS_ERROR = 7;
-  public final static int JOBSTATUS_ABORTING = 8;
-  public final static int JOBSTATUS_RESTARTING = 9;
-  public final static int JOBSTATUS_RUNNING_UNINSTALLED = 10;
-  public final static int JOBSTATUS_JOBENDCLEANUP = 11;
-  public final static int JOBSTATUS_JOBENDNOTIFICATION = 12;
+  public final static int JOBSTATUS_STOPPING = 2;
+  public final static int JOBSTATUS_PAUSED = 3;
+  public final static int JOBSTATUS_RESUMING = 4;
+  public final static int JOBSTATUS_COMPLETED = 5;
+  public final static int JOBSTATUS_WINDOWWAIT = 6;
+  public final static int JOBSTATUS_STARTING = 7;
+  public final static int JOBSTATUS_DESTRUCTING = 8;
+  public final static int JOBSTATUS_ERROR = 9;
+  public final static int JOBSTATUS_ABORTING = 10;
+  public final static int JOBSTATUS_RESTARTING = 11;
+  public final static int JOBSTATUS_RUNNING_UNINSTALLED = 12;
+  public final static int JOBSTATUS_JOBENDCLEANUP = 13;
+  public final static int JOBSTATUS_JOBENDNOTIFICATION = 14;
 
 
   // Member variables.

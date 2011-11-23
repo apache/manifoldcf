@@ -547,11 +547,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Delete PENDING and ACTIVE entries
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
-    // Do not reset priorities.  This means, of course, that they may be out of date - but they are probably more accurate in their current form
-    // than being set back to some arbitrary value.
-    // The alternative, which would be to reprioritize all the documents at this point, is somewhat attractive, but let's see if we can get away
-    // without for now.
-    //map.put(docPriorityField,new Double(1.0));
+    // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
     map.put(failTimeField,null);
@@ -633,14 +629,31 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
   }
 
+  /** Clear all document priorities for a job */
+  public void clearDocPriorities(Long jobID)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(prioritySetField,null);
+    map.put(docPriorityField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+  }
+  
   /** Set the "completed" status for a record.
   */
   public void updateCompletedRecord(Long recID, int currentStatus)
     throws ManifoldCFException
   {
+    HashMap map = new HashMap();
+    
     int newStatus;
     String actionFieldValue;
     Long checkTimeValue;
+    
     switch (currentStatus)
     {
     case STATUS_ACTIVE:
@@ -648,27 +661,26 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       newStatus = STATUS_COMPLETE;
       actionFieldValue = null;
       checkTimeValue = null;
+      // Remove document priority; we don't want to pollute the queue.  See CONNECTORS-290.
+      map.put(docPriorityField,null);
+      map.put(prioritySetField,null);
       break;
     case STATUS_ACTIVENEEDRESCAN:
     case STATUS_ACTIVENEEDRESCANPURGATORY:
       newStatus = STATUS_PENDINGPURGATORY;
       actionFieldValue = actionToString(ACTION_RESCAN);
       checkTimeValue = new Long(0L);
+      // Leave doc priority unchanged.
       break;
     default:
       throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
     }
 
-    HashMap map = new HashMap();
     map.put(statusField,statusToString(newStatus));
     map.put(checkTimeField,checkTimeValue);
     map.put(checkActionField,actionFieldValue);
     map.put(failTimeField,null);
     map.put(failCountField,null);
-    // Don't rejigger document priority, because it is hard to calculate and because what's there is probably better
-    // than any arbitrary value I'd use.
-    //map.put(docPriorityField,new Double(1.0));
-    //map.put(prioritySetField,new Long(0L));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
@@ -705,6 +717,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Set the status on a record, including check time and priority.
+  * The status set MUST be a PENDING or PENDINGPURGATORY status.
   *@param id is the job queue id.
   *@param status is the desired status
   *@param checkTime is the check time.

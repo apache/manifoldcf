@@ -951,6 +951,55 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return connector.getBinNames(documentIdentifier);
   }
 
+  /** Reset all (active) document priorities.  This operation may occur due to various externally-triggered
+  * events, such a job abort, pause, resume, wait, or unwait.
+  */
+  public static void resetAllDocumentPriorities(IThreadContext threadContext, QueueTracker queueTracker, long currentTime)
+    throws ManifoldCFException
+  {
+    IJobManager jobManager = JobManagerFactory.make(threadContext);
+    IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+    
+    // Reset the queue tracker
+    queueTracker.beginReset();
+    // Perform the reprioritization, for all active documents in active jobs.  During this time,
+    // it is safe to have other threads assign new priorities to documents, but it is NOT safe
+    // for other threads to attempt to change the minimum priority level.  The queuetracker object
+    // will therefore block that from occurring, until the reset is complete.
+    try
+    {
+      // Reprioritize all documents in the jobqueue, 1000 at a time
+
+      HashMap connectionMap = new HashMap();
+      HashMap jobDescriptionMap = new HashMap();
+
+      // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
+      // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
+      // activity.
+      // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
+      // priorities.
+      while (true)
+      {
+        long startTime = System.currentTimeMillis();
+
+        DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
+        if (docs.length == 0)
+          break;
+
+        // Calculate new priorities for all these documents
+        writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
+
+        Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
+      }
+    }
+    finally
+    {
+      queueTracker.endReset();
+    }
+  }
+  
+  /** Write a set of document priorities, based on the current queue tracker.
+  */
   public static void writeDocumentPriorities(IThreadContext threadContext, IRepositoryConnectionManager mgr, IJobManager jobManager, DocumentDescription[] descs, HashMap connectionMap, HashMap jobDescriptionMap, QueueTracker queueTracker, long currentTime)
     throws ManifoldCFException
   {
@@ -2661,6 +2710,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       return "not yet run";
     case JobStatus.JOBSTATUS_RUNNING:
       return "running";
+    case JobStatus.JOBSTATUS_STOPPING:
+      return "stopping";
+    case JobStatus.JOBSTATUS_RESUMING:
+      return "resuming";
     case JobStatus.JOBSTATUS_PAUSED:
       return "paused";
     case JobStatus.JOBSTATUS_COMPLETED:

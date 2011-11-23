@@ -125,19 +125,26 @@ public interface IRepositoryConnectionManager
 
   /** Start a job */
   public static final String ACTIVITY_JOBSTART = "job start";
-  /** Wait a job */
-  public static final String ACTIVITY_JOBWAIT = "job wait";
-  /** Continue a job */
-  public static final String ACTIVITY_JOBCONTINUE = "job continue";
   /** Finish a job */
   public static final String ACTIVITY_JOBEND = "job end";
-  /** Abort a job */
-  public static final String ACTIVITY_JOBABORT = "job abort";
-
+  /** Stop a job */
+  public static final String ACTIVITY_JOBSTOP = "job stop";
+  /** Continue a job */
+  public static final String ACTIVITY_JOBCONTINUE = "job continue";
+  /** Wait due to schedule */
+  public static final String ACTIVITY_JOBWAIT = "job wait";
+  /** Unwait due to schedule */
+  public static final String ACTIVITY_JOBUNWAIT = "job unwait";
+  
   /** The set of activity records. */
   public static final String[] activitySet = new String[]
   {
-    ACTIVITY_JOBSTART,ACTIVITY_JOBWAIT,ACTIVITY_JOBCONTINUE,ACTIVITY_JOBEND,ACTIVITY_JOBABORT
+    ACTIVITY_JOBSTART,
+    ACTIVITY_JOBSTOP,
+    ACTIVITY_JOBCONTINUE,
+    ACTIVITY_JOBWAIT,
+    ACTIVITY_JOBUNWAIT,
+    ACTIVITY_JOBEND
   };
 
   /** Record time-stamped information about the activity of the connection.  This information can originate from

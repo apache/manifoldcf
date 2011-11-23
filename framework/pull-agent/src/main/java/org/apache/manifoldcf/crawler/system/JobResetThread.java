@@ -63,16 +63,29 @@ public class JobResetThread extends Thread
         {
           // See if there are any completed jobs
           long currentTime = System.currentTimeMillis();
-          ArrayList jobAborts = new ArrayList();
-          jobManager.finishJobAborts(currentTime,jobAborts);
+          
+          ArrayList jobStops = new ArrayList();
+          jobManager.finishJobStops(currentTime,jobStops);
           int k = 0;
-          while (k < jobAborts.size())
+          while (k < jobStops.size())
           {
-            IJobDescription desc = (IJobDescription)jobAborts.get(k++);
+            IJobDescription desc = (IJobDescription)jobStops.get(k++);
             connectionManager.recordHistory(desc.getConnectionName(),
-              null,connectionManager.ACTIVITY_JOBABORT,null,
+              null,connectionManager.ACTIVITY_JOBSTOP,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
           }
+
+          ArrayList jobResumes = new ArrayList();
+          jobManager.finishJobResumes(currentTime,jobResumes);
+          k = 0;
+          while (k < jobResumes.size())
+          {
+            IJobDescription desc = (IJobDescription)jobResumes.get(k++);
+            connectionManager.recordHistory(desc.getConnectionName(),
+              null,connectionManager.ACTIVITY_JOBCONTINUE,null,
+              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+          }
+
           ArrayList jobCompletions = new ArrayList();
           jobManager.resetJobs(currentTime,jobCompletions);
           k = 0;
@@ -88,52 +101,17 @@ public class JobResetThread extends Thread
           // not predicted by the algorithm that assigned those priorities.  This is, of course, quite expensive,
           // but it cannot be helped (at least, I cannot find a way to avoid it).
           //
-          if (jobAborts.size() > 0)
+          if (jobStops.size() > 0 || jobResumes.size() > 0)
           {
             Logging.threads.debug("Job reset thread reprioritizing documents...");
 
-            // Reset the queue tracker
-            queueTracker.beginReset();
-            // Perform the reprioritization, for all active documents in active jobs.  During this time,
-            // it is safe to have other threads assign new priorities to documents, but it is NOT safe
-            // for other threads to attempt to change the minimum priority level.  The queuetracker object
-            // will therefore block that from occurring, until the reset is complete.
-            try
-            {
-              // Reprioritize all documents in the jobqueue, 1000 at a time
-
-              HashMap connectionMap = new HashMap();
-              HashMap jobDescriptionMap = new HashMap();
-
-              // Do the 'not yet processed' documents only.  Documents that are queued for reprocessing will be assigned
-              // new priorities.  Already processed documents won't.  This guarantees that our bins are appropriate for current thread
-              // activity.
-              // In order for this to be the correct functionality, ALL reseeding and requeuing operations MUST reset the associated document
-              // priorities.
-              while (true)
-              {
-                long startTime = System.currentTimeMillis();
-
-                DocumentDescription[] docs = jobManager.getNextNotYetProcessedReprioritizationDocuments(currentTime, 10000);
-                if (docs.length == 0)
-                  break;
-
-                // Calculate new priorities for all these documents
-                ManifoldCF.writeDocumentPriorities(threadContext,connectionManager,jobManager,docs,connectionMap,jobDescriptionMap,queueTracker,currentTime);
-
-                Logging.threads.debug("Reprioritized "+Integer.toString(docs.length)+" not-yet-processed documents in "+new Long(System.currentTimeMillis()-startTime)+" ms");
-              }
-            }
-            finally
-            {
-              queueTracker.endReset();
-            }
-
+            ManifoldCF.resetAllDocumentPriorities(threadContext,queueTracker,currentTime);
+            
             Logging.threads.debug("Job reset thread done reprioritizing documents.");
 
           }
-
-          ManifoldCF.sleep(10000L);
+          else
+            ManifoldCF.sleep(10000L);
         }
         catch (ManifoldCFException e)
         {
