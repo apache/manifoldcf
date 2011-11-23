@@ -616,63 +616,75 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   protected void getSession()
     throws ManifoldCFException
   {
-    if (ctx == null)
+    while (true)
     {
-      // Calculate the ldap url first
-      String ldapURL = "ldap://" + domainControllerName + ":389";
-      
-      Hashtable env = new Hashtable();
-      env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
-      env.put(Context.SECURITY_AUTHENTICATION,authentication);      
-      env.put(Context.SECURITY_PRINCIPAL,userName);
-      env.put(Context.SECURITY_CREDENTIALS,password);
-				
-      //connect to my domain controller
-      env.put(Context.PROVIDER_URL,ldapURL);
-		
-      //specify attributes to be returned in binary format
-      env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
- 
-      // Now, try the connection...
-      try
+      if (ctx == null)
       {
-        ctx = new InitialLdapContext(env,null);
+        // Calculate the ldap url first
+        String ldapURL = "ldap://" + domainControllerName + ":389";
+        
+        Hashtable env = new Hashtable();
+        env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.SECURITY_AUTHENTICATION,authentication);      
+        env.put(Context.SECURITY_PRINCIPAL,userName);
+        env.put(Context.SECURITY_CREDENTIALS,password);
+                                  
+        //connect to my domain controller
+        env.put(Context.PROVIDER_URL,ldapURL);
+                  
+        //specify attributes to be returned in binary format
+        env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
+   
+        // Now, try the connection...
+        try
+        {
+          ctx = new InitialLdapContext(env,null);
+          // If successful, break
+          break;
+        }
+        catch (AuthenticationException e)
+        {
+          // This means we couldn't authenticate!
+          throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+        }
+        catch (CommunicationException e)
+        {
+          // This means we couldn't connect, most likely
+          throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+        }
+        catch (NamingException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
       }
-      catch (AuthenticationException e)
+      else
       {
-        // This means we couldn't authenticate!
-        throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
-      }
-      catch (CommunicationException e)
-      {
-        // This means we couldn't connect, most likely
-	throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
-      }
-      catch (NamingException e)
-      {
-	throw new ManifoldCFException(e.getMessage(),e);
-      }
-    }
-    else
-    {
-      // Attempt to reconnect.  I *hope* this is efficient and doesn't do unnecessary work.
-      try
-      {
-        ctx.reconnect(null);
-      }
-      catch (AuthenticationException e)
-      {
-        // This means we couldn't authenticate!
-        throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
-      }
-      catch (CommunicationException e)
-      {
-        // This means we couldn't connect, most likely
-	throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
-      }
-      catch (NamingException e)
-      {
-	throw new ManifoldCFException(e.getMessage(),e);
+        // Attempt to reconnect.  I *hope* this is efficient and doesn't do unnecessary work.
+        try
+        {
+          ctx.reconnect(null);
+          // Break on apparent success
+          break;
+        }
+        catch (AuthenticationException e)
+        {
+          // This means we couldn't authenticate!  Log it and retry creating a whole new context.
+          Logging.authorityConnectors.warn("Reconnect: Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+        }
+        catch (CommunicationException e)
+        {
+          // This means we couldn't connect, most likely.  Log it and retry creating a whole new context.
+          Logging.authorityConnectors.warn("Reconnect: Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+        }
+        catch (NamingException e)
+        {
+          Logging.authorityConnectors.warn("Reconnect: Naming exception: "+e.getMessage(),e);
+        }
+        
+        // So we have no chance of leaking resources, attempt to close the context.
+        closeConnection();
+        // Loop back around to try our luck with a fresh connection.
+
       }
     }
     

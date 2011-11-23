@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-291: Active Directory authority reconnect logic had a
+pathological case when server forcibly closed connection.
+(Karl Wright)
+
 CONNECTORS-209: Add support for remote HSQLDB instances.  There are
 now configuration parameters for specifying protocol, server, and instance
 name, which if specified cause the HSQLDB driver to communicate to the
