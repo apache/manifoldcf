@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-293: Fix the how-to-build-and-deploy documentation to include
+the right version of jcifs.
+(Luca Stancapiano, Karl Wright)
+
 CONNECTORS-290: Revamp the way docpriorities are handled so as to avoid
 flooding the jobqueue with documents that have a docpriority value but
 a job or document status incompatible with stuffing.  This should help a lot
