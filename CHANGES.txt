@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-292: Problems with mvn-bootstrap.bat.  Also excluded (hopefully
+temporarily) the HSQLDBext tests from the Maven build, since their properties.xml
+conflict with HSQLDB tests.
+(Luca Stancapiano, Karl Wright)
+
 CONNECTORS-293: Fix the how-to-build-and-deploy documentation to include
 the right version of jcifs.
 (Luca Stancapiano, Karl Wright)

@@ -47,6 +47,7 @@
         <configuration>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
+            <exclude>**/*HSQLDBext*.java</exclude>
           </excludes>
           <forkMode>always</forkMode>
           <workingDirectory>target/test-output</workingDirectory>
