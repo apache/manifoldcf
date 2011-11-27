@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-295: Add the support for multivalue properties
+(Piergiorgio Lucidi)
+
+CONNECTORS-296: Make independent the configuration against the WARs version for integration tests
+(Piergiorgio Lucidi)
+
 CONNECTORS-292: Problems with mvn-bootstrap.bat.  Also excluded (hopefully
 temporarily) the HSQLDBext tests from the Maven build, since their properties.xml
 conflict with HSQLDB tests.
