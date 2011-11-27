@@ -64,6 +64,7 @@
                   <version>0.5.0</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
+                  <destFileName>chemistry-opencmis-server-inmemory-war.war</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
@@ -71,6 +72,7 @@
                   <version>${project.version}</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
+                  <destFileName>mcf-api-service.war</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
@@ -78,6 +80,7 @@
                   <version>${project.version}</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
+                  <destFileName>mcf-authority-service.war</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
@@ -85,6 +88,7 @@
                   <version>${project.version}</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
+                  <destFileName>mcf-crawler-ui.war</destFileName>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -97,10 +101,10 @@
         <version>2.10</version>
         <configuration>
           <systemPropertyVariables>
-            <crawlerWarPath>../dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
-            <authorityserviceWarPath>../dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
-            <apiWarPath>../dependency/mcf-api-service-${project.version}.war</apiWarPath>
-            <openCmisServerWarPath>../dependency/chemistry-opencmis-server-inmemory-war-0.5.0.war</openCmisServerWarPath>
+            <crawlerWarPath>../dependency/mcf-crawler-ui.war</crawlerWarPath>
+            <authorityserviceWarPath>../dependency/mcf-authority-service.war</authorityserviceWarPath>
+            <apiWarPath>../dependency/mcf-api-service.war</apiWarPath>
+            <openCmisServerWarPath>../dependency/chemistry-opencmis-server-inmemory-war.war</openCmisServerWarPath>
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
