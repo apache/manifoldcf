@@ -892,6 +892,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     outputResource(EDIT_SPEC_HEADER_FORWARD, out, params);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions,
       IProcessActivity activities, DocumentSpecification spec,
@@ -946,11 +947,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           String id = StringUtils.EMPTY;
           for (Property<?> property : properties) {
             String propertyId = property.getId();
-            Object propertyValue = property.getValue();
             if (propertyId.endsWith(Constants.PARAM_OBJECT_ID))
-              id = (String) propertyValue;
+              id = (String) property.getValue();
 
-            if (propertyValue != null) {
+            if (property.getValue() !=null 
+                || property.getValues() != null) {
               PropertyType propertyType = property.getType();
 
               switch (propertyType) {
@@ -959,29 +960,66 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               case ID:
               case URI:
               case HTML:
-                String stringValue = (String) propertyValue;
-                rd.addField(propertyId, stringValue);
+                if(property.isMultiValued()){
+                  List<String> htmlPropertyValues = (List<String>) property.getValues();
+                  for (String htmlPropertyValue : htmlPropertyValues) {
+                    rd.addField(propertyId, htmlPropertyValue);
+                  }
+                } else {
+                  String stringValue = (String) property.getValue();
+                  rd.addField(propertyId, stringValue);
+                  
+                }
                 break;
-
+     
               case BOOLEAN:
-                Boolean booleanValue = (Boolean) propertyValue;
-                rd.addField(propertyId, booleanValue.toString());
+                if(property.isMultiValued()){
+                  List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
+                  for (Boolean booleanPropertyValue : booleanPropertyValues) {
+                    rd.addField(propertyId, booleanPropertyValue.toString());
+                  }
+                } else {
+                  Boolean booleanValue = (Boolean) property.getValue();
+                  rd.addField(propertyId, booleanValue.toString());
+                }
                 break;
 
               case INTEGER:
-                BigInteger integerValue = (BigInteger) propertyValue;
-                rd.addField(propertyId, integerValue.toString());
+                if(property.isMultiValued()){
+                  List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
+                  for (BigInteger integerPropertyValue : integerPropertyValues) {
+                    rd.addField(propertyId, integerPropertyValue.toString());
+                  }
+                } else {
+                  BigInteger integerValue = (BigInteger) property.getValue();
+                  rd.addField(propertyId, integerValue.toString());
+                }
                 break;
 
               case DECIMAL:
-                BigDecimal decimalValue = (BigDecimal) propertyValue;
-                rd.addField(propertyId, decimalValue.toString());
+                if(property.isMultiValued()){
+                  List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
+                  for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
+                    rd.addField(propertyId, decimalPropertyValue.toString());
+                  }
+                } else {
+                  BigDecimal decimalValue = (BigDecimal) property.getValue();
+                  rd.addField(propertyId, decimalValue.toString());
+                }
                 break;
 
               case DATETIME:
-                GregorianCalendar dateValue = (GregorianCalendar) propertyValue;
-                rd.addField(propertyId,
-                    ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                if(property.isMultiValued()){
+                  List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
+                  for (GregorianCalendar datePropertyValue : datePropertyValues) {
+                    rd.addField(propertyId,
+                        ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
+                  }
+                } else {
+                  GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
+                  rd.addField(propertyId,
+                      ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                }
                 break;
 
               default:
