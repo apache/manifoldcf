@@ -199,6 +199,8 @@
           <p></p>
           <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/wsdls</em> before building.</p>
           <p></p>
+          <p>The wsdl files download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
+          <p></p>
           <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.  This service can be found in the directory <em>dist/sharepoint-integration</em> after ManifoldCF is built.
             To install it on your SharePoint 3.0 machine, follow the directions in the file <strong>Installation Readme.txt</strong>, found in that directory.</p>
           <p></p>
