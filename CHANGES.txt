@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-298: Improve the SSL error message when no trusted
+certs are found.
+(Michael Kelleher, Karl Wright)
+
 CONNECTORS-297: Add a description of ant download-dependencies for
 Building the SharePoint connector to how-to-build-and-deploy.html.
 (Shinichiro Abe)

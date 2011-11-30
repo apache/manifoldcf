@@ -1555,6 +1555,15 @@ public class ThrottledFetcher
           throw new ServiceInterruption("Timed out waiting for a connection for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_2HRS,
             currentTime + TIME_6HRS,-1,false);
         }
+        catch (javax.net.ssl.SSLException e)
+        {
+          // Probably this is an incorrectly configured trust store
+          throwable = new ManifoldCFException("SSL handshake error: "+e.getMessage()+"; check your connection's Certificate configuration",e);
+          statusCode = FETCH_IO_ERROR;
+          if (recordEverything)
+            dataSession.setResponseCode(statusCode);
+          return;
+        }
         catch (IOException e)
         {
           // Treat this as a bad url.  We don't know what happened, but it isn't something we are going to naively
