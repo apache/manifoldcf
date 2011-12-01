@@ -1005,10 +1005,24 @@
                 <br/>
                 <p>A Web connection labels pages that are part of the login sequence "login pages", and pages that are protected site content "content pages".  A Web
                        connection will not attempt to index login pages.  They are special pages that have but one purpose: establishing an authenticated session.</p>
+                <p>Remember, the goals of the setup you have to go through are as follows:</p>
+                <br/>
+                <ul>
+                    <li>Identify what site, or part of the site, has protected content</li>
+                    <li>Identify which http/https fetches are not content, but are in fact part of a "login sequence", which a normal person has to go through to get the appropriate cookies</li>
+                </ul>
+                <br/>
                 <p>If all this is not complicated enough, your research also has to cover two very different cases: when you are first entering the site anew, and second when you try to fetch
                        a content page and you are no longer logged in, because your session has expired.  In both cases, the session authentication rule must be able to properly log in and
                        fetch content, because you cannot control when a page will be fetched or refetched by the Framework.</p>
-                <p>You declare a page to be a login page by identifying it both by its URL, and by what the crawler finds on the page when it fetches it.  For example, some session-protected
+                <p>One key piece of data you will supply is a regular expression that basically describes the set of URLs for which the content is protected, and for which the right cookies have to be
+                      in place for you to get at the "real" content. Once you've specified this, then for each protection zone (described by its URL regexp), you need to specify how
+                      ManifoldCF should identify whether a given fetch should be considered part of the login sequence or not. It's not enough to just identify the URL of login pages,
+                      since (for instance) if your session has expired you may well have a redirection get fetched instead of the content you want. So you specify each class of login page
+                      as one of three types, using not only the URL to identify the class (this is where you get the second regexp), but also something about what is on the page: whether
+                      it is a redirection to a URL (yes, again described by a URL regexp), whether it has a form with a specified name (described by a regexp), or whether it has a
+                      specific link on it (once again, described by a regexp).</p>
+                <p>As you can see, you declare a page to be a login page by identifying it both by its URL, and by what the crawler finds on the page when it fetches it.  For example, some session-protected
                        sites may redirect you to a login screen when your session expires.  So, instead of fetching content, you would be fetching a redirection to a specific page.  You do <b>not</b>
                        want either the redirection, or the login screen, to be considered content pages.  The correct way to handle such a setup would be to declare one kind of login page to consist
                        of a redirection to the login screen URL, and another kind of login page to consist of the login screen URL with the appropriate form.  Furthermore, you would want to supply
@@ -1021,6 +1035,14 @@
                     <li>A page that has a link on it to a specific target, as described by a regular expression</li>
                 </ul>
                 <br/>
+                <p>Note that in all three case above that there is an implicit flow through the login sequence that you describe by specifying the pages in the login sequence. For
+                      example, if upon session timeout you expect to see a redirection to a link, or family of links (remember, it's a regexp, so you can describe that easily), then as part
+                      of identifying the redirection as belonging to the login sequence, the web connector also now has a new link to fetch - the redirection link - which is what it does next. The same applies
+                      to forms.  If the form name that was specified is found, then the web connector submits that form using values for the form elements that you specify, and using
+                      the submission type described in the actual form tag (GET, POST, or multi-part). Any other elements of the form are left in whatever state that the HTML specified;
+                      no Javascript is ever evaluated. Thus, if you think a form element's value is being set by Javascript, you have to figure out what it is being set to and enter this
+                      value by hand as part of the specification for the "form" type of login page. Typically this amounts to a user name and password.</p>
+                      
                 <p>To add a session authentication rule, fill in a regular expression describing the site pages that are being protected, and click the "Add" button:</p>
                 <br/><br/>
                 <figure src="images/web-configure-access-credentials-session.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
