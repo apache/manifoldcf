@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-299: Handle Postgresql 9.1's newfound ability to throw
+deadlock conditions on transaction ends.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-298: Improve the SSL error message when no trusted
 certs are found.
 (Michael Kelleher, Karl Wright)
