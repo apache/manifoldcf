@@ -47,6 +47,7 @@ public abstract class Database
   protected TransactionHandle th = null;
   protected Connection connection = null;
   protected boolean doRollback = false;
+  protected boolean commitDone = false;
   protected int delayedTransactionDepth = 0;
   protected Map<String,Modifications> modificationsSet = new HashMap<String,Modifications>();
 
@@ -148,6 +149,9 @@ public abstract class Database
     String queryClass, boolean needResult, int maxReturn, ResultSpecification spec, ILimitChecker returnLimits)
     throws ManifoldCFException
   {
+    if (commitDone)
+      throw new ManifoldCFException("Commit already done");
+    
     // System.out.println("Query: "+query);
     if (Logging.db.isDebugEnabled())
     {
@@ -211,6 +215,7 @@ public abstract class Database
     th = new TransactionHandle(context,th,transactionType);
     cacheManager.startTransaction(th.getTransactionID(),enclosingID);
     doRollback = false;
+    commitDone = false;
   }
 
   /** Synchronize internal transactions.
@@ -277,6 +282,22 @@ public abstract class Database
     }
   }
 
+  /** Perform the transaction commit.
+  * Calling this method does not relieve the coder of the responsibility of calling endTransaction(),
+  * as listed below.  The purpose of a separate commit operation is to allow handling of situations where the
+  * commit generates a TRANSACTION_ABORT signal.
+  */
+  public void performCommit()
+    throws ManifoldCFException
+  {
+    Logging.db.debug("Committing transaction!");
+    if (delayedTransactionDepth == 0)
+    {
+      commitCurrentTransaction();
+      commitDone = true;
+    }
+  }
+
   /** Signal that a rollback should occur on the next endTransaction().
   */
   public void signalRollback()
@@ -318,7 +339,8 @@ public abstract class Database
           {
             // Do a commit into the database, and blow away cached queries (cached against the
             // database transaction key).
-            commitCurrentTransaction();
+            if (!commitDone)
+              commitCurrentTransaction();
           }
         }
         catch (ManifoldCFException e)
@@ -343,9 +365,16 @@ public abstract class Database
     finally
     {
       if (doRollback)
+      {
         cacheManager.rollbackTransaction(th.getTransactionID());
+      }
       else
-        cacheManager.commitTransaction(th.getTransactionID());
+      {
+        if (!commitDone)
+          cacheManager.commitTransaction(th.getTransactionID());
+      }
+      commitDone = false;
+      doRollback = false;
       th = parentTransaction;
       if (th == null)
       {

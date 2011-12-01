@@ -360,12 +360,20 @@ public interface IDBInterface
   public void beginTransaction(int transactionType)
     throws ManifoldCFException;
 
+  /** Perform the transaction commit.
+  * Calling this method does not relieve the coder of the responsibility of calling endTransaction(),
+  * as listed below.  The purpose of a separate commit operation is to allow handling of situations where the
+  * commit generates a TRANSACTION_ABORT signal.
+  */
+  public void performCommit()
+    throws ManifoldCFException;
+
   /** Signal that a rollback should occur on the next endTransaction().
   */
   public void signalRollback();
 
-  /** End a database transaction, either performing a commit or a rollback (depending on whether
-  * signalRollback() was called within the transaction).
+  /** End a database transaction, either performing a commit or a rollback or nothing (depending on whether
+  * signalRollback() was called within the transaction or performCommit() or none of the above).
   */
   public void endTransaction()
     throws ManifoldCFException;

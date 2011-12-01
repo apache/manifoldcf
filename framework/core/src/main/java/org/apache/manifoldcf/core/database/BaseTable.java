@@ -258,6 +258,17 @@ public class BaseTable
     dbInterface.beginTransaction();
   }
 
+  /** Perform the transaction commit.
+  * Calling this method does not relieve the coder of the responsibility of calling endTransaction(),
+  * as listed below.  The purpose of a separate commit operation is to allow handling of situations where the
+  * commit generates a TRANSACTION_ABORT signal.
+  */
+  public void performCommit()
+    throws ManifoldCFException
+  {
+    dbInterface.performCommit();
+  }
+
   /** Signal that a rollback should occur on the next endTransaction().
   */
   protected void signalRollback()

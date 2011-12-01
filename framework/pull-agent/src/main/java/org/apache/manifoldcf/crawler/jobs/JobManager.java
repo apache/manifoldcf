@@ -3989,6 +3989,7 @@ public class JobManager implements IJobManager
           // A certain set of carrydown records are going to be deleted by the ensuing restoreRecords command.  Calculate that set of records!
           rval = calculateAffectedRestoreCarrydownChildren(jobID,parentIdentifierHashes);
           carryDown.restoreRecords(jobID,parentIdentifierHashes);
+          database.performCommit();
           break;
         }
         catch (ManifoldCFException e)
@@ -4043,7 +4044,8 @@ public class JobManager implements IJobManager
             Integer.toString(parentIdentifierHashes.length)+" doc hopcounts for job "+jobID.toString());
 
           hopCount.finishParents(jobID,legalLinkTypes,parentIdentifierHashes,hopcountMethod);
-
+          database.performCommit();
+          
           if (Logging.perf.isDebugEnabled())
             Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to finish "+
             Integer.toString(parentIdentifierHashes.length)+" doc hopcounts for job "+jobID.toString());
