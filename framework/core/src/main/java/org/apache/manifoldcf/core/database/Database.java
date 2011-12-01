@@ -370,8 +370,7 @@ public abstract class Database
       }
       else
       {
-        if (!commitDone)
-          cacheManager.commitTransaction(th.getTransactionID());
+	cacheManager.commitTransaction(th.getTransactionID());
       }
       commitDone = false;
       doRollback = false;

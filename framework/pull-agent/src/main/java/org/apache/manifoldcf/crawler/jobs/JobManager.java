@@ -638,6 +638,7 @@ public class JobManager implements IJobManager
         hopCount.reset();
         // Clean up carrydown stuff
         carryDown.reset();
+        database.performCommit();
         Logging.jobs.debug("Reset complete");
         break;
       }
@@ -679,6 +680,7 @@ public class JobManager implements IJobManager
       try
       {
         jobQueue.resetDocumentWorkerStatus();
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -987,7 +989,9 @@ public class JobManager implements IJobManager
           rval[i++] = dd;
           jobQueue.setCleaningStatus(dd.getID());
         }
-
+        
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
 
@@ -1247,6 +1251,8 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
 
@@ -1569,6 +1575,7 @@ public class JobManager implements IJobManager
             Logging.perf.debug("Setting document priority for '"+dd.getDocumentIdentifier()+"' to "+new Double(priority).toString()+", set time "+new Long(currentTime).toString());
           i++;
         }
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -1803,6 +1810,8 @@ public class JobManager implements IJobManager
           jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue());
         }
 
+        database.performCommit();
+        
         return new DocumentSetAndFlags(rval, rvalBoolean);
 
       }
@@ -2310,6 +2319,7 @@ public class JobManager implements IJobManager
 
             i++;
           }
+          database.performCommit();
           break;
         }
         catch (ManifoldCFException e)
@@ -2425,6 +2435,7 @@ public class JobManager implements IJobManager
           }
           i++;
         }
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -2536,6 +2547,8 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
           hopCount.deleteDocumentIdentifiers(jobID,legalLinkTypes,docIDSimpleHashes,hopcountMethod);
 
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to delete "+Integer.toString(docIDHashes.length)+
           " docs and clean up hopcount for job "+jobID.toString());
@@ -2744,6 +2757,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        database.performCommit();
         break;
       }
       catch (Error e)
@@ -2866,6 +2880,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        database.performCommit();
         break;
       }
       catch (Error e)
@@ -2949,6 +2964,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -3043,6 +3059,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -3277,6 +3294,8 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
           hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
 
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
           " initial docs and hopcounts for job "+jobID.toString());
@@ -3360,6 +3379,8 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
           hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
 
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
           " remaining docs and hopcounts for job "+jobID.toString());
@@ -3432,6 +3453,8 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
           hopCount.finishSeedReferences(jobID,legalLinkTypes,hopcountMethod);
 
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+
           " ms to finish initial docs and hopcounts for job "+jobID.toString());
@@ -3590,11 +3613,13 @@ public class JobManager implements IJobManager
           {
             // Sleep a little bit so another thread can have a whack at things
             sleepAmt = 100L;
+            database.performCommit();
             continue;
           }
 
           // Definitive answers found; continue through.
           distances = hopCount.findHopCounts(jobID,askDocIDHashes,linkType);
+          database.performCommit();
         }
         catch (ManifoldCFException e)
         {
@@ -3887,6 +3912,8 @@ public class JobManager implements IJobManager
         if (parentIdentifierHash != null && relationshipType != null)
           hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod);
 
+        database.performCommit();
+        
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
           " docs and hopcounts for job "+jobID.toString()+" parent identifier hash "+parentIdentifierHash);
@@ -4303,6 +4330,7 @@ public class JobManager implements IJobManager
             0L,currentTime,true,docPriorities[originalIndex],null);
           j++;
         }
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -5108,6 +5136,7 @@ public class JobManager implements IJobManager
         }
 
         jobQueue.prepareFullScan(jobID);
+        database.performCommit();
         break;
       }
       catch (ManifoldCFException e)
@@ -5323,6 +5352,7 @@ public class JobManager implements IJobManager
           rval[i] = new JobStartRecord(jobID,synchTime);
           i++;
         }
+        database.performCommit();
         return rval;
       }
       catch (ManifoldCFException e)
@@ -5390,6 +5420,7 @@ public class JobManager implements IJobManager
           rval[i] = new JobStartRecord(jobID,0L);
           i++;
         }
+        database.performCommit();
         return rval;
       }
       catch (ManifoldCFException e)
@@ -5463,6 +5494,7 @@ public class JobManager implements IJobManager
           rval[i] = new JobStartRecord(jobID,synchTime);
           i++;
         }
+        database.performCommit();
         return rval;
       }
       catch (ManifoldCFException e)
@@ -5527,6 +5559,7 @@ public class JobManager implements IJobManager
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -5594,6 +5627,7 @@ public class JobManager implements IJobManager
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -5661,6 +5695,7 @@ public class JobManager implements IJobManager
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -5743,6 +5778,7 @@ public class JobManager implements IJobManager
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -5877,6 +5913,7 @@ public class JobManager implements IJobManager
         default:
           throw new ManifoldCFException("Unexpected job status: "+Integer.toString(status));
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -5980,6 +6017,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Removed job "+jobID);
           }
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -6083,6 +6121,7 @@ public class JobManager implements IJobManager
           }
 
         }
+        database.performCommit();
         return;
       }
       catch (ManifoldCFException e)
@@ -6147,6 +6186,7 @@ public class JobManager implements IJobManager
           }
           rval[i++] = new JobStartRecord(jobID,0L);
         }
+        database.performCommit();
         return rval;
       }
       catch (ManifoldCFException e)

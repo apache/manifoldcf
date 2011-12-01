@@ -1393,10 +1393,12 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
             map.put(changeCountField,new Long(changeCount));
             performUpdate(map,"WHERE "+query,list,null);
             // Update successful!
+            performCommit();
             return;
           }
 
           // Update failed to find a matching record, so try the insert
+          performCommit();
           break;
         }
         catch (ManifoldCFException e)
