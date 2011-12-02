@@ -1138,7 +1138,15 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   protected void commitCurrentTransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"COMMIT",null,false,0,null,null);
+    try
+    {
+      executeViaThread(connection,"COMMIT",null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
+
   }
   
   /** Abstract method to roll back a transaction */
