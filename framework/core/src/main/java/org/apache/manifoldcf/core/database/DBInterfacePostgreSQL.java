@@ -1131,7 +1131,14 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   protected void startATransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+    try
+    {
+      executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Abstract method to commit a transaction */
@@ -1153,7 +1160,14 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   protected void rollbackCurrentTransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+    try
+    {
+      executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
   
   /** Abstract method for explaining a query */

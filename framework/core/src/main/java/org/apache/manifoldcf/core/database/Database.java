@@ -290,9 +290,11 @@ public abstract class Database
   public void performCommit()
     throws ManifoldCFException
   {
-    Logging.db.debug("Committing transaction!");
+    if (doRollback)
+      return;
     if (delayedTransactionDepth == 0)
     {
+      Logging.db.debug("Committing transaction!");
       commitCurrentTransaction();
       commitDone = true;
     }
@@ -302,7 +304,6 @@ public abstract class Database
   */
   public void signalRollback()
   {
-    Logging.db.debug("Rolling transaction back!");
     doRollback = true;
   }
 
@@ -333,14 +334,26 @@ public abstract class Database
           {
             // Do a rollback in the database, and blow away cached queries (cached against the
             // database transaction key).
-            rollbackCurrentTransaction();
+            if (!commitDone)
+            {
+              Logging.db.debug("Rolling transaction back!");
+              rollbackCurrentTransaction();
+            }
+            else
+            {
+              doRollback = false;
+              throw new ManifoldCFException("Cannot roll back an already committed transaction");
+            }
           }
           else
           {
             // Do a commit into the database, and blow away cached queries (cached against the
             // database transaction key).
             if (!commitDone)
+            {
+              Logging.db.debug("Committing transaction!");
               commitCurrentTransaction();
+            }
           }
         }
         catch (ManifoldCFException e)
@@ -372,8 +385,11 @@ public abstract class Database
       {
 	cacheManager.commitTransaction(th.getTransactionID());
       }
+      
+      // Clear the signaling variables.  This keeps them local to the transaction.
       commitDone = false;
       doRollback = false;
+
       th = parentTransaction;
       if (th == null)
       {
