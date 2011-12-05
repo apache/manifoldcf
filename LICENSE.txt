@@ -860,7 +860,7 @@ mimepull.jar, from 'mimepull' (https://mimepull.dev.java.net),
 activation.jar, from 'JavaBeans(TM) Activation Framework Specification' (http://www.oracle.com/technetwork/java/jaf11-139815.html),
 jsr250.jar, from 'JSR-250 Common Annotations for the Java(TM) Platform' (http://jcp.org/aboutJava/communityprocess/final/jsr250/index.html),
 jaxb-api.jar, from 'Java Architecture for XML Binding' (https://jaxb.dev.java.net/),
-mail.jar:
+mail.jar, from http://glassfish.java.net/javaee5/mail/:
 --------------------------------------------------------------------------
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0 1.
 
