@@ -1,0 +1,130 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+	<tr>
+		<td class="separator" colspan="2">
+			<hr />
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>
+				Username:
+			</nobr>
+		</td>
+		<td class="value">
+			<input id="username" type="text" name="username" value="${USERNAME}" />
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>
+				Password:
+			</nobr>
+		</td>
+		<td class="value">
+			<input id="password" type="password" name="password" value="${PASSWORD}" />
+		</td>
+	</tr>
+	<tr>
+		<td class="description">
+			<nobr>
+				Protocol:
+			</nobr>
+		</td>
+		<td class="value">
+			<select id="protocol" name="protocol">
+			  <option value="http">http</option>
+			  <option value="https">https</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+    <td class="description">
+      <nobr>
+        Server:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="server" name="server" type="text" size="32" value="${SERVER}"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Port:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="port" name="port" type="text" size="5" value="${PORT}" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Path:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="path" name="path" type="text" size="32" value="${PATH}" />
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+
+var username = "${USERNAME}";
+var password = "${PASSWORD}";
+var server = "${SERVER}";
+var port = "${PORT}";
+var path = "${PATH}";
+
+if(username==null || username==""){
+  var usernameInput = document.getElementById("username");
+  usernameInput.value = "admin";
+}
+
+if(password==null || password==""){
+  var passwordInput = document.getElementById("password");
+  passwordInput.value = "admin";
+}
+
+var protocol = "${PROTOCOL}";
+var protocolSelect = document.getElementById("protocol");
+if(protocol=="https"){
+  protocolSelect.options[1].selected = true;
+} else {
+  protocolSelect.options[0].selected = true;
+}
+
+if(server==null || server==""){
+  var serverInput = document.getElementById("server");
+  serverInput.value = "localhost";
+}
+
+if(port==null || port==""){
+  var portInput = document.getElementById("port");
+  portInput.value = "8080";
+}
+
+if(path==null || path==""){
+  var pathInput = document.getElementById("path");
+  pathInput.value = "/alfresco/api";
+}
+
+</script>

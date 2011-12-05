@@ -24,15 +24,12 @@
     <version>0.4.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-
-  <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-tests</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
-
   <name>ManifoldCF - Tests</name>
   <packaging>pom</packaging>
-
   <modules>
+    <module>alfresco-war</module>
+    <module>alfresco</module> 
     <module>wiki</module>
     <module>cmis</module>
     <module>filesystem</module>

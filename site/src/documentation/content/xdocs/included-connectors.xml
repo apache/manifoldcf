@@ -34,6 +34,7 @@
       <table>
         <caption>Connector interoperability table</caption>
         <tr><th>System</th><th>Connector Platform</th><th>Server Platform</th><th>Client Version</th><th>Server Version</th></tr>
+        <tr><td>Alfresco</td><td>Pure Java</td><td>Various</td><td>Tested using the Alfresco Web Services Client 4.0.b</td><td>Tested with Alfresco 2.x, 3.x and 4.x</td></tr>
         <tr><td>CMIS</td><td>Pure Java</td><td>Various</td><td>CMIS 1.0</td><td>CMIS 1.0</td></tr>
         <tr><td>File System</td><td>Pure Java</td><td>Win/*NIX</td><td>N/A</td><td>N/A</td></tr>
         <tr><td>Windows Shares</td><td>Pure Java</td><td> Win, Samba, NetApp, other NAS systems </td><td>N/A</td><td>N/A</td></tr>

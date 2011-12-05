@@ -1728,6 +1728,38 @@
               <br/><br/>
             </section>
             
+            <section id="alfrescorepository">
+              <title>Alfresco Repository Connection</title>
+              <p>The Alfresco Repository Connection type allows you to index content from an Alfresco repository.</p>
+              <p>This connector is compatible with any Alfresco version (2.x, 3.x and 4.x).</p>
+              <br/>
+              <p>An Alfresco connection has the following configuration parameters on the repository connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/alfresco-repository-connection-configuration.png" alt="Alfresco Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>Enter the correct username, password and the endpoint to reference the Alfresco document server services.</p>
+              <p>The endpoint consists of the HTTP protocol, hostname, port and the context path of the Alfresco Web Services API exposed by the Alfresco server.</p>
+              <p>By default, if you don't have changed the context path of the Alfresco webapp, you should have an endpoint address similar to the following:</p>
+              <br/><br/>
+              <p><code>http://HOSTNAME:PORT/alfresco/api</code></p>
+              <br/><br/>
+              <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+              <br/><br/>
+              <figure src="images/alfresco-repository-connection-configuration-save.png" alt="Alfresco Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>When you configure a job to use the Alfresco repository connection an additional tab is presented. This is the "Lucene Query" tab:</p>
+              <br/><br/>
+              <figure src="images/alfresco-repository-connection-job-lucenequery.png" alt="Alfresco Repository Connection, Lucene Query" width="80%"/>
+              <br/><br/>
+              <p>The Lucene Query tab allows you to specify the query based on the Lucene Query Language to get all the result documents that need to be ingested.</p>
+              <p>Please note that if the Lucene Query is null, the connector will ingest all the contents in the Alfresco repository under the Company Home.</p>
+              <p>Please also note that the Alfresco Connector during the ingestion process, for each result, if it will find a folder node (that must have any child association defined for the node type), it will ingest all the children of the folder node; otherwise it will directly ingest the document (that must have any d:content as one of the properties of the node).</p>
+              <p>When you are done, and you click the "Save" button, you will see a summary page looking something like this:</p>
+              <br/><br/>
+              <figure src="images/alfresco-repository-connection-job-save.png" alt="Alfresco Repository Connection, saving job" width="80%"/>
+              <br/><br/>
+            </section>
+            
         </section>
 
 </body>

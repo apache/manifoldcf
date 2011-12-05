@@ -257,6 +257,26 @@ License: Dual license consisting of the CDDL v1.0 and GPL v2  (https://glassfish
 This product includes a mimepull.jar.
 License: COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0  (http://www.opensource.org/licenses/cddl1.php)    License: GPLv2 with classpath exception  (http://www.gnu.org/software/classpath/license.html)
 
+This product includes a h2-support-1.1.jar.
+License: MIT/X11 license
+
+This product includes a mail.jar.
+License: Common Development And Distribution License (CDDL) Version 1.0  (http://www.sun.com/cddl/cddl.html)
+
+This product includes a wss4j-1.5.4-patched.jar.
+License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes an opensaml-1.0.1.jar.
+License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a h2-1.3.158.jar.
+License: Dual; MPL 1.1 (http://www.mozilla.org/MPL/), and Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+
+This product includes a xmlsec-1.4.1.jar.
+License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a wsdl4j.jar.
+License: CPL 1.0 (http://www.opensource.org/licenses/cpl1.0)
 
 ==========================================================================
 The following license applies to json.jar, which is generated from the json
@@ -317,7 +337,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
 ==========================================================================
-The following license applies to JUnit
+The following license applies to JUnit, and
+wsdl4j.jar:
 --------------------------------------------------------------------------
 Common Public License - v 1.0
 
@@ -578,7 +599,8 @@ originally written at the National Center for Supercomputing Applications,
 University of Illinois, Urbana-Champaign.
 
 ==========================================================================
-The following license applies to eclipse-ecj.jar
+The following license applies to eclipse-ecj.jar, and
+h2-1.3.158.jar:
 --------------------------------------------------------------------------
 
 Eclipse Public License - v 1.0
@@ -837,7 +859,8 @@ The following license applies to stax-ex.jar, from 'Java.net' (http://dev.java.n
 mimepull.jar, from 'mimepull' (https://mimepull.dev.java.net),
 activation.jar, from 'JavaBeans(TM) Activation Framework Specification' (http://www.oracle.com/technetwork/java/jaf11-139815.html),
 jsr250.jar, from 'JSR-250 Common Annotations for the Java(TM) Platform' (http://jcp.org/aboutJava/communityprocess/final/jsr250/index.html),
-jaxb-api.jar, from 'Java Architecture for XML Binding' (https://jaxb.dev.java.net/):
+jaxb-api.jar, from 'Java Architecture for XML Binding' (https://jaxb.dev.java.net/),
+mail.jar:
 --------------------------------------------------------------------------
 COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0 1.
 
@@ -1365,5 +1388,18 @@ TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
     Linking this library statically or dynamically with other modules is making a combined work based on this library. Thus, the terms and conditions of the GNU General Public License Version 2 cover the whole combination.
 
     As a special exception, the copyright holders of this library give you permission to link this library with independent modules to produce an executable, regardless of the license terms of these independent modules, and to copy and distribute the resulting executable under terms of your choice, provided that you also meet, for each linked independent module, the terms and conditions of the license of that module.? An independent module is a module which is not derived from or based on this library.? If you modify this library, you may extend this exception to your version of the library, but you are not obligated to do so.? If you do not wish to do so, delete this exception statement from your version.
+
+==========================================================================
+The following license applies to:
+h2-support-1.1.jar
+--------------------------------------------------------------------------
+
+Copyright (c) 2011 Carlo Sciolla
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 

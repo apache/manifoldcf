@@ -1,0 +1,105 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project default="all">
+
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="dist"/>
+    </target>
+  
+      <target name="calculate-condition">
+        <available file="alfresco-ws-client/alfresco-web-service-client-3.4.e.jar" property="alfrescoStatus"/>
+        <condition property="canBuild">
+            <isset property="alfrescoStatus"/>
+        </condition>
+    </target>
+
+    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+        <echo message="Alfresco Connector cannot be built without alfresco-web-service-client-3.4.e.jar"/>
+    </target>
+
+    <target name="doc" depends="precompile-check" if="canBuild">
+        <mkdir dir="dist/doc"/>
+        <javadoc destdir="dist/doc" source="1.5">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            </classpath>
+            <fileset dir="connector/src/main/java" includes="**/*.java"/>
+        </javadoc>
+    </target>
+
+    <target name="compile-connector" depends="precompile-check" if="canBuild">
+        <mkdir dir="build/connector/classes"/>
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <fileset dir="lib" includes="*.jar"/>
+            	  <fileset dir="alfresco-ws-client" includes="*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-alfresco-connector.jar">
+        	<fileset dir="build/connector/classes"/>
+          <fileset dir="connector/src/main/resource" />
+        </jar>
+    </target>
+
+    <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
+        <copy todir="dist/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-alfresco-connector.jar"/>
+            </fileset>
+            <fileset dir="alfresco-ws-client">
+                <include name="alfresco-web-service-client*.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="axis*.jar"/>	
+                <include name="commons-discovery*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="jaxrpc*.jar"/>
+                <include name="mail*.jar"/>
+                <include name="opensaml*.jar"/>
+                <include name="wsdl4j*.jar"/>
+                <include name="wss4j*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xmlsec*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="build" depends="lib"/>
+    <target name="build-tests">
+      <mkdir dir="build/test-jar"/>
+    </target>
+    <target name="run-tests"/>
+    <target name="run-tests-derby"/>
+    <target name="run-tests-postgresql"/>
+    <target name="run-tests-HSQLDB"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
+	
+    <target name="download-alfresco-ws-client">
+      <get src="http://maven.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-web-service-client/3.4.e/alfresco-web-service-client-3.4.e.jar" dest="alfresco-ws-client"/>
+    </target>
+	
+    <target name="download-dependencies" depends="download-alfresco-ws-client"/>
+
+</project>
