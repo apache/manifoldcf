@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-303: Maven build doesn't consider HTML and JS files for the connector
+(Piergiorgio Lucidi)
+
 <<<<<<< .working
 CONNECTORS-284: HSQLDB runs out of memory on an extended load
 test, and had other problems too.  A new version of the db software was

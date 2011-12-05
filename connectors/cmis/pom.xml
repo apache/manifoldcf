@@ -40,6 +40,15 @@
   <build>
     <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
     <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/connector/src/main/resource</directory>
+        <includes>
+          <include>**/*.html</include>
+          <include>**/*.js</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
