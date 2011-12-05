@@ -281,10 +281,19 @@ public interface IDBInterface
   * This method constructs an offset/limit clause in the proper manner for the database in question.
   *@param offset is the starting offset number.
   *@param limit is the limit of result rows to return.
+  *@param afterOrderBy is true if this offset/limit comes after an ORDER BY.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public String constructOffsetLimitClause(int offset, int limit, boolean afterOrderBy);
+  
+  /** Construct an offset/limit clause.
+  * This method constructs an offset/limit clause in the proper manner for the database in question.
+  *@param offset is the starting offset number.
+  *@param limit is the limit of result rows to return.
   *@return the proper clause, with no padding spaces on either side.
   */
   public String constructOffsetLimitClause(int offset, int limit);
-  
+
   /** Construct a 'distinct on (x)' filter.
   * This filter wraps a query and returns a new query whose results are similar to POSTGRESQL's DISTINCT-ON feature.
   * Specifically, for each combination of the specified distinct fields in the result, only the first such row is included in the final

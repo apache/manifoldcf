@@ -2126,7 +2126,7 @@ public class JobManager implements IJobManager
       .append(jobQueue.statusField).append(" ASC,")
       .append(jobQueue.checkActionField).append(" ASC,")
       .append(jobQueue.checkTimeField).append(" ASC ")
-      .append(database.constructOffsetLimitClause(0,1));
+      .append(database.constructOffsetLimitClause(0,1,true));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
     if (set.getRowCount() > 0)
@@ -2242,7 +2242,7 @@ public class JobManager implements IJobManager
 
       // Now we can tack the limit onto the query.  Before this point, remainingDocuments would be crap
       int limitValue = vList.getRemainingDocuments();
-      sb.append(database.constructOffsetLimitClause(0,limitValue));
+      sb.append(database.constructOffsetLimitClause(0,limitValue,true));
 
       if (Logging.perf.isDebugEnabled())
       {

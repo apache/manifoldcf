@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-284: HSQLDB runs out of memory on an extended load
+test, and had other problems too.  A new version of the db software was
+needed to correct this issue.  Thanks to the HSQLDB team for their
+assistance!
+(Fred Toussi, Karl Wright)
+
 CONNECTORS-299: Handle Postgresql 9.1's newfound ability to throw
 deadlock conditions on transaction ends.
 (Erlend Garåsen, Karl Wright)

@@ -572,9 +572,10 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   * This method constructs an offset/limit clause in the proper manner for the database in question.
   *@param offset is the starting offset number.
   *@param limit is the limit of result rows to return.
+  *@param afterOrderBy is true if this offset/limit comes after an ORDER BY.
   *@return the proper clause, with no padding spaces on either side.
   */
-  public String constructOffsetLimitClause(int offset, int limit)
+  public String constructOffsetLimitClause(int offset, int limit, boolean afterOrderBy)
   {
     StringBuilder sb = new StringBuilder();
     if (offset != 0)

@@ -474,6 +474,26 @@ public abstract class Database
     }
   }
 
+  /** Construct an offset/limit clause.
+  * This method constructs an offset/limit clause in the proper manner for the database in question.
+  *@param offset is the starting offset number.
+  *@param limit is the limit of result rows to return.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public String constructOffsetLimitClause(int offset, int limit)
+  {
+    return constructOffsetLimitClause(offset,limit,false);
+  }
+
+  /** Construct an offset/limit clause.
+  * This method constructs an offset/limit clause in the proper manner for the database in question.
+  *@param offset is the starting offset number.
+  *@param limit is the limit of result rows to return.
+  *@param afterOrderBy is true if this offset/limit comes after an ORDER BY.
+  *@return the proper clause, with no padding spaces on either side.
+  */
+  public abstract String constructOffsetLimitClause(int offset, int limit, boolean afterOrderBy);
+
   /* Calculate the number of values a particular clause can have, given the values for all the other clauses.
   * For example, if in the expression x AND y AND z, x has 2 values and z has 1, find out how many values x can legally have
   * when using the buildConjunctionClause() method below.
