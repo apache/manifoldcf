@@ -100,6 +100,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
   private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
   private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+  
+  private static final String CMIS_SERVER_TAB_NAME = "Server";
 
   /**
    * CMIS Session handle
@@ -676,6 +678,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void outputConfigurationHeader(IThreadContext threadContext,
       IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
+    tabsArray.add(CMIS_SERVER_TAB_NAME);
     outputResource(EDIT_CONFIG_HEADER_FORWARD, out, parameters);
   }
 
@@ -684,29 +687,31 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       IHTTPOutput out, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     
-    String username = parameters.getParameter(CONFIG_PARAM_USERNAME);
-    String password = parameters.getParameter(CONFIG_PARAM_PASSWORD);
-    String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
-    String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
-    String binding = parameters.getParameter(CONFIG_PARAM_BINDING);
-    
-    if(StringUtils.isEmpty(username))
-      username = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(password))
-      password = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(endpoint))
-      endpoint = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(repositoryId))
-      repositoryId = StringUtils.EMPTY;
-    if(StringUtils.isEmpty(binding))
-      binding = BINDING_ATOM_VALUE;
-    
-    parameters.setParameter(CONFIG_PARAM_USERNAME, username);
-    parameters.setParameter(CONFIG_PARAM_PASSWORD, password);
-    parameters.setParameter(CONFIG_PARAM_ENDPOINT, endpoint);
-    parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
-    parameters.setParameter(CONFIG_PARAM_BINDING, binding);
-    outputResource(EDIT_CONFIG_FORWARD, out, parameters);
+    if(CMIS_SERVER_TAB_NAME.equals(tabName)){
+      String username = parameters.getParameter(CONFIG_PARAM_USERNAME);
+      String password = parameters.getParameter(CONFIG_PARAM_PASSWORD);
+      String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
+      String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+      String binding = parameters.getParameter(CONFIG_PARAM_BINDING);
+      
+      if(StringUtils.isEmpty(username))
+        username = StringUtils.EMPTY;
+      if(StringUtils.isEmpty(password))
+        password = StringUtils.EMPTY;
+      if(StringUtils.isEmpty(endpoint))
+        endpoint = StringUtils.EMPTY;
+      if(StringUtils.isEmpty(repositoryId))
+        repositoryId = StringUtils.EMPTY;
+      if(StringUtils.isEmpty(binding))
+        binding = BINDING_ATOM_VALUE;
+      
+      parameters.setParameter(CONFIG_PARAM_USERNAME, username);
+      parameters.setParameter(CONFIG_PARAM_PASSWORD, password);
+      parameters.setParameter(CONFIG_PARAM_ENDPOINT, endpoint);
+      parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+      parameters.setParameter(CONFIG_PARAM_BINDING, binding);
+      outputResource(EDIT_CONFIG_FORWARD, out, parameters);
+    }
   }
 
   /**

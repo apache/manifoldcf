@@ -19,31 +19,6 @@
 <!--
 function checkConfig()
 {
-  if (editconnection.username.value == "")
-  {
-    alert("The username must be not null");
-    editconnection.username.focus();
-    return false;
-  }
-  if (editconnection.password.value == "")
-  {
-    alert("The password must be not null");
-    editconnection.password.focus();
-    return false;
-  }
-  if (editconnection.endpoint.value == "")
-  {
-    alert("The endpoint must be not null");
-    editconnection.endpoint.focus();
-    return false;
-  }
-  if (editconnection.binding.value == "")
-  {
-    alert("The binding must be not null");
-    editconnection.binding.focus();
-    return false;
-  }
- 
   return true;
 }
  

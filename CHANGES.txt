@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-302: Add a specific Server tab for CMIS-related configuration information
+(Piergiorgio Lucidi)
+
 CONNECTORS-303: Maven build doesn't consider HTML and JS files for the connector
 (Piergiorgio Lucidi)
 
