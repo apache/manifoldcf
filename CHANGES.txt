@@ -9,7 +9,6 @@ CONNECTORS-302: Add a specific Server tab for CMIS-related configuration informa
 CONNECTORS-303: Maven build doesn't consider HTML and JS files for the connector
 (Piergiorgio Lucidi)
 
-<<<<<<< .working
 CONNECTORS-284: HSQLDB runs out of memory on an extended load
 test, and had other problems too.  A new version of the db software was
 needed to correct this issue.  Thanks to the HSQLDB team for their
