@@ -3,6 +3,18 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-301: added the detailed JavaDoc for the CMIS connector and integration tests
+(Piergiorgio Lucidi)
+
+CONNECTORS-300: added the defaul values for the CMIS connector configuration
+(Piergiorgio Lucidi)
+
+CONNECTORS-304: extended the endpoint parameter of the CMIS Connector with protocol, server, port and path
+(Piergiorgio Lucidi)
+
+CONNECTORS-307: CMIS and Alfresco connector configuration UI loses configuration when you switch tabs
+(Piergiorgio Lucidi)
+
 CONNECTORS-302: Add a specific Server tab for CMIS-related configuration information
 (Piergiorgio Lucidi)
 
