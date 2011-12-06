@@ -43,7 +43,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector;
+import org.apache.manifoldcf.crawler.connectors.cmis.CmisConfig;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
 import org.junit.Before;
@@ -57,12 +57,7 @@ public class APISanityIT extends Base
   private static final String REPLACER = "?";
   private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
   private static final String CMIS_TEST_QUERY = "SELECT * FROM cmis:folder WHERE cmis:name='testdata'";
-  
-  private static final String CMIS_ENDPOINT_TEST_SERVER = "http://localhost:9090/chemistry-opencmis-server-inmemory/atom";
-  private static final String CMIS_USERNAME = "dummyuser"; 
-  private static final String CMIS_PASSWORD = "dummysecret";
-  private static final String CMIS_BINDING = "atom";
-  
+    
   private Session cmisClientSession = null;
   
   private Session getCmisClientSession(){
@@ -71,11 +66,17 @@ public class APISanityIT extends Base
     Map<String, String> parameters = new HashMap<String, String>();
 
     // user credentials
-    parameters.put(SessionParameter.USER, CMIS_USERNAME);
-    parameters.put(SessionParameter.PASSWORD, CMIS_PASSWORD);
+    parameters.put(SessionParameter.USER, CmisConfig.USERNAME_DEFAULT_VALUE);
+    parameters.put(SessionParameter.PASSWORD, CmisConfig.PASSWORD_DEFAULT_VALUE);
 
     // connection settings
-    parameters.put(SessionParameter.ATOMPUB_URL, CMIS_ENDPOINT_TEST_SERVER);
+    String endpoint =
+        CmisConfig.PROTOCOL_DEFAULT_VALUE + "://" + 
+        CmisConfig.SERVER_DEFAULT_VALUE + ":" +
+        CmisConfig.PORT_DEFAULT_VALUE + 
+        CmisConfig.PATH_DEFAULT_VALUE;
+    
+    parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
     parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
 
     // create session
@@ -229,27 +230,45 @@ public class APISanityIT extends Base
       
       //binding
       ConfigurationNode cmisBindingNode = new ConfigurationNode("_PARAMETER_");
-      cmisBindingNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_BINDING);
-      cmisBindingNode.setValue(CMIS_BINDING);
+      cmisBindingNode.setAttribute("name", CmisConfig.BINDING_PARAM);
+      cmisBindingNode.setValue(CmisConfig.BINDING_DEFAULT_VALUE);
       child.addChild(child.getChildCount(), cmisBindingNode);
       
       //username
       ConfigurationNode cmisUsernameNode = new ConfigurationNode("_PARAMETER_");
-      cmisUsernameNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_USERNAME);
-      cmisUsernameNode.setValue(CMIS_USERNAME);
+      cmisUsernameNode.setAttribute("name", CmisConfig.USERNAME_PARAM);
+      cmisUsernameNode.setValue(CmisConfig.USERNAME_DEFAULT_VALUE);
       child.addChild(child.getChildCount(), cmisUsernameNode);
       
       //password
       ConfigurationNode cmisPasswordNode = new ConfigurationNode("_PARAMETER_");
-      cmisPasswordNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_PASSWORD);
-      cmisPasswordNode.setValue(CMIS_PASSWORD);
+      cmisPasswordNode.setAttribute("name", CmisConfig.PASSWORD_PARAM);
+      cmisPasswordNode.setValue(CmisConfig.PASSWORD_DEFAULT_VALUE);
       child.addChild(child.getChildCount(), cmisPasswordNode);
       
-      //endpoint
-      ConfigurationNode cmisEndpointNode = new ConfigurationNode("_PARAMETER_");
-      cmisEndpointNode.setAttribute("name", CmisRepositoryConnector.CONFIG_PARAM_ENDPOINT);
-      cmisEndpointNode.setValue(CMIS_ENDPOINT_TEST_SERVER);
-      child.addChild(child.getChildCount(), cmisEndpointNode);
+      //protocol
+      ConfigurationNode cmisProtocolNode = new ConfigurationNode("_PARAMETER_");
+      cmisProtocolNode.setAttribute("name", CmisConfig.PROTOCOL_PARAM);
+      cmisProtocolNode.setValue(CmisConfig.PROTOCOL_DEFAULT_VALUE);
+      child.addChild(child.getChildCount(), cmisProtocolNode);
+      
+      //server
+      ConfigurationNode cmisServerNode = new ConfigurationNode("_PARAMETER_");
+      cmisServerNode.setAttribute("name", CmisConfig.SERVER_PARAM);
+      cmisServerNode.setValue(CmisConfig.SERVER_DEFAULT_VALUE);
+      child.addChild(child.getChildCount(), cmisServerNode);
+      
+      //port
+      ConfigurationNode cmisPortNode = new ConfigurationNode("_PARAMETER_");
+      cmisPortNode.setAttribute("name", CmisConfig.PORT_PARAM);
+      cmisPortNode.setValue(CmisConfig.PORT_DEFAULT_VALUE);
+      child.addChild(child.getChildCount(), cmisPortNode);
+      
+      //path
+      ConfigurationNode cmisPathNode = new ConfigurationNode("_PARAMETER_");
+      cmisPathNode.setAttribute("name", CmisConfig.PATH_PARAM);
+      cmisPathNode.setValue(CmisConfig.PATH_DEFAULT_VALUE);
+      child.addChild(child.getChildCount(), cmisPathNode);
       
       connectionObject.addChild(connectionObject.getChildCount(),child);
 

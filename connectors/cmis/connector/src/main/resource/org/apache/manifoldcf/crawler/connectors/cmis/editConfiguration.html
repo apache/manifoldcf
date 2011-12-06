@@ -45,7 +45,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" name="username" value="${USERNAME}" />
+			<input type="text" id="username" name="username" value="${USERNAME}" />
 		</td>
 	</tr>
 	<tr>
@@ -55,19 +55,52 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="password" name="password" value="${PASSWORD}" />
+			<input type="password" id="password" name="password" value="${PASSWORD}" />
 		</td>
 	</tr>
 	<tr>
-		<td class="description">
-			<nobr>
-				Endpoint:
-			</nobr>
-		</td>
-		<td class="value">
-			<input type="text" name="endpoint" value="${ENDPOINT}" size="50" />
-		</td>
-	</tr>
+    <td class="description">
+      <nobr>
+        Protocol:
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="protocol" name="protocol">
+        <option value="http">http</option>
+        <option value="https">https</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Server:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="server" name="server" type="text" size="32" value="${SERVER}"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Port:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="port" name="port" type="text" size="5" value="${PORT}" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Path:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="path" name="path" type="text" size="32" value="${PATH}" />
+    </td>
+  </tr>
 	<tr>
 		<td class="description">
 			<nobr>
@@ -96,5 +129,44 @@ if(repositoryId!=null && repositoryId!="" && repositoryId!=undefined){
   repositoryIdField.value = repositoryId;
 } else {
   repositoryIdField.value = "";
+}
+
+var username = "${USERNAME}";
+var password = "${PASSWORD}";
+var server = "${SERVER}";
+var port = "${PORT}";
+var path = "${PATH}";
+
+if(username==null || username==""){
+  var usernameInput = document.getElementById("username");
+  usernameInput.value = "dummyuser";
+}
+
+if(password==null || password==""){
+  var passwordInput = document.getElementById("password");
+  passwordInput.value = "dummysecret";
+}
+
+var protocol = "${PROTOCOL}";
+var protocolSelect = document.getElementById("protocol");
+if(protocol=="https"){
+  protocolSelect.options[1].selected = true;
+} else {
+  protocolSelect.options[0].selected = true;
+}
+
+if(server==null || server==""){
+  var serverInput = document.getElementById("server");
+  serverInput.value = "localhost";
+}
+
+if(port==null || port==""){
+  var portInput = document.getElementById("port");
+  portInput.value = "9090";
+}
+
+if(path==null || path==""){
+  var pathInput = document.getElementById("path");
+  pathInput.value = "/chemistry-opencmis-server-inmemory-war/atom";
 }
 </script>

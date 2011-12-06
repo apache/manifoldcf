@@ -84,14 +84,17 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   /** Forward to the template to edit the configuration parameters for the job */
   private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
   
-  /** Forward to the jaavscript to check the specification parameters for the job */
+  /** Forward to the javascript to check the specification parameters for the job */
   private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+  
+  /** Forward to the HTML template for rendering hidden fields when the Server tab is not selected */
+  private static final String HIDDEN_CONFIG_FORWARD = "hiddenConfiguration.html";
+  
+  /** Forward to the HTML template for rendering hidden fields when the Lucene Query tab is not selected */
+  private static final String HIDDEN_SPEC_FORWARD = "hiddenSpecification.html";
 
   /** The root node for the Alfresco connector configuration in ManifoldCF */
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
-  
-  /** The Lucene Query parameter */
-  private static final String CONFIG_PARAM_LUCENE_QUERY = "luceneQuery";
 
   /** The Lucene Query label for the configuration tab of the job settings */
   private static final String TAB_LABEL_LUCENE_QUERY = "Lucene Query";
@@ -99,6 +102,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   /** Read activity */
   protected final static String ACTIVITY_READ = "read document";
   
+  /** Alfresco Server configuration tab name */
   private static final String ALFRESCO_SERVER_TAB_NAME = "Server";
 
   /**
@@ -334,7 +338,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        luceneQuery = sn.getAttributeValue(CONFIG_PARAM_LUCENE_QUERY);
+        luceneQuery = sn.getAttributeValue(AlfrescoConfig.LUCENE_QUERY_PARAM);
         break;
       }
       i++;
@@ -523,36 +527,38 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public void outputConfigurationBody(IThreadContext threadContext,
       IHTTPOutput out, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
-
-    String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
-    String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
-    String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
-    String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
-    String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
-    String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
-    
-    if (StringUtils.isEmpty(username))
-      username = StringUtils.EMPTY;
-    if (StringUtils.isEmpty(password))
-      password = StringUtils.EMPTY;
-    if (StringUtils.isEmpty(protocol))
-      protocol = StringUtils.EMPTY;
-    if (StringUtils.isEmpty(server))
-      server = StringUtils.EMPTY;
-    if (StringUtils.isEmpty(port))
-      port = StringUtils.EMPTY;
-    if (StringUtils.isEmpty(path))
-      path = StringUtils.EMPTY;
-
-    parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
-    parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
-    parameters.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
-    parameters.setParameter(AlfrescoConfig.SERVER_PARAM, server);
-    parameters.setParameter(AlfrescoConfig.PORT_PARAM, port);
-    parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
     
     if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
+      String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
+      String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
+      String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
+      String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
+      String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
+      String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
+      
+      if (StringUtils.isEmpty(username))
+        username = StringUtils.EMPTY;
+      if (StringUtils.isEmpty(password))
+        password = StringUtils.EMPTY;
+      if (StringUtils.isEmpty(protocol))
+        protocol = StringUtils.EMPTY;
+      if (StringUtils.isEmpty(server))
+        server = StringUtils.EMPTY;
+      if (StringUtils.isEmpty(port))
+        port = StringUtils.EMPTY;
+      if (StringUtils.isEmpty(path))
+        path = StringUtils.EMPTY;
+  
+      parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
+      parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
+      parameters.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
+      parameters.setParameter(AlfrescoConfig.SERVER_PARAM, server);
+      parameters.setParameter(AlfrescoConfig.PORT_PARAM, port);
+      parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
+      
       outputResource(EDIT_CONFIG_FORWARD, out, parameters);  
+    } else {
+      outputResource(HIDDEN_CONFIG_FORWARD, out, parameters);
     }
   }
 
@@ -641,8 +647,8 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
           seenAny = true;
         }
         specificationParams.setParameter(
-            CONFIG_PARAM_LUCENE_QUERY.toUpperCase(),
-            sn.getAttributeValue(CONFIG_PARAM_LUCENE_QUERY));
+            AlfrescoConfig.LUCENE_QUERY_PARAM.toUpperCase(),
+            sn.getAttributeValue(AlfrescoConfig.LUCENE_QUERY_PARAM));
       }
       i++;
     }
@@ -668,7 +674,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public String processSpecificationPost(IPostParameters variableContext,
       DocumentSpecification ds) throws ManifoldCFException {
     String luceneQuery = variableContext
-        .getParameter(CONFIG_PARAM_LUCENE_QUERY);
+        .getParameter(AlfrescoConfig.LUCENE_QUERY_PARAM);
     if (StringUtils.isNotEmpty(luceneQuery)) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -680,16 +686,16 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         i++;
       }
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
-      node.setAttribute(CONFIG_PARAM_LUCENE_QUERY, luceneQuery);
-      variableContext.setParameter(CONFIG_PARAM_LUCENE_QUERY, luceneQuery);
+      node.setAttribute(AlfrescoConfig.LUCENE_QUERY_PARAM, luceneQuery);
+      variableContext.setParameter(AlfrescoConfig.LUCENE_QUERY_PARAM, luceneQuery);
       ds.addChild(ds.getChildCount(), node);
     } else {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
         if (oldNode.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-          variableContext.setParameter(CONFIG_PARAM_LUCENE_QUERY,
-              oldNode.getAttributeValue(CONFIG_PARAM_LUCENE_QUERY));
+          variableContext.setParameter(AlfrescoConfig.LUCENE_QUERY_PARAM,
+              oldNode.getAttributeValue(AlfrescoConfig.LUCENE_QUERY_PARAM));
         }
         i++;
       }
@@ -717,21 +723,23 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public void outputSpecificationBody(IHTTPOutput out,
       DocumentSpecification ds, String tabName) throws ManifoldCFException,
       IOException {
-    if (tabName.equals(TAB_LABEL_LUCENE_QUERY)) {
-      String luceneQuery = StringUtils.EMPTY;
-      int i = 0;
-      while (i < ds.getChildCount()) {
-        SpecificationNode n = ds.getChild(i);
-        if (n.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-          luceneQuery = n.getAttributeValue(CONFIG_PARAM_LUCENE_QUERY);
-          break;
-        }
-        i++;
+    String luceneQuery = StringUtils.EMPTY;
+    int i = 0;
+    while (i < ds.getChildCount()) {
+      SpecificationNode n = ds.getChild(i);
+      if (n.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
+        luceneQuery = n.getAttributeValue(AlfrescoConfig.LUCENE_QUERY_PARAM);
+        break;
       }
-
-      ConfigParams params = new ConfigParams();
-      params.setParameter(CONFIG_PARAM_LUCENE_QUERY, luceneQuery);
+      i++;
+    }
+    
+    ConfigParams params = new ConfigParams();
+    params.setParameter(AlfrescoConfig.LUCENE_QUERY_PARAM, luceneQuery);
+    if (tabName.equals(TAB_LABEL_LUCENE_QUERY)) {
       outputResource(EDIT_SPEC_FORWARD, out, params);
+    } else {
+      outputResource(HIDDEN_SPEC_FORWARD, out, params);
     }
   }
 

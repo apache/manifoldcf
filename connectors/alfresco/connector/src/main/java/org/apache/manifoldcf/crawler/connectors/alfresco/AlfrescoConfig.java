@@ -23,6 +23,9 @@ public class AlfrescoConfig {
   /** Path of the context of the Alfresco Web Services API */
   public static final String PATH_PARAM = "path";
   
+  /** The Lucene Query parameter */
+  public static final String LUCENE_QUERY_PARAM = "luceneQuery";
+  
   //default values
   public static final String USERNAME_DEFAULT_VALUE = "admin";
   public static final String PASSWORD_DEFAULT_VALUE = "admin";

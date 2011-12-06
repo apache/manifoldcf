@@ -72,16 +72,6 @@ import org.apache.manifoldcf.crawler.system.Logging;
  */
 public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
-  public static final String CONFIG_PARAM_USERNAME = "username";
-  public static final String CONFIG_PARAM_PASSWORD = "password";
-  public static final String CONFIG_PARAM_ENDPOINT = "endpoint";
-  public static final String CONFIG_PARAM_REPOSITORY_ID = "repositoryId";
-  public static final String CONFIG_PARAM_CMIS_QUERY = "cmisQuery";
-  public static final String CONFIG_PARAM_BINDING = "binding";
-  
-  private static final String BINDING_ATOM_VALUE = "atom";
-  private static final String BINDING_WS_VALUE = "ws";
-
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
   private static final String TAB_LABEL_CMIS_QUERY = "CMIS Query";
 
@@ -93,13 +83,29 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ssZ");
   
+  /** Forward to the HTML template to view the configuration parameters */
   private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
+  
+  /** Forward to the HTML template to edit the configuration parameters */
   private static final String EDIT_CONFIG_FORWARD = "editConfiguration.html";
+  
+  /** Forward to the javascript to check the configuration parameters */
   private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
   
+  /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  
+  /** Forward to the template to edit the configuration parameters for the job */
   private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
+  
+  /** Forward to the javascript to check the specification parameters for the job */
   private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+  
+  /** Forward to the HTML template for rendering hidden fields when the Server tab is not selected */
+  private static final String HIDDEN_CONFIG_FORWARD = "hiddenConfiguration.html";
+  
+  /** Forward to the HTML template for rendering hidden fields when the CMIS Query tab is not selected */
+  private static final String HIDDEN_SPEC_FORWARD = "hiddenSpecification.html";
   
   private static final String CMIS_SERVER_TAB_NAME = "Server";
 
@@ -110,7 +116,19 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected String username = null;
   protected String password = null;
-  protected String endpoint = null;
+  
+  /** Endpoint protocol */
+  protected String protocol = null;
+  
+  /** Endpoint server name */
+  protected String server = null;
+  
+  /** Endpoint port */
+  protected String port = null;
+  
+  /** Endpoint context path of the Alfresco webapp */
+  protected String path = null;
+  
   protected String repositoryId = null;
   protected String binding = null;
 
@@ -122,18 +140,35 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
 
+  /**
+   * Constructor
+   */
   public CmisRepositoryConnector() {
     super();
   }
 
+  /** 
+   * Return the list of activities that this connector supports (i.e. writes into the log).
+   * @return the list.
+   */
   @Override
   public String[] getActivitiesList() {
     return new String[] { ACTIVITY_FETCH };
   }
 
+  /** Get the bin name strings for a document identifier.  The bin name describes the queue to which the
+   * document will be assigned for throttling purposes.  Throttling controls the rate at which items in a
+   * given queue are fetched; it does not say anything about the overall fetch rate, which may operate on
+   * multiple queues or bins.
+   * For example, if you implement a web crawler, a good choice of bin name would be the server name, since
+   * that is likely to correspond to a real resource that will need real throttle protection.
+   *@param documentIdentifier is the document identifier.
+   *@return the set of bin names.  If an empty array is returned, it is equivalent to there being no request
+   * rate throttling available for this identifier.
+   */
   @Override
   public String[] getBinNames(String documentIdentifier) {
-    return new String[] { endpoint };
+    return new String[] { protocol+"://"+server+":"+port+path };
   }
 
   protected class GetSessionThread extends Thread {
@@ -153,12 +188,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         parameters.put(SessionParameter.USER, username);
         parameters.put(SessionParameter.PASSWORD, password);
 
+        String endpoint = protocol+"://"+server+":"+port+path;
+        
         // connection settings
-        if(BINDING_ATOM_VALUE.equals(binding)){
+        if(CmisConfig.BINDING_ATOM_VALUE.equals(binding)){
           //AtomPub protocol
           parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
           parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
-        } else if(BINDING_WS_VALUE.equals(binding)){
+        } else if(CmisConfig.BINDING_WS_VALUE.equals(binding)){
           //Web Services - SOAP - protocol
           parameters.put(SessionParameter.BINDING_TYPE, BindingType.WEBSERVICES.value());
           parameters.put(SessionParameter.WEBSERVICES_ACL_SERVICE, endpoint+"/ACLService?wsdl");
@@ -255,6 +292,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   }
 
+  /** 
+   * Close the connection.  Call this before discarding the connection.
+   */
   @Override
   public void disconnect() throws ManifoldCFException {
     if (session != null) {
@@ -293,7 +333,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     username = null;
     password = null;
-    endpoint = null;
+    protocol = null;
+    server = null;
+    port = null;
+    path = null;
+    binding = null;
     repositoryId = null;
 
   }
@@ -303,18 +347,28 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    * repositoryId is not provided in the configuration, the connector will
    * retrieve all the repositories exposed for this endpoint the it will start
    * to use the first one.
+   * @param configParameters is the set of configuration parameters, which
+   * in this case describe the target appliance, basic auth configuration, etc.  (This formerly came
+   * out of the ini file.)
    */
   @Override
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
-    username = params.getParameter(CONFIG_PARAM_USERNAME);
-    password = params.getParameter(CONFIG_PARAM_PASSWORD);
-    endpoint = params.getParameter(CONFIG_PARAM_ENDPOINT);
-    binding = params.getParameter(CONFIG_PARAM_BINDING);
-    if (StringUtils.isNotEmpty(params.getParameter(CONFIG_PARAM_REPOSITORY_ID)))
-      repositoryId = params.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+    username = params.getParameter(CmisConfig.USERNAME_PARAM);
+    password = params.getParameter(CmisConfig.PASSWORD_PARAM);
+    protocol = params.getParameter(CmisConfig.PROTOCOL_PARAM);
+    server = params.getParameter(CmisConfig.SERVER_PARAM);
+    port = params.getParameter(CmisConfig.PORT_PARAM);
+    path = params.getParameter(CmisConfig.PATH_PARAM);
+    
+    binding = params.getParameter(CmisConfig.BINDING_PARAM);
+    if (StringUtils.isNotEmpty(params.getParameter(CmisConfig.REPOSITORY_ID_PARAM)))
+      repositoryId = params.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
   }
 
+  /** Test the connection.  Returns a string describing the connection integrity.
+   *@return the connection's status as a displayable string.
+   */
   @Override
   public String check() throws ManifoldCFException {
     try {
@@ -327,29 +381,42 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  /** Set up a session */
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
       // Check for parameter validity
       
       if (StringUtils.isEmpty(binding))
-        throw new ManifoldCFException("Parameter " + CONFIG_PARAM_BINDING
+        throw new ManifoldCFException("Parameter " + CmisConfig.BINDING_PARAM
             + " required but not set");
       
       if (StringUtils.isEmpty(username))
-        throw new ManifoldCFException("Parameter " + CONFIG_PARAM_USERNAME
+        throw new ManifoldCFException("Parameter " + CmisConfig.USERNAME_PARAM
             + " required but not set");
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("CMIS: Username = '" + username + "'");
 
       if (StringUtils.isEmpty(password))
-        throw new ManifoldCFException("Parameter " + CONFIG_PARAM_PASSWORD
+        throw new ManifoldCFException("Parameter " + CmisConfig.PASSWORD_PARAM
             + " required but not set");
 
       Logging.connectors.debug("CMIS: Password exists");
 
-      if (StringUtils.isEmpty(endpoint))
-        throw new ManifoldCFException("Parameter " + CONFIG_PARAM_ENDPOINT
+      if (StringUtils.isEmpty(protocol))
+        throw new ManifoldCFException("Parameter " + CmisConfig.PROTOCOL_PARAM
+            + " required but not set");
+      
+      if (StringUtils.isEmpty(server))
+        throw new ManifoldCFException("Parameter " + CmisConfig.SERVER_PARAM
+            + " required but not set");
+      
+      if (StringUtils.isEmpty(port))
+        throw new ManifoldCFException("Parameter " + CmisConfig.PORT_PARAM
+            + " required but not set");
+      
+      if (StringUtils.isEmpty(path))
+        throw new ManifoldCFException("Parameter " + CmisConfig.PATH_PARAM
             + " required but not set");
 
       long currentTime;
@@ -487,6 +554,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  /** 
+   * This method is periodically called for all connectors that are connected but not
+   * in active use.
+   */
   @Override
   public void poll() throws ManifoldCFException {
     if (lastSessionFetch == -1L)
@@ -528,6 +599,32 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
+   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
+   *
+   * This method can choose to find repository changes that happen only during the specified time interval.
+   * The seeds recorded by this method will be viewed by the framework based on what the
+   * getConnectorModel() method returns.
+   *
+   * It is not a big problem if the connector chooses to create more seeds than are
+   * strictly necessary; it is merely a question of overall work required.
+   *
+   * The times passed to this method may be interpreted for greatest efficiency.  The time ranges
+   * any given job uses with this connector will not overlap, but will proceed starting at 0 and going
+   * to the "current time", each time the job is run.  For continuous crawling jobs, this method will
+   * be called once, when the job starts, and at various periodic intervals as the job executes.
+   *
+   * When a job's specification is changed, the framework automatically resets the seeding start time to 0.  The
+   * seeding start time may also be set to 0 on each job run, depending on the connector model returned by
+   * getConnectorModel().
+   *
+   * Note that it is always ok to send MORE documents rather than less to this method.
+   *@param activities is the interface this method should use to perform whatever framework actions are desired.
+   *@param spec is a document specification (that comes from the job).
+   *@param startTime is the beginning of the time range to consider, inclusive.
+   *@param endTime is the end of the time range to consider, exclusive.
+   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+   */
   @Override
   public void addSeedDocuments(ISeedingActivity activities,
       DocumentSpecification spec, long startTime, long endTime, int jobMode)
@@ -540,7 +637,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        cmisQuery = sn.getAttributeValue(CONFIG_PARAM_CMIS_QUERY);
+        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
         break;
       }
       i++;
@@ -563,6 +660,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   }
 
+  /** 
+   * Get the maximum number of documents to amalgamate together into one batch, for this connector.
+   * @return the maximum number. 0 indicates "unlimited".
+   */
   @Override
   public int getMaxDocumentRequest() {
     return 1;
@@ -650,10 +751,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       ConfigParams parameters) throws ManifoldCFException, IOException {
-    String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
+    String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
     if(StringUtils.isEmpty(repositoryId))
       repositoryId = StringUtils.EMPTY;
-    parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+    parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
     outputResource(VIEW_CONFIG_FORWARD, out, parameters);
   }
 
@@ -688,29 +789,44 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       throws ManifoldCFException, IOException {
     
     if(CMIS_SERVER_TAB_NAME.equals(tabName)){
-      String username = parameters.getParameter(CONFIG_PARAM_USERNAME);
-      String password = parameters.getParameter(CONFIG_PARAM_PASSWORD);
-      String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
-      String repositoryId = parameters.getParameter(CONFIG_PARAM_REPOSITORY_ID);
-      String binding = parameters.getParameter(CONFIG_PARAM_BINDING);
+      String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
+      String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
+      String protocol = parameters.getParameter(CmisConfig.PROTOCOL_PARAM);
+      String server = parameters.getParameter(CmisConfig.SERVER_PARAM);
+      String port = parameters.getParameter(CmisConfig.PORT_PARAM);
+      String path = parameters.getParameter(CmisConfig.PATH_PARAM);
+      String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
+      String binding = parameters.getParameter(CmisConfig.BINDING_PARAM);
       
       if(StringUtils.isEmpty(username))
         username = StringUtils.EMPTY;
       if(StringUtils.isEmpty(password))
         password = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(endpoint))
-        endpoint = StringUtils.EMPTY;
+      if(StringUtils.isEmpty(protocol))
+        protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
+      if(StringUtils.isEmpty(server))
+        server = CmisConfig.SERVER_DEFAULT_VALUE;
+      if(StringUtils.isEmpty(port))
+        port = CmisConfig.PORT_DEFAULT_VALUE;
+      if(StringUtils.isEmpty(path))
+        path = CmisConfig.PATH_DEFAULT_VALUE;
+      
       if(StringUtils.isEmpty(repositoryId))
         repositoryId = StringUtils.EMPTY;
       if(StringUtils.isEmpty(binding))
-        binding = BINDING_ATOM_VALUE;
+        binding = CmisConfig.BINDING_ATOM_VALUE;
       
-      parameters.setParameter(CONFIG_PARAM_USERNAME, username);
-      parameters.setParameter(CONFIG_PARAM_PASSWORD, password);
-      parameters.setParameter(CONFIG_PARAM_ENDPOINT, endpoint);
-      parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
-      parameters.setParameter(CONFIG_PARAM_BINDING, binding);
+      parameters.setParameter(CmisConfig.USERNAME_PARAM, username);
+      parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
+      parameters.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
+      parameters.setParameter(CmisConfig.SERVER_PARAM, server);
+      parameters.setParameter(CmisConfig.PORT_PARAM, port);
+      parameters.setParameter(CmisConfig.PATH_PARAM, path);
+      parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
+      parameters.setParameter(CmisConfig.BINDING_PARAM, binding);
       outputResource(EDIT_CONFIG_FORWARD, out, parameters);
+    } else {
+      outputResource(HIDDEN_CONFIG_FORWARD, out, parameters);
     }
   }
 
@@ -738,24 +854,45 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       IPostParameters variableContext, ConfigParams parameters)
       throws ManifoldCFException {
     
-    String binding = variableContext.getParameter(CONFIG_PARAM_BINDING);
+    String binding = variableContext.getParameter(CmisConfig.BINDING_PARAM);
     if (StringUtils.isNotEmpty(binding))
-      parameters.setParameter(CONFIG_PARAM_BINDING, binding);
+      parameters.setParameter(CmisConfig.BINDING_PARAM, binding);
     
-    String username = variableContext.getParameter(CONFIG_PARAM_USERNAME);
+    String username = variableContext.getParameter(CmisConfig.USERNAME_PARAM);
     if (StringUtils.isNotEmpty(username))
-      parameters.setParameter(CONFIG_PARAM_USERNAME, username);
+      parameters.setParameter(CmisConfig.USERNAME_PARAM, username);
 
-    String password = variableContext.getParameter(CONFIG_PARAM_PASSWORD);
+    String password = variableContext.getParameter(CmisConfig.PASSWORD_PARAM);
     if (StringUtils.isNotEmpty(password))
-      parameters.setParameter(CONFIG_PARAM_PASSWORD, password);
+      parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
 
-    String endpoint = variableContext.getParameter(CONFIG_PARAM_ENDPOINT);
-    if (StringUtils.isNotEmpty(endpoint) && endpoint.length() > 0)
-      parameters.setParameter(CONFIG_PARAM_ENDPOINT, endpoint);
+    String protocol = variableContext.getParameter(CmisConfig.PROTOCOL_PARAM);
+    if (StringUtils.isNotEmpty(protocol)) {
+      parameters.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
+    }
+    
+    String server = variableContext.getParameter(CmisConfig.SERVER_PARAM);
+    if (StringUtils.isNotEmpty(server) && !StringUtils.contains(server, '/')) {
+      parameters.setParameter(CmisConfig.SERVER_PARAM, server);
+    }
+    
+    String port = variableContext.getParameter(CmisConfig.PORT_PARAM);
+    if (StringUtils.isNotEmpty(port)){
+      try {
+        Integer.parseInt(port);
+        parameters.setParameter(CmisConfig.PORT_PARAM, port);
+      } catch (NumberFormatException e) {
+        
+      }
+    }
+    
+    String path = variableContext.getParameter(CmisConfig.PATH_PARAM);
+    if (StringUtils.isNotEmpty(path)) {
+      parameters.setParameter(CmisConfig.PATH_PARAM, path);
+    }
 
-    String repositoryId = variableContext.getParameter(CONFIG_PARAM_REPOSITORY_ID);
-    parameters.setParameter(CONFIG_PARAM_REPOSITORY_ID, repositoryId);
+    String repositoryId = variableContext.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
+    parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
 
     return null;
   }
@@ -783,7 +920,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         if (seenAny == false) {
           seenAny = true;
         }
-        specificationParams.setParameter(CONFIG_PARAM_CMIS_QUERY.toUpperCase(), sn.getAttributeValue(CONFIG_PARAM_CMIS_QUERY));
+        specificationParams.setParameter(
+            CmisConfig.CMIS_QUERY_PARAM.toUpperCase(), sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM));
       }
       i++;
     }
@@ -808,7 +946,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
       DocumentSpecification ds) throws ManifoldCFException {
-    String cmisQuery = variableContext.getParameter(CONFIG_PARAM_CMIS_QUERY);
+    String cmisQuery = variableContext.getParameter(CmisConfig.CMIS_QUERY_PARAM);
     if (StringUtils.isNotEmpty(cmisQuery)) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -820,16 +958,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         i++;
       }
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
-      node.setAttribute(CONFIG_PARAM_CMIS_QUERY, cmisQuery);
-      variableContext.setParameter(CONFIG_PARAM_CMIS_QUERY, cmisQuery);
+      node.setAttribute(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
+      variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
       ds.addChild(ds.getChildCount(), node);
     } else {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
         if (oldNode.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-          variableContext.setParameter(CONFIG_PARAM_CMIS_QUERY,
-              oldNode.getAttributeValue(CONFIG_PARAM_CMIS_QUERY));
+          variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM,
+              oldNode.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM));
         }
         i++;
       }
@@ -857,21 +995,23 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void outputSpecificationBody(IHTTPOutput out,
       DocumentSpecification ds, String tabName) throws ManifoldCFException,
       IOException {
-    if (tabName.equals(TAB_LABEL_CMIS_QUERY)) {
-      String cmisQuery = StringUtils.EMPTY;
-      int i = 0;
-      while (i < ds.getChildCount()) {
-        SpecificationNode n = ds.getChild(i);
-        if (n.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-          cmisQuery = n.getAttributeValue(CONFIG_PARAM_CMIS_QUERY);
-          break;
-        }
-        i++;
+    String cmisQuery = StringUtils.EMPTY;
+    int i = 0;
+    while (i < ds.getChildCount()) {
+      SpecificationNode n = ds.getChild(i);
+      if (n.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
+        cmisQuery = n.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
+        break;
       }
-      
-      ConfigParams params = new ConfigParams();
-      params.setParameter(CONFIG_PARAM_CMIS_QUERY, cmisQuery);
+      i++;
+    }
+    
+    ConfigParams params = new ConfigParams();
+    params.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
+    if (tabName.equals(TAB_LABEL_CMIS_QUERY)) {
       outputResource(EDIT_SPEC_FORWARD, out, params);
+    } else {
+      outputResource(HIDDEN_SPEC_FORWARD, out, params);
     }
   }
 
@@ -897,6 +1037,20 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     outputResource(EDIT_SPEC_HEADER_FORWARD, out, params);
   }
 
+  /** Process a set of documents.
+   * This is the method that should cause each document to be fetched, processed, and the results either added
+   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+   * The document specification allows this class to filter what is done based on the job.
+   *@param documentIdentifiers is the set of document identifiers to process.
+   *@param versions is the corresponding document versions to process, as returned by getDocumentVersions() above.
+   *       The implementation may choose to ignore this parameter and always process the current version.
+   *@param activities is the interface this method should use to queue up new document references
+   * and ingest documents.
+   *@param spec is the document specification.
+   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
+   * should only find other references, and should not actually call the ingestion methods.
+   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+   */
   @SuppressWarnings("unchecked")
   @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions,
@@ -1035,6 +1189,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           
           //ingestion
           String version = document.getVersionLabel();
+          String endpoint = protocol+"://"+server+":"+port+path;
           String documentURI = endpoint+"/"+id+"/"+version;
           activities.ingestDocument(id, version, documentURI, rd);
 

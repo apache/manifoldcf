@@ -42,11 +42,31 @@ function checkConfigForSave()
     editconnection.binding.focus();
     return false;
   }
-  if (editconnection.endpoint.value == "")
+  if (editconnection.server.value ==""){
+	  alert("Server name must be not null");
+	  editconnection.server.focus();
+	  return false;
+  } else if(!editconnection.server.value.indexOf('/')==-1) {
+	  alert("Server name can't contain the character '/'");
+	  editconnection.server.focus();
+	  return false;
+  }
+  
+  if (editconnection.port.value == "")
   {
-    alert("The endpoint must be not null");
-    editconnection.endpoint.focus();
-    return false;
+	alert("The port must be not null");
+	editconnection.port.focus();
+	return false;
+  } else if (!isInteger(editconnection.port.value)){
+	alert("The server port must be a valid integer");
+	editconnection.port.focus();
+	return false;
+  }
+  
+  if(editconnection.path.value == ""){
+	  alert("Path must be not null");
+	  editconnection.path.focus();
+	  return false;
   }
   return true;
 }

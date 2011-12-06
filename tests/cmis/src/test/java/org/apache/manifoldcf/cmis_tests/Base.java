@@ -272,7 +272,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");
     
     //Initialize OpenCMIS Server bindings
-    WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory");
+    WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory-war");
     openCmisServerApi.setParentLoaderPriority(false);
     cmisServer.addHandler(openCmisServerApi);
     
