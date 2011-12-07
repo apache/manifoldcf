@@ -267,7 +267,7 @@ public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     alfrescoServer = new Server(9090);
     alfrescoServer.setStopAtShutdown(true);
 
-    String alfrescoServerWarPath = "../../tests/alfresco-war/target/alfresco.war";
+    String alfrescoServerWarPath = "../../connectors/alfresco/build/alfresco-war/alfresco.war";
 
     if (System.getProperty("alfrescoServerWarPath") != null)
       alfrescoServerWarPath = System.getProperty("alfrescoServerWarPath");

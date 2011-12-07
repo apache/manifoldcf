@@ -29,10 +29,21 @@
         </condition>
     </target>
 
+      <target name="calculate-testcode-condition">
+        <available file="alfresco-war/alfresco.war" property="alfrescoTestcodeStatus"/>
+        <condition property="canTest">
+            <isset property="alfrescoTestcodeStatus"/>
+        </condition>
+    </target>
+
     <target name="precompile-check" depends="calculate-condition" unless="canBuild">
         <echo message="Alfresco Connector cannot be built without alfresco-web-service-client-3.4.e.jar"/>
     </target>
 
+    <target name="pretest-check" depends="calculate-testcode-condition" unless="canTest">
+        <echo message="Alfresco Connector tests cannot be be performed without alfresco.war"/>
+    </target>
+    
     <target name="doc" depends="precompile-check" if="canBuild">
         <mkdir dir="dist/doc"/>
         <javadoc destdir="dist/doc" source="1.5">
@@ -62,6 +73,7 @@
     </target>
 
     <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="build/jar">
                 <include name="mcf-alfresco-connector.jar"/>
@@ -87,9 +99,20 @@
     </target>
 
     <target name="build" depends="lib"/>
-    <target name="build-tests">
-      <mkdir dir="build/test-jar"/>
+    
+    <target name="build-tests" depends="precompile-check" unless="canBuild">
+        <mkdir dir="build/test-jar"/>
     </target>
+    
+    <target name="build-test-materials" depends="pretest-check" unless="canTest">
+        <mkdir dir="build/alfresco-war"/>
+        <copy todir="build/alfresco-war">
+            <fileset dir="alfresco-war">
+                <include name="alfresco*.war"/>
+            </fileset>
+        </copy>
+    </target>
+
     <target name="run-tests"/>
     <target name="run-tests-derby"/>
     <target name="run-tests-postgresql"/>

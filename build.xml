@@ -57,8 +57,8 @@
         <delete dir="connectors/memex/lib"/>
         <ant dir="connectors/meridio" target="clean"/>
         <delete dir="connectors/meridio/lib"/>
-    	<ant dir="connectors/opensearchserver" target="clean"/>
-    	<delete dir="connectors/opensearchserver/lib"/>
+        <ant dir="connectors/opensearchserver" target="clean"/>
+        <delete dir="connectors/opensearchserver/lib"/>
         <ant dir="connectors/nullauthority" target="clean"/>
         <delete dir="connectors/nullauthority/lib"/>
         <ant dir="connectors/nulloutput" target="clean"/>
@@ -322,10 +322,14 @@
         </copy>
     </target>
 
-	<target name="build-alfresco-connector" depends="setup-alfresco-connector">
+    <target name="build-alfresco-connector" depends="setup-alfresco-connector">
         <ant dir="connectors/alfresco" target="build"/>
     </target>
-	
+
+    <target name="build-alfresco-connector-testmaterials" depends="setup-alfresco-connector">
+        <ant dir="connectors/alfresco" target="build-test-materials"/>
+    </target>
+
     <target name="build-cmis-connector" depends="setup-cmis-connector">
         <ant dir="connectors/cmis" target="build"/>
     </target>
@@ -1231,6 +1235,16 @@
         </condition>
     </target>
 
+    <target name="calculate-alfresco-testmaterials-condition" depends="calculate-alfresco-condition,build-alfresco-connector-testmaterials">
+        <available file="connectors/alfresco/build/alfresco-war" type="dir" property="alfresco-testmaterials.exists"/>
+        <condition property="alfresco-testmaterials.include">
+          <and>
+              <isset property="alfresco-testmaterials.exists"/>
+              <isset property="alfresco.include"/>
+          </and>
+        </condition>
+    </target>
+
     <target name="calculate-alfresco-doc-condition" depends="doc-alfresco-connector">
         <available file="connectors/alfresco/dist/doc" type="dir" property="alfresco-doc.exists"/>
         <condition property="alfresco-doc.include">
@@ -2030,10 +2044,10 @@
       </condition>
     </target>
     
-    <target name="calculate-alfresco-tests-condition" depends="calculate-alfresco-condition,calculate-nulloutput-condition">
+    <target name="calculate-alfresco-tests-condition" depends="calculate-alfresco-testmaterials-condition,calculate-nulloutput-condition">
       <condition property="alfresco-tests.include">
         <and>
-            <isset property="alfresco.include"/>
+            <isset property="alfresco-testmaterials.include"/>
             <isset property="nulloutput.include"/>
         </and>
       </condition>
@@ -2664,11 +2678,7 @@
         </junit>
     </target>
     
-    <target name="build-alfresco-test-dependencies" depends="calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <ant antfile="tests/alfresco-war/build.xml"/>
-    </target>
-    
-    <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,build-alfresco-test-dependencies,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3021,7 +3031,7 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-tests-postgresql" depends="compile-alfresco-tests,build-alfresco-test-dependencies,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-tests-postgresql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3370,7 +3380,7 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,build-alfresco-test-dependencies,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3838,7 +3848,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/jcifs" target="download-dependencies"/>
         <ant dir="connectors/jdbc" target="download-dependencies"/>
         <ant dir="connectors/sharepoint" target="download-dependencies"/>
-    	  <ant dir="connectors/alfresco" target="download-dependencies"/>
+        <ant dir="connectors/alfresco" target="download-dependencies"/>
     </target>
 
 </project>
