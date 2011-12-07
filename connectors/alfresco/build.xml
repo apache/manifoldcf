@@ -100,11 +100,11 @@
 
     <target name="build" depends="lib"/>
     
-    <target name="build-tests" depends="precompile-check" unless="canBuild">
+    <target name="build-tests" depends="precompile-check" if="canBuild">
         <mkdir dir="build/test-jar"/>
     </target>
     
-    <target name="build-test-materials" depends="pretest-check" unless="canTest">
+    <target name="build-test-materials" depends="pretest-check" if="canTest">
         <mkdir dir="build/alfresco-war"/>
         <copy todir="build/alfresco-war">
             <fileset dir="alfresco-war">
