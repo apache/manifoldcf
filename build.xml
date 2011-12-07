@@ -313,7 +313,6 @@
             <fileset dir="framework/build/test-jar"/>
         	  <fileset file="lib/h2*.jar"/>
         </copy>
-    	  <ant antfile="tests/alfresco-war/build.xml"/>
     </target>
 
     <target name="setup-cmis-connector-tests" depends="build-tests-framework">
@@ -2348,7 +2347,7 @@
     
     <target name="compile-alfresco-loadtests" depends="build-framework,build-alfresco-connector,build-nulloutput-connector,calculate-alfresco-tests-condition,build-tests-alfresco-connector,build-tests-nulloutput-connector" if="alfresco-tests.include">
         <mkdir dir="build/alfresco-loadtests/classes"/>
-        <javac srcdir="tests/alfresco/src/test/java" destdir="build/alfresco-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="loadtests/alfresco/src/test/java" destdir="build/alfresco-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
           <fileset dir="lib">
             <include name="h2*.jar"/>
@@ -2665,7 +2664,11 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="build-alfresco-test-dependencies" depends="calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant antfile="tests/alfresco-war/build.xml"/>
+    </target>
+    
+    <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,build-alfresco-test-dependencies,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3018,7 +3021,7 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-tests-postgresql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-tests-postgresql" depends="compile-alfresco-tests,build-alfresco-test-dependencies,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3367,7 +3370,7 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,build-alfresco-test-dependencies,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
