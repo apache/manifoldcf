@@ -29,7 +29,7 @@
         
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
-    <artifactId>mcf-tests</artifactId>
+    <artifactId>mcf-test-materials</artifactId>
     <version>0.4.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -37,7 +37,7 @@
 	
 	<artifactId>mcf-alfresco-war-test</artifactId>
 	
-	<name>ManifoldCF - Test - Alfresco WAR</name>
+	<name>ManifoldCF - Test Materials - Alfresco WAR</name>
 	<packaging>war</packaging>
 	<url></url>
 	<description>Alfresco WAR builder</description>
