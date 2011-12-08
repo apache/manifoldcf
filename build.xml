@@ -3787,6 +3787,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/test-output/"/>
           <exclude name="**/test-output-postgresql/"/>
           <exclude name="**/test-output-HSQLDB/"/>
+          <exclude name="**/test-output-HSQLDBext/"/>
           <exclude name="filenet/filenet-api/*.jar"/>
           <exclude name="documentum/dfc/*.jar"/>
           <exclude name="jcifs/jcifs/*.jar"/>
@@ -3815,6 +3816,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/test-output/"/>
           <exclude name="**/test-output-postgresql/"/>
           <exclude name="**/test-output-HSQLDB/"/>
+          <exclude name="**/test-output-HSQLDBext/"/>
           <exclude name="**/web-generated.xml"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
@@ -3824,6 +3826,24 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="src/documentation/skins/common/xslt/html/split.xsl"/>
           <exclude name="src/documentation/skins/lucene/note.txt"/>
+        </fileset>
+        <fileset dir="tests/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/surefire-reports/"/>
+          <exclude name="**/target/"/>
+        </fileset>
+        <fileset dir="loadtests/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/surefire-reports/"/>
+          <exclude name="**/target/"/>
+        </fileset>
+        <fileset dir="test-materials/">
+          <exclude name="**/build/"/>
+          <exclude name="**/dist/"/>
+          <exclude name="**/surefire-reports/"/>
+          <exclude name="**/target/"/>
         </fileset>
       </rat:report>
     </target>
