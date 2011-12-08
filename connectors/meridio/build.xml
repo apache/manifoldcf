@@ -176,6 +176,18 @@
         <copy todir="dist/wsdd" file="meridio-client-config.wsdd"/>
     </target>
     
+    <target name="integration">
+        <mkdir dir="dist/integration"/>
+        <copy todir="dist/integration">
+          <fileset dir="integration">
+              <include name="**/*.Exe"/>
+              <include name="**/*.Ini"/>
+              <include name="**/*.msi"/>
+              <include name="*.txt"/>
+          </fileset>
+        </copy>
+    </target>
+
     <target name="lib" depends="jar-connector,jar-wsdls,jar-xsds,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
@@ -195,7 +207,7 @@
         </copy>
     </target>
 
-    <target name="build" depends="lib,wsdd"/>
+    <target name="build" depends="lib,wsdd,integration"/>
     <target name="build-tests">
       <mkdir dir="build/test-jar"/>
     </target>

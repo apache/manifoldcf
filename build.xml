@@ -1589,6 +1589,10 @@
         <copy todir="dist/wsdd">
             <fileset dir="connectors/meridio/dist/wsdd"/>
         </copy>
+        <mkdir dir="dist/meridio-integration"/>
+        <copy todir="dist/meridio-integration">
+            <fileset dir="connectors/meridio/dist/integration"/>
+        </copy>
     </target>
     
     <target name="deliver-meridio-connector-doc" depends="calculate-meridio-doc-condition" if="meridio-doc.include">
@@ -3796,10 +3800,9 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="livelink/lapi/*.jar"/>
           <exclude name="meridio/wsdls/*.wsdl"/>
           <exclude name="meridio/wsdls/*.xsd"/>
+          <exclude name="meridio/integration/WebService/Setup.Ini"/>
+          <exclude name="meridio/integration/TestHarness/Setup.Ini"/>
           <exclude name="sharepoint/wsdls/*.wsdl"/>
-          <exclude name="meridio/webservice/Test Harness/source code/TestHarness.cs"/>
-          <exclude name="meridio/webservice/Test Harness/Installation files/Setup.Ini"/>
-          <exclude name="meridio/webservice/Web Service/Installation files/Setup.Ini"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
         </fileset>
