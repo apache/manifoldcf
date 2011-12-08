@@ -3798,15 +3798,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="meridio/wsdls/*.xsd"/>
           <exclude name="sharepoint/wsdls/*.wsdl"/>
           <exclude name="meridio/webservice/Test Harness/source code/TestHarness.cs"/>
-          <exclude name="sharepoint/webservice/Web References/SPPermissionsService/Reference.map"/>
-          <exclude name="sharepoint/webservice/Properties/Settings.settings"/>
-          <exclude name="sharepoint/webservice/Properties/AssemblyInfo.cs"/>
           <exclude name="meridio/webservice/Test Harness/Installation files/Setup.Ini"/>
           <exclude name="meridio/webservice/Web Service/Installation files/Setup.Ini"/>
-          <exclude name="sharepoint/webservice/MCPermissionsService.csproj"/>
-          <exclude name="sharepoint/webservice/MetaCarta.snk"/>
-          <exclude name="sharepoint/webservice/Properties/Settings.Designer.cs"/>
-          <exclude name="sharepoint/webservice/Web References/SPPermissionsService/Reference.cs"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
         </fileset>
