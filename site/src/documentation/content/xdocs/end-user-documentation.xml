@@ -990,6 +990,53 @@
                 <br/><br/>
                 <figure src="images/web-configure-access-credentials.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
                 <br/><br/>
+
+                <p>Comparing Page and Session Based Authentication:</p>
+                <table>
+                    <tr><td width="20%"><b>Authentication Detail</b></td><td width="40%"><b>Page Based Authentication</b></td><td width="40%"><b>Session Based Authentication</b></td></tr>
+                    <tr>
+                        <td><b>HTTP Return Codes</b></td>
+                        <td>4xx range, usually 401</td>
+                        <td>Usually 3xx range, often 301 or 302</td>
+                    </tr>
+                    <tr>
+                        <td><b>How it's recognized as a login request</b></td>
+                        <td>4xx range codes always indicate a challenged response</td>
+                        <td>Recognized <b>by patterns</b> in the URL or content.
+                            Manifold must be told what to look for.
+                            3xx range HTTP codes are <b>also used for normal content redirects</b>
+                            so there's no built-in way for Manifold to tell the difference,
+                            that's why it needs regex-based rules.</td>
+                    </tr>
+                    <tr>
+                        <td><b>How Login form is Rendered in normal Web Browser</b></td>
+                        <td>Standard Browser popup dialog.
+                            IE, Firefox, Safari, etc. all have their own specific style.</td>
+                        <td>Server sends custom HTML or Javascript.
+                            Might use red text, might not.
+                            Might show a login form, or maybe a &quot;click here to login&quot; link.
+                            Can be a regular page, or Javascript popup, there's no specific standard.</td>
+                    </tr>
+                    <tr>
+                        <td><b>Login Expiration</b></td>
+                        <td>Usually doesn't expire, depends on server's policy.
+                            If it does expire at all, usually based calendar dates
+                            and not related to this specific login.</td>
+                        <td>Often set to several minutes or hours from the
+                            the last login in current browser session.
+                            A long spider run might need to re-login several times.</td> 
+                    </tr>
+                    <tr>
+                        <td><b>HTTP Header Fields</b></td>
+                        <td>From server: WWW-Authenticate: Basic or NTLM with Realm<br/>
+                            From client: Authorization: Basic or NTLM</td>
+                        <td>From server: Location: and Set-Cookie:<br/>
+                            From client: Cookie:<br/>
+                            Cookie values frequently change.</td>
+                    </tr>
+                </table>
+                <br/>
+
                 <p>Each kind of authentication has its own list of rules.</p>
                 <p>Specifying a page authentication rule requires simply knowing what URLs are protected, and what the proper
                        authentication method and credentials are for those URLs.  Enter a regular expression describing the protected URLs, and select the proper authentication method.
