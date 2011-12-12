@@ -2687,7 +2687,7 @@
     
     <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" maxmemory="512m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2699,6 +2699,9 @@
 		<include name="*.jar"/>
 	      </fileset>
   	      <fileset dir="connectors/alfresco/lib">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/alfresco/alfresco-ws-client">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/jar">
@@ -3070,7 +3073,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-        	<test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-postgresql-output/alfresco"/>
+        	<!-- test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-postgresql-output/alfresco"/ -->
         </junit>
     </target>
 
@@ -3419,7 +3422,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-        	  <test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-HSQLDB-output/alfresco"/>
+        	  <!-- test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-HSQLDB-output/alfresco"/ -->
         	 
         </junit>
     </target>
