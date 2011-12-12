@@ -33,6 +33,7 @@
       <p>The javadoc for the last released version of ManifoldCF and its connectors can be found by following the links below.</p>
       <p><a href="api/framework/index.html">ManifoldCF Framework</a></p>
       <p><a href="api/activedirectory/index.html">Active Directory authority</a></p>
+      <p><a href="api/alfresco/index.html">Alfresco connector</a></p>
       <p><a href="api/cmis/index.html">CMIS authority and connector</a></p>
       <p><a href="api/documentum/index.html">Documentum authority, connector, and support processes</a></p>
       <p><a href="api/filenet/index.html">FileNet connector and support processes</a></p>
