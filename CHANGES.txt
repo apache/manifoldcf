@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-311: added missing licenses
+(Piergiorgio Lucidi)
+
 CONNECTORS-312: Move the Meridio web service into a separate package,
 like we did for the SharePoint 3.0 plugin.
 (Karl Wright)
