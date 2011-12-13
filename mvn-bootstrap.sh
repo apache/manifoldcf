@@ -32,7 +32,7 @@ mvn install:install-file -Dfile=connectors/jcifs/jcifs/jcifs.jar -DgroupId=org.s
 
 mvn install:install-file -Dfile=lib/chemistry-opencmis-server-inmemory-war.war -DgroupId=org.apache.chemistry.opencmis -DartifactId=chemistry-opencmis-server-inmemory-war -Dversion=0.5.0 -Dpackaging=war
 
-mvn install:install-file -Dfile=lib/opensaml-1.0.1.jar -DgroupId=opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/opensaml-1.0.1.jar -DgroupId=org.opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
 mvn install:install-file -Dfile=lib/xmlsec-1.4.1.jar -DgroupId=xml-security -DartifactId=xmlsec -Dversion=1.4.1 -Dpackaging=jar
 
 echo "Dependencies installed"
