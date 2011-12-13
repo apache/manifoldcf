@@ -3,6 +3,13 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-310: Get the alfresco connector to build with Maven on a clean
+system.  This involves pushing some of the dependencies that are not available
+via the current maven repository into the local repository.  I wound up just
+changing the bouncycastle dep to 140 instead of 137, but did not change the
+others because I wasn't sure of the potential effects.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-311: added missing licenses
 (Piergiorgio Lucidi)
 
