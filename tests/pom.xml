@@ -28,7 +28,7 @@
   <name>ManifoldCF - Tests</name>
   <packaging>pom</packaging>
   <modules>
-    <!-- module>alfresco</module --> 
+    <module>alfresco</module> 
     <module>wiki</module>
     <module>cmis</module>
     <module>filesystem</module>

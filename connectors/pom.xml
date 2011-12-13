@@ -47,7 +47,7 @@
     <module>cmis</module>
     <module>opensearchserver</module>
     <module>wiki</module>
-    <!--module>alfresco</module -->
+    <module>alfresco</module>
   </modules>
 
 </project>
