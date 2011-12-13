@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-308: Get the alfresco connector integration tests to run
+under ant.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-310: Get the alfresco connector to build with Maven on a clean
 system.  This involves pushing some of the dependencies that are not available
 via the current maven repository into the local repository.  I wound up just

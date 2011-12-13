@@ -2687,7 +2687,12 @@
     
     <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
-        <junit fork="true" maxmemory="512m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <junit fork="true" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-Xms512m"/>
+            <jvmarg value="-Xmx1024m"/>
+            <jvmarg value="-Xss1024k"/>
+            <jvmarg value="-XX:MaxPermSize=256m"/>
+            <jvmarg value="-XX:NewSize=256m"/>
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
