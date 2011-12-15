@@ -54,6 +54,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   protected int serializableDepth = 0;
   protected boolean isRemote;
   protected String schemaName;
+  protected String schemaNameForQueries;
   
   public DBInterfaceHSQLDB(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
@@ -64,9 +65,15 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     this.userName = userName;
     this.password = password;
     if (this.isRemote)
+    {
       schemaName = databaseName;
+      schemaNameForQueries = databaseName;
+    }
     else
+    {
       schemaName = null;
+      schemaNameForQueries = "PUBLIC";
+    }
   }
 
   protected void setupSchema()
@@ -612,7 +619,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       
       // Now, look for schema
       params.clear();
-      params.add(databaseName);
+      params.add(databaseName.toUpperCase());
       IResultSet schemaResult = masterDatabase.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_SCHEMAS WHERE TABLE_SCHEM=?",params,
         null,null,null,true,-1,null,null);
       if (schemaResult.getRowCount() == 0)
@@ -781,16 +788,17 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   {
     StringBuilder query = new StringBuilder();
     List list = new ArrayList();
+    list.add(schemaNameForQueries.toUpperCase());
     list.add(tableName.toUpperCase());
     query.append("SELECT column_name, is_nullable, data_type, character_maximum_length ")
-      .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema='PUBLIC' AND table_name=?");
+      .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema=? AND table_name=?");
     IResultSet set = performQuery(query.toString(),list,cacheKeys,queryClass);
     if (set.getRowCount() == 0)
       return null;
 
     query = new StringBuilder();
     query.append("SELECT column_name ")
-      .append("FROM INFORMATION_SCHEMA.SYSTEM_PRIMARYKEYS WHERE table_schem='PUBLIC' AND table_name=?");
+      .append("FROM INFORMATION_SCHEMA.SYSTEM_PRIMARYKEYS WHERE table_schem=? AND table_name=?");
     IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
     String primaryKey = null;
     if (primarySet.getRowCount() != 0)
@@ -835,8 +843,9 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     Map<String,IndexDescription> rval = new HashMap<String,IndexDescription>();
 
     String query = "SELECT index_name,column_name,non_unique,ordinal_position FROM INFORMATION_SCHEMA.SYSTEM_INDEXINFO "+
-      "WHERE table_schem='PUBLIC' AND TABLE_NAME=? ORDER BY index_name,ordinal_position ASC";
+      "WHERE table_schem=? AND TABLE_NAME=? ORDER BY index_name,ordinal_position ASC";
     List list = new ArrayList();
+    list.add(schemaNameForQueries.toUpperCase());
     list.add(tableName.toUpperCase());
     IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     String lastIndexName = null;
@@ -896,7 +905,9 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    IResultSet set = performQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='PUBLIC'",null,cacheKeys,queryClass);
+    ArrayList list = new ArrayList();
+    list.add(schemaNameForQueries.toUpperCase());
+    IResultSet set = performQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema=?",list,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
     String columnName = "table_name";
 

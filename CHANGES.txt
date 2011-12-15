@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-320: Fix issues with remote HSQLDB driver having to do
+with schema discovery.
+(Karl Wright)
+
 CONNECTORS-308: Get the alfresco connector integration tests to run
 under ant.
 (Piergiorgio Lucidi, Karl Wright)
