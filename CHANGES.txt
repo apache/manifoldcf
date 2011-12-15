@@ -1,7 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 0.4-dev =====================
+======================= 0.5-dev =====================
+
+======================= Release 0.4 =========================
 
 CONNECTORS-313: Reorganize the dist directory to include a multiprocess
 example as well as a single process example.
