@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-313: Reorganize the dist directory to include a multiprocess
+example as well as a single process example.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-320: Fix issues with remote HSQLDB driver having to do
 with schema discovery.
 (Karl Wright)
