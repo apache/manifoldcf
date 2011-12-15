@@ -232,9 +232,9 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBase
     server.setStopAtShutdown( true );
 
     
-    String crawlerWarPath = "../../framework/dist/web/war/mcf-crawler-ui.war";
-    String authorityserviceWarPath = "../../framework/dist/web/war/mcf-authority-service.war";
-    String apiWarPath = "../../framework/dist/web/war/mcf-api-service.war";
+    String crawlerWarPath = "../../framework/build/war/mcf-crawler-ui.war";
+    String authorityserviceWarPath = "../../framework/build/war/mcf-authority-service.war";
+    String apiWarPath = "../../framework/build/war/mcf-api-service.war";
 
     if (System.getProperty("crawlerWarPath") != null)
     	crawlerWarPath = System.getProperty("crawlerWarPath");
