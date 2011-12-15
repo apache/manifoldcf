@@ -333,24 +333,39 @@
         </copy>
     </target>
     
+    <target name="example-common">
+        <copy todir="dist">
+            <fileset dir="example-common">
+                <include name="connectors.xml"/>
+            </fileset>
+        </copy>
+    </target>
+    
     <target name="war-authority-service" depends="webapp-authority-service">
-        <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
+        <mkdir dir="build/war"/>
+        <war destfile="build/war/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
 
     <target name="war-api-service" depends="webapp-api-service">
-        <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/mcf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service"/>
+        <mkdir dir="build/war"/>
+        <war destfile="build/war/mcf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service"/>
     </target>
 
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
-        <mkdir dir="dist/web/war"/>
-        <war destfile="dist/web/war/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+        <mkdir dir="build/war"/>
+        <war destfile="build/war/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
     </target>
 
-    <target name="processes" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/processes/jar"/>
-        <copy todir="dist/processes/jar">
+    <target name="multi-wars" depends="war-authority-service,war-api-service,war-crawler-ui">
+        <mkdir dir="dist/multiprocess-example/web/war"/>
+        <copy todir="dist/multiprocess-example/web/war">
+            <fileset dir="build/war"/>
+        </copy>
+    </target>
+    
+    <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/multiprocess-example/processes/jar"/>
+        <copy todir="dist/multiprocess-example/processes/jar">
             <fileset dir="lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -373,20 +388,30 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
-        </copy>
-        <copy todir="dist/processes/jar">
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/processes/script"/>
-        <copy todir="dist/processes/script">
+        <mkdir dir="dist/multiprocess-example/processes/script"/>
+        <copy todir="dist/multiprocess-example/processes/script">
             <fileset dir="scripts"/>
         </copy>
     </target>
 
+    <target name="multi-process-example" depends="multi-wars,multi-processes">
+        <copy todir="dist/multiprocess-example">
+            <fileset dir="example-multiprocess">
+                <include name="properties.xml"/>
+                <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-example/logs"/>
+    </target>
+    
     <target name="script-engine" depends="jar-script-engine,jar-core">
         <mkdir dir="dist/script-engine/jar"/>
         <copy todir="dist/script-engine/jar">
@@ -398,8 +423,6 @@
                 <include name="commons-logging*.jar"/>
                 <include name="json.jar"/>
             </fileset>
-        </copy>
-        <copy todir="dist/script-engine/jar">
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
                 <include name="mcf-script-engine.jar"/>
@@ -413,7 +436,7 @@
         </copy>
     </target>
     
-    <target name="example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="single-process-example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="lib">
@@ -444,8 +467,6 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
-        </copy>
-        <copy todir="dist/example/lib">
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
                 <include name="mcf-ui-core.jar"/>
@@ -456,15 +477,15 @@
         </copy>
         <mkdir dir="dist/example/war"/>
         <copy todir="dist/example/war">
-            <fileset dir="dist/web/war"/>
+            <fileset dir="build/war"/>
         </copy>
-        <mkdir dir="dist/example/connector-lib"/>
         <mkdir dir="dist/example/logs"/>
         <copy todir="dist/example">
-            <fileset dir="jetty-example">
+            <fileset dir="example-singleprocess">
                 <include name="properties.xml"/>
-                <include name="connectors.xml"/>
                 <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
             </fileset>
         </copy>
     </target>
@@ -681,7 +702,7 @@
         </java>
     </target>
     
-    <target name="build" depends="processes,war-authority-service,war-crawler-ui,war-api-service,example,script-engine"/>
+    <target name="build" depends="multi-process-example,single-process-example,example-common,script-engine"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql"/>
     
