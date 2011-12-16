@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -80,7 +82,35 @@ public class PropertiesUtils {
       }
     }
     return contentProperties;
-    
+  }
+  
+  /**
+   * Build the Alfresco node identifier
+   * @param properties
+   * @return the node reference for the current document
+   */
+  public static String getNodeReference(NamedValue[] properties){
+    String nodeReference = StringUtils.EMPTY;
+    String storeProtocol = StringUtils.EMPTY;
+    String storeId = StringUtils.EMPTY;
+    String uuid = StringUtils.EMPTY;
+    if(properties!=null){
+      for (NamedValue property : properties) {
+        if(Constants.PROP_STORE_PROTOCOL.equals(property.getName())){
+          storeProtocol = property.getValue();
+        } else if(Constants.PROP_STORE_ID.equals(property.getName())){
+          storeId = property.getValue();
+        } else if(Constants.PROP_NODE_UUID.equals(property.getName())){
+          uuid = property.getValue();
+        }
+      }
+    }
+    if(StringUtils.isNotEmpty(storeProtocol)
+        && StringUtils.isNotEmpty(storeId)
+        && StringUtils.isNotEmpty(uuid)) {
+      nodeReference = storeProtocol+"://"+storeId+"/"+uuid;
+    }
+    return nodeReference;
   }
   
 }

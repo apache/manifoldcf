@@ -1,4 +1,7 @@
+/* $Id$ */
+
 /**
+
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
@@ -149,7 +152,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String[] getBinNames(String documentIdentifier) {
-    return new String[] { protocol+"://"+server+":"+port+path };
+    return new String[] { protocol+"://"+server+":"+port+"/"+path };
   }
 
   /** 
@@ -373,10 +376,11 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       ResultSet resultSet = queryResult.getResultSet();
       ResultSetRow[] resultSetRows = resultSet.getRows();
       for (ResultSetRow resultSetRow : resultSetRows) {
-        activities.addSeedDocument(resultSetRow.getNode().getId());
+          NamedValue[] properties = resultSetRow.getColumns();
+          String nodeReference = PropertiesUtils.getNodeReference(properties);
+          activities.addSeedDocument(nodeReference);
+        }
       }
-    }
-
   }
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
@@ -805,15 +809,16 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
     while (i < documentIdentifiers.length) {
       long startTime = System.currentTimeMillis();
-      String nodeId = documentIdentifiers[i];
+      String nodeReference = documentIdentifiers[i];
+      String uuid = NodeUtils.getUuidFromNodeReference(nodeReference);
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Alfresco: Processing document identifier '"
-            + nodeId + "'");
+            + nodeReference + "'");
 
       Reference reference = new Reference();
       reference.setStore(SearchUtils.STORE);
-      reference.setUuid(nodeId);
+      reference.setUuid(uuid);
 
       Predicate predicate = new Predicate();
       predicate.setStore(SearchUtils.STORE);
@@ -837,9 +842,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         ResultSet resultSet = queryResult.getResultSet();
         ResultSetRow[] resultSetRows = resultSet.getRows();
         for (ResultSetRow resultSetRow : resultSetRows) {
-          String childNodeId = resultSetRow.getNode().getId();
-          activities.addDocumentReference(childNodeId, nodeId,
-              RELATIONSHIP_CHILD);
+          NamedValue[] childProperties = resultSetRow.getColumns();
+          String childNodeReference = PropertiesUtils.getNodeReference(childProperties);
+          activities.addDocumentReference(childNodeReference, nodeReference, RELATIONSHIP_CHILD);
         }
       } 
       
@@ -885,7 +890,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
           session = null;
           
           activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileLength, nodeId, errorCode, errorDesc, null);
+              fileLength, nodeReference, errorCode, errorDesc, null);
         }
         
       }
@@ -912,20 +917,24 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     String[] rval = new String[documentIdentifiers.length];
     int i = 0;
     while (i < rval.length){
+      String nodeReference = documentIdentifiers[i];
+      String uuid = NodeUtils.getUuidFromNodeReference(nodeReference);
+      
       Reference reference = new Reference();
       reference.setStore(SearchUtils.STORE);
-      reference.setUuid(documentIdentifiers[i]);
+      reference.setUuid(uuid);
       
       Predicate predicate = new Predicate();
       predicate.setStore(SearchUtils.STORE);
       predicate.setNodes(new Reference[]{reference});
       
       Node node = NodeUtils.get(username, password, session, predicate);
-      boolean isDocument = ContentModelUtils.isDocument(node.getProperties());
+      NamedValue[] properties = node.getProperties();
+      boolean isDocument = ContentModelUtils.isDocument(properties);
       if(isDocument){
         boolean isVersioned = NodeUtils.isVersioned(node.getAspects());
         if(isVersioned){
-          rval[i] = NodeUtils.getVersionLabel(node.getProperties());
+          rval[i] = NodeUtils.getVersionLabel(properties);
         } else {
           //a document that doesn't contain versioning information will always be processed
           rval[i] = StringUtils.EMPTY;

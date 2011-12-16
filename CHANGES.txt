@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-325: Adeguate the content identifier with the Alfresco node reference
+(Piergiorgio Lucidi)
+
 CONNECTORS-326: Fix the ant image build target to not use build-dev.
 (Karl Wright)
 
