@@ -8,6 +8,10 @@ CONNECTORS-324: Maven build broken
 
 ======================= Release 0.4 =========================
 
+CONNECTORS-315: Include the latest distributed versions of the plugin
+jars.
+(Karl Wright)
+
 CONNECTORS-323: Fix *.sh files in multiprocess-example.
 (Shinichiro Abe)
 
