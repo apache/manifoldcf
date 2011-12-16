@@ -19,8 +19,8 @@
 if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f ./properties.xml ] ; then
         # Set the MCF_HOME variable
-        set MCF_HOME=$PWD
-        processes/script/executecommand org.apache.manifoldcf.agents.AgentStop
+        export MCF_HOME=$PWD
+        processes/script/executecommand.sh org.apache.manifoldcf.agents.AgentStop
         exit $?
         
     else

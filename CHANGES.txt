@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 0.4 =========================
 
+CONNECTORS-323: Fix *.sh files in multiprocess-example.
+(Shinichiro Abe)
+
 CONNECTORS-313: Reorganize the dist directory to include a multiprocess
 example as well as a single process example.
 (Shinichiro Abe, Karl Wright)
