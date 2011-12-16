@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-319: Added a shutdown hook to the AgentRun command,
+so that if you ^C out of it you can rerun.
+(Karl Wright)
+
 CONNECTORS-325: Adeguate the content identifier with the Alfresco node reference
 (Piergiorgio Lucidi)
 

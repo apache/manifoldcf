@@ -44,6 +44,9 @@ public class AgentRun extends BaseAgentsInitializationCommand
       System.err.println("Agent already in use");
       System.exit(1);
     }
+    
+    ManifoldCF.addShutdownHook(new AgentRunShutdownRunner());
+    
     // Set the agents in use signal.
     lockManager.setGlobalFlag(agentInUseSignal);    
     try
@@ -105,4 +108,21 @@ public class AgentRun extends BaseAgentsInitializationCommand
       System.exit(1);
     }
   }
+  
+  protected static class AgentRunShutdownRunner implements IShutdownHook
+  {
+    public AgentRunShutdownRunner()
+    {
+    }
+    
+    public void doCleanup()
+      throws ManifoldCFException
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ILockManager lockManager = LockManagerFactory.make(tc);
+      lockManager.clearGlobalFlag(agentInUseSignal);
+    }
+    
+  }
+  
 }
