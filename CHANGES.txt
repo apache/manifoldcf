@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-324: Maven build broken
+(Piergiorgio Lucidi)
+
 ======================= Release 0.4 =========================
 
 CONNECTORS-323: Fix *.sh files in multiprocess-example.
