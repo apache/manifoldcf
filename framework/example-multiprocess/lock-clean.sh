@@ -19,8 +19,8 @@
 if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f ./properties.xml ] ; then
         # Set the MCF_HOME variable
-        set MCF_HOME=$PWD
-        processes/script/executecommand org.apache.manifoldcf.core.LockClean
+        export MCF_HOME=$PWD
+        processes/script/executecommand.sh org.apache.manifoldcf.core.LockClean
         exit $?
         
     else
