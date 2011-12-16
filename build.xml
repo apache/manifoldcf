@@ -3530,7 +3530,7 @@
       </tar>
     </target>
 
-    <target name="create-bin-zip" depends="build,doc,javadoc,set-version">
+    <target name="create-bin-zip" depends="build-dev,doc,javadoc,set-version">
       <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/connectors/*/lib/"/>
@@ -3546,7 +3546,7 @@
       </zip>
     </target>
     
-    <target name="create-bin-tar" depends="build,doc,javadoc,set-version">
+    <target name="create-bin-tar" depends="build-dev,doc,javadoc,set-version">
       <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/connectors/*/lib/"/>
@@ -3580,7 +3580,7 @@
 
     <target name="load" depends="load-dr,load-hs"/>
 
-    <target name="all" depends="build,javadoc,doc,image,test-dr,test-pg,test-hs"/>
+    <target name="all" depends="build-dev,javadoc,doc,image,test-dr,test-pg,test-hs"/>
 
     <target name="help">
       <echo level="info">

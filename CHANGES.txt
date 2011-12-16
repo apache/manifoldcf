@@ -8,6 +8,9 @@ CONNECTORS-324: Maven build broken
 
 ======================= Release 0.4 =========================
 
+CONNECTORS-326: Fix the ant image build target to not use build-dev.
+(Karl Wright)
+
 CONNECTORS-315: Include the latest distributed versions of the plugin
 jars.
 (Karl Wright)
