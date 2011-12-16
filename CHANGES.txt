@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-325: Adeguate the content identifier with the Alfresco node reference
+(Piergiorgio Lucidi)
+
 CONNECTORS-324: Maven build broken
 (Piergiorgio Lucidi)
 
