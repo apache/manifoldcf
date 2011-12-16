@@ -3,13 +3,13 @@ $Id$
 
 ======================= 0.5-dev =====================
 
-CONNECTORS-325: Adeguate the content identifier with the Alfresco node reference
-(Piergiorgio Lucidi)
-
 CONNECTORS-324: Maven build broken
 (Piergiorgio Lucidi)
 
 ======================= Release 0.4 =========================
+
+CONNECTORS-325: Adeguate the content identifier with the Alfresco node reference
+(Piergiorgio Lucidi)
 
 CONNECTORS-326: Fix the ant image build target to not use build-dev.
 (Karl Wright)
