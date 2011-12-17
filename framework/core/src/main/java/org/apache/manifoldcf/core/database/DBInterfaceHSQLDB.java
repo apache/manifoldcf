@@ -114,6 +114,20 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     return pathString + databaseName;
   }
 
+  /** Initialize the connection (for HSQLDB).
+  * HSQLDB has a great deal of session state, and no way to pool individual connections based on it.
+  * So, every time we pull a connection off the pool we have to execute a number of statements on it
+  * before it can work reliably for us.  This is the abstraction that permits that to happen.
+  *@param connection is the JDBC connection.
+  */
+  protected void initializeConnection(Connection connection)
+    throws ManifoldCFException
+  {
+    super.initializeConnection(connection);
+    // Set the schema
+    executeViaThread(connection,"SET SCHEMA "+schemaNameForQueries.toUpperCase(),null,false,-1,null,null);
+  }
+
   /** Initialize.  This method is called once per JVM instance, in order to set up
   * database communication.
   */
@@ -578,7 +592,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     if (isRemote)
     {
       // Create a connection using the admin credentials
-      Database masterDatabase = new DBInterfaceHSQLDB(context,"administration",adminUserName,adminPassword);
+      Database masterDatabase = new DBInterfaceHSQLDB(context,"PUBLIC",adminUserName,adminPassword);
       ArrayList params = new ArrayList();
       // First, look for user
       params.add(userName);
@@ -599,10 +613,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       if (schemaResult.getRowCount() == 0)
       {
         // Create the schema
-	masterDatabase.executeQuery("CREATE SCHEMA "+databaseName+" AUTHORIZATION "+quoteString(userName),null,
+	masterDatabase.executeQuery("CREATE SCHEMA "+databaseName.toUpperCase()+" AUTHORIZATION "+quoteString(userName),null,
           null,invalidateKeys,null,false,0,null,null);
-	masterDatabase.executeQuery("ALTER USER "+quoteString(userName)+" SET INITIAL SCHEMA "+databaseName,null,
-	  null,invalidateKeys,null,false,0,null,null);
       }
     }
     else
@@ -637,13 +649,13 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     if (isRemote)
     {
       // Drop the schema, then the user
-      Database masterDatabase = new DBInterfaceHSQLDB(context,"administration",adminUserName,adminPassword);
+      Database masterDatabase = new DBInterfaceHSQLDB(context,"PUBLIC",adminUserName,adminPassword);
       try
       {
         // Drop schema
         masterDatabase.executeQuery("DROP SCHEMA "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
         // Drop user
-        masterDatabase.executeQuery("DROP USER "+userName,null,null,invalidateKeys,null,false,0,null,null);
+        masterDatabase.executeQuery("DROP USER "+quoteString(userName),null,null,invalidateKeys,null,false,0,null,null);
       }
       catch (ManifoldCFException e)
       {
