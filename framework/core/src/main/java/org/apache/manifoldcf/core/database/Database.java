@@ -243,6 +243,8 @@ public abstract class Database
       connection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
       try
       {
+        // Initialize the connection (for HSQLDB)
+        initializeConnection(connection);
         // Start a transaction
         startATransaction();
       }
@@ -713,6 +715,8 @@ public abstract class Database
       Connection tempConnection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
       try
       {
+        // Initialize the connection (for HSQLDB)
+        initializeConnection(tempConnection);
         return executeViaThread(tempConnection,query,params,bResults,maxResults,spec,returnLimit);
       }
       catch (ManifoldCFException e)
@@ -733,6 +737,18 @@ public abstract class Database
 
   // These are protected helper methods
 
+  /** Initialize the connection (for HSQLDB).
+  * HSQLDB has a great deal of session state, and no way to pool individual connections based on it.
+  * So, every time we pull a connection off the pool we have to execute a number of statements on it
+  * before it can work reliably for us.  This is the abstraction that permits that to happen.
+  *@param connection is the JDBC connection.
+  */
+  protected void initializeConnection(Connection connection)
+    throws ManifoldCFException
+  {
+    // Default implementation does nothing; override to make special stuff happen.
+  }
+  
   /** Run a query.  No caching is involved at all at this level.
   * @param query String the query string
   * @param bResults boolean whether to load the resultset or not
