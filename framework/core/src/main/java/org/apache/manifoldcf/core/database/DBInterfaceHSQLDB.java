@@ -53,7 +53,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   protected String cacheKey;
   protected int serializableDepth = 0;
   protected boolean isRemote;
-  protected String schemaName;
   protected String schemaNameForQueries;
   
   public DBInterfaceHSQLDB(IThreadContext tc, String databaseName, String userName, String password)
@@ -65,34 +64,9 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     this.userName = userName;
     this.password = password;
     if (this.isRemote)
-    {
-      schemaName = databaseName;
       schemaNameForQueries = databaseName;
-    }
     else
-    {
-      schemaName = null;
       schemaNameForQueries = "PUBLIC";
-    }
-  }
-
-  protected void setupSchema()
-    throws ManifoldCFException
-  {
-    if (schemaName != null)
-    {
-      String localSchemaName = schemaName;
-      schemaName = null;
-      try
-      {
-        performModification("SET SCHEMA "+localSchemaName,null,null);
-        localSchemaName = null;
-      }
-      finally
-      {
-        schemaName = localSchemaName;
-      }
-    }
   }
 
   protected static String getJDBCString(String databaseName)
@@ -627,6 +601,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         // Create the schema
 	masterDatabase.executeQuery("CREATE SCHEMA "+databaseName+" AUTHORIZATION "+quoteString(userName),null,
           null,invalidateKeys,null,false,0,null,null);
+	masterDatabase.executeQuery("ALTER USER "+quoteString(userName)+" SET INITIAL SCHEMA "+databaseName,null,
+	  null,invalidateKeys,null,false,0,null,null);
       }
     }
     else
@@ -765,7 +741,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    setupSchema();
     try
     {
       executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
@@ -932,7 +907,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    setupSchema();
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
@@ -957,7 +931,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
-    setupSchema();
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
@@ -983,7 +956,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
-    setupSchema();
     try
     {
       return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);

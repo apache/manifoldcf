@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-321: Correct a problem with external HSQLDB databases
+where the schema wasn't being reliably set for the session.
+(Fred Toussi, Karl Wright)
+
 CONNECTORS-319: Added a shutdown hook to the AgentRun command,
 so that if you ^C out of it you can rerun.
 (Karl Wright)
