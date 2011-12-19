@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-332: Provide a way of running the web applications on jetty
+from within the multiprocess example.
+(Karl Wright)
+
 CONNECTORS-324: Maven build broken
 (Piergiorgio Lucidi)
 

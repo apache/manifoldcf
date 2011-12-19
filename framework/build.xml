@@ -40,6 +40,7 @@
             <fileset dir="ui-core/src/main/java" includes="**/*.java"/>
             <fileset dir="script-engine/src/main/java" includes="**/*.java"/>
             <fileset dir="jetty-runner/src/main/java" includes="**/*.java"/>
+            <fileset dir="multiprocess-jetty-runner/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
     
@@ -101,6 +102,17 @@
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-multiprocess-jetty-runner" depends="compile-core,compile-agents">
+        <mkdir dir="build/multiprocess-jetty-runner/classes"/>
+        <javac srcdir="multiprocess-jetty-runner/src/main/java" destdir="build/multiprocess-jetty-runner/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="jetty*.jar"/> 
+                </fileset>
             </classpath>
         </javac>
     </target>
@@ -206,6 +218,11 @@
     <target name="jar-jetty-runner" depends="compile-jetty-runner">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-jetty-runner.jar" basedir="build/jetty-runner/classes"/>
+    </target>
+
+    <target name="jar-multiprocess-jetty-runner" depends="compile-multiprocess-jetty-runner">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-multiprocess-jetty-runner.jar" basedir="build/multiprocess-jetty-runner/classes"/>
     </target>
 
     <target name="jar-script-engine" depends="compile-script-engine">
@@ -400,13 +417,24 @@
         </copy>
     </target>
 
-    <target name="multi-process-example" depends="multi-wars,multi-processes">
+    <target name="multi-process-example" depends="jar-multiprocess-jetty-runner,multi-wars,multi-processes">
+        <mkdir dir="dist/multiprocess-example"/>
         <copy todir="dist/multiprocess-example">
             <fileset dir="example-multiprocess">
                 <include name="properties.xml"/>
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-example/lib"/>
+        <copy todir="dist/multiprocess-example/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-multiprocess-jetty-runner.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="jetty*.jar"/>
+                <include name="servlet-api*.jar"/>
             </fileset>
         </copy>
         <mkdir dir="dist/multiprocess-example/logs"/>
