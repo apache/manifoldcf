@@ -124,6 +124,16 @@
         <p>The basic multiprocess command scripts will be placed in the <em>processes/script</em> subdirectory.  The script for executing commands is <em>processes/script/executecommand[.sh|.bat]</em>.
             This script requires two environment variables to be set before execution: JAVA_HOME, and MCF_HOME, which should point to ManifoldCF's home execution directory, where the <em>properties.xml</em> file is found.)</p>
         <section>
+          <title>Building and testing the Alfresco connector</title>
+          <p></p>
+          <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. To install this jar you will need to execute the specific build process using Ant or Maven, the jar will be downloaded from the Alfresco Maven repository.</p>
+          <p>Before building with Ant the alfresco-web-service-client.jar download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
+          <p></p>
+          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder) into the connectors/alfresco/alfresco-war folder. Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
+          <p></p>
+        </section>
+        
+        <section>
           <title>Building the Documentum connector</title>
           <p></p>
           <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar, and dctm.jar into the directory "connectors/documentum/dfc".</p>
