@@ -45,7 +45,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     String server =  ManifoldCF.getProperty(mysqlServerProperty);
     if (server == null || server.length() == 0)
       server = "localhost";
-    return "jdbc:mysql://"+server+"/"+theDatabaseName;
+    return "jdbc:mysql://"+server+"/"+theDatabaseName+"?useUnicode=true&characterEncoding=utf8";
   }
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
