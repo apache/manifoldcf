@@ -298,15 +298,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
   public long countHistoryRows(String connectionName, FilterCriteria criteria)
     throws ManifoldCFException
   {
-    StringBuilder sb = new StringBuilder("SELECT COUNT(*) AS countcol FROM ");
+    StringBuilder sb = new StringBuilder("SELECT ");
     ArrayList list = new ArrayList();
+    sb.append(constructCountClause("*")).append(" AS countcol FROM ");
     sb.append(getTableName());
     addCriteria(sb,list,"",connectionName,criteria,false);
     IResultSet set = performQuery(sb.toString(),list,null,null);
     if (set.getRowCount() < 1)
       throw new ManifoldCFException("Expected at least one row");
     IResultRow row = set.getRow(0);
-    Long value = new Long(row.getValue("countcol").toString());
+    Long value = (Long)row.getValue("countcol");
     return value.longValue();
   }
 
@@ -551,8 +552,9 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     //              GROUP BY t1.resultcodebucket,t1.idbucket
     //                      ORDER BY xxx LIMIT yyy OFFSET zzz
 
-    StringBuilder sb = new StringBuilder("SELECT t1.resultcodebucket,t1.idbucket,COUNT('x') AS eventcount FROM (SELECT ");
+    StringBuilder sb = new StringBuilder("SELECT t1.resultcodebucket,t1.idbucket,");
     ArrayList list = new ArrayList();
+    sb.append(constructCountClause("'x'")).append(" AS eventcount FROM (SELECT ");
     addBucketExtract(sb,list,"",resultCodeField,resultCodeBucket);
     sb.append(" AS resultcodebucket, ");
     addBucketExtract(sb,list,"",entityIdentifierField,idBucket);

@@ -6574,7 +6574,7 @@ public class JobManager implements IJobManager
       ArrayList list = new ArrayList();
       
       sb.append(JobQueue.jobIDField).append(",")
-        .append("CAST(COUNT(").append(JobQueue.docHashField).append(") AS BIGINT) AS doccount")
+        .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
         .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
       
       if (whereClause != null)
@@ -6595,7 +6595,7 @@ public class JobManager implements IJobManager
       list.clear();
       
       sb.append(JobQueue.jobIDField).append(",")
-        .append("CAST(COUNT(").append(JobQueue.docHashField).append(") AS BIGINT) AS doccount")
+        .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
         .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(JobQueue.statusField,new Object[]{
@@ -6623,7 +6623,7 @@ public class JobManager implements IJobManager
       list.clear();
       
       sb.append(JobQueue.jobIDField).append(",")
-        .append("CAST(COUNT(").append(JobQueue.docHashField).append(") AS BIGINT) AS doccount")
+        .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
         .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(JobQueue.statusField,new Object[]{
