@@ -26,6 +26,7 @@
         <delete dir="dist"/>
         <delete dir="test-output"/>
         <delete dir="test-postgresql-output"/>
+        <delete dir="test-mysql-output"/>
         <delete dir="test-HSQLDB-output"/>
         <delete dir="test-HSQLDBext-output"/>
         <ant dir="site" target="clean"/>
@@ -201,6 +202,10 @@
         <ant dir="framework" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-framework" depends="setup-framework">
+        <ant dir="framework" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-framework" depends="setup-framework">
         <ant dir="framework" target="run-tests-HSQLDB"/>
     </target>
@@ -248,6 +253,10 @@
 
     <target name="run-tests-postgresql-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
         <ant dir="connectors/activedirectory" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
+        <ant dir="connectors/activedirectory" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-activedirectory-connector" depends="setup-activedirectory-connector,setup-activedirectory-connector-tests">
@@ -371,12 +380,20 @@
         <ant dir="connectors/alfresco" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests">
+        <ant dir="connectors/alfresco" target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests">
+        <ant dir="connectors/alfresco" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="run-tests-postgresql-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
         <ant dir="connectors/cmis" target="run-tests-postgresql"/>
     </target>
-    
-    <target name="run-tests-HSQLDB-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests">
-        <ant dir="connectors/alfresco" target="run-tests-HSQLDB"/>
+
+    <target name="run-tests-mysql-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
+        <ant dir="connectors/cmis" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-cmis-connector" depends="setup-cmis-connector,setup-cmis-connector-tests">
@@ -424,6 +441,10 @@
         <ant dir="connectors/documentum" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests">
+        <ant dir="connectors/documentum" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-documentum-connector" depends="setup-documentum-connector,setup-documentum-connector-tests">
         <ant dir="connectors/documentum" target="run-tests-HSQLDB"/>
     </target>
@@ -469,6 +490,10 @@
         <ant dir="connectors/filenet" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests">
+        <ant dir="connectors/filenet" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-filenet-connector" depends="setup-filenet-connector,setup-filenet-connector-tests">
         <ant dir="connectors/filenet" target="run-tests-HSQLDB"/>
     </target>
@@ -512,6 +537,10 @@
 
     <target name="run-tests-postgresql-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
         <ant dir="connectors/filesystem" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
+        <ant dir="connectors/filesystem" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-filesystem-connector" depends="setup-filesystem-connector,setup-filesystem-connector-tests">
@@ -562,6 +591,10 @@
         <ant dir="connectors/gts" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests">
+        <ant dir="connectors/gts" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests">
         <ant dir="connectors/gts" target="run-tests-HSQLDB"/>
     </target>
@@ -603,6 +636,10 @@
 
     <target name="run-tests-postgresql-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
         <ant dir="connectors/jcifs" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
+        <ant dir="connectors/jcifs" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-jcifs-connector" depends="setup-jcifs-connector,setup-jcifs-connector-tests">
@@ -650,6 +687,10 @@
         <ant dir="connectors/jdbc" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests">
+        <ant dir="connectors/jdbc" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-jdbc-connector" depends="setup-jdbc-connector,setup-jdbc-connector-tests">
         <ant dir="connectors/jdbc" target="run-tests-HSQLDB"/>
     </target>
@@ -693,6 +734,10 @@
 
     <target name="run-tests-postgresql-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
         <ant dir="connectors/livelink" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
+        <ant dir="connectors/livelink" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-livelink-connector" depends="setup-livelink-connector,setup-livelink-connector-tests">
@@ -740,6 +785,10 @@
         <ant dir="connectors/solr" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests">
+        <ant dir="connectors/solr" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests">
         <ant dir="connectors/solr" target="run-tests-HSQLDB"/>
     </target>
@@ -783,6 +832,10 @@
 
     <target name="run-tests-postgresql-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
         <ant dir="connectors/memex" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
+        <ant dir="connectors/memex" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-memex-connector" depends="setup-memex-connector,setup-memex-connector-tests">
@@ -841,6 +894,10 @@
         <ant dir="connectors/meridio" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests">
+        <ant dir="connectors/meridio" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-meridio-connector" depends="setup-meridio-connector,setup-meridio-connector-tests">
         <ant dir="connectors/meridio" target="run-tests-HSQLDB"/>
     </target>
@@ -884,6 +941,10 @@
 
     <target name="run-tests-postgresql-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
         <ant dir="connectors/opensearchserver" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
+        <ant dir="connectors/opensearchserver" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-opensearchserver-connector" depends="setup-opensearchserver-connector,setup-opensearchserver-connector-tests">
@@ -931,6 +992,10 @@
         <ant dir="connectors/nullauthority" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests">
+        <ant dir="connectors/nullauthority" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-nullauthority-connector" depends="setup-nullauthority-connector,setup-nullauthority-connector-tests">
         <ant dir="connectors/nullauthority" target="run-tests-HSQLDB"/>
     </target>
@@ -976,6 +1041,10 @@
         <ant dir="connectors/nulloutput" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests">
+        <ant dir="connectors/nulloutput" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-nulloutput-connector" depends="setup-nulloutput-connector,setup-nulloutput-connector-tests">
         <ant dir="connectors/nulloutput" target="run-tests-HSQLDB"/>
     </target>
@@ -1019,6 +1088,10 @@
 
     <target name="run-tests-postgresql-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
         <ant dir="connectors/rss" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
+        <ant dir="connectors/rss" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-rss-connector" depends="setup-rss-connector,setup-rss-connector-tests">
@@ -1075,6 +1148,10 @@
         <ant dir="connectors/sharepoint" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests">
+        <ant dir="connectors/sharepoint" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-sharepoint-connector" depends="setup-sharepoint-connector,setup-sharepoint-connector-tests">
         <ant dir="connectors/sharepoint" target="run-tests-HSQLDB"/>
     </target>
@@ -1120,6 +1197,10 @@
         <ant dir="connectors/webcrawler" target="run-tests-postgresql"/>
     </target>
 
+    <target name="run-tests-mysql-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
+        <ant dir="connectors/webcrawler" target="run-tests-mysql"/>
+    </target>
+
     <target name="run-tests-HSQLDB-webcrawler-connector" depends="setup-webcrawler-connector,setup-webcrawler-connector-tests">
         <ant dir="connectors/webcrawler" target="run-tests-HSQLDB"/>
     </target>
@@ -1163,6 +1244,10 @@
 
     <target name="run-tests-postgresql-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests">
         <ant dir="connectors/wiki" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests">
+        <ant dir="connectors/wiki" target="run-tests-mysql"/>
     </target>
 
     <target name="run-tests-HSQLDB-wiki-connector" depends="setup-wiki-connector,setup-wiki-connector-tests">
@@ -2344,7 +2429,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlDerbyTest" todir="test-postgresql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlDerbyTest" todir="test-output/filesystem"/>
 	    
         </junit>
     </target>
@@ -2414,6 +2499,41 @@
             <formatter type="brief" usefile="false"/>
 
             <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlPostgresqlTest" todir="test-postgresql-output/rss"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-rss-loadtests-mysql" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+        <mkdir dir="test-mysql-output/rss"/>
+        <junit fork="true" maxmemory="384m" dir="test-mysql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/rss-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlMySQLTest" todir="test-mysql-output/rss"/>
 
             <!-- MHL -->
         </junit>
@@ -2781,6 +2901,43 @@
         </junit>
     </target>
 
+    <target name="run-filesystem-tests-mysql" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-mysql-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.filesystem_tests.SanityMySQLIT" todir="test-mysql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.APISanityMySQLIT" todir="test-mysql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.HopcountMySQLIT" todir="test-mysql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationMySQLIT" todir="test-mysql-output/filesystem"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-filesystem-loadtests-postgresql" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-postgresql-output/filesystem"/>
         <junit fork="true" maxmemory="256m" dir="test-postgresql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -2816,9 +2973,78 @@
         </junit>
     </target>
 
+    <target name="run-filesystem-loadtests-mysql" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-mysql-output/filesystem"/>
+        <junit fork="true" maxmemory="256m" dir="test-mysql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlMySQLTest" todir="test-mysql-output/filesystem"/>
+            <!-- MHL -->
+            
+        </junit>
+    </target>
+
     <target name="run-wiki-tests-postgresql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-postgresql-output/wiki"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/wiki/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/wiki/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/wiki-tests/classes"/>
+                <pathelement location="tests/wiki/src/test/resources"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-wiki-tests-mysql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <mkdir dir="test-mysql-output/wiki"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2884,10 +3110,45 @@
             
         </junit>
     </target>
-    
+
+    <target name="run-wiki-loadtests-mysql" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <mkdir dir="test-mysql-output/wiki"/>
+        <junit fork="true" maxmemory="256m" dir="test-mysql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/wiki/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/wiki/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/wiki-loadtests/classes"/>
+                <pathelement location="loadtests/wiki/src/test/resources"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+            
+        </junit>
+    </target>
+
     <target name="run-alfresco-tests-postgresql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-output/alfresco"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-postgresql-output/alfresco"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2921,9 +3182,45 @@
         </junit>
     </target>
 
+    <target name="run-alfresco-tests-mysql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <mkdir dir="test-mysql-output/alfresco"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/alfresco/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/alfresco/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/alfresco/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/alfresco-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+        	<!-- test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-mysql-output/alfresco"/ -->
+        </junit>
+    </target>
+
     <target name="run-cmis-tests-postgresql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-postgresql-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2956,7 +3253,43 @@
             <!-- MHL -->
         </junit>
     </target>
-    
+
+    <target name="run-cmis-tests-mysql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-mysql-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-alfresco-loadtests-postgresql" depends="compile-alfresco-loadtests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-postgresql-output/alfresco"/>
         <junit fork="true" maxmemory="1024m" dir="test-postgresql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -2992,9 +3325,80 @@
         </junit>
     </target>
 
+    <target name="run-alfresco-loadtests-mysql" depends="compile-alfresco-loadtests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <mkdir dir="test-mysql-output/alfresco"/>
+        <junit fork="true" maxmemory="1024m" dir="test-mysql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/alfresco/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/alfresco/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/alfresco-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+        </junit>
+    </target>
+
     <target name="run-cmis-loadtests-postgresql" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-postgresql-output/cmis"/>
         <junit fork="true" maxmemory="1024m" dir="test-postgresql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+	    
+        	
+        </junit>
+    </target>
+
+    <target name="run-cmis-loadtests-mysql" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-mysql-output/cmis"/>
+        <junit fork="true" maxmemory="1024m" dir="test-mysql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -3201,6 +3605,39 @@
         </junit>
     </target>
 
+    <target name="run-sharepoint-tests-mysql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <mkdir dir="test-mysql-output/sharepoint"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/sharepoint-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-sharepoint-loadtests-postgresql" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
         <junit fork="true" maxmemory="256m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -3233,7 +3670,40 @@
             <!-- MHL -->
         </junit>
     </target>
-    
+
+    <target name="run-sharepoint-loadtests-mysql" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <mkdir dir="test-mysql-output/sharepoint"/>
+        <junit fork="true" maxmemory="256m" dir="test-mysql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/sharepoint/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/sharepoint-loadtests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-output/alfresco"/>
         <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -3384,7 +3854,7 @@
     </target>
 
     <target name="run-sharepoint-tests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-postgresql-output/sharepoint"/>
+        <mkdir dir="test-HSQLDB-output/sharepoint"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
@@ -3417,7 +3887,7 @@
     </target>
 
     <target name="run-sharepoint-loadtests-HSQLDB" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-postgresql-output/sharepoint"/>
+        <mkdir dir="test-HSQLDB-output/sharepoint"/>
         <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
@@ -3465,6 +3935,12 @@
     
     <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
+    <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector"/>
+    <target name="run-tests-mysql-lgpl-connectors" depends="run-tests-mysql-jcifs-connector"/>
+    <target name="run-tests-mysql-proprietary-connectors" depends="run-tests-mysql-documentum-connector,run-tests-mysql-filenet-connector,run-tests-mysql-livelink-connector,run-tests-mysql-memex-connector,run-tests-mysql-meridio-connector,run-tests-mysql-sharepoint-connector"/>
+    
+    <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
+
     <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
     <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
@@ -3474,6 +3950,8 @@
     <target name="end-to-end-loadtests-derby" depends="run-filesystem-loadtests-derby,run-rss-loadtests-derby,run-wiki-loadtests-derby,run-alfresco-loadtests-derby,run-cmis-loadtests-derby,run-sharepoint-loadtests-derby"/>
 
     <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-rss-loadtests-postgresql,run-wiki-loadtests-postgresql,run-alfresco-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
+
+    <target name="end-to-end-loadtests-mysql" depends="run-filesystem-loadtests-mysql,run-rss-loadtests-mysql,run-wiki-loadtests-mysql,run-alfresco-loadtests-mysql,run-cmis-loadtests-mysql,run-sharepoint-loadtests-mysql"/>
 
     <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
@@ -3569,11 +4047,15 @@
 
     <target name="test-pg" depends="run-tests-postgresql-framework,run-tests-postgresql-open-connectors,run-tests-postgresql-lgpl-connectors,run-tests-postgresql-proprietary-connectors,end-to-end-tests-postgresql"/>
 
+    <target name="test-my" depends="run-tests-mysql-framework,run-tests-mysql-open-connectors,run-tests-mysql-lgpl-connectors,run-tests-mysql-proprietary-connectors,end-to-end-tests-mysql"/>
+
     <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
 
     <target name="load-dr" depends="end-to-end-loadtests-derby"/>
 
     <target name="load-pg" depends="end-to-end-loadtests-postgresql"/>
+
+    <target name="load-my" depends="end-to-end-loadtests-mysql"/>
 
     <target name="load-hs" depends="end-to-end-loadtests-HSQLDB"/>
 
@@ -3596,11 +4078,14 @@ build   - Build executable code, jars, processes, and example,
 javadoc - Create the javadocs, under the 'dist/doc' directory
 test-dr - Compile and run Derby-based tests
 test-pg - Compile and run postgresql-based tests (needs Postgresql)
+test-my - Compile and run MySQL-based tests (needs MySQL)
 test-hs - Compile and run HSQLDB-based tests
 test    - Compile and run all local tests (Derby and HSQLDB)
 load-dr - Compile and run Derby-based load tests
 load-pg - Compile and run postgresql-based load tests (needs
           Postgresql)
+load-my - Compile and run MySQL-based load tests (needs
+          MySQL)
 load-hs - Compile and run HSQLDB-based load tests
 load    - Compile and run all local load tests (Derby and HSQLDB)
 doc     - Build html site, under the 'dist/doc' directory
@@ -3640,6 +4125,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-output-postgresql/"/>
+          <exclude name="**/test-output-mysql/"/>
           <exclude name="**/test-output-HSQLDB/"/>
           <exclude name="**/test-output-HSQLDBext/"/>
           <exclude name="filenet/filenet-api/*.jar"/>
@@ -3661,6 +4147,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
           <exclude name="**/test-output-postgresql/"/>
+          <exclude name="**/test-output-mysql/"/>
           <exclude name="**/test-output-HSQLDB/"/>
           <exclude name="**/test-output-HSQLDBext/"/>
           <exclude name="**/web-generated.xml"/>

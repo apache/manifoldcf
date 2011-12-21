@@ -22,6 +22,7 @@
         <delete dir="dist"/>
         <delete dir="test-output"/>
         <delete dir="test-output-postgresql"/>
+        <delete dir="test-output-mysql"/>
         <delete dir="test-output-HSQLDB"/>
     </target>
     
@@ -109,6 +110,21 @@
         </junit>
     </target>
 
+    <target name="run-tests-mysql" depends="compile-tests">
+        <mkdir dir="test-output-mysql"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-mysql" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityMySQLTest" todir="test-output-mysql"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-tests-HSQLDB" depends="compile-tests">
         <mkdir dir="test-output-HSQLDB"/>
         <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" showoutput="true" haltonfailure="true">
@@ -126,6 +142,6 @@
 
     <target name="build" depends="lib"/>
     <target name="build-tests" depends="jar-tests"/>
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql,run-tests-HSQLDB"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
     
 </project>

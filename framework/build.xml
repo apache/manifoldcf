@@ -22,6 +22,7 @@
         <delete dir="dist"/>
         <delete dir="test-output"/>
         <delete dir="test-output-postgresql"/>
+        <delete dir="test-output-mysql"/>
         <delete dir="test-output-HSQLDB"/>
         <delete dir="test-output-HSQLDBext"/>
     </target>
@@ -675,6 +676,31 @@
         </junit>
     </target>
 
+    <target name="run-tests-mysql" depends="compile-tests">
+        <mkdir dir="test-output-mysql"/>
+        <junit fork="true" maxmemory="128m" dir="test-output-mysql" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
+                <pathelement location="build/core-tests/classes"/>
+                <pathelement location="build/agents-tests/classes"/>
+                <pathelement location="build/pull-agent-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.agents.tests.SanityMySQLTest" todir="test-output-mysql"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityMySQLTest" todir="test-output-mysql"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-tests-HSQLDB" depends="compile-tests">
         <mkdir dir="test-output-HSQLDB"/>
         <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -737,6 +763,6 @@
     
     <target name="build" depends="multi-process-example,single-process-example,example-common,script-engine"/>
     
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-postgresql"/>
+    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     
 </project>
