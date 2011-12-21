@@ -290,7 +290,7 @@ public class OutputConnectionManager extends org.apache.manifoldcf.core.database
           beginTransaction();
           try
           {
-            performLock();
+            //performLock();
             // Notify of a change to the configuration
             ManifoldCF.noteConfigurationChange();
             boolean isNew = object.getIsNew();

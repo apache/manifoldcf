@@ -267,7 +267,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
           beginTransaction();
           try
           {
-            performLock();
+            //performLock();
             ManifoldCF.noteConfigurationChange();
             boolean isNew = object.getIsNew();
             // See whether the instance exists

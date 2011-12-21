@@ -66,12 +66,6 @@ public interface IDBInterface
   */
   public String getDatabaseCacheKey();
 
-  /** Perform a table lock operation.
-  *@param tableName is the name of the table.
-  */
-  public void performLock(String tableName)
-    throws ManifoldCFException;
-
   /** Perform an insert operation.
   *@param tableName is the name of the table.
   *@param invalidateKeys are the cache keys that should be

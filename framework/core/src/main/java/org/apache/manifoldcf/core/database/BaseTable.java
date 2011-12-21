@@ -57,14 +57,6 @@ public class BaseTable
     return dbInterface.getTransactionID();
   }
 
-  /** Perform a table lock operation.
-  */
-  protected void performLock()
-    throws ManifoldCFException
-  {
-    dbInterface.performLock(tableName);
-  }
-
   /** Perform an insert operation.
   *@param invalidateKeys are the cache keys that should be
   * invalidated.

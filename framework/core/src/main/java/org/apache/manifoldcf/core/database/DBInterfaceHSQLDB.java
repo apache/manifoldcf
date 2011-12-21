@@ -192,15 +192,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     return cacheKey;
   }
 
-  /** Perform a table lock operation.
-  *@param tableName is the name of the table.
-  */
-  public void performLock(String tableName)
-    throws ManifoldCFException
-  {
-    performModification("LOCK TABLE "+tableName+" WRITE",null,null);
-  }
-
   /** Perform an insert operation.
   *@param tableName is the name of the table.
   *@param invalidateKeys are the cache keys that should be

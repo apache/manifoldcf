@@ -154,7 +154,7 @@ public class ConnectorManager extends org.apache.manifoldcf.core.database.BaseTa
     beginTransaction();
     try
     {
-      performLock();
+      //performLock();
       // See if already there.
       ArrayList params = new ArrayList();
       params.add(className);

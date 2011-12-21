@@ -672,110 +672,129 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     ssb.add(getJobIDKey(id));
     StringSet invKeys = new StringSet(ssb);
 
-    ICacheHandle ch = cacheManager.enterCache(null,invKeys,getTransactionID());
-    try
+    while (true)
     {
-      beginTransaction();
+      long sleepAmt = 0L;
       try
       {
-        performLock();
-        // See whether the instance exists
-        ArrayList params = new ArrayList();
-        String query = buildConjunctionClause(params,new ClauseDescription[]{
-          new UnitaryClause(idField,id)});
-        IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
-          query+" FOR UPDATE",params,null,null);
-        HashMap values = new HashMap();
-        values.put(descriptionField,jobDescription.getDescription());
-        values.put(outputNameField,jobDescription.getOutputConnectionName());
-        values.put(connectionNameField,jobDescription.getConnectionName());
-        String newOutputXML = jobDescription.getOutputSpecification().toXML();
-        values.put(outputSpecField,newOutputXML);
-        String newXML = jobDescription.getSpecification().toXML();
-        values.put(documentSpecField,newXML);
-        values.put(typeField,typeToString(jobDescription.getType()));
-        values.put(startMethodField,startMethodToString(jobDescription.getStartMethod()));
-        values.put(intervalField,jobDescription.getInterval());
-        values.put(reseedIntervalField,jobDescription.getReseedInterval());
-        values.put(expirationField,jobDescription.getExpiration());
-        values.put(priorityField,new Integer(jobDescription.getPriority()));
-        values.put(hopcountModeField,hopcountModeToString(jobDescription.getHopcountMode()));
-
-        if (set.getRowCount() > 0)
+        ICacheHandle ch = cacheManager.enterCache(null,invKeys,getTransactionID());
+        try
         {
-          // Update
-          // We need to reset the lastCheckTimeField if there are any changes that
-          // could affect what set of documents we allow!!!
-
-          IResultRow row = set.getRow(0);
-
-          boolean isSame = true;
-
-          // Determine whether we need to reset the scan time for documents.
-          // Basically, any change to job parameters that could affect ingestion should clear isSame so that we
-          // relook at all the documents, not just the recent ones.
-
-          if (isSame)
+          beginTransaction();
+          try
           {
-            String oldOutputSpecXML = (String)row.getValue(outputSpecField);
-            if (!oldOutputSpecXML.equals(newOutputXML))
-              isSame = false;
-          }
+            //performLock();
+            // See whether the instance exists
+            ArrayList params = new ArrayList();
+            String query = buildConjunctionClause(params,new ClauseDescription[]{
+              new UnitaryClause(idField,id)});
+            IResultSet set = performQuery("SELECT * FROM "+getTableName()+" WHERE "+
+              query+" FOR UPDATE",params,null,null);
+            HashMap values = new HashMap();
+            values.put(descriptionField,jobDescription.getDescription());
+            values.put(outputNameField,jobDescription.getOutputConnectionName());
+            values.put(connectionNameField,jobDescription.getConnectionName());
+            String newOutputXML = jobDescription.getOutputSpecification().toXML();
+            values.put(outputSpecField,newOutputXML);
+            String newXML = jobDescription.getSpecification().toXML();
+            values.put(documentSpecField,newXML);
+            values.put(typeField,typeToString(jobDescription.getType()));
+            values.put(startMethodField,startMethodToString(jobDescription.getStartMethod()));
+            values.put(intervalField,jobDescription.getInterval());
+            values.put(reseedIntervalField,jobDescription.getReseedInterval());
+            values.put(expirationField,jobDescription.getExpiration());
+            values.put(priorityField,new Integer(jobDescription.getPriority()));
+            values.put(hopcountModeField,hopcountModeToString(jobDescription.getHopcountMode()));
 
-          if (isSame)
+            if (set.getRowCount() > 0)
+            {
+              // Update
+              // We need to reset the lastCheckTimeField if there are any changes that
+              // could affect what set of documents we allow!!!
+
+              IResultRow row = set.getRow(0);
+
+              boolean isSame = true;
+
+              // Determine whether we need to reset the scan time for documents.
+              // Basically, any change to job parameters that could affect ingestion should clear isSame so that we
+              // relook at all the documents, not just the recent ones.
+
+              if (isSame)
+              {
+                String oldOutputSpecXML = (String)row.getValue(outputSpecField);
+                if (!oldOutputSpecXML.equals(newOutputXML))
+                  isSame = false;
+              }
+
+              if (isSame)
+              {
+                String oldDocSpecXML = (String)row.getValue(documentSpecField);
+                if (!oldDocSpecXML.equals(newXML))
+                  isSame = false;
+              }
+
+              if (!isSame)
+                values.put(lastCheckTimeField,null);
+
+              params.clear();
+              query = buildConjunctionClause(params,new ClauseDescription[]{
+                new UnitaryClause(idField,id)});
+              performUpdate(values," WHERE "+query,params,null);
+              scheduleManager.deleteRows(id);
+              hopFilterManager.deleteRows(id);
+            }
+            else
+            {
+              // Insert
+              values.put(startTimeField,null);
+              values.put(lastCheckTimeField,null);
+              values.put(endTimeField,null);
+              values.put(statusField,statusToString(STATUS_INACTIVE));
+              values.put(lastTimeField,new Long(System.currentTimeMillis()));
+              values.put(idField,id);
+              performInsert(values,null);
+            }
+
+            // Write schedule records
+            scheduleManager.writeRows(id,jobDescription);
+            // Write hop filter rows
+            hopFilterManager.writeRows(id,jobDescription);
+
+            cacheManager.invalidateKeys(ch);
+            break;
+          }
+          catch (ManifoldCFException e)
           {
-            String oldDocSpecXML = (String)row.getValue(documentSpecField);
-            if (!oldDocSpecXML.equals(newXML))
-              isSame = false;
+            signalRollback();
+            throw e;
           }
-
-          if (!isSame)
-            values.put(lastCheckTimeField,null);
-
-          params.clear();
-          query = buildConjunctionClause(params,new ClauseDescription[]{
-            new UnitaryClause(idField,id)});
-          performUpdate(values," WHERE "+query,params,null);
-          scheduleManager.deleteRows(id);
-          hopFilterManager.deleteRows(id);
+          catch (Error e)
+          {
+            signalRollback();
+            throw e;
+          }
+          finally
+          {
+            endTransaction();
+          }
         }
-        else
+        finally
         {
-          // Insert
-          values.put(startTimeField,null);
-          values.put(lastCheckTimeField,null);
-          values.put(endTimeField,null);
-          values.put(statusField,statusToString(STATUS_INACTIVE));
-          values.put(lastTimeField,new Long(System.currentTimeMillis()));
-          values.put(idField,id);
-          performInsert(values,null);
+          cacheManager.leaveCache(ch);
         }
-
-        // Write schedule records
-        scheduleManager.writeRows(id,jobDescription);
-        // Write hop filter rows
-        hopFilterManager.writeRows(id,jobDescription);
-
-        cacheManager.invalidateKeys(ch);
       }
       catch (ManifoldCFException e)
       {
-        signalRollback();
-        throw e;
-      }
-      catch (Error e)
-      {
-        signalRollback();
-        throw e;
+        if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+          throw e;
+        sleepAmt = getSleepAmt();
+        continue;
       }
       finally
       {
-        endTransaction();
+        sleepFor(sleepAmt);
       }
-    }
-    finally
-    {
-      cacheManager.leaveCache(ch);
     }
   }
 

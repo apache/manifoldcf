@@ -158,7 +158,7 @@ public class AuthorityConnectorManager extends org.apache.manifoldcf.core.databa
     beginTransaction();
     try
     {
-      performLock();
+      //performLock();
       // See if already there.
       ArrayList params = new ArrayList();
       params.add(className);
