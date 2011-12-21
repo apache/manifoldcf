@@ -249,13 +249,13 @@
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.18</version>
+      <version>${mysql.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>8.4-702.jdbc4</version>
+      <version>${postgresql.version}</version>
       <scope>runtime</scope>
     </dependency>
 
