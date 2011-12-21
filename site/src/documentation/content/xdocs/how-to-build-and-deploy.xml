@@ -475,6 +475,11 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
             <tr><td>org.apache.manifoldcf.derbydatabasepath</td><td>No</td><td>Absolute or relative path to Derby database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseprotocol</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB JDBC protocol; choices are 'hsql', 'http', or 'https'. Default is blank (which means an embedded instance)</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseserver</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB remote server name.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default is a built-in file-based synchronization class.</td></tr>
             <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in PostgreSQL implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby, org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
             <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
