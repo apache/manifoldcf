@@ -260,7 +260,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     queryBuffer.append(columnName);
     queryBuffer.append(' ');
-    queryBuffer.append(cd.getTypeString());
+    queryBuffer.append(mapType(cd.getTypeString()));
     if (forceNull || cd.getIsNull())
       queryBuffer.append(" NULL");
     else
@@ -279,6 +279,19 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       else
         queryBuffer.append(" RESTRICT");
     }
+  }
+
+  /** Map a standard type into a derby type.
+  *@param inputType is the input type.
+  *@return the output type.
+  */
+  protected static String mapType(String inputType)
+  {
+    if (inputType.equalsIgnoreCase("float"))
+      return "DOUBLE";
+    if (inputType.equalsIgnoreCase("blob"))
+      return "LONGBLOB";
+    return inputType;
   }
 
   /** Perform a table alter operation.
@@ -559,10 +572,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       boolean isPrimaryKey = primaryKey.equals(fieldName);
       boolean isNull = isNullable.equals("YES");
       String dataType;
-      if (type.equals("CHARACTER VARYING"))
+      if (type.equals("VARCHAR"))
         dataType = "VARCHAR("+width.toString()+")";
-      else if (type.equals("CLOB"))
-        dataType = "LONGVARCHAR";
+      else if (type.equals("CHAR"))
+        dataType = "CHAR("+width.toString()+")";
+      else if (type.equals("LONGBLOB"))
+        dataType = "BLOB";
+      else if (type.equals("DOUBLE PRECISION"))
+        dataType = "FLOAT";
       else
         dataType = type;
       rval.put(fieldName,new ColumnDescription(type,isPrimaryKey,isNull,null,null,false));

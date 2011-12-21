@@ -1149,6 +1149,7 @@ public abstract class Database
     {
       try
       {
+        //System.out.println("  Column "+rsmd.getColumnLabel(col)+" is of type "+rsmd.getColumnType(col));
         if (isBLOB(rsmd,col))
         {
           // System.out.println("It's a blob!");
@@ -1177,8 +1178,9 @@ public abstract class Database
           java.sql.Date date;
           Clob clob;
           String resultString;
-
-          switch (rsmd.getColumnType(col))
+          
+          int colType = rsmd.getColumnType(col);
+          switch (colType)
           {
           case java.sql.Types.CHAR :
           case java.sql.Types.VARCHAR :
@@ -1188,7 +1190,7 @@ public abstract class Database
             case ResultSpecification.FORM_STRING:
               if ((resultString = rs.getString(col)) != null)
               {
-                if (rsmd.getColumnDisplaySize(col) < resultString.length())
+                if (colType == java.sql.Types.VARCHAR && rsmd.getColumnDisplaySize(col) < resultString.length())
                 {
                   result = resultString.substring(0,rsmd.getColumnDisplaySize(col));
                 }
