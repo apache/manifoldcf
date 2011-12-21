@@ -463,7 +463,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     try
     {
       list.add("utf8");
-      masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ?",list,
+      list.add("utf8_bin");
+      masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ? COLLATE ?",list,
         null,invalidateKeys,null,false,0,null,null);
     } catch (ManifoldCFException e){
       if (e.getErrorCode() != 4)
