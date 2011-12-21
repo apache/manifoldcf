@@ -19,22 +19,33 @@
 package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import java.util.*;
 
 public class DBInterfaceMySQL extends Database implements IDBInterface
 {
   public static final String _rcsid = "@(#)$Id: DBInterfaceMySQL.java 999670 2010-09-21 22:18:19Z kwright $";
 
-  private static final String _url = "jdbc:mysql://localhost/";
-  private static final String _driver = "org.gjt.mm.mysql.Driver";
+  /** MySQL server property */
+  public static final String mysqlServerProperty = "org.apache.manifoldcf.mysql.server";
 
+  private static final String _driver = "com.mysql.jdbc.Driver";
+  
   protected String cacheKey;
 
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,_url+databaseName,_driver,databaseName,userName,password);
+    super(tc,getJdbcUrl(databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+  }
+
+  private static String getJdbcUrl(String theDatabaseName)
+  {
+    String server =  ManifoldCF.getProperty(mysqlServerProperty);
+    if (server == null || server.length() == 0)
+      server = "localhost";
+    return "jdbc:mysql://"+server+"/"+theDatabaseName;
   }
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
@@ -69,7 +80,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public void performLock(String tableName)
     throws ManifoldCFException
   {
-    performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
+    //performModification("LOCK TABLE "+tableName+" IN EXCLUSIVE MODE",null,null);
   }
 
   /** Perform an insert operation.
@@ -239,32 +250,35 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
         queryBuffer.append(',');
       else
         first = false;
-      queryBuffer.append(columnName);
-      queryBuffer.append(' ');
-      queryBuffer.append(cd.getTypeString());
-      if (cd.getIsNull())
-        queryBuffer.append(" NULL");
-      else
-        queryBuffer.append(" NOT NULL");
-      if (cd.getIsPrimaryKey())
-        queryBuffer.append(" PRIMARY KEY");
-      if (cd.getReferenceTable() != null)
-      {
-        queryBuffer.append(" REFERENCES ");
-        queryBuffer.append(cd.getReferenceTable());
-        queryBuffer.append('(');
-        queryBuffer.append(cd.getReferenceColumn());
-        queryBuffer.append(") ON DELETE");
-        if (cd.getReferenceCascade())
-          queryBuffer.append(" CASCADE");
-        else
-          queryBuffer.append(" RESTRICT");
-      }
+      appendDescription(queryBuffer,columnName,cd,false);
     }
     queryBuffer.append(')');
-
     performModification(queryBuffer.toString(),null,invalidateKeys);
+  }
 
+  protected static void appendDescription(StringBuilder queryBuffer, String columnName, ColumnDescription cd, boolean forceNull)
+  {
+    queryBuffer.append(columnName);
+    queryBuffer.append(' ');
+    queryBuffer.append(cd.getTypeString());
+    if (forceNull || cd.getIsNull())
+      queryBuffer.append(" NULL");
+    else
+      queryBuffer.append(" NOT NULL");
+    if (cd.getIsPrimaryKey())
+      queryBuffer.append(" PRIMARY KEY");
+    if (cd.getReferenceTable() != null)
+    {
+      queryBuffer.append(" REFERENCES ");
+      queryBuffer.append(cd.getReferenceTable());
+      queryBuffer.append('(');
+      queryBuffer.append(cd.getReferenceColumn());
+      queryBuffer.append(") ON DELETE");
+      if (cd.getReferenceCascade())
+        queryBuffer.append(" CASCADE");
+      else
+        queryBuffer.append(" RESTRICT");
+    }
   }
 
   /** Perform a table alter operation.
@@ -282,7 +296,61 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    // MHL
+    beginTransaction(TRANSACTION_ENCLOSING);
+    try
+    {
+      if (columnDeleteList != null)
+      {
+        int i = 0;
+        while (i < columnDeleteList.size())
+        {
+          String columnName = columnDeleteList.get(i++);
+          performModification("ALTER TABLE "+tableName+" DROP "+columnName,null,invalidateKeys);
+        }
+      }
+
+      // Do the modifies.  This involves renaming each column to a temp column, then creating a new one, then copying
+      if (columnModifyMap != null)
+      {
+        Iterator<String> iter = columnModifyMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String columnName = iter.next();
+          ColumnDescription cd = columnModifyMap.get(columnName);
+          StringBuilder sb = new StringBuilder();
+          appendDescription(sb,columnName,cd,false);
+          performModification("ALTER TABLE "+tableName+" MODIFY "+sb.toString(),null,invalidateKeys);
+        }
+      }
+
+      // Now, do the adds
+      if (columnMap != null)
+      {
+        Iterator<String> iter = columnMap.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String columnName = iter.next();
+          ColumnDescription cd = columnMap.get(columnName);
+          StringBuilder sb = new StringBuilder();
+          appendDescription(sb,columnName,cd,false);
+          performModification("ALTER TABLE "+tableName+" ADD "+sb.toString(),null,invalidateKeys);
+        }
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
   }
 
   /** Add an index to a table.
@@ -343,11 +411,12 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
 
   /** Remove an index.
   *@param indexName is the name of the index to remove.
+  *@param tableName is the table the index belongs to.
   */
-  public void performRemoveIndex(String indexName)
+  public void performRemoveIndex(String indexName, String tableName)
     throws ManifoldCFException
   {
-    performModification("DROP INDEX "+indexName,null,null);
+    performModification("DROP INDEX "+indexName+" ON "+tableName,null,null);
   }
 
   /** Analyze a table.
@@ -387,19 +456,34 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Connect to super database
+
     Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
+
     List list = new ArrayList();
-    list.add("utf8");
-    masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ?",list,
-      null,invalidateKeys,null,false,0,null,null);
+    try
+    {
+      list.add("utf8");
+      masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ?",list,
+        null,invalidateKeys,null,false,0,null,null);
+    } catch (ManifoldCFException e){
+      if (e.getErrorCode() != 4)
+	throw new ManifoldCFException(e.getMessage());
+    }
     if (userName != null)
     {
-      list.clear();
-      list.add(userName);
-      list.add("localhost");
-      list.add(password);
-      masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO ?@? IDENTIFIED BY ?",list,
-        null,invalidateKeys,null,false,0,null,null);
+      try {
+        list.clear();
+        list.add(userName);
+        list.add("localhost");
+        list.add(password);
+        masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO ?@? IDENTIFIED BY ?",list,
+          null,invalidateKeys,null,false,0,null,null);
+      } catch (ManifoldCFException e){
+        if (e.getErrorCode() != 4)
+          throw new ManifoldCFException(e.getMessage());
+      }
+      //masterDatabase.executeQuery("USE " + databaseName,null,
+      //  null,invalidateKeys,null,false,0,null,null);
     }
   }
 
@@ -414,6 +498,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     // Connect to super database
     Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
     masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
+    //masterDatabase.executeQuery("USE mysql",null,
+    //  null,invalidateKeys,null,false,0,null,null);
   }
 
   /** Perform a general database modification query.
@@ -436,17 +522,48 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public Map<String,ColumnDescription> getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    IResultSet set = performQuery("DESCRIBE "+tableName,null,cacheKeys,queryClass);
+    StringBuilder query = new StringBuilder();
+    List list = new ArrayList();
+    list.add(databaseName.toUpperCase());
+    list.add(tableName.toUpperCase());
+    query.append("SELECT column_name, is_nullable, data_type, character_maximum_length ")
+      .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME=?");
+    IResultSet set = performQuery(query.toString(),list,cacheKeys,queryClass);
+    if (set.getRowCount() == 0)
+      return null;
+
+    query = new StringBuilder();
+    query.append("SELECT t1.column_name ")
+      .append("FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE t1, INFORMATION_SCHEMA.TABLE_CONSTRAINTS t2 ")
+      .append("WHERE t1.CONSTRAINT_NAME=t2.CONSTRAINT_NAME AND t1.TABLE_NAME=t2.TABLE_NAME AND ")
+      .append("t1.TABLE_SCHEMA=t2.TABLE_SCHEMA AND ")
+      .append("t1.TABLE_SCHEMA=? AND t1.TABLE_NAME=? AND t2.CONSTRAINT_TYPE='PRIMARY KEY'");
+    IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
+    String primaryKey = null;
+    if (primarySet.getRowCount() != 0)
+      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase();
+    if (primaryKey == null)
+      primaryKey = "";
+    
     // Digest the result
     Map<String,ColumnDescription> rval = new HashMap<String,ColumnDescription>();
     int i = 0;
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = row.getValue("Field").toString();
-      String type = row.getValue("Type").toString();
-      boolean isNull = row.getValue("Null").toString().equals("YES");
-      boolean isPrimaryKey = row.getValue("Key").toString().equals("PRI");
+      String fieldName = ((String)row.getValue("column_name")).toLowerCase();
+      String type = (String)row.getValue("data_type");
+      Long width = (Long)row.getValue("character_maximum_length");
+      String isNullable = (String)row.getValue("is_nullable");
+      boolean isPrimaryKey = primaryKey.equals(fieldName);
+      boolean isNull = isNullable.equals("YES");
+      String dataType;
+      if (type.equals("CHARACTER VARYING"))
+        dataType = "VARCHAR("+width.toString()+")";
+      else if (type.equals("CLOB"))
+        dataType = "LONGVARCHAR";
+      else
+        dataType = type;
       rval.put(fieldName,new ColumnDescription(type,isPrimaryKey,isNull,null,null,false));
     }
 
@@ -462,8 +579,61 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public Map<String,IndexDescription> getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    // MHL
-    return null;
+    Map<String,IndexDescription> rval = new HashMap<String,IndexDescription>();
+
+    String query = "SELECT index_name,column_name,non_unique,seq_in_index FROM INFORMATION_SCHEMA.STATISTICS "+
+      "WHERE TABLE_SCHEMA=? AND TABLE_NAME=? ORDER BY index_name,seq_in_index ASC";
+    List list = new ArrayList();
+    list.add(databaseName.toUpperCase());
+    list.add(tableName.toUpperCase());
+    IResultSet result = performQuery(query,list,cacheKeys,queryClass);
+    String lastIndexName = null;
+    List<String> indexColumns = null;
+    boolean isUnique = false;
+    int i = 0;
+    while (i < result.getRowCount())
+    {
+      IResultRow row = result.getRow(i++);
+      String indexName = ((String)row.getValue("index_name")).toLowerCase();
+      String columnName = ((String)row.getValue("column_name")).toLowerCase();
+      String nonUnique = row.getValue("non_unique").toString();
+      
+      if (lastIndexName != null && !lastIndexName.equals(indexName))
+      {
+        addIndex(rval,lastIndexName,isUnique,indexColumns);
+        lastIndexName = null;
+        indexColumns = null;
+        isUnique = false;
+      }
+      
+      if (lastIndexName == null)
+      {
+        lastIndexName = indexName;
+        indexColumns = new ArrayList<String>();
+        isUnique = false;
+      }
+      indexColumns.add(columnName);
+      isUnique = nonUnique.equals("0");
+    }
+    
+    if (lastIndexName != null)
+      addIndex(rval,lastIndexName,isUnique,indexColumns);
+    
+    return rval;
+  }
+
+  protected void addIndex(Map rval, String indexName, boolean isUnique, List<String> indexColumns)
+  {
+    if (indexName.equals("primary"))
+      return;
+    String[] columnNames = new String[indexColumns.size()];
+    int i = 0;
+    while (i < columnNames.length)
+    {
+      columnNames[i] = indexColumns.get(i);
+      i++;
+    }
+    rval.put(indexName,new IndexDescription(isUnique,columnNames));
   }
 
   /** Get a database's tables.
@@ -539,6 +709,17 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+  }
+
+  /** Construct a count clause.
+  * On most databases this will be COUNT(col), but on some the count needs to be cast to a BIGINT, so
+  * CAST(COUNT(col) AS BIGINT) will be emitted instead.
+  *@param column is the column string to be counted.
+  *@return the query chunk needed.
+  */
+  public String constructCountClause(String column)
+  {
+    return "COUNT("+column+")";
   }
 
   /** Construct a regular-expression match clause.

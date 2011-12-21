@@ -70,10 +70,6 @@
         <get src="http://repo1.maven.org/maven2/net/sourceforge/jtds/jtds/1.2.4/jtds-1.2.4.jar" dest="jdbc-drivers"/>
     </target>
 
-    <target name="download-mysql">
-        <get src="http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.18/mysql-connector-java-5.1.18.jar" dest="jdbc-drivers"/>
-    </target>
-    
-    <target name="download-dependencies" depends="download-ojdbc,download-jtds,download-mysql"/>
+    <target name="download-dependencies" depends="download-ojdbc,download-jtds"/>
     
 </project>

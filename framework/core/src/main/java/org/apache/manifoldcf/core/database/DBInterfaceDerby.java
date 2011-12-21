@@ -538,8 +538,9 @@ public class DBInterfaceDerby extends Database implements IDBInterface
 
   /** Remove an index.
   *@param indexName is the name of the index to remove.
+  *@param tableName is the table the index belongs to.
   */
-  public void performRemoveIndex(String indexName)
+  public void performRemoveIndex(String indexName, String tableName)
     throws ManifoldCFException
   {
     performModification("DROP INDEX "+indexName,null,null);
@@ -672,7 +673,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
           {
             String indexName = iter.next();
             IndexDescription id = x.get(indexName);
-            performRemoveIndex(indexName);
+            performRemoveIndex(indexName,tableName);
             performAddIndex(indexName,tableName,id);
           }
           break;
@@ -1025,6 +1026,17 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     {
       throw reinterpretException(e);
     }
+  }
+
+  /** Construct a count clause.
+  * On most databases this will be COUNT(col), but on some the count needs to be cast to a BIGINT, so
+  * CAST(COUNT(col) AS BIGINT) will be emitted instead.
+  *@param column is the column string to be counted.
+  *@return the query chunk needed.
+  */
+  public String constructCountClause(String column)
+  {
+    return "CAST(COUNT("+column+") AS bigint)";
   }
 
   /** Construct a regular-expression match clause.

@@ -253,6 +253,7 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
+                <include name="mysql*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
@@ -288,6 +289,7 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
+                <include name="mysql*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
@@ -329,6 +331,7 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
+                <include name="mysql*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
@@ -404,6 +407,7 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
+                <include name="mysql*.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
@@ -494,6 +498,7 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
+                <include name="mysql*.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>

@@ -153,7 +153,7 @@ public class BaseTable
   public void performRemoveIndex(String indexName)
     throws ManifoldCFException
   {
-    dbInterface.performRemoveIndex(indexName);
+    dbInterface.performRemoveIndex(indexName,tableName);
   }
 
   /** Analyze this table.
@@ -316,6 +316,17 @@ public class BaseTable
   public String makeTableKey()
   {
     return CacheKeyFactory.makeTableKey(null,tableName,dbInterface.getDatabaseName());
+  }
+
+  /** Construct a count clause.
+  * On most databases this will be COUNT(col), but on some the count needs to be cast to a BIGINT, so
+  * CAST(COUNT(col) AS BIGINT) will be emitted instead.
+  *@param column is the column string to be counted.
+  *@return the query chunk needed.
+  */
+  public String constructCountClause(String column)
+  {
+    return dbInterface.constructCountClause(column);
   }
 
   /** Construct a regular-expression match clause.
