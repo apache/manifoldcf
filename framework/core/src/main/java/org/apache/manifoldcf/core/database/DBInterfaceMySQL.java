@@ -68,6 +68,9 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     java.sql.SQLException sqlException = (java.sql.SQLException)e;
     String message = sqlException.getMessage();
     String sqlState = sqlException.getSQLState();
+    // Constraint violation
+    if (sqlException instanceof com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException)
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
     // Could not serialize
     if (sqlState != null && sqlState.equals("40001"))
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
