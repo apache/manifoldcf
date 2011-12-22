@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
+import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
 public class DBInterfaceMySQL extends Database implements IDBInterface
@@ -46,6 +47,41 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     if (server == null || server.length() == 0)
       server = "localhost";
     return "jdbc:mysql://"+server+"/"+theDatabaseName+"?useUnicode=true&characterEncoding=utf8";
+  }
+
+  /** Reinterpret an exception tossed by the database layer.  We need to disambiguate the various kinds of exception that
+  * should be thrown.
+  *@param theException is the exception to reinterpret
+  *@return the reinterpreted exception to throw.
+  */
+  protected ManifoldCFException reinterpretException(ManifoldCFException theException)
+  {
+    if (Logging.db.isDebugEnabled())
+      Logging.db.debug("Reinterpreting exception '"+theException.getMessage()+"'.  The exception type is "+Integer.toString(theException.getErrorCode()));
+    if (theException.getErrorCode() != ManifoldCFException.DATABASE_CONNECTION_ERROR)
+      return theException;
+    Throwable e = theException.getCause();
+    if (!(e instanceof java.sql.SQLException))
+      return theException;
+    if (Logging.db.isDebugEnabled())
+      Logging.db.debug("Exception "+theException.getMessage()+" is possibly a transaction abort signal");
+    java.sql.SQLException sqlException = (java.sql.SQLException)e;
+    String message = sqlException.getMessage();
+    String sqlState = sqlException.getSQLState();
+    // Could not serialize
+    if (sqlState != null && sqlState.equals("40001"))
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    // Deadlock detected
+    if (sqlState != null && sqlState.equals("40P01"))
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
+    // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
+    // one could make.)
+    if (sqlState != null && sqlState.equals("23505"))
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    if (Logging.db.isDebugEnabled())
+      Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
+    return theException;
   }
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
@@ -462,34 +498,39 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     // Connect to super database
 
     Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
-
-    List list = new ArrayList();
     try
     {
-      list.add("utf8");
-      list.add("utf8_bin");
-      masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ? COLLATE ?",list,
-        null,invalidateKeys,null,false,0,null,null);
-    } catch (ManifoldCFException e){
-      if (e.getErrorCode() != 4)
-	throw new ManifoldCFException(e.getMessage());
-    }
-    if (userName != null)
-    {
-      try {
-        list.clear();
-        list.add(userName);
-        list.add("localhost");
-        list.add(password);
-        masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO ?@? IDENTIFIED BY ?",list,
+      List list = new ArrayList();
+      try
+      {
+        list.add("utf8");
+        list.add("utf8_bin");
+        masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" CHARACTER SET ? COLLATE ?",list,
           null,invalidateKeys,null,false,0,null,null);
       } catch (ManifoldCFException e){
         if (e.getErrorCode() != 4)
           throw new ManifoldCFException(e.getMessage());
       }
-      //masterDatabase.executeQuery("USE " + databaseName,null,
-      //  null,invalidateKeys,null,false,0,null,null);
+      if (userName != null)
+      {
+        try {
+          list.clear();
+          list.add(userName);
+          list.add("localhost");
+          list.add(password);
+          masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO ?@? IDENTIFIED BY ?",list,
+            null,invalidateKeys,null,false,0,null,null);
+        } catch (ManifoldCFException e){
+          if (e.getErrorCode() != 4)
+            throw new ManifoldCFException(e.getMessage());
+        }
+      }
     }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
+
   }
 
   /** Drop user and database.
@@ -502,9 +543,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     // Connect to super database
     Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
-    masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
-    //masterDatabase.executeQuery("USE mysql",null,
-    //  null,invalidateKeys,null,false,0,null,null);
+    try
+    {
+      masterDatabase.executeQuery("DROP DATABASE "+databaseName,null,null,invalidateKeys,null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Perform a general database modification query.
@@ -515,7 +561,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
-    executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+    try
+    {
+      executeQuery(query,params,null,invalidateKeys,null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Get a table's schema.
@@ -682,7 +735,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
-    return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+    try
+    {
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,-1,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Perform a general "data fetch" query.
@@ -699,7 +759,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
-    return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+    try
+    {
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,null,returnLimit);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Perform a general "data fetch" query.
@@ -717,7 +784,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
   {
-    return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+    try
+    {
+      return executeQuery(query,params,cacheKeys,null,queryClass,true,maxResults,resultSpec,returnLimit);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Construct a count clause.
@@ -909,21 +983,43 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   protected void startATransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+    try
+    {
+      executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
 
   /** Abstract method to commit a transaction */
   protected void commitCurrentTransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"COMMIT",null,false,0,null,null);
+    try
+    {
+      executeViaThread(connection,"COMMIT",null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
   }
   
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
     throws ManifoldCFException
   {
-    executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+    try
+    {
+      executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw reinterpretException(e);
+    }
+
   }
 
 }
