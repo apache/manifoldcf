@@ -768,13 +768,15 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public String constructOffsetLimitClause(int offset, int limit, boolean afterOrderBy)
   {
     StringBuilder sb = new StringBuilder();
-    if (offset != 0)
-      sb.append("OFFSET ").append(Integer.toString(offset));
     if (limit != -1)
     {
-      if (offset != 0)
-        sb.append(" ");
       sb.append("LIMIT ").append(Integer.toString(limit));
+    }
+    if (offset != 0)
+    {
+      if (limit != -1)
+        sb.append(" ");
+      sb.append("OFFSET ").append(Integer.toString(offset));
     }
     return sb.toString();
   }
