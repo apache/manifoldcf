@@ -99,6 +99,13 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     return theException;
   }
 
+  /** Abstract method for mapping a column lookup name from resultset */
+  @Override
+  protected String mapLookupName(String rawColumnName, String rawLabelName)
+  {
+    return rawLabelName;
+  }
+
   /** Initialize.  This method is called once per JVM instance, in order to set up
   * database communication.
   */

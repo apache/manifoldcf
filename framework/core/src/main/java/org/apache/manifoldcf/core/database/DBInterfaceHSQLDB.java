@@ -1449,9 +1449,10 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   }
 
   /** Abstract method for mapping a column name from resultset */
-  protected String mapColumnName(String rawColumnName)
+  @Override
+  protected String mapLabelName(String rawLabelName)
   {
-    return rawColumnName.toLowerCase();
+    return rawLabelName.toLowerCase();
   }
 
 }

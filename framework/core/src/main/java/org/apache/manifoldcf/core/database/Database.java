@@ -112,11 +112,17 @@ public abstract class Database
     throws ManifoldCFException
   {
   }
-  
-  /** Abstract method for mapping a column name from resultset */
-  protected String mapColumnName(String rawColumnName)
+
+  /** Abstract method for mapping a column lookup name from resultset */
+  protected String mapLookupName(String rawColumnName, String rawLabelName)
   {
     return rawColumnName;
+  }
+  
+  /** Abstract method for mapping a label name from resultset */
+  protected String mapLabelName(String rawLabelName)
+  {
+    return rawLabelName;
   }
   
   /** Execute arbitrary database query, and optionally cache the result.  Cached results are
@@ -887,8 +893,9 @@ public abstract class Database
             resultLabels = new String[colcount];
             for (int i = 0; i < colcount; i++)
             {
-              resultCols[i] = rsmd.getColumnName(i+1);
-              resultLabels[i] = mapColumnName(rsmd.getColumnLabel(i+1));
+              String labelName = rsmd.getColumnLabel(i+1);
+              resultCols[i] = mapLookupName(rsmd.getColumnName(i+1),labelName);
+              resultLabels[i] = mapLabelName(labelName);
             }
           }
 
