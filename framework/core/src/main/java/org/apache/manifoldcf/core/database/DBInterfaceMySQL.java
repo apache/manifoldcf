@@ -69,19 +69,31 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     String message = sqlException.getMessage();
     String sqlState = sqlException.getSQLState();
     // Constraint violation
-    if (sqlException instanceof com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException)
+    if (sqlState != null && sqlState.equals("23000"))
+    {
+      //new Exception(message).printStackTrace();
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
     // Could not serialize
     if (sqlState != null && sqlState.equals("40001"))
+    {
+      //new Exception(message).printStackTrace();
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
     // Deadlock detected
     if (sqlState != null && sqlState.equals("40P01"))
+    {
+      //new Exception(message).printStackTrace();
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
     if (sqlState != null && sqlState.equals("23505"))
+    {
+      //new Exception(message).printStackTrace();
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
     if (Logging.db.isDebugEnabled())
       Logging.db.debug("Exception "+theException.getMessage()+" is NOT a transaction abort signal");
     return theException;

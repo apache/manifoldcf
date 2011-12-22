@@ -1190,12 +1190,17 @@ public abstract class Database
             case ResultSpecification.FORM_STRING:
               if ((resultString = rs.getString(col)) != null)
               {
-                if (colType == java.sql.Types.VARCHAR && rsmd.getColumnDisplaySize(col) < resultString.length())
+                // We used to truncate result based on columnDisplaySize, but that (a) didn't seem to be
+                // helping on modern JDBC drivers, and (b) was completely busted on MySQL, so we no longer do it.
+                /*
+                if (rsmd.getColumnDisplaySize(col) < resultString.length())
                 {
                   result = resultString.substring(0,rsmd.getColumnDisplaySize(col));
                 }
                 else
                   result = resultString;
+                */
+                result = resultString;
               }
               break;
             case ResultSpecification.FORM_STREAM:
