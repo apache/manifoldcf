@@ -857,6 +857,17 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     }
   }
 
+  /** Construct a cast to a double value.
+  * On most databases this cast needs to be explicit, but on some it is implicit (and cannot be in fact
+  * specified).
+  *@param value is the value to be cast.
+  *@return the query chunk needed.
+  */
+  public String constructDoubleCastClause(String value)
+  {
+    return "CAST("+value+" AS DOUBLE PRECISION)";
+  }
+
   /** Construct a count clause.
   * On most databases this will be COUNT(col), but on some the count needs to be cast to a BIGINT, so
   * CAST(COUNT(col) AS BIGINT) will be emitted instead.

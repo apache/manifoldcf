@@ -703,7 +703,7 @@ if (maintenanceUnderway == false)
 		while (zz < iterCount)
 		{
 		    IResultRow row = set.getRow(zz);
-		    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(((Long)row.getValue("starttime")).longValue());
+		    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
 		    String resultCode = "";
 		    Object resultCodeObject = row.getValue("resultcode");
 		    if (resultCodeObject != null)

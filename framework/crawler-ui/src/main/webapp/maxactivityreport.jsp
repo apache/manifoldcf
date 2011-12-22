@@ -777,9 +777,9 @@ if (maintenanceUnderway == false)
 			    else
 				idBucketString = idBucketObject.toString();
 
-			    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(new Long(row.getValue("starttime").toString()).longValue());
-			    String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(new Long(row.getValue("endtime").toString()).longValue());
-			    double activityCount = ((Double)row.getValue("activitycount")).doubleValue();
+			    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
+			    String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("endtime")));
+			    double activityCount = Converter.asDouble(row.getValue("activitycount"));
 			    double activityRate = activityCount * 60000.0 / intervalMilliseconds;
 
 %>

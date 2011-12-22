@@ -369,13 +369,11 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
 
     sb.append("t0.bucket AS bucket, t0.").append(startTimeField).append(" AS windowstart, t0.")
       .append(startTimeField).append("+").append(intervalString).append(" AS windowend, ")
-      .append("CAST(((CASE WHEN t0.")
-      .append(startTimeField).append("+").append(intervalString).append("<t1.").append(endTimeField)
-      .append(" THEN t0.").append(startTimeField).append("+").append(intervalString).append(" ELSE t1.")
-      .append(endTimeField).append(" END) - (CASE WHEN t0.").append(startTimeField).append(">t1.").append(startTimeField)
-      .append(" THEN t0.").append(startTimeField).append(" ELSE t1.").append(startTimeField)
-      .append(" END)) AS DOUBLE PRECISION) / CAST((t1.").append(endTimeField).append("-t1.").append(startTimeField)
-      .append(") AS DOUBLE PRECISION)")
+      .append(constructDoubleCastClause("((CASE WHEN t0."+
+	startTimeField+"+"+intervalString+"<t1."+endTimeField+" THEN t0."+
+        startTimeField+"+"+intervalString+" ELSE t1."+endTimeField+" END) - (CASE WHEN t0."+
+        startTimeField+">t1."+startTimeField+" THEN t0."+startTimeField+" ELSE t1."+startTimeField+" END))"))
+      .append(" / ").append(constructDoubleCastClause("(t1."+endTimeField+"-t1."+startTimeField+")"))
       .append(" AS activitycount FROM (SELECT DISTINCT ");
     addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(startTimeField).append(" FROM ").append(getTableName());
@@ -392,15 +390,12 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       .append(" FROM (SELECT ");
     sb.append("t0a.bucket AS bucket, t0a.").append(endTimeField).append("-").append(intervalString).append(" AS windowstart, t0a.")
       .append(endTimeField).append(" AS windowend, ")
-      .append("CAST(((CASE WHEN t0a.")
-      .append(endTimeField).append("<t1a.").append(endTimeField)
-      .append(" THEN t0a.").append(endTimeField).append(" ELSE t1a.")
-      .append(endTimeField).append(" END) - (CASE WHEN t0a.").append(endTimeField).append("-").append(intervalString)
-      .append(">t1a.").append(startTimeField)
-      .append(" THEN t0a.").append(endTimeField).append("-").append(intervalString).append(" ELSE t1a.")
-      .append(startTimeField)
-      .append(" END)) AS DOUBLE PRECISION) / CAST((t1a.").append(endTimeField).append("-t1a.").append(startTimeField)
-      .append(") AS DOUBLE PRECISION)")
+      .append(constructDoubleCastClause("((CASE WHEN t0a."+
+        endTimeField+"<t1a."+endTimeField+" THEN t0a."+endTimeField+
+        " ELSE t1a."+endTimeField+" END) - (CASE WHEN t0a."+
+        endTimeField+"-"+intervalString+">t1a."+startTimeField+
+        " THEN t0a."+endTimeField+"-"+intervalString+" ELSE t1a."+startTimeField+" END))"))
+      .append(" / ").append(constructDoubleCastClause("(t1a."+endTimeField+"-t1a."+startTimeField+")"))
       .append(" AS activitycount FROM (SELECT DISTINCT ");
     addBucketExtract(sb,list,"",entityIdentifierField,idBucket);
     sb.append(" AS bucket,").append(endTimeField).append(" FROM ").append(getTableName());
