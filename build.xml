@@ -2600,7 +2600,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
+                <pathelement location="tests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -2636,7 +2636,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-loadtests/classes"/>
-                <pathelement location="loadtests/wiki/src/test/resources"/>
+                <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3034,7 +3034,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
+                <pathelement location="tests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3068,7 +3068,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
+                <pathelement location="tests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3102,7 +3102,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-loadtests/classes"/>
-                <pathelement location="loadtests/wiki/src/test/resources"/>
+                <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3137,7 +3137,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-loadtests/classes"/>
-                <pathelement location="loadtests/wiki/src/test/resources"/>
+                <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3530,7 +3530,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
+                <pathelement location="tests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3564,7 +3564,7 @@
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/wiki-loadtests/classes"/>
-                <pathelement location="loadtests/wiki/src/test/resources"/>
+                <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
