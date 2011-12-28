@@ -34,6 +34,16 @@ public class BaseUIDerby extends BaseDerby
 {
   protected HTMLTester testerInstance = null;
   
+  protected String[] getAuthorityClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"};
+  }
+  
+  protected String[] getAuthorityNames()
+  {
+    return new String[]{"Null authority"};
+  }
+
   @Before
   public void setupHTMLTester()
     throws Exception

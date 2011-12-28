@@ -1946,11 +1946,12 @@
         </copy>
     </target>
 
-    <target name="calculate-filesystem-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition">
+    <target name="calculate-filesystem-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition,calculate-nullauthority-condition">
       <condition property="filesystem-tests.include">
         <and>
             <isset property="filesystem.include"/>
             <isset property="nulloutput.include"/>
+            <isset property="nullauthority.include"/>
         </and>
       </condition>
     </target>
@@ -2000,7 +2001,7 @@
       </condition>
     </target>
 
-    <target name="compile-filesystem-tests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,calculate-filesystem-tests-condition,build-tests-filesystem-connector,build-tests-nulloutput-connector" if="filesystem-tests.include">
+    <target name="compile-filesystem-tests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,build-nullauthority-connector,calculate-filesystem-tests-condition,build-tests-filesystem-connector,build-tests-nulloutput-connector,build-tests-nullauthority-connector" if="filesystem-tests.include">
         <mkdir dir="build/filesystem-tests/classes"/>
         <javac srcdir="tests/filesystem/src/test/java" destdir="build/filesystem-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
@@ -2026,6 +2027,12 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nullauthority/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nullauthority/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
             </classpath>
@@ -2389,6 +2396,12 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
+	      <fileset dir="connectors/nullauthority/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nullauthority/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
@@ -2424,6 +2437,12 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nullauthority/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nullauthority/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
                 <pathelement location="build/filesystem-tests/classes"/>
