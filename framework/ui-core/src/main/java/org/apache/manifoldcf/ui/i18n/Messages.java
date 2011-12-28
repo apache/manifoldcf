@@ -36,6 +36,85 @@ import org.apache.commons.lang.StringUtils;
 
 public class Messages extends org.apache.manifoldcf.core.i18n.Messages
 {
+  public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.ui.i18n.common";
+
+  public static String getString(Locale locale, String messageKey)
+  {
+    return getString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getAttributeString(Locale locale, String messageKey)
+  {
+    return getAttributeString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getBodyString(Locale locale, String messageKey)
+  {
+    return getBodyString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getAttributeJavascriptString(Locale locale, String messageKey)
+  {
+    return getAttributeJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getBodyJavascriptString(Locale locale, String messageKey)
+  {
+    return getBodyJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getString(Locale locale, String messageKey, Object[] args)
+  {
+    return getString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
+  public static String getAttributeString(Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+  
+  public static String getBodyString(Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
+  public static String getAttributeJavascriptString(Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
+  public static String getBodyJavascriptString(Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
+  // More general methods which allow bundlenames and class loaders to be specified.
+  
+  public static String getString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  public static String getAttributeString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  public static String getBodyString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+  
+  public static String getAttributeJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  public static String getBodyJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
   /** Constructor - do no instantiate
   */
   protected Messages()

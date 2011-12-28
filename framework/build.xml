@@ -54,7 +54,6 @@
                 </fileset>
             </classpath>
         </javac>
-        <native2ascii encoding="UTF-8" src="core/src/main/native2ascii" dest="build/core/classes" includes="**/*.properties" />
     </target>
 
     <target name="compile-ui-core" depends="compile-core">
@@ -67,6 +66,7 @@
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
+        <native2ascii encoding="UTF-8" src="ui-core/src/main/native2ascii" dest="build/ui-core/classes" includes="**/*.properties" />
     </target>
 
     <target name="compile-agents" depends="compile-core">
@@ -206,7 +206,9 @@
 
     <target name="jar-ui-core" depends="compile-ui-core">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-ui-core.jar" basedir="build/ui-core/classes"/>
+        <jar destfile="build/jar/mcf-ui-core.jar">
+          <fileset dir="build/ui-core/classes"/>
+        </jar>
     </target>
 
     <target name="jar-agents" depends="compile-agents">

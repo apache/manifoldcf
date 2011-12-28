@@ -32,8 +32,6 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class Messages
 {
-  public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.core.i18n.common";
-
   // Keep track of messages and bundles we've already complained about.
   
   protected static Set<BundleKey> bundleSet = new HashSet<BundleKey>();
@@ -44,36 +42,6 @@ public class Messages
   */
   protected Messages()
   {
-  }
-  
-  // These four have limited applicability since they are all local to the core jar, which generally does not render
-  // text.
-  
-  public static String getString(Locale locale, String messageKey)
-  {
-    return getString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
-  }
-  
-  public static String getString(Locale locale, String messageKey, Object[] args)
-  {
-    return getString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
-  }
-  
-  // More general methods which allow bundlenames and class loaders to be specified.
-  
-  public static String getString(String bundleName, Locale locale, String messageKey)
-  {
-    return getString(bundleName, locale, messageKey, null);
-  }
-
-  public static String getString(ClassLoader classLoader, String bundleName, Locale locale, String messageKey)
-  {
-    return getString(classLoader, bundleName, locale, messageKey, null);
-  }
-  
-  public static String getString(String bundleName, Locale locale, String messageKey, Object[] args)
-  {
-    return getString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
   }
   
   /** Read a resource as an input stream, given a classloader, path, locale, and resource key.

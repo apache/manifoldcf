@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-338: Move localization to the ui-core jar.
+(Karl Wright)
+
 CONNECTORS-335: Add i18n infrastructure.  This commit also addresses
 some problems found in the CMIS, Alfresco, and OpenSearchServer
 connectors having to do with improper escaping of data values.
