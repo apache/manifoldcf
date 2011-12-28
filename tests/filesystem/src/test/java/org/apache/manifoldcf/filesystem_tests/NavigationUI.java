@@ -38,16 +38,59 @@ public class NavigationUI extends BaseUIDerby
     throws Exception
   {
     testerInstance.newTest();
+    
     HTMLTester.Window window;
     HTMLTester.Link link;
+    HTMLTester.Form form;
+    HTMLTester.Textarea textarea;
+    HTMLTester.Selectbox selectbox;
+    HTMLTester.Button button;
+    
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp",Locale.US);
+    
     // Define an output connection via the UI
     link = window.findLink(testerInstance.createStringDescription("List output connections"));
     link.click();
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("Add an output connection"));
     link.click();
+    // Fill in a name
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
+    textarea.setValue(testerInstance.createStringDescription("MyOutputConnection"));
+    link = window.findLink(testerInstance.createStringDescription("Type tab"));
+    link.click();
+    // Select a type
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
+    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.agents.output.nullconnector.NullConnector"));
+    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
+    button.click();
+    // Visit the Throttling tab
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
+    link.click();
+    // Go back to the Name tab
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Name tab"));
+    link.click();
+    // Now save the connection.
+    window = testerInstance.findWindow(null);
+    button = window.findButton(testerInstance.createStringDescription("Save this output connection"));
+    button.click();
+    
+    
+    // MHL
+    
+    // Delete the output connection
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("List output connections"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Delete MyOutputConnection"));
+    link.click();
     
     testerInstance.executeTest();
   }
