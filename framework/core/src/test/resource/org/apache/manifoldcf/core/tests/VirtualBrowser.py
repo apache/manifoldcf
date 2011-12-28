@@ -963,11 +963,12 @@ class VirtualWindow:
 # alerts/popups
 class VirtualBrowser:
 
-    def __init__( self, username=None, password=None, win_host=None ):
+    def __init__( self, username=None, password=None, win_host=None, language="en-US" ):
         self.window_set = { }
         self.username = username
         self.password = password
         self.win_host = win_host
+        self.language = language
         if win_host == None and username != None:
             # Set up basic auth
             self.urllibopener = urllib2.build_opener( urllib2.HTTPHandler ( ) )
@@ -1063,6 +1064,8 @@ class VirtualBrowser:
     def fetch_data_with_get( self, url ):
         print >> sys.stderr, "Getting url '%s'..." % url
         req = urllib2.Request( url )
+        if self.language != None:
+            req.add_header("Accept-Language", self.language)
         if self.username != None:
             base64string = base64.encodestring('%s:%s' % (self.username, self.password))[:-1]
             req.add_header("Authorization", "Basic %s" % base64string)
@@ -1074,8 +1077,10 @@ class VirtualBrowser:
     # Read a url with post.  Pass the parameters as an array of ( name, value ) tuples.
     def fetch_data_with_post( self, parameters, url ):
         paramstring = urllib.urlencode( parameters, doseq=True )
-        print "Posting url '%s' with parameters '%s'..." % (url, paramstring)
+        print >> sys.stderr, "Posting url '%s' with parameters '%s'..." % (url, paramstring)
         req = urllib2.Request( url, paramstring )
+        if self.language != None:
+            req.add_header("Accept-Language", self.language)
         if self.username != None:
             base64string = base64.encodestring('%s:%s' % (self.username, self.password))[:-1]
             req.add_header("Authorization", "Basic %s" % base64string)
@@ -1090,7 +1095,7 @@ class VirtualBrowser:
         filecount = 0
         if files != None:
             filecount = len(files)
-        print "Multipart posting url '%s' with parameters '%s' and %d files..." % (url, paramstring, filecount)
+        print >> sys.stderr, "Multipart posting url '%s' with parameters '%s' and %d files..." % (url, paramstring, filecount)
 
         # Turn URL into protocol, host, and selector
         urlpieces = url.split("://")
@@ -1128,6 +1133,9 @@ class VirtualBrowser:
 
             # Add cookies by domain
             # MHL
+
+            if self.language != None:
+                h.putheader("Accept-Language", self.language)
 
             # Add basic auth credentials, if needed.
             if self.username != None:

@@ -115,7 +115,7 @@ public class HTMLTester
   public void TesterTest()
     throws Exception
   {
-    newTest();
+    newTest(Locale.US);
     executeTest();
   }
   
@@ -138,7 +138,7 @@ public class HTMLTester
   
   /** Begin a new test.  Call this when we're ready to start building a new UI test.
   */
-  public void newTest()
+  public void newTest(Locale desiredLocale)
     throws Exception
   {
     currentTestFile = new File("test.py");
@@ -154,7 +154,7 @@ public class HTMLTester
     emitLine("if __name__ == '__main__':");
     currentIndentLevel++;
     emitLine("print 'Starting test'");
-    emitLine(virtualBrowserVarName + " = VirtualBrowser.VirtualBrowser()");
+    emitLine(virtualBrowserVarName + " = VirtualBrowser.VirtualBrowser("+quotePythonString(desiredLocale.toString().replace("_","-"))+")");
   }
   
   /** Execute the test.  The virtual browser will be called and will perform the sequence of
@@ -205,10 +205,9 @@ public class HTMLTester
   
   /** Open virtual browser window, and send it to a specified URL.
   *@param url is the desired URL.
-  *@param desiredLocale is the desired locale (which the browser will communicated to the site).
   *@return the window handle.  Use this whenever a window argument is required later.
   */
-  public Window openMainWindow(String url, Locale desiredLocale)
+  public Window openMainWindow(String url)
     throws Exception
   {
     emitLine(virtualBrowserVarName + ".load_main_window(" + quotePythonString(url) + ")");
@@ -618,11 +617,11 @@ public class HTMLTester
         byte[] buffer = new byte[63356];
         while (true)
         {
-          if (abortSignal)
-            break;
           int amt = inputStream.read(buffer);
           if (amt == -1)
           {
+            if (abortSignal)
+              break;
             Thread.yield();
             continue;
           }

@@ -37,7 +37,7 @@ public class NavigationUI extends BaseUIDerby
   public void createConnectionsAndJob()
     throws Exception
   {
-    testerInstance.newTest();
+    testerInstance.newTest(Locale.US);
     
     HTMLTester.Window window;
     HTMLTester.Link link;
@@ -46,7 +46,7 @@ public class NavigationUI extends BaseUIDerby
     HTMLTester.Selectbox selectbox;
     HTMLTester.Button button;
     
-    window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp",Locale.US);
+    window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
     
     // Define an output connection via the UI
     link = window.findLink(testerInstance.createStringDescription("List output connections"));
