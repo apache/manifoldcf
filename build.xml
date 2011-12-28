@@ -4105,6 +4105,8 @@
 
     <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
 
+    <target name="UI" depends="run-filesystem-UI-tests-derby"/>
+    
     <target name="load-dr" depends="end-to-end-loadtests-derby"/>
 
     <target name="load-pg" depends="end-to-end-loadtests-postgresql"/>
@@ -4117,7 +4119,7 @@
 
     <target name="load" depends="load-dr,load-hs"/>
 
-    <target name="all" depends="build-dev,javadoc,doc,image,test-dr,test-pg,test-hs"/>
+    <target name="all" depends="build-dev,javadoc,doc,image,test-dr,test-hs"/>
 
     <target name="help">
       <echo level="info">
@@ -4135,6 +4137,7 @@ test-pg - Compile and run postgresql-based tests (needs Postgresql)
 test-my - Compile and run MySQL-based tests (needs MySQL)
 test-hs - Compile and run HSQLDB-based tests
 test    - Compile and run all local tests (Derby and HSQLDB)
+UI      - Compile and run all UI tests (needs Python)
 load-dr - Compile and run Derby-based load tests
 load-pg - Compile and run postgresql-based load tests (needs
           Postgresql)
@@ -4146,7 +4149,7 @@ doc     - Build html site, under the 'dist/doc' directory
           (requires Apache Forrest)
 image   - Build release image, under the '.' directory (requires
           Apache Forrest)
-all     - Do it all (requires Apache Forrest and Postgresql)
+all     - Do it all (requires Apache Forrest)
 
 run-script-interpreter - Run the ManifoldCF script interpreter
 

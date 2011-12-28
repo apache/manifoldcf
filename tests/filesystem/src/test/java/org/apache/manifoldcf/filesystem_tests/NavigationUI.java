@@ -45,6 +45,7 @@ public class NavigationUI extends BaseUIDerby
     HTMLTester.Textarea textarea;
     HTMLTester.Selectbox selectbox;
     HTMLTester.Button button;
+    HTMLTester.Radiobutton radiobutton;
     
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
     
@@ -145,7 +146,76 @@ public class NavigationUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Save this authority connection"));
     button.click();
 
-    // MHL to create and delete a job
+    // Create a job
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("List jobs"));
+    link.click();
+    // Add a job
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Add a job"));
+    link.click();
+    // Fill in a name
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("description"));
+    textarea.setValue(testerInstance.createStringDescription("MyJob"));
+    link = window.findLink(testerInstance.createStringDescription("Connection tab"));
+    link.click();
+    // Select the connections
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("outputname"));
+    selectbox.selectValue(testerInstance.createStringDescription("MyOutputConnection"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("connectionname"));
+    selectbox.selectValue(testerInstance.createStringDescription("MyRepositoryConnection"));
+    button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));
+    button.click();
+    // Visit all the tabs.  Scheduling tab first
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Scheduling tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("dayofweek"));
+    selectbox.selectValue(testerInstance.createStringDescription("0"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("hourofday"));
+    selectbox.selectValue(testerInstance.createStringDescription("1"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("minutesofhour"));
+    selectbox.selectValue(testerInstance.createStringDescription("30"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("monthofyear"));
+    selectbox.selectValue(testerInstance.createStringDescription("11"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("dayofmonth"));
+    selectbox.selectValue(testerInstance.createStringDescription("none"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("duration"));
+    textarea.setValue(testerInstance.createStringDescription("120"));
+    button = window.findButton(testerInstance.createStringDescription("Add new schedule record"));
+    button.click();
+    // Now, HopFilters
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Hop Filters tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    radiobutton = form.findRadiobutton(testerInstance.createStringDescription("hopcountmode"),testerInstance.createStringDescription("2"));
+    radiobutton.select();
+    link = window.findLink(testerInstance.createStringDescription("Paths tab"));
+    link.click();
+    // Add a record to the Paths list
+    
+    // MHL
+    /* Need a way of checking job status if we're going to save it and delete it, since it happens in background.
+    // Save the job
+    window = testerInstance.findWindow(null);
+    button = window.findButton(testerInstance.createStringDescription("Save this job"));
+    button.click();
+
+    // Delete the job
+    window = testerInstance.findWindow(null);
+    HTMLTester.StringDescription jobID = window.findMatch(testerInstance.createStringDescription("<!--jobid=(.*?)-->"),1);
+    link = window.findLink(testerInstance.createStringDescription("Delete this job"));
+    link.click();
+    */
+    
     
     // Delete the authority connection
     window = testerInstance.findWindow(null);

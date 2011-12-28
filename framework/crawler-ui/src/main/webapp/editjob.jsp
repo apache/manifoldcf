@@ -314,7 +314,7 @@
 				eval("editjob."+propertyname+".focus()");
 				return false;
 			}
-			i++;
+			i = i+1;
 		}
 		return true;
 	}
@@ -879,7 +879,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduledTime")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
 				<td colspan="3" class="value">
 				    <select class="schedulepulldown" multiple="true" name="dayofweek" size="3">
 					<option value="none" <%=(dayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
