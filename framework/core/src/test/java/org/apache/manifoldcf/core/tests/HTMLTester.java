@@ -164,6 +164,7 @@ public class HTMLTester
   public void executeTest()
     throws Exception
   {
+    emitLine("print 'Test complete'");
     closeAll();
     // Now, execute the python command.
     Process p = Runtime.getRuntime().exec(new String[]{"python","test.py"});
@@ -282,11 +283,12 @@ public class HTMLTester
     *@return a description of the string found.  This can be used later in other commands to assess
     *  correctness of the page, or allow form data to be filled in.
     */
-    public StringDescription findMatch(String regularExpression, int group)
+    public StringDescription findMatch(StringDescription regularExpression, int group)
       throws Exception
     {
-      // MHL
-      return null;
+      String varName = getNextVariableName();
+      emitLine(varName + " = "+windowVar+".find_match("+regularExpression.getVarName()+",group="+group+")");
+      return new StringDescription(varName);
     }
 
     /** Same as findMatch, but strips out newlines before it looks.
@@ -294,8 +296,9 @@ public class HTMLTester
     public StringDescription findMatchNoNewlines(StringDescription regularExpression, int group)
       throws Exception
     {
-      // MHL
-      return null;
+      String varName = getNextVariableName();
+      emitLine(varName + " = "+windowVar+".find_match_no_newlines("+regularExpression.getVarName()+",group="+group+")");
+      return new StringDescription(varName);
     }
 
     /** If the match is found, the test will error out.
@@ -303,7 +306,7 @@ public class HTMLTester
     public void checkNoMatch(StringDescription regularExpression)
       throws Exception
     {
-      // MHL
+      emitLine(windowVar+".check_no_match("+regularExpression.getVarName()+")");
     }
     
     /** Find a link.
@@ -331,8 +334,9 @@ public class HTMLTester
     public Button findButton(StringDescription altText)
       throws Exception
     {
-      // MHL
-      return null;
+      String buttonVarName = getNextVariableName();
+      emitLine(buttonVarName + " = " + windowVar + ".find_button("+altText.getVarName()+")");
+      return new Button(buttonVarName);
     }
     
     /** Close this window.
@@ -379,8 +383,9 @@ public class HTMLTester
     public FileBrowser findFileBrowser(StringDescription dataName)
       throws Exception
     {
-      // MHL
-      return null;
+      String fileBrowserVarName = getNextVariableName();
+      emitLine(fileBrowserVarName + " = " + formVarName + ".find_filebrowser("+dataName.getVarName()+")");
+      return new FileBrowser(fileBrowserVarName);
     }
     
     /** Find a checkbox element, by data variable name and value.
@@ -388,8 +393,9 @@ public class HTMLTester
     public Checkbox findCheckbox(StringDescription dataName, StringDescription value)
       throws Exception
     {
-      // MHL
-      return null;
+      String checkboxVarName = getNextVariableName();
+      emitLine(checkboxVarName + " = " + formVarName + ".find_checkbox("+dataName.getVarName()+","+value.getVarName()+")");
+      return new Checkbox(checkboxVarName);
     }
     
     /** Find a radio button by variable name and value.
@@ -397,8 +403,9 @@ public class HTMLTester
     public Radiobutton findRadiobutton(StringDescription dataName, StringDescription value)
       throws Exception
     {
-      // MHL
-      return null;
+      String radiobuttonVarName = getNextVariableName();
+      emitLine(radiobuttonVarName + " = " + formVarName + ".find_radiobutton("+dataName.getVarName()+","+value.getVarName()+")");
+      return new Radiobutton(radiobuttonVarName);
     }
     
     /** Find a select box by data variable name.
@@ -406,8 +413,9 @@ public class HTMLTester
     public Selectbox findSelectbox(StringDescription dataName)
       throws Exception
     {
-      // MHL
-      return null;
+      String selectboxVarName = getNextVariableName();
+      emitLine(selectboxVarName + " = " + formVarName + ".find_selectbox("+dataName.getVarName()+")");
+      return new Selectbox(selectboxVarName);
     }
     
     /** Find a textarea/password field by data variable name.
@@ -415,8 +423,9 @@ public class HTMLTester
     public Textarea findTextarea(StringDescription dataName)
       throws Exception
     {
-      // MHL
-      return null;
+      String textareaVarName = getNextVariableName();
+      emitLine(textareaVarName + " = " + formVarName + ".find_textarea("+dataName.getVarName()+")");
+      return new Textarea(textareaVarName);
     }
   }
   
