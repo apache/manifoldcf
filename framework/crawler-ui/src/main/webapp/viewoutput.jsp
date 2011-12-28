@@ -129,15 +129,15 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.Name")%></nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.Description")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.NameColon")%></nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.DescriptionColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.ConnectionType")%></nobr></td><td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.MaxConnections")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.ConnectionTypeColon")%></nobr></td><td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.MaxConnectionsColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -153,7 +153,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.ConnectionStatus")%></nobr></td><td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.ConnectionStatusColon")%></nobr></td><td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>

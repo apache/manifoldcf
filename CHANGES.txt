@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-340: Separate labels with colons from labels without.
+(Karl Wright)
+
 CONNECTORS-338: Move localization to the ui-core jar.
 (Karl Wright)
 

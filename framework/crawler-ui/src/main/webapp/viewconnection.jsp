@@ -123,24 +123,24 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Name")%></nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Description")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.NameColon")%></nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.DescriptionColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionType")%></nobr></td><td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.MaxConnections")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionTypeColon")%></nobr></td><td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.MaxConnectionsColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Authority")%></nobr></td><td class="value" colspan="3"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authorityName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.AuthorityColon")%></nobr></td><td class="value" colspan="3"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authorityName)%></nobr></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Throttling")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ThrottlingColon")%></nobr></td>
 				<td class="boxcell" colspan="3">
 					<table class="formtable">
 						<tr class="formheaderrow">
@@ -199,7 +199,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionStatus")%></nobr></td><td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionStatusColon")%></nobr></td><td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>

@@ -135,23 +135,23 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Name")%></nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.NameColon")%></nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.OutputConnection")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.OutputConnectionColon")%></nobr></td>
 				<td class="value"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getOutputConnectionName())%></td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.RepositoryConnection")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.RepositoryConnectionColon")%></nobr></td>
 				<td class="value"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getConnectionName())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Priority")%></nobr></td><td class="value"><%=priority%></td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.StartMethod")%></nobr></td><td class="value"><%=startMethod%></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.PriorityColon")%></nobr></td><td class="value"><%=priority%></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.StartMethodColon")%></nobr></td><td class="value"><%=startMethod%></td>
 			</tr>
 <%
 		if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
@@ -161,13 +161,13 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ScheduleType")%></nobr></td><td class="value"><nobr><%=jobType%></nobr></td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlInterval")%></nobr></td><td class="value"><nobr><%=intervalString%></nobr>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ScheduleTypeColon")%></nobr></td><td class="value"><nobr><%=jobType%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlIntervalColon")%></nobr></td><td class="value"><nobr><%=intervalString%></nobr>
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ExpirationInterval")%></nobr></td><td class="value"><nobr><%=expirationIntervalString%></nobr></td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ReseedInterval")%></nobr></td><td class="value"><nobr><%=reseedIntervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ExpirationIntervalColon")%></nobr></td><td class="value"><nobr><%=expirationIntervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ReseedIntervalColon")%></nobr></td><td class="value"><nobr><%=reseedIntervalString%></nobr></td>
 			</tr>
 <%
 		}
@@ -530,7 +530,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.HopCountMode")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.HopCountModeColon")%></nobr></td>
 				<td class="value" colspan="3"><nobr><%=(hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"Delete unreachable documents":""%><%=(hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"No deletes, for now":""%><%=(hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?"No deletes, forever":""%></nobr></td>
 			</tr>
 <%

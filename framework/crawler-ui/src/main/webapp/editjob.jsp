@@ -503,7 +503,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name")%></nobr></td><td class="value" colspan="3">
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NameColon")%></nobr></td><td class="value" colspan="3">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -538,7 +538,7 @@
 				mapField = mapValue.toString();
 %>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumHopCountForType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>'<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.semicolon")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumHopCountForType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>'<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.colon")%></nobr></td>
 				<td class="value" colspan="3" >
 					<input name='<%="hopmax_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="text" size="5" value='<%=mapField%>'/>
 				</td>
@@ -548,7 +548,7 @@
 %>
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopCountMode")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopCountModeColon")%></nobr></td>
 				<td class="value" colspan="3">
 					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_ACCURATE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"checked=\"true\"":"")%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DeleteUnreachableDocuments")%></input></nobr><br/>
 					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NODELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"checked=\"true\"":"")%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForNow")%></input></nobr><br/>
@@ -595,7 +595,7 @@
 	    if (outputName.length() == 0)
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.OutputConnection")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
 				<td class="value">
 					<select name="outputname" size="1">
 						<option <%="".equals(outputName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
@@ -616,7 +616,7 @@
 	    else
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.OutputConnection")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
 				<td class="value"><input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%></td>
 <%
 	    }
@@ -626,7 +626,7 @@
 	    if (connectionName.length() == 0)
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnection")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
 				<td class="value">
 					<select name="connectionname" size="1">
 						<option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
@@ -647,14 +647,14 @@
 	    else
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnection")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
 				<td class="value"><input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 <%
 	    }
 %>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Priority")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.PriorityColon")%></nobr></td>
 				<td class="value">
 					<select name="priority" size="1">
 						<option value="1" <%=(priority==1)?"selected=\"selected\"":""%>>1 <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Highest")%></option>
@@ -669,7 +669,7 @@
 						<option value="10" <%=(priority==10)?"selected=\"selected\"":""%>>10 <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Lowest")%></option>
 					</select>
 				</td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.StartMethod")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.StartMethodColon")%></nobr></td>
 				<td class="value">
 					<select name="startmethod" size="1">
 						<option value='<%=IJobDescription.START_WINDOWBEGIN%>' <%=(startMethod==IJobDescription.START_WINDOWBEGIN)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.StartWhenScheduleWindowStarts")%></option>
@@ -703,19 +703,19 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduleType")%></nobr></td><td class="value"><select name="scheduletype" size="1">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduleTypeColon")%></nobr></td><td class="value"><select name="scheduletype" size="1">
 					<option value='<%=IJobDescription.TYPE_CONTINUOUS%>' <%=(type==IJobDescription.TYPE_CONTINUOUS)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RescanDocumentsDynamically")%></option>
 					<option value='<%=IJobDescription.TYPE_SPECIFIED%>' <%=(type==IJobDescription.TYPE_SPECIFIED)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScanEveryDocumentOnce")%></option>
-				</select></td><td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuous")%></nobr></td><td class="value">
+				</select></td><td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr></td><td class="value">
 					<nobr><input type="text" size="5" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuous")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr></td>
 				<td class="value">
 					<nobr><input type="text" size="5" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuous")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr></td>
 				<td class="value">
 					<nobr><input type="text" size="5" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
@@ -768,7 +768,7 @@
 		}
 %>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduledTime")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
 				<td colspan="3" class="value">
 				    <select class="schedulepulldown" multiple="true" name='<%="dayofweek"+postFix%>' size="3">
 					<option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
@@ -859,7 +859,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTime")%></nobr></td><td colspan="3" class="value">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
 					<input type="text" size="5" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
 				</td>
 			</tr>
@@ -970,7 +970,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTime")%></nobr></td><td colspan="3" class="value">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
 					<input type="text" size="5" name="duration" value='<%=((duration==null)?"":duration.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
 				</td>
 			</tr>

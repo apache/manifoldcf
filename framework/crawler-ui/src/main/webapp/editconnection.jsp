@@ -333,7 +333,7 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.NameColon")%></nobr></td><td class="value" colspan="4">
 <%
 	    // If the connection doesn't exist yet, we are allowed to change the name.
 	    if (connection == null)
@@ -353,7 +353,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Description")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.DescriptionColon")%></nobr></td><td class="value" colspan="4">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -377,7 +377,7 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ConnectionType")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -422,7 +422,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Authority")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.AuthorityColon")%></nobr></td>
 				<td class="value" colspan="4">
 <%
 	    IAuthorityConnection[] set2 = authConnectionManager.getAllConnections();
@@ -470,14 +470,14 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="2"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Maxconnections")%></nobr><br/><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.PerJVM")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Maxconnections")%></nobr><br/><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.PerJVMColon")%></nobr></td>
 				<td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="2"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Throttling")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ThrottlingColon")%></nobr></td>
 				<td class="boxcell" colspan="4">
 					<input type="hidden" name="throttleop" value="Continue"/>
 					<input type="hidden" name="throttlenumber" value=""/>
@@ -485,7 +485,7 @@
 					    <tr class="formheaderrow">
 						<td class="formcolumnheader"></td>
 						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.BinRegularExpression")%></nobr></td>
-						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Description2")%></nobr></td>
+						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Description")%></nobr></td>
 						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.MaxAvgFetchesMin")%></nobr></td>
 					    </tr>
 <%
