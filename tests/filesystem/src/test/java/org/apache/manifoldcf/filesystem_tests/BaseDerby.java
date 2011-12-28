@@ -39,7 +39,7 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
+public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBase
 {
   public static final String agentShutdownSignal = "agent-process";
   public static final int testPort = 8346;

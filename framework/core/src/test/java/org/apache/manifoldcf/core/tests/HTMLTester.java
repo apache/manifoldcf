@@ -223,7 +223,10 @@ public class HTMLTester
     throws Exception
   {
     String windowVar = getNextVariableName();
-    emitLine(windowVar + " = " + virtualBrowserVarName + ".find_window("+windowName.getVarName()+")");
+    if (windowName != null)
+      emitLine(windowVar + " = " + virtualBrowserVarName + ".find_window("+windowName.getVarName()+")");
+    else
+      emitLine(windowVar + " = " + virtualBrowserVarName + ".find_window("+quotePythonString("")+")");
     return new Window(windowVar);
   }
 

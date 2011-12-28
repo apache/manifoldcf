@@ -2401,6 +2401,40 @@
         </junit>
     </target>
 
+    <target name="run-filesystem-UI-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <mkdir dir="test-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/filesystem-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.filesystem_tests.NavigationUI" todir="test-output/filesystem"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-filesystem-loadtests-derby" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
         <junit fork="true" maxmemory="256m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">

@@ -31,7 +31,7 @@
 <p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Outputs")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listoutputs.jsp" alt="List authorities"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
+		<nobr><a class="menulink" href="listoutputs.jsp" alt="List output connections"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
 	</li>
 </ul>
 <p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Authorities")%></nobr></p>
@@ -69,10 +69,8 @@
 	<li class="menuitem">
 		<nobr><a class="menulink" href="simplereport.jsp" alt="Simple history"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.SimpleHistory")%></a></nobr>
 	</li>
-<!-- hozawa
 	<li class="menuitem">
 		<nobr><a class="menulink" href="maxactivityreport.jsp" alt="Maximum activity"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.MaximumActivity")%></a></nobr>
-//-->
 	</li>
 	<li class="menuitem">
 		<nobr><a class="menulink" href="maxbandwidthreport.jsp" alt="Maximum bandwidth"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.MaximumBandwidth")%></a></nobr>

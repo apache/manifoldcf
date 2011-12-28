@@ -23,6 +23,7 @@ import HTMLParser
 import base64
 import re
 import os
+import sys
 
 # Class that describes answers to pop-up dialog boxes that may occur as a result of clicking a link
 # or button.  If the answer is not found, this is considered a test error, and an exception is thrown!
@@ -1060,7 +1061,7 @@ class VirtualBrowser:
 
     # Read a url with get.  Returns the data as a string.
     def fetch_data_with_get( self, url ):
-        print "Getting url '%s'..." % url
+        print >> sys.stderr, "Getting url '%s'..." % url
         req = urllib2.Request( url )
         if self.username != None:
             base64string = base64.encodestring('%s:%s' % (self.username, self.password))[:-1]

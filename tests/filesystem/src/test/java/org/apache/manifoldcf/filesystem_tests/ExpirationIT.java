@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a test which checks to see if document expiration works properly. */
-public class ExpirationIT extends Base
+public class ExpirationIT extends BaseDerby
 {
   
   @Before

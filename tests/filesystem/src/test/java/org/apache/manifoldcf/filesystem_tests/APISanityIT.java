@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class APISanityIT extends Base
+public class APISanityIT extends BaseDerby
 {
   
   @Before
