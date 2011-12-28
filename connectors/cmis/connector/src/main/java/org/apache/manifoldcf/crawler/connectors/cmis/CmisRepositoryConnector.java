@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
@@ -73,7 +74,6 @@ import org.apache.manifoldcf.crawler.system.Logging;
 public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
-  private static final String TAB_LABEL_CMIS_QUERY = "CMIS Query";
 
   protected final static String ACTIVITY_READ = "read document";
   protected static final String RELATIONSHIP_CHILD = "child";
@@ -210,6 +210,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         }
         // create session
         if (StringUtils.isEmpty(repositoryId)) {
+
 
           // get a session from the first CMIS repository exposed by
           // the endpoint
@@ -687,50 +688,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    * @param out
    * @throws ManifoldCFException
    */
-  private void outputResource(String resName, IHTTPOutput out,
-      ConfigParams params) throws ManifoldCFException {
-    InputStream is = getClass().getResourceAsStream(resName);
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-      String line;
-      while ((line = br.readLine()) != null) {
-        if (params != null){
-          Iterator i = params.listParameters();
-          boolean parsedLine = false;
-          while(i.hasNext()){
-            String key = (String) i.next();
-            String value = params.getParameter(key);
-            String replacer = "${"+key.toUpperCase()+"}";
-            if(StringUtils.contains(line, replacer)){  
-              if(StringUtils.isEmpty(value)){
-                out.println(StringUtils.replace(line, replacer, StringUtils.EMPTY));
-                parsedLine=true;
-              } else {
-                out.println(StringUtils.replace(line, replacer, value));
-                parsedLine=true;
-              }
-            } else if(StringUtils.contains(line, "${")){
-                parsedLine=true;
-            } else if(!parsedLine){
-                out.println(line);
-                parsedLine=true;
-            }
-          }
-        } else {
-            break;
-        }
-      }
-    } catch (UnsupportedEncodingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
-    } finally {
-      if (br != null)
-        IOUtils.closeQuietly(br);
-      if (is != null)
-        IOUtils.closeQuietly(is);
+  private static void outputResource(String resName, IHTTPOutput out,
+      Locale locale, ConfigParams params) throws ManifoldCFException {
+    Map<String,String> paramMap = new HashMap<String,String>();
+    Iterator<String> i = params.listParameters();
+    while(i.hasNext()){
+      String key = i.next();
+      String value = params.getParameter(key);
+      paramMap.put(key,value);
     }
+    Messages.outputResource(out,locale,resName,paramMap,true);
   }
   
   /**
@@ -750,15 +717,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-      ConfigParams parameters) throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
     if(StringUtils.isEmpty(repositoryId))
       repositoryId = StringUtils.EMPTY;
     parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
-    outputResource(VIEW_CONFIG_FORWARD, out, parameters);
+    outputResource(VIEW_CONFIG_FORWARD, out, locale, parameters);
   }
 
   /**
+
    * Output the configuration header section. This method is called in the head
    * section of the connector's configuration page. Its purpose is to add the
    * required tabs to the list, and to output any javascript methods that might
@@ -777,56 +745,56 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     tabsArray.add(CMIS_SERVER_TAB_NAME);
-    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, parameters);
+    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, parameters);
   }
 
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, String tabName)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     
+    String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
+    String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
+    String protocol = parameters.getParameter(CmisConfig.PROTOCOL_PARAM);
+    String server = parameters.getParameter(CmisConfig.SERVER_PARAM);
+    String port = parameters.getParameter(CmisConfig.PORT_PARAM);
+    String path = parameters.getParameter(CmisConfig.PATH_PARAM);
+    String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
+    String binding = parameters.getParameter(CmisConfig.BINDING_PARAM);
+      
+    if(username == null)
+      username = StringUtils.EMPTY;
+    if(password == null)
+      password = StringUtils.EMPTY;
+    if(protocol == null)
+      protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
+    if(server == null)
+      server = CmisConfig.SERVER_DEFAULT_VALUE;
+    if(port == null)
+      port = CmisConfig.PORT_DEFAULT_VALUE;
+    if(path == null)
+      path = CmisConfig.PATH_DEFAULT_VALUE;
+    if(repositoryId == null)
+      repositoryId = StringUtils.EMPTY;
+    if(binding == null)
+      binding = CmisConfig.BINDING_ATOM_VALUE;
+      
+    ConfigParams newMap = new ConfigParams();
+    newMap.setParameter(CmisConfig.USERNAME_PARAM, username);
+    newMap.setParameter(CmisConfig.PASSWORD_PARAM, password);
+    newMap.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
+    newMap.setParameter(CmisConfig.SERVER_PARAM, server);
+    newMap.setParameter(CmisConfig.PORT_PARAM, port);
+    newMap.setParameter(CmisConfig.PATH_PARAM, path);
+    newMap.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
+    newMap.setParameter(CmisConfig.BINDING_PARAM, binding);
     if(CMIS_SERVER_TAB_NAME.equals(tabName)){
-      String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
-      String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
-      String protocol = parameters.getParameter(CmisConfig.PROTOCOL_PARAM);
-      String server = parameters.getParameter(CmisConfig.SERVER_PARAM);
-      String port = parameters.getParameter(CmisConfig.PORT_PARAM);
-      String path = parameters.getParameter(CmisConfig.PATH_PARAM);
-      String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
-      String binding = parameters.getParameter(CmisConfig.BINDING_PARAM);
-      
-      if(StringUtils.isEmpty(username))
-        username = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(password))
-        password = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(protocol))
-        protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
-      if(StringUtils.isEmpty(server))
-        server = CmisConfig.SERVER_DEFAULT_VALUE;
-      if(StringUtils.isEmpty(port))
-        port = CmisConfig.PORT_DEFAULT_VALUE;
-      if(StringUtils.isEmpty(path))
-        path = CmisConfig.PATH_DEFAULT_VALUE;
-      
-      if(StringUtils.isEmpty(repositoryId))
-        repositoryId = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(binding))
-        binding = CmisConfig.BINDING_ATOM_VALUE;
-      
-      parameters.setParameter(CmisConfig.USERNAME_PARAM, username);
-      parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
-      parameters.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
-      parameters.setParameter(CmisConfig.SERVER_PARAM, server);
-      parameters.setParameter(CmisConfig.PORT_PARAM, port);
-      parameters.setParameter(CmisConfig.PATH_PARAM, path);
-      parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
-      parameters.setParameter(CmisConfig.BINDING_PARAM, binding);
-      outputResource(EDIT_CONFIG_FORWARD, out, parameters);
+      outputResource(EDIT_CONFIG_FORWARD, out, locale, newMap);
     } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, parameters);
+      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, newMap);
     }
   }
 
@@ -909,7 +877,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    *          is the current document specification for this job.
    */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
     int i = 0;
     boolean seenAny = false;
@@ -925,7 +893,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       }
       i++;
     }
-    outputResource(VIEW_SPEC_FORWARD, out, specificationParams);
+    outputResource(VIEW_SPEC_FORWARD, out, locale, specificationParams);
   }
 
   /**
@@ -993,7 +961,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputSpecificationBody(IHTTPOutput out,
-      DocumentSpecification ds, String tabName) throws ManifoldCFException,
+      Locale locale, DocumentSpecification ds, String tabName) throws ManifoldCFException,
       IOException {
     String cmisQuery = StringUtils.EMPTY;
     int i = 0;
@@ -1005,13 +973,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       }
       i++;
     }
-    
+
     ConfigParams params = new ConfigParams();
     params.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
-    if (tabName.equals(TAB_LABEL_CMIS_QUERY)) {
-      outputResource(EDIT_SPEC_FORWARD, out, params);
+    if (tabName.equals(Messages.getString(locale,"CmisRepositoryConnector.CMISQuery"))) {
+      outputResource(EDIT_SPEC_FORWARD, out, locale, params);
     } else {
-      outputResource(HIDDEN_SPEC_FORWARD, out, params);
+      outputResource(HIDDEN_SPEC_FORWARD, out, locale, params);
     }
   }
 
@@ -1031,10 +999,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputSpecificationHeader(IHTTPOutput out,
-      DocumentSpecification ds, List<String> tabsArray)
+      Locale locale, DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    tabsArray.add(TAB_LABEL_CMIS_QUERY);
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, params);
+    tabsArray.add(Messages.getString(locale,"CmisRepositoryConnector.CMISQuery"));
+    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, params);
   }
 
   /** Process a set of documents.

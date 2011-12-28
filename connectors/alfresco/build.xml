@@ -62,13 +62,14 @@
             	  <fileset dir="alfresco-ws-client" includes="*.jar"/>
             </classpath>
         </javac>
+        <!-- native2ascii encoding="UTF-8" src="connector/src/main/native2ascii" dest="build/connector/classes" includes="**/*.properties" / -->
     </target>
 
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-alfresco-connector.jar">
         	<fileset dir="build/connector/classes"/>
-          <fileset dir="connector/src/main/resource" />
+          <fileset dir="connector/src/main/resource"/>
         </jar>
     </target>
 
@@ -84,8 +85,6 @@
             <fileset dir="lib">
                 <include name="axis*.jar"/>	
                 <include name="commons-discovery*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="commons-lang*.jar"/>
                 <include name="jaxrpc*.jar"/>
                 <include name="mail*.jar"/>
                 <include name="opensaml*.jar"/>

@@ -33,7 +33,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: Document Status
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.ApacheManifoldCFDocumentStatus")%>
 	</title>
 
 	<script type="text/javascript">
@@ -119,7 +119,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle">Document Status</p>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentStatus")%></p>
 <%
 if (maintenanceUnderway == false)
 {
@@ -265,9 +265,9 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1">Connection:</td><td class="value" colspan="1">
+				<td class="description" colspan="1"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Connection")%></td><td class="value" colspan="1">
 					<select name="statusconnection" size="3">
-						<option <%=(statusConnection.length()==0)?"selected=\"selected\"":""%> value="">-- Not specified --</option>
+						<option <%=(statusConnection.length()==0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.NotSpecified")%> --</option>
 <%
 	int i = 0;
 	while (i < connList.length)
@@ -288,7 +288,7 @@ if (maintenanceUnderway == false)
 	if (eligibleList != null)
 	{
 %>
-				<td class="description" colspan="1">Jobs:</td><td class="value" colspan="1">
+				<td class="description" colspan="1"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Jobs")%></td><td class="value" colspan="1">
 					<select multiple="true" name="statusjobs" size="3">
 <%
 	    i = 0;
@@ -319,35 +319,35 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description">Time offset from now (minutes):</td>
+				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.TimeOffsetFromNowMinutes")%></td>
 				<td class="value" colspan="3">
 					<input name="statusscheduleoffset" type="text" size="6" value=""/>
 				</td>
 			</tr>
 			<tr>
-				<td class="description">Document state:</td>
+				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentState")%></td>
 				<td class="value" colspan="3">
 					<input name="statusdocumentstates_posted" type="hidden" value="true"/>
 					<select name="statusdocumentstates" multiple="true" size="3">
-						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_NEVERPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_NEVERPROCESSED)%>'>Documents that have never been processed</option>
-						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED)%>'>Documents processed at least once</option>
+						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_NEVERPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_NEVERPROCESSED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsThatHaveNeverBeenProcessed")%></option>
+						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsProcessedAtLeastOnce")%></option>
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<td class="description">Document status:</td>
+				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentState")%></td>
 				<td class="value" colspan="3">
 					<input name="statusdocumentstatuses_posted" type="hidden" value="true"/>
 					<select name="statusdocumentstatuses" multiple="true" size="3">
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_INACTIVE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_INACTIVE)%>'>Documents that are no longer active</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_PROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_PROCESSING)%>'>Documents currently in progress</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_EXPIRING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_EXPIRING)%>'>Documents currently being expired</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_DELETING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_DELETING)%>'>Documents currently being deleted</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_READYFORPROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_READYFORPROCESSING)%>'>Documents currently available for processing</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_READYFOREXPIRATION))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_READYFOREXPIRATION)%>'>Documents currently available for expiration</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFORPROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFORPROCESSING)%>'>Documents not yet processable</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION)%>'>Documents not yet expirable</option>
-						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREVER))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREVER)%>'>Documents waiting forever</option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_INACTIVE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_INACTIVE)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsThatAreNoLongerActive")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_PROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_PROCESSING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsCurrentlyInProgress")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_EXPIRING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_EXPIRING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsCurrentlyBeingExpired")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_DELETING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_DELETING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsCurrentlyBeingDeleted")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_READYFORPROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_READYFORPROCESSING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsCurrentlyAvailableForProcessing")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_READYFOREXPIRATION))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_READYFOREXPIRATION)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsCurrentlyAvailableForExpiration")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFORPROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFORPROCESSING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsNotYetProcessable")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsNotYetExpirable")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREVER))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREVER)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsWaitingForever")%></option>
 					</select>
 				</td>
 			</tr>
@@ -355,7 +355,7 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Document identifier match:</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentIdentifierMatch")%></nobr></td>
 				<td class="value" colspan="3"><input type="text" name="statusidentifiermatch" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(identifierMatch)%>'/></td>
 			</tr>
 			<tr>
@@ -367,13 +367,13 @@ if (maintenanceUnderway == false)
 	if (statusConnection.length() > 0 && statusJobIdentifiers.length > 0)
 	{
 %>
-					<a name="MainButton"><input type="button" value="Go" onClick="javascript:Go()" alt="Execute this query"/></a>
+					<a name="MainButton"><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Go")%>" onClick="javascript:Go()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.ExecuteThisQuery")%>"/></a>
 <%
 	}
 	else
 	{
 %>
-					<a name="MainButton"><input type="button" value="Continue" onClick="javascript:Continue()" alt="Continue"/></a>
+					<a name="MainButton"><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%>"/></a>
 <%
 	}
 %>
@@ -438,14 +438,14 @@ if (maintenanceUnderway == false)
 
 		<table class="displaytable">
 		    <tr class="headerrow">
-			<td class="reportcolumnheader"><nobr>Identifier</nobr></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("job");'><nobr>Job</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("state");'><nobr>State</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("status");'><nobr>Status</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("scheduled");'><nobr>Scheduled</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("action");'><nobr>Scheduled Action</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("retrycount");'><nobr>Retry Count</nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("retrylimit");'><nobr>Retry Limit</nobr></a></td>
+			<td class="reportcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Identifier")%></nobr></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("job");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Job")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("state");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.State")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("status");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Status")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("scheduled");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Scheduled")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("action");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.ScheduledAction")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("retrycount");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.RetryCount")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("retrylimit");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.RetryLimit")%></nobr></a></td>
 		    </tr>
 <%
 		zz = 0;
@@ -513,7 +513,7 @@ if (maintenanceUnderway == false)
 		if (startRow == 0)
 		{
 %>
-				Previous
+				<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Previous")%>
 <%
 		}
 		else
@@ -528,7 +528,7 @@ if (maintenanceUnderway == false)
 		if (hasMoreRows == false)
 		{
 %>
-				Next
+				<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Next")%>
 <%
 		}
 		else
@@ -540,8 +540,8 @@ if (maintenanceUnderway == false)
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr>Rows:</nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr>Rows per page:</nobr></td>
+			<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.Rows")%></nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
+			<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.RowsPerPage")%></nobr></td>
 			<td class="value">
 				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
 			</td>
@@ -556,14 +556,14 @@ if (maintenanceUnderway == false)
 	    else
 	    {
 %>
-		<table class="displaytable"><tr><td class="message">Please select at least one job</td></tr></table>
+		<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.PleaseSelectAtLeastOneJob")%></td></tr></table>
 <%
 	    }
 	}
 	else
 	{
 %>
-		<table class="displaytable"><tr><td class="message">Please select a connection</td></tr></table>
+		<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.PleaseSelectaConnection")%></td></tr></table>
 <%
 	}
 %>
@@ -575,7 +575,7 @@ else
 %>
 		<table class="displaytable">
 			<tr><td class="separator" colspan="1"><hr/></td></tr>
-			<tr><td class="message">This page is unavailable due to maintenance operations.  Please try again later.</td></tr>
+			<tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.PleaseTryAgainLater")%></td></tr>
 		</table>
 <%
 }

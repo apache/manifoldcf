@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -1294,6 +1295,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Check status of connection.
   */
   @Override
+
   public String check()
     throws ManifoldCFException
   {
@@ -2482,6 +2484,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
+
       {
         throw new ManifoldCFException("Could not get a canonical path: "+e.getMessage(),e);
       }
@@ -2525,7 +2528,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Server");
@@ -2576,7 +2580,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String server   = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
@@ -2634,7 +2639,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String server = variableContext.getParameter("server");
@@ -2663,7 +2669,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -2712,15 +2718,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Paths");
-    tabsArray.add("Security");
-    tabsArray.add("Metadata");
-    tabsArray.add("Content Length");
-    tabsArray.add("File Mapping");
-    tabsArray.add("URL Mapping");
+    tabsArray.add(Messages.getString(locale,"SharedDriveConnector.Paths"));
+    tabsArray.add(Messages.getString(locale,"SharedDriveConnector.Security"));
+    tabsArray.add(Messages.getString(locale,"SharedDriveConnector.Metadata"));
+    tabsArray.add(Messages.getString(locale,"SharedDriveConnector.ContentLength"));
+    tabsArray.add(Messages.getString(locale,"SharedDriveConnector.FileMapping"));
+    tabsArray.add(Messages.getString(locale,"SharedDriveConnector.URLMapping"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "//<!--\n"+
@@ -2857,7 +2863,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
@@ -2875,7 +2881,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (maxLength == null)
       maxLength = "";
 
-    if (tabName.equals("Content Length"))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.ContentLength")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2895,7 +2901,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
 
     // Check for Paths tab
-    if (tabName.equals("Paths"))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -3196,7 +3202,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -3332,7 +3338,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals("Metadata"))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Metadata")))
     {
       out.print(
 "<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
@@ -3435,7 +3441,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals("File Mapping"))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.FileMapping")))
     {
       out.print(
 "<input type=\"hidden\" name=\"specfmapcount\" value=\""+Integer.toString(fileMap.getMatchCount())+"\"/>\n"+
@@ -3503,7 +3509,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
     }
 	
-    if (tabName.equals("URL Mapping"))
+    if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.URLMapping")))
     {
       out.print(
 "<input type=\"hidden\" name=\"specumapcount\" value=\""+Integer.toString(uriMap.getMatchCount())+"\"/>\n"+
@@ -3587,7 +3593,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String x = variableContext.getParameter("pathcount");
@@ -4083,7 +4089,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(

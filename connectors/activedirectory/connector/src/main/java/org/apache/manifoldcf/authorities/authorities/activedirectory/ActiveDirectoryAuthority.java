@@ -339,11 +339,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Domain Controller");
-    tabsArray.add("Cache");
+    tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.DomainController"));
+    tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.Cache"));
     
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -422,7 +422,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String domainControllerName = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
@@ -448,29 +448,29 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       cacheLRUsize = "1000";    
     
     // The "Domain Controller" tab
-    if (tabName.equals("Domain Controller"))
+    if (tabName.equals(Messages.getString(locale,"ActiveDirectoryAuthority.DomainController")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Domain controller name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.DomainControllerName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"domaincontrollername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainControllerName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Administrative user name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.AdministrativeUserName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Administrative password:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.AdministrativePassword") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Authentication:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.Authentication") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Login name AD attribute:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.LoginNameADAttribute") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"userACLsUsername\">\n"+
 "        <option value=\"sAMAccountName\""+(userACLsUsername.equals("sAMAccountName")?" selected=\"true\"":"")+">sAMAccountName</option>\n"+
@@ -492,17 +492,17 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       );
     }
     // The "Cache" tab
-    if (tabName.equals("Cache"))
+    if (tabName.equals(Messages.getString(locale,"ActiveDirectoryAuthority.Cache")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Cache lifetime:</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime)+"\"/> minutes</td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.CacheLifetime") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime)+"\"/> " + Messages.getBodyString(locale,"ActiveDirectoryAuthority.minutes") + "</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Cache LRU size:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.CacheLRUSize") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -528,7 +528,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String domainControllerName = variableContext.getParameter("domaincontrollername");
@@ -564,13 +564,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();

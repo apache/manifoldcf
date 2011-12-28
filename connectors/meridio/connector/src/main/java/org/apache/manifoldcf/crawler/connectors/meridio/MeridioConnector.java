@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.soap.SOAPException;
 
@@ -192,6 +193,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           params.getParameter("RMWSProxyHost"),
           params.getParameter("RMWSProxyPort"),
           null,
+
           null,
           params.getParameter("UserName"),
           params.getObfuscatedParameter("Password"),
@@ -1495,7 +1497,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Document Server");
@@ -1639,7 +1642,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String dmwsServerProtocol = parameters.getParameter("DMWSServerProtocol");
@@ -1947,7 +1951,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String dmwsServerProtocol = variableContext.getParameter("dmwsServerProtocol");
@@ -2095,7 +2100,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -2196,7 +2202,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
     tabsArray.add("Search Paths");
@@ -2292,7 +2298,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
@@ -2506,6 +2512,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "        </input>\n"+
 "      </nobr>\n"+
 "      <br/>\n"
+
         );
       }
       out.print(
@@ -2704,7 +2711,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"MeridioConnector.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2963,7 +2970,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     int i;
@@ -3315,7 +3322,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -3515,7 +3522,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"MeridioConnector.NoAccessTokensSpecified") + "</td></tr>\n"
       );
     }
     out.print(
@@ -4264,9 +4271,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
             {
               HashMap categoryMatchMap = (HashMap)customMap.get(new Long(categoryMatch));
               if (categoryMatchMap != null)
+
               {
                 columnName = (String)categoryMatchMap.get(returnMetadata[i].getPropertyName());
               }
+
             }
 
             if (columnName != null)

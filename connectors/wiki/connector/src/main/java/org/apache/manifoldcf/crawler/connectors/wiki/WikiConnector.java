@@ -317,10 +317,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Server");
+    tabsArray.add(Messages.getString(locale,"WikiConnector.Server"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -382,7 +383,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   *@param tabName is the current tab name.
   */
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String protocol = parameters.getParameter(WikiConfig.PARAM_PROTOCOL);
@@ -401,12 +403,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (path == null)
       path = "/w";
 
-    if (tabName.equals("Server"))
+    if (tabName.equals(Messages.getString(locale,"WikiConnector.Server")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Protocol:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.Protocol") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverprotocol\">\n"+
 "        <option value=\"http\""+(protocol.equals("http")?" selected=\"true\"":"")+">http</option>\n"+
@@ -415,19 +417,19 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.ServerName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"servername\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(server)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Port:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.Port") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"serverport\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(port)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Path name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.PathName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"serverpath\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
 "    </td>\n"+
@@ -458,7 +460,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String protocol = variableContext.getParameter("serverprotocol");
@@ -488,7 +491,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -539,10 +543,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Namespace and Titles");
+    tabsArray.add(Messages.getString(locale,"WikiConnector.NamespaceAndTitles"));
     
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -583,10 +587,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
-    if (tabName.equals("Namespace and Titles"))
+    if (tabName.equals(Messages.getString(locale,"WikiConnector.NamespaceAndTitles")))
     {
       boolean seenAny = false;
       // Output table column headers
@@ -594,13 +599,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Namespaces and titles:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.NamespaceAndTitles2") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Namespace</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Title prefix</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.Namespace") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.TitlePrefix") + "</nobr></td>\n"+
 "        </tr>\n"
       );
 
@@ -624,7 +629,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <input type=\"hidden\" name=\""+nsOpName+"\" value=\"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsTitlePrefix+"\" value=\""+((titlePrefix==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:NsDelete("+Integer.toString(k)+")' alt=\""+"Delete namespace/title #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Delete") + "\" onClick='Javascript:NsDelete("+Integer.toString(k)+")' alt=\""+"Delete namespace/title #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -646,7 +651,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (k == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td colspan=\"3\" class=\"formmessage\">No specification; all default namespace documents currently included</td></tr>\n"
+"        <tr class=\"formrow\"><td colspan=\"3\" class=\"formmessage\">" + Messages.getBodyString(locale,"WikiConnector.NoSpecification") + "</td></tr>\n"
         );
       }
 
@@ -677,13 +682,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <a name=\""+"ns_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\"nsop\" value=\"\"/>\n"+
 "              <input type=\"hidden\" name=\"nscount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"Add\" onClick='Javascript:NsAdd("+Integer.toString(k)+")' alt=\"Add namespace/prefix\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Add") + "\" onClick='Javascript:NsAdd("+Integer.toString(k)+")' alt=\"" + Messages.getAttributeString(locale,"WikiConnector.AddNamespacePrefix") + "\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
 "              <select name=\"nsnsname\">\n"+
-"                <option value=\"\" selected=\"true\">-- Use default --</option>\n"
+"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"WikiConnector.UseDefault") + " --</option>\n"
         );
         for (int l = 0 ; l < nameSpaceNames.length ; l++)
         {
@@ -709,7 +714,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       catch (ServiceInterruption e)
       {
         out.print(
-"        <tr class=\"formrow\"><td colspan=\"3\" class=\"formmessage\">Transient error: "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td></tr>\n"
+"        <tr class=\"formrow\"><td colspan=\"3\" class=\"formmessage\">" + Messages.getBodyString(locale,"WikiConnector.TransientError") + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td></tr>\n"
         );
       }
 
@@ -758,7 +763,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String countString = variableContext.getParameter("nscount");
@@ -826,7 +831,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -834,12 +839,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr>\n"
     );
     out.print(
-"    <td class=\"description\"><nobr>Namespace and title:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.NamespaceAndTitles2") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Namespace</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Title prefix</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.Namespace") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.TitlePrefix") + "</nobr></td>\n"+
 "        </tr>\n"
     );
 
@@ -871,7 +876,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
     if (k == 0)
       out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\">All default namespace documents included</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\">" + Messages.getBodyString(locale,"WikiConnector.AllDefaultNamespaceDocumentsIncluded") + "</td></tr>\n"
       );
     
     out.print(
@@ -2518,6 +2523,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,"api");
       this.namespaces = namespaces;
     }
+
 
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {

@@ -136,7 +136,7 @@
 						}
 					}
 
-					String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					String error = RepositoryConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 						
 					if (error != null)
 					{
@@ -251,7 +251,7 @@
 					if (x != null && x.length() > 0)
 						connection.setMaxConnections(Integer.parseInt(x));
 
-					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 					
 					if (error != null)
 					{
@@ -366,7 +366,7 @@
 					if (x != null && x.length() > 0)
 						connection.setMaxConnections(Integer.parseInt(x));
 
-					String error = OutputConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,connection.getConfigParams());
+					String error = OutputConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 					
 					if (error != null)
 					{
@@ -731,7 +731,7 @@
 						{
 							try
 							{
-								String error = outputConnector.processSpecificationPost(variableContext,job.getOutputSpecification());
+								String error = outputConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getOutputSpecification());
 								if (error != null)
 								{
 									variableContext.setParameter("text",error);
@@ -756,7 +756,7 @@
 						{
 							try
 							{
-								String error = repositoryConnector.processSpecificationPost(variableContext,job.getSpecification());
+								String error = repositoryConnector.processSpecificationPost(variableContext,pageContext.getRequest().getLocale(),job.getSpecification());
 								if (error != null)
 								{
 									variableContext.setParameter("text",error);

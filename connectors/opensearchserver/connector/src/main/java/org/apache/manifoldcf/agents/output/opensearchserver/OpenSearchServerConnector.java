@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Locale;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -45,20 +46,20 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.system.Logging;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenSearchServerConnector extends BaseOutputConnector {
 
-  private final static String OPENSEARCHSERVER_INDEXATION_ACTIVITY = "Indexation";
+  private final static String OPENSEARCHSERVER_INDEXATION_ACTIVITY = "Optimize";
   private final static String OPENSEARCHSERVER_DELETION_ACTIVITY = "Deletion";
-  private final static String OPENSEARCHSERVER_OPTIMIZE_ACTIVITY = "Optimize";
+  private final static String OPENSEARCHSERVER_OPTIMIZE_ACTIVITY = "Indexation";
 
   private final static String[] OPENSEARCHSERVER_ACTIVITIES = {
       OPENSEARCHSERVER_INDEXATION_ACTIVITY, OPENSEARCHSERVER_DELETION_ACTIVITY,
       OPENSEARCHSERVER_OPTIMIZE_ACTIVITY };
 
-  private final static String OPENSEARCHSERVER_TAB_PARAMETER = "Parameters";
   private final static String OPENSEARCHSERVER_TAB_OPENSEARCHSERVER = "OpenSearchServer";
 
   private String specsCacheOutpuDescription;
@@ -82,55 +83,37 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
    * @param out
    * @throws ManifoldCFException
    */
-  private void outputResource(String resName, IHTTPOutput out,
-      OpenSearchServerParam params) throws ManifoldCFException {
-    InputStream is = getClass().getResourceAsStream(resName);
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-      String line;
-      while ((line = br.readLine()) != null)
-        if (params != null)
-          out.println(params.replace(line));
-        else
-          out.println(line);
-    } catch (UnsupportedEncodingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
-    } finally {
-      if (br != null)
-        IOUtils.closeQuietly(br);
-      if (is != null)
-        IOUtils.closeQuietly(is);
-    }
+  private static void outputResource(String resName, IHTTPOutput out,
+      Locale locale, OpenSearchServerParam params) throws ManifoldCFException {
+    Messages.outputResource(out,locale,resName,params.buildMap(),false);
   }
 
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    super.outputConfigurationHeader(threadContext, out, parameters, tabsArray);
-    tabsArray.add(OPENSEARCHSERVER_TAB_PARAMETER);
-    outputResource("configuration.js", out, null);
+    super.outputConfigurationHeader(threadContext, out, locale, parameters, tabsArray);
+    tabsArray.add(Messages.getString(locale,"OpenSearchServerConnector.Parameters"));
+    outputResource("configuration.js", out, locale, null);
   }
 
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, String tabName)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
-    super.outputConfigurationBody(threadContext, out, parameters, tabName);
-    if (OPENSEARCHSERVER_TAB_PARAMETER.equals(tabName)) {
-      outputResource("configuration.html", out, getConfigParameters(parameters));
+    super.outputConfigurationBody(threadContext, out, locale, parameters, tabName);
+    if (Messages.getString(locale,"OpenSearchServerConnector.Parameters").equals(tabName)) {
+      outputResource("configuration.html", out, locale, getConfigParameters(parameters));
     }
   }
 
   @Override
   public void outputSpecificationHeader(IHTTPOutput out,
-      OutputSpecification os, List<String> tabsArray)
+      Locale locale, OutputSpecification os, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    super.outputSpecificationHeader(out, os, tabsArray);
+    super.outputSpecificationHeader(out, locale, os, tabsArray);
     tabsArray.add(OPENSEARCHSERVER_TAB_OPENSEARCHSERVER);
+    outputResource("specifications.js", out, locale, null);
   }
 
   final private SpecificationNode getSpecNode(OutputSpecification os) {
@@ -146,17 +129,17 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   }
 
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os,
       String tabName) throws ManifoldCFException, IOException {
-    super.outputSpecificationBody(out, os, tabName);
+    super.outputSpecificationBody(out, locale, os, tabName);
     if (OPENSEARCHSERVER_TAB_OPENSEARCHSERVER.equals(tabName)) {
-      outputResource("specifications.html", out, getSpecParameters(os));
+      outputResource("specifications.html", out, locale, getSpecParameters(os));
     }
   }
 
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
-      OutputSpecification os) throws ManifoldCFException {
+      Locale locale, OutputSpecification os) throws ManifoldCFException {
     ConfigurationNode specNode = getSpecNode(os);
     boolean bAdd = (specNode == null);
     if (bAdd) {
@@ -239,14 +222,14 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
 
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-      ConfigParams parameters) throws ManifoldCFException, IOException {
-    outputResource("view.html", out, getConfigParameters(parameters));
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
+    outputResource("view.html", out, locale, getConfigParameters(parameters));
   }
 
   @Override
-  public void viewSpecification(IHTTPOutput out, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
       throws ManifoldCFException, IOException {
-    outputResource("viewSpec.html", out, getSpecParameters(os));
+    outputResource("viewSpec.html", out, locale, getSpecParameters(os));
   }
 
   @Override

@@ -30,6 +30,7 @@ response.setContentType("text/html;charset=utf-8");
 <%@ page language="java" %>
 <%@ page import="org.apache.manifoldcf.core.interfaces.*" %>
 <%@ page import="org.apache.manifoldcf.core.util.*" %>
+<%@ page import="org.apache.manifoldcf.ui.i18n.*" %>
 <%@ page import="org.apache.manifoldcf.agents.interfaces.*" %>
 <%@ page import="org.apache.manifoldcf.crawler.interfaces.*" %>
 <%@ page import="org.apache.manifoldcf.authorities.interfaces.*" %>

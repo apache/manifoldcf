@@ -1887,6 +1887,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions)
     throws ManifoldCFException
+
+
   {
     // Nothing to do
   }
@@ -1915,11 +1917,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Docbase");
-    tabsArray.add("Webtop");
+    tabsArray.add(Messages.getString(locale,"DCTM.Docbase"));
+    tabsArray.add(Messages.getString(locale,"DCTM.Webtop"));
     
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -1929,28 +1932,28 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  if (editconnection.docbasename.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please supply the name of a Docbase\");\n"+
-"    SelectTab(\"Docbase\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbasename.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.docbaseusername.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The connection requires a valid Documentum user name\");\n"+
-"    SelectTab(\"Docbase\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbaseusername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.docbasepassword.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The connection requires the Documentum user's password\");\n"+
-"    SelectTab(\"Docbase\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbasepassword.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webtopbaseurl.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please specify the base url to a webtop to serve selected documents\");\n"+
-"    SelectTab(\"Webtop\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Webtop") + "\");\n"+
 "    editconnection.webtopbaseurl.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1972,7 +1975,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String docbaseName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE);
@@ -1992,22 +1996,22 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       webtopBaseUrl = "http://localhost/webtop/";
 
     // "Docbase" tab
-    if (tabName.equals("Docbase"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.Docbase")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocbaseName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase user name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbaseusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseUserName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocbaseUserName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbaseusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseUserName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"docbasepassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbasePassword)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocbasePassword") + "</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"docbasepassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbasePassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase domain:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasedomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseDomain)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocbaseDomain") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasedomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseDomain)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -2024,13 +2028,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
 
     // Webtop tab
-    if (tabName.equals("Webtop"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.Webtop")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Webtop Base URL:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"webtopbaseurl\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(webtopBaseUrl)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.WebtopBaseURL") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"webtopbaseurl\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(webtopBaseUrl)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -2054,7 +2058,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String docbaseName = variableContext.getParameter("docbasename");
@@ -2088,13 +2093,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"DCTM.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -2137,15 +2143,15 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Paths");
-    tabsArray.add("Document Types");
-    tabsArray.add("Content Types");
-    tabsArray.add("Content Length");
-    tabsArray.add("Security");
-    tabsArray.add("Path Metadata");
+    tabsArray.add(Messages.getString(locale,"DCTM.Paths"));
+    tabsArray.add(Messages.getString(locale,"DCTM.DocumentTypes"));
+    tabsArray.add(Messages.getString(locale,"DCTM.ContentTypes"));
+    tabsArray.add(Messages.getString(locale,"DCTM.ContentLength"));
+    tabsArray.add(Messages.getString(locale,"DCTM.Security"));
+    tabsArray.add(Messages.getString(locale,"DCTM.PathMetadata"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -2222,14 +2228,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
     int k;
 
     // Paths tab
-    if (tabName.equals("Paths"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2255,6 +2261,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
+
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+"\n"+
 "    </td>\n"+
 "  </tr>\n"
@@ -2386,13 +2393,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
 "      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
 "      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
@@ -2432,7 +2439,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"DCTM.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2516,7 +2523,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    if (tabName.equals("Document Types"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.DocumentTypes")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2676,7 +2683,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    if (tabName.equals("Content Types"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.ContentTypes")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2772,7 +2779,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    if (tabName.equals("Content Length"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.ContentLength")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2824,7 +2831,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    if (tabName.equals("Path Metadata"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.PathMetadata")))
     {
       out.print(
 "<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
@@ -2833,7 +2840,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Path attribute name:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"DCTM.PathAttributeName") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
 "      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
 "    </td>\n"+
@@ -2849,7 +2856,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr>\n"+
 "    <td class=\"description\"><input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
 "      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\"Delete mapping #"+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"" + Messages.getAttributeJavascriptString(locale,"DCTM.Delete") + "\",\"mapping_"+Integer.toString(i)+"\")' alt=\"" + Messages.getAttributeString(locale,"DCTM.DeleteMapping") + Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
@@ -2862,7 +2869,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       if (i == 0)
       {
         out.print(
-"  <tr><td colspan=\"4\" class=\"message\">No mappings specified</td></tr>\n"
+"  <tr><td colspan=\"4\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoMappingsSpecified") + "</td></tr>\n"
         );
       }
       out.print(
@@ -2871,12 +2878,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add\"/>\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"DCTM.AddToMappings") + "\" value=\"" + Messages.getAttributeString(locale,"DCTM.Add") + "\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
-"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"DCTM.MatchRegexp") + "&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
+"    <td class=\"value\">" + Messages.getBodyString(locale,"DCTM.ReplaceString") + "&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -2910,7 +2917,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String x = variableContext.getParameter("pathcount");
@@ -3219,7 +3226,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -3237,7 +3244,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           seenAny = true;
           out.print(
-"    <td class=\"description\">Cabinet/folder paths:</td>\n"+
+"    <td class=\"description\">" + Messages.getBodyString(locale,"DCTM.CabinetFolderPaths") + "</td>\n"+
 "    <td class=\"value\">\n"
           );
         }
@@ -3256,7 +3263,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       out.print(
-"    <td colspan=\"2\" class=\"message\">No cabinet/folder paths specified (everything in docbase will be scanned)</td>\n"
+"    <td colspan=\"2\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoCabinetFolderPathsSpecified") + "</td>\n"
       );
     }
     out.print(
@@ -3275,7 +3282,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         if (seenAny == false)
         {
           out.print(
-"    <td class=\"description\"><nobr>Object types:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.ObjectTypes") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
           );
@@ -3292,7 +3299,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         );
         if (isAll != null && isAll.equals("true"))
           out.print(
-"            <nobr>(all metadata attributes)</nobr>\n"
+"            <nobr>" + Messages.getBodyString(locale,"DCTM.allMetadataAttributes") + "</nobr>\n"
           );
         else
         {
@@ -3326,7 +3333,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       out.print(
-"    <td colspan=\"2\" class=\"message\">No document types specified</td>\n"
+"    <td colspan=\"2\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoDocumentTypesSpecified") + "</td>\n"
       );
     }
     out.print(
@@ -3345,7 +3352,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         if (seenAny == false)
         {
           out.print(
-"    <td class=\"description\"><nobr>Content types:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.ContentTypes2") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3365,7 +3372,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       out.print(
-"    <td colspan=\"2\" class=\"message\">No mime types specified - ALL will be ingested</td>\n"
+"    <td colspan=\"2\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoMimeTypesSpecified") + "</td>\n"
       );
     }
     out.print(
@@ -3388,7 +3395,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     out.print(
 "\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Maximum document length:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.MaximumDocumentLength") + "</nobr></td>\n"+
 "    <td class=\"value\">"+maxDocumentLength+"</td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -3414,7 +3421,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     out.print(
 "\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\">"+((securityOn)?"Enabled":"Disabled")+"</td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -3432,7 +3439,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.AccessTokens") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3454,7 +3461,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"DCTM.NoAccessTokensSpecified") + "</td></tr>\n"
       );
     }
 
@@ -3481,14 +3488,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     if (pathNameAttribute.length() > 0)
     {
       out.print(
-"    <td class=\"description\">Path-name metadata attribute:</td>\n"+
+"    <td class=\"description\">" + Messages.getBodyString(locale,"DCTM.PathNameMetadataAttribute") + "</td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</td>\n"
       );
     }
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">No path-name metadata attribute specified</td>\n"
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"DCTM.NoPathNameMetadataAttributeSpecified") + "</td>\n"
       );
     }
     
@@ -3516,7 +3523,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     if (matchMap.getMatchCount() > 0)
     {
       out.print(
-"    <td class=\"description\"><nobr>Path-value mapping:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.PathValueMapping") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
@@ -3543,7 +3550,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">No mappings specified</td>\n"
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"DCTM.NoMappingsSpecified") + "</td>\n"
       );
     }
 

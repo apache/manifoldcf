@@ -39,7 +39,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle">Welcome to Apache ManifoldCF</p>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"index.WelcomeToApacheManifoldFC")%></p>
        </td>
       </tr>
     </table>

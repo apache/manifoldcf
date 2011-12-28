@@ -1,5 +1,6 @@
 <%@ page language="java" %>
 <%@ page import="org.apache.manifoldcf.core.interfaces.*" %>
+<%@ page import="org.apache.manifoldcf.ui.i18n.*" %>
 <%@ page import="org.apache.manifoldcf.agents.interfaces.*" %>
 <%@ page import="org.apache.manifoldcf.authorities.interfaces.*" %>
 <%@ page import="org.apache.manifoldcf.crawler.interfaces.*" %>
@@ -49,4 +50,3 @@
 		threadContext.save("__WRAPPER__",variableContext);
 	}
 %>
-

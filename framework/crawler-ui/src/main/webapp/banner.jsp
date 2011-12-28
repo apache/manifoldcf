@@ -33,7 +33,7 @@
           <td>
 	    <table class="headertable">
 		<tr><td class="headerdate"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dateString)%></td></tr>
-	          <tr><td class="header">Document Ingestion</td></tr>
+	          <tr><td class="header"><%=Messages.getString(pageContext.getRequest().getLocale(),"banner.DocumentIngestion")%></td></tr>
 	    </table>
 	</td>
     </tr>

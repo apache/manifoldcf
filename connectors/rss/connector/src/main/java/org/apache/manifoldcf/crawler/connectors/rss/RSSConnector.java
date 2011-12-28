@@ -1312,6 +1312,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("RSS: Interpreting '"+urlValue+"' as a document");
 
+
+
         if (isDataIngestable(activities,urlValue))
         {
           // Treat it as an ingestable document.
@@ -1525,6 +1527,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       String version = versions[i];
       if (version != null)
+
       {
         String urlValue = documentIdentifiers[i];
         cache.deleteData(urlValue);
@@ -1550,13 +1553,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Email");
-    tabsArray.add("Robots");
-    tabsArray.add("Bandwidth");
-    tabsArray.add("Proxy");
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Email"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Robots"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Bandwidth"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Proxy"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1616,7 +1620,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.emailParameter);
@@ -1654,13 +1659,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       proxyAuthPassword = "";
       
     // Email tab
-    if (tabName.equals("Email"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Email")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Email address to contact:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.EmailAddressToContact") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1673,18 +1678,18 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Robots tab
-    if (tabName.equals("Robots"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Robots")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Robots.txt usage:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.RobotsTxtUsage") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"robotsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">Don't look at robots.txt</option>\n"+
-"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">Obey robots.txt for data fetches only</option>\n"+
-"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">Obey robots.txt for all fetches</option>\n"+
+"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.DontLookAtRobotsTxt") + "</option>\n"+
+"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
+"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -1699,25 +1704,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Bandwidth tab
-    if (tabName.equals("Bandwidth"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Bandwidth")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Max KBytes per second per server:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxKBytesPerSecondPerServer") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"6\" name=\"bandwidth\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(bandwidth)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Max connections per server:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxConnectionsPerServer") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"4\" name=\"connections\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connections)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Max fetches per minute per server:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxFetchesPerMinutePerServer") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"4\" name=\"fetches\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fetches)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Throttle group name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ThrottleGroupName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"throttlegroup\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(throttleGroup)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1734,29 +1739,29 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
     
     // Proxy tab
-    if (tabName.equals("Proxy"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Proxy")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Proxy host:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyHost") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Proxy port:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyPort") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Proxy authentication domain:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationDomain") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Proxy authentication user name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationUserName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Proxy authentication password:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationPassword") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1784,7 +1789,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String email = variableContext.getParameter("email");
@@ -1832,13 +1838,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -1881,16 +1888,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("URLs");
-    tabsArray.add("Canonicalization");
-    tabsArray.add("URL Mappings");
-    tabsArray.add("Time Values");
-    tabsArray.add("Security");
-    tabsArray.add("Metadata");
-    tabsArray.add("Dechromed Content");
+    tabsArray.add(Messages.getString(locale,"RSSConnector.URLs"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Canonicalization"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.URLMappings"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.TimeValues"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Security"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Metadata"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.DechromedContent"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -2001,7 +2008,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
@@ -2066,7 +2073,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
     // URLs tab
 
-    if (tabName.equals("URLs"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.URLs")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2087,7 +2094,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Canonicalization tab
-    if (tabName.equals("Canonicalization"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Canonicalization")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2242,7 +2249,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   
     // Mappings tab
 
-    if (tabName.equals("URL Mappings"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.URLMappings")))
     {
       out.print(
 "<input type=\"hidden\" name=\"rssop\" value=\"\"/>\n"+
@@ -2319,7 +2326,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Timeout Value tab
-    if (tabName.equals("Time Values"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.TimeValues")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2370,7 +2377,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       else if (sn.getType().equals("chromedmode"))
         chromedMode = sn.getAttributeValue("mode");
     }
-    if (tabName.equals("Dechromed Content"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.DechromedContent")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2408,7 +2415,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     // There is no native security, so all we care about are the tokens.
     i = 0;
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2446,7 +2453,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"RSSConnector.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2491,7 +2498,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // "Metadata" tab
-    if (tabName.equals("Metadata"))
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Metadata")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2598,7 +2605,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     // Get the map
@@ -3022,7 +3029,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -3243,6 +3250,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>Bad feed rescan interval (minutes):</nobr></td>\n"+
 "    <td class=\"value\">"+((badFeedRefetchValue==null)?"(Default feed rescan value)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(badFeedRefetchValue))+"</td>\n"+
+
 "  </tr>\n"+
 "      \n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
@@ -3291,7 +3299,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>No access tokens specified</nobr></td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.NoAccessTokensSpecified") + "</nobr></td></tr>\n"
       );
     }
     out.print(
@@ -3308,7 +3316,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Metadata") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3331,7 +3339,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>No metadata specified</nobr></td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.NoMetadataSpecified") + "</nobr></td></tr>\n"
       );
     }
     out.print(
@@ -5277,6 +5285,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (milTzMap.get(timezone) != null)
           timezone = (String)milTzMap.get(timezone);
       }
+
     }
     else
       timezone = "GMT";

@@ -651,12 +651,13 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Database Type");
-    tabsArray.add("Server");
-    tabsArray.add("Credentials");
+    tabsArray.add(Messages.getString(locale,"JDBCConnector.DatabaseType"));
+    tabsArray.add(Messages.getString(locale,"JDBCConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"JDBCConnector.Credentials"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -666,21 +667,21 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  if (editconnection.databasehost.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please fill in a database server name\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasehost.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.databasename.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please fill in the name of the database\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasename.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.username.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please supply the database username for this connection\");\n"+
-"    SelectTab(\"Credentials\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Credentials") + "\");\n"+
 "    editconnection.username.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -702,7 +703,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String jdbcProvider = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
@@ -722,13 +724,13 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       databasePassword = "";
 
     // "Database Type" tab
-    if (tabName.equals("Database Type"))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.DatabaseType")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Database type:</nobr></td><td class=\"value\">\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DatabaseType2") + "</nobr></td><td class=\"value\">\n"+
 "      <select multiple=\"false\" name=\"databasetype\" size=\"2\">\n"+
 "        <option value=\"oracle:thin:@\" "+(jdbcProvider.equals("oracle:thin:@")?"selected=\"selected\"":"")+">Oracle</option>\n"+
 "        <option value=\"postgresql:\" "+(jdbcProvider.equals("postgresql:")?"selected=\"selected\"":"")+">Postgres SQL</option>\n"+
@@ -749,16 +751,16 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     // "Server" tab
-    if (tabName.equals("Server"))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Server")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Database host and port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(host)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DatabaseHostAndPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"databasehost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(host)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Database service name or instance/database:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DatabaseServiceNameOrInstanceDatabase") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"databasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseName)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -772,16 +774,16 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     // "Credentials" tab
-    if (tabName.equals("Credentials"))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Credentials")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseUser)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.UserName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databaseUser)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databasePassword)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.Password") + "</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(databasePassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -805,7 +807,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String type = variableContext.getParameter("databasetype");
@@ -839,13 +842,14 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -888,11 +892,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Queries");
-    tabsArray.add("Security");
+    tabsArray.add(Messages.getString(locale,"JDBCConnector.Queries"));
+    tabsArray.add(Messages.getString(locale,"JDBCConnector.Security"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -908,7 +912,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Type in an access token\");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAccessToken") + "\");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -998,7 +1002,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     String idQuery = "SELECT idfield AS $(IDCOLUMN) FROM documenttable WHERE modifydatefield > $(STARTTIME) AND modifydatefield <= $(ENDTIME)";
@@ -1031,21 +1035,21 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     // The Queries tab
 
-    if (tabName.equals("Queries"))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Queries")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Seeding query:</nobr><br/><nobr>(return ids that need to be checked)</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.SeedingQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsThatNeedToBeChecked") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\"idquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Version check query:</nobr><br/><nobr>(return ids and versions for a set of documents;</nobr><br/><nobr>leave blank if no versioning capability)</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsAndVersionsForASetOfDocuments") + "</nobr><br/><nobr>" + Messages.getString(locale,"JDBCConnector.leaveBlankIfNoVersioningCapability") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Data query:</nobr><br/><nobr>(return ids, urls, and data for a set of documents)</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsUrlsAndDataForASetOfDocuments") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1064,7 +1068,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // There is no native security, so all we care about are the tokens.
     i = 0;
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"JDBCConnector.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1102,7 +1106,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"JDBCConnector.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -1156,7 +1160,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String idQuery = variableContext.getParameter("idquery");
@@ -1261,7 +1265,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     String idQuery = "";
@@ -1342,7 +1346,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>No access tokens specified</nobr></td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.NoAccessTokensSpecified") + "</nobr></td></tr>\n"
       );
     }
 

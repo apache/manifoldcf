@@ -361,10 +361,11 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Appliance");
+    tabsArray.add(Messages.getString(locale,"GTSConnector.Appliance"));
     out.print(
 "\n"+
 "<script type=\"text/javascript\">\n"+
@@ -385,7 +386,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "  if (editconnection.ingesturi.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please supply a valid ingestion URI\");\n"+
-"    SelectTab(\"Appliance\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"GTSConnector.Appliance") + "\");\n"+
 "    editconnection.ingesturi.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -408,7 +409,8 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String ingestURI = parameters.getParameter(org.apache.manifoldcf.agents.output.gts.GTSConfig.PARAM_INGESTURI);
@@ -428,31 +430,31 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       password = "";
 		
     // "Appliance" tab
-    if (tabName.equals("Appliance"))
+    if (tabName.equals(Messages.getString(locale,"GTSConnector.Appliance")))
     {
       out.print(
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Ingest URI:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.IngestURI") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"ingesturi\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestURI)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Realm:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.Realm") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"realm\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(realm)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User ID:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.UserID") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"userid\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userID)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.Password") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
 "    </td>\n"+
@@ -481,7 +483,8 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String ingestURI = variableContext.getParameter("ingesturi");
@@ -511,7 +514,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -562,11 +565,11 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("GTS Collections");
-    tabsArray.add("GTS Template");
+    tabsArray.add(Messages.getString(locale,"GTSConnector.GTSCollections"));
+    tabsArray.add(Messages.getString(locale,"GTSConnector.GTSTemplate"));
     out.print(
 "\n"+
 "<script type=\"text/javascript\">\n"+
@@ -597,7 +600,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
     int i = 0;
@@ -621,13 +624,13 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       documentTemplate = "";
 
     // Collections tab
-    if (tabName.equals("GTS Collections"))
+    if (tabName.equals(Messages.getString(locale,"GTSConnector.GTSCollections")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Collection name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.CollectionName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"gts_collectionname\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collectionName)+"\"/>\n"+
 "    </td>\n"+
@@ -644,13 +647,13 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     }
 
     // Template tab
-    if (tabName.equals("GTS Template"))
+    if (tabName.equals(Messages.getString(locale,"GTSConnector.GTSTemplate")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document template:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.DocumentTemplate") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <textarea rows=\"10\" cols=\"96\" name=\"gts_documenttemplate\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(documentTemplate)+"</textarea>\n"+
 "    </td>\n"+
@@ -676,7 +679,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
     throws ManifoldCFException
   {
     // Collection name
@@ -728,7 +731,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   *@param os is the current output specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
     throws ManifoldCFException, IOException
   {
     int i = 0;
@@ -756,11 +759,11 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Collection:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.Collection") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(collectionName)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document template:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"GTSConnector.DocumentTemplate") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
     );
     if (documentTemplate == null || documentTemplate.length() == 0)
@@ -769,6 +772,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
     {
       out.print(
 "        <textarea name=\"documenttemplate\" cols=\"96\" rows=\"5\" readonly=\"true\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(documentTemplate)+"</textarea>\n"
+
       );
     }
     out.print(

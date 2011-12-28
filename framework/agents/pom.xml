@@ -49,6 +49,7 @@
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
             <exclude>**/*HSQLDBext*.java</exclude>
+            <exclude>**/*MySQL*.java</exclude>
           </excludes>
           <forkMode>always</forkMode>
           <workingDirectory>target/test-output</workingDirectory>

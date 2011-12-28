@@ -18,13 +18,13 @@
 <project default="all">
 
     <target name="clean">
-        <delete dir="build"/>
-        <delete dir="dist"/>
-        <delete dir="test-output"/>
-        <delete dir="test-output-postgresql"/>
-        <delete dir="test-output-mysql"/>
-        <delete dir="test-output-HSQLDB"/>
-        <delete dir="test-output-HSQLDBext"/>
+      <delete dir="build"/>
+      <delete dir="dist"/>
+      <delete dir="test-output"/>
+      <delete dir="test-output-postgresql"/>
+      <delete dir="test-output-mysql"/>
+      <delete dir="test-output-HSQLDB"/>
+      <delete dir="test-output-HSQLDBext"/>
     </target>
     
     <target name="doc">
@@ -50,10 +50,11 @@
         <javac srcdir="core/src/main/java" destdir="build/core/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
+                    <include name="*.jar"/>
                 </fileset>
             </classpath>
         </javac>
+        <native2ascii encoding="UTF-8" src="core/src/main/native2ascii" dest="build/core/classes" includes="**/*.properties" />
     </target>
 
     <target name="compile-ui-core" depends="compile-core">
@@ -198,7 +199,9 @@
 
     <target name="jar-core" depends="compile-core">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-core.jar" basedir="build/core/classes"/>
+        <jar destfile="build/jar/mcf-core.jar">
+          <fileset dir="build/core/classes"/>
+        </jar>
     </target>
 
     <target name="jar-ui-core" depends="compile-ui-core">
@@ -241,6 +244,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="json.jar"/>
@@ -277,6 +281,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="json.jar"/>
@@ -319,6 +324,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="json.jar"/>
@@ -394,6 +400,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="json.jar"/>
@@ -453,6 +460,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="json.jar"/>
             </fileset>
@@ -479,6 +487,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="eclipse*.jar"/>
                 <include name="jasper*.jar"/>
@@ -583,7 +592,10 @@
     
     <target name="jar-core-tests" depends="compile-core-tests">
         <mkdir dir="build/test-jar"/>
-        <jar destfile="build/test-jar/mcf-core-tests.jar" basedir="build/core-tests/classes"/>
+        <jar destfile="build/test-jar/mcf-core-tests.jar">
+          <fileset dir="build/core-tests/classes"/>
+          <!-- fileset dir="core/src/test/resource"/ -->
+        </jar>
     </target>
 
     <target name="jar-agents-tests" depends="compile-agents-tests">
@@ -620,6 +632,24 @@
 
             <test name="org.apache.manifoldcf.scriptengine.tests.ExpressionTest" todir="test-output"/>
             <test name="org.apache.manifoldcf.scriptengine.tests.CommandTest" todir="test-output"/>
+            
+        </junit>
+    </target>
+
+    <target name="run-UI-tests" depends="jar-core-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <fileset dir="build/test-jar">
+                    <include name="mcf-core-tests.jar"/>
+                </fileset>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.core.tests.HTMLTester" todir="test-output"/>
             
         </junit>
     </target>

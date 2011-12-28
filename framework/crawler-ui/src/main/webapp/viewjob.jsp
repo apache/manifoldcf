@@ -29,7 +29,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: View Job
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ApacheManifoldCFViewJob")%>
 	</title>
 
 	<script type="text/javascript">
@@ -56,7 +56,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle">View a Job</p>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ViewAJob")%></p>
 
 	<form class="standardform" name="viewjob" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
@@ -135,23 +135,23 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Name:</nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Name")%></nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Output connection:</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.OutputConnection")%></nobr></td>
 				<td class="value"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getOutputConnectionName())%></td>
-				<td class="description"><nobr>Repository connection:</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.RepositoryConnection")%></nobr></td>
 				<td class="value"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getConnectionName())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Priority:</nobr></td><td class="value"><%=priority%></td>
-				<td class="description"><nobr>Start method:</nobr></td><td class="value"><%=startMethod%></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Priority")%></nobr></td><td class="value"><%=priority%></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.StartMethod")%></nobr></td><td class="value"><%=startMethod%></td>
 			</tr>
 <%
 		if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
@@ -161,13 +161,13 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Schedule type:</nobr></td><td class="value"><nobr><%=jobType%></nobr></td>
-				<td class="description"><nobr>Minimum recrawl interval:</nobr></td><td class="value"><nobr><%=intervalString%></nobr>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ScheduleType")%></nobr></td><td class="value"><nobr><%=jobType%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlInterval")%></nobr></td><td class="value"><nobr><%=intervalString%></nobr>
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Expiration interval:</nobr></td><td class="value"><nobr><%=expirationIntervalString%></nobr></td>
-				<td class="description"><nobr>Reseed interval:</nobr></td><td class="value"><nobr><%=reseedIntervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ExpirationInterval")%></nobr></td><td class="value"><nobr><%=expirationIntervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ReseedInterval")%></nobr></td><td class="value"><nobr><%=reseedIntervalString%></nobr></td>
 			</tr>
 <%
 		}
@@ -180,7 +180,7 @@
 		if (job.getScheduleRecordCount() == 0)
 		{
 %>
-			<tr><td class="message" colspan="4">No scheduled run times</td></tr>
+			<tr><td class="message" colspan="4"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.NoScheduledRunTimes")%></td></tr>
 <%
 		}
 		else
@@ -208,7 +208,7 @@
 				}
 %>
 			<tr>
-				<td class="description"><nobr>Scheduled time:</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ScheduledTime")%></nobr></td>
 				<td class="value" colspan="3">
 <%
 					if (srDayOfWeek == null)
@@ -490,7 +490,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description">Maximum run time:</td><td class="value" colspan="3">
+				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTime")%></td><td class="value" colspan="3">
 <%
 					if (srDuration == null)
 						out.println("No limit");
@@ -519,7 +519,7 @@
 				Long value = (Long)hopCountFilters.get(relationshipType);
 %>
 			<tr>
-				<td class="description" colspan="1"><nobr>Maximum hop count for link type '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MaximumHopCountForLinkType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
 				<td class="value" colspan="3"><%=((value==null)?"Unlimited":value.toString())%></td>
 			</tr>
 			
@@ -530,7 +530,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Hop count mode:</nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.HopCountMode")%></nobr></td>
 				<td class="value" colspan="3"><nobr><%=(hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"Delete unreachable documents":""%><%=(hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"No deletes, for now":""%><%=(hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?"No deletes, forever":""%></nobr></td>
 			</tr>
 <%
@@ -552,7 +552,7 @@
 			{
 				try
 				{
-					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),job.getOutputSpecification());
+					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),job.getOutputSpecification());
 				}
 				finally
 				{
@@ -572,12 +572,13 @@
 		if (connection != null)
 		{
 			IRepositoryConnector repositoryConnector = RepositoryConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),
+
 				connection.getMaxConnections());
 			if (repositoryConnector != null)
 			{
 				try
 				{
-					repositoryConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),job.getSpecification());
+					repositoryConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),job.getSpecification());
 				}
 				finally
 				{
@@ -591,8 +592,8 @@
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="editjob.jsp?jobid="+jobID%>' alt="Edit this job">Edit</a>
-		&nbsp;<a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="Delete this job">Delete</a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jobID%>' alt="Copy this job">Copy</a></td>
+		<tr><td class="message" colspan="4"><a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
+		&nbsp;<a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a></td>
 		</tr>
 		</table>
 

@@ -391,10 +391,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Paths");
+    tabsArray.add(Messages.getString(locale,"FileConnector.Paths"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -424,14 +424,14 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
     int k;
 
     // Paths tab
-    if (tabName.equals("Paths"))
+    if (tabName.equals(Messages.getString(locale,"FileConnector.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -450,13 +450,13 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           {
             out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Paths:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FileConnector.Paths2") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Root path</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Rules</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"FileConnector.RootPath") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"FileConnector.Rules") + "</nobr></td>\n"+
 "        </tr>\n"
             );
           }
@@ -466,7 +466,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "            <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
 "            <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
 "            <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"FileConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -479,9 +479,9 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "            <table class=\"formtable\">\n"+
 "              <tr class=\"formheaderrow\">\n"+
 "                <td class=\"formcolumnheader\"></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>Include/exclude</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>File/directory</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>Match</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"FileConnector.IncludeExclude") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"FileConnector.FileDirectory") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"FileConnector.Match") + "</nobr></td>\n"+
 "              </tr>\n"
           );
           int j = 0;
@@ -498,22 +498,22 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <tr class=\"evenformrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"button\" value=\"Insert Here\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Insert Here\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.InsertHere") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"InsertHere\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Insert new match for path #"+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
 "                    <select name=\""+"specflavor"+instanceDescription+"\">\n"+
-"                      <option value=\"include\">include</option>\n"+
-"                      <option value=\"exclude\">exclude</option>\n"+
+"                      <option value=\"include\">" + Messages.getBodyString(locale,"FileConnector.include") + "</option>\n"+
+"                      <option value=\"exclude\">" + Messages.getBodyString(locale,"FileConnector.exclude") + "</option>\n"+
 "                    </select>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
 "                    <select name=\""+"spectype"+instanceDescription+"\">\n"+
-"                      <option value=\"file\">File</option>\n"+
-"                      <option value=\"directory\">Directory</option>\n"+
+"                      <option value=\"file\">" + Messages.getBodyString(locale,"FileConnector.File") + "</option>\n"+
+"                      <option value=\"directory\">" + Messages.getBodyString(locale,"FileConnector.Directory") + "</option>\n"+
 "                    </select>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
@@ -531,7 +531,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "                    <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
 "                    <input type=\"hidden\" name=\""+"specma"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
 "                    <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                      <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
+"                      <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Delete") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+"Delete path #"+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
 "                    </a>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
@@ -557,7 +557,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (j == 0)
           {
             out.print(
-"              <tr class=\"formrow\"><td class=\"message\" colspan=\"4\">No rules defined</td></tr>\n"
+"              <tr class=\"formrow\"><td class=\"message\" colspan=\"4\">" + Messages.getBodyString(locale,"FileConnector.NoRulesDefined") + "</td></tr>\n"
             );
           }
           out.print(
@@ -565,22 +565,22 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <tr class=\"formrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                    <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Add new match for path #"+Integer.toString(k)+"\"/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Add") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+"Add new match for path #"+Integer.toString(k)+"\"/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
 "                    <select name=\""+"specflavor"+pathDescription+"\">\n"+
-"                      <option value=\"include\">include</option>\n"+
-"                      <option value=\"exclude\">exclude</option>\n"+
+"                      <option value=\"include\">" + Messages.getBodyString(locale,"FileConnector.include") + "</option>\n"+
+"                      <option value=\"exclude\">" + Messages.getBodyString(locale,"FileConnector.exclude") + "</option>\n"+
 "                    </select>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
 "                    <select name=\""+"spectype"+pathDescription+"\">\n"+
-"                      <option value=\"file\">file</option>\n"+
-"                      <option value=\"directory\">directory</option>\n"+
+"                      <option value=\"file\">" + Messages.getBodyString(locale,"FileConnector.File") + "</option>\n"+
+"                      <option value=\"directory\">" + Messages.getBodyString(locale,"FileConnector.Directory") + "</option>\n"+
 "                    </select>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
@@ -600,7 +600,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (k == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td class=\"message\" colspan=\"3\">No documents specified</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"message\" colspan=\"3\">" + Messages.getBodyString(locale,"FileConnector.NoDocumentsSpecified") + "</td></tr>\n"
         );
       }
       out.print(
@@ -609,7 +609,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
 "              <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"                <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"Add new path\"/>\n"+
+"                <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Add") + "\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"Add new path\"/>\n"+
 "                <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "                <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
 "              </a>\n"+
@@ -678,7 +678,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String x = variableContext.getParameter("pathcount");
@@ -792,7 +792,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -836,7 +836,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (seenAny == false)
     {
       out.print(
-"  <tr><td class=\"message\">No documents specified</td></tr>\n"
+"  <tr><td class=\"message\">" + Messages.getBodyString(locale,"FileConnector.NoDocumentsSpecified") + "</td></tr>\n"
       );
     }
     out.print(

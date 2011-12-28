@@ -138,7 +138,7 @@ public class ManifoldCFResourceLoader
     }
     return classLoader;
   }
-
+  
   /** Get the specified class using the proper classloader.
   *@param cname is the fully-qualified class name.
   */

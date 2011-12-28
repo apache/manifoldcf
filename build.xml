@@ -153,6 +153,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
                 <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="eclipse*.jar"/>
                 <include name="jasper*.jar"/>
@@ -1298,7 +1299,7 @@
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
-            <attribute name="Class-Path" value="lib/commons-codec.jar lib/commons-collections.jar lib/commons-el.jar lib/commons-fileupload.jar lib/commons-httpclient-mcf.jar lib/commons-io.jar lib/commons-logging.jar lib/hsqldb.jar lib/derbyclient.jar lib/derby.jar lib/derbyLocale_cs.jar lib/derbyLocale_de_DE.jar lib/derbyLocale_es.jar lib/derbyLocale_fr.jar lib/derbyLocale_hu.jar lib/derbyLocale_it.jar lib/derbyLocale_ja_JP.jar lib/derbyLocale_ko_KR.jar lib/derbyLocale_pl.jar lib/derbyLocale_pt_BR.jar lib/derbyLocale_ru.jar lib/derbyLocale_zh_CN.jar lib/derbyLocale_zh_TW.jar lib/derbynet.jar lib/derbyrun.jar lib/derbytools.jar lib/eclipse-ecj.jar lib/jasper-6.0.24.jar lib/jasper-el-6.0.24.jar lib/jdbcpool-0.99.jar lib/jetty-6.1.26-patched-JETTY-1340.jar lib/jetty-util-6.1.26-patched-JETTY-1340.jar lib/jsp-api-2.1-glassfish-2.1.v20091210.jar lib/json.jar lib/mcf-agents.jar lib/mcf-core.jar lib/mcf-jetty-runner.jar lib/mcf-pull-agent.jar lib/mcf-ui-core.jar lib/log4j-1.2.jar lib/postgresql.jar lib/mysql-connector-java-5.1.18.jar lib/serializer.jar lib/servlet-api-2.5-20081211.jar lib/tomcat-juli-6.0.24.jar lib/xalan2.jar lib/xercesImpl-mcf.jar lib/xml-apis.jar"/>
+            <attribute name="Class-Path" value="lib/commons-lang.jar lib/commons-codec.jar lib/commons-collections.jar lib/commons-el.jar lib/commons-fileupload.jar lib/commons-httpclient-mcf.jar lib/commons-io.jar lib/commons-logging.jar lib/hsqldb.jar lib/derbyclient.jar lib/derby.jar lib/derbyLocale_cs.jar lib/derbyLocale_de_DE.jar lib/derbyLocale_es.jar lib/derbyLocale_fr.jar lib/derbyLocale_hu.jar lib/derbyLocale_it.jar lib/derbyLocale_ja_JP.jar lib/derbyLocale_ko_KR.jar lib/derbyLocale_pl.jar lib/derbyLocale_pt_BR.jar lib/derbyLocale_ru.jar lib/derbyLocale_zh_CN.jar lib/derbyLocale_zh_TW.jar lib/derbynet.jar lib/derbyrun.jar lib/derbytools.jar lib/eclipse-ecj.jar lib/jasper-6.0.24.jar lib/jasper-el-6.0.24.jar lib/jdbcpool-0.99.jar lib/jetty-6.1.26-patched-JETTY-1340.jar lib/jetty-util-6.1.26-patched-JETTY-1340.jar lib/jsp-api-2.1-glassfish-2.1.v20091210.jar lib/json.jar lib/mcf-agents.jar lib/mcf-core.jar lib/mcf-jetty-runner.jar lib/mcf-pull-agent.jar lib/mcf-ui-core.jar lib/log4j-1.2.jar lib/postgresql.jar lib/mysql-connector-java-5.1.18.jar lib/serializer.jar lib/servlet-api-2.5-20081211.jar lib/tomcat-juli-6.0.24.jar lib/xalan2.jar lib/xercesImpl-mcf.jar lib/xml-apis.jar"/>
         </manifest>
         <jar destfile="dist/example/start.jar" manifest="build/example/manifest"/>
     </target>

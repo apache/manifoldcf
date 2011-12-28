@@ -27,6 +27,9 @@ import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.alfresco.webservice.authentication.AuthenticationFault;
 import org.alfresco.webservice.content.Content;
@@ -409,52 +412,16 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    * @param out
    * @throws ManifoldCFException
    */
-  private void outputResource(String resName, IHTTPOutput out,
-      ConfigParams params) throws ManifoldCFException {
-    InputStream is = getClass().getResourceAsStream(resName);
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-      String line;
-      while ((line = br.readLine()) != null) {
-        if (params != null) {
-          @SuppressWarnings("unchecked")
-          Iterator<String> i = params.listParameters();
-          boolean parsedLine = false;
-          while (i.hasNext()) {
-            String key = (String) i.next();
-            String value = Encoder.attributeEscape(params.getParameter(key));
-            String replacer = "${" + key.toUpperCase() + "}";
-            if (StringUtils.contains(line, replacer)) {
-              if (StringUtils.isEmpty(value)) {
-                out.println(StringUtils.replace(line, replacer,
-                    StringUtils.EMPTY));
-                parsedLine = true;
-              } else {
-                out.println(StringUtils.replace(line, replacer, value));
-                parsedLine = true;
-              }
-            } else if (StringUtils.contains(line, "${")) {
-              parsedLine = true;
-            } else if (!parsedLine) {
-              out.println(line);
-              parsedLine = true;
-            }
-          }
-        } else {
-          break;
-        }
-      }
-    } catch (UnsupportedEncodingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
-    } finally {
-      if (br != null)
-        IOUtils.closeQuietly(br);
-      if (is != null)
-        IOUtils.closeQuietly(is);
+  private static void outputResource(String resName, IHTTPOutput out,
+      Locale locale, ConfigParams params) throws ManifoldCFException {
+    Map<String,String> paramMap = new HashMap<String,String>();
+    Iterator<String> i = params.listParameters();
+    while(i.hasNext()){
+      String key = i.next();
+      String value = params.getParameter(key);
+      paramMap.put(key,value);
     }
+    Messages.outputResource(out,locale,resName,paramMap,true);
   }
 
   /**
@@ -474,7 +441,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-      ConfigParams parameters) throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     
     String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
     if (StringUtils.isEmpty(username)) {
@@ -506,7 +473,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       parameters.setParameter(AlfrescoConfig.PATH_PARAM, AlfrescoConfig.PATH_DEFAULT_VALUE);
     }
     
-    outputResource(VIEW_CONFIG_FORWARD, out, parameters);
+    outputResource(VIEW_CONFIG_FORWARD, out, locale, parameters);
   }
 
   /**
@@ -528,10 +495,10 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     tabsArray.add(ALFRESCO_SERVER_TAB_NAME);
-    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, parameters);
+    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, parameters);
   }
 
   /** Output the configuration body section.
@@ -545,40 +512,41 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, String tabName)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     
-    if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
-      String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
-      String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
-      String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
-      String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
-      String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
-      String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
+    String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
+    String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
+    String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
+    String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
+    String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
+    String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
       
-      if (StringUtils.isEmpty(username))
-        username = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(password))
-        password = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(protocol))
-        protocol = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(server))
-        server = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(port))
-        port = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(path))
-        path = StringUtils.EMPTY;
+    if (username == null)
+      username = "admin";
+    if (password == null)
+      password = "admin";
+    if (protocol == null)
+      protocol = "http";
+    if (server == null)
+      server = "localhost";
+    if (port == null)
+      port = "8080";
+    if (path == null)
+      path = "/alfresco/api";
   
-      parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
-      parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
-      parameters.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
-      parameters.setParameter(AlfrescoConfig.SERVER_PARAM, server);
-      parameters.setParameter(AlfrescoConfig.PORT_PARAM, port);
-      parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
-      
-      outputResource(EDIT_CONFIG_FORWARD, out, parameters);  
+    ConfigParams newMap = new ConfigParams();
+    newMap.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
+    newMap.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
+    newMap.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
+    newMap.setParameter(AlfrescoConfig.SERVER_PARAM, server);
+    newMap.setParameter(AlfrescoConfig.PORT_PARAM, port);
+    newMap.setParameter(AlfrescoConfig.PATH_PARAM, path);
+    
+    if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
+      outputResource(EDIT_CONFIG_FORWARD, out, locale, newMap);  
     } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, parameters);
+      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, newMap);
     }
   }
 
@@ -603,7 +571,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String processConfigurationPost(IThreadContext threadContext,
-      IPostParameters variableContext, ConfigParams parameters)
+      IPostParameters variableContext, Locale locale, ConfigParams parameters)
       throws ManifoldCFException {
 
     String username = variableContext.getParameter(AlfrescoConfig.USERNAME_PARAM);
@@ -655,7 +623,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    *          is the current document specification for this job.
    */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
     int i = 0;
     boolean seenAny = false;
@@ -672,7 +640,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       }
       i++;
     }
-    outputResource(VIEW_SPEC_FORWARD, out, specificationParams);
+    outputResource(VIEW_SPEC_FORWARD, out, locale, specificationParams);
   }
 
   /**
@@ -692,7 +660,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
-      DocumentSpecification ds) throws ManifoldCFException {
+      Locale locale, DocumentSpecification ds) throws ManifoldCFException {
     String luceneQuery = variableContext
         .getParameter(AlfrescoConfig.LUCENE_QUERY_PARAM);
     if (StringUtils.isNotEmpty(luceneQuery)) {
@@ -740,7 +708,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    *          is the current tab name.
    */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out,
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale,
       DocumentSpecification ds, String tabName) throws ManifoldCFException,
       IOException {
     String luceneQuery = StringUtils.EMPTY;
@@ -757,9 +725,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     ConfigParams params = new ConfigParams();
     params.setParameter(AlfrescoConfig.LUCENE_QUERY_PARAM, luceneQuery);
     if (tabName.equals(TAB_LABEL_LUCENE_QUERY)) {
-      outputResource(EDIT_SPEC_FORWARD, out, params);
+      outputResource(EDIT_SPEC_FORWARD, out, locale, params);
     } else {
-      outputResource(HIDDEN_SPEC_FORWARD, out, params);
+      outputResource(HIDDEN_SPEC_FORWARD, out, locale, params);
     }
   }
 
@@ -779,10 +747,10 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputSpecificationHeader(IHTTPOutput out,
-      DocumentSpecification ds, List<String> tabsArray)
+      Locale locale, DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     tabsArray.add(TAB_LABEL_LUCENE_QUERY);
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, params);
+    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, params);
   }
 
   /** Process a set of documents.

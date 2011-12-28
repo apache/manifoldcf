@@ -31,7 +31,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: Status of all jobs
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.ApacheManifoldCFStatusOfAllJobs")%>
 	</title>
 
 	<script type="text/javascript">
@@ -83,7 +83,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle">Status of Jobs</p>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.StatusOfJobs")%></p>
 <%
 if (maintenanceUnderway == false)
 {
@@ -105,7 +105,7 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="8"><hr/></td>
 			</tr>
 			<tr class="headerrow">
-				<td class="columnheader"></td><td class="columnheader">Name</td><td class="columnheader">Status</td><td class="columnheader">Start&nbsp;Time</td><td class="columnheader">End&nbsp;Time</td><td class="columnheader">Documents</td><td class="columnheader">Active</td><td class="columnheader">Processed</td>
+				<td class="columnheader"></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.Name")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.Status")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.StartTime")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.EndTime")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.Documents")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.Active")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.Processed")%></td>
 			</tr>
 <%
 	int i = 0;
@@ -246,7 +246,7 @@ if (maintenanceUnderway == false)
 			<tr>
 				<td class="separator" colspan="8"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="8"><a href="showjobstatus.jsp" alt="Refresh status">Refresh</a></td></tr>
+		<tr><td class="message" colspan="8"><a href="showjobstatus.jsp" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.Refresh")%></a></td></tr>
 		</table>
 
 <%
@@ -254,6 +254,7 @@ if (maintenanceUnderway == false)
     catch (ManifoldCFException e)
     {
 	out.println("Error: "+e.getMessage());
+
 	e.printStackTrace();
     }
 %>
@@ -265,7 +266,7 @@ else
 %>
 		<table class="displaytable">
 			<tr><td class="separator" colspan="1"><hr/></td></tr>
-			<tr><td class="message">This page is unavailable due to maintenance operations.  Please try again later.</td></tr>
+			<tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"showjobstatus.PleaseTryAgainLater")%></td></tr>
 		</table>
 <%
 }
@@ -273,6 +274,7 @@ else
        </td>
       </tr>
     </table>
+
 
 </body>
 

@@ -278,6 +278,12 @@ License: Apache 2  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes a wsdl4j.jar.
 License: CPL 1.0 (http://www.opensource.org/licenses/cpl1.0)
 
+This product includes a jstl-api-1.2.jar.
+License: Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html)
+
+This product includes a jstl-impl-1.2.jar.
+License: Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html)
+
 ==========================================================================
 The following license applies to json.jar, which is generated from the json
 sources from http://www.json.org/java/index.html

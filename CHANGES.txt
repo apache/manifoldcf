@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-335: Add i18n infrastructure.  This commit also addresses
+some problems found in the CMIS, Alfresco, and OpenSearchServer
+connectors having to do with improper escaping of data values.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-334: Add MySQL database support.
 (Hitoshi Ozawa, Karl Wright)
 

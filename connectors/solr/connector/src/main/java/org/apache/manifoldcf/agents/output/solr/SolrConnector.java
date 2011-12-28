@@ -564,14 +564,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Server");
-    tabsArray.add("Schema");
-    tabsArray.add("Arguments");
-    tabsArray.add("Documents");
-    tabsArray.add("Commits");
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Schema"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Arguments"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Documents"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Commits"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -778,7 +779,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String protocol = parameters.getParameter(SolrConfig.PARAM_PROTOCOL);
@@ -868,12 +870,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
     );
     
-    if (tabName.equals("Server"))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Server")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Protocol:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.Protocol") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverprotocol\">\n"+
 "        <option value=\"http\""+(protocol.equals("http")?" selected=\"true\"":"")+">http</option>\n"+
@@ -882,70 +884,70 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.ServerName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"servername\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(server)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Port:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.Port") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"serverport\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(port)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Web application name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.WebApplicationName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"webappname\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(webapp)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Core name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.CoreName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"core\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(core)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Update handler:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.UpdateHandler") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"updatepath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(updatePath)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Remove handler:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.RemoveHandler") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"removepath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(removePath)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Status handler:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.StatusHandler") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"statuspath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusPath)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Realm:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.Realm") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"realm\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(realm)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User ID:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.UserID") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"userid\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userID)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.Password") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>SSL trust certificate list:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.SSLTrustCertificateList") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"hidden\" name=\"solrkeystorealias\" value=\"\"/>\n"+
 "      <table class=\"displaytable\">\n"
@@ -955,7 +957,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (contents.length == 0)
       {
         out.print(
-"        <tr><td class=\"message\" colspan=\"2\"><nobr>No certificates present</nobr></td></tr>\n"
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getString(locale,"SolrConnector.NoCertificatesPresent") + "</nobr></td></tr>\n"
         );
       }
       else
@@ -978,8 +980,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       }
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:SolrAddCertificate()' alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
-"      Certificate:&nbsp;<input name=\"solrcertificate\" size=\"50\" type=\"file\"/>\n"+
+"      <input type=\"button\" onclick='Javascript:SolrAddCertificate()' alt=\"" + Messages.getString(locale,"SolrConnector.AddCert") + "\" value=\"" + Messages.getString(locale,"SolrConnector.Add") + "\"/>&nbsp;\n"+
+"      " + Messages.getString(locale,"SolrConnector.Certificate") + "&nbsp;<input name=\"solrcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1004,12 +1006,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
 
     // "Schema" tab
-    if (tabName.equals("Schema"))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Schema")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>ID field name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.IDFieldName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"idfield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
 "    </td>\n"+
@@ -1025,24 +1027,24 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     // "Documents" tab
-    if (tabName.equals("Documents"))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Documents")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Maximum document length:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.MaximumDocumentLength") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"maxdocumentlength\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(maxLength)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Included mime types:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.IncludedMimeTypes") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <textarea rows=\"10\" cols=\"20\" name=\"includedmimetypes\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(includedMimeTypes)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Excluded mime types:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.ExcludedMimeTypes") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <textarea rows=\"10\" cols=\"20\" name=\"excludedmimetypes\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(excludedMimeTypes)+"</textarea>\n"+
 "    </td>\n"+
@@ -1060,19 +1062,19 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     // "Commits" tab
-    if (tabName.equals("Commits"))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Commits")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Commit at end of every job:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.CommitAtEndOfEveryJob") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"commits_present\" type=\"hidden\" value=\"true\"/>\n"+
 "      <input name=\"commits\" type=\"checkbox\" value=\"true\""+(commits.equals("true")?" checked=\"yes\"":"")+"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Commit each document within (ms):</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.CommitEachDocumentWithin") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"commitwithin\" type=\"text\" size=\"16\" value=\""+commitWithin+"\"/>\n"+
 "    </td>\n"+
@@ -1110,7 +1112,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     // "Arguments" tab
-    if (tabName.equals("Arguments"))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Arguments")))
     {
       // For the display, sort the arguments into alphabetic order
       String[] sortArray = new String[argumentMap.size()];
@@ -1125,13 +1127,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Arguments:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.Arguments2") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Name</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Value</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.Name") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.Value") + "</nobr></td>\n"+
 "        </tr>\n"
       );
       i = 0;
@@ -1168,7 +1170,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (i == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No arguments specified</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getString(locale,"SolrConnector.NoArgumentsSpecified") + "</td></tr>\n"
         );
       }
       out.print(
@@ -1230,7 +1232,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String protocol = variableContext.getParameter("serverprotocol");
@@ -1421,13 +1424,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"SolrConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -1461,12 +1465,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  </tr>\n"+
 "\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Arguments:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"SolrConnector.Arguments3") + "</nobr></td>\n"+
 "    <td class=\"boxcell\" colspan=\"3\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Name</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Value</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.Name") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.Value") + "</nobr></td>\n"+
 "        </tr>\n"
     );
     
@@ -1494,7 +1498,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (instanceNumber == 0)
     {
       out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">No arguments</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">" + Messages.getString(locale,"SolrConnector.NoArguments") + "</td></tr>\n"
       );
     }
     
@@ -1514,10 +1518,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, OutputSpecification os, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Solr Field Mapping");
+    tabsArray.add(Messages.getString(locale,"SolrConnector.SolrFieldMapping"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1565,7 +1569,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, OutputSpecification os, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
     // Prep for field mapping tab
@@ -1585,19 +1589,19 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     // Field Mapping tab
-    if (tabName.equals("Solr Field Mapping"))
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrFieldMapping")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Field mappings:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.FieldMappings") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Metadata field name</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Solr field name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.MetadataFieldName") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.SolrFieldName") + "</nobr></td>\n"+
 "        </tr>\n"
       );
 
@@ -1648,7 +1652,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (fieldCounter == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No field mapping specified</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getString(locale,"SolrConnector.NoFieldMappingSpecified") + "</td></tr>\n"
         );
       }
       out.print(
@@ -1656,7 +1660,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\"solr_fieldmapping\">\n"+
-"              <input type=\"button\" value=\"Add\" alt=\"Add field mapping\" onclick=\"javascript:addFieldMapping();\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getString(locale,"SolrConnector.AddFieldMapping") + "\" onclick=\"javascript:addFieldMapping();\"/>\n"+
 "            </a>\n"+
 "            <input type=\"hidden\" name=\"solr_fieldmapping_count\" value=\""+fieldCounter+"\"/>\n"+
 "            <input type=\"hidden\" name=\"solr_fieldmapping_op\" value=\"Continue\"/>\n"+
@@ -1709,7 +1713,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, OutputSpecification os)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
     throws ManifoldCFException
   {
     String x = variableContext.getParameter("solr_fieldmapping_count");
@@ -1768,7 +1772,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   *@param os is the current output specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, OutputSpecification os)
+  public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
     throws ManifoldCFException, IOException
   {
     // Prep for field mappings
@@ -1801,12 +1805,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Field mappings:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"SolrConnector.FieldMappings") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Metadata field name</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Solr field name</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.MetadataFieldName") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getString(locale,"SolrConnector.SolrFieldName") + "</nobr></td>\n"+
 "        </tr>\n"
     );
 
@@ -1837,7 +1841,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (fieldCounter == 0)
     {
       out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">No field mapping specified</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getString(locale,"SolrConnector.NoFieldMappingSpecified") + "</td></tr>\n"
       );
     }
     out.print(

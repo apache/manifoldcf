@@ -37,7 +37,7 @@
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
-		tabName = "Name";
+		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name");
 
 	String connectionName = null;
 	IRepositoryConnection connection = (IRepositoryConnection)threadContext.get("ConnectionObject");
@@ -96,10 +96,10 @@
 	ArrayList tabsArray = new ArrayList();
 
 	// Set up the predefined tabs
-	tabsArray.add("Name");
-	tabsArray.add("Type");
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Type"));
 	if (className.length() > 0)
-		tabsArray.add("Throttling");
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Throttling"));
 
 %>
 
@@ -110,7 +110,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: Edit Connection
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ApacheManifoldCFEditConnection")%>
 	</title>
 
 	<script type="text/javascript">
@@ -159,7 +159,7 @@
 			if (editconnection.connname.value == "")
 			{
 				alert("Connection must have a name");
-				SelectTab("Name");
+				SelectTab(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name"));
 				document.editconnection.connname.focus();
 				return;
 			}
@@ -254,7 +254,7 @@
 	//-->
 	</script>
 <%
-	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),parameters,tabsArray);
+	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
 %>
 
 </head>
@@ -310,13 +310,13 @@
 	  if (description.length() > 0)
 	  {
 %>
-			  <nobr>Edit connection '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.EditConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	  }
 	  else
 	  {
 %>
-		          <nobr>Edit a Connection</nobr>
+		          <nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.EditAConnection")%></nobr>
 <%
 	  }
 %>
@@ -327,13 +327,13 @@
 <%
 
 	  // Name tab
-	  if (tabName.equals("Name"))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr>Name:</nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name")%></nobr></td><td class="value" colspan="4">
 <%
 	    // If the connection doesn't exist yet, we are allowed to change the name.
 	    if (connection == null)
@@ -353,7 +353,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Description:</nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Description")%></nobr></td><td class="value" colspan="4">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -371,13 +371,13 @@
 
 
 	  // "Type" tab
-	  if (tabName.equals("Type"))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Type")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr>Connection type:</nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ConnectionType")%></nobr></td><td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -422,14 +422,14 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Authority:</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Authority")%></nobr></td>
 				<td class="value" colspan="4">
 <%
 	    IAuthorityConnection[] set2 = authConnectionManager.getAllConnections();
 	    int i = 0;
 %>
 					<select name="authorityname" size="1">
-						<option value="_none_" <%=(authorityName==null)?"selected=\"selected\"":""%>>None (global authority)</option>
+						<option value="_none_" <%=(authorityName==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.GlobalAuthority")%></option>
 <%
 	    while (i < set2.length)
 	    {
@@ -464,29 +464,29 @@
 %>
 		    <input type="hidden" name="throttlecount" value='<%=Integer.toString(throttles.size())%>'/>
 <%
-	  if (tabName.equals("Throttling"))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Throttling")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="2"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr>Max connections</nobr><br/><nobr>(per JVM):</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Maxconnections")%></nobr><br/><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.PerJVM")%></nobr></td>
 				<td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="2"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr>Throttling:</nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Throttling")%></nobr></td>
 				<td class="boxcell" colspan="4">
 					<input type="hidden" name="throttleop" value="Continue"/>
 					<input type="hidden" name="throttlenumber" value=""/>
 					<table class="formtable">
 					    <tr class="formheaderrow">
 						<td class="formcolumnheader"></td>
-						<td class="formcolumnheader"><nobr>Bin regular expression</nobr></td>
-						<td class="formcolumnheader"><nobr>Description</nobr></td>
-						<td class="formcolumnheader"><nobr>Max avg fetches/min</nobr></td>
+						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.BinRegularExpression")%></nobr></td>
+						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Description2")%></nobr></td>
+						<td class="formcolumnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.MaxAvgFetchesMin")%></nobr></td>
 					    </tr>
 <%
 		int k = 0;
@@ -525,13 +525,13 @@
 		if (k == 0)
 		{
 %>
-					    <tr class="formrow"><td colspan="4" class="formcolumnmessage"><nobr>No throttling specified</nobr></td></tr>
+					    <tr class="formrow"><td colspan="4" class="formcolumnmessage"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.NoThrottlingSpecified")%></nobr></td></tr>
 <%
 		}
 %>
 					    <tr class="formrow"><td colspan="4" class="formseparator"><hr/></td></tr>
 					    <tr class="formrow">
-						<td class="formcolumncell"><input type="button" value="Add" alt="Add throttle" onclick="javascript:AddThrottle();"/></td>
+						<td class="formcolumncell"><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Add")%>" alt="Add throttle" onclick="javascript:AddThrottle();"/></td>
 						<td class="formcolumncell"><input type="text" name="throttle" size="30" value=""/></td>
 						<td class="formcolumncell"><input type="text" name="throttledesc" size="30" value=""/></td>
 						<td class="formcolumncell"><input type="text" name="throttlevalue" size="5" value=""/></td>
@@ -567,7 +567,7 @@
 	  }
 
 	  if (className.length() > 0)
-		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),parameters,tabName);
+		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
@@ -576,20 +576,20 @@
 	  if (className.length() > 0)
 	  {
 %>
-			    <input type="button" value="Save" onClick="javascript:Save()" alt="Save this connection"/>
+			    <input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.SaveThisAuthorityConnection")%>"/>
 <%
 	  }
 	  else
 	  {
-		if (tabName.equals("Type"))
+		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Type")))
 		{
 %>
-			    <input type="button" value="Continue" onClick="javascript:Continue()" alt="Continue to next page"/>
+			    <input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ContinueToNextPage")%>"/>
 <%
 		}
 	  }
 %>
-			    &nbsp;<input type="button" value="Cancel" onClick="javascript:Cancel()" alt="Cancel connection editing"/></nobr></td>
+			    &nbsp;<input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.CancelConnectionEditing")%>"/></nobr></td>
 			</tr>
 		    </table>
 		</td>

@@ -240,10 +240,11 @@ public interface IRepositoryConnector extends IConnector
   * that might be needed by the job editing HTML.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException;
   
   /** Output the specification body section.
@@ -253,10 +254,11 @@ public interface IRepositoryConnector extends IConnector
   *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
   *@param tabName is the current tab name.
   */
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException;
   
   /** Process a specification post.
@@ -265,11 +267,12 @@ public interface IRepositoryConnector extends IConnector
   * document specification accordingly.  The name of the posted form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param variableContext contains the post data, including binary file-upload information.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of
   * the job (and cause a redirection to an error page).
   */
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException;
   
   /** View specification.
@@ -278,9 +281,10 @@ public interface IRepositoryConnector extends IConnector
   * this configuration will be within appropriate <html> and <body> tags.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
+  *@param locale is the locale the output is preferred to be in.
   *@param ds is the current document specification for this job.
   */
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException;
 
 }

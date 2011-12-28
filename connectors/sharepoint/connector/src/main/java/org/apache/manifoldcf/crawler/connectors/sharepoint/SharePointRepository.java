@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Locale;
 import java.util.List;
 import java.net.*;
 
@@ -1358,10 +1359,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Server");
+    tabsArray.add(Messages.getString(locale,"SharePointRepository.Server"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1427,14 +1429,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "  if (editconnection.serverName.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Please fill in a SharePoint server name\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
 "    editconnection.serverName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverName.value.indexOf(\"/\") >= 0)\n"+
 "  {\n"+
 "    alert(\"Please specify any server path information in the site path field, not the server name field\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
 "    editconnection.serverName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1442,28 +1444,28 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "  if (svrloc != \"\" && svrloc.charAt(0) != \"/\")\n"+
 "  {\n"+
 "    alert(\"Site path must begin with a '/' character\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
 "    editconnection.serverLocation.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (svrloc != \"\" && svrloc.charAt(svrloc.length - 1) == \"/\")\n"+
 "  {\n"+
 "    alert(\"Site path cannot end with a '/' character\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
 "    editconnection.serverLocation.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverPort.value != \"\" && !isInteger(editconnection.serverPort.value))\n"+
 "  {\n"+
 "    alert(\"Please supply a SharePoint port number, or none for default\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
 "    editconnection.serverPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.userName.value == \"\" || editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
 "  {\n"+
 "    alert(\"The connection requires a valid SharePoint user name of the form <domain>\\\\<user>\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
 "    editconnection.userName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1485,7 +1487,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String serverVersion = parameters.getParameter("serverVersion");
@@ -1532,12 +1535,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       );
     }
 
-    if (tabName.equals("Server"))
+    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Server")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server SharePoint version:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerSharePointVersion") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverVersion\">\n"+
 "        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0</option>\n"+
@@ -1546,7 +1549,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server protocol:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerProtocol") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverProtocol\">\n"+
 "        <option value=\"http\" "+((serverProtocol.equals("http"))?"selected=\"true\"":"")+">http</option>\n"+
@@ -1555,27 +1558,27 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"serverName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server port:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerPort") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverPort\" value=\""+serverPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Site path:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.SitePath") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"serverLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverLocation)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.UserName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Password:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Password") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>SSL certificate list:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.SSLCertificateList") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"hidden\" name=\"configop\" value=\"Continue\"/>\n"+
 "      <input type=\"hidden\" name=\"shpkeystorealias\" value=\"\"/>\n"+
@@ -1586,7 +1589,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (contents.length == 0)
       {
         out.print(
-"        <tr><td class=\"message\" colspan=\"2\">No certificates present</td></tr>\n"
+"        <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoCertificatesPresent") + "</td></tr>\n"
         );
       }
       else
@@ -1601,7 +1604,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           out.print(
 "        <tr>\n"+
 "          <td class=\"value\">\n"+
-"            <input type=\"button\" onclick='Javascript:ShpDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+"Delete cert "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/>\n"+
+"            <input type=\"button\" onclick='Javascript:ShpDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\"/>\n"+
 "          </td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
@@ -1612,7 +1615,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ShpAddCertificate()' alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
+"      <input type=\"button\" onclick='Javascript:ShpAddCertificate()' alt=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddCert") + "\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\"/>&nbsp;\n"+
 "      Certificate:&nbsp;<input name=\"shpcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -1643,7 +1646,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String serverVersion = variableContext.getParameter("serverVersion");
@@ -1655,6 +1659,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       parameters.setParameter("serverProtocol",serverProtocol);
 
     String serverName = variableContext.getParameter("serverName");
+
     if (serverName != null)
       parameters.setParameter("serverName",serverName);
 
@@ -1744,13 +1749,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -1793,12 +1799,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Paths");
-    tabsArray.add("Security");
-    tabsArray.add("Metadata");
+    tabsArray.add(Messages.getString(locale,"SharePointRepository.Paths"));
+    tabsArray.add(Messages.getString(locale,"SharePointRepository.Security"));
+    tabsArray.add(Messages.getString(locale,"SharePointRepository.Metadata"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1970,7 +1976,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
@@ -1980,20 +1986,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     // Paths tab
 
 
-    if (tabName.equals("Paths"))
+    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Path rules:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Path match</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Type</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Action</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Type") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
 "        </tr>\n"
       );
       i = 0;
@@ -2029,7 +2035,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "            <nobr>\n"+
 "              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"Insert New Rule\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
@@ -2040,7 +2046,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2078,7 +2084,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "            <nobr>\n"+
 "              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"Insert New Rule\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
@@ -2089,7 +2095,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2134,7 +2140,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "            <nobr>\n"+
 "              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"Insert New Rule\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
@@ -2145,7 +2151,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Delete rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2175,7 +2181,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (k == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formmessage\">No documents currently included</td></tr>\n"
+"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formmessage\">" + Messages.getBodyString(locale,"SharePointRepository.NoDocumentsCurrentlyIncluded") + "</td></tr>\n"
         );
       }
       out.print(
@@ -2185,7 +2191,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
 "              <input type=\"hidden\" name=\"specpathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"Add New Rule\" onClick='Javascript:SpecRuleAddPath(\"path_"+Integer.toString(k)+"\")' alt=\"Add rule\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddNewRule") + "\" onClick='Javascript:SpecRuleAddPath(\"path_"+Integer.toString(k)+"\")' alt=\"Add rule\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
@@ -2279,9 +2285,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           out.print(
 "              <select name=\"spectype\" size=\"3\">\n"+
-"                <option value=\"file\" selected=\"true\">File</option>\n"+
-"                <option value=\"library\">Library</option>\n"+
-"                <option value=\"site\">Site</option>\n"+
+"                <option value=\"file\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.File") + "</option>\n"+
+"                <option value=\"library\">" + Messages.getBodyString(locale,"SharePointRepository.Library") + "</option>\n"+
+"                <option value=\"site\">" + Messages.getBodyString(locale,"SharePointRepository.Site") + "</option>\n"+
 "              </select>\n"
           );
         }
@@ -2306,8 +2312,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
 "              <select name=\"specflavor\" size=\"2\">\n"+
-"                <option value=\"include\" selected=\"true\">Include</option>\n"+
-"                <option value=\"exclude\">Exclude</option>\n"+
+"                <option value=\"include\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.Include") + "</option>\n"+
+"                <option value=\"exclude\">" + Messages.getBodyString(locale,"SharePointRepository.Exclude") + "</option>\n"+
+
 "              </select>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
@@ -2348,9 +2355,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (pathState.equals("site") && childSiteList != null && childSiteList.size() > 0)
         {
           out.print(
-"              <input type=\"button\" value=\"Add Site\" onClick='Javascript:SpecPathAppendSite(\"pathwidget\")' alt=\"Add Site to Rule Path\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddSite") + "\" onClick='Javascript:SpecPathAppendSite(\"pathwidget\")' alt=\"Add Site to Rule Path\"/>\n"+
 "              <select name=\"specsite\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- Select site --</option>\n"
+"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectSite") + " --</option>\n"
           );
           int q = 0;
           while (q < childSiteList.size())
@@ -2368,9 +2375,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (pathState.equals("site") && childLibList != null && childLibList.size() > 0)
         {
           out.print(
-"              <input type=\"button\" value=\"Add Library\" onClick='Javascript:SpecPathAppendLibrary(\"pathwidget\")' alt=\"Add Library to Rule Path\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddLibrary") + "\" onClick='Javascript:SpecPathAppendLibrary(\"pathwidget\")' alt=\"Add Library to Rule Path\"/>\n"+
 "              <select name=\"speclibrary\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- Select library --</option>\n"
+"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectLibrary") + " --</option>\n"
           );
           int q = 0;
           while (q < childLibList.size())
@@ -2385,7 +2392,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           );
         }
         out.print(
-"              <input type=\"button\" value=\"Add Text\" onClick='Javascript:SpecPathAppendText(\"pathwidget\")' alt=\"Add Text to Rule Path\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:SpecPathAppendText(\"pathwidget\")' alt=\"Add Text to Rule Path\"/>\n"+
 "              <input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"
@@ -2489,13 +2496,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
 "      <nobr>\n"+
 "        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
@@ -2523,7 +2530,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+"Delete token #"+Integer.toString(k)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2538,7 +2545,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2549,7 +2556,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2613,7 +2620,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    if (tabName.equals("Metadata"))
+    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Metadata")))
     {
       out.print(
 "<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
@@ -2622,15 +2629,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "<table class=\"displaytable\">\n"+
 "<tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "<tr>\n"+
-"  <td class=\"description\" colspan=\"1\"><nobr>Metadata rules:</nobr></td>\n"+
+"  <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.MetadataRules") + "</nobr></td>\n"+
 "    <td class=\"boxcell\" colspan=\"3\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Path match</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Action</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>All metadata?</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Fields</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
 "        </tr>\n"
       );
       i = 0;
@@ -2675,7 +2682,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "            <nobr>\n"+
 "              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"Insert New Rule\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Insert new metadata rule before rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Insert new metadata rule before rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
@@ -2686,7 +2693,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2764,7 +2771,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "            <nobr>\n"+
 "              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"Insert New Rule\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Insert new metadata rule before rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Insert new metadata rule before rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
@@ -2775,7 +2782,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata rule #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+"Delete metadata rule #"+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2830,7 +2837,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
 "              <input type=\"hidden\" name=\"metaop\" value=\"\"/>\n"+
 "              <input type=\"hidden\" name=\"metapathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"Add New Rule\" onClick='Javascript:MetaRuleAddPath(\"meta_"+Integer.toString(k)+"\")' alt=\"Add rule\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddNewRule") + "\" onClick='Javascript:MetaRuleAddPath(\"meta_"+Integer.toString(k)+"\")' alt=\"Add rule\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
@@ -2946,8 +2953,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
 "              <select name=\"metaflavor\" size=\"2\">\n"+
-"                <option value=\"include\" selected=\"true\">Include</option>\n"+
-"                <option value=\"exclude\">Exclude</option>\n"+
+"                <option value=\"include\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.Include") + "</option>\n"+
+"                <option value=\"exclude\">" + Messages.getBodyString(locale,"SharePointRepository.Exclude") + "</option>\n"+
 "              </select>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
@@ -2998,7 +3005,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
 "              <a name=\"metapathwidget\"/>\n"+
-"              <input type=\"button\" value=\"Reset Path\" onClick='Javascript:MetaPathReset(\"metapathwidget\")' alt=\"Reset Metadata Rule Path\"/>\n"
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.ResetPath") + "\" onClick='Javascript:MetaPathReset(\"metapathwidget\")' alt=\"Reset Metadata Rule Path\"/>\n"
         );
         if (metaPathSoFar.length() > 1 && (metaPathState.equals("site") || metaPathState.equals("library")))
         {
@@ -3015,7 +3022,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (metaPathState.equals("site") && childSiteList != null && childSiteList.size() > 0)
         {
           out.print(
-"              <input type=\"button\" value=\"Add Site\" onClick='Javascript:MetaPathAppendSite(\"metapathwidget\")' alt=\"Add Site to Metadata Rule Path\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddSite") + "\" onClick='Javascript:MetaPathAppendSite(\"metapathwidget\")' alt=\"Add Site to Metadata Rule Path\"/>\n"+
 "              <select name=\"metasite\" size=\"5\">\n"+
 "                <option value=\"\" selected=\"true\">-- Select site --</option>\n"
           );
@@ -3035,7 +3042,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (metaPathState.equals("site") && childLibList != null && childLibList.size() > 0)
         {
           out.print(
-"              <input type=\"button\" value=\"Add Library\" onClick='Javascript:MetaPathAppendLibrary(\"metapathwidget\")' alt=\"Add Library to Metadata Rule Path\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddLibrary") + "\" onClick='Javascript:MetaPathAppendLibrary(\"metapathwidget\")' alt=\"Add Library to Metadata Rule Path\"/>\n"+
 "              <select name=\"metalibrary\" size=\"5\">\n"+
 "                <option value=\"\" selected=\"true\">-- Select library --</option>\n"
           );
@@ -3052,7 +3059,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           );
         }
         out.print(
-"              <input type=\"button\" value=\"Add Text\" onClick='Javascript:MetaPathAppendText(\"metapathwidget\")' alt=\"Add Text to Metadata Rule Path\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:MetaPathAppendText(\"metapathwidget\")' alt=\"Add Text to Metadata Rule Path\"/>\n"+
 "              <input type=\"text\" name=\"metamatch\" size=\"32\" value=\"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"
@@ -3065,11 +3072,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Path metadata:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMetadata") + "</nobr></td>\n"+
 "    <td class=\"boxcell\" colspan=\"3\">\n"+
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
-"          <td class=\"description\"><nobr>Attribute name:</nobr></td>\n"+
+"          <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AttributeName") + "</nobr></td>\n"+
 "          <td class=\"value\" colspan=\"3\">\n"+
 "            <nobr>\n"+
 "              <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
@@ -3111,7 +3118,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (i == 0)
       {
         out.print(
-"        <tr><td colspan=\"4\" class=\"message\">No mappings specified</td></tr>\n"
+"        <tr><td colspan=\"4\" class=\"message\">" + Messages.getBodyString(locale,"SharePointRepository.NoMappingsSpecified") + "</td></tr>\n"
         );
       }
       out.print(
@@ -3123,9 +3130,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "              <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add Path Mapping\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
-"          <td class=\"value\"><nobr>Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></nobr></td>\n"+
+"          <td class=\"value\"><nobr>"+Messages.getBodyString(locale,"SharePointRepository.MatchRegexp") + "&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></nobr></td>\n"+
 "          <td class=\"value\">==></td>\n"+
-"          <td class=\"value\"><nobr>Replace string:&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></nobr></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ReplaceString") + "&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></nobr></td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
@@ -3246,7 +3253,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     // Remove old-style rules, but only if the information would not be lost
@@ -3738,6 +3745,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
         ds.addChild(ds.getChildCount(),node);
+
         i++;
       }
 
@@ -3763,7 +3771,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     // Display path rules
@@ -3798,13 +3806,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             {
               seenAny = true;
               out.print(
-"    <td class=\"description\"><nobr>Path rules:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Path match</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Rule type</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Action</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.RuleType") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
 "        </tr>\n"
               );
             }
@@ -3817,7 +3825,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(completePath)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>file</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.file") + "</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+action+"</nobr></td>\n"+
 "        </tr>\n"
             );
@@ -3828,7 +3836,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(completePath)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>file</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.file") + "</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+action+"</nobr></td>\n"+
 "        </tr>\n"
               );
@@ -3846,13 +3854,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           seenAny = true;
           out.print(
-"    <td class=\"description\"><nobr>Path rules:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Path match</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Rule type</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Action</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.RuleType") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
 "        </tr>\n"
           );
         }
@@ -3876,7 +3884,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"    <td colspan=\"2\" class=\"message\"><nobr>No documents will be included</nobr></td>\n"
+"    <td colspan=\"2\" class=\"message\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.NoDocumentsWillBeIncluded") + "</nobr></td>\n"
       );
     }
     out.print(
@@ -3925,21 +3933,21 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           {
             seenAny = true;
             out.print(
-"    <td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Metadata2") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Path match</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Action</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>All metadata?</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Fields</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
 "        </tr>\n"
             );
           }
           out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>include</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.include2") + "</nobr></td>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+allmetadata+"</nobr></td>\n"+
 "          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"</td>\n"+
 "        </tr>\n"
@@ -3978,14 +3986,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           seenAny = true;
           out.print(
-"    <td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Metadata2") + "</nobr></td>\n"+
 "    <td class=\"boxcell\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>Path match</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Action</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>All metadata?</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Fields</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
 "        </tr>\n"
           );
         }
@@ -4010,7 +4018,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"    <td colspan=\"2\" class=\"message\"><nobr>No metadata will be included</nobr></td>\n"
+"    <td colspan=\"2\" class=\"message\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.NoMetadataWillBeIncluded") + "</nobr></td>\n"
       );
     }
     out.print(
@@ -4034,7 +4042,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
     out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\"><nobr>"+(securityOn?"Enabled":"Disabled")+"</nobr></td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -4051,7 +4059,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AccessToken") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -4073,7 +4081,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoAccessTokensSpecified") + "</td></tr>\n"
       );
     }
     out.print(
@@ -4096,14 +4104,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (pathNameAttribute.length() > 0)
     {
       out.print(
-"    <td class=\"description\"><nobr>Path metadata attribute name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMetadataAttributeName") + "</nobr></td>\n"+
 "    <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</nobr></td>\n"
       );
     }
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">No path-name metadata attribute specified</td>\n"
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoPathNameMetadataAttributeSpecified") + "</td>\n"
       );
     }
     out.print(
@@ -4130,7 +4138,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (matchMap.getMatchCount() > 0)
     {
       out.print(
-"    <td class=\"description\"><nobr>Path-value mapping:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathValueMapping") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
@@ -4156,7 +4164,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">No mappings specified</td>\n"
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoMappingsSpecified") + "</td>\n"
       );
     }
     out.print(

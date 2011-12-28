@@ -36,8 +36,7 @@
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
-		tabName = "Name";
-
+		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name");
 	String connectionName = null;
 	IOutputConnection connection = (IOutputConnection)threadContext.get("ConnectionObject");
 	if (connection == null)
@@ -80,10 +79,10 @@
 	ArrayList tabsArray = new ArrayList();
 
 	// Set up the predefined tabs
-	tabsArray.add("Name");
-	tabsArray.add("Type");
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type"));
 	if (className.length() > 0)
-		tabsArray.add("Throttling");
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Throttling"));
 
 %>
 
@@ -94,7 +93,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: Edit Output Connection
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.ApacheManifoldCFEditOutputConnection")%>
 	</title>
 
 	<script type="text/javascript">
@@ -143,7 +142,7 @@
 			if (editconnection.connname.value == "")
 			{
 				alert("Connection must have a name");
-				SelectTab("Name");
+				SelectTab(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name"));
 				document.editconnection.connname.focus();
 				return;
 			}
@@ -213,7 +212,7 @@
 	//-->
 	</script>
 <%
-	OutputConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),parameters,tabsArray);
+	OutputConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
 %>
 
 </head>
@@ -230,7 +229,7 @@
 	if (set.getRowCount() == 0)
 	{
 %>
-	<p class="windowtitle">Edit Output Connection</p>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%></p>
 	<table class="displaytable"><tr><td class="message">No output connectors registered</td></tr></table>
 <%
 	}
@@ -269,13 +268,14 @@
 	  if (description.length() > 0)
 	  {
 %>
-			  <nobr>Edit output connection '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	  }
 	  else
 	  {
 %>
-		          <nobr>Edit an Output Connection</nobr>
+
+		          <nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.EditAnOutputConnection")%></nobr>
 <%
 	  }
 %>
@@ -285,17 +285,18 @@
 		<td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
 <%
 
+
 	  // Name tab
-	  if (tabName.equals("Name"))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr>Name:</nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name")%></nobr></td><td class="value" colspan="4">
 <%
 	    // If the connection doesn't exist yet, we are allowed to change the name.
-	    if (connection == null)
+	    if (connection == null || connectionName.length() < 1)
 	    {
 %>
 					<input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
@@ -312,7 +313,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr>Description:</nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Description")%></nobr></td><td class="value" colspan="4">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -330,13 +331,13 @@
 
 
 	  // "Type" tab
-	  if (tabName.equals("Type"))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr>Connection type:</nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.ConnectionType")%></nobr></td><td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -393,13 +394,13 @@
 
 
 	  // The "Throttling" tab
-	  if (tabName.equals("Throttling"))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Throttling")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="2"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr>Max connections</nobr><br/><nobr>(per JVM):</nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.MaxConnections")%></nobr><br/><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.PerJVM")%></nobr></td>
 				<td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 		    </table>
@@ -414,7 +415,7 @@
 	  }
 
 	  if (className.length() > 0)
-		OutputConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),parameters,tabName);
+		OutputConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
 
 %>
 		    <table class="displaytable">
@@ -424,20 +425,20 @@
 	  if (className.length() > 0)
 	  {
 %>
-			    <input type="button" value="Save" onClick="javascript:Save()" alt="Save this output connection"/>
+			    <input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.SaveThisOutputConnection")%>"/>
 <%
 	  }
 	  else
 	  {
-		if (tabName.equals("Type"))
+		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type")))
 		{
 %>
-			    <input type="button" value="Continue" onClick="javascript:Continue()" alt="Continue to next page"/>
+			    <input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.ContinueToNextPage")%>"/>
 <%
 		}
 	  }
 %>
-			    &nbsp;<input type="button" value="Cancel" onClick="javascript:Cancel()" alt="Cancel output connection editing"/></nobr></td>
+			    &nbsp;<input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.CancelOutputConnectionEditing")%>"/></nobr></td>
 			</tr>
 		    </table>
 		</td>

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector;
@@ -62,9 +63,6 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
   
   protected static final String CONFIG_PARAM_USERNAME_REGEXP = "usernameregexp";
   protected static final String CONFIG_PARAM_USER_TRANSLATION = "usertranslation";
-  
-  private static final String TAB_NAME_REPOSITORY = "Repository";
-  private static final String TAB_NAME_USER_MAPPING = "User Mapping";
   
   private static final String DEFAULT_VALUE_ENDPOINT = "http://localhost:8080/cmis/";
   private static final String DEFAULT_VALUE_REPOSITORY_ID = "uuid";
@@ -136,7 +134,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, String tabName)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
 
     String endpoint = parameters.getParameter(CONFIG_PARAM_ENDPOINT);
@@ -158,14 +156,14 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
     String usernameRegexp = localMap.getMatchString(0);
     String userTranslation = localMap.getReplaceString(0);
     
-    if (tabName.equals(TAB_NAME_REPOSITORY))
+    if (tabName.equals(Messages.getString(locale,"CmisAuthorityConnector.Repository")))
     {
     out.print("<table class=\"displaytable\">\n"
         + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>Endpoint:</nobr></td>" +
+    out.print("<tr><td class=\"description\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.Endpoint") + "</nobr></td>" +
         "<td class=\"value\"><input type=\"text\" name=\""
         + CONFIG_PARAM_ENDPOINT + "\" value=\""+Encoder.attributeEscape(endpoint)+"\" size=\"50\"/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>Repository ID:</nobr></td>" +
+    out.print("<tr><td class=\"description\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.RepositoryID") + "</nobr></td>" +
         "<td class=\"value\"><input type=\"text\" name=\""
         + CONFIG_PARAM_REPOSITORY_ID + "\" value=\""+Encoder.attributeEscape(repositoryId)+"\"/></td></tr>\n");
     out.print("</table>\n");
@@ -176,13 +174,13 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
       out.print("<input type=\"hidden\" name=\""+CONFIG_PARAM_REPOSITORY_ID+"\" value=\""+Encoder.attributeEscape(repositoryId)+"\"/>\n");
     }
     
-    if (tabName.equals(TAB_NAME_USER_MAPPING))
+    if (tabName.equals(Messages.getString(locale,"CmisAuthorityConnector.UserMapping")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User mapping:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.UserMapping") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"32\" name=\""+CONFIG_PARAM_USERNAME_REGEXP+"\" value=\""+
   Encoder.attributeEscape(usernameRegexp)+"\"/> ==&gt; \n"+
@@ -224,24 +222,24 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
-      IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     
-    tabsArray.add(TAB_NAME_REPOSITORY);
-    tabsArray.add(TAB_NAME_USER_MAPPING);
+    tabsArray.add(Messages.getString(locale,"CmisAuthorityConnector.Repository"));
+    tabsArray.add(Messages.getString(locale,"CmisAuthorityConnector.UserMapping"));
     
     out.print("<script type=\"text/javascript\">\n" + "<!--\n"
         + "function checkConfig()\n" + "{\n"
         + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
-        + "    alert(\"The endpoint must be not null\");\n"
+        + "    alert(\"" + Messages.getString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
         + "  }\n" + "\n" + "  return true;\n" + "}\n" + " \n"
         + "function checkConfigForSave()\n" + "{\n"
         + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
-        + "    alert(\"The endpoint must be not null\");\n"
+        + "    alert(\"" + Messages.getString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
         + "  }\n" + "  if (editconnection.repositoryId.value == \"\")\n" + "  {\n"
-        + "    alert(\"The repository id must be not null\");\n"
+        + "    alert(\"" + Messages.getString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.repositoryId.focus();\n" + "    return false;\n"
         + "  }\n" + "  return true;\n" + "}\n" + "\n" + "//-->\n"
         + "</script>\n");
@@ -268,7 +266,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public String processConfigurationPost(IThreadContext threadContext,
-      IPostParameters variableContext, ConfigParams parameters)
+      IPostParameters variableContext, Locale locale, ConfigParams parameters)
       throws ManifoldCFException {
 
     //Repository
@@ -312,10 +310,10 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-      ConfigParams parameters) throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     out.print("<table class=\"displaytable\">\n"
         + "  <tr>\n"
-        + "    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"
+        + "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.Parameters") + "</nobr></td>\n"
         + "    <td class=\"value\" colspan=\"3\">\n");
     Iterator iter = parameters.listParameters();
     while (iter.hasNext()) {

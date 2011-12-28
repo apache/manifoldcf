@@ -27,7 +27,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: Error
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"error.ApacheManifoldCFError")%>
 	</title>
 
 </head>
@@ -38,10 +38,10 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle">Error!</p>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"error.Error")%></p>
 
 <%
-	// These have to be fetched from request rather than variableContext since
+	// These have to be fetched from request rather than variableContext since error
 	// forwards screw up the multipart wrapper
 	String errorText = variableContext.getParameter("text");
 	String target = variableContext.getParameter("target");
@@ -49,7 +49,7 @@
 	<table class="displaytable">
 		<tr><td class="message"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(errorText)%></td></tr>
 		<tr><td class="separator"><hr/></td></tr>
-		<tr><td class="message"><a href='<%=java.net.URLEncoder.encode(target,"UTF-8")%>' alt="Return">OK</a></td></tr>
+		<tr><td class="message"><a href='<%=java.net.URLEncoder.encode(target,"UTF-8")%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"error.Return")%>">OK</a></td></tr>
 	</table>
 
        </td>

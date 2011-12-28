@@ -72,11 +72,33 @@
     </resources>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>native2ascii-maven-plugin</artifactId>
+        <version>1.0-alpha-1</version>
+        <configuration>
+            <dest>target/classes</dest>
+            <src>connector/src/main/native2ascii</src>
+        </configuration>
+        <executions>
+            <execution>
+                <id>native2ascii-utf8</id>
+                <goals>
+                    <goal>native2ascii</goal>
+                </goals>
+                <configuration>
+                    <encoding>UTF8</encoding>
+                    <includes>**/*.properties</includes>
+                </configuration>
+            </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
+            <exclude>**/*MySQL*.java</exclude>
           </excludes>
           <forkMode>always</forkMode>
           <workingDirectory>target/test-output</workingDirectory>

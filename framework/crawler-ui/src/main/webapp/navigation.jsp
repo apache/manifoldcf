@@ -28,60 +28,62 @@
 
 %>
 
-<p class="menumain"><nobr>Outputs</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Outputs")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listoutputs.jsp" alt="List authorities">List Output Connections</a></nobr>
+		<nobr><a class="menulink" href="listoutputs.jsp" alt="List authorities"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr>Authorities</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Authorities")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listauthorities.jsp" alt="List authorities">List Authority Connections</a></nobr>
+		<nobr><a class="menulink" href="listauthorities.jsp" alt="List authorities"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr>Repositories</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Repositories")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listconnections.jsp" alt="List repository connections">List Repository Connections</a></nobr>
+		<nobr><a class="menulink" href="listconnections.jsp" alt="List repository connections"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListRepositoryConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr>Jobs</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Jobs")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listjobs.jsp" alt="List jobs">List all Jobs</a></nobr>						
+		<nobr><a class="menulink" href="listjobs.jsp" alt="List jobs"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListAllJobs")%></a></nobr>						
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="showjobstatus.jsp" alt="Manage jobs">Status and Job Management</a></nobr>						
+		<nobr><a class="menulink" href="showjobstatus.jsp" alt="Manage jobs"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.StatusAndJobManagement")%></a></nobr>						
 	</li>
 </ul>
-<p class="menumain"><nobr>Status Reports</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.StatusReports")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="documentstatus.jsp" alt="Document status">Document Status</a></nobr>
+		<nobr><a class="menulink" href="documentstatus.jsp" alt="Document status"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.DocumentStatus")%></a></nobr>
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="queuestatus.jsp" alt="Queue status">Queue Status</a></nobr>
+		<nobr><a class="menulink" href="queuestatus.jsp" alt="Queue status"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.QueueStatus")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr>History Reports</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.HistoryReports")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="simplereport.jsp" alt="Simple history">Simple History</a></nobr>
+		<nobr><a class="menulink" href="simplereport.jsp" alt="Simple history"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.SimpleHistory")%></a></nobr>
+	</li>
+<!-- hozawa
+	<li class="menuitem">
+		<nobr><a class="menulink" href="maxactivityreport.jsp" alt="Maximum activity"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.MaximumActivity")%></a></nobr>
+//-->
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="maxactivityreport.jsp" alt="Maximum activity">Maximum Activity</a></nobr>
+		<nobr><a class="menulink" href="maxbandwidthreport.jsp" alt="Maximum bandwidth"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.MaximumBandwidth")%></a></nobr>
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="maxbandwidthreport.jsp" alt="Maximum bandwidth">Maximum Bandwidth</a></nobr>
-	</li>
-	<li class="menuitem">
-		<nobr><a class="menulink" href="resultreport.jsp" alt="Result histogram">Result Histogram</a></nobr>
+		<nobr><a class="menulink" href="resultreport.jsp" alt="Result histogram"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ResultHistogram")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr>Miscellaneous</nobr></p>
+<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Miscellaneous")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="http://incubator.apache.org/connectors/end-user-documentation.html" alt="Help">Help</a></nobr>
+		<nobr><a class="menulink" href="http://incubator.apache.org/connectors/end-user-documentation.html" alt="Help"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Help")%></a></nobr>
 	</li>
 </ul>

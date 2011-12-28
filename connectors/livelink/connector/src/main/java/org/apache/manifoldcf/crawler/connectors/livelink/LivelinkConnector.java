@@ -1419,12 +1419,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Server");
-    tabsArray.add("Document Access");
-    tabsArray.add("Document View");
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentAccess"));
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentView"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1477,35 +1478,35 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Enter a livelink server name\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value == \"\")\n"+
 "  {\n"+
 "    alert(\"A server port number is required\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.ingestcgipath.value == \"\")\n"+
 "  {\n"+
 "    alert(\"Enter the crawl cgi path to livelink\");\n"+
-"    SelectTab(\"Document Access\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
 "    editconnection.ingestcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.ingestcgipath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
 "    alert(\"The ingest cgi path must begin with a / character\");\n"+
-"    SelectTab(\"Document Access\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
 "    editconnection.ingestcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.viewcgipath.value != \"\" && editconnection.viewcgipath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
 "    alert(\"The view cgi path must be blank, or begin with a / character\");\n"+
-"    SelectTab(\"Document View\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
 "    editconnection.viewcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1527,7 +1528,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String ingestProtocol = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.ingestProtocol);
@@ -1582,7 +1584,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
     );
     // The "Server" tab
-    if (tabName.equals("Server"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1625,7 +1627,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkKeystore)+"\"/>\n"
       );
     }
-    if (tabName.equals("Document Access"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.DocumentAccess")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1720,7 +1722,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
     // Document View tab
-    if (tabName.equals("Document View"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.DocumentView")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1772,7 +1774,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String serverName = variableContext.getParameter("servername");
@@ -1887,7 +1890,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -1936,13 +1940,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Paths");
-    tabsArray.add("Filters");
-    tabsArray.add("Security");
-    tabsArray.add("Metadata");
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Paths"));
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Filters"));
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Security"));
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Metadata"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -2067,14 +2071,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
     int k;
 
     // Paths tab
-    if (tabName.equals("Paths"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2214,7 +2218,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
 
     // Filter tab
-    if (tabName.equals("Filters"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Filters")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2322,7 +2326,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -2368,7 +2372,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"LivelinkConnector.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2458,7 +2462,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    if (tabName.equals("Metadata"))
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Metadata")))
     {
       out.print(
 "<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
@@ -2791,7 +2795,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String xc = variableContext.getParameter("pathcount");
@@ -3277,7 +3281,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     out.print(
@@ -3419,7 +3423,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"LivelinkConnector.NoAccessTokensSpecified") + "</td></tr>\n"
       );
     }
     out.print(

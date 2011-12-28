@@ -1109,6 +1109,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Skipping file '"+documentIdentifier+"' because: "+e.getMessage(),e);
             rval[i] = null;
+
           }
           else
             throw new ManifoldCFException(e.getMessage(),e);
@@ -1450,13 +1451,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, List<String> tabsArray)
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Server");
-    tabsArray.add("Object Store");
-    tabsArray.add("Document URL");
-    tabsArray.add("Credentials");
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.ObjectStore"));
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.DocumentURL"));
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.Credentials"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1483,28 +1485,28 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  if (editconnection.serverhostname.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The connection requires a FileNet host name\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Server") + "\");\n"+
 "    editconnection.serverhostname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
 "    alert(\"The server port must be an integer\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Server") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.urlhostname.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The Document URL requires a host name\");\n"+
-"    SelectTab(\"Document URL\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.DocumentURL") + "\");\n"+
 "    editconnection.urlhostname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.urlport.value != \"\" && !isInteger(editconnection.urlport.value))\n"+
 "  {\n"+
 "    alert(\"The Document URL port must be an integer\");\n"+
-"    SelectTab(\"Document URL\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.DocumentURL") + "\");\n"+
 "    editconnection.urlport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1512,28 +1514,28 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  if (editconnection.filenetdomain.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The file net domain name cannot be null\");\n"+
-"    SelectTab(\"Object Store\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.ObjectStore") + "\");\n"+
 "    editconnection.filenetdomain.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.objectstore.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The object store name cannot be null\");\n"+
-"    SelectTab(\"Object Store\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.ObjectStore") + "\");\n"+
 "    editconnection.objectstore.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.userid.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The connection requires a valid FileNet user ID\");\n"+
-"    SelectTab(\"Credentials\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Credentials") + "\");\n"+
 "    editconnection.userid.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.password.value == \"\")\n"+
 "  {\n"+
 "    alert(\"The connection requires the FileNet user's password\");\n"+
-"    SelectTab(\"Credentials\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Credentials") + "\");\n"+
 "    editconnection.password.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1555,7 +1557,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters, String tabName)
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
     String userID = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID);
@@ -1600,13 +1603,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       urllocation = "Workplace/Browse.jsp";
 
     // "Server" tab
-    if (tabName.equals("Server"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Server")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server protocol:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.ServerProtocol") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverprotocol\" size=\"2\">\n"+
 "        <option value=\"http\" "+(serverprotocol.equals("http")?"selected=\"true\"":"")+">http</option>\n"+
@@ -1615,13 +1618,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server host name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverhostname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverhostname)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.ServerHostName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverhostname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverhostname)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverport)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.ServerPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverport)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Server web service location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverwsilocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverwsilocation)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.ServerWebServiceLocation") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverwsilocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverwsilocation)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1638,13 +1641,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // "Document URL" tab
-    if (tabName.equals("Document URL"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.DocumentURL")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document URL protocol:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.DocumentURLProtocol") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"urlprotocol\" size=\"2\">\n"+
 "        <option value=\"http\" "+(serverprotocol.equals("http")?"selected=\"true\"":"")+">http</option>\n"+
@@ -1653,13 +1656,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document URL host name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"urlhostname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(urlhostname)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.DocumentURLHostName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"urlhostname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(urlhostname)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document URL port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"urlport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(urlport)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.DocumentURLPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"urlport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(urlport)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document URL location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"urllocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(urllocation)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.DocumentURLLocation") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"urllocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(urllocation)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1676,16 +1679,16 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // "Object Store" tab
-    if (tabName.equals("Object Store"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.ObjectStore")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>FileNet domain name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"filenetdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filenetdomain)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.FileNetDomainName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"filenetdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filenetdomain)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Object store name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"objectstore\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(objectstore)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.ObjectStoreName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"objectstore\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(objectstore)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1701,16 +1704,16 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 
 
     // "Credentials" tab
-    if (tabName.equals("Credentials"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Credentials")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User ID:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"userid\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userID)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.UserID") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"userid\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userID)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Password") + "</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1736,7 +1739,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
   */
   @Override
-  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
     String serverprotocol = variableContext.getParameter("serverprotocol");
@@ -1797,15 +1801,17 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
   */
   @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, ConfigParams parameters)
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
+
     Iterator iter = parameters.listParameters();
     while (iter.hasNext())
     {
@@ -1846,13 +1852,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
   @Override
-  public void outputSpecificationHeader(IHTTPOutput out, DocumentSpecification ds, List<String> tabsArray)
+  public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Document Classes");
-    tabsArray.add("Mime Types");
-    tabsArray.add("Folders");
-    tabsArray.add("Security");
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.DocumentClasses"));
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.MimeTypes"));
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.Folders"));
+    tabsArray.add(Messages.getString(locale,"FilenetConnector.Security"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1923,7 +1929,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param tabName is the current tab name.
   */
   @Override
-  public void outputSpecificationBody(IHTTPOutput out, DocumentSpecification ds, String tabName)
+  public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
     int i;
@@ -1947,7 +1953,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
 
     // Folders tab
-    if (tabName.equals("Folders"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Folders")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1970,7 +1976,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
 "      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete path #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")'/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"FilenetConnector.DeletePath")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1987,7 +1993,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No folders chosen - all documents will be taken</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"FilenetConnector.NoFoldersChosen") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2020,22 +2026,22 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         out.print(
 "          <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
 "          <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
-"          <input type=\"button\" value=\"Add\" alt=\"Add path\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
+"          <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
 "          &nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"
         );
         if (pathSoFar.length() > 0)
         {
           out.print(
-"          <input type=\"button\" value=\"-\" alt=\"Remove from path\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
+"          <input type=\"button\" value=\"-\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.RemoveFromPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
           );
         }
         if (childList.length > 0)
         {
           out.print(
 "          <nobr>\n"+
-"            <input type=\"button\" value=\"+\" alt=\"Add to path\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
+"            <input type=\"button\" value=\"+\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddToPath") + "\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
 "            <select multiple=\"false\" name=\"pathaddon\" size=\"4\">\n"+
-"              <option value=\"\" selected=\"selected\">-- Pick a folder --</option>\n"
+"              <option value=\"\" selected=\"selected\">-- " + Messages.getBodyString(locale,"FilenetConnector.PickAFolder") + " --</option>\n"
           );
           int j = 0;
           while (j < childList.length)
@@ -2094,7 +2100,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
     
     // Document classes tab
-    if (tabName.equals("Document Classes"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.DocumentClasses")))
     {
       out.print(
 "<input type=\"hidden\" name=\"hasdocumentclasses\" value=\"true\"/>\n"+
@@ -2149,7 +2155,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
 "          <td class=\"description\">\n"+
-"            <nobr>Include?</nobr>\n"+
+"            <nobr>" + Messages.getBodyString(locale,"FilenetConnector.Include") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"value\">\n"+
 "            <nobr><input type=\"checkbox\" name=\"documentclasses\" "+((spec != null)?"checked=\"true\"":"")+" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\"></input></nobr>\n"+
@@ -2157,7 +2163,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "        </tr>\n"+
 "        <tr>\n"+
 "          <td class=\"description\">\n"+
-"            <nobr>Document criteria:</nobr>\n"+
+"            <nobr>" + Messages.getBodyString(locale,"FilenetConnector.DocumentCriteria") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"boxcell\">\n"+
 "            <table class=\"displaytable\">\n"
@@ -2188,7 +2194,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                <td class=\"description\">\n"+
 "                  <input type=\"hidden\" name=\""+opName+"\" value=\"\"/>\n"+
 "                  <a name=\""+labelName+"\">\n"+
-"                    <input type=\"button\" value=\"Delete\" alt=\"Delete "+documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + documentClass+" match # "+Integer.toString(q)+"\" onClick='Javascript:SpecOp(\""+opName+"\",\"Delete\",\""+labelName+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
@@ -2210,7 +2216,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           if (q == 0)
           {
             out.print(
-"              <tr><td class=\"message\" colspan=\"4\"><nobr>(No criteria specified - all documents will be taken)</nobr></td></tr>\n"
+"              <tr><td class=\"message\" colspan=\"4\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.NoCriteriaSpecified") + "</nobr></td></tr>\n"
             );
           }
           String addLabelName = "match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q);
@@ -2222,7 +2228,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                  <input type=\"hidden\" name=\""+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
 "                  <input type=\"hidden\" name=\""+addOpName+"\" value=\"\"/>\n"+
 "                  <a name=\""+addLabelName+"\">\n"+
-"                    <input type=\"button\" value=\"Add\" alt=\"Add match for "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"Add match for "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
@@ -2257,7 +2263,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "        </tr>\n"+
 "        <tr>\n"+
 "          <td class=\"description\">\n"+
-"            <nobr>Ingest all metadata fields?</nobr>\n"+
+"            <nobr>" + Messages.getBodyString(locale,"FilenetConnector.IngestAllMetadataFields") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"value\">\n"+
 "            <nobr><input type=\"checkbox\" name=\"allmetadata_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\"true\" "+((spec != null && spec.getAllMetadata())?"checked=\"\"":"")+"></input></nobr><br/>\n"+
@@ -2265,7 +2271,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "        </tr>\n"+
 "        <tr>\n"+
 "          <td class=\"description\">\n"+
-"            <nobr>Metadata fields:</nobr>\n"+
+"            <nobr>" + Messages.getBodyString(locale,"FilenetConnector.MetadataFields") + "</nobr>\n"+
 "          </td>\n"+
 "          <td class=\"value\">\n"+
 "            <nobr>\n"+
@@ -2362,7 +2368,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals("Mime Types"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.MimeTypes")))
     {
       out.print(
 "<input type=\"hidden\" name=\"hasmimetypes\" value=\"true\"/>\n"+
@@ -2396,7 +2402,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       else
       {
         out.print(
-"    <td class=\"description\"><nobr>Mime types to include:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.MimeTypesToInclude") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"mimetypes\" size=\"10\" multiple=\"true\">\n"
         );
@@ -2466,13 +2472,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
     }
 
-    if (tabName.equals("Security"))
+    if (tabName.equals(Messages.getString(locale,"FilenetConnector.Security")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
 "      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />Enabled&nbsp;\n"+
 "      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />Disabled\n"+
@@ -2497,7 +2503,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete access token #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+"Delete access token #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2512,7 +2518,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No access tokens present</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"FilenetConnector.NoAccessTokensPresent") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2523,7 +2529,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" alt=\"Add access token\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"Add access token\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2569,7 +2575,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
   @Override
-  public String processSpecificationPost(IPostParameters variableContext, DocumentSpecification ds)
+  public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
     String[] x;
@@ -2833,7 +2839,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   *@param ds is the current document specification for this job.
   */
   @Override
-  public void viewSpecification(IHTTPOutput out, DocumentSpecification ds)
+  public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
     int i;
@@ -2867,13 +2873,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     if (sortedDocumentClasses.length == 0)
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\"><nobr>No included document classes</nobr></td>\n"
+"    <td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.NoIncludedDocumentClasses") + "</nobr></td>\n"
       );
     }
     else
     {
       out.print(
-"    <td class=\"description\"><nobr>Included document classes:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.IncludedDocumentClasses") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
@@ -2887,7 +2893,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "          <td class=\"boxcell\">\n"+
 "            <table class=\"displaytable\">\n"+
 "              <tr>\n"+
-"                <td class=\"description\"><nobr>Metadata:</nobr></td>\n"+
+"                <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Metadata") + "</nobr></td>\n"+
 "                <td class=\"value\">\n"
         );
         org.apache.manifoldcf.crawler.connectors.filenet.DocClassSpec fieldValues = (org.apache.manifoldcf.crawler.connectors.filenet.DocClassSpec)documentClasses.get(docclass);
@@ -2914,7 +2920,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                </td>\n"+
 "              </tr>\n"+
 "              <tr>\n"+
-"                <td class=\"description\"><nobr>Documents matching:</nobr></td>\n"+
+"                <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.DocumentsMatching") + "</nobr></td>\n"+
 "                <td class=\"value\">\n"
         );
         int matchCount = fieldValues.getMatchCount();
@@ -2980,7 +2986,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       }
       java.util.Arrays.sort(sortedMimeTypes);
       out.print(
-"    <td class=\"description\"><nobr>Included mime types:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.IncludedMimeTypes") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
       );
       i = 0;
@@ -2998,7 +3004,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\"><nobr>No included mime types - ALL will be ingested</nobr></td>\n"
+"    <td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.NoIncludedMimeTypes") + "</nobr></td>\n"
       );
     }
     out.print(
@@ -3020,7 +3026,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         }
         out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Folders:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Folders2") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(spn.getAttributeValue(SPEC_ATTRIBUTE_VALUE))+"</nobr>\n"+
 "    </td>\n"+
@@ -3031,7 +3037,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     if (seenAny == false)
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">All folders specified</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"FilenetConnector.AllFoldersSpecified") + "</td></tr>\n"
       );
     }
     out.print(
@@ -3056,7 +3062,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     }
     out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Security:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\">"+(securityOn?"Enabled":"Disabled")+"</td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -3073,7 +3079,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         {
           out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.AccessTokens") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3095,7 +3101,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">No access tokens specified</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"FilenetConnector.NoAccessTokensSpecified") + "</td></tr>\n"
       );
     }
     out.print(
