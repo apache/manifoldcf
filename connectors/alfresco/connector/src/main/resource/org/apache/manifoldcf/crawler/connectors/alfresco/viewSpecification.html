@@ -21,15 +21,7 @@
 			Lucene Query:
 		</td>
 		<td class="value">
-			<div id="luceneQueryDiv">${LUCENEQUERY}</div>
+			${LUCENEQUERY:B}
 		</td>
 	</tr>
 </table>
-
-<script type="text/javascript">
-var luceneQuery = "${CMISQUERY}";
-if(luceneQuery.trim()==""){
-  var luceneQueryDiv = document.getElementById("luceneQueryDiv");
-  luceneQueryDiv.innerHTML = "";
-}
-</script>

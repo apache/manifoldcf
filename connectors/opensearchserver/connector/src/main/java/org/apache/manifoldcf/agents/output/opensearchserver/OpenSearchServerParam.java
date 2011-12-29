@@ -73,16 +73,11 @@ public class OpenSearchServerParam extends HashMap<ParameterEnum, String> {
     super(params.length);
   }
 
-  /**
-   * Replace the variables ${PARAMNAME} with the value contained in the set.
-   * 
-   * @param text
-   * @return
-   */
-  final public String replace(String text) {
+  final public Map<String,String> buildMap() {
+    Map<String,String> rval = new HashMap<String,String>();
     for (Map.Entry<ParameterEnum, String> entry : this.entrySet())
-      text = text.replace("${" + entry.getKey().name() + "}", entry.getValue());
-    return text;
+      rval.put(entry.getKey().name(), entry.getValue());
+    return rval;
   }
 
 }

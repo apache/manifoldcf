@@ -28,7 +28,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input id="username" type="text" name="username" value="${USERNAME}" />
+			<input id="username" type="text" name="username" value="${USERNAME:A}" />
 		</td>
 	</tr>
 	<tr>
@@ -38,7 +38,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input id="password" type="password" name="password" value="${PASSWORD}" />
+			<input id="password" type="password" name="password" value="${PASSWORD:A}" />
 		</td>
 	</tr>
 	<tr>
@@ -61,7 +61,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="server" name="server" type="text" size="32" value="${SERVER}"/>
+        <input id="server" name="server" type="text" size="32" value="${SERVER:A}"/>
     </td>
   </tr>
   <tr>
@@ -71,7 +71,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="port" name="port" type="text" size="5" value="${PORT}" />
+        <input id="port" name="port" type="text" size="5" value="${PORT:A}" />
     </td>
   </tr>
   <tr>
@@ -81,14 +81,14 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="path" name="path" type="text" size="32" value="${PATH}" />
+        <input id="path" name="path" type="text" size="32" value="${PATH:A}" />
     </td>
   </tr>
 </table>
 
 <script type="text/javascript">
 <!--
-var protocol = "${PROTOCOL}";
+var protocol = "${PROTOCOL:BJ}";
 var protocolSelect = document.getElementById("protocol");
 if(protocol=="https"){
   protocolSelect.options[1].selected = true;

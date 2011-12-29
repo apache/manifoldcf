@@ -689,48 +689,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    */
   private void outputResource(String resName, IHTTPOutput out,
       ConfigParams params) throws ManifoldCFException {
-    InputStream is = getClass().getResourceAsStream(resName);
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-      String line;
-      while ((line = br.readLine()) != null) {
-        if (params != null){
-          Iterator i = params.listParameters();
-          boolean parsedLine = false;
-          while(i.hasNext()){
-            String key = (String) i.next();
-            String value = params.getParameter(key);
-            String replacer = "${"+key.toUpperCase()+"}";
-            if(StringUtils.contains(line, replacer)){  
-              if(StringUtils.isEmpty(value)){
-                out.println(StringUtils.replace(line, replacer, StringUtils.EMPTY));
-                parsedLine=true;
-              } else {
-                out.println(StringUtils.replace(line, replacer, value));
-                parsedLine=true;
-              }
-            } else if(StringUtils.contains(line, "${")){
-                parsedLine=true;
-            } else if(!parsedLine){
-                out.println(line);
-                parsedLine=true;
-            }
-          }
-        } else {
-            break;
-        }
-      }
-    } catch (UnsupportedEncodingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
-    } finally {
-      if (br != null)
-        IOUtils.closeQuietly(br);
-      if (is != null)
-        IOUtils.closeQuietly(is);
+    Map<String,String> paramMap = new HashMap<String,String>();
+    Iterator<String> i = params.listParameters();
+    while(i.hasNext()){
+      String key = i.next();
+      String value = params.getParameter(key);
+      paramMap.put(key,value);
     }
+    org.apache.manifoldcf.ui.i18n.Messages.outputResource(out,getClass(),resName,paramMap,true);
   }
   
   /**

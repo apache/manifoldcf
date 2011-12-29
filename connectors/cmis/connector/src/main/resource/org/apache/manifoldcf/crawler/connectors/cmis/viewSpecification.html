@@ -21,15 +21,7 @@
 			CMIS Query:
 		</td>
 		<td class="value">
-			<div id="cmisQueryDiv">${CMISQUERY}</div>
+			${CMISQUERY:B}
 		</td>
 	</tr>
 </table>
-
-<script type="text/javascript">
-var cmisQuery = "${CMISQUERY}";
-if(cmisQuery.trim()==""){
-  var cmisQueryDiv = document.getElementById("cmisQueryDiv");
-  cmisQueryDiv.innerHTML = "";
-}
-</script>

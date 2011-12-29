@@ -24,7 +24,7 @@
 		</td>
 		<td class="value" colspan="3">
 			<nobr>
-				username=${USERNAME}
+				username=${USERNAME:B}
 			</nobr>
 			<br />
       <nobr>
@@ -32,39 +32,29 @@
       </nobr>
 			<br />
 			<nobr>
-				binding=${BINDING}
+				binding=${BINDING:B}
 			</nobr>
 			<br />
 			<nobr>
-        protocol=${PROTOCOL}
+        protocol=${PROTOCOL:B}
       </nobr>
       <br />
       <nobr>
-        server=${SERVER}
+        server=${SERVER:B}
       </nobr>
       <br />
       <nobr>
-        port=${PORT}
+        port=${PORT:B}
       </nobr>
       <br />
       <nobr>
-        path=${PATH}
+        path=${PATH:B}
       </nobr>
       <br />
-			<nobr>
-        <div id="repositoryIdDiv"></div>
+      <nobr>
+        repositoryId=${REPOSITORYID:B}
       </nobr>
       <br />
 		</td>
 	</tr>
 </table>
-
-<script type="text/javascript">
-var repositoryId = "${REPOSITORYID}";
-var repositoryIdField = document.getElementById("repositoryIdDiv");
-if(repositoryId!=null && repositoryId!="" && repositoryId!=undefined){
-  repositoryIdField.innerHTML = "repositoryId=" + repositoryId;
-} else {
-  repositoryIdField.innerHTML = "";
-}
-</script>

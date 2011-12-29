@@ -46,6 +46,31 @@ public class Encoder
     return attributeEscape(rval.toString());
   }
 
+  /** Escape a string that's in an html body (script) area and thence inside javascript.
+  *@param value is the input.
+  *@return the escaped string.
+  */
+  public static String bodyJavascriptEscape(String value)
+  {
+    StringBuilder rval = new StringBuilder();
+    int i = 0;
+    while (i < value.length())
+    {
+      char x = value.charAt(i++);
+      // First level of encoding: javascript string
+      if (x == '\\' || x == '"' || x == '\'')
+      {
+        rval.append("\\").append(x);
+      }
+      else
+        rval.append(x);
+    }
+    // Body escaping does not seem to be necessary inside <script></script>
+    // blocks, at least when <!-- and //--> surround it.
+    //return bodyEscape(rval.toString());
+    return rval.toString();
+  }
+
   /** Escape a string that's inside an html attribute.
   *@param value is the input.
   *@return the escaped string.

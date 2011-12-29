@@ -84,26 +84,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
    */
   private void outputResource(String resName, IHTTPOutput out,
       OpenSearchServerParam params) throws ManifoldCFException {
-    InputStream is = getClass().getResourceAsStream(resName);
-    BufferedReader br = null;
-    try {
-      br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-      String line;
-      while ((line = br.readLine()) != null)
-        if (params != null)
-          out.println(params.replace(line));
-        else
-          out.println(line);
-    } catch (UnsupportedEncodingException e) {
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      throw new ManifoldCFException(e);
-    } finally {
-      if (br != null)
-        IOUtils.closeQuietly(br);
-      if (is != null)
-        IOUtils.closeQuietly(is);
-    }
+    org.apache.manifoldcf.ui.i18n.Messages.outputResource(out,getClass(),resName,(params==null)?null:params.buildMap(),false);
   }
 
   @Override

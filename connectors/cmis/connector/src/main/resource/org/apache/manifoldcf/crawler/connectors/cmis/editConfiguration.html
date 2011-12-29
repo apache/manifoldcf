@@ -45,7 +45,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" id="username" name="username" value="${USERNAME}" />
+			<input type="text" id="username" name="username" value="${USERNAME:A}" />
 		</td>
 	</tr>
 	<tr>
@@ -55,7 +55,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="password" id="password" name="password" value="${PASSWORD}" />
+			<input type="password" id="password" name="password" value="${PASSWORD:A}" />
 		</td>
 	</tr>
 	<tr>
@@ -78,7 +78,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="server" name="server" type="text" size="32" value="${SERVER}"/>
+        <input id="server" name="server" type="text" size="32" value="${SERVER:A}"/>
     </td>
   </tr>
   <tr>
@@ -88,7 +88,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="port" name="port" type="text" size="5" value="${PORT}" />
+        <input id="port" name="port" type="text" size="5" value="${PORT:A}" />
     </td>
   </tr>
   <tr>
@@ -98,7 +98,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="path" name="path" type="text" size="32" value="${PATH}" />
+        <input id="path" name="path" type="text" size="32" value="${PATH:A}" />
     </td>
   </tr>
 	<tr>
@@ -108,7 +108,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" id="repositoryId" name="repositoryId" value="${REPOSITORYID}" />
+			<input type="text" id="repositoryId" name="repositoryId" value="${REPOSITORYID:A}" />
 			<nobr>
 				(optional)
 			</nobr>
@@ -118,13 +118,13 @@
 
 <script type="text/javascript">
 <!--
-var binding = "${BINDING}";
+var binding = "${BINDING:BJ}";
 if(binding=="ws"){
   var bindingSelect = document.getElementById("binding");
   bindingSelect.options[1].selected = true;
 }
 
-var protocol = "${PROTOCOL}";
+var protocol = "${PROTOCOL:BJ}";
 var protocolSelect = document.getElementById("protocol");
 if(protocol=="https"){
   protocolSelect.options[1].selected = true;
