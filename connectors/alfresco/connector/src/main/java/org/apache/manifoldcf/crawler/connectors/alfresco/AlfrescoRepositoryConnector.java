@@ -548,37 +548,38 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       IHTTPOutput out, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     
-    if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
-      String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
-      String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
-      String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
-      String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
-      String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
-      String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
+    String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
+    String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
+    String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
+    String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
+    String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
+    String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
       
-      if (StringUtils.isEmpty(username))
-        username = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(password))
-        password = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(protocol))
-        protocol = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(server))
-        server = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(port))
-        port = StringUtils.EMPTY;
-      if (StringUtils.isEmpty(path))
-        path = StringUtils.EMPTY;
+    if (username == null)
+      username = "admin";
+    if (password == null)
+      password = "admin";
+    if (protocol == null)
+      protocol = "http";
+    if (server == null)
+      server = "localhost";
+    if (port == null)
+      port = "8080";
+    if (path == null)
+      path = "/alfresco/api";
   
-      parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
-      parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
-      parameters.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
-      parameters.setParameter(AlfrescoConfig.SERVER_PARAM, server);
-      parameters.setParameter(AlfrescoConfig.PORT_PARAM, port);
-      parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
-      
-      outputResource(EDIT_CONFIG_FORWARD, out, parameters);  
+    ConfigParams newMap = new ConfigParams();
+    newMap.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
+    newMap.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
+    newMap.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
+    newMap.setParameter(AlfrescoConfig.SERVER_PARAM, server);
+    newMap.setParameter(AlfrescoConfig.PORT_PARAM, port);
+    newMap.setParameter(AlfrescoConfig.PATH_PARAM, path);
+    
+    if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
+      outputResource(EDIT_CONFIG_FORWARD, out, newMap);  
     } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, parameters);
+      outputResource(HIDDEN_CONFIG_FORWARD, out, newMap);
     }
   }
 

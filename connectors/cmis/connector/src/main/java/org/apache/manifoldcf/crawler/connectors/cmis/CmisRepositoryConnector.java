@@ -788,45 +788,45 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       IHTTPOutput out, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     
+    String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
+    String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
+    String protocol = parameters.getParameter(CmisConfig.PROTOCOL_PARAM);
+    String server = parameters.getParameter(CmisConfig.SERVER_PARAM);
+    String port = parameters.getParameter(CmisConfig.PORT_PARAM);
+    String path = parameters.getParameter(CmisConfig.PATH_PARAM);
+    String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
+    String binding = parameters.getParameter(CmisConfig.BINDING_PARAM);
+      
+    if(username == null)
+      username = StringUtils.EMPTY;
+    if(password == null)
+      password = StringUtils.EMPTY;
+    if(protocol == null)
+      protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
+    if(server == null)
+      server = CmisConfig.SERVER_DEFAULT_VALUE;
+    if(port == null)
+      port = CmisConfig.PORT_DEFAULT_VALUE;
+    if(path == null)
+      path = CmisConfig.PATH_DEFAULT_VALUE;
+    if(repositoryId == null)
+      repositoryId = StringUtils.EMPTY;
+    if(binding == null)
+      binding = CmisConfig.BINDING_ATOM_VALUE;
+      
+    ConfigParams newMap = new ConfigParams();
+    newMap.setParameter(CmisConfig.USERNAME_PARAM, username);
+    newMap.setParameter(CmisConfig.PASSWORD_PARAM, password);
+    newMap.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
+    newMap.setParameter(CmisConfig.SERVER_PARAM, server);
+    newMap.setParameter(CmisConfig.PORT_PARAM, port);
+    newMap.setParameter(CmisConfig.PATH_PARAM, path);
+    newMap.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
+    newMap.setParameter(CmisConfig.BINDING_PARAM, binding);
     if(CMIS_SERVER_TAB_NAME.equals(tabName)){
-      String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
-      String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
-      String protocol = parameters.getParameter(CmisConfig.PROTOCOL_PARAM);
-      String server = parameters.getParameter(CmisConfig.SERVER_PARAM);
-      String port = parameters.getParameter(CmisConfig.PORT_PARAM);
-      String path = parameters.getParameter(CmisConfig.PATH_PARAM);
-      String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
-      String binding = parameters.getParameter(CmisConfig.BINDING_PARAM);
-      
-      if(StringUtils.isEmpty(username))
-        username = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(password))
-        password = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(protocol))
-        protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
-      if(StringUtils.isEmpty(server))
-        server = CmisConfig.SERVER_DEFAULT_VALUE;
-      if(StringUtils.isEmpty(port))
-        port = CmisConfig.PORT_DEFAULT_VALUE;
-      if(StringUtils.isEmpty(path))
-        path = CmisConfig.PATH_DEFAULT_VALUE;
-      
-      if(StringUtils.isEmpty(repositoryId))
-        repositoryId = StringUtils.EMPTY;
-      if(StringUtils.isEmpty(binding))
-        binding = CmisConfig.BINDING_ATOM_VALUE;
-      
-      parameters.setParameter(CmisConfig.USERNAME_PARAM, username);
-      parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
-      parameters.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
-      parameters.setParameter(CmisConfig.SERVER_PARAM, server);
-      parameters.setParameter(CmisConfig.PORT_PARAM, port);
-      parameters.setParameter(CmisConfig.PATH_PARAM, path);
-      parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
-      parameters.setParameter(CmisConfig.BINDING_PARAM, binding);
-      outputResource(EDIT_CONFIG_FORWARD, out, parameters);
+      outputResource(EDIT_CONFIG_FORWARD, out, newMap);
     } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, parameters);
+      outputResource(HIDDEN_CONFIG_FORWARD, out, newMap);
     }
   }
 

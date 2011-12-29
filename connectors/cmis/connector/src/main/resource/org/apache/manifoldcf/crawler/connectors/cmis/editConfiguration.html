@@ -108,7 +108,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" id="repositoryId" name="repositoryId" value="" />
+			<input type="text" id="repositoryId" name="repositoryId" value="${REPOSITORYID}" />
 			<nobr>
 				(optional)
 			</nobr>
@@ -117,34 +117,11 @@
 </table>
 
 <script type="text/javascript">
+<!--
 var binding = "${BINDING}";
 if(binding=="ws"){
   var bindingSelect = document.getElementById("binding");
   bindingSelect.options[1].selected = true;
-}
-
-var repositoryId = "${REPOSITORYID}";
-var repositoryIdField = document.getElementById("repositoryId");
-if(repositoryId!=null && repositoryId!="" && repositoryId!=undefined){
-  repositoryIdField.value = repositoryId;
-} else {
-  repositoryIdField.value = "";
-}
-
-var username = "${USERNAME}";
-var password = "${PASSWORD}";
-var server = "${SERVER}";
-var port = "${PORT}";
-var path = "${PATH}";
-
-if(username==null || username==""){
-  var usernameInput = document.getElementById("username");
-  usernameInput.value = "dummyuser";
-}
-
-if(password==null || password==""){
-  var passwordInput = document.getElementById("password");
-  passwordInput.value = "dummysecret";
 }
 
 var protocol = "${PROTOCOL}";
@@ -154,19 +131,5 @@ if(protocol=="https"){
 } else {
   protocolSelect.options[0].selected = true;
 }
-
-if(server==null || server==""){
-  var serverInput = document.getElementById("server");
-  serverInput.value = "localhost";
-}
-
-if(port==null || port==""){
-  var portInput = document.getElementById("port");
-  portInput.value = "9090";
-}
-
-if(path==null || path==""){
-  var pathInput = document.getElementById("path");
-  pathInput.value = "/chemistry-opencmis-server-inmemory-war/atom";
-}
+//-->
 </script>
