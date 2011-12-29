@@ -46,6 +46,7 @@ public class NavigationUI extends BaseUIDerby
     HTMLTester.Selectbox selectbox;
     HTMLTester.Button button;
     HTMLTester.Radiobutton radiobutton;
+    HTMLTester.Loop loop;
     
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
     
@@ -203,7 +204,7 @@ public class NavigationUI extends BaseUIDerby
     // Add a record to the Paths list
     
     // MHL
-    /* Need a way of checking job status if we're going to save it and delete it, since it happens in background.
+    
     // Save the job
     window = testerInstance.findWindow(null);
     button = window.findButton(testerInstance.createStringDescription("Save this job"));
@@ -211,11 +212,21 @@ public class NavigationUI extends BaseUIDerby
 
     // Delete the job
     window = testerInstance.findWindow(null);
-    HTMLTester.StringDescription jobID = window.findMatch(testerInstance.createStringDescription("<!--jobid=(.*?)-->"),1);
+    HTMLTester.StringDescription jobID = window.findMatch(testerInstance.createStringDescription("<!--jobid=(.*?)-->"),0);
+    testerInstance.printValue(jobID);
     link = window.findLink(testerInstance.createStringDescription("Delete this job"));
     link.click();
-    */
     
+    // Wait for the job to go away
+    loop = testerInstance.beginLoop(120);
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Manage jobs"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    HTMLTester.StringDescription isJobNotPresent = window.isNotPresent(jobID);
+    testerInstance.printValue(isJobNotPresent);
+    loop.breakWhenTrue(isJobNotPresent);
+    loop.endLoop();
     
     // Delete the authority connection
     window = testerInstance.findWindow(null);

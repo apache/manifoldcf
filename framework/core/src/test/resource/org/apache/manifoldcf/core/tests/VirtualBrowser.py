@@ -784,6 +784,12 @@ class VirtualWindow:
 
     # Public part of interface
 
+    # Look for pattern
+    def is_present( self, regular_expression ):
+        reobject = re.compile( regular_expression )
+        mo = reobject.search( self.data )
+        return mo != None
+
     # Look for a specific match in the page data, and return the value of the specified group
     def find_match( self, regular_expression, group=0 ):
         reobject = re.compile( regular_expression )

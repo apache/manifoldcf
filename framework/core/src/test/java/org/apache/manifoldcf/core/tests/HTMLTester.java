@@ -148,6 +148,7 @@ public class HTMLTester
     currentIndentLevel = 0;
     virtualBrowserVarName = getNextVariableName();
     
+    emitLine("import time");
     emitLine("import sys");
     emitLine("sys.path.append(\".\")");
     emitLine("import VirtualBrowser");
@@ -202,7 +203,53 @@ public class HTMLTester
       emitLine(variableName + " = None");
     return new StringDescription(variableName);
   }
+
+  /** Create a string description for use later in the test.
+  *@param values are the intended values of the string description, concatenated together.
+  *@return the string description.
+  */
+  public StringDescription createStringDescription(StringDescription[] values)
+    throws Exception
+  {
+    String variableName = getNextVariableName();
+    if (values.length == 0)
+      emitLine(variableName + " = " + quotePythonString(""));
+    else
+    {
+      StringBuilder sb = new StringBuilder(variableName);
+      sb.append(" = ");
+      for (int i = 0; i < values.length ; i++)
+      {
+        if (i > 0)
+          sb.append(" + ");
+        sb.append(values[i].getVarName());
+      }
+      emitLine(sb.toString());
+    }
+    return new StringDescription(variableName);
+  }
+
+  /** Print a value.
+  */
+  public void printValue(StringDescription value)
+    throws Exception
+  {
+    emitLine("print >> sys.stderr, "+value.getVarName());
+  }
   
+  /** Begin a loop.
+  */
+  public Loop beginLoop(int maxSeconds)
+    throws Exception
+  {
+    String variableName = getNextVariableName();
+    emitLine(variableName+" = time.time() + "+maxSeconds);
+    emitLine("while True:");
+    currentIndentLevel++;
+    return new Loop(variableName);
+  }
+  
+    
   /** Open virtual browser window, and send it to a specified URL.
   *@param url is the desired URL.
   *@return the window handle.  Use this whenever a window argument is required later.
@@ -281,6 +328,28 @@ public class HTMLTester
       this.windowVar = windowVar;
     }
     
+    /** Check if a pattern is present or not.
+    *@return a StringDescription that in fact describes a boolean condition; true if present.
+    */
+    public StringDescription isPresent(StringDescription regularExpression)
+      throws Exception
+    {
+      String varName = getNextVariableName();
+      emitLine(varName + " = "+windowVar+".is_present("+regularExpression.getVarName()+")");
+      return new StringDescription(varName);
+    }
+
+    /** Check if a pattern is present or not.
+    *@return a StringDescription that in fact describes a boolean condition; true if not present.
+    */
+    public StringDescription isNotPresent(StringDescription regularExpression)
+      throws Exception
+    {
+      String varName = getNextVariableName();
+      emitLine(varName + " = not "+windowVar+".is_present("+regularExpression.getVarName()+")");
+      return new StringDescription(varName);
+    }
+    
     /** Look for a specific match in the current page data, and return the value of the specified group.
     *@return a description of the string found.  This can be used later in other commands to assess
     *  correctness of the page, or allow form data to be filled in.
@@ -347,6 +416,42 @@ public class HTMLTester
       throws Exception
     {
       emitLine(windowVar+".close_window()");
+    }
+  }
+  
+  /** Loop object.
+  */
+  public class Loop
+  {
+    protected String loopVarName;
+    
+    public Loop(String loopVarName)
+    {
+      this.loopVarName = loopVarName;
+    }
+    
+    /** Break on condition being true.
+    */
+    public void breakWhenTrue(StringDescription condition)
+      throws Exception
+    {
+      emitLine("if "+condition.getVarName()+":");
+      currentIndentLevel++;
+      emitLine("break");
+      currentIndentLevel--;
+    }
+    
+    /** End the loop.
+    */
+    public void endLoop()
+      throws Exception
+    {
+      emitLine("time.sleep(1)");
+      emitLine("if time.time() >= "+loopVarName+":");
+      currentIndentLevel++;
+      emitLine("raise Exception('Loop timed out')");
+      currentIndentLevel--;
+      currentIndentLevel--;
     }
   }
   
