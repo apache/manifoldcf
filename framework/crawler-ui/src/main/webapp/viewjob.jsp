@@ -208,7 +208,7 @@
 				}
 %>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ScheduledTime")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.ScheduledTimeColon")%></nobr></td>
 				<td class="value" colspan="3">
 <%
 					if (srDayOfWeek == null)
@@ -490,7 +490,7 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTime")%></td><td class="value" colspan="3">
+				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTimeColon")%></td><td class="value" colspan="3">
 <%
 					if (srDuration == null)
 						out.println("No limit");
