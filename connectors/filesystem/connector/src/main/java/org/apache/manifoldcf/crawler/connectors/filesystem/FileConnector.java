@@ -435,7 +435,16 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       out.print(
 "<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"3\"><hr/></td></tr>\n"
+"  <tr><td class=\"separator\" colspan=\"3\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>Paths:</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Root path</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>Rules</nobr></td>\n"+
+"        </tr>\n"
       );
       i = 0;
       k = 0;
@@ -446,20 +455,6 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           String pathDescription = "_"+Integer.toString(k);
           String pathOpName = "specop"+pathDescription;
-          if (k == 0)
-          {
-            out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>Paths:</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Root path</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>Rules</nobr></td>\n"+
-"        </tr>\n"
-            );
-          }
           out.print(
 "        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+

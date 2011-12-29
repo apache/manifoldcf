@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-342: Fix bad HTML in the File System connector.
+(Karl Wright)
+
 CONNECTORS-330: Add infrastructure that permits the database class
 to initialize a connection every time it is pulled from the pool.  This is
 necessary to support HSQLDB, because a number of HSQLDB's states
