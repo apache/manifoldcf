@@ -33,6 +33,7 @@
     <module>cmis</module>
     <module>filesystem</module>
     <module>sharepoint</module>
+    <module>rss</module>
   </modules>
   <build>
     <defaultGoal>integration-test</defaultGoal>

@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_loadtests;
+package org.apache.manifoldcf.rss_tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -39,7 +39,7 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.ConnectorBaseMySQL
+public class BasePostgresql extends org.apache.manifoldcf.crawler.tests.ConnectorBasePostgresql
 {
   public static final String agentShutdownSignal = "agent-process";
   public static final int testPort = 8346;

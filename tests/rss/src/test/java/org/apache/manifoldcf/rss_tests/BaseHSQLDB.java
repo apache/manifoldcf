@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.filesystem_loadtests;
+package org.apache.manifoldcf.rss_tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -39,7 +39,7 @@ import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.ConnectorBaseMySQL
+public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseHSQLDB
 {
   public static final String agentShutdownSignal = "agent-process";
   public static final int testPort = 8346;
@@ -54,7 +54,7 @@ public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.ConnectorBase
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"};
   }
   
   protected String[] getOutputNames()
@@ -65,68 +65,6 @@ public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.ConnectorBase
   protected String[] getOutputClasses()
   {
     return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
-  }
-  
-  protected void createDirectory(File f)
-    throws Exception
-  {
-    if (f.mkdirs() == false)
-      throw new Exception("Failed to create directory "+f.toString());
-  }
-  
-  protected void removeDirectory(File f)
-    throws Exception
-  {
-    File[] files = f.listFiles();
-    if (files != null)
-    {
-      int i = 0;
-      while (i < files.length)
-      {
-        File subfile = files[i++];
-        if (subfile.isDirectory())
-          removeDirectory(subfile);
-        else
-          subfile.delete();
-      }
-    }
-    f.delete();
-  }
-  
-  protected void createFile(File f, String contents)
-    throws Exception
-  {
-    OutputStream os = new FileOutputStream(f);
-    try
-    {
-      Writer w = new OutputStreamWriter(os,"utf-8");
-      try
-      {
-        w.write(contents);
-      }
-      finally
-      {
-        w.flush();
-      }
-    }
-    finally
-    {
-      os.close();
-    }
-  }
-  
-  protected void removeFile(File f)
-    throws Exception
-  {
-    if (f.delete() == false)
-      throw new Exception("Failed to delete file "+f.toString());
-  }
-  
-  protected void changeFile(File f, String newContents)
-    throws Exception
-  {
-    removeFile(f);
-    createFile(f,newContents);
   }
   
   // API support

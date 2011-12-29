@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.filesystem_loadtests;
+package org.apache.manifoldcf.filesystem_tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class BigCrawlHSQLDBTest extends BaseHSQLDB
+public class BigCrawlMySQLLT extends BaseMySQL
 {
   
   @Before

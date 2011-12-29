@@ -2039,41 +2039,9 @@
         </javac>
     </target>
 
-    <target name="compile-filesystem-loadtests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,calculate-filesystem-tests-condition,build-tests-filesystem-connector,build-tests-nulloutput-connector" if="filesystem-tests.include">
-        <mkdir dir="build/filesystem-loadtests/classes"/>
-        <javac srcdir="loadtests/filesystem/src/test/java" destdir="build/filesystem-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-rss-loadtests" depends="build-framework,build-rss-connector,build-nulloutput-connector,calculate-rss-tests-condition,build-tests-rss-connector,build-tests-nulloutput-connector" if="rss-tests.include">
-        <mkdir dir="build/rss-loadtests/classes"/>
-        <javac srcdir="loadtests/rss/src/test/java" destdir="build/rss-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+    <target name="compile-rss-tests" depends="build-framework,build-rss-connector,build-nulloutput-connector,calculate-rss-tests-condition,build-tests-rss-connector,build-tests-nulloutput-connector" if="rss-tests.include">
+        <mkdir dir="build/rss-tests/classes"/>
+        <javac srcdir="tests/rss/src/test/java" destdir="build/rss-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
@@ -2135,38 +2103,6 @@
         </javac>
     </target>
 
-    <target name="compile-wiki-loadtests" depends="build-framework,build-filesystem-connector,build-nulloutput-connector,calculate-wiki-tests-condition,build-tests-wiki-connector,build-tests-nulloutput-connector" if="wiki-tests.include">
-        <mkdir dir="build/wiki-loadtests/classes"/>
-        <javac srcdir="loadtests/wiki/src/test/java" destdir="build/wiki-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="compile-sharepoint-tests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
         <mkdir dir="build/sharepoint-tests/classes"/>
         <javac srcdir="tests/sharepoint/src/test/java" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -2196,35 +2132,6 @@
         </javac>
     </target>
 
-    <target name="compile-sharepoint-loadtests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
-        <mkdir dir="build/sharepoint-loadtests/classes"/>
-        <javac srcdir="loadtests/sharepoint/src/test/java" destdir="build/sharepoint-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-    
     <target name="compile-alfresco-tests" depends="build-framework,build-alfresco-connector,build-nulloutput-connector,calculate-alfresco-tests-condition,build-tests-alfresco-connector,build-tests-nulloutput-connector" if="alfresco-tests.include">
         <mkdir dir="build/alfresco-tests/classes"/>
         <javac srcdir="tests/alfresco/src/test/java" destdir="build/alfresco-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -2298,79 +2205,6 @@
         </javac>
     </target>
     
-    <target name="compile-alfresco-loadtests" depends="build-framework,build-alfresco-connector,build-nulloutput-connector,calculate-alfresco-tests-condition,build-tests-alfresco-connector,build-tests-nulloutput-connector" if="alfresco-tests.include">
-        <mkdir dir="build/alfresco-loadtests/classes"/>
-        <javac srcdir="loadtests/alfresco/src/test/java" destdir="build/alfresco-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-          <fileset dir="lib">
-            <include name="h2*.jar"/>
-          </fileset>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-cmis-loadtests" depends="build-framework,build-cmis-connector,build-nulloutput-connector,calculate-cmis-tests-condition,build-tests-cmis-connector,build-tests-nulloutput-connector" if="cmis-tests.include">
-        <mkdir dir="build/cmis-loadtests/classes"/>
-        <javac srcdir="loadtests/cmis/src/test/java" destdir="build/cmis-loadtests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="run-filesystem-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
         <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -2454,7 +2288,7 @@
         </junit>
     </target>
 
-    <target name="run-filesystem-loadtests-derby" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+    <target name="run-filesystem-loadtests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-output/filesystem"/>
         <junit fork="true" maxmemory="256m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2479,16 +2313,16 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/filesystem-loadtests/classes"/>
+                <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlDerbyTest" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlDerbyLT" todir="test-output/filesystem"/>
 	    
         </junit>
     </target>
 
-    <target name="run-rss-loadtests-derby" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+    <target name="run-rss-loadtests-derby" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-output/rss"/>
         <junit fork="true" maxmemory="384m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2513,17 +2347,17 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/rss-loadtests/classes"/>
+                <pathelement location="build/rss-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlDerbyTest" todir="test-output/rss"/>
+            <test name="org.apache.manifoldcf.rss_tests.BigCrawlDerbyLT" todir="test-output/rss"/>
 
             <!-- MHL -->
         </junit>
     </target>
 
-    <target name="run-rss-loadtests-postgresql" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+    <target name="run-rss-loadtests-postgresql" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-postgresql-output/rss"/>
         <junit fork="true" maxmemory="384m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2548,17 +2382,17 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/rss-loadtests/classes"/>
+                <pathelement location="build/rss-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlPostgresqlTest" todir="test-postgresql-output/rss"/>
+            <test name="org.apache.manifoldcf.rss_tests.BigCrawlPostgresqlLT" todir="test-postgresql-output/rss"/>
 
             <!-- MHL -->
         </junit>
     </target>
 
-    <target name="run-rss-loadtests-mysql" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+    <target name="run-rss-loadtests-mysql" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-mysql-output/rss"/>
         <junit fork="true" maxmemory="384m" dir="test-mysql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2583,17 +2417,17 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/rss-loadtests/classes"/>
+                <pathelement location="build/rss-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlMySQLTest" todir="test-mysql-output/rss"/>
+            <test name="org.apache.manifoldcf.rss_tests.BigCrawlMySQLLT" todir="test-mysql-output/rss"/>
 
             <!-- MHL -->
         </junit>
     </target>
 
-    <target name="run-rss-loadtests-HSQLDB" depends="compile-rss-loadtests,calculate-rss-tests-condition" if="rss-tests.include">
+    <target name="run-rss-loadtests-HSQLDB" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-HSQLDB-output/rss"/>
         <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2618,11 +2452,11 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/rss-loadtests/classes"/>
+                <pathelement location="build/rss-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.rss_loadtests.BigCrawlHSQLDBTest" todir="test-HSQLDB-output/rss"/>
+            <test name="org.apache.manifoldcf.rss_tests.BigCrawlHSQLDBLT" todir="test-HSQLDB-output/rss"/>
 
             <!-- MHL -->
         </junit>
@@ -2664,7 +2498,7 @@
         </junit>
     </target>
 
-    <target name="run-wiki-loadtests-derby" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
+    <target name="run-wiki-loadtests-derby" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-output/wiki"/>
         <junit fork="true" maxmemory="256m" dir="test-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2689,7 +2523,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/wiki-loadtests/classes"/>
+                <pathelement location="build/wiki-tests/classes"/>
                 <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
@@ -2780,7 +2614,7 @@
         </junit>
     </target>
 
-    <target name="run-cmis-loadtests-derby" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+    <target name="run-cmis-loadtests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-derby-output/cmis"/>
         <junit fork="true" maxmemory="1024m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2808,7 +2642,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/cmis-loadtests/classes"/>
+                <pathelement location="build/cmis-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
@@ -2816,7 +2650,7 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-loadtests-derby" depends="compile-alfresco-loadtests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-loadtests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-derby-output/alfresco"/>
         <junit fork="true" maxmemory="1024m" dir="test-derby-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2844,7 +2678,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/alfresco-loadtests/classes"/>
+                <pathelement location="build/alfresco-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
@@ -2885,7 +2719,7 @@
         </junit>
     </target>
 
-    <target name="run-sharepoint-loadtests-derby" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+    <target name="run-sharepoint-loadtests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-output/sharepoint"/>
         <junit fork="true" maxmemory="256m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -2910,7 +2744,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/sharepoint-loadtests/classes"/>
+                <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -2992,7 +2826,7 @@
         </junit>
     </target>
 
-    <target name="run-filesystem-loadtests-postgresql" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+    <target name="run-filesystem-loadtests-postgresql" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-postgresql-output/filesystem"/>
         <junit fork="true" maxmemory="256m" dir="test-postgresql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3017,17 +2851,17 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/filesystem-loadtests/classes"/>
+                <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlPostgresqlTest" todir="test-postgresql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlPostgresqlLT" todir="test-postgresql-output/filesystem"/>
             <!-- MHL -->
             
         </junit>
     </target>
 
-    <target name="run-filesystem-loadtests-mysql" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+    <target name="run-filesystem-loadtests-mysql" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-mysql-output/filesystem"/>
         <junit fork="true" maxmemory="256m" dir="test-mysql-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3052,11 +2886,11 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/filesystem-loadtests/classes"/>
+                <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlMySQLTest" todir="test-mysql-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlMySQLLT" todir="test-mysql-output/filesystem"/>
             <!-- MHL -->
             
         </junit>
@@ -3130,7 +2964,7 @@
         </junit>
     </target>
 
-    <target name="run-wiki-loadtests-postgresql" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
+    <target name="run-wiki-loadtests-postgresql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-postgresql-output/wiki"/>
         <junit fork="true" maxmemory="256m" dir="test-postgresql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3155,7 +2989,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/wiki-loadtests/classes"/>
+                <pathelement location="build/wiki-tests/classes"/>
                 <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
@@ -3165,7 +2999,7 @@
         </junit>
     </target>
 
-    <target name="run-wiki-loadtests-mysql" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
+    <target name="run-wiki-loadtests-mysql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-mysql-output/wiki"/>
         <junit fork="true" maxmemory="256m" dir="test-mysql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3190,7 +3024,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/wiki-loadtests/classes"/>
+                <pathelement location="build/wiki-tests/classes"/>
                 <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
@@ -3344,7 +3178,7 @@
         </junit>
     </target>
 
-    <target name="run-alfresco-loadtests-postgresql" depends="compile-alfresco-loadtests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-loadtests-postgresql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-postgresql-output/alfresco"/>
         <junit fork="true" maxmemory="1024m" dir="test-postgresql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3372,14 +3206,14 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/alfresco-loadtests/classes"/>
+                <pathelement location="build/alfresco-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
         </junit>
     </target>
 
-    <target name="run-alfresco-loadtests-mysql" depends="compile-alfresco-loadtests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-loadtests-mysql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-mysql-output/alfresco"/>
         <junit fork="true" maxmemory="1024m" dir="test-mysql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3407,14 +3241,14 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/alfresco-loadtests/classes"/>
+                <pathelement location="build/alfresco-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
         </junit>
     </target>
 
-    <target name="run-cmis-loadtests-postgresql" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+    <target name="run-cmis-loadtests-postgresql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-postgresql-output/cmis"/>
         <junit fork="true" maxmemory="1024m" dir="test-postgresql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3442,7 +3276,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/cmis-loadtests/classes"/>
+                <pathelement location="build/cmis-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
@@ -3450,7 +3284,7 @@
         </junit>
     </target>
 
-    <target name="run-cmis-loadtests-mysql" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+    <target name="run-cmis-loadtests-mysql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-mysql-output/cmis"/>
         <junit fork="true" maxmemory="1024m" dir="test-mysql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3478,7 +3312,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/cmis-loadtests/classes"/>
+                <pathelement location="build/cmis-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
@@ -3523,7 +3357,7 @@
         </junit>
     </target>
 
-    <target name="run-filesystem-loadtests-HSQLDB" depends="compile-filesystem-loadtests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+    <target name="run-filesystem-loadtests-HSQLDB" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-HSQLDB-output/filesystem"/>
         <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3548,11 +3382,11 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/filesystem-loadtests/classes"/>
+                <pathelement location="build/filesystem-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-            <test name="org.apache.manifoldcf.filesystem_loadtests.BigCrawlHSQLDBTest" todir="test-HSQLDB-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlHSQLDBLT" todir="test-HSQLDB-output/filesystem"/>
 
             <!-- MHL -->
         </junit>
@@ -3592,7 +3426,7 @@
         </junit>
     </target>
 
-    <target name="run-wiki-loadtests-HSQLDB" depends="compile-wiki-loadtests,calculate-wiki-tests-condition" if="wiki-tests.include">
+    <target name="run-wiki-loadtests-HSQLDB" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
         <mkdir dir="test-HSQLDB-output/wiki"/>
         <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3617,7 +3451,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/wiki-loadtests/classes"/>
+                <pathelement location="build/wiki-tests/classes"/>
                 <pathelement location="loadtests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
@@ -3692,7 +3526,7 @@
         </junit>
     </target>
 
-    <target name="run-sharepoint-loadtests-postgresql" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+    <target name="run-sharepoint-loadtests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-postgresql-output/sharepoint"/>
         <junit fork="true" maxmemory="256m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3717,7 +3551,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/sharepoint-loadtests/classes"/>
+                <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3725,7 +3559,7 @@
         </junit>
     </target>
 
-    <target name="run-sharepoint-loadtests-mysql" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+    <target name="run-sharepoint-loadtests-mysql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-mysql-output/sharepoint"/>
         <junit fork="true" maxmemory="256m" dir="test-mysql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3750,7 +3584,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/sharepoint-loadtests/classes"/>
+                <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -3831,7 +3665,7 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-loadtests-HSQLDB" depends="compile-alfresco-loadtests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+    <target name="run-alfresco-loadtests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <mkdir dir="test-HSQLDB-output/alfresco"/>
         <junit fork="true" maxmemory="1024m" dir="test-HSQLDB-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3862,7 +3696,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/alfresco-loadtests/classes"/>
+                <pathelement location="build/alfresco-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
@@ -3871,7 +3705,7 @@
         </junit>
     </target>
 
-    <target name="run-cmis-loadtests-HSQLDB" depends="compile-cmis-loadtests,calculate-cmis-tests-condition" if="cmis-tests.include">
+    <target name="run-cmis-loadtests-HSQLDB" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-HSQLDB-output/cmis"/>
         <junit fork="true" maxmemory="1024m" dir="test-HSQLDB-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3899,7 +3733,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/cmis-loadtests/classes"/>
+                <pathelement location="build/cmis-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
@@ -3940,7 +3774,7 @@
         </junit>
     </target>
 
-    <target name="run-sharepoint-loadtests-HSQLDB" depends="compile-sharepoint-loadtests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+    <target name="run-sharepoint-loadtests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
         <mkdir dir="test-HSQLDB-output/sharepoint"/>
         <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -3965,7 +3799,7 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/sharepoint-loadtests/classes"/>
+                <pathelement location="build/sharepoint-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
