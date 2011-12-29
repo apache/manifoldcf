@@ -101,6 +101,7 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.10</version>
         <configuration>
+          <skipTests>${skipITs}</skipTests>
           <systemPropertyVariables>
             <crawlerWarPath>../dependency/mcf-crawler-ui.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service.war</authorityserviceWarPath>

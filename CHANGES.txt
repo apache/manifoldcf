@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-337: Pay attention to -DskipIT for alfresco, cmis, and
+wiki tests on Maven build.
+(Karl Wright)
+
 CONNECTORS-340: Separate labels with colons from labels without.
 (Karl Wright)
 
