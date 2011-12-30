@@ -20,7 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.alfresco.tests;
 
 
 /** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
+public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseDerby
 {
   
   protected String[] getConnectorNames()

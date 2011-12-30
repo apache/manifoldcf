@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.connectors.alfresco.tests;
 import org.junit.Test;
 
 /** This is a very basic sanity check */
-public class SanityTest extends Base
+public class SanityDerbyTest extends BaseDerby
 {
   
   @Test
