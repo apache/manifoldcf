@@ -30,7 +30,7 @@ import org.junit.Before;
  *  @author Piergiorgio Lucidi
  * 
  * */
-public class Base extends org.apache.manifoldcf.crawler.tests.BaseITDerby
+public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
   protected Server alfrescoServer = null;
 
