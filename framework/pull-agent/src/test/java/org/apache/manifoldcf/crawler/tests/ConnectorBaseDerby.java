@@ -29,7 +29,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class ConnectorBase extends org.apache.manifoldcf.crawler.tests.Base
+public class ConnectorBaseDerby extends org.apache.manifoldcf.crawler.tests.BaseDerby
 {
   
   protected String[] getConnectorClasses()

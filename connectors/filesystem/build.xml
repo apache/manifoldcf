@@ -94,7 +94,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityTest" todir="test-output"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityDerbyTest" todir="test-output"/>
             <!-- MHL -->
         </junit>
     </target>

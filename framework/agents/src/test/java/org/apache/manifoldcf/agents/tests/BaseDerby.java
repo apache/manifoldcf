@@ -27,7 +27,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class Base extends org.apache.manifoldcf.core.tests.Base
+public class BaseDerby extends org.apache.manifoldcf.core.tests.BaseDerby
 {
   
   @Before

@@ -26,7 +26,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the core Derby database. */
-public class Base
+public class BaseDerby
 {
   protected File currentPath = null;
   protected File configFile = null;

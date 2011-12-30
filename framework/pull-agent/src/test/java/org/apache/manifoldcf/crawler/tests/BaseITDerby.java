@@ -28,7 +28,7 @@ import java.util.*;
 import org.junit.*;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseITDerby extends ConnectorBase
+public class BaseITDerby extends ConnectorBaseDerby
 {
   protected ManifoldCFInstance mcfInstance = new ManifoldCFInstance();
   

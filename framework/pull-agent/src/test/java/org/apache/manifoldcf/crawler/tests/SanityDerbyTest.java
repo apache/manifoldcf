@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.agents.tests;
+package org.apache.manifoldcf.crawler.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -27,7 +27,7 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class SanityTest extends Base
+public class SanityDerbyTest extends BaseDerby
 {
   
   @Test

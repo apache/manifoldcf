@@ -26,7 +26,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the connectors, for derby. */
-public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBase
+public class BaseDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseDerby
 {
   
   protected String[] getConnectorNames()

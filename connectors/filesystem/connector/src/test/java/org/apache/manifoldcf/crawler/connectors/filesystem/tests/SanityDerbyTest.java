@@ -1,4 +1,4 @@
-/* $Id: TestBase.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -27,18 +27,16 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class Base extends org.apache.manifoldcf.crawler.tests.ConnectorBase
+/** This is a very basic sanity check */
+public class SanityDerbyTest extends BaseDerby
 {
   
-  protected String[] getConnectorNames()
+  @Test
+  public void sanityCheck()
+    throws Exception
   {
-    return new String[]{"File Connector"};
+    // If we get this far, it must mean that the setup was successful, which is all that I'm shooting for in this test.
   }
   
-  protected String[] getConnectorClasses()
-  {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
-  }
 
 }
