@@ -2572,7 +2572,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
               
-            <test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-derby-output/alfresco"/>
+            <test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-output/alfresco"/>
         	
         </junit>
     </target>
@@ -2609,8 +2609,8 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-            
-            <!-- MHL -->
+            <test name="org.apache.manifoldcf.cmis_tests.APISanityIT" todir="test-output/cmis"/>
+
         </junit>
     </target>
 
