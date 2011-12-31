@@ -20,6 +20,7 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="test-output"/>
     </target>
 
     <target name="doc">

@@ -57,10 +57,198 @@ public class ManifoldCFInstance
     this.testPort = testPort;
   }
 
+  // Basic job support
+  
+  public void waitJobInactiveNative(IJobManager jobManager, Long jobID, long maxTime)
+    throws ManifoldCFException, InterruptedException
+  {
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
+    {
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status == null)
+        throw new ManifoldCFException("No such job: '"+jobID+"'");
+      int statusValue = status.getStatus();
+      switch (statusValue)
+      {
+        case JobStatus.JOBSTATUS_NOTYETRUN:
+          throw new ManifoldCFException("Job was never started.");
+        case JobStatus.JOBSTATUS_COMPLETED:
+          break;
+        case JobStatus.JOBSTATUS_ERROR:
+          throw new ManifoldCFException("Job reports error status: "+status.getErrorText());
+        default:
+          ManifoldCF.sleep(1000L);
+          continue;
+      }
+      return;
+    }
+    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+  }
+  
+  public void waitJobDeletedNative(IJobManager jobManager, Long jobID, long maxTime)
+    throws ManifoldCFException, InterruptedException
+  {
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
+    {
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status == null)
+        return;
+      ManifoldCF.sleep(1000L);
+    }
+    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+  }
+    
+  public void waitJobRunningNative(IJobManager jobManager, Long jobID, long maxTime)
+    throws ManifoldCFException, InterruptedException
+  {
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
+    {
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status == null)
+        throw new ManifoldCFException("No such job: '"+jobID+"'");
+      int statusValue = status.getStatus();
+      switch (statusValue)
+      {
+        case JobStatus.JOBSTATUS_NOTYETRUN:
+          throw new ManifoldCFException("Job was never started.");
+        case JobStatus.JOBSTATUS_COMPLETED:
+          throw new ManifoldCFException("Job ended on its own!");
+        case JobStatus.JOBSTATUS_ERROR:
+          throw new ManifoldCFException("Job reports error status: "+status.getErrorText());
+        case JobStatus.JOBSTATUS_RUNNING:
+          break;
+        default:
+          ManifoldCF.sleep(1000L);
+          continue;
+      }
+      return;
+    }
+    throw new ManifoldCFException("ManifoldCF did not start in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+  }
+
   // API support
   
   // These methods allow communication with the ManifoldCF api webapp, via the locally-instantiated jetty
   
+  public void startJobAPI(String jobIDString)
+    throws Exception
+  {
+    Configuration requestObject = new Configuration();
+    
+    Configuration result = performAPIPutOperationViaNodes("start/"+jobIDString,201,requestObject);
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+    }
+  }
+  
+  public void deleteJobAPI(String jobIDString)
+    throws Exception
+  {
+    Configuration result = performAPIDeleteOperationViaNodes("jobs/"+jobIDString,200);
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+    }
+
+  }
+  
+  public String getJobStatusAPI(String jobIDString)
+    throws Exception
+  {
+    Configuration result = performAPIGetOperationViaNodes("jobstatusesnocounts/"+jobIDString,200);
+    String status = null;
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+      else if (resultNode.getType().equals("jobstatus"))
+      {
+        int j = 0;
+        while (j < resultNode.getChildCount())
+        {
+          ConfigurationNode childNode = resultNode.findChild(j++);
+          if (childNode.getType().equals("status"))
+            status = childNode.getValue();
+        }
+      }
+    }
+    return status;
+  }
+
+  public long getJobDocumentsProcessedAPI(String jobIDString)
+    throws Exception
+  {
+    Configuration result = performAPIGetOperationViaNodes("jobstatuses/"+jobIDString,200);
+    String documentsProcessed = null;
+    int i = 0;
+    while (i < result.getChildCount())
+    {
+      ConfigurationNode resultNode = result.findChild(i++);
+      if (resultNode.getType().equals("error"))
+        throw new Exception(resultNode.getValue());
+      else if (resultNode.getType().equals("jobstatus"))
+      {
+        int j = 0;
+        while (j < resultNode.getChildCount())
+        {
+          ConfigurationNode childNode = resultNode.findChild(j++);
+          if (childNode.getType().equals("documents_processed"))
+            documentsProcessed = childNode.getValue();
+        }
+      }
+    }
+    if (documentsProcessed == null)
+      throw new Exception("Expected a documents_processed field, didn't find it");
+    return new Long(documentsProcessed).longValue();
+  }
+
+  public void waitJobInactiveAPI(String jobIDString, long maxTime)
+    throws Exception
+  {
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
+    {
+      String status = getJobStatusAPI(jobIDString);
+      if (status == null)
+        throw new Exception("No such job: '"+jobIDString+"'");
+      if (status.equals("not yet run"))
+        throw new Exception("Job was never started.");
+      if (status.equals("done"))
+        return;
+      if (status.equals("error"))
+        throw new Exception("Job reports error.");
+      ManifoldCF.sleep(1000L);
+      continue;
+    }
+    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+  }
+  
+  public void waitJobDeletedAPI(String jobIDString, long maxTime)
+    throws Exception
+  {
+    long startTime = System.currentTimeMillis();
+    while (System.currentTimeMillis() < startTime + maxTime)
+    {
+      String status = getJobStatusAPI(jobIDString);
+      if (status == null)
+        return;
+      ManifoldCF.sleep(1000L);
+    }
+    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+  }
+    
   /** Construct a command url.
   */
   public String makeAPIURL(String command)

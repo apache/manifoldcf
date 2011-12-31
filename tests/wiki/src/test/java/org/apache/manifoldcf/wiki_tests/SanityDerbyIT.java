@@ -188,7 +188,7 @@ public class SanityDerbyIT extends BaseDerby
         
       // Now, start the job, and wait until it completes.
       jobManager.manualStart(job.getID());
-      waitJobInactive(jobManager,job.getID(),120000L);
+      waitJobInactiveNative(jobManager,job.getID(),120000L);
 
       // Check to be sure we actually processed the right number of documents.
       JobStatus status = jobManager.getStatus(job.getID());
@@ -239,7 +239,7 @@ public class SanityDerbyIT extends BaseDerby
       
       // Now, delete the job.
       jobManager.deleteJob(job.getID());
-      waitJobDeleted(jobManager,job.getID(),120000L);
+      waitJobDeletedNative(jobManager,job.getID(),120000L);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }
@@ -250,46 +250,4 @@ public class SanityDerbyIT extends BaseDerby
     }
   }
   
-  protected void waitJobInactive(IJobManager jobManager, Long jobID, long maxTime)
-    throws ManifoldCFException, InterruptedException
-  {
-    long startTime = System.currentTimeMillis();
-    while (System.currentTimeMillis() < startTime + maxTime)
-    {
-      JobStatus status = jobManager.getStatus(jobID);
-      if (status == null)
-        throw new ManifoldCFException("No such job: '"+jobID+"'");
-      int statusValue = status.getStatus();
-      switch (statusValue)
-      {
-        case JobStatus.JOBSTATUS_NOTYETRUN:
-          throw new ManifoldCFException("Job was never started.");
-        case JobStatus.JOBSTATUS_COMPLETED:
-          break;
-        case JobStatus.JOBSTATUS_ERROR:
-          throw new ManifoldCFException("Job reports error status: "+status.getErrorText());
-        default:
-          ManifoldCF.sleep(1000L);
-          continue;
-      }
-      return;
-    }
-    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
-  }
-  
-  protected void waitJobDeleted(IJobManager jobManager, Long jobID, long maxTime)
-    throws ManifoldCFException, InterruptedException
-  {
-    long startTime = System.currentTimeMillis();
-    while (System.currentTimeMillis() < startTime + maxTime)
-    {
-      JobStatus status = jobManager.getStatus(jobID);
-      if (status == null)
-        return;
-      ManifoldCF.sleep(1000L);
-    }
-    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
-  }
-    
-
 }

@@ -20,10 +20,10 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="test-output"/>
-        <delete dir="test-output-postgresql"/>
-        <delete dir="test-output-mysql"/>
-        <delete dir="test-output-HSQLDB"/>
+        <delete dir="test-derby-output"/>
+        <delete dir="test-postgresql-output"/>
+        <delete dir="test-mysql-output"/>
+        <delete dir="test-HSQLDB-output"/>
     </target>
     
     <target name="doc">
@@ -83,8 +83,8 @@
     <target name="run-tests" depends="compile-tests"/>
 
     <target name="run-tests-derby" depends="compile-tests">
-        <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -94,14 +94,14 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityDerbyTest" todir="test-output"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityDerbyTest" todir="test-derby-output"/>
             <!-- MHL -->
         </junit>
     </target>
     
     <target name="run-tests-postgresql" depends="compile-tests">
-        <mkdir dir="test-output-postgresql"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-postgresql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -109,14 +109,14 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityPostgresqlTest" todir="test-postgresql-output"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-tests-mysql" depends="compile-tests">
-        <mkdir dir="test-output-mysql"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-mysql" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-mysql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -124,14 +124,14 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityMySQLTest" todir="test-output-mysql"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityMySQLTest" todir="test-mysql-output"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-tests-HSQLDB" depends="compile-tests">
-        <mkdir dir="test-output-HSQLDB"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -139,7 +139,7 @@
                 <pathelement location="build/connector/classes"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
-            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
+            <test name="org.apache.manifoldcf.crawler.connectors.filesystem.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
             <!-- MHL -->
         </junit>
     </target>

@@ -20,6 +20,7 @@
     <target name="clean">
         <delete dir="build"/>
         <delete dir="dist"/>
+        <delete dir="test-derby-output"/>
     </target>
   
       <target name="calculate-condition">
@@ -97,6 +98,18 @@
         </copy>
     </target>
 
+    <target name="compile-tests" depends="compile-connector,precompile-check" if="canBuild">
+        <mkdir dir="build/connector-tests/classes"/>
+        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+            </classpath>
+        </javac>
+    </target>
+    
     <target name="build" depends="lib"/>
     
     <target name="build-tests" depends="precompile-check" if="canBuild">
@@ -113,10 +126,33 @@
     </target>
 
     <target name="run-tests"/>
-    <target name="run-tests-derby"/>
+    
+    <target name="run-tests-derby" depends="compile-tests,precompile-check" if="canBuild">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <fileset dir="alfresco-ws-client">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="build/connector/classes"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.crawler.connectors.alfresco.tests.SanityDerbyTest" todir="test-derby-output"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+    
     <target name="run-tests-postgresql"/>
+    
     <target name="run-tests-mysql"/>
+    
     <target name="run-tests-HSQLDB"/>
+    
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
 	
     <target name="download-alfresco-ws-client">

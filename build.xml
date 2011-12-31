@@ -24,7 +24,8 @@
         </delete>
         <delete dir="build"/>
         <delete dir="dist"/>
-        <delete dir="test-output"/>
+        <delete dir="test-output/"/>
+        <delete dir="test-derby-output"/>
         <delete dir="test-postgresql-output"/>
         <delete dir="test-mysql-output"/>
         <delete dir="test-HSQLDB-output"/>
@@ -76,8 +77,14 @@
 
     <target name="cleanup-afterbuild">
         <delete dir="build"/>
-        <delete dir="framework/build"/>
-        <delete dir="framework/dist"/>
+        <delete dir="test-output/"/>
+        <delete dir="test-derby-output"/>
+        <delete dir="test-postgresql-output"/>
+        <delete dir="test-mysql-output"/>
+        <delete dir="test-HSQLDB-output"/>
+        <delete dir="test-HSQLDBext-output"/>
+        <ant dir="site" target="clean"/>
+        <ant dir="framework" target="clean"/>
         <delete dir="framework/lib"/>
         <ant dir="connectors/alfresco" target="clean"/>
         <delete dir="connectors/alfresco/lib"/>
@@ -2206,8 +2213,8 @@
     </target>
     
     <target name="run-filesystem-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <mkdir dir="test-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2240,17 +2247,17 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.filesystem_tests.SanityIT" todir="test-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.APISanityIT" todir="test-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.HopcountIT" todir="test-output/filesystem"/>
-            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationIT" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.SanityIT" todir="test-derby-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.APISanityIT" todir="test-derby-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.HopcountIT" todir="test-derby-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.ExpirationIT" todir="test-derby-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-filesystem-UI-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <mkdir dir="test-output/filesystem"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/filesystem"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2283,14 +2290,14 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.filesystem_tests.NavigationUI" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.NavigationDerbyUI" todir="test-derby-output/filesystem"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-filesystem-loadtests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
-        <mkdir dir="test-output/filesystem"/>
-        <junit fork="true" maxmemory="256m" dir="test-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/filesystem"/>
+        <junit fork="true" maxmemory="256m" dir="test-derby-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2317,14 +2324,14 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-            <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlDerbyLT" todir="test-output/filesystem"/>
+            <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlDerbyLT" todir="test-derby-output/filesystem"/>
 	    
         </junit>
     </target>
 
     <target name="run-rss-loadtests-derby" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
-        <mkdir dir="test-output/rss"/>
-        <junit fork="true" maxmemory="384m" dir="test-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/rss"/>
+        <junit fork="true" maxmemory="384m" dir="test-derby-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2351,7 +2358,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.rss_tests.BigCrawlDerbyLT" todir="test-output/rss"/>
+            <test name="org.apache.manifoldcf.rss_tests.BigCrawlDerbyLT" todir="test-derby-output/rss"/>
 
             <!-- MHL -->
         </junit>
@@ -2463,8 +2470,8 @@
     </target>
 
     <target name="run-wiki-tests-derby" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/wiki"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2492,15 +2499,15 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.wiki_tests.SanityDerbyIT" todir="test-output/wiki"/>
+            <test name="org.apache.manifoldcf.wiki_tests.SanityDerbyIT" todir="test-derby-output/wiki"/>
             <!-- MHL -->
 
         </junit>
     </target>
 
     <target name="run-wiki-loadtests-derby" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-output/wiki"/>
-        <junit fork="true" maxmemory="256m" dir="test-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/wiki"/>
+        <junit fork="true" maxmemory="256m" dir="test-derby-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2533,8 +2540,8 @@
     </target>
     
     <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-output/alfresco"/>
-        <junit fork="true" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/alfresco"/>
+        <junit fork="true" dir="test-derby-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-Xms512m"/>
             <jvmarg value="-Xmx1024m"/>
             <jvmarg value="-Xss1024k"/>
@@ -2572,14 +2579,14 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
               
-            <test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-output/alfresco"/>
+            <test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-derby-output/alfresco"/>
         	
         </junit>
     </target>
 
     <target name="run-cmis-tests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2609,7 +2616,7 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 	    
-            <test name="org.apache.manifoldcf.cmis_tests.APISanityIT" todir="test-output/cmis"/>
+            <test name="org.apache.manifoldcf.cmis_tests.APISanityIT" todir="test-derby-output/cmis"/>
 
         </junit>
     </target>
@@ -2687,8 +2694,8 @@
     </target>
 
     <target name="run-sharepoint-tests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/sharepoint"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -2720,8 +2727,8 @@
     </target>
 
     <target name="run-sharepoint-loadtests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-output/sharepoint"/>
-        <junit fork="true" maxmemory="256m" dir="test-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output/sharepoint"/>
+        <junit fork="true" maxmemory="256m" dir="test-derby-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -3593,8 +3600,8 @@
     </target>
 
     <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-output/alfresco"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-HSQLDB-output/alfresco"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -3630,8 +3637,8 @@
     </target>
 
     <target name="run-cmis-tests-HSQLDB" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-HSQLDB-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="framework/lib">
                     <include name="*.jar"/>
@@ -3856,8 +3863,9 @@
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
 
-    <target name="build-dev" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
-    <target name="build" depends="build-dev,cleanup-afterbuild"/>
+    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
+    <target name="tmpclean" depends="cleanup-afterbuild"/>
+    <target name="buildcln" depends="build,tmpclean"/>
     <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
     <target name="doc" depends="deliver-site-doc"/>
     
@@ -3875,6 +3883,11 @@
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </zipfileset>
@@ -3891,13 +3904,18 @@
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </tarfileset>
       </tar>
     </target>
 
-    <target name="create-bin-zip" depends="build-dev,doc,javadoc,set-version">
+    <target name="create-bin-zip" depends="build,doc,javadoc,set-version">
       <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/connectors/*/lib/"/>
@@ -3906,6 +3924,11 @@
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="**/*.pdf"/>
           <exclude name="/apache-manifoldcf-*"/>
@@ -3913,7 +3936,7 @@
       </zip>
     </target>
     
-    <target name="create-bin-tar" depends="build-dev,doc,javadoc,set-version">
+    <target name="create-bin-tar" depends="build,doc,javadoc,set-version">
       <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/connectors/*/lib/"/>
@@ -3922,6 +3945,11 @@
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="**/*.pdf"/>
           <exclude name="/apache-manifoldcf-*"/>
@@ -3939,8 +3967,6 @@
 
     <target name="test-hs" depends="run-tests-HSQLDB-framework,run-tests-HSQLDBext-framework,run-tests-HSQLDB-open-connectors,run-tests-HSQLDB-lgpl-connectors,run-tests-HSQLDB-proprietary-connectors,end-to-end-tests-HSQLDB"/>
 
-    <target name="UI" depends="run-filesystem-UI-tests-derby"/>
-    
     <target name="load-dr" depends="end-to-end-loadtests-derby"/>
 
     <target name="load-pg" depends="end-to-end-loadtests-postgresql"/>
@@ -3951,9 +3977,11 @@
 
     <target name="test" depends="run-tests-framework,run-tests-open-connectors,run-tests-lgpl-connectors,run-tests-proprietary-connectors,test-dr,test-hs"/>
 
-    <target name="load" depends="load-dr,load-hs"/>
+    <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="all" depends="build-dev,javadoc,doc,image,test-dr,test-hs"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby"/>
+    
+    <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
     <target name="help">
       <echo level="info">
@@ -3962,35 +3990,37 @@ javadocs, generate site docs, run tests, or build distributables.
 
 Useful targets are:
 
-clean   - Clean the build area
-build   - Build executable code, jars, processes, and example,
-          under the 'dist' directory
-javadoc - Create the javadocs, under the 'dist/doc' directory
-test-dr - Compile and run Derby-based tests
-test-pg - Compile and run postgresql-based tests (needs Postgresql)
-test-my - Compile and run MySQL-based tests (needs MySQL)
-test-hs - Compile and run HSQLDB-based tests
-test    - Compile and run all local tests (Derby and HSQLDB)
-UI      - Compile and run all UI tests (needs Python)
-load-dr - Compile and run Derby-based load tests
-load-pg - Compile and run postgresql-based load tests (needs
-          Postgresql)
-load-my - Compile and run MySQL-based load tests (needs
-          MySQL)
-load-hs - Compile and run HSQLDB-based load tests
-load    - Compile and run all local load tests (Derby and HSQLDB)
-doc     - Build html site, under the 'dist/doc' directory
-          (requires Apache Forrest)
-image   - Build release image, under the '.' directory (requires
-          Apache Forrest)
-all     - Do it all (requires Apache Forrest)
+clean    - Clean the build and distribution areas
+build    - Build executable code, jars, processes, and examples,
+           under the 'dist' directory
+buildcln - Same as build, but clean up temp files
+javadoc  - Create the javadocs, under the 'dist/doc' directory
+test     - Compile and run all local tests (Derby and HSQLDB)
+uitest   - Compile and run all UI tests (needs Python)
+ldtest   - Compile and run all local load tests (Derby and HSQLDB)
+doc      - Build html site, under the 'dist/doc' directory
+           (requires Apache Forrest)
+tmpclean - Clean up temporary files used during build and testing
+image    - Build release image, under the '.' directory (requires
+           Apache Forrest)
+
+test-dr  - Compile and run Derby-based tests
+test-pg  - Compile and run postgresql-based tests (needs
+           Postgresql)
+test-my  - Compile and run MySQL-based tests (needs MySQL)
+test-hs  - Compile and run HSQLDB-based tests
+load-dr  - Compile and run Derby-based load tests
+load-pg  - Compile and run postgresql-based load tests (needs
+           Postgresql)
+load-my  - Compile and run MySQL-based load tests (needs MySQL)
+load-hs  - Compile and run HSQLDB-based load tests
+
+all      - Build code and docs, and test (requires Apache Forrest)
 
 run-script-interpreter - Run the ManifoldCF script interpreter
 
 download-dependencies  - Fetch non-redistributable dependencies
                          for all connectors, where possible
-
-build-dev              - Build for development (don't clean up)
 
 Use Apache Forrest version forrest-0.9-dev or higher.
       </echo>
@@ -4015,10 +4045,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
-          <exclude name="**/test-output-postgresql/"/>
-          <exclude name="**/test-output-mysql/"/>
-          <exclude name="**/test-output-HSQLDB/"/>
-          <exclude name="**/test-output-HSQLDBext/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
           <exclude name="filenet/filenet-api/*.jar"/>
           <exclude name="documentum/dfc/*.jar"/>
           <exclude name="jcifs/jcifs/*.jar"/>
@@ -4037,10 +4068,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
-          <exclude name="**/test-output-postgresql/"/>
-          <exclude name="**/test-output-mysql/"/>
-          <exclude name="**/test-output-HSQLDB/"/>
-          <exclude name="**/test-output-HSQLDBext/"/>
+          <exclude name="**/test-derby-output/"/>
+          <exclude name="**/test-postgresql-output/"/>
+          <exclude name="**/test-HSQLDB-output/"/>
+          <exclude name="**/test-HSQLDBext-output/"/>
+          <exclude name="**/test-mysql-output/"/>
           <exclude name="**/web-generated.xml"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>

@@ -3,13 +3,17 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-346: Reorganize test class hierarchy, and main ant
+build targets, to reduce duplication of code and make more sense.
+(Karl Wright)
+
 CONNECTORS-328: added explicit support for Multi-Tenancy in the job configuration
 (Piergiorgio Lucidi)
 
 CONNECTORS-349: content binary is not correctly read
 (Piergiorgio Lucidi)
 
-CONNECTORS-337: Pay attention to -DskipIT for alfresco, cmis, and
+CONNECTORS-337: Pay attention to -DskipITs for alfresco, cmis, and
 wiki tests on Maven build.
 (Karl Wright)
 

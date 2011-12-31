@@ -32,9 +32,59 @@ public class BaseITDerby extends ConnectorBaseDerby
 {
   protected ManifoldCFInstance mcfInstance = new ManifoldCFInstance();
   
+  // Basic job support
+  
+  protected void waitJobInactiveNative(IJobManager jobManager, Long jobID, long maxTime)
+    throws ManifoldCFException, InterruptedException
+  {
+    mcfInstance.waitJobInactiveNative(jobManager,jobID,maxTime);
+  }
+  
+  protected void waitJobDeletedNative(IJobManager jobManager, Long jobID, long maxTime)
+    throws ManifoldCFException, InterruptedException
+  {
+    mcfInstance.waitJobDeletedNative(jobManager,jobID,maxTime);
+  }
+
   // API support
   
   // These methods allow communication with the ManifoldCF api webapp, via the locally-instantiated jetty
+  
+  protected void startJobAPI(String jobIDString)
+    throws Exception
+  {
+    mcfInstance.startJobAPI(jobIDString);
+  }
+  
+  protected void deleteJobAPI(String jobIDString)
+    throws Exception
+  {
+    mcfInstance.deleteJobAPI(jobIDString);
+  }
+
+  protected String getJobStatusAPI(String jobIDString)
+    throws Exception
+  {
+    return mcfInstance.getJobStatusAPI(jobIDString);
+  }
+  
+  protected long getJobDocumentsProcessedAPI(String jobIDString)
+    throws Exception
+  {
+    return mcfInstance.getJobDocumentsProcessedAPI(jobIDString);
+  }
+
+  protected void waitJobInactiveAPI(String jobIDString, long maxTime)
+    throws Exception
+  {
+    mcfInstance.waitJobInactiveAPI(jobIDString,maxTime);
+  }
+
+  protected void waitJobDeletedAPI(String jobIDString, long maxTime)
+    throws Exception
+  {
+    mcfInstance.waitJobDeletedAPI(jobIDString,maxTime);
+  }
   
   /** Construct a command url.
   */

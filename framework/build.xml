@@ -21,10 +21,11 @@
       <delete dir="build"/>
       <delete dir="dist"/>
       <delete dir="test-output"/>
-      <delete dir="test-output-postgresql"/>
-      <delete dir="test-output-mysql"/>
-      <delete dir="test-output-HSQLDB"/>
-      <delete dir="test-output-HSQLDBext"/>
+      <delete dir="test-derby-output"/>
+      <delete dir="test-postgresql-output"/>
+      <delete dir="test-mysql-output"/>
+      <delete dir="test-HSQLDB-output"/>
+      <delete dir="test-HSQLDBext-output"/>
     </target>
     
     <target name="doc">
@@ -659,8 +660,8 @@
     <target name="run-tests" depends="compile-tests,run-script-engine-tests"/>
 
     <target name="run-tests-derby" depends="compile-tests">
-        <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -677,15 +678,15 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.agents.tests.SanityDerbyTest" todir="test-output"/>
-            <test name="org.apache.manifoldcf.crawler.tests.SanityDerbyTest" todir="test-output"/>
+            <test name="org.apache.manifoldcf.agents.tests.SanityDerbyTest" todir="test-derby-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityDerbyTest" todir="test-derby-output"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-tests-postgresql" depends="compile-tests">
-        <mkdir dir="test-output-postgresql"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-postgresql" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-postgresql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -702,15 +703,15 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.agents.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
-            <test name="org.apache.manifoldcf.crawler.tests.SanityPostgresqlTest" todir="test-output-postgresql"/>
+            <test name="org.apache.manifoldcf.agents.tests.SanityPostgresqlTest" todir="test-postgresql-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityPostgresqlTest" todir="test-postgresql-output"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-tests-mysql" depends="compile-tests">
-        <mkdir dir="test-output-mysql"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-mysql" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-mysql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -727,15 +728,15 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.agents.tests.SanityMySQLTest" todir="test-output-mysql"/>
-            <test name="org.apache.manifoldcf.crawler.tests.SanityMySQLTest" todir="test-output-mysql"/>
+            <test name="org.apache.manifoldcf.agents.tests.SanityMySQLTest" todir="test-mysql-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityMySQLTest" todir="test-mysql-output"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-tests-HSQLDB" depends="compile-tests">
-        <mkdir dir="test-output-HSQLDB"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDB" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -752,15 +753,15 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
-            <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBTest" todir="test-output-HSQLDB"/>
+            <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBTest" todir="test-HSQLDB-output"/>
             <!-- MHL -->
         </junit>
     </target>
 
     <target name="run-tests-HSQLDBext" depends="compile-tests">
-        <mkdir dir="test-output-HSQLDBext"/>
-        <junit fork="true" maxmemory="128m" dir="test-output-HSQLDBext" outputtoformatters="true" showoutput="true" haltonfailure="true">
+        <mkdir dir="test-HSQLDBext-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <fileset dir="lib">
                     <include name="*.jar"/>
@@ -777,8 +778,8 @@
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBextTest" todir="test-output-HSQLDBext"/>
-            <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBextTest" todir="test-output-HSQLDBext"/>
+            <test name="org.apache.manifoldcf.agents.tests.SanityHSQLDBextTest" todir="test-HSQLDBext-output"/>
+            <test name="org.apache.manifoldcf.crawler.tests.SanityHSQLDBextTest" todir="test-HSQLDBext-output"/>
             <!-- MHL -->
         </junit>
     </target>
