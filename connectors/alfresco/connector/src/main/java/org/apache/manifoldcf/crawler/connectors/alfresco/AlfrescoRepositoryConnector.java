@@ -19,17 +19,14 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
-import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.HashMap;
 
 import org.alfresco.webservice.authentication.AuthenticationFault;
 import org.alfresco.webservice.content.Content;
@@ -44,7 +41,6 @@ import org.alfresco.webservice.util.AuthenticationDetails;
 import org.alfresco.webservice.util.AuthenticationUtils;
 import org.alfresco.webservice.util.WebServiceException;
 import org.alfresco.webservice.util.WebServiceFactory;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -59,7 +55,6 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.ui.util.Encoder;
 
 public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
@@ -83,6 +78,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   
   /** Endpoint context path of the Alfresco webapp */
   protected String path = null;
+  
+  /** Alfresco Tenant domain */
+  protected String tenantDomain = null;
   
   protected AuthenticationDetails session = null;
 
@@ -175,6 +173,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     server = null;
     port = null;
     path = null;
+    tenantDomain = null;
 
   }
 
@@ -192,6 +191,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     server = params.getParameter(AlfrescoConfig.SERVER_PARAM);
     port = params.getParameter(AlfrescoConfig.PORT_PARAM);
     path = params.getParameter(AlfrescoConfig.PATH_PARAM);
+    tenantDomain = params.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
+    
+    //tenant domain (optional parameter). Pattern: username@tenantDomain
+    if(StringUtils.isNotEmpty(tenantDomain)){
+      username += AlfrescoConfig.TENANT_DOMAIN_SEP + tenantDomain;
+    }
   }
 
   /** Test the connection.  Returns a string describing the connection integrity.
@@ -251,9 +256,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       session = AuthenticationUtils.getAuthenticationDetails();
     } catch (AuthenticationFault e) {
       Logging.connectors.warn(
-          "Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint
+          "Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint+". "
               + e.getMessage(), e);
-      throw new ManifoldCFException("Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint
+      throw new ManifoldCFException("Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint+". "
           + e.getMessage(), e);
     } catch (WebServiceException e){
       Logging.connectors.warn(
@@ -473,7 +478,13 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       parameters.setParameter(AlfrescoConfig.PATH_PARAM, AlfrescoConfig.PATH_DEFAULT_VALUE);
     }
     
+    String tenantDomain = parameters.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
+    if (StringUtils.isEmpty(tenantDomain)){
+      parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, StringUtils.EMPTY);
+    }
+
     outputResource(VIEW_CONFIG_FORWARD, out, locale, parameters);
+
   }
 
   /**
@@ -521,6 +532,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     String server = parameters.getParameter(AlfrescoConfig.SERVER_PARAM);
     String port = parameters.getParameter(AlfrescoConfig.PORT_PARAM);
     String path = parameters.getParameter(AlfrescoConfig.PATH_PARAM);
+      String tenantDomain = parameters.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
       
     if (username == null)
       username = "admin";
@@ -534,19 +546,24 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       port = "8080";
     if (path == null)
       path = "/alfresco/api";
-  
-    ConfigParams newMap = new ConfigParams();
-    newMap.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
-    newMap.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
-    newMap.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
-    newMap.setParameter(AlfrescoConfig.SERVER_PARAM, server);
-    newMap.setParameter(AlfrescoConfig.PORT_PARAM, port);
-    newMap.setParameter(AlfrescoConfig.PATH_PARAM, path);
     
+    if(StringUtils.isEmpty(tenantDomain))
+      tenantDomain = StringUtils.EMPTY;
+  
+    parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
+    parameters.setParameter(AlfrescoConfig.USERNAME_PARAM, username);
+    parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
+    parameters.setParameter(AlfrescoConfig.PROTOCOL_PARAM, protocol);
+    parameters.setParameter(AlfrescoConfig.SERVER_PARAM, server);
+    parameters.setParameter(AlfrescoConfig.PORT_PARAM, port);
+    parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
+    parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
+      
     if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
-      outputResource(EDIT_CONFIG_FORWARD, out, locale, newMap);  
+      outputResource(EDIT_CONFIG_FORWARD, out, locale, parameters);  
+
     } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, newMap);
+      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, parameters);
     }
   }
 
@@ -608,6 +625,14 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     if (StringUtils.isNotEmpty(path)) {
       parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
     }
+    
+    String tenantDomain = variableContext.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
+    if(StringUtils.isNotEmpty(tenantDomain)){
+      parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
+    } else {
+      parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, StringUtils.EMPTY);
+    }
+    
     return null;
   }
 
@@ -897,19 +922,21 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       predicate.setNodes(new Reference[]{reference});
       
       Node node = NodeUtils.get(username, password, session, predicate);
-      NamedValue[] properties = node.getProperties();
-      boolean isDocument = ContentModelUtils.isDocument(properties);
-      if(isDocument){
-        boolean isVersioned = NodeUtils.isVersioned(node.getAspects());
-        if(isVersioned){
-          rval[i] = NodeUtils.getVersionLabel(properties);
+      if(node.getProperties()!=null){
+        NamedValue[] properties = node.getProperties();
+        boolean isDocument = ContentModelUtils.isDocument(properties);
+        if(isDocument){
+          boolean isVersioned = NodeUtils.isVersioned(node.getAspects());
+          if(isVersioned){
+            rval[i] = NodeUtils.getVersionLabel(properties);
+          } else {
+            //a document that doesn't contain versioning information will always be processed
+            rval[i] = StringUtils.EMPTY;
+          }
         } else {
-          //a document that doesn't contain versioning information will always be processed
+          //a space will always be processed
           rval[i] = StringUtils.EMPTY;
         }
-      } else {
-        //a space will always be processed
-        rval[i] = StringUtils.EMPTY;
       }
       i++;
     }

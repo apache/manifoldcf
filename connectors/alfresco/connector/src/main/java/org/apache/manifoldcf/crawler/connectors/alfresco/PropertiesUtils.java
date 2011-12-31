@@ -28,7 +28,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class PropertiesUtils {
 
-  private static final String PROP_CONTENT_PREFIX = "ContentData";
+  private static final String PROP_CONTENT_PREFIX = "contentUrl";
   
   public static String[] getPropertyValues(NamedValue[]  properties, String qname){
     String[] propertyValues = null;

@@ -24,26 +24,32 @@ package org.apache.manifoldcf.crawler.connectors.alfresco;
 */
 public class AlfrescoConfig {
 
-  /** Username */
+  /** Username parameter */
   public static final String USERNAME_PARAM = "username";
  
-  /** Password */
+  /** Password parameter */
   public static final String PASSWORD_PARAM = "password";
   
-  /** Protocol */
+  /** Protocol parameter */
   public static final String PROTOCOL_PARAM = "protocol";
   
-  /** Server name */
+  /** Server name parameter */
   public static final String SERVER_PARAM = "server";
   
-  /** Port */
+  /** Port parameter */
   public static final String PORT_PARAM = "port";
   
-  /** Path of the context of the Alfresco Web Services API */
+  /** Parameter for the path of the context of the Alfresco Web Services API */
   public static final String PATH_PARAM = "path";
   
   /** The Lucene Query parameter */
   public static final String LUCENE_QUERY_PARAM = "luceneQuery";
+  
+  /** Tenant domain parameter (optional) */
+  public static final String TENANT_DOMAIN_PARAM = "tenantDomain";
+  
+  /** Separator for the username field dedicated to the tenant domain */
+  public static final String TENANT_DOMAIN_SEP = "@";
   
   //default values
   public static final String USERNAME_DEFAULT_VALUE = "admin";
