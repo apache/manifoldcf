@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-344: Fix OpenSearchServer UI so that data is not lost between posts.
+(Emmanuel Keller, Karl Wright)
+
 CONNECTORS-346: Reorganize test class hierarchy, and main ant
 build targets, to reduce duplication of code and make more sense.
 (Karl Wright)

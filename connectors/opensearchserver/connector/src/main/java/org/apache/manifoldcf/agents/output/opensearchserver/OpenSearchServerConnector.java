@@ -62,6 +62,30 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
 
   private final static String OPENSEARCHSERVER_TAB_OPENSEARCHSERVER = "OpenSearchServer";
 
+  /** Forward to the HTML template for rendering hidden fields when the Server tab is not selected */
+  private static final String HIDDEN_CONFIG_FORWARD = "hiddenConfiguration.html";
+  
+  /** Forward to the HTML template for rendering hidden fields when the CMIS Query tab is not selected */
+  private static final String HIDDEN_SPEC_FORWARD = "hiddenSpecification.html";
+  
+  /** Forward to the HTML template to edit the configuration parameters */
+  private static final String EDIT_CONFIG_FORWARD = "editConfiguration.html";
+  
+  /** Forward to the HTML template to view the configuration parameters */
+  private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
+ 
+  /** Forward to the javascript to check the configuration parameters */
+  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
+
+  /** Forward to the template to view the specification parameters for the job */
+  private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  
+  /** Forward to the template to edit the configuration parameters for the job */
+  private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
+
+  /** Forward to the javascript to check the specification parameters for the job */
+  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+
   private String specsCacheOutpuDescription;
   private OpenSearchServerSpecs specsCache;
 
@@ -94,7 +118,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, IOException {
     super.outputConfigurationHeader(threadContext, out, locale, parameters, tabsArray);
     tabsArray.add(Messages.getString(locale,"OpenSearchServerConnector.Parameters"));
-    outputResource("configuration.js", out, locale, null);
+    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, null);
   }
 
   @Override
@@ -102,8 +126,11 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
     super.outputConfigurationBody(threadContext, out, locale, parameters, tabName);
+    OpenSearchServerConfig config = this.getConfigParameters(parameters);
     if (Messages.getString(locale,"OpenSearchServerConnector.Parameters").equals(tabName)) {
-      outputResource("configuration.html", out, locale, getConfigParameters(parameters));
+      outputResource(EDIT_CONFIG_FORWARD, out, locale, config);
+    } else {
+      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, config);
     }
   }
 
@@ -113,7 +140,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, IOException {
     super.outputSpecificationHeader(out, locale, os, tabsArray);
     tabsArray.add(OPENSEARCHSERVER_TAB_OPENSEARCHSERVER);
-    outputResource("specifications.js", out, locale, null);
+    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, null);
   }
 
   final private SpecificationNode getSpecNode(OutputSpecification os) {
@@ -132,8 +159,11 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os,
       String tabName) throws ManifoldCFException, IOException {
     super.outputSpecificationBody(out, locale, os, tabName);
+    OpenSearchServerSpecs specs = getSpecParameters(os);
     if (OPENSEARCHSERVER_TAB_OPENSEARCHSERVER.equals(tabName)) {
-      outputResource("specifications.html", out, locale, getSpecParameters(os));
+      outputResource(EDIT_SPEC_FORWARD, out, locale, specs);
+    } else {
+      outputResource(HIDDEN_SPEC_FORWARD, out, locale, specs);
     }
   }
 
@@ -223,13 +253,13 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
-    outputResource("view.html", out, locale, getConfigParameters(parameters));
+    outputResource(VIEW_CONFIG_FORWARD, out, locale, getConfigParameters(parameters));
   }
 
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
       throws ManifoldCFException, IOException {
-    outputResource("viewSpec.html", out, locale, getSpecParameters(os));
+    outputResource(VIEW_SPEC_FORWARD, out, locale, getSpecParameters(os));
   }
 
   @Override
