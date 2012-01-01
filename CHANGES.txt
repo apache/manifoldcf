@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.4-dev =====================
 
+CONNECTORS-349: Content binary is not correctly read
+(Piergiorgio Lucidi)
+
 CONNECTORS-343: Fix lack of proper escaping for values in the
 Alfresco, CMIS, and OpenSearchServer connectors.  Fix broken tabs
 in the Alfresco and CMIS connectors.
