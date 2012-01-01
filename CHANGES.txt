@@ -13,9 +13,6 @@ build targets, to reduce duplication of code and make more sense.
 CONNECTORS-328: added explicit support for Multi-Tenancy in the job configuration
 (Piergiorgio Lucidi)
 
-CONNECTORS-349: content binary is not correctly read
-(Piergiorgio Lucidi)
-
 CONNECTORS-337: Pay attention to -DskipITs for alfresco, cmis, and
 wiki tests on Maven build.
 (Karl Wright)
@@ -41,10 +38,21 @@ from within the multiprocess example.
 CONNECTORS-324: Maven build broken
 (Piergiorgio Lucidi)
 
-======================= Release 0.4 =========================
-
 CONNECTORS-331: How-to-build-and-deploy page is missing section for Alfresco connector
 (Piergiorgio Lucidi)
+
+======================= Release 0.4 =========================
+
+CONNECTORS-349: Content binary is not correctly read
+(Piergiorgio Lucidi)
+
+CONNECTORS-343: Fix lack of proper escaping for values in the
+Alfresco, CMIS, and OpenSearchServer connectors.  Fix broken tabs
+in the Alfresco and CMIS connectors.
+(Karl Wright)
+
+CONNECTORS-342: Fix bad HTML in the File System connector.
+(Karl Wright)
 
 CONNECTORS-330: Add infrastructure that permits the database class
 to initialize a connection every time it is pulled from the pool.  This is
