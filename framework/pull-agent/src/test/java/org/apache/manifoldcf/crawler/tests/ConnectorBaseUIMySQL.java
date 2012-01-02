@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.filesystem_tests;
+package org.apache.manifoldcf.crawler.tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -30,36 +30,26 @@ import org.junit.*;
 import org.apache.manifoldcf.core.tests.HTMLTester;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
+public class ConnectorBaseUIMySQL extends ConnectorBaseMySQL
 {
-  protected String[] getConnectorNames()
+  protected HTMLTester testerInstance = null;
+  
+  @Before
+  public void setupHTMLTester()
+    throws Exception
   {
-    return new String[]{"File Connector"};
+    testerInstance = new HTMLTester();
+    testerInstance.setup();
   }
   
-  protected String[] getConnectorClasses()
+  @After
+  public void teardownHTMLTester()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    if (testerInstance != null)
+    {
+      testerInstance.teardown();
+      testerInstance = null;
+    }
   }
-  
-  protected String[] getOutputNames()
-  {
-    return new String[]{"Null Output"};
-  }
-  
-  protected String[] getOutputClasses()
-  {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
-  }
-
-  protected String[] getAuthorityClasses()
-  {
-    return new String[]{"org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"};
-  }
-  
-  protected String[] getAuthorityNames()
-  {
-    return new String[]{"Null authority"};
-  }
-
 }
