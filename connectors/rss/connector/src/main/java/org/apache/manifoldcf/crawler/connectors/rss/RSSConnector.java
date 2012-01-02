@@ -1665,7 +1665,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.EmailAddressToContact") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.EmailAddressToContactColon") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1684,7 +1684,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.RobotsTxtUsage") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.RobotsTxtUsageColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"robotsusage\" size=\"3\">\n"+
 "        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.DontLookAtRobotsTxt") + "</option>\n"+
@@ -1710,19 +1710,19 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxKBytesPerSecondPerServer") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxKBytesPerSecondPerServerColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"6\" name=\"bandwidth\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(bandwidth)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxConnectionsPerServer") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxConnectionsPerServerColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"4\" name=\"connections\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connections)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxFetchesPerMinutePerServer") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MaxFetchesPerMinutePerServerColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"4\" name=\"fetches\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fetches)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ThrottleGroupName") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ThrottleGroupNameColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"throttlegroup\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(throttleGroup)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1745,23 +1745,23 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyHost") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyHostColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyPort") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyPortColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationDomain") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationUserName") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationPassword") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ProxyAuthenticationPasswordColon") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1845,7 +1845,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Parameters") + "</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.ParametersColon") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -3316,7 +3316,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Metadata") + "</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.MetadataColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
