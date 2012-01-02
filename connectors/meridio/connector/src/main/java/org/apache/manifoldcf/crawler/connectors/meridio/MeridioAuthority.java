@@ -221,16 +221,13 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        File meridioWSDDLocation = ManifoldCF.getFileProperty(wsddPathProperty);
-        if (meridioWSDDLocation == null)
-          throw new ManifoldCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
-
         meridio_ = new MeridioWrapper(Logging.authorityConnectors, DmwsURL, RmwsURL, MetaCartawsURL,
           DMWSProxyHost, DMWSProxyPort, RMWSProxyHost, RMWSProxyPort, MetaCartaWSProxyHost, MetaCartaWSProxyPort,
           UserName, Password,
           InetAddress.getLocalHost().getHostName(),
           myFactory,
-          meridioWSDDLocation.toString());
+          getClass(),
+          "meridio-client-config.wsdd");
       }
       catch (UnknownHostException unknownHostException)
       {

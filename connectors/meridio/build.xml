@@ -175,11 +175,6 @@
         <jar destfile="build/jar/mcf-meridio-xsdstub.jar" basedir="build/xsdclasses"/>
     </target>
 
-    <target name="wsdd" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/wsdd"/>
-        <copy todir="dist/wsdd" file="meridio-client-config.wsdd"/>
-    </target>
-    
     <target name="integration">
         <mkdir dir="dist/integration"/>
         <copy todir="dist/integration">
@@ -211,7 +206,7 @@
         </copy>
     </target>
 
-    <target name="build" depends="lib,wsdd,integration"/>
+    <target name="build" depends="lib,integration"/>
     <target name="build-tests">
       <mkdir dir="build/test-jar"/>
     </target>

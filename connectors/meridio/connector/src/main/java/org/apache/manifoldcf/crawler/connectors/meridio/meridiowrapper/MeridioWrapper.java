@@ -38,10 +38,25 @@ import org.apache.axis.holders.*;
 import org.apache.axis.message.*;
 import org.apache.log4j.Logger;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.httpclient.protocol.ProtocolFactory;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.axis.EngineConfiguration;
-import org.apache.axis.configuration.FileProvider;
+import org.apache.axis.AxisEngine;
+import org.apache.axis.ConfigurationException;
+import org.apache.axis.Handler;
+import org.apache.axis.WSDDEngineConfiguration;
+import org.apache.axis.components.logger.LogFactory;
+import org.apache.axis.deployment.wsdd.WSDDDeployment;
+import org.apache.axis.deployment.wsdd.WSDDDocument;
+import org.apache.axis.deployment.wsdd.WSDDGlobalConfiguration;
+import org.apache.axis.encoding.TypeMappingRegistry;
+import org.apache.axis.handlers.soap.SOAPService;
+import org.apache.axis.utils.Admin;
+import org.apache.axis.utils.Messages;
+import org.apache.axis.utils.XMLUtils;
+import org.w3c.dom.Document;
 
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
@@ -156,6 +171,7 @@ public class MeridioWrapper
     String password,
     String clientWorkstation,
     ProtocolFactory protocolFactory,
+    Class resourceClass,
     String engineConfigurationFile
   )
     throws RemoteException
@@ -163,7 +179,7 @@ public class MeridioWrapper
     // Initialize local instance variables
     oLog = log;
     this.protocolFactory = protocolFactory;
-    this.engineConfiguration = new FileProvider(engineConfigurationFile);
+    this.engineConfiguration = new ResourceProvider(resourceClass,engineConfigurationFile);
     this.connectionManager = new MultiThreadedHttpConnectionManager();
     this.connectionManager.getParams().setMaxTotalConnections(1);
     this.clientWorkstation = clientWorkstation;
@@ -2138,5 +2154,170 @@ public class MeridioWrapper
     }
   }
 
+  /** Implementation of EngineConfiguration that we'll use to get the wsdd file from a
+  * local resource.
+  */
+  protected static class ResourceProvider implements WSDDEngineConfiguration
+  {
+    private WSDDDeployment deployment = null;
+
+    private Class resourceClass;
+    private String resourceName;
+
+    /**
+     * Constructor setting the resource name.
+     */
+    public ResourceProvider(Class resourceClass, String resourceName) 
+    {
+      this.resourceClass = resourceClass;
+      this.resourceName = resourceName;
+    }
+
+    public WSDDDeployment getDeployment() {
+        return deployment;
+    }
+
+    public void configureEngine(AxisEngine engine)
+      throws ConfigurationException
+    {
+      try
+      {
+        InputStream resourceStream = resourceClass.getResourceAsStream(resourceName);
+        if (resourceStream == null)
+          throw new ConfigurationException("Resource not found: '"+resourceName+"'");
+        try
+        {
+          WSDDDocument doc = new WSDDDocument(XMLUtils.newDocument(resourceStream));
+          deployment = doc.getDeployment();
+
+          deployment.configureEngine(engine);
+          engine.refreshGlobalOptions();
+        }
+        finally
+        {
+          resourceStream.close();
+        }
+      }
+      catch (ConfigurationException e)
+      {
+        throw e;
+      }
+      catch (Exception e)
+      {
+        throw new ConfigurationException(e);
+      }
+    }
+
+    public void writeEngineConfig(AxisEngine engine)
+      throws ConfigurationException
+    {
+      // Do nothing
+    }
+
+    /**
+     * retrieve an instance of the named handler
+     * @param qname XXX
+     * @return XXX
+     * @throws ConfigurationException XXX
+     */
+    public Handler getHandler(QName qname) throws ConfigurationException
+    {
+      return deployment.getHandler(qname);
+    }
+
+    /**
+     * retrieve an instance of the named service
+     * @param qname XXX
+     * @return XXX
+     * @throws ConfigurationException XXX
+     */
+    public SOAPService getService(QName qname) throws ConfigurationException
+    {
+      SOAPService service = deployment.getService(qname);
+      if (service == null)
+      {
+        throw new ConfigurationException(Messages.getMessage("noService10",
+          qname.toString()));
+      }
+      return service;
+    }
+
+    /**
+     * Get a service which has been mapped to a particular namespace
+     * 
+     * @param namespace a namespace URI
+     * @return an instance of the appropriate Service, or null
+     */
+    public SOAPService getServiceByNamespaceURI(String namespace)
+      throws ConfigurationException
+    {
+      return deployment.getServiceByNamespaceURI(namespace);
+    }
+
+    /**
+     * retrieve an instance of the named transport
+     * @param qname XXX
+     * @return XXX
+     * @throws ConfigurationException XXX
+     */
+    public Handler getTransport(QName qname) throws ConfigurationException
+    {
+      return deployment.getTransport(qname);
+    }
+
+    public TypeMappingRegistry getTypeMappingRegistry()
+        throws ConfigurationException
+    {
+      return deployment.getTypeMappingRegistry();
+    }
+
+    /**
+     * Returns a global request handler.
+     */
+    public Handler getGlobalRequest() throws ConfigurationException
+    {
+      return deployment.getGlobalRequest();
+    }
+
+    /**
+     * Returns a global response handler.
+     */
+    public Handler getGlobalResponse() throws ConfigurationException
+    {
+      return deployment.getGlobalResponse();
+    }
+
+    /**
+     * Returns the global configuration options.
+     */
+    public Hashtable getGlobalOptions() throws ConfigurationException
+    {
+      WSDDGlobalConfiguration globalConfig = deployment.getGlobalConfiguration();
+            
+      if (globalConfig != null)
+        return globalConfig.getParametersTable();
+
+      return null;
+    }
+
+    /**
+     * Get an enumeration of the services deployed to this engine
+     */
+    public Iterator getDeployedServices() throws ConfigurationException
+    {
+      return deployment.getDeployedServices();
+    }
+
+    /**
+     * Get a list of roles that this engine plays globally.  Services
+     * within the engine configuration may also add additional roles.
+     *
+     * @return a <code>List</code> of the roles for this engine
+     */
+    public List getRoles()
+    {
+      return deployment.getRoles();
+    }
+  }
 
 }

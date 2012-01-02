@@ -120,18 +120,13 @@
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-sharepoint-connector.jar">
         	<fileset dir="build/connector/classes"/>
-          <!-- fileset dir="connector/src/main/resource"/ -->
+          <fileset dir="connector/src/main/resource"/>
         </jar>
     </target>
     
     <target name="jar-wsdls" depends="compile-wsdls,precompile-check" if="canBuild">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/mcf-sharepoint-wsdlstub.jar" basedir="build/wsdlclasses"/>
-    </target>
-
-    <target name="wsdd" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/wsdd"/>
-        <copy todir="dist/wsdd" file="sharepoint-client-config.wsdd"/>
     </target>
 
     <target name="integration">
@@ -160,7 +155,7 @@
         </copy>
     </target>
 
-    <target name="build" depends="lib,wsdd,integration"/>
+    <target name="build" depends="lib,integration"/>
     <target name="build-tests">
       <mkdir dir="build/test-jar"/>
     </target>

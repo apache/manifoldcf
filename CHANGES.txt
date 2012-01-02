@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-353: Ship .wsdd configuration files as part of connector
+jars rather than separate files with configuration parameters.  This
+simplifies the building and deployment of the SharePoint and Meridio
+connectors considerably.
+(Karl Wright)
+
 CONNECTORS-352: Remove duplicate logfile property output for tests.
 (Martin Goldhahn)
 

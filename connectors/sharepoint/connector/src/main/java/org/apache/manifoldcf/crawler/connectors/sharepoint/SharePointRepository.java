@@ -189,11 +189,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
-      File sharepointWSDDLocation = ManifoldCF.getFileProperty(wsddPathProperty);
-      if (sharepointWSDDLocation == null)
-        throw new ManifoldCFException("SharePoint wsdd location path (property "+wsddPathProperty+") must be specified!");
-
-      proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password, myFactory, sharepointWSDDLocation.toString(),
+      proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
+        myFactory, getClass(), "sharepoint-client-config.wsdd",
         connectionManager );
     }
   }

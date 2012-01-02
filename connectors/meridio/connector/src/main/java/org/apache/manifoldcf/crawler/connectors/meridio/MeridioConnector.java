@@ -183,10 +183,6 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
         * Now try and login to Meridio; the wrapper's constructor can be
         * used as it calls the Meridio login method
         *================================================================*/
-        File meridioWSDDLocation = ManifoldCF.getFileProperty(wsddPathProperty);
-        if (meridioWSDDLocation == null)
-          throw new ManifoldCFException("Meridio wsdd location path (property "+wsddPathProperty+") must be specified!");
-
         meridio_ = new MeridioWrapper(Logging.connectors, DmwsURL, RmwsURL, null,
           params.getParameter("DMWSProxyHost"),
           params.getParameter("DMWSProxyPort"),
@@ -199,7 +195,8 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           params.getObfuscatedParameter("Password"),
           InetAddress.getLocalHost().getHostName(),
           myFactory,
-          meridioWSDDLocation.toString());
+          getClass(),
+          "meridio-client-config.wsdd");
       }
       catch (UnknownHostException unknownHostException)
       {

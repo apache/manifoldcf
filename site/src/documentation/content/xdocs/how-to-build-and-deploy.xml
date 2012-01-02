@@ -81,7 +81,6 @@
           <tr><th><em>dist</em> file/directory</th><th>Meaning</th></tr>
           <tr><td><em>connectors.xml</em></td><td>an xml file describing the connectors that should be registered</td></tr>
           <tr><td><em>connector-lib</em></td><td>jars for all the connectors, referred to by properties.xml</td></tr>
-          <tr><td><em>wsdd</em></td><td>wsdd files that are needed by the included connectors in order to function</td></tr>
           <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
           <tr><td><em>multiprocess-example</em></td><td>scripts and jars for an example that uses the multiple process model</td></tr>
@@ -516,8 +515,6 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.scheduling</td><td>No</td><td>Log document scheduling activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityconnectors</td><td>No</td><td>Log authority connector activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservice</td><td>No</td><td>Log authority service activity.  Legal values are INFO, WARN, or DEBUG.</td></tr>
-            <tr><td>org.apache.manifoldcf.sharepoint.wsddpath</td><td>Yes, for SharePoint Connector</td><td>Path to the SharePoint Connector wsdd file.</td></tr>
-            <tr><td>org.apache.manifoldcf.meridio.wsddpath</td><td>Yes, for Meridio Connector</td><td>Path to the Meridio Connector wsdd file.</td></tr>
           </table>
           <p></p>
         </section>
