@@ -2317,6 +2317,40 @@
         </junit>
     </target>
 
+    <target name="run-rss-UI-tests-derby" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
+        <mkdir dir="test-derby-output/rss"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/rss/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/rss-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.rss_tests.NavigationDerbyUI" todir="test-derby-output/rss"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-rss-loadtests-derby" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
         <mkdir dir="test-derby-output/rss"/>
         <junit fork="true" maxmemory="384m" dir="test-derby-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -3967,7 +4001,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
