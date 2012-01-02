@@ -103,8 +103,7 @@ public class Base
   {
     output.append(
       "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
-      "<configuration>\n"+
-      "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"
+      "<configuration>\n"
     );
     writeProperties(output);
     output.append(

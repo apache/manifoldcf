@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-352: Remove duplicate logfile property output for tests.
+(Martin Goldhahn)
+
 CONNECTORS-344: Fix OpenSearchServer UI so that data is not lost between posts.
 (Emmanuel Keller, Karl Wright)
 
