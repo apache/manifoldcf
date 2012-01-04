@@ -1987,6 +1987,15 @@
       </condition>
     </target>
 
+    <target name="calculate-webcrawler-tests-condition" depends="calculate-webcrawler-condition,calculate-nulloutput-condition">
+      <condition property="webcrawler-tests.include">
+        <and>
+            <isset property="webcrawler.include"/>
+            <isset property="nulloutput.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-wiki-tests-condition" depends="calculate-wiki-condition,calculate-nulloutput-condition">
       <condition property="wiki-tests.include">
         <and>
@@ -2054,6 +2063,38 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-webcrawler-tests" depends="build-framework,build-webcrawler-connector,build-nulloutput-connector,calculate-webcrawler-tests-condition,build-tests-webcrawler-connector,build-tests-nulloutput-connector" if="webcrawler-tests.include">
+        <mkdir dir="build/webcrawler-tests/classes"/>
+        <javac srcdir="tests/webcrawler/src/test/java" destdir="build/webcrawler-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/webcrawler/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/webcrawler/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/jar">
@@ -2487,6 +2528,40 @@
 
             <test name="org.apache.manifoldcf.rss_tests.BigCrawlHSQLDBLT" todir="test-HSQLDB-output/rss"/>
 
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-webcrawler-UI-tests-derby" depends="compile-webcrawler-tests,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <mkdir dir="test-derby-output/webcrawler"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/webcrawler" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/webcrawler/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/webcrawler/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/webcrawler-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.webcrawler_tests.NavigationDerbyUI" todir="test-derby-output/webcrawler"/>
             <!-- MHL -->
         </junit>
     </target>
@@ -4001,7 +4076,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
