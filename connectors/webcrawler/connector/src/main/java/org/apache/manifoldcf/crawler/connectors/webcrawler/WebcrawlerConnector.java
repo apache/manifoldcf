@@ -3710,6 +3710,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "      <input type=\"checkbox\" name=\"matchinghosts\" value=\"true\""+(includeMatching?" checked=\"yes\"":"")+"/>\n"+
 "      <input type=\"hidden\" name=\"matchinghosts_present\" value=\"true\"/>\n"+
 "    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }

@@ -46,6 +46,7 @@ public class NavigationDerbyUI extends BaseUIDerby
     HTMLTester.Selectbox selectbox;
     HTMLTester.Button button;
     HTMLTester.Radiobutton radiobutton;
+    HTMLTester.Checkbox checkbox;
     HTMLTester.Loop loop;
     
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
@@ -128,6 +129,21 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Access Credentials
+    link = window.findLink(testerInstance.createStringDescription("Access Credentials tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Certificates
+    link = window.findLink(testerInstance.createStringDescription("Certificates tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    checkbox = form.findCheckbox(testerInstance.createStringDescription("all_trust"),testerInstance.createStringDescription("true"));
+    checkbox.select();
+    button = window.findButton(testerInstance.createStringDescription("Add url regular expression for truststore"));
+    button.click();
+    window = testerInstance.findWindow(null);
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();
@@ -181,13 +197,18 @@ public class NavigationDerbyUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Add new schedule record"));
     button.click();
     window = testerInstance.findWindow(null);
+    // HopFilters tab
+    link = window.findLink(testerInstance.createStringDescription("Hop Filters tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
     // Seeds tab
     link = window.findLink(testerInstance.createStringDescription("Seeds tab"));
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    //textarea = form.findTextarea(testerInstance.createStringDescription("rssurls"));
-    //textarea.setValue(testerInstance.createStringDescription("http://www.cnn.com"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("seeds"));
+    textarea.setValue(testerInstance.createStringDescription("http://www.cnn.com"));
     // Canonicalization tab
     link = window.findLink(testerInstance.createStringDescription("Canonicalization tab"));
     link.click();
@@ -195,14 +216,30 @@ public class NavigationDerbyUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Add url regexp"));
     button.click();
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
     // Security tab
     link = window.findLink(testerInstance.createStringDescription("Security tab"));
     link.click();
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
     // Metadata tab
     link = window.findLink(testerInstance.createStringDescription("Metadata tab"));
     link.click();
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    // Inclusions tab
+    link = window.findLink(testerInstance.createStringDescription("Inclusions tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    checkbox = form.findCheckbox(testerInstance.createStringDescription("matchinghosts"),
+      testerInstance.createStringDescription("true"));
+    checkbox.select();
+    // Exclusions tab
+    link = window.findLink(testerInstance.createStringDescription("Exclusions tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
 
     // Save the job
     button = window.findButton(testerInstance.createStringDescription("Save this job"));

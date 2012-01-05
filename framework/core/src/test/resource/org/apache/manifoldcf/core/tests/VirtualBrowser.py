@@ -294,6 +294,11 @@ class VirtualCheckbox( VirtualFormDataElement ):
         assert isinstance( bodytext, unicode ) or isinstance( bodytext, str )
         self.bodytext = bodytext
 
+    def get_property( self, property_name ):
+        if property_name == "checked":
+            return Javascript.JSBoolean(self.selected)
+        return VirtualFormDataElement.get_property( self, property_name )
+
 # Radio
 class VirtualRadiobutton( VirtualFormDataElement ):
 
@@ -576,6 +581,7 @@ class VirtualForm:
         # These elements all have scrapable data, and are organized by
         # key (which comes from the element).
         self.data_elements = { }
+        self.javascript_data_elements = { }
         self.window_instance = window_instance
         self.form_name = name
         self.action_url = action_url
@@ -654,11 +660,11 @@ class VirtualForm:
 
     # Private API
 
-
     # Find an element based on its data name.
-    # This will NEVER return checkboxes or radio buttons!
+    # This will return the FIRST matching checkbox or radio button, which seems to be the
+    # browser convention.
     def find_element_by_dataname( self, data_name ):
-        return self.data_elements[ data_name ]
+        return self.javascript_data_elements[ data_name ]
 
     # Execute javascript expression in the form context.
     # Returns a JSObject representing the result.
@@ -669,6 +675,8 @@ class VirtualForm:
     def add_element( self, element ):
         assert isinstance( element, VirtualFormDataElement )
         self.data_elements[ element.get_key( ) ] = element
+        if not self.javascript_data_elements.has_key( element.get_name( ) ):
+            self.javascript_data_elements[ element.get_name( ) ] = element
 
     # This method is called just before a radio button is selected.
     # It must deselect all radio buttons that share this element name.
