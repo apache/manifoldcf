@@ -141,8 +141,8 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert("Connection must have a name");
-				SelectTab(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name"));
+				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.ConnectionMustHaveAName")%>);
+				SelectTab(<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name")%>);
 				document.editconnection.connname.focus();
 				return;
 			}
@@ -181,7 +181,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert("The maximum number of connections must be a valid integer");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>);
 			editconnection.maxconnections.focus();
 			return false;
 		}

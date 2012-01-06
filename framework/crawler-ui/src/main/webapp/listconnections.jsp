@@ -37,7 +37,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("Delete connection '"+connectionName+"'?"))
+		if (confirm(<%=Messages.getString(pageContext.getRequest().getLocale(),"listconnections.DeleteConnection")%>+connectionName+"'?"))
 		{
 			document.listconnections.op.value="Delete";
 			document.listconnections.connname.value=connectionName;
@@ -112,7 +112,7 @@
 			<tr>
 				<td class="separator" colspan="6"><hr/></td>
 			</tr>
-			<tr><td class="message" colspan="6"><a href="editconnection.jsp" alt="Add a connection"><%=Messages.getString(pageContext.getRequest().getLocale(),"listconnections.AddNewConnection")%></a></td></tr>
+			<tr><td class="message" colspan="6"><a href="editconnection.jsp" alt=<%=Messages.getString(pageContext.getRequest().getLocale(),"listconnections.AddAConnection")%>><%=Messages.getString(pageContext.getRequest().getLocale(),"listconnections.AddNewConnection")%></a></td></tr>
 		</table>
 
 <%

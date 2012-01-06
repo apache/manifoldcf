@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-355: Fix some remaining uninternationalized strings.
+(Hitoshi Ozawa)
+
 CONNECTORS-353: Ship .wsdd configuration files as part of connector
 jars rather than separate files with configuration parameters.  This
 simplifies the building and deployment of the SharePoint and Meridio

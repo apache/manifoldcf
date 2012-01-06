@@ -42,31 +42,31 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (report.statusbucketdesc.value == "")
 		{
-			alert("Identifier class description cannot be empty");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>);
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusbucketdesc.value))
 		{
-			alert("Identifier class description must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
 		{
-			alert("Identifier class description must delimit a class with parentheses ('(' and ')')");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isInteger(report.rowcount.value))
 		{
-			alert("Enter a legal number for rows per page");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.EnterALegalNumberForRowsPerPage")%>);
 			report.rowcount.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert("Identifier match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>);
 			report.statusidentifiermatch.focus();
 			return;
 		}
@@ -80,25 +80,25 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (report.statusbucketdesc.value == "")
 		{
-			alert("Identifier class description cannot be empty");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>);
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusbucketdesc.value))
 		{
-			alert("Identifier class description must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
 		{
-			alert("Identifier class description must delimit a class with parentheses ('(' and ')')");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert("Identifier match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>);
 			report.statusidentifiermatch.focus();
 			return;
 		}

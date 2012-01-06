@@ -158,8 +158,8 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert("Connection must have a name");
-				SelectTab(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name"));
+				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ConnectionMustHaveAName")%>);
+				SelectTab(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name")%>);
 				document.editconnection.connname.focus();
 				return;
 			}
@@ -196,13 +196,13 @@
 	{
 		if (!isInteger(editconnection.throttlevalue.value))
 		{
-			alert("Throttle rate must be an integer");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ThrottleRateMustBeAnInteger")%>);
 			document.editconnection.throttlevalue.focus();
 			return;
 		}
 		if (!isRegularExpression(editconnection.throttle.value))
 		{
-			alert("The throttle expression must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.TheThrottleExpressionMustBeAValidRegularExpression")%>);
 			editconnection.throttle.focus();
 			return;
 		}
@@ -223,7 +223,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert("The maximum number of connections must be a valid integer");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>);
 			editconnection.maxconnections.focus();
 			return false;
 		}
@@ -271,8 +271,8 @@
 	if (set.getRowCount() == 0)
 	{
 %>
-	<p class="windowtitle">Edit Repository Connection</p>
-	<table class="displaytable"><tr><td class="message">No repository connectors registered</td></tr></table>
+	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.EditRepositoryConnection")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.NoRepositoryConnectorsRegistered")%></td></tr></table>
 <%
 	}
 	else

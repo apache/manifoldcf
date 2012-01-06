@@ -43,13 +43,13 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert("Enter a legal number for rows per page");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.EnterALegalNumberForRowsPerPage")%>);
 			report.rowcount.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert("Identifier match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.IdentifierMatchMustBeAValidRegularExpression")%>);
 			report.statusidentifiermatch.focus();
 			return;
 		}
@@ -63,7 +63,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert("Identifier match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.IdentifierMatchMustBeAValidRegularExpression")%>);
 			report.statusidentifiermatch.focus();
 			return;
 		}

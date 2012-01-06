@@ -42,19 +42,19 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert("Enter a legal number for rows per page");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.EnterALegalNumberForRowsPerPage")%>);
 			report.rowcount.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert("Entity match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>);
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert("Result code match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>);
 			report.reportresultcodematch.focus();
 			return;
 		}
@@ -68,13 +68,13 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert("Entity match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>);
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert("Result code match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>);
 			report.reportresultcodematch.focus();
 			return;
 		}

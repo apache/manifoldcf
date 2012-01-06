@@ -140,7 +140,7 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert("Connection must have a name");
+				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAName")%>);
 				SelectTab(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name"));
 				document.editconnection.connname.focus();
 				return;
@@ -180,7 +180,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert("The maximum number of connections must be a valid integer");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editauthority.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>);
 			editconnection.maxconnections.focus();
 			return false;
 		}
@@ -233,7 +233,7 @@
 	{
 %>
 	<p class="windowtitle">Edit Authority Connection</p>
-	<table class="displaytable"><tr><td class="message">No authority connectors registered</td></tr></table>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityConnectorsRegistered")%></td></tr></table>
 <%
 	}
 	else

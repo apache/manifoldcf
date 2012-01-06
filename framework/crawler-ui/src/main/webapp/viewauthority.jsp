@@ -29,7 +29,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF: View Authority Connection Status
+		<%=Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.ApacheManifoldCFViewAuthorityConnectionStatus")%>
 	</title>
 
 	<script type="text/javascript">

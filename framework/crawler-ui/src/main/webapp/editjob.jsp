@@ -223,8 +223,8 @@
 			// Check our part of the form, for save
 			if (editjob.description.value == "")
 			{
-				alert("Job must have a name");
-				SelectTab(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name"));
+				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.JobMustHaveAName")%>);
+				SelectTab(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name")%>);
 				document.editjob.description.focus();
 				return;
 			}
@@ -259,7 +259,7 @@
 	{
 		if (editjob.duration.value != "" && !isInteger(editjob.duration.value))
 		{
-			alert("Duration must be a valid integer");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DurationMustBeAValidInteger")%>);
 			editjob.duration.focus();
 			return;
 		}
@@ -310,7 +310,7 @@
 			var propertyname = "duration" + i;
 			if (eval("editjob."+propertyname+".value") != "" && !isInteger(eval("editjob."+propertyname+".value")))
 			{
-				alert("Duration must be a valid integer");
+				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DurationMustBeAValidInteger")%>);
 				eval("editjob."+propertyname+".focus()");
 				return false;
 			}
@@ -323,7 +323,7 @@
 	{
 		if (editjob.recrawlinterval.value != "" && !isInteger(editjob.recrawlinterval.value))
 		{
-			alert("Recrawl interval must be a valid integer or null");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalMustBeAValidIntegerOrNull")%>);
 			editjob.recrawlinterval.focus();
 			return false;
 		}
@@ -334,7 +334,7 @@
 	{
 		if (editjob.reseedinterval.value != "" && !isInteger(editjob.reseedinterval.value))
 		{
-			alert("Reseed interval must be a valid integer or null");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalMustBeAValidIntegerOrNull")%>);
 			editjob.reseedinterval.focus();
 			return false;
 		}
@@ -345,7 +345,7 @@
 	{
 		if (editjob.expirationinterval.value != "" && !isInteger(editjob.expirationinterval.value))
 		{
-			alert("Expiration interval must be a valid integer or null");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalMustBeAValidIntegerOrNull")%>);
 			editjob.expirationinterval.focus();
 			return false;
 		}
@@ -865,7 +865,7 @@
 			</tr>
 			<tr>
 				<td class="message" colspan="4">
-					<a name='<%="remove_schedule_"+Integer.toString(l)%>'><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RemoveSchedule")%>" onClick='<%="Javascript:RemoveSchedule("+Integer.toString(l)+")"%>' alt='<%="Remove schedule record #"+Integer.toString(l)%>'/></a>
+					<a name='<%="remove_schedule_"+Integer.toString(l)%>'><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RemoveSchedule")%>" onClick='<%="Javascript:RemoveSchedule("+Integer.toString(l)+")"%>' alt='<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RemoveScheduleRecord")+Integer.toString(l)%>'/></a>
 					<input type="hidden" name='<%="recordop"+postFix%>' value=""/>
 				</td>
 			</tr>

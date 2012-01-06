@@ -41,43 +41,43 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert("Enter a legal number for rows per page");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalNumberForRowsPerPage")%>);
 			report.rowcount.focus();
 			return;
 		}
 		if (!isInteger(report.reportinterval.value))
 		{
-			alert("Enter a legal interval size, in minutes");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalIntervalSizeInMinutes")%>);
 			report.reportinterval.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value == "")
 		{
-			alert("Identifier class description cannot be empty");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionCannotBeEmpty")%>);
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert("Identifier class description must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeABalidRegularExpression")%>);
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
 		{
-			alert("Identifier class description must delimit a class with parentheses ('(' and ')')");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert("Entity match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>);
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert("Result code match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>);
 			report.reportresultcodematch.focus();
 			return;
 		}
@@ -91,25 +91,25 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert("Entity match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>);
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert("Result code match must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>);
 			report.reportresultcodematch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert("Identifier class description must be a valid regular expression");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
 		{
-			alert("Identifier class description must delimit a class with parentheses ('(' and ')')");
+			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
 			report.reportbucketdesc.focus();
 			return;
 		}
