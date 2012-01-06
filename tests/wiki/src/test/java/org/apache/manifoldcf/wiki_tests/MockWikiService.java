@@ -57,9 +57,10 @@ public class MockWikiService
     Map<String,String> listResources,
     Map<String,String> timestampQueryResources,
     Map<String,String> urlQueryResources,
-    Map<String,String> docInfoQueryResources)
+    Map<String,String> docInfoQueryResources,
+    String namespaceResource)
   {
-    servlet.setResources(checkResources,listResources,timestampQueryResources,urlQueryResources,docInfoQueryResources);
+    servlet.setResources(checkResources,listResources,timestampQueryResources,urlQueryResources,docInfoQueryResources,namespaceResource);
   }
   
   protected static String sortStuff(String input)
@@ -85,6 +86,7 @@ public class MockWikiService
     protected Map<String,String> timestampQueryResources = null;
     protected Map<String,String> urlQueryResources = null;
     protected Map<String,String> docInfoQueryResources = null;
+    protected String namespaceResource = null;
     
     public WikiAPIServlet(Class theResourceClass)
     {
@@ -95,13 +97,15 @@ public class MockWikiService
       Map<String,String> listResources,
       Map<String,String> timestampQueryResources,
       Map<String,String> urlQueryResources,
-      Map<String,String> docInfoQueryResources)
+      Map<String,String> docInfoQueryResources,
+      String namespaceResource)
     {
       this.checkResources = checkResources;
       this.listResources = listResources;
       this.timestampQueryResources = timestampQueryResources;
       this.urlQueryResources = urlQueryResources;
       this.docInfoQueryResources = docInfoQueryResources;
+      this.namespaceResource = namespaceResource;
     }
     
     @Override
@@ -118,12 +122,11 @@ public class MockWikiService
         throw new IOException("Action parameter incorrect: "+action);
       String list = req.getParameter("list");
       String prop = req.getParameter("prop");
-      if (prop == null && list == null)
-        throw new IOException("Must have either prop or list");
-      if (prop != null && list != null)
-        throw new IOException("Cannot have both prop and list");
+      String siprop = req.getParameter("siprop");
       if (prop != null)
       {
+	if (siprop != null || list != null)
+	  throw new IOException("Cannot have both prop and list or siprop");
         String pageIds = req.getParameter("pageids");
         if (prop.equals("revisions"))
         {
@@ -172,6 +175,8 @@ public class MockWikiService
       }
       else if (list != null)
       {
+	if (prop != null || siprop != null)
+	  throw new IOException("Cannot have both list and prop or siprop");
         if (!list.equals("allpages"))
           throw new IOException("List parameter incorrect: "+list);
         String apfrom = req.getParameter("apfrom");
@@ -188,6 +193,15 @@ public class MockWikiService
         if (resourceName == null)
           throw new IOException("Could not find a matching resource for the list parameters; apfrom = '"+apfrom+"'");
 
+      }
+      else if (siprop != null)
+      {
+	if (prop != null || list != null)
+	  throw new IOException("Cannot have both siprop and list or prop");
+	String meta = req.getParameter("meta");
+	if (meta == null || !meta.equals("siteinfo"))
+	  throw new IOException("meta parameter missing or incorrect");
+	resourceName = namespaceResource;
       }
 
       // Select the resource

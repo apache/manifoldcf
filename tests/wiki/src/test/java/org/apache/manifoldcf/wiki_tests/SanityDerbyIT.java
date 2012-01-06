@@ -37,7 +37,7 @@ public class SanityDerbyIT extends BaseDerby
   protected static Map<String,String> initialTimestampQueryResources;
   protected static Map<String,String> initialURLQueryResources;
   protected static Map<String,String> initialDocInfoQueryResources;
-  
+  protected static final String namespaceResource = "get_namespaces.xml";
   static
   {
     initialCheckResources = new HashMap<String,String>();
@@ -184,7 +184,8 @@ public class SanityDerbyIT extends BaseDerby
         initialListResources,
         initialTimestampQueryResources,
         initialURLQueryResources,
-        initialDocInfoQueryResources);
+        initialDocInfoQueryResources,
+	namespaceResource);
         
       // Now, start the job, and wait until it completes.
       jobManager.manualStart(job.getID());

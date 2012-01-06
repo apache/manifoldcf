@@ -38,7 +38,8 @@ public class NavigationDerbyUI extends BaseUIDerby
   protected static Map<String,String> initialTimestampQueryResources;
   protected static Map<String,String> initialURLQueryResources;
   protected static Map<String,String> initialDocInfoQueryResources;
-  
+  protected static final String namespaceResource = "get_namespaces.xml";
+
   static
   {
     initialCheckResources = new HashMap<String,String>();
@@ -62,7 +63,8 @@ public class NavigationDerbyUI extends BaseUIDerby
       initialListResources,
       initialTimestampQueryResources,
       initialURLQueryResources,
-      initialDocInfoQueryResources);
+      initialDocInfoQueryResources,
+      namespaceResource);
 
     testerInstance.newTest(Locale.US);
     
@@ -203,8 +205,16 @@ public class NavigationDerbyUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Add new schedule record"));
     button.click();
     window = testerInstance.findWindow(null);
-    // MHL for the wiki job tabs
-    
+    // The Namespace and Titles tab
+    link = window.findLink(testerInstance.createStringDescription("Namespace and Titles tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    // Look for the 'add' button
+    button = window.findButton(testerInstance.createStringDescription("Add namespace/prefix"));
+    button.click();
+    window = testerInstance.findWindow(null);
+
     // Save the job
     button = window.findButton(testerInstance.createStringDescription("Save this job"));
     button.click();
