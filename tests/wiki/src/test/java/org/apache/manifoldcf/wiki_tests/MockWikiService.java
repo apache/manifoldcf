@@ -200,6 +200,8 @@ public class MockWikiService
       try
       {
         InputStream is = theResourceClass.getResourceAsStream(resourceName);
+        if (is == null)
+          throw new IOException("Can't locate resource '"+resourceName+"' in class '"+theResourceClass.getName()+"'");
         try
         {
           byte[] bytes = new byte[65536];

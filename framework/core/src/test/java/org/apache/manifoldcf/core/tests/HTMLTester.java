@@ -372,6 +372,14 @@ public class HTMLTester
       return new StringDescription(varName);
     }
 
+    /** If the match is not found, the test will error out.
+    */
+    public void checkMatch(StringDescription regularExpression)
+      throws Exception
+    {
+      emitLine(windowVar+".find_match("+regularExpression.getVarName()+")");
+    }
+    
     /** If the match is found, the test will error out.
     */
     public void checkNoMatch(StringDescription regularExpression)

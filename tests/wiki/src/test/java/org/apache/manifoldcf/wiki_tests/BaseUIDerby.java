@@ -58,7 +58,7 @@ public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBa
   public void createWikiService()
     throws Exception
   {
-    wikiService = new MockWikiService(getClass());
+    wikiService = new MockWikiService(BaseUIDerby.class);
     wikiService.start();
   }
   

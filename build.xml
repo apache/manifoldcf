@@ -2627,11 +2627,12 @@
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-                <pathelement location="build/webcrawler-tests/classes"/>
+                <pathelement location="build/wiki-tests/classes"/>
+                <pathelement location="tests/wiki/src/test/resource"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
-            <!--test name="org.apache.manifoldcf.webcrawler_tests.NavigationDerbyUI" todir="test-derby-output/wiki"/ -->
+            <test name="org.apache.manifoldcf.wiki_tests.NavigationDerbyUI" todir="test-derby-output/wiki"/>
             <!-- MHL -->
         </junit>
     </target>
