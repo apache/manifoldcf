@@ -1951,6 +1951,15 @@
       </condition>
     </target>
 
+    <target name="calculate-solr-tests-condition" depends="calculate-filesystem-condition,calculate-solr-condition">
+      <condition property="solr-tests.include">
+        <and>
+            <isset property="filesystem.include"/>
+            <isset property="solr.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-rss-tests-condition" depends="calculate-rss-condition,calculate-nulloutput-condition">
       <condition property="rss-tests.include">
         <and>
@@ -2037,6 +2046,38 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nullauthority/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-solr-tests" depends="build-framework,build-filesystem-connector,build-solr-connector,calculate-solr-tests-condition,build-tests-filesystem-connector,build-tests-solr-connector" if="solr-tests.include">
+        <mkdir dir="build/solr-tests/classes"/>
+        <javac srcdir="tests/solr/src/test/java" destdir="build/solr-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/solr/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/solr/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
             </classpath>
@@ -2355,6 +2396,40 @@
 	    
             <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlDerbyLT" todir="test-derby-output/filesystem"/>
 	    
+        </junit>
+    </target>
+
+    <target name="run-solr-UI-tests-derby" depends="compile-solr-tests,calculate-solr-tests-condition" if="solr-tests.include">
+        <mkdir dir="test-derby-output/solr"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/solr" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/solr/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/solr/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/solr-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.solr_tests.NavigationDerbyUI" todir="test-derby-output/solr"/>
+            <!-- MHL -->
         </junit>
     </target>
 
@@ -4111,7 +4186,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
