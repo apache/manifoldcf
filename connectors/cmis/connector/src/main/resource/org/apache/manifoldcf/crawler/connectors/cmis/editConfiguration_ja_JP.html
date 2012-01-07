@@ -86,16 +86,18 @@
 <script type="text/javascript">
 <!--
 var binding = "${BINDING:BJ}";
-if(binding=="ws"){
-  var bindingSelect = document.getElementById("binding");
+var bindingSelect = editconnection.binding;
+if(binding==bindingSelect.options[1].value){
   bindingSelect.options[1].selected = true;
+} else if (binding==bindingSelect.options[0].value){
+  bindingSelect.options[0].selected = true;
 }
 
 var protocol = "${PROTOCOL:BJ}";
-var protocolSelect = document.getElementById("protocol");
-if(protocol=="https"){
+var protocolSelect = editconnection.protocol;
+if(protocol==protocolSelect.options[1].value){
   protocolSelect.options[1].selected = true;
-} else {
+} else if (protocol == protocolSelect.options[0].value){
   protocolSelect.options[0].selected = true;
 }
 //-->

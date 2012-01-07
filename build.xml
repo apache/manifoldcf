@@ -2828,6 +2828,43 @@
         </junit>
     </target>
 
+    <target name="run-cmis-UI-tests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <mkdir dir="test-derby-output/cmis"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/cmis/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+  	      <fileset dir="connectors/cmis/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/cmis-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.cmis_tests.NavigationDerbyUI" todir="test-derby-output/cmis"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-cmis-loadtests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
         <mkdir dir="test-derby-output/cmis"/>
         <junit fork="true" maxmemory="1024m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -4186,7 +4223,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 

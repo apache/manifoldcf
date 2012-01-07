@@ -754,11 +754,6 @@ class VirtualWindow:
         self.dialog_answers = None
         self.current_url = current_url
 
-        # Parse the data
-        parser = VirtualActionParser( self )
-        parser.feed( data )
-        parser.close( )
-
         # Now, assert javascript objects into the current scope to permit
         # Javascript to work.
 
@@ -774,21 +769,30 @@ class VirtualWindow:
         # document (with form properties and form element properties beneath that).
         # Also, need the shortcut entered, which is a property that's just the form name.
         # First, create the document object.
-        jsdocobject = JSDocObject( )
-        self.jscontext.define_value( "document", jsdocobject )
-        for form_name, form_object in self.forms.iteritems( ):
-            # Build a javascript object representing the form
-            jsobject = JSFormObject( form_object )
-            # Add this object to the doc object
-            jsdocobject.add_form( form_name, jsobject )
-            # Add this object to the main context
-            self.jscontext.define_value( form_name, jsobject )
-        jswindowobject = JSWindowObject( self )
-        self.jscontext.define_value( "window", jswindowobject )
+        self.jsdocobject = JSDocObject( )
+        self.jscontext.define_value( "document", self.jsdocobject )
+
+        # Window object
+        self.jswindowobject = JSWindowObject( self )
+        self.jscontext.define_value( "window", self.jswindowobject )
 
         # Finally, need built-in "Option" class
         jsoptionclassdef = JSOptionClassDef( )
         self.jscontext.define_value( "Option", jsoptionclassdef )
+
+        # Parse the data
+        parser = VirtualActionParser( self )
+        parser.feed( data )
+        parser.close( )
+
+        """ for form_name, form_object in self.forms.iteritems( ):
+            # Build a javascript object representing the form
+            jsobject = JSFormObject( form_object )
+            # Add this object to the doc object
+            self.jsdocobject.add_form( form_name, jsobject )
+            # Add this object to the main context
+            self.jscontext.define_value( form_name, jsobject )
+        """
 
     # Public part of interface
 
@@ -937,7 +941,13 @@ class VirtualWindow:
     # Add a form
     def add_form( self, formobject ):
         assert isinstance( formobject, VirtualForm )
-        self.forms[ formobject.get_name( ) ] = formobject
+        form_name = formobject.get_name( )
+        self.forms[ form_name ] = formobject
+        jsobject = JSFormObject( formobject )
+        # Add this object to the doc object
+        self.jsdocobject.add_form( form_name, jsobject )
+        # Add this object to the main context
+        self.jscontext.define_value( form_name, jsobject )
 
     # Add a button
     def add_button( self, buttonobject ):
@@ -1548,6 +1558,7 @@ class VirtualActionParser( HTMLParser.HTMLParser ):
                 method = "MULTIPART"
             print "Form of type %s detected" % method
             self.current_form_instance = VirtualForm( self.window_instance, name, action, method )
+            self.window_instance.add_form( self.current_form_instance )
         except:
             pass
 
@@ -1556,7 +1567,6 @@ class VirtualActionParser( HTMLParser.HTMLParser ):
             raise Exception("Error, form end without form start")
         self.current_form_active = False
         if self.current_form_instance != None:
-            self.window_instance.add_form( self.current_form_instance )
             self.current_form_instance = None
 
     def start_select( self, attributes ):

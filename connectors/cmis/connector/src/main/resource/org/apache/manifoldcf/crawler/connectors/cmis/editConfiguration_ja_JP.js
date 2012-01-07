@@ -19,31 +19,6 @@
 <!--
 function checkConfig()
 {
-  if (editconnection.username.value == "")
-  {
-    alert("ユーザ名を入力してください");
-    editconnection.username.focus();
-    return false;
-  }
-  if (editconnection.password.value == "")
-  {
-    alert("パスワードを入力してください");
-    editconnection.password.focus();
-    return false;
-  }
-  if (editconnection.endpoint.value == "")
-  {
-    alert("エンドポイントを入力してください");
-    editconnection.endpoint.focus();
-    return false;
-  }
-  if (editconnection.binding.value == "")
-  {
-    alert("バイディングを入力してください");
-    editconnection.binding.focus();
-    return false;
-  }
- 
   return true;
 }
  
@@ -52,25 +27,53 @@ function checkConfigForSave()
   if (editconnection.username.value == "")
   {
     alert("ユーザ名を入力してください");
+    SelectTab("Server");
     editconnection.username.focus();
     return false;
   }
   if (editconnection.password.value == "")
   {
     alert("パスワードを入力してください");
+    SelectTab("Server");
     editconnection.password.focus();
     return false;
   }
   if (editconnection.binding.value == "")
   {
     alert("バイディングを入力してください");
+    SelectTab("Server");
     editconnection.binding.focus();
     return false;
   }
-  if (editconnection.endpoint.value == "")
+  if (editconnection.server.value ==""){
+    alert("Server name must be not null");
+    SelectTab("Server");
+    editconnection.server.focus();
+    return false;
+  }
+  if(!editconnection.server.value.indexOf('/')==-1) {
+    alert("Server name can't contain the character '/'");
+    SelectTab("Server");
+    editconnection.server.focus();
+    return false;
+  }
+  if (editconnection.port.value == "")
   {
-    alert("エンドポイントを入力してください");
-    editconnection.endpoint.focus();
+    alert("The port must be not null");
+    SelectTab("Server");
+    editconnection.port.focus();
+    return false;
+  }
+  if (!isInteger(editconnection.port.value)){
+    alert("The server port must be a valid integer");
+    SelectTab("Server");
+    editconnection.port.focus();
+    return false;
+  }
+  if(editconnection.path.value == ""){
+    alert("Path must be not null");
+    SelectTab("Server");
+    editconnection.path.focus();
     return false;
   }
   return true;
