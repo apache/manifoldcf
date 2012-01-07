@@ -70,14 +70,39 @@ public class NavigationDerbyUI extends BaseUIDerby
     selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.agents.output.solr.SolrConnector"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
     button.click();
-    // Visit the Throttling tab
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Visit the Throttling tab
     link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
     link.click();
-    // Visit the Solr tabs
-    // MHL
-    // Go back to the Name tab
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Visit the Solr tabs - Server first
+    link = window.findLink(testerInstance.createStringDescription("Server tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Schema
+    link = window.findLink(testerInstance.createStringDescription("Schema tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Arguments
+    link = window.findLink(testerInstance.createStringDescription("Arguments tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Documents
+    link = window.findLink(testerInstance.createStringDescription("Documents tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Commits
+    link = window.findLink(testerInstance.createStringDescription("Commits tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();
     // Now save the connection.
@@ -143,11 +168,16 @@ public class NavigationDerbyUI extends BaseUIDerby
     selectbox.selectValue(testerInstance.createStringDescription("MyRepositoryConnection"));
     button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));
     button.click();
-    // Visit all the Solr tabs
-    // MHL
-    
-    // Save the job
     window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    // Visit all the Solr tabs
+    // Solr Field Mapping
+    link = window.findLink(testerInstance.createStringDescription("Solr Field Mapping tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+
+    // Save the job
     button = window.findButton(testerInstance.createStringDescription("Save this job"));
     button.click();
 

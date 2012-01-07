@@ -1177,7 +1177,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\"argument\"><input type=\"button\" value=\"Add\" alt=\"Add argument\" onclick=\"javascript:addArgument();\"/></a>\n"+
+"            <a name=\"argument\"><input type=\"button\" value=\"Add\" alt=\"Add argument\" onclick=\"javascript:addArgument();\"/>\n"+
 "              <input type=\"hidden\" name=\"argument_count\" value=\""+Integer.toString(i)+"\"/>\n"+
 "              <input type=\"hidden\" name=\"argument_op\" value=\"Continue\"/>\n"+
 "            </a>\n"+
