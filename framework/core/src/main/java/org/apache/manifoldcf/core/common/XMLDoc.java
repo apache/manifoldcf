@@ -28,6 +28,7 @@ import org.xml.sax.*;
 import org.w3c.dom.*;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.system.Logging;
 
 public class XMLDoc
 {
@@ -366,6 +367,33 @@ public class XMLDoc
     }
     catch (Exception e)
     {
+      if (Logging.misc.isDebugEnabled())
+      {
+        // We want to output some context.  But there are two problems.
+        // First, we don't know the encoding.  Second, we don't have infinite memory.
+        
+        StringWriter sw = new StringWriter();
+        try
+        {
+          // This won't work for all streams, but we catch the exception
+          is.reset();
+          byte[] buf = new byte[65536]; 
+          int len = is.read(buf);
+          if (len != -1)
+          {
+            // Append the bytes we have, and stop.  Presume the encoding is utf-8;
+            // if we're wrong it will come out as garbage, but that can't be helped.
+            sw.append(new String(buf, 0, len, "UTF-8"));
+            if (len == buf.length)
+              sw.append("...");
+          }
+        }
+        catch(Exception e1)
+        {
+          // ignore
+        }
+        Logging.misc.debug(sw.toString(), e);
+      }
       throw new ManifoldCFException("XML parsing error: "+e.getMessage(),e);
     }
 
