@@ -96,7 +96,7 @@
 
     <target name="build" depends="lib"/>
     
-    <target name="build-tests" depends="jar-tests"/>
+    <target name="build-tests" depends="jar-tests,lib"/>
     
     <target name="run-tests-derby"/>
     <target name="run-tests-postgresql"/>

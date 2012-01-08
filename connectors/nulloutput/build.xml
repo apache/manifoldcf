@@ -56,7 +56,7 @@
     </target>
 
     <target name="build" depends="lib"/>
-    <target name="build-tests">
+    <target name="build-tests" depends="lib">
       <mkdir dir="build/test-jar"/>
     </target>
     <target name="run-tests"/>

@@ -156,7 +156,7 @@
     </target>
 
     <target name="build" depends="lib,integration"/>
-    <target name="build-tests">
+    <target name="build-tests" depends="lib,integration,precompile-check" if="canBuild">
       <mkdir dir="build/test-jar"/>
     </target>
     <target name="run-tests"/>

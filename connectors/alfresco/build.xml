@@ -112,7 +112,7 @@
     
     <target name="build" depends="lib"/>
     
-    <target name="build-tests" depends="precompile-check" if="canBuild">
+    <target name="build-tests" depends="lib,precompile-check" if="canBuild">
         <mkdir dir="build/test-jar"/>
     </target>
     

@@ -222,7 +222,7 @@
     </target>
 
     <target name="build" depends="lib,server-process,registry-process"/>
-    <target name="build-tests">
+    <target name="build-tests" depends="lib,server-process,registry-process,precompile-check" if="canBuild">
       <mkdir dir="build/test-jar"/>
     </target>
     <target name="run-tests"/>

@@ -1968,6 +1968,15 @@
       </condition>
     </target>
 
+    <target name="calculate-gts-tests-condition" depends="calculate-filesystem-condition,calculate-gts-condition">
+      <condition property="gts-tests.include">
+        <and>
+            <isset property="filesystem.include"/>
+            <isset property="gts.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-rss-tests-condition" depends="calculate-rss-condition,calculate-nulloutput-condition">
       <condition property="rss-tests.include">
         <and>
@@ -2067,16 +2076,13 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/activedirectory/build/jar">
+	      <fileset dir="connectors/activedirectory/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/activedirectory/build/test-jar">
@@ -2093,8 +2099,34 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/dist/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/solr/dist/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/solr/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-gts-tests" depends="build-framework,build-filesystem-connector,build-gts-connector,calculate-gts-tests-condition,build-tests-filesystem-connector,build-tests-gts-connector" if="gts-tests.include">
+        <mkdir dir="build/gts-tests/classes"/>
+        <javac srcdir="tests/gts/src/test/java" destdir="build/gts-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
                 </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
@@ -2102,16 +2134,16 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/solr/build/jar">
+	      <fileset dir="connectors/gts/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/solr/build/test-jar">
+	      <fileset dir="connectors/gts/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
             </classpath>
@@ -2125,22 +2157,19 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/rss/build/jar">
+	      <fileset dir="connectors/rss/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2157,22 +2186,19 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/webcrawler/build/jar">
+	      <fileset dir="connectors/webcrawler/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/webcrawler/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2189,22 +2215,19 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2227,13 +2250,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2250,28 +2273,19 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/alfresco-ws-client">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2288,25 +2302,19 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2329,7 +2337,7 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/activedirectory/build/jar">
+	      <fileset dir="connectors/activedirectory/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/activedirectory/build/test-jar">
@@ -2357,19 +2365,19 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nullauthority/build/jar">
+	      <fileset dir="connectors/nullauthority/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nullauthority/build/test-jar">
@@ -2400,19 +2408,19 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nullauthority/build/jar">
+	      <fileset dir="connectors/nullauthority/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nullauthority/build/test-jar">
@@ -2440,13 +2448,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2474,13 +2482,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/solr/build/jar">
+	      <fileset dir="connectors/solr/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/solr/build/test-jar">
@@ -2491,6 +2499,40 @@
             <formatter type="brief" usefile="false"/>
 
             <test name="org.apache.manifoldcf.solr_tests.NavigationDerbyUI" todir="test-derby-output/solr"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
+    <target name="run-gts-UI-tests-derby" depends="compile-gts-tests,calculate-gts-tests-condition" if="gts-tests.include">
+        <mkdir dir="test-derby-output/gts"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/gts" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/dist/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/filesystem/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/gts/dist/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/gts/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/gts-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.gts_tests.NavigationDerbyUI" todir="test-derby-output/gts"/>
             <!-- MHL -->
         </junit>
     </target>
@@ -2508,13 +2550,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/rss/build/jar">
+	      <fileset dir="connectors/rss/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2542,13 +2584,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/rss/build/jar">
+	      <fileset dir="connectors/rss/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2577,13 +2619,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/rss/build/jar">
+	      <fileset dir="connectors/rss/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2612,13 +2654,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/rss/build/jar">
+	      <fileset dir="connectors/rss/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2647,13 +2689,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/rss/build/jar">
+	      <fileset dir="connectors/rss/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/rss/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2682,13 +2724,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/webcrawler/build/jar">
+	      <fileset dir="connectors/webcrawler/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/webcrawler/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2716,13 +2758,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2752,13 +2794,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2787,13 +2829,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2826,19 +2868,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-  	      <fileset dir="connectors/alfresco/alfresco-ws-client">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2866,16 +2902,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2903,16 +2936,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2940,16 +2970,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -2976,16 +3003,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3012,13 +3036,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3045,13 +3069,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3078,13 +3102,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3115,13 +3139,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3152,13 +3176,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3187,13 +3211,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3222,13 +3246,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3256,13 +3280,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3290,13 +3314,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3325,13 +3349,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3360,16 +3384,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3396,16 +3417,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3432,16 +3450,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3468,16 +3483,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3504,16 +3516,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3539,16 +3548,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3574,16 +3580,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3610,16 +3613,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3646,13 +3646,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3683,13 +3683,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/filesystem/build/jar">
+	      <fileset dir="connectors/filesystem/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/filesystem/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3718,13 +3718,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3752,13 +3752,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/wiki/build/jar">
+	      <fileset dir="connectors/wiki/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/wiki/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3786,13 +3786,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3819,13 +3819,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3852,13 +3852,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3885,13 +3885,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3918,16 +3918,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3955,16 +3952,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/libr">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -3994,16 +3988,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/alfresco/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/jar">
+	      <fileset dir="connectors/alfresco/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/alfresco/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -4031,16 +4022,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-  	      <fileset dir="connectors/cmis/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/jar">
+	      <fileset dir="connectors/cmis/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/cmis/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -4067,13 +4055,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -4100,13 +4088,13 @@
 	      <fileset dir="framework/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/jar">
+	      <fileset dir="connectors/sharepoint/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/sharepoint/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
+	      <fileset dir="connectors/nulloutput/dist/lib">
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nulloutput/build/test-jar">
@@ -4285,7 +4273,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
