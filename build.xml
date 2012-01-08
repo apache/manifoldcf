@@ -1951,6 +1951,15 @@
       </condition>
     </target>
 
+    <target name="calculate-jcifs-tests-condition" depends="calculate-jcifs-condition,calculate-nulloutput-condition">
+      <condition property="jcifs-tests.include">
+        <and>
+            <isset property="jcifs.include"/>
+            <isset property="nulloutput.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-activedirectory-tests-condition" depends="calculate-activedirectory-condition">
       <condition property="activedirectory-tests.include">
         <and>
@@ -2038,9 +2047,6 @@
                  <fileset dir="framework/lib"> 
                     <include name="*.jar"/> 
                 </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
 	      <fileset dir="framework/build/jar">
 		<include name="*.jar"/>
 	      </fileset>
@@ -2063,6 +2069,35 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nullauthority/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-jcifs-tests" depends="build-framework,build-jcifs-connector,build-nulloutput-connector,calculate-jcifs-tests-condition,build-tests-jcifs-connector,build-tests-nulloutput-connector" if="jcifs-tests.include">
+        <mkdir dir="build/jcifs-tests/classes"/>
+        <javac srcdir="tests/jcifs/src/test/java" destdir="build/jcifs-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/jcifs/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/jcifs/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
             </classpath>
@@ -2466,6 +2501,40 @@
 	    
             <test name="org.apache.manifoldcf.filesystem_tests.BigCrawlDerbyLT" todir="test-derby-output/filesystem"/>
 	    
+        </junit>
+    </target>
+
+    <target name="run-jcifs-UI-tests-derby" depends="compile-jcifs-tests,calculate-jcifs-tests-condition" if="jcifs-tests.include">
+        <mkdir dir="test-derby-output/jcifs"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/jcifs" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/jcifs/dist/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/jcifs/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/dist/lib">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/nulloutput/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/jcifs-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.jcifs_tests.NavigationDerbyUI" todir="test-derby-output/jcifs"/>
+            <!-- MHL -->
         </junit>
     </target>
 
@@ -4273,7 +4342,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-jcifs-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
