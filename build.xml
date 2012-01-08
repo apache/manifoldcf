@@ -1951,6 +1951,14 @@
       </condition>
     </target>
 
+    <target name="calculate-activedirectory-tests-condition" depends="calculate-activedirectory-condition">
+      <condition property="activedirectory-tests.include">
+        <and>
+            <isset property="activedirectory.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-solr-tests-condition" depends="calculate-filesystem-condition,calculate-solr-condition">
       <condition property="solr-tests.include">
         <and>
@@ -2046,6 +2054,32 @@
 		<include name="*.jar"/>
 	      </fileset>
 	      <fileset dir="connectors/nullauthority/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-activedirectory-tests" depends="build-framework,build-activedirectory-connector,calculate-activedirectory-tests-condition,build-tests-activedirectory-connector" if="activedirectory-tests.include">
+        <mkdir dir="build/activedirectory-tests/classes"/>
+        <javac srcdir="tests/activedirectory/src/test/java" destdir="build/activedirectory-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                 <fileset dir="framework/lib"> 
+                    <include name="*.jar"/> 
+                </fileset>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/activedirectory/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/activedirectory/build/test-jar">
 		<include name="*.jar"/>
 	      </fileset>
             </classpath>
@@ -2281,7 +2315,35 @@
             </classpath>
         </javac>
     </target>
-    
+
+    <target name="run-activedirectory-UI-tests-derby" depends="compile-activedirectory-tests,calculate-activedirectory-tests-condition" if="activedirectory-tests.include">
+        <mkdir dir="test-derby-output/activedirectory"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output/activedirectory" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <fileset dir="framework/lib">
+                    <include name="*.jar"/>
+                </fileset>
+	      <fileset dir="framework/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="framework/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/activedirectory/build/jar">
+		<include name="*.jar"/>
+	      </fileset>
+	      <fileset dir="connectors/activedirectory/build/test-jar">
+		<include name="*.jar"/>
+	      </fileset>
+                <pathelement location="build/activedirectory-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.activedirectory_tests.NavigationDerbyUI" todir="test-derby-output/activedirectory"/>
+            <!-- MHL -->
+        </junit>
+    </target>
+
     <target name="run-filesystem-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <mkdir dir="test-derby-output/filesystem"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output/filesystem" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -4223,7 +4285,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
