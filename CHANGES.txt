@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-359: Internationalize FileSystem connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-358: Internationalize FileNet connector fully.
 (Hitoshi Ozawa, Karl Wright)
 

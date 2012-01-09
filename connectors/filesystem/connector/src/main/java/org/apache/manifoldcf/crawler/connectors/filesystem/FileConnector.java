@@ -493,7 +493,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <tr class=\"evenformrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.InsertHere") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"InsertHere\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getString(locale,"FileConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.InsertHere") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"InsertHere\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"FileConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
@@ -526,7 +526,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "                    <input type=\"hidden\" name=\""+"specty"+instanceDescription+"\" value=\""+nodeType+"\"/>\n"+
 "                    <input type=\"hidden\" name=\""+"specma"+instanceDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nodeMatch)+"\"/>\n"+
 "                    <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                      <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Delete") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+Messages.getString(locale,"FileConnector.DeletePath")+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
+"                      <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Delete") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Delete\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\")' alt=\""+Messages.getAttributeString(locale,"FileConnector.DeletePath")+Integer.toString(k)+", match spec #"+Integer.toString(j)+"\"/>\n"+
 "                    </a>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
@@ -560,7 +560,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <tr class=\"formrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <a name=\""+"match_"+Integer.toString(k)+"_"+Integer.toString(j)+"\">\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Add") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getString(locale,"FileConnector.AddNewMatchForPath")+Integer.toString(k)+"\"/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Add") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Add\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"FileConnector.AddNewMatchForPath")+Integer.toString(k)+"\"/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
@@ -604,7 +604,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
 "              <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"                <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Add") + "\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getString(locale,"FileConnector.AddNewPath") + "\"/>\n"+
+"                <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.Add") + "\" onClick='Javascript:SpecOp(\"specop\",\"Add\",\"path_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"FileConnector.AddNewPath") + "\"/>\n"+
 "                <input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "                <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
 "              </a>\n"+
