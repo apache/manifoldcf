@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-360: Internationalize GTS connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-359: Internationalize FileSystem connector fully.
 (Hitoshi Ozawa, Karl Wright)
 
