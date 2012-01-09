@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-368: Internationalize Wiki connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-367: Internationalize Web connector fully.
 (Hitoshi Ozawa, Karl Wright)
 
