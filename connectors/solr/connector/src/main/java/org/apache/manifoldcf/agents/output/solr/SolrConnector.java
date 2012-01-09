@@ -723,7 +723,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  }\n"+
 "  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
 "  {\n"+
-"    alert("+MaximumDocumentLengthMustBeAnInteger+");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.MaximumDocumentLengthMustBeAnInteger")+");\n"+
 "    SelectTab(\""+Messages.getString(locale,"SolrConnector.Documents")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
@@ -971,7 +971,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:SolrDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getString(locale,"SolrConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete"\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:SolrDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"SolrConnector.DeleteCert")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -1151,7 +1151,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           out.print(
 "        <tr class=\""+(((i % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+Messages.getString(locale,"SolrConnector.DeleteArgument")++Integer.toString(i+1)+"\" onclick=\"javascript:deleteArgument("+Integer.toString(i)+");"+"\"/>\n"+
+"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+Messages.getString(locale,"SolrConnector.DeleteArgument")+" "+Integer.toString(i+1)+"\" onclick=\"javascript:deleteArgument("+Integer.toString(i)+");"+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_op"+"\" value=\"Continue\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_name"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
 "            </a>\n"+

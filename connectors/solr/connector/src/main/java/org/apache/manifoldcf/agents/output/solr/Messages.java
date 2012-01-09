@@ -19,75 +19,106 @@
 package org.apache.manifoldcf.agents.output.solr;
 
 import java.util.Locale;
+import java.util.Map;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
-public class Messages extends org.apache.manifoldcf.core.i18n.Messages
+public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
 {
   public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.agents.output.solr.common";
-
+  public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.agents.output.solr";
+  
   /** Constructor - do no instantiate
   */
-  private Messages()
+  protected Messages()
   {
-  }
-  
-  // These four have limited applicability since they are all local to the core jar, which generally does not render
-  // text.
-  
-  public static String getString(String messageKey)
-  {
-    return getString(DEFAULT_BUNDLE_NAME, Locale.getDefault(), messageKey, null);
-  }
-  
-  public static String getString(String messageKey, Object[] args)
-  {
-    return getString(DEFAULT_BUNDLE_NAME, Locale.getDefault(), messageKey, args);
   }
   
   public static String getString(Locale locale, String messageKey)
   {
     return getString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
   }
-  
+
+  public static String getAttributeString(Locale locale, String messageKey)
+  {
+    return getAttributeString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getBodyString(Locale locale, String messageKey)
+  {
+    return getBodyString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getAttributeJavascriptString(Locale locale, String messageKey)
+  {
+    return getAttributeJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
+  public static String getBodyJavascriptString(Locale locale, String messageKey)
+  {
+    return getBodyJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, null);
+  }
+
   public static String getString(Locale locale, String messageKey, Object[] args)
   {
     return getString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
   }
+
+  public static String getAttributeString(Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
   
+  public static String getBodyString(Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
+  public static String getAttributeJavascriptString(Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
+  public static String getBodyJavascriptString(Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyJavascriptString(DEFAULT_BUNDLE_NAME, locale, messageKey, args);
+  }
+
   // More general methods which allow bundlenames and class loaders to be specified.
-  
-  public static String getString(String bundleName, String messageKey)
-  {
-    return getString(bundleName, Locale.getDefault(), messageKey, null);
-  }
-
-  public static String getString(ClassLoader classLoader, String bundleName, String messageKey)
-  {
-    return getString(classLoader, bundleName, Locale.getDefault(), messageKey, null);
-  }
-  
-  public static String getString(String bundleName, String messageKey, Object[] args)
-  {
-    return getString(bundleName, Locale.getDefault(), messageKey, args);
-  }
-
-  public static String getString(ClassLoader classLoader, String bundleName, String messageKey, Object[] args)
-  {
-    return getString(classLoader, bundleName, Locale.getDefault(), messageKey, args);
-  }
-  
-  public static String getString(String bundleName, Locale locale, String messageKey)
-  {
-    return getString(bundleName, locale, messageKey, null);
-  }
-
-  public static String getString(ClassLoader classLoader, String bundleName, Locale locale, String messageKey)
-  {
-    return getString(classLoader, bundleName, locale, messageKey, null);
-  }
   
   public static String getString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
     return getString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  public static String getAttributeString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  public static String getBodyString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+  
+  public static String getAttributeJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getAttributeJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  public static String getBodyJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
+  {
+    return getBodyJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+  }
+
+  // Resource output
+  
+  public static void outputResource(IHTTPOutput output, Locale locale, String resourceKey,
+    Map<String,String> substitutionParameters, boolean mapToUpperCase)
+    throws ManifoldCFException
+  {
+    outputResource(output,Messages.class,DEFAULT_PATH_NAME,locale,resourceKey,
+      substitutionParameters,mapToUpperCase);
   }
   
 }
