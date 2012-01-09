@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-362: Internationalize JDBC connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-361: Internationalize JCIFS connector fully.
 (Hitoshi Ozawa, Karl Wright)
 

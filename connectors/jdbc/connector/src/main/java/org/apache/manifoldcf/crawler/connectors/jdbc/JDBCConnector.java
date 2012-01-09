@@ -666,21 +666,21 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editconnection.databasehost.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.PleaseFillInADatabaseServerName") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.PleaseFillInADatabaseServerName") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasehost.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.databasename.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.PleaseFillInTheNameOfTheDatabase") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.PleaseFillInTheNameOfTheDatabase") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasename.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.username.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.PleaseSupplyTheDatabaseUsernameForThisConnection") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.PleaseSupplyTheDatabaseUsernameForThisConnection") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Credentials") + "\");\n"+
 "    editconnection.username.focus();\n"+
 "    return false;\n"+
@@ -912,7 +912,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAccessToken") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAccessToken") + "\");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -923,13 +923,13 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editjob.idquery.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.EnterASeedingQuery") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.EnterASeedingQuery") + "\");\n"+
 "    editjob.idquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.idquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
 "    editjob.idquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -937,50 +937,50 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  {\n"+
 "    if (editjob.versionquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "    {\n"+
-"      alert(" + Messages.getString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + ");\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
 "      editjob.versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "    if (editjob.versionquery.value.indexOf(\"$(VERSIONCOLUMN)\") == -1)\n"+
 "    {\n"+
-"      alert(" + Messages.getString(locale,"JDBCConnector.MustReturnVERSIONCOLUMNInTheResult") + ");\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnVERSIONCOLUMNInTheResult") + "\");\n"+
 "      editjob.versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "    if (editjob.versionquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "    {\n"+
-"      alert(" + Messages.getString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + ");\n"+
+"      alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
 "      editjob.versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "  }\n"+
 "  if (editjob.dataquery.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.EnterADataQuery") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.EnterADataQuery") + "\");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult2") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult2") + "\");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(URLCOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnURLCOLUMNInTheResult") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnURLCOLUMNInTheResult") + "\");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(DATACOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnDATACOLUMNInTheResult") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnDATACOLUMNInTheResult") + "\");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1045,7 +1045,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"value\"><textarea name=\"idquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsAndVersionsForASetOfDocuments") + "</nobr><br/><nobr>" + Messages.getString(locale,"JDBCConnector.leaveBlankIfNoVersioningCapability") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsAndVersionsForASetOfDocuments") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.leaveBlankIfNoVersioningCapability") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\"versionquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</textarea></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
@@ -1091,7 +1091,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\"" + Messages.getString(locale,"JDBCConnector.DeleteToken") + "\""+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\"" + Messages.getAttributeString(locale,"JDBCConnector.DeleteToken") + "\""+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1117,7 +1117,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getString(locale,"JDBCConnector.AddAccessToken") + "\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"JDBCConnector.AddAccessToken") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1299,15 +1299,15 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.SeedingQuery") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.SeedingQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idQuery)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.DataQuery") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -1324,7 +1324,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.AccessTokens") + "</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessTokens") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
