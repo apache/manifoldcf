@@ -2160,7 +2160,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "{\n"+
 "  if (editjob.specmaxdoclength.value != \"\" && !isInteger(editjob.specmaxdoclength.value))\n"+
 "  {\n"+
-"    alert(\"Maximum document length must be null or an integer\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.MaximumDocumentLengthMustBeNullOrAnInteger") + ");\n"+
 "    editjob.specmaxdoclength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -2177,7 +2177,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "{\n"+
 "  if (editjob.pathaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Select a folder first\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.SelectAFolderFirst") + ");\n"+
 "    editjob.pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2189,7 +2189,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Null tokens not allowed\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.NullTokensNotAllowed") + ");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2201,13 +2201,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "{\n"+
 "  if (editjob.specmatch.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Enter a specification first\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.EnterASpecificationFirst") + ");\n"+
 "    editjob.specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
 "  if (!isRegularExpression(editjob.specmatch.value))\n"+
 "  {\n"+
-"    alert(\"Specification must be valid regular expression\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.SpecificationMustBeValidRegularExpression") + ");\n"+
 "    editjob.specmatch.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -2257,7 +2257,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+sn.getAttributeValue("path")+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
 "      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\"Delete path #"+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=" + Messages.getString(locale,"DCTM.DeletePath")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2274,7 +2274,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">No specific cabinet/folder paths given (everything in docbase will be scanned)</td>\n"+
+"    <td class=\"message\" colspan=\"2\">" + Messages.getString(locale,"DCTM.NoSpecificCabinetFolderPathsGiven") + "</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2306,7 +2306,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
 "        <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
 "        <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
-"        <input type=\"button\" value=\"Add\" alt=\"Add path\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>&nbsp;\n"+
+"        <input type=\"button\" value=\"Add\" alt=" + Messages.getString(locale,"DCTM.AddPath") + " onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>&nbsp;\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2315,15 +2315,15 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         if (pathSoFar.length() > 1)
         {
           out.print(
-"      <input type=\"button\" value=\"-\" alt=\"Remove from path\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
+"      <input type=\"button\" value=\"-\" alt=" + Messages.getString(locale,"DCTM.RemoveFromPath") + " onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
           );
         }
         if (childList.length > 0)
         {
           out.print(
-"      <input type=\"button\" value=\"+\" alt=\"Add to path\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
+"      <input type=\"button\" value=\"+\" alt=" + Messages.getString(locale,"DCTM.AddToPath") + " onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
 "      <select multiple=\"false\" name=\"pathaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">-- Pick a folder --</option>\n"
+"        <option value=\"\" selected=\"selected\">" + Messages.getString(locale,"DCTM.PickAFolder") + "</option>\n"
           );
           int j = 0;
           while (j < childList.length)
@@ -2424,7 +2424,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" alt=\""+"Delete access token #"+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"        <input type=\"button\" value=\"Delete\" alt=\""+Messages.getString(locale,"DCTM.DeleteAccessToken")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2450,7 +2450,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" alt=\"Add access token\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"        <input type=\"button\" value=\"Add\" alt=" + Messages.getString(locale,"DCTM.AddAccessToken") + " onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2622,7 +2622,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         out.print(
 "  <tr>\n"+
 "    <td class=\"message\" colspan=\"2\">\n"+
-"		Service interruption or invalid credentials - check your repository connection\n"+
+"		" + Messages.getString(locale,"DCTM.ServiceInterruptionOrInvalidCredentials")+
 "    </td>\n"+
 "  </tr>\n"
         );
@@ -2740,7 +2740,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         out.print(
 "  <tr>\n"+
 "    <td class=\"message\" colspan=\"2\">\n"+
-"		Service interruption or invalid credentials - check your repository connection\n"+
+"		" + Messages.getString(locale,"DCTM.ServiceInterruptionOrInvalidCredentials") +
 "    </td>\n"+
 "  </tr>\n"
         );
@@ -2787,7 +2787,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Content length:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.ContentLength") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"specmaxdoclength\" type=\"text\" size=\"10\" value=\""+maxDocLength+"\"/>\n"+
 "    </td>\n"+

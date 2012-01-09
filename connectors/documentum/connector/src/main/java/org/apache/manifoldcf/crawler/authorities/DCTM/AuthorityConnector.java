@@ -990,9 +990,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Docbase");
-    tabsArray.add("User Mapping");
-    tabsArray.add("System ACLs");
+    tabsArray.add(Messages.getString(locale,"DCTM.Docbase"));
+    tabsArray.add(Messages.getString(locale,"DCTM.UserMapping"));
+    tabsArray.add(Messages.getString(locale,"DCTM.SystemACLs"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1000,22 +1000,22 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "{\n"+
 "  if (editconnection.docbasename.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply the name of a Docbase\");\n"+
-"    SelectTab(\"Docbase\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.PleaseSupplyTheNameOfADocbase") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"DCTM.Docbase") + ");\n"+
 "    editconnection.docbasename.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.docbaseusername.value == \"\")\n"+
 "  {\n"+
-"    alert(\"The connection requires a valid Documentum user name\");\n"+
-"    SelectTab(\"Docbase\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.TheConnectionRequiresAValidDocumentumUserName") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"DCTM.Docbase") + ");\n"+
 "    editconnection.docbaseusername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.docbasepassword.value == \"\")\n"+
 "  {\n"+
-"    alert(\"The connection requires the Documentum user's password\");\n"+
-"    SelectTab(\"Docbase\");\n"+
+"    alert(" + Messages.getString(locale,"DCTM.TheConnectionRequiresTheDocumentumUsersPassword") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"DCTM.Docbase") + ");\n"+
 "    editconnection.docbasepassword.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1066,25 +1066,25 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       useSystemAcls = "true";
 
     // "Docbase" tab
-    if (tabName.equals("Docbase"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.Docbase")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.DocbaseName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasename\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase user name:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.DocbaseUserName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbaseusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseUserName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase password:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.DocbasePassword") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"docbasepassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbasePassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Docbase domain:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.DocbaseDomain") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"docbasedomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(docbaseDomain)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1102,22 +1102,22 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     }
 
     // "User Mapping" tab
-    if (tabName.equals("User Mapping"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.UserMapping")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Authentication username matching:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.AuthenticationUsernameMatching") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
 "          <td class=\"description\"><input name=\"usernamecaseinsensitive\" type=\"radio\" value=\"true\" "+((caseInsensitiveUser.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
-"          <td class=\"value\"><nobr>Case insensitive</nobr></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getString(locale,"DCTM.CaseInsensitive") + "</nobr></td>\n"+
 "        </tr>\n"+
 "        <tr>\n"+
 "          <td class=\"description\"><input name=\"usernamecaseinsensitive\" type=\"radio\" value=\"false\" "+((!caseInsensitiveUser.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
-"          <td class=\"value\"><nobr>Case sensitive</nobr></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getString(locale,"DCTM.CaseSensitive") + "</nobr></td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
@@ -1134,22 +1134,22 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     }
 
     // "System ACLs" tab
-    if (tabName.equals("System ACLs"))
+    if (tabName.equals(Messages.getString(locale,"DCTM.SystemACLs")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Use system acls:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"DCTM.UseSystemAcls") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
 "          <td class=\"description\"><input name=\"usesystemacls\" type=\"radio\" value=\"true\" "+((useSystemAcls.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
-"          <td class=\"value\"><nobr>Use system acls</nobr></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getString(locale,"DCTM.UseSystemAcls") + "</nobr></td>\n"+
 "        </tr>\n"+
 "        <tr>\n"+
 "          <td class=\"description\"><input name=\"usesystemacls\" type=\"radio\" value=\"false\" "+((!useSystemAcls.equals("true"))?"checked=\"true\"":"")+" /></td>\n"+
-"          <td class=\"value\"><nobr>Don't use system acls</nobr></td>\n"+
+"          <td class=\"value\"><nobr>" + Messages.getString(locale,"DCTM.DontUseSystemAcls") + "</nobr></td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
 "    </td>\n"+
@@ -1222,7 +1222,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"DCTM.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -1240,7 +1240,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" " + Messages.getString(locale,"DCTM.certificate") + "></nobr><br/>\n"
         );
       }
       else
