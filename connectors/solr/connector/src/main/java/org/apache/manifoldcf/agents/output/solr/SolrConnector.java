@@ -588,7 +588,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.solrcertificate.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Choose a certificate file\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.ChooseACertificateFile")+");\n"+
 "    editconnection.solrcertificate.focus();\n"+
 "  }\n"+
 "  else\n"+
@@ -602,61 +602,61 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply a valid Solr server name\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.PleaseSupplyAValidSolrServerName")+");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(\"Solr server port must be a valid integer\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.SolrServerPortMustBeAValidInteger")+");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value != \"\" && editconnection.webappname.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert(\"Web application name cannot have '/' characters\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationNameCannotHaveCharacters")+");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert(\"Core name cannot have '/' characters\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.CoreNameCannotHaveCharacter")+");\n"+
 "    editconnection.core.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value == \"\" && editconnection.core.value != \"\")\n"+
 "  {\n"+
-"    alert(\"Web application must be specified if core is specified\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\"Update path must start with a  '/' character\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+");\n"+
 "    editconnection.updatepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\"Remove path must start with a  '/' character\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.RemovePathMustStartWACharacter")+");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\"Status path must start with a  '/' character\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.StatusPathMustStartWACharacter")+");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
 "  {\n"+
-"    alert(\"Maximum document length must be an integer\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.MaximumDocumentLengthMustBAnInteger")+");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
 "  {\n"+
-"    alert(\"Commit-within value must be an integer\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+");\n"+
 "    editconnection.commitwithin.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -667,71 +667,71 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply a valid Solr server name\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.PleaseSupplyAValidSolrServerName")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(\"Solr server port must be a valid integer\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.SolrServerPortMustBeAValidInteger")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value != \"\" && editconnection.webappname.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert(\"Web application name cannot have '/' characters\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationNameCannotHaveCharacters")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert(\"Core name cannot have '/' characters\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.CoreNameCannotHaveCharacters")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.core.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value == \"\" && editconnection.core.value != \"\")\n"+
 "  {\n"+
-"    alert(\"Web application must be specified if core is specified\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\"Update path must start with a  '/' character\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.updatepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\"Remove path must start with a  '/' character\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.RemovePathMustStartWithACharacter")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\"Status path must start with a  '/' character\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.StatusPathMustStartWithACharacter")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
 "  {\n"+
-"    alert(\"Maximum document length must be an integer\");\n"+
-"    SelectTab(\"Documents\");\n"+
+"    alert("+MaximumDocumentLengthMustBeAnInteger+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Documents")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
 "  {\n"+
-"    alert(\"Commit-within value must be an integer\");\n"+
-"    SelectTab(\"Commits\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Commits")+"\");\n"+
 "    editconnection.commitwithin.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -755,7 +755,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.argument_name.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Argument name cannot be an empty string\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.ArgumentNameCannotBeAnEmptyString")+");\n"+
 "    editconnection.argument_name.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -971,7 +971,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:SolrDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+"Delete cert "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:SolrDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getString(locale,"SolrConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete"\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -1151,7 +1151,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           out.print(
 "        <tr class=\""+(((i % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\"Delete argument #"+Integer.toString(i+1)+"\" onclick=\"javascript:deleteArgument("+Integer.toString(i)+");"+"\"/>\n"+
+"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+Messages.getString(locale,"SolrConnector.DeleteArgument")++Integer.toString(i+1)+"\" onclick=\"javascript:deleteArgument("+Integer.toString(i)+");"+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_op"+"\" value=\"Continue\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_name"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
 "            </a>\n"+
@@ -1534,7 +1534,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editjob.solr_fieldmapping_source.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Field map must have non-null source\");\n"+
+"    alert("+Messages.getString(locale,"SolrConnector.FieldMapMustHaveNonNullSource")+");\n"+
 "    editjob.solr_fieldmapping_source.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1632,7 +1632,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        <tr class=\""+(((fieldCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+"Delete field mapping #"+Integer.toString(fieldCounter+1)+"\" onclick='javascript:deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getString(locale,"SolrConnector.DeleteFieldMapping")+Integer.toString(fieldCounter+1)+"\" onclick='javascript:deleteFieldMapping("+Integer.toString(fieldCounter)+");'/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_op\" value=\"Continue\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_source\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(source)+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+prefix+"_target\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(target)+"\"/>\n"+
