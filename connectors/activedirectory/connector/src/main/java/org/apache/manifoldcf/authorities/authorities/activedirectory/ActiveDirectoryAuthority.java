@@ -357,50 +357,50 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "{\n"+
 "  if (editconnection.domaincontrollername.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Enter a domain controller server name\");\n"+
-"    SelectTab(\"Domain Controller\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.EnterADomainControllerServerName") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.DomainController") + ");\n"+
 "    editconnection.domaincontrollername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.username.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Administrative user name cannot be null\");\n"+
-"    SelectTab(\"Domain Controller\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.DomainController") + ");\n"+
 "    editconnection.username.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.authentication.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Authentication cannot be null\");\n"+
-"    SelectTab(\"Domain Controller\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.AuthenticationCannotBeNull") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.DomainController") + ");\n"+
 "    editconnection.authentication.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelifetime.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Cache lifetime cannot be null\");\n"+
-"    SelectTab(\"Cache\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLifetimeCannotBeNull") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
 "    editconnection.cachelifetime.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
 "  {\n"+
-"    alert(\"Cache lifetime must be an integer\");\n"+
-"    SelectTab(\"Cache\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLifetimeMustBeAnInteger") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
 "    editconnection.cachelifetime.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelrusize.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Cache LRU size cannot be null\");\n"+
-"    SelectTab(\"Cache\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLRUSizeCannotBeNull") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
 "    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
 "  {\n"+
-"    alert(\"Cache LRU size must be an integer\");\n"+
-"    SelectTab(\"Cache\");\n"+
+"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLRUSizeMustBeAnInteger") + ");\n"+
+"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
 "    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -587,14 +587,14 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       else if (param.length() >="cache lifetime".length() && param.substring(param.length()-"cache lifetime".length()).equalsIgnoreCase("cache lifetime"))
       {
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+" minutes</nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+" " + Messages.getString(locale,"ActiveDirectoryAuthority.minutes") + "</nobr><br/>\n"
         );
       }      
       else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" " + Messages.getString(locale,"ActiveDirectoryAuthority.certificate") + "></nobr><br/>\n"
         );
       }
       else
