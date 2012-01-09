@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-356: Internationalize ActiveDirectory connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-366: Internationalized Solr connector fully.
 (Hitoshi Ozawa, Karl Wright)
 

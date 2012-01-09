@@ -357,50 +357,50 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 "{\n"+
 "  if (editconnection.domaincontrollername.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.EnterADomainControllerServerName") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.DomainController") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.EnterADomainControllerServerName") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.DomainController") + "\");\n"+
 "    editconnection.domaincontrollername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.username.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.DomainController") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.DomainController") + "\");\n"+
 "    editconnection.username.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.authentication.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.AuthenticationCannotBeNull") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.DomainController") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.AuthenticationCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.DomainController") + "\");\n"+
 "    editconnection.authentication.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelifetime.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLifetimeCannotBeNull") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLifetimeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
 "    editconnection.cachelifetime.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLifetimeMustBeAnInteger") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLifetimeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
 "    editconnection.cachelifetime.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelrusize.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLRUSizeCannotBeNull") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLRUSizeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
 "    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"ActiveDirectoryAuthority.CacheLRUSizeMustBeAnInteger") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"ActiveDirectoryAuthority.Cache") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLRUSizeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
 "    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
