@@ -374,7 +374,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "{\n"+
 "  if (editconnection.ingesturi.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply a valid ingestion URI\");\n"+
+"    alert(" + Messages.getString(locale,"GTSConnector.PleaseSupplyAValidIngestionURI") + ");\n"+
 "    editconnection.ingesturi.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -385,7 +385,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "{\n"+
 "  if (editconnection.ingesturi.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply a valid ingestion URI\");\n"+
+"    alert(" + Messages.getString(locale,"GTSConnector.PleaseSupplyAValidIngestionURI") + ");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"GTSConnector.Appliance") + "\");\n"+
 "    editconnection.ingesturi.focus();\n"+
 "    return false;\n"+
@@ -521,7 +521,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "\n"+
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"GTSConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     
@@ -579,7 +579,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
 "{\n"+
 "  if (editjob.gts_collectionname.value.length > 230)\n"+
 "  {\n"+
-"    alert(\"Collection name must be less than or equal to 230 characters\");\n"+
+"    alert(" + Messages.getString(locale,"GTSConnector.CollectionNameMustBeLessThanOrEqualToCharacters") + ");\n"+
 "    editjob.gts_collectionname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
