@@ -588,7 +588,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.solrcertificate.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.ChooseACertificateFile")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ChooseACertificateFile")+"\");\n"+
 "    editconnection.solrcertificate.focus();\n"+
 "  }\n"+
 "  else\n"+
@@ -602,61 +602,61 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.PleaseSupplyAValidSolrServerName")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.PleaseSupplyAValidSolrServerName")+"\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.SolrServerPortMustBeAValidInteger")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.SolrServerPortMustBeAValidInteger")+"\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value != \"\" && editconnection.webappname.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationNameCannotHaveCharacters")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.WebApplicationNameCannotHaveCharacters")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.CoreNameCannotHaveCharacter")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CoreNameCannotHaveCharacter")+"\");\n"+
 "    editconnection.core.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value == \"\" && editconnection.core.value != \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+"\");\n"+
 "    editconnection.updatepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.RemovePathMustStartWACharacter")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWACharacter")+"\");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.StatusPathMustStartWACharacter")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWACharacter")+"\");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.MaximumDocumentLengthMustBAnInteger")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.MaximumDocumentLengthMustBAnInteger")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+"\");\n"+
 "    editconnection.commitwithin.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -667,71 +667,71 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.PleaseSupplyAValidSolrServerName")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.PleaseSupplyAValidSolrServerName")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.SolrServerPortMustBeAValidInteger")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.SolrServerPortMustBeAValidInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value != \"\" && editconnection.webappname.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationNameCannotHaveCharacters")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.WebApplicationNameCannotHaveCharacters")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.CoreNameCannotHaveCharacters")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CoreNameCannotHaveCharacters")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.core.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webappname.value == \"\" && editconnection.core.value != \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.updatepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.RemovePathMustStartWithACharacter")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWithACharacter")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.StatusPathMustStartWithACharacter")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Server")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWithACharacter")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.maxdocumentlength.value != \"\" && !isInteger(editconnection.maxdocumentlength.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.MaximumDocumentLengthMustBeAnInteger")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Documents")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.MaximumDocumentLengthMustBeAnInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Documents")+"\");\n"+
 "    editconnection.maxdocumentlength.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.commitwithin.value != \"\" && !isInteger(editconnection.commitwithin.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+");\n"+
-"    SelectTab(\""+Messages.getString(locale,"SolrConnector.Commits")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Commits")+"\");\n"+
 "    editconnection.commitwithin.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -755,7 +755,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editconnection.argument_name.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.ArgumentNameCannotBeAnEmptyString")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ArgumentNameCannotBeAnEmptyString")+"\");\n"+
 "    editconnection.argument_name.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1534,7 +1534,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "{\n"+
 "  if (editjob.solr_fieldmapping_source.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"SolrConnector.FieldMapMustHaveNonNullSource")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.FieldMapMustHaveNonNullSource")+"\");\n"+
 "    editjob.solr_fieldmapping_source.focus();\n"+
 "    return;\n"+
 "  }\n"+

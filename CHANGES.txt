@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-366: Internationalized Solr connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-318: Add debugging output for XML parsing errors.  The
 code assumes UTF-8 encoding of the stream, and only outputs the first 64K.
 This should be sufficient for most situations though.
