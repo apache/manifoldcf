@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-365: Internationalize SharePoint connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-368: Internationalize Wiki connector fully.
 (Hitoshi Ozawa, Karl Wright)
 
