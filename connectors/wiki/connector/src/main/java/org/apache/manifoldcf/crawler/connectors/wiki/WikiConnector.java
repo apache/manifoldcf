@@ -330,13 +330,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(\"Wiki server port must be a valid integer\");\n"+
+"    alert("+Messages.getString(locale,"WikiConnector.WikiServerPortMustBeAValidInteger")+");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverpath.value != \"\" && editconnection.serverpath.value.indexOf(\"/\") != 0)\n"+
 "  {\n"+
-"    alert(\"Path must start with a '/' character\");\n"+
+"    alert("+Messages.getString(locale,"WikiConnector.PathMustStartWithACharacter")+");\n"+
 "    editconnection.serverpath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -347,22 +347,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply a valid Wiki server name\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"WikiConnector.PleaseSupplyAValidWikiServerName")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"WikiConnector.Server")+"\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(\"WIki server port must be a valid integer\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"WikiConnector.WikiServerPortMustBeAValidInteger")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"WikiConnector.Server")+"\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverpath.value != \"\" && editconnection.serverpath.value.indexOf(\"/\") != 0)\n"+
 "  {\n"+
-"    alert(\"Path must start with a '/' character\");\n"+
-"    SelectTab(\"Server\");\n"+
+"    alert("+Messages.getString(locale,"WikiConnector.PathMustStartWithACharacter")+");\n"+
+"    SelectTab(\""+Messages.getString(locale,"WikiConnector.Server")+"\");\n"+
 "    editconnection.serverpath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -498,7 +498,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getString(locale,"WikiConnector.Parameters")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -516,7 +516,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getString(locale,"WikiConnector.certificates")+"></nobr><br/>\n"
         );
       }
       else
@@ -629,7 +629,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <input type=\"hidden\" name=\""+nsOpName+"\" value=\"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsNsName+"\" value=\""+((namespace==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(namespace))+"\"/>\n"+
 "              <input type=\"hidden\" name=\""+nsTitlePrefix+"\" value=\""+((titlePrefix==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(titlePrefix))+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Delete") + "\" onClick='Javascript:NsDelete("+Integer.toString(k)+")' alt=\""+"Delete namespace/title #"+Integer.toString(k)+"\"/>\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WikiConnector.Delete") + "\" onClick='Javascript:NsDelete("+Integer.toString(k)+")' alt=\""+Messages.getString(locale,"WikiConnector.DeleteNamespaceTitle")+Integer.toString(k)+"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
