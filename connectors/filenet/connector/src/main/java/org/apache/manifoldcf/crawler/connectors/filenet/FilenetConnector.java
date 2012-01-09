@@ -1466,13 +1466,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheServerPortMustBeAnInteger") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheServerPortMustBeAnInteger") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.urlport.value != \"\" && !isInteger(editconnection.urlport.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheDocumentURLPortMustBeAnInteger") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheDocumentURLPortMustBeAnInteger") + "\");\n"+
 "    editconnection.urlport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1484,28 +1484,28 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (editconnection.serverhostname.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheConnectionRequiresAFileNetHostName") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheConnectionRequiresAFileNetHostName") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Server") + "\");\n"+
 "    editconnection.serverhostname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheServerPortMustBeAnInteger") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheServerPortMustBeAnInteger") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Server") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.urlhostname.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheDocumentURLRequiresAHostName") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheDocumentURLRequiresAHostName") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.DocumentURL") + "\");\n"+
 "    editconnection.urlhostname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.urlport.value != \"\" && !isInteger(editconnection.urlport.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheDocumentURLPortMustBeAnInteger") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheDocumentURLPortMustBeAnInteger") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.DocumentURL") + "\");\n"+
 "    editconnection.urlport.focus();\n"+
 "    return false;\n"+
@@ -1513,28 +1513,28 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "\n"+
 "  if (editconnection.filenetdomain.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheFileNetDomainNameCannotBeNull") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheFileNetDomainNameCannotBeNull") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.ObjectStore") + "\");\n"+
 "    editconnection.filenetdomain.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.objectstore.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheObjectStoreNameCannotBeNull") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheObjectStoreNameCannotBeNull") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.ObjectStore") + "\");\n"+
 "    editconnection.objectstore.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.userid.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheConnectionRequiresAValidFileNetUserID") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheConnectionRequiresAValidFileNetUserID") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Credentials") + "\");\n"+
 "    editconnection.userid.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.password.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.TheConnectionRequiresTheFileNetUsersPassword") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.TheConnectionRequiresTheFileNetUsersPassword") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.Credentials") + "\");\n"+
 "    editconnection.password.focus();\n"+
 "    return false;\n"+
