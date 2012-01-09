@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-357: Internationalize Documentum connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-356: Internationalize ActiveDirectory connector fully.
 (Hitoshi Ozawa, Karl Wright)
 
