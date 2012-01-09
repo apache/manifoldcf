@@ -666,21 +666,21 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editconnection.databasehost.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please fill in a database server name\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.PleaseFillInADatabaseServerName") + ");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasehost.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.databasename.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please fill in the name of the database\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.PleaseFillInTheNameOfTheDatabase") + ");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Server") + "\");\n"+
 "    editconnection.databasename.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.username.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply the database username for this connection\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.PleaseSupplyTheDatabaseUsernameForThisConnection") + ");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.Credentials") + "\");\n"+
 "    editconnection.username.focus();\n"+
 "    return false;\n"+
@@ -912,7 +912,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAccessToken") + "\");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAccessToken") + ");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -923,13 +923,13 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "{\n"+
 "  if (editjob.idquery.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Enter a seeding query\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.EnterASeedingQuery") + ");\n"+
 "    editjob.idquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.idquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(\"Must return $(IDCOLUMN) in the result.\\nExample: SELECT idfield AS $(IDCOLUMN) FROM ...\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + ");\n"+
 "    editjob.idquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -937,50 +937,50 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  {\n"+
 "    if (editjob.versionquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "    {\n"+
-"      alert(\"Must return $(IDCOLUMN) in the result.\\nExample: SELECT idfield AS $(IDCOLUMN), ...\");\n"+
+"      alert(" + Messages.getString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + ");\n"+
 "      editjob.versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "    if (editjob.versionquery.value.indexOf(\"$(VERSIONCOLUMN)\") == -1)\n"+
 "    {\n"+
-"      alert(\"Must return $(VERSIONCOLUMN) in the result, containing the document version.\\nExample: SELECT versionfield AS $(VERSIONCOLUMN), ...\");\n"+
+"      alert(" + Messages.getString(locale,"JDBCConnector.MustReturnVERSIONCOLUMNInTheResult") + ");\n"+
 "      editjob.versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "    if (editjob.versionquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "    {\n"+
-"      alert(\"Must use $(IDLIST) in WHERE clause.\\nExample: SELECT ... WHERE idfield IN $(IDLIST) ...\");\n"+
+"      alert(" + Messages.getString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + ");\n"+
 "      editjob.versionquery.focus();\n"+
 "      return false;\n"+
 "    }\n"+
 "  }\n"+
 "  if (editjob.dataquery.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Enter a data query\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.EnterADataQuery") + ");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(\"Must return $(IDCOLUMN) in the result.\\nExample: SELECT idfield AS $(IDCOLUMN), ...\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult2") + ");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(URLCOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(\"Must return $(URLCOLUMN) in the result, containing the url to use to reach the document.\\nExample: SELECT urlfield AS $(URLCOLUMN), ...\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnURLCOLUMNInTheResult") + ");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(DATACOLUMN)\") == -1)\n"+
 "  {\n"+
-"    alert(\"Must return $(DATACOLUMN) in the result, containing the document data.\\nExample: SELECT datafield AS $(DATACOLUMN), ...\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.MustReturnDATACOLUMNInTheResult") + ");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.dataquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "  {\n"+
-"    alert(\"Must use $(IDLIST) in WHERE clause.\\nExample: SELECT ... WHERE idfield IN $(IDLIST) ...\");\n"+
+"    alert(" + Messages.getString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + ");\n"+
 "    editjob.dataquery.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1091,7 +1091,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\"Delete token #\""+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\"" + Messages.getString(locale,"JDBCConnector.DeleteToken") + "\""+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1117,7 +1117,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"Add access token\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getString(locale,"JDBCConnector.AddAccessToken") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -1299,15 +1299,15 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Seeding query:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.SeedingQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idQuery)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Version check query:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.VersionCheckQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(versionQuery)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Data query:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.DataQuery") + "</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -1324,7 +1324,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>Access tokens:</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>" + Messages.getString(locale,"JDBCConnector.AccessTokens") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
