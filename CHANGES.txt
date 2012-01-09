@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-370: Fix the use of MessageFormat for expanding
+message arguments so that the proper locale is used.
+(Karl Wright)
+
 CONNECTORS-365: Internationalize SharePoint connector fully.
 (Hitoshi Ozawa, Karl Wright)
 

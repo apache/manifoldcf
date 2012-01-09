@@ -150,7 +150,9 @@ public class Messages
     String formatMessage;
     if (args != null)
     {
-      formatMessage = MessageFormat.format(message, args);
+      MessageFormat fm = new MessageFormat(message);
+      fm.setLocale(locale);
+      formatMessage = fm.format(args);
     }
     else
     {
