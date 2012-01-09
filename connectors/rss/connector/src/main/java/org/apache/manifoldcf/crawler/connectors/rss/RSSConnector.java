@@ -1568,25 +1568,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "{\n"+
 "  if (editconnection.email.value != \"\" && editconnection.email.value.indexOf(\"@\") == -1)\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.NeedAValidEmailAddress")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.NeedAValidEmailAddress")+"\");\n"+
 "    editconnection.email.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.bandwidth.value != \"\" && !isInteger(editconnection.bandwidth.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.EnterAValidNumberOrBlankForNoLimit")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.EnterAValidNumberOrBlankForNoLimit")+"\");\n"+
 "    editconnection.bandwidth.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.connections.value == \"\" || !isInteger(editconnection.connections.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.EnterAValidNumberForTheMaxNumberOfOpenConnectionsPerServer")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.EnterAValidNumberForTheMaxNumberOfOpenConnectionsPerServer")+"\");\n"+
 "    editconnection.connections.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.fetches.value != \"\" && !isInteger(editconnection.fetches.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.EnterAValidNumberOrBlankForNoLimit")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.EnterAValidNumberOrBlankForNoLimit")+"\");\n"+
 "    editconnection.fetches.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1597,8 +1597,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "{\n"+
 "  if (editconnection.email.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.EmailAddressRequiredToBeIncludedInAllRequestHeaders")+");\n"+
-"    SelectTab(\"Email\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.EmailAddressRequiredToBeIncludedInAllRequestHeaders")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.Email")+"\");\n"+
 "    editconnection.email.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1863,7 +1863,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getString(locale,"RSSConnector.certificates")+"></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"RSSConnector.certificates")+"></nobr><br/>\n"
         );
       }
       else
@@ -1911,7 +1911,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "{\n"+
 "  if (editjob.rssmatch.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.MatchMustHaveARegexpValue")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.MatchMustHaveARegexpValue")+"\");\n"+
 "    editjob.rssmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1929,7 +1929,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.TypeInAnAccessToken")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.TypeInAnAccessToken")+"\");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1940,13 +1940,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "{\n"+
 "  if (editjob.specmetaname.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.TypeInMetadataName")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.TypeInMetadataName")+"\");\n"+
 "    editjob.specmetaname.focus();\n"+
 "    return;\n"+
 "  }\n"+
 "  if (editjob.specmetavalue.value == \"\")\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.TypeInMetadataValue")+");\n"+
+"    alert(\""+Messages.getString(locale,"RSSConnector.TypeInMetadataValue")+"\");\n"+
 "    editjob.specmetavalue.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1968,25 +1968,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "{\n"+
 "  if (editjob.feedtimeout.value == \"\" || !isInteger(editjob.feedtimeout.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.ATimeoutValueInSecondsIsRequired")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.ATimeoutValueInSecondsIsRequired")+"\");\n"+
 "    editjob.feedtimeout.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.feedrefetch.value == \"\" || !isInteger(editjob.feedrefetch.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.ARefetchIntervalInMinutesIsRequired")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.ARefetchIntervalInMinutesIsRequired")+"\");\n"+
 "    editjob.feedrefetch.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.minfeedrefetch.value == \"\" || !isInteger(editjob.minfeedrefetch.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.AMinimumRefetchIntervalInMinutesIsRequire")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.AMinimumRefetchIntervalInMinutesIsRequire")+"\");\n"+
 "    editjob.minfeedrefetch.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editjob.badfeedrefetch.value != \"\" && !isInteger(editjob.badfeedrefetch.value))\n"+
 "  {\n"+
-"    alert("+Messages.getString(locale,"RSSConnector.ABadFeedRefetchIntervalInMinutesIsRequired")+");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"RSSConnector.ABadFeedRefetchIntervalInMinutesIsRequired")+"\");\n"+
 "    editjob.badfeedrefetch.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -2106,13 +2106,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.URLRegularExpression")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.Description")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.Reorder")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemoveJSPSessions")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemoveASPSessions")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemovePHPSessions")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemoveBVSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.URLRegularExpression")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.Description")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.Reorder")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemoveJSPSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemoveASPSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemovePHPSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemoveBVSessions")+"</nobr></td>\n"+
 "        </tr>\n"
       );
       int q = 0;
@@ -2146,7 +2146,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getString(locale,"RSSConnector.DeleteUrlRegexp")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
+"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"RSSConnector.DeleteUrlRegexp")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\" onclick='javascript:URLRegexpDelete("+Integer.toString(l)+",\"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
 "            </a>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2174,7 +2174,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       if (l == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formcolumnmessage\"><nobr>"+Messages.getString(locale,"RSSConnector.NoCanonicalizationSpecified")+"</nobr></td></tr>\n"
+"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formcolumnmessage\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.NoCanonicalizationSpecified")+"</nobr></td></tr>\n"
         );
       }
       out.print(
@@ -2182,7 +2182,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"Add\" alt=\""+Messages.getString(locale,"RSSConnector.AddUlRegexp")+"\" onclick='javascript:URLRegexpAdd(\"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
+"              <input type=\"button\" value=\"Add\" alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddUlRegexp")+"\" onclick='javascript:URLRegexpAdd(\"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
 "              <input type=\"hidden\" name=\"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
 "            </a>\n"+
 "          </td>\n"+
@@ -2268,7 +2268,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "  <tr>\n"+
 "    <td class=\"value\">\n"+
 "      <a name=\""+"regexp_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" value=\"Remove\" onclick='javascript:RemoveRegexp("+Integer.toString(i)+",\"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getString(locale,"RSSConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
+"        <input type=\"button\" value=\"Remove\" onclick='javascript:RemoveRegexp("+Integer.toString(i)+",\"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
@@ -2299,7 +2299,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
       out.print(
 "  <tr>\n"+
-"    <td class=\"value\"><a name=\""+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\"Add\" onclick='javascript:AddRegexp(\"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getString(locale,"RSSConnector.AddRegexp")+"\"/></a></td>\n"+
+"    <td class=\"value\"><a name=\""+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\"Add\" onclick='javascript:AddRegexp(\"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddRegexp")+"\"/></a></td>\n"+
 "    <td class=\"value\"><input type=\"text\" name=\"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
 "    <td class=\"value\">==></td>\n"+
 "    <td class=\"value\"><input type=\"text\" name=\"rssmap\" size=\"16\" value=\"\"/></td>\n"+
@@ -2332,19 +2332,19 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.FeedConnectTimeout")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.FeedConnectTimeout")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"feedtimeout\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Integer.toString(feedTimeoutValue))+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.DefaultFeedRefetchTime")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.DefaultFeedRefetchTime")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"feedrefetch\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Integer.toString(feedRefetchValue))+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.MinimumFeedRefetchTime")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.MinimumFeedRefetchTime")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"minfeedrefetch\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Integer.toString(minFeedRefetchValue))+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.BadFeedRefetchTime")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.BadFeedRefetchTime")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"hidden\" name=\"badfeedrefetch_present\" value=\"true\"/>\n"+
 "      <input type=\"text\" size=\"5\" name=\"badfeedrefetch\" value=\""+((badFeedRefetchValue==null)?"":org.apache.manifoldcf.ui.util.Encoder.attributeEscape(badFeedRefetchValue.toString()))+"\"/>\n"+
@@ -2383,22 +2383,22 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"1\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals("none")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"RSSConnector.NoDechromedContent")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals("none")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoDechromedContent")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"RSSConnector.ContentIfPresentInContentField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.ContentIfPresentInContentField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"RSSConnector.UseChromedContentIfNoDechromedContentFound")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.UseChromedContentIfNoDechromedContentFound")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -2438,7 +2438,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"RSSConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2464,7 +2464,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getString(locale,"RSSConnector.AddAccessToken")+"\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddAccessToken")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2523,7 +2523,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "      <input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
 "      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"RSSConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+metadataOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2543,7 +2543,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"4\">"+Messages.getString(locale,"RSSConnector.NoMetadataPresent")+"</td>\n"+
+"    <td class=\"message\" colspan=\"4\">"+Messages.getBodyString(locale,"RSSConnector.NoMetadataPresent")+"</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2554,7 +2554,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "      <input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"metadataop\" value=\"\"/>\n"+
 "      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getString(locale,"RSSConnector.AddMetadata")+"\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"RSSConnector.AddMetadata")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -3046,7 +3046,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         {
           out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.RSSUrls")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RSSUrls")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3067,7 +3067,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getString(locale,"RSSConnector.NoRSSUrlsSpecified")+"</nobr></td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.NoRSSUrlsSpecified")+"</nobr></td></tr>\n"
       );
     }
     out.print(
@@ -3085,17 +3085,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         {
           out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.URLCanonicalization")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.URLCanonicalization")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.URLRegexp")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.Description")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.Reorder")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemoveJSPSessions")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemoveASPSessions")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemovePHPSessions")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getString(locale,"RSSConnector.RemoveBVSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.URLRegexp")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.Description")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.Reorder")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemoveJSPSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemoveASPSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemovePHPSessions")+"</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.RemoveBVSessions")+"</nobr></td>\n"+
 "        </tr>\n"
           );
         }
@@ -3143,7 +3143,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getString(locale,"RSSConnector.NoCanonicalizationSpecified")+"</nobr></td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.NoCanonicalizationSpecified")+"</nobr></td></tr>\n"
       );
     }
 
@@ -3161,7 +3161,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         {
           out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.URLMappings")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.URLMappingsColon")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3193,7 +3193,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getString(locale,"RSSConnector.NoMappingsSpecifiedWillAcceptAllUrls")+"</nobr></td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.NoMappingsSpecifiedWillAcceptAllUrls")+"</nobr></td></tr>\n"
       );
     }
     out.print(
@@ -3236,19 +3236,19 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
     out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.FeedConnectionTimeout")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.FeedConnectionTimeout")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(feedTimeoutValue)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.DefaultFeedRescanInterval")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.DefaultFeedRescanInterval")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(feedRefetchValue)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.MinimumFeedRescanInterval")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.MinimumFeedRescanInterval")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(minFeedRefetchValue)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.BadFeedRescanInterval")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.BadFeedRescanInterval")+"</nobr></td>\n"+
 "    <td class=\"value\">"+((badFeedRefetchValue==null)?"(Default feed rescan value)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(badFeedRefetchValue))+"</td>\n"+
 
 "  </tr>\n"+
@@ -3256,11 +3256,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.DechromedContentSource")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentSource")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dechromedMode)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.ChromedContent")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.ChromedContent")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(chromedMode)+"</td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -3277,7 +3277,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>"+Messages.getString(locale,"RSSConnector.AccessTokens")+"</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.AccessTokens")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;

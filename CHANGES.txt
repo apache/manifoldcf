@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-364: Internationalize RSS connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-363: Internationalize more of the Livelink connector.
 (Hitoshi Ozawa, Karl Wright)
 
