@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-367: Internationalize Web connector fully.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-364: Internationalize RSS connector fully.
 (Hitoshi Ozawa, Karl Wright)
 
