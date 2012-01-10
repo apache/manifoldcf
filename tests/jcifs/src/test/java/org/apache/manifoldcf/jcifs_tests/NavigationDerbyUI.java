@@ -115,7 +115,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     textarea = form.findTextarea(testerInstance.createStringDescription("username"));
     textarea.setValue(testerInstance.createStringDescription("foo"));
     
-    // MHL
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();
@@ -149,7 +148,36 @@ public class NavigationDerbyUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));
     button.click();
     // Visit all the connector tabs.
-    // MHL
+    // Paths
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("Paths tab"));
+    link.click();
+    // Security
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("Security tab"));
+    link.click();
+    // Metadata
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("Metadata tab"));
+    link.click();
+    // Content Length
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("Content Length tab"));
+    link.click();
+    // File Mapping
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("File Mapping tab"));
+    link.click();
+    // URL Mapping
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("URL Mapping tab"));
+    link.click();
     
     // Save the job
     window = testerInstance.findWindow(null);

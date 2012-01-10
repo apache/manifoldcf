@@ -4396,7 +4396,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (uriMap.getMatchCount() > 0)
     {
       out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.URLMapping") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.URLMappingColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
