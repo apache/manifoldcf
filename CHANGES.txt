@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-372: Finish the Japanese translation of the web connector's
+strings.
+(Hitoshi Ozawa)
+
 CONNECTORS-370: Fix the use of MessageFormat for expanding
 message arguments so that the proper locale is used.
 (Karl Wright)
