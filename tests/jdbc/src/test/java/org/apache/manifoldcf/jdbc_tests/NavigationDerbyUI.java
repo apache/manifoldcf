@@ -112,7 +112,17 @@ public class NavigationDerbyUI extends BaseUIDerby
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     textarea = form.findTextarea(testerInstance.createStringDescription("username"));
     textarea.setValue(testerInstance.createStringDescription("foo"));
-    // MHL
+    // Server
+    link = window.findLink(testerInstance.createStringDescription("Server tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Database Type
+    link = window.findLink(testerInstance.createStringDescription("Database Type tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();
@@ -146,7 +156,16 @@ public class NavigationDerbyUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));
     button.click();
     // Visit all the connector tabs.
-    // MHL
+    // Queries
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("Queries tab"));
+    link.click();
+    // Security
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    link = window.findLink(testerInstance.createStringDescription("Security tab"));
+    link.click();
     
     // Save the job
     window = testerInstance.findWindow(null);
