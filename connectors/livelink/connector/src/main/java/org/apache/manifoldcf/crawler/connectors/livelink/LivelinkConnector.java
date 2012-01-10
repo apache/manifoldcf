@@ -1440,7 +1440,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editconnection.llcertificate.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
 "    editconnection.llcertificate.focus();\n"+
 "  }\n"+
 "  else\n"+
@@ -1454,19 +1454,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.AValidNumberIsRequired")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberIsRequired")+"\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.ingestport.value != \"\" && !isInteger(editconnection.ingestport.value))\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.AValidNumberOrBlankIsRequired")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberOrBlankIsRequired")+"\");\n"+
 "    editconnection.ingestport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.viewport.value != \"\" && !isInteger(editconnection.viewport.value))\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.AValidNumberOrBlankIsRequired")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberOrBlankIsRequired")+"\");\n"+
 "    editconnection.viewport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -1477,35 +1477,35 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.EnterALivelinkServerName")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterALivelinkServerName")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.AServerPortNumberIsRequired")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.ingestcgipath.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.EnterTheCrawlCgiPathToLivelink")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheCrawlCgiPathToLivelink")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
 "    editconnection.ingestcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.ingestcgipath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.TheIngestCgiPathMustBeginWithACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheIngestCgiPathMustBeginWithACharacter")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
 "    editconnection.ingestcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.viewcgipath.value != \"\" && editconnection.viewcgipath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.TheViewCgiPathMustBeBlankOrBeginWithACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheViewCgiPathMustBeBlankOrBeginWithACharacter")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
 "    editconnection.viewcgipath.focus();\n"+
 "    return false;\n"+
@@ -1590,19 +1590,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.ServerName")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerName")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.ServerPort")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPort")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.ServerUserName")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUserName")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.ServerPassword")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPassword")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1633,7 +1633,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.DocumentFetchProtocol")+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchProtocol")+"</td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"ingestprotocol\" size=\"2\">\n"+
 "        <option value=\"http\" "+((ingestProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
@@ -1642,11 +1642,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentFetchPort")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchPort")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"ingestport\" value=\""+ingestPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentFetchSSLCertificateList")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchSSLCertificateList")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"hidden\" name=\"llkeystorealias\" value=\"\"/>\n"+
 "      <table class=\"displaytable\">\n"
@@ -1670,7 +1670,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:LLDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:LLDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -1679,28 +1679,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:LLAddCertificate()' alt=\""+Messages.getString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
-"      "+Messages.getString(locale,"LivelinkConnector.Certificate")+"<input name=\"llcertificate\" size=\"50\" type=\"file\"/>\n"+
+"      <input type=\"button\" onclick='Javascript:LLAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
+"      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"llcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentFetchCGIPath")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchCGIPath")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"ingestcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestCgiPath)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentFetchNTLMDomain")+"</nobr><br/><nobr>"+Messages.getString(locale,"LivelinkConnector.SetIfNTLMAuthDesired")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchNTLMDomain")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfNTLMAuthDesired")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"32\" name=\"ntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ntlmDomain)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentFetchNTLMUserName")+"</nobr><br/><nobr>"+Messages.getString(locale,"LivelinkConnector.SetIfDifferentFromServerUserName")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchNTLMUserName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerUserName")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"32\" name=\"ntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ntlmUsername)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentFetchNTLMPassword")+"</nobr><br/><nobr>"+Messages.getString(locale,"LivelinkConnector.SetIfDifferentFromServerPassword")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchNTLMPassword")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerPassword")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"password\" size=\"32\" name=\"ntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ntlmPassword)+"\"/>\n"+
 "    </td>\n"+
@@ -1728,7 +1728,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.DocumentViewProtocol")+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewProtocol")+"</td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"viewprotocol\" size=\"3\">\n"+
 "        <option value=\"\" "+((viewProtocol.equals(""))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.SameAsFetchProtocol")+"</option>\n"+
@@ -1738,15 +1738,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentViewServerName")+"</nobr><br/><nobr>"+Messages.getString(locale,"LivelinkConnector.BlankSameAsFetchServer")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewServerName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.BlankSameAsFetchServer")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"viewservername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewServerName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentViewPort")+"</nobr><br/><nobr>(blank = same as fetch port)</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewPort")+"</nobr><br/><nobr>(blank = same as fetch port)</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"viewport\" value=\""+viewPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.DocumentViewCGIPath")+"</nobr><br/><nobr>"+Messages.getString(locale,"LivelinkConnector.BlankSameAsFetchServer")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewCGIPath")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.BlankSameAsFetchServer")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"viewcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewCgiPath)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -1897,7 +1897,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getString(locale,"LivelinkConnector.Parameters")+"</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.Parameters")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -1967,7 +1967,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.pathaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
 "    editjob.pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1979,7 +1979,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.specfile.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.TypeInAFileSpecification")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TypeInAFileSpecification")+"\");\n"+
 "    editjob.specfile.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1990,7 +1990,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.TypeInAnAccessToken")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TypeInAnAccessToken")+"\");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2001,7 +2001,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.metadataaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
 "    editjob.metadataaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2012,7 +2012,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.metadataaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.SelectAWorkspaceFirst")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAWorkspaceFirst")+"\");\n"+
 "    editjob.metadataaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2023,7 +2023,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.categoryaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.SelectACategoryFirst")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectACategoryFirst")+"\");\n"+
 "    editjob.categoryaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2034,7 +2034,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.attributeselect.value == \"\" && editjob.attributeall.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.SelectAtLeastOneAttributeFirst")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAtLeastOneAttributeFirst")+"\");\n"+
 "    editjob.attributeselect.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2045,13 +2045,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "{\n"+
 "  if (editjob.specmatch.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.MatchStringCannotBeEmpty")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.MatchStringCannotBeEmpty")+"\");\n"+
 "    editjob.specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
 "  if (!isRegularExpression(editjob.specmatch.value))\n"+
 "  {\n"+
-"    alert(\""+Messages.getString(locale,"LivelinkConnector.MatchStringMustBeValidRegularExpression")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.MatchStringMustBeValidRegularExpression")+"\");\n"+
 "    editjob.specmatch.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2100,7 +2100,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
 "      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2115,7 +2115,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoStartingPointsDefined")+"</td>\n"+
+"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoStartingPointsDefined")+"</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2147,7 +2147,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"pathop\" value=\"\"/>\n"+
 "      <a name=\""+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddPath")+"\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddPath")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2162,9 +2162,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (childList.length > 0)
         {
           out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddToPath")+"\"/>&nbsp;\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToPath(\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToPath")+"\"/>&nbsp;\n"+
 "      <select multiple=\"false\" name=\"pathaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
+"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
           );
           int j = 0;
           while (j < childList.length)
@@ -2241,7 +2241,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\""+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+fileOpName+"\" value=\"\"/>\n"+
 "      <a name=\""+"filespec_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+fileOpName+"\",\"Delete\",\"filespec_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.DeleteFilespec")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+fileOpName+"\",\"Delete\",\"filespec_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteFilespec")+Integer.toString(k)+"\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2259,7 +2259,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoIncludeExcludeFilesDefined")+"</td>\n"+
+"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoIncludeExcludeFilesDefined")+"</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2270,13 +2270,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\"filecount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"fileop\" value=\"\"/>\n"+
 "      <a name=\""+"filespec_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddFilespec(\"filespec_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddFileSpecification")+"\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddFilespec(\"filespec_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddFileSpecification")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"specfiletype\" size=\"1\">\n"+
-"        <option value=\"include\" selected=\"selected\">"+Messages.getString(locale,"LivelinkConnector.Include")+"</option>\n"+
-"        <option value=\"exclude\">"+Messages.getString(locale,"LivelinkConnector.Exclude")+"</option>\n"+
+"        <option value=\"include\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.Include")+"</option>\n"+
+"        <option value=\"exclude\">"+Messages.getBodyString(locale,"LivelinkConnector.Exclude")+"</option>\n"+
 "      </select>&nbsp;\n"+
 "      <input type=\"text\" size=\"30\" name=\"specfile\" value=\"\"/>\n"+
 "    </td>\n"+
@@ -2332,10 +2332,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.Security")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.Security")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getString(locale,"LivelinkConnector.Enabled")+"\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getString(locale,"LivelinkConnector.Disabled")+"\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Enabled")+"\n"+
+"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Disabled")+"\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -2357,7 +2357,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2383,7 +2383,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddAccessToken")+"\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddAccessToken")+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2471,10 +2471,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getString(locale,"LivelinkConnector.IngestALLMetadata")+"</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.IngestALLMetadata")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"true\" "+(ingestAllMetadata.equals("true")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"LivelinkConnector.Yes")+"</nobr>&nbsp;\n"+
-"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"false\" "+(ingestAllMetadata.equals("false")?"checked=\"true\"":"")+"/>"+Messages.getString(locale,"LivelinkConnector.No")+"</nobr>\n"+
+"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"true\" "+(ingestAllMetadata.equals("true")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.Yes")+"</nobr>&nbsp;\n"+
+"      <nobr><input type=\"radio\" name=\"specallmetadata\" value=\"false\" "+(ingestAllMetadata.equals("false")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.No")+"</nobr>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
@@ -2504,7 +2504,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"hidden\" name=\""+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
 "      <a name=\""+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
@@ -2519,7 +2519,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         out.print(
 "  <tr>\n"+
-"    <td class=\"message\" colspan=\"4\">"+Messages.getString(locale,"LivelinkConnector.NoMetadataSpecified")+"</td>\n"+
+"    <td class=\"message\" colspan=\"4\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMetadataSpecified")+"</td>\n"+
 "  </tr>\n"
         );
       }
@@ -2571,16 +2571,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // We have a valid category!
           out.print(
-"      <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddMetadataItem")+"\"/>&nbsp;\n"+
+"      <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddMetadata(\"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddMetadataItem")+"\"/>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categorySoFar)+":<input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"+
+"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categorySoFar)+":<input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"+
 "      <table class=\"displaytable\">\n"+
 "        <tr>\n"+
 "          <td class=\"value\">\n"+
-"            <input type=\"checkbox\" name=\"attributeall\" value=\"true\"/>"+Messages.getString(locale,"LivelinkConnector.AllAttributesInThisCategory")+"<br/>\n"+
+"            <input type=\"checkbox\" name=\"attributeall\" value=\"true\"/>"+Messages.getBodyString(locale,"LivelinkConnector.AllAttributesInThisCategory")+"<br/>\n"+
 "            <select multiple=\"true\" name=\"attributeselect\" size=\"2\">\n"+
-"              <option value=\"\" selected=\"selected\">"+Messages.getString(locale,"LivelinkConnector.PickAttributes")+"</option>\n"
+"              <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAttributes")+"</option>\n"
           );
           int l = 0;
           while (l < attributeList.length)
@@ -2602,9 +2602,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           out.print(
 "    </td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecSetWorkspace(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecSetWorkspace(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
 "      <select multiple=\"false\" name=\"metadataaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getString(locale,"LivelinkConnector.PickWorkspace")+"</option>\n"
+"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickWorkspace")+"</option>\n"
           );
           int j = 0;
           while (j < workspaceList.length)
@@ -2628,15 +2628,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           if (categorySoFar.length() > 0)
           {
             out.print(
-"      <input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"
+"      <input type=\"button\" value=\"-\" onClick='Javascript:SpecOp(\"metadataop\",\"Up\",\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"
             );
           }
           if (childList.length > 0)
           {
             out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToMetadata(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddToMetadata(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
 "      <select multiple=\"false\" name=\"metadataaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
+"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
             );
             int j = 0;
             while (j < childList.length)
@@ -2653,9 +2653,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           if (categoryList.length > 0)
           {
             out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddCategory(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddCategory")+"\"/>&nbsp;\n"+
+"      <input type=\"button\" value=\"+\" onClick='Javascript:SpecAddCategory(\"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCategory")+"\"/>&nbsp;\n"+
 "      <select multiple=\"false\" name=\"categoryaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getString(locale,"LivelinkConnector.PickACategory")+"</option>\n"
+"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickACategory")+"</option>\n"
             );
             int j = 0;
             while (j < categoryList.length)
@@ -2686,7 +2686,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getString(locale,"LivelinkConnector.PathAttributeName")+"</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathAttributeName")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"+
 "      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
 "    </td>\n"+
@@ -2703,7 +2703,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    <td class=\"description\">\n"+
 "      <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
 "      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"        <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2720,7 +2720,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (i == 0)
       {
         out.print(
-"  <tr><td colspan=\"4\" class=\"message\">"+Messages.getString(locale,"LivelinkConnector.NoMappingsSpecified")+"</td></tr>\n"
+"  <tr><td colspan=\"4\" class=\"message\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMappingsSpecified")+"</td></tr>\n"
         );
       }
       out.print(
@@ -2728,7 +2728,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getString(locale,"LivelinkConnector.AddToMappings")+"\" value=\"Add\"/>\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMappings")+"\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
@@ -3298,7 +3298,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (seenAny == false)
         {
           out.print(
-"    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.Roots")+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.Roots")+"</td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3319,7 +3319,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoStartPointsSpecified")+"</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoStartPointsSpecified")+"</td></tr>\n"
       );
     }
     out.print(
@@ -3361,7 +3361,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoFileSpecsSpecified")+"</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoFileSpecsSpecified")+"</td></tr>\n"
       );
     }
     out.print(
@@ -3384,8 +3384,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
     out.print(
 "  <tr>\n"+
-"    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.Security")+"</td>\n"+
-"    <td class=\"value\">"+(securityOn?Messages.getString(locale,"LivelinkConnector.Enabled2"):Messages.getString(locale,"LivelinkConnector.Disabled"))+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.Security")+"</td>\n"+
+"    <td class=\"value\">"+(securityOn?Messages.getBodyString(locale,"LivelinkConnector.Enabled2"):Messages.getBodyString(locale,"LivelinkConnector.Disabled"))+"</td>\n"+
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -3401,7 +3401,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.AccessTokens")+"</td>\n"+
+"  <tr><td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.AccessTokens")+"</td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3430,7 +3430,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     i = 0;
-    String allMetadata = Messages.getString(locale,"LivelinkConnector.OnlySpecifiedMetadataWillBeIngested");
+    String allMetadata = Messages.getBodyString(locale,"LivelinkConnector.OnlySpecifiedMetadataWillBeIngested");
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
@@ -3439,13 +3439,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String value = sn.getAttributeValue("all");
         if (value != null && value.equals("true"))
         {
-          allMetadata=Messages.getString(locale,"LivelinkConnector.AllDocumentMetadataWillBeIngested");
+          allMetadata=Messages.getBodyString(locale,"LivelinkConnector.AllDocumentMetadataWillBeIngested");
         }
       }
     }
     out.print(
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.MetadataSpecification")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.MetadataSpecification")+"</nobr></td>\n"+
 "    <td class=\"value\"><nobr>"+allMetadata+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -3461,7 +3461,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\"><nobr>"+Messages.getString(locale,"LivelinkConnector.SpecificMetadata")+"</nobr></td>\n"+
+"  <tr><td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SpecificMetadata")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
@@ -3485,7 +3485,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoMetadataSpecified")+"</td></tr>\n"
+"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMetadataSpecified")+"</td></tr>\n"
       );
     }
     out.print(
@@ -3508,14 +3508,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     if (pathNameAttribute.length() > 0)
     {
       out.print(
-"    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.PathNameMetadataAttribute")+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathNameMetadataAttribute")+"</td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</td>\n"
       );
     }
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoPathNameMetadataAttributeSpecified")+"</td>\n"
+"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoPathNameMetadataAttributeSpecified")+"</td>\n"
       );
     }
     out.print(
@@ -3541,7 +3541,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     if (matchMap.getMatchCount() > 0)
     {
       out.print(
-"    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.PathValueMapping")+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathValueMapping")+"</td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
@@ -3567,7 +3567,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">"+Messages.getString(locale,"LivelinkConnector.NoMappingsSpecified")+"</td>\n"
+"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMappingsSpecified")+"</td>\n"
       );
     }
     out.print(
