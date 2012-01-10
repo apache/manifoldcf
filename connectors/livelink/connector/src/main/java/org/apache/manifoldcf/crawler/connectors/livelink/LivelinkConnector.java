@@ -1656,7 +1656,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (contents.length == 0)
       {
         out.print(
-"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+NoCertificatesPresent+"</nobr></td></tr>\n"
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.NoCertificatesPresent")+"</nobr></td></tr>\n"
         );
       }
       else
@@ -1731,7 +1731,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    <td class=\"description\">"+Messages.getString(locale,"LivelinkConnector.DocumentViewProtocol")+"</td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"viewprotocol\" size=\"3\">\n"+
-"        <option value=\"\" "+((viewProtocol.equals(""))?"selected=\"selected\"":"")+">"Messages.getString(locale,"LivelinkConnector.SameAsFetchProtocol")+"</option>\n"+
+"        <option value=\"\" "+((viewProtocol.equals(""))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.SameAsFetchProtocol")+"</option>\n"+
 "        <option value=\"http\" "+((viewProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
 "        <option value=\"https\" "+((viewProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
 "      </select>\n"+
@@ -1915,7 +1915,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getString(locale,"LivelinkConnector.certificates")"></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"LivelinkConnector.certificates")+"&gt;</nobr><br/>\n"
         );
       }
       else
@@ -3337,7 +3337,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (seenAny == false)
         {
           out.print(
-"  <tr><td class=\"description\">"+FileSpecs+"</td>\n"+
+"  <tr><td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.FileSpecs")+"</td>\n"+
 "    <td class=\"value\">\n"
           );
           seenAny = true;
