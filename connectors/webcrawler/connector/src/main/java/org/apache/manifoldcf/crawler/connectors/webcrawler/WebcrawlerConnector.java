@@ -1664,7 +1664,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "  if (editconnection.trust_count.value==i)\n"+
 "    postFormSetAnchor(\"trust\");\n"+
 "  else\n"+
-"    postFormSetAnchor(\"trust_\"+i)\n"+
+"    postFormSetAnchor(\"trust_\"+i);\n"+
 "  // Undo, so we won't get two deletes next time\n"+
 "  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Continue\\\"\");\n"+
 "}\n"+
