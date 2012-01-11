@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-375: Add Japanese messages for RSS connector.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-374: Add Japanes messages for SharePoint connector.
 (Hitoshi Ozawa, Karl Wright)
 
