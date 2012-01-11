@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-377: Use Maven standards for resource directories.
+(Karl Wright)
+
 CONNECTORS-375: Add Japanese messages for RSS connector.
 (Hitoshi Ozawa, Karl Wright)
 

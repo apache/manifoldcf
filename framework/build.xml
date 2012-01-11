@@ -597,7 +597,7 @@
         <mkdir dir="build/test-jar"/>
         <jar destfile="build/test-jar/mcf-core-tests.jar">
           <fileset dir="build/core-tests/classes"/>
-          <fileset dir="core/src/test/resource"/>
+          <fileset dir="core/src/test/resources"/>
         </jar>
     </target>
 

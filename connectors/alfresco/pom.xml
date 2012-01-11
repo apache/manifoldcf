@@ -63,7 +63,7 @@
     <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
     <resources>
       <resource>
-        <directory>${basedir}/connector/src/main/resource</directory>
+        <directory>${basedir}/connector/src/main/resources</directory>
         <includes>
           <include>**/*.html</include>
           <include>**/*.js</include>
