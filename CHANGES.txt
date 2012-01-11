@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-371: Add Japanese messages for LiveLink connector.
+(Hitoshi Ozawa)
+
 CONNECTORS-372: Finish the Japanese translation of the web connector's
 strings.
 (Hitoshi Ozawa)
