@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-374: Add Japanes messages for SharePoint connector.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-373: Add Japanese messages for Solr connector.
 (Hitoshi Ozawa, Karl Wright)
 
