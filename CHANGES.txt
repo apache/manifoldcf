@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-373: Add Japanese messages for Solr connector.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-371: Add Japanese messages for LiveLink connector.
 (Hitoshi Ozawa)
 
