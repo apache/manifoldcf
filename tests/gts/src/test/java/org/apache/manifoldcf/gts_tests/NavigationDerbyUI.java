@@ -77,7 +77,10 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    // Visit the GTS tabs - MHL
+    // Visit the Appliance tab
+    link = window.findLink(testerInstance.createStringDescription("Appliance tab"));
+    link.click();
+
     // Now save the connection.
     window = testerInstance.findWindow(null);
     button = window.findButton(testerInstance.createStringDescription("Save this output connection"));
@@ -143,8 +146,16 @@ public class NavigationDerbyUI extends BaseUIDerby
     button.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editjob"));
-    // Visit all the GTS tabs
-    // MHL
+    // GTS Template
+    link = window.findLink(testerInstance.createStringDescription("GTS Template tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
+    // GTS Collections
+    link = window.findLink(testerInstance.createStringDescription("GTS Collections tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editjob"));
 
     // Save the job
     button = window.findButton(testerInstance.createStringDescription("Save this job"));
