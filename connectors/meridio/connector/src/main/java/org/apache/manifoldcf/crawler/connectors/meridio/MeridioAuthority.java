@@ -674,10 +674,10 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add("Document Server");
-    tabsArray.add("Records Server");
-    tabsArray.add("User Service Server");
-    tabsArray.add("Credentials");
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.DocumentServer"));
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.RecordsServer"));
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.UserServiceServer"));
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.Credentials"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -686,43 +686,43 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "{\n"+
 "  if (editconnection.dmwsServerPort.value != \"\" && !isInteger(editconnection.dmwsServerPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a valid number\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAValidNumber") + ");\n"+
 "    editconnection.dmwsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.rmwsServerPort.value != \"\" && !isInteger(editconnection.rmwsServerPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a valid number\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAValidNumber") + ");\n"+
 "    editconnection.rmwsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.dmwsProxyPort.value != \"\" && !isInteger(editconnection.dmwsProxyPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a valid number\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAValidNumber") + ");\n"+
 "    editconnection.dmwsProxyPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.rmwsProxyPort.value != \"\" && !isInteger(editconnection.rmwsProxyPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a valid number\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAValidNumber") + ");\n"+
 "    editconnection.rmwsProxyPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.metacartawsServerPort.value != \"\" && !isInteger(editconnection.metacartawsServerPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a valid number\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAValidNumber") + ");\n"+
 "    editconnection.metacartawsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.metacartawsProxyPort.value != \"\" && !isInteger(editconnection.metacartawsProxyPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a valid number\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAValidNumber") + ");\n"+
 "    editconnection.metacartawsProxyPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\") <= 0)\n"+
 "  {\n"+
-"    alert(\"A valid Meridio user name has the form <domain>\\<user>\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.AValidMeridioUserNameHasTheForm") + ");\n"+
 "    editconnection.userName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -733,52 +733,52 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "{\n"+
 "  if (editconnection.dmwsServerName.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please fill in a Meridio document management server name\");\n"+
-"    SelectTab(\"Document Server\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseFillInAMeridioDocumentManagementServerName") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.DocumentServer") + "\");\n"+
 "    editconnection.dmwsServerName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.rmwsServerName.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please fill in a Meridio records management server name\");\n"+
-"    SelectTab(\"Records Server\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseFillInAMeridioRecordsManagementServerName") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.RecordsServer") + "\");\n"+
 "    editconnection.rmwsServerName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.metacartawsServerName.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please fill in a User Service server name\");\n"+
-"    SelectTab(\"User Service Server\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseFillInAUserServiceServerName") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.UserServiceServer") + "\");\n"+
 "    editconnection.metacartawsServerName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "\n"+
 "  if (editconnection.dmwsServerPort.value != \"\" && !isInteger(editconnection.dmwsServerPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a Meridio document management port number, or none for default\");\n"+
-"    SelectTab(\"Document Server\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAMeridioDocumentManagementPortNumber") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.DocumentServer") + "\");\n"+
 "    editconnection.dmwsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.rmwsServerPort.value != \"\" && !isInteger(editconnection.rmwsServerPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a Meridio document management port number, or none for default\");\n"+
-"    SelectTab(\"Records Server\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAMeridioDocumentManagementPortNumber") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.RecordsServer") + "\");\n"+
 "    editconnection.rmwsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.metacartawsServerPort.value != \"\" && !isInteger(editconnection.metacartawsServerPort.value))\n"+
 "  {\n"+
-"    alert(\"Please supply a User Service port number, or none for default\");\n"+
-"    SelectTab(\"User Service Server\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.PleaseSupplyAUserServicePortNumber") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.UserServiceServer") + "\");\n"+
 "    editconnection.metacartawsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "\n"+
 "  if (editconnection.userName.value == \"\" || editconnection.userName.value.indexOf(\"\\\") <= 0)\n"+
 "  {\n"+
-"    alert(\"The connection requires a valid Meridio user name of the form <domain>\\<user>\");\n"+
-"    SelectTab(\"Credentials\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.TheConnectionRequiresAValidMeridioUserNameOfTheForm") + ");\n"+
+"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.Credentials") + "\");\n"+
 "    editconnection.userName.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -797,7 +797,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "{\n"+
 "  if (editconnection.certificate.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Choose a certificate file\");\n"+
+"    alert(" + Messages.getString(locale,"MeridioConnector.ChooseACertificateFile") + ");\n"+
 "    editconnection.certificate.focus();\n"+
 "  }\n"+
 "  else\n"+
@@ -906,31 +906,31 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     );
     
     // "Document Server" tab
-    if (tabName.equals("Document Server"))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.DocumentServer")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document webservice server protocol:</nobr></td><td class=\"value\"><select name=\"dmwsServerProtocol\"><option value=\"http\" "+(dmwsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(dmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.DocumentWebserviceServerProtocol") + "</nobr></td><td class=\"value\"><select name=\"dmwsServerProtocol\"><option value=\"http\" "+(dmwsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(dmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document webservice server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsServerName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dmwsServerName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.DocumentWebserviceServerName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsServerName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dmwsServerName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document webservice server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsServerPort\" value=\""+dmwsServerPort+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.DocumentWebserviceServerPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsServerPort\" value=\""+dmwsServerPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document webservice location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dmwsLocation)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.DocumentWebserviceLocation") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dmwsLocation)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document webservice server proxy host:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsProxyHost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.DocumentWebserviceServerProxyHost") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"dmwsProxyHost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dmwsProxyHost)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Document webservice server proxy port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsProxyPort\" value=\""+dmwsProxyPort+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.DocumentWebserviceServerProxyPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"dmwsProxyPort\" value=\""+dmwsProxyPort+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -949,31 +949,31 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     }
 
     // "Records Server" tab
-    if (tabName.equals("Records Server"))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.RecordsServer")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Record webservice server protocol:</nobr></td><td class=\"value\"><select name=\"rmwsServerProtocol\"><option value=\"http\" "+(rmwsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(rmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.RecordWebserviceServerProtocol") + "</nobr></td><td class=\"value\"><select name=\"rmwsServerProtocol\"><option value=\"http\" "+(rmwsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(rmwsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Record webservice server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsServerName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rmwsServerName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.RecordWebserviceServerName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsServerName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rmwsServerName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Record webservice server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsServerPort\" value=\""+rmwsServerPort+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.RecordWebserviceServerPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsServerPort\" value=\""+rmwsServerPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Record webservice location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rmwsLocation)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.RecordWebserviceLocation") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rmwsLocation)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Record webservice server proxy host:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsProxyHost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.RecordWebserviceServerProxyHost") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"rmwsProxyHost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(rmwsProxyHost)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Record webservice server proxy port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsProxyPort\" value=\""+rmwsProxyPort+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.RecordWebserviceServerProxyPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"rmwsProxyPort\" value=\""+rmwsProxyPort+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -992,7 +992,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     }
 
     // The "User Service Server" tab
-    if (tabName.equals("User Service Server"))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.UserServiceServer")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
@@ -1001,22 +1001,22 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "    <td class=\"description\"><nobr>User webservice server protocol:</nobr></td><td class=\"value\"><select name=\"metacartawsServerProtocol\"><option value=\"http\" "+(metacartawsServerProtocol.equals("http")?"selected=\"true\"":"")+">http</option><option value=\"https\" "+(metacartawsServerProtocol.equals("https")?"selected=\"true\"":"")+">https</option></select></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User webservice server name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsServerName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metacartawsServerName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.UserWebserviceServerName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsServerName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metacartawsServerName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User webservice server port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"metacartawsServerPort\" value=\""+metacartawsServerPort+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.UserWebserviceServerPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"metacartawsServerPort\" value=\""+metacartawsServerPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User webservice location:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metacartawsLocation)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.UserWebserviceLocation") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metacartawsLocation)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\" colspan=\"2\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User webservice server proxy host:</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsProxyHost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.UserWebserviceServerProxyHost") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"64\" name=\"metacartawsProxyHost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metacartawsProxyHost)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User webservice server proxy port:</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"metacartawsProxyPort\" value=\""+metacartawsProxyPort+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.UserWebserviceServerProxyPort") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"5\" name=\"metacartawsProxyPort\" value=\""+metacartawsProxyPort+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1043,19 +1043,19 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       );
     }
 
-    if (tabName.equals("Credentials"))
+    if (tabName.equals(Messages.getString(locale,"MeridioConnector.Credentials")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>User name:</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.UserName") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>Password:</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.Password") + "</nobr></td><td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>SSL certificate list:</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.SSLCertificateList") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"hidden\" name=\"keystorealias\" value=\"\"/>\n"+
 "      <table class=\"displaytable\">\n"
@@ -1065,7 +1065,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       if (contents.length == 0)
       {
         out.print(
-"        <tr><td class=\"message\" colspan=\"2\"><nobr>No certificates present</nobr></td></tr>\n"
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getString(locale,"MeridioConnector.NoCertificatesPresent") + "</nobr></td></tr>\n"
         );
       }
       else
@@ -1079,7 +1079,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:DeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\"Delete cert "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:DeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\"" + Messages.getString(locale,"MeridioConnector.DeleteCert") + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -1089,7 +1089,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick=\"Javascript:AddCertificate()\" alt=\"Add cert\" value=\"Add\"/>&nbsp;\n"+
+"      <input type=\"button\" onclick=\"Javascript:AddCertificate()\" alt=\"" + Messages.getString(locale,"MeridioConnector.AddCert") + "\" value=\"Add\"/>&nbsp;\n"+
 "        Certificate:&nbsp;<input name=\"certificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -1277,7 +1277,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>Parameters:</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"MeridioConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();
@@ -1295,7 +1295,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getString(locale,"MeridioConnector.certificates") + "></nobr><br/>\n"
         );
       }
       else
