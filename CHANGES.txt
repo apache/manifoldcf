@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-376: Provide Japanese localization of Meridio connector.
+(Hitoshi Ozawa, Karl Wright)
+
+CONNECTORS-379: Internationalize Meridio connector.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-377: Use Maven standards for resource directories.
 (Karl Wright)
 
