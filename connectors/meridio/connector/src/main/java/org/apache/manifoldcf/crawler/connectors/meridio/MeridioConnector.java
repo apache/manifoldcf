@@ -2206,7 +2206,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     tabsArray.add(Messages.getString(locale,"MeridioConnector.ContentTypes"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.Categories"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.DataTypes"));
-    tabsArray.add(Messages.getString(locale,"MeridioConnector.Security")");
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.Security"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.Metadata"));
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -2864,7 +2864,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       {
         e.printStackTrace();
         out.print(
-"    <td class=\"message\" colspan=\"4\">" + ServiceInterruption + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
+"    <td class=\"message\" colspan=\"4\">" + Messages.getString(locale,"MeridioConnector.ServiceInterruption") + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"</td>\n"
         );
       }
       catch (ManifoldCFException e)
@@ -3653,7 +3653,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     if (matchMap.getMatchCount() > 0)
     {
       out.print(
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.PathValueMapping")＋”</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getString(locale,"MeridioConnector.PathValueMapping") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
