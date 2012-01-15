@@ -15,7 +15,9 @@
  limitations under the License.
 -->
 
-<project default="all">
+<project name="alfresco-connector" default="all">
+
+    <import file="../connector-build.xml"/>
 
     <target name="clean">
         <delete dir="build"/>

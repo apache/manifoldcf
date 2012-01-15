@@ -15,23 +15,7 @@
  limitations under the License.
 -->
 
-<project name="jdbc-connector" default="all">
+<project name="mcf-common-build">
 
-    <import file="../connector-build.xml"/>
 
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="jdbc-drivers" includes="*.jar"/>
-        </copy>
-    </target>
-
-    <target name="download-ojdbc"/>
-
-    <target name="download-jtds">
-        <get src="http://repo1.maven.org/maven2/net/sourceforge/jtds/jtds/1.2.4/jtds-1.2.4.jar" dest="jdbc-drivers"/>
-    </target>
-
-    <target name="download-dependencies" depends="download-ojdbc,download-jtds"/>
-    
 </project>

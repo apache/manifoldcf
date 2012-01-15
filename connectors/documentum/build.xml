@@ -15,12 +15,9 @@
  limitations under the License.
 -->
 
-<project default="all">
+<project name="documentum-connector" default="all">
 
-    <target name="clean">
-        <delete dir="build"/>
-        <delete dir="dist"/>
-    </target>
+    <import file="../connector-build.xml"/>
 
     <target name="calculate-condition">
         <available file="dfc/dfc.jar" property="dfcStatus"/>
@@ -39,51 +36,14 @@
         <echo message="Documentum Connector cannot be built without dfc.jar, dfcbase.jar, and dctm.jar"/>
     </target>
 
-    <target name="doc" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.5">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-            </classpath>
-            <fileset dir="connector/src/main/java" includes="**/*.java"/>
-            <fileset dir="interface/src/main/java" includes="**/*.java"/>
-        </javadoc>
-    </target>
+    <path id="implementation-classpath">
+        <path refid="mcf-connector-build.implementation-classpath"/>
+        <fileset dir="dfc"> 
+            <include name="*.jar"/> 
+        </fileset> 
+    </path>
 
-    <target name="compile-interface" depends="precompile-check" if="canBuild">
-        <mkdir dir="build/interface/classes"/>
-        <javac srcdir="interface/src/main/java" destdir="build/interface/classes" classpath="" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source"/>
-    </target>
-
-    <target name="compile-implementation" depends="compile-interface,precompile-check" if="canBuild">
-        <mkdir dir="build/implementation/classes"/>
-        <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath id="implementation.classpath">
-                <fileset dir="dfc"> 
-                    <include name="*.jar"/> 
-                </fileset> 
-                <pathelement location="build/interface/classes"/>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="rmic-build">
-        <rmic base="build/rmijava" classname="${classname}">
-            <classpath id="rmi.classpath">
-                <fileset dir="dfc"> 
-                    <include name="*.jar"/> 
-                </fileset> 
-                <pathelement location="build/interface/classes"/>
-                <pathelement location="build/implementation/classes"/>
-            </classpath>
-        </rmic>
-    </target>
-    
-    <target name="compile-rmic" depends="compile-implementation,compile-interface,precompile-check" if="canBuild">
-        <mkdir dir="build/rmijava"/>
-        <copy todir="build/rmijava">
-            <fileset dir="implementation/src/main/java"/>
-        </copy>
+    <target name="rmic-build-all" depends="compile-implementation,compile-interface,setup-rmic,has-RMI-check" if="hasRMI">
         <!-- The ant version I have doesn't seem to handle class specifications based on file names, so this is the best I could come up with -->
         <antcall target="rmic-build">
             <param name="classname" value="org.apache.manifoldcf.crawler.common.DCTM.DocumentumFactoryImpl"/>
@@ -97,139 +57,14 @@
         <antcall target="rmic-build">
             <param name="classname" value="org.apache.manifoldcf.crawler.common.DCTM.DocumentumResultImpl"/>
         </antcall>
-        <mkdir dir="build/rmiskel/classes"/>
-        <copy todir="build/rmiskel/classes">
-            <fileset dir="build/rmijava">
-                <include name="**/*_Skel.class"/>
-            </fileset>
-        </copy>
-        <mkdir dir="build/rmistub/classes"/>
-        <copy todir="build/rmistub/classes">
-            <fileset dir="build/rmijava">
-                <include name="**/*_Stub.class"/>
-            </fileset>
-        </copy>
     </target>
     
-    <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,precompile-check" if="canBuild">
-        <mkdir dir="build/server/classes"/>
-        <javac srcdir="server/src/main/java" destdir="build/server/classes" classpath="build/interface/classes:build/implementation/classes:build/rmistub/classes:build/rmiskel/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source"/>
-    </target>
-
-    <target name="compile-registry" depends="compile-interface,precompile-check" if="canBuild">
-        <mkdir dir="build/registry/classes"/>
-        <javac srcdir="registry/src/main/java" destdir="build/registry/classes" classpath="build/interface/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source"/>
-    </target>
-
-    <target name="compile-connector" depends="compile-interface,compile-rmic,precompile-check" if="canBuild">
-        <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-                <pathelement location="build/interface/classes"/>
-                <pathelement location="build/rmistub/classes"/>
-            </classpath>
-        </javac>
-        <native2ascii encoding="UTF-8" src="connector/src/main/native2ascii" dest="build/connector/classes" includes="**/*.properties" />
-    </target>
-
-    <target name="jar-interface" depends="compile-interface,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-interface.jar" basedir="build/interface/classes"/>
-    </target>
-
-    <target name="jar-implementation" depends="compile-implementation,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-implementation.jar" basedir="build/implementation/classes"/>
-    </target>
-
-    <target name="jar-rmiskel" depends="compile-rmic,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-rmiskel.jar" basedir="build/rmiskel/classes"/>
-    </target>
-
-    <target name="jar-rmistub" depends="compile-rmic,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-rmistub.jar" basedir="build/rmistub/classes"/>
-    </target>
-
-    <target name="jar-server" depends="compile-server,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-server.jar" basedir="build/server/classes"/>
-    </target>
-
-    <target name="jar-registry" depends="compile-registry,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-registry.jar" basedir="build/registry/classes"/>
-    </target>
     
-    <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-documentum-connector.jar">
-        	<fileset dir="build/connector/classes"/>
-          <!-- fileset dir="connector/src/main/resource"/ -->
-        </jar>
-    </target>
-
-    <target name="lib" depends="jar-interface,jar-rmistub,jar-connector,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="build/jar">
-                <include name="mcf-documentum-connector.jar"/>
-                <include name="mcf-documentum-rmistub.jar"/>
-                <include name="mcf-documentum-interface.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,precompile-check" if="canBuild">
+    <target name="server-process" depends="mcf-connector-build.server-process,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/server-process/jar"/>
-        <mkdir dir="dist/server-process/script"/>
         <copy todir="dist/server-process/jar">
             <fileset dir="dfc" includes="*.jar"/>
         </copy>
-        <copy todir="dist/server-process/jar">
-            <fileset dir="build/jar">
-                <include name="mcf-document-server.jar"/>
-                <include name="mcf-documentum-interface.jar"/>
-                <include name="mcf-documentum-rmiskel.jar"/>
-                <include name="mcf-documentum-implementation.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/server-process/script">
-            <fileset dir="server-scripts">
-                <include name="*.sh"/>
-                <include name="*.bat"/>
-            </fileset>
-        </copy>
     </target>
-
-    <target name="registry-process" depends="jar-registry,precompile-check" if="canBuild">
-        <mkdir dir="dist/registry-process/jar"/>
-        <mkdir dir="dist/registry-process/script"/>
-        <copy todir="dist/registry-process/jar">
-            <fileset dir="build/jar">
-                <include name="mcf-documentum-registry.jar"/>
-                <include name="mcf-documentum-interface.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/registry-process/script">
-            <fileset dir="registry-scripts">
-                <include name="*.sh"/>
-                <include name="*.bat"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="build" depends="lib,server-process,registry-process"/>
-    <target name="build-tests" depends="lib,server-process,registry-process,precompile-check" if="canBuild">
-      <mkdir dir="build/test-jar"/>
-    </target>
-    <target name="run-tests"/>
-    <target name="run-tests-derby"/>
-    <target name="run-tests-postgresql"/>
-    <target name="run-tests-mysql"/>
-    <target name="run-tests-HSQLDB"/>
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
 
 </project>

@@ -15,48 +15,13 @@
  limitations under the License.
 -->
 
-<project default="all">
+<project name="cmis-connector" default="all">
 
-    <target name="clean">
-        <delete dir="build"/>
-        <delete dir="dist"/>
-        <delete dir="test-derby-output"/>
-    </target>
+    <import file="../connector-build.xml"/>
     
-    <target name="doc">
-        <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.5">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-            </classpath>
-            <fileset dir="connector/src/main/java" includes="**/*.java"/>
-        </javadoc>
-    </target>
-
-    <target name="compile-connector">
-        <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-            </classpath>
-        </javac>
-        <native2ascii encoding="UTF-8" src="connector/src/main/native2ascii" dest="build/connector/classes" includes="**/*.properties" />
-    </target>
-
-    <target name="jar-connector" depends="compile-connector">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-cmis-connector.jar">
-        	<fileset dir="build/connector/classes"/>
-          <fileset dir="connector/src/main/resources"/>
-        </jar>
-    </target>
-
-    <target name="lib" depends="jar-connector">
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="build/jar">
-                <include name="mcf-cmis-connector.jar"/>
-            </fileset>
             <fileset dir="lib">
                 <include name="chemistry*.jar"/>
                 <include name="saaj*.jar"/>
@@ -75,26 +40,7 @@
         </copy>
     </target>
 
-    <target name="compile-tests" depends="compile-connector">
-        <mkdir dir="build/connector-tests/classes"/>
-        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <pathelement location="build/connector/classes"/>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="build" depends="lib"/>
-    <target name="build-tests" depends="lib">
-      <mkdir dir="build/test-jar"/>
-    </target>
-    
-    <target name="run-tests"/>
-    
-    <target name="run-tests-derby" depends="compile-tests">
+    <target name="run-tests-derby" depends="build-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
@@ -110,13 +56,5 @@
             <!-- MHL -->
         </junit>
     </target>
-    
-    <target name="run-tests-postgresql"/>
-    
-    <target name="run-tests-mysql"/>
-    
-    <target name="run-tests-HSQLDB"/>
-    
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
     
 </project>

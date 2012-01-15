@@ -15,12 +15,9 @@
  limitations under the License.
 -->
 
-<project default="all">
+<project name="memex-connector" default="all">
 
-    <target name="clean">
-        <delete dir="build"/>
-        <delete dir="dist"/>
-    </target>
+    <import file="../connector-build.xml"/>
 
     <target name="calculate-condition">
         <available file="mxie-java/JavaMXIELIB.jar" property="mxieStatus"/>
@@ -33,49 +30,16 @@
         <echo message="Memex Connector cannot be built without JavaMXIELIB.jar"/>
     </target>
 
-    <target name="doc" depends="precompile-check" if="canBuild">
-        <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" classpath="mxie-java/JavaMXIELIB.jar:lib/servlet-api.jar:lib/jdbcpool-0.99.jar:lib/postgresql.jar:lib/commons-fileupload.jar:lib/serializer.jar:lib/log4j-1.2.jar:lib/commons-logging.jar:lib/commons-httpclient-lcf.jar:lib/mcf-core.jar:lib/mcf-agents.jar:lib/mcf-pull-agent.jar:lib/xml-apis.jar:lib/xalan2.jar:lib/commons-collections.jar:lib/commons-codec.jar:lib/commons-io.jar" source="1.5">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-                <fileset dir="mxie-java" includes="*.jar"/>
-            </classpath>
-            <fileset dir="connector/src/main/java" includes="**/*.java"/>
-        </javadoc>
-    </target>
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="mxie-java" includes="*.jar"/>
+    </path>
 
-    <target name="compile-connector" depends="precompile-check" if="canBuild">
-        <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" classpath="${classpath}" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-                <fileset dir="mxie-java" includes="*.jar"/>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-memex-connector.jar" basedir="build/connector/classes"/>
-    </target>
-
-    <target name="lib" depends="jar-connector,precompile-check" if="canBuild">
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/mcf-memex-connector.jar"/>
         <copy todir="dist/lib">
             <fileset dir="mxie-java" includes="*.jar"/>
         </copy>
     </target>
 
-    <target name="build" depends="lib"/>
-    <target name="build-tests">
-      <mkdir dir="build/test-jar"/>
-    </target>
-    <target name="run-tests"/>
-    <target name="run-tests-derby"/>
-    <target name="run-tests-postgresql"/>
-    <target name="run-tests-mysql"/>
-    <target name="run-tests-HSQLDB"/>
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
-    
 </project>

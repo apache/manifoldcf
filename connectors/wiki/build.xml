@@ -15,77 +15,10 @@
  limitations under the License.
 -->
 
-<project default="all">
+<project name="wiki-connector" default="all">
 
-    <target name="clean">
-        <delete dir="build"/>
-        <delete dir="dist"/>
-        <delete dir="test-derby-output"/>
-        <delete dir="test-postgresql-output"/>
-        <delete dir="test-mysql-output"/>
-        <delete dir="test-HSQLDB-output"/>
-    </target>
+    <import file="../connector-build.xml"/>
 
-    <target name="doc">
-        <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.5">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-            </classpath>
-            <fileset dir="connector/src/main/java" includes="**/*.java"/>
-        </javadoc>
-    </target>
-
-    <target name="compile-connector">
-        <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                <fileset dir="lib" includes="*.jar"/>
-            </classpath>
-        </javac>
-        <native2ascii encoding="UTF-8" src="connector/src/main/native2ascii" dest="build/connector/classes" includes="**/*.properties" />
-    </target>
-
-    <target name="compile-connector-tests" depends="compile-connector">
-        <mkdir dir="build/connector-tests/classes"/>
-        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-                <pathelement location="build/connector/classes"/>
-            </classpath>
-        </javac>
-    </target>
-    
-    <target name="compile-tests" depends="compile-connector-tests"/>
-
-    <target name="jar-connector" depends="compile-connector">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-wiki-connector.jar">
-        	<fileset dir="build/connector/classes"/>
-          <!-- fileset dir="connector/src/main/resource"/ -->
-        </jar>
-    </target>
-
-    <target name="lib" depends="jar-connector">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/mcf-wiki-connector.jar"/>
-    </target>
-
-    <target name="jar-connector-tests" depends="compile-connector-tests">
-        <mkdir dir="build/test-jar"/>
-        <jar destfile="build/test-jar/mcf-wiki-connector-tests.jar" basedir="build/connector-tests/classes"/>
-    </target>
-
-    <target name="build" depends="lib"/>
-    
-    <target name="build-tests" depends="jar-tests,lib"/>
-
-    <target name="jar-tests" depends="jar-connector-tests"/>
-
-    <target name="run-tests" depends="compile-tests"/>
-    
     <target name="run-tests-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -154,7 +87,5 @@
             
         </junit>
     </target>
-    
-    <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
     
 </project>

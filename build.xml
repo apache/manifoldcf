@@ -73,6 +73,11 @@
         <delete dir="connectors/webcrawler/lib"/>
         <ant dir="connectors/wiki" target="clean"/>
         <delete dir="connectors/wiki/lib"/>
+        
+        <ant dir="tests/activedirectory" target="clean"/>
+        <ant dir="tests/alfresco" target="clean"/>
+        <ant dir="tests/cmis" target="clean"/>
+
     </target>
 
     <target name="cleanup-afterbuild">
@@ -127,6 +132,7 @@
         <delete dir="connectors/webcrawler/lib"/>
         <ant dir="connectors/wiki" target="clean"/>
         <delete dir="connectors/wiki/lib"/>
+        
     </target>
     
     <target name="build-site">
@@ -2142,29 +2148,6 @@
         </javac>
     </target>
 
-    <target name="compile-activedirectory-tests" depends="build-framework,build-activedirectory-connector,calculate-activedirectory-tests-condition,build-tests-activedirectory-connector" if="activedirectory-tests.include">
-        <mkdir dir="build/activedirectory-tests/classes"/>
-        <javac srcdir="tests/activedirectory/src/test/java" destdir="build/activedirectory-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/activedirectory/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/activedirectory/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="compile-solr-tests" depends="build-framework,build-filesystem-connector,build-solr-connector,calculate-solr-tests-condition,build-tests-filesystem-connector,build-tests-solr-connector" if="solr-tests.include">
         <mkdir dir="build/solr-tests/classes"/>
         <javac srcdir="tests/solr/src/test/java" destdir="build/solr-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -2339,90 +2322,8 @@
         </javac>
     </target>
 
-    <target name="compile-alfresco-tests" depends="build-framework,build-alfresco-connector,build-nulloutput-connector,calculate-alfresco-tests-condition,build-tests-alfresco-connector,build-tests-nulloutput-connector" if="alfresco-tests.include">
-        <mkdir dir="build/alfresco-tests/classes"/>
-        <javac srcdir="tests/alfresco/src/test/java" destdir="build/alfresco-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-cmis-tests" depends="build-framework,build-cmis-connector,build-nulloutput-connector,calculate-cmis-tests-condition,build-tests-cmis-connector,build-tests-nulloutput-connector" if="cmis-tests.include">
-        <mkdir dir="build/cmis-tests/classes"/>
-        <javac srcdir="tests/cmis/src/test/java" destdir="build/cmis-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="run-activedirectory-UI-tests-derby" depends="compile-activedirectory-tests,calculate-activedirectory-tests-condition" if="activedirectory-tests.include">
-        <mkdir dir="test-derby-output/activedirectory"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/activedirectory" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/activedirectory/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/activedirectory/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/activedirectory-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.activedirectory_tests.NavigationDerbyUI" todir="test-derby-output/activedirectory"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-activedirectory-UI-tests-derby" depends="build-tests-framework,build-tests-activedirectory-connector,calculate-activedirectory-tests-condition" if="activedirectory-tests.include">
+        <ant dir="tests/activedirectory" target="run-UI-derby"/>
     </target>
 
     <target name="run-filesystem-tests-derby" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
@@ -2991,177 +2892,24 @@
         </junit>
     </target>
     
-    <target name="run-alfresco-tests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-derby-output/alfresco"/>
-        <junit fork="true" dir="test-derby-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-Xms512m"/>
-            <jvmarg value="-Xmx1024m"/>
-            <jvmarg value="-Xss1024k"/>
-            <jvmarg value="-XX:MaxPermSize=256m"/>
-            <jvmarg value="-XX:NewSize=256m"/>
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-              
-            <test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-derby-output/alfresco"/>
-        	
-        </junit>
+    <target name="run-alfresco-tests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-derby"/>
     </target>
 
-    <target name="run-cmis-tests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-derby-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-            <test name="org.apache.manifoldcf.cmis_tests.APISanityIT" todir="test-derby-output/cmis"/>
-
-        </junit>
+    <target name="run-cmis-tests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-derby"/>
     </target>
 
-    <target name="run-cmis-UI-tests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-derby-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.cmis_tests.NavigationDerbyUI" todir="test-derby-output/cmis"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-cmis-UI-tests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-UI-derby"/>
     </target>
 
-    <target name="run-cmis-loadtests-derby" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-derby-output/cmis"/>
-        <junit fork="true" maxmemory="1024m" dir="test-derby-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-        </junit>
+    <target name="run-cmis-loadtests-derby" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-load-derby"/>
     </target>
     
-    <target name="run-alfresco-loadtests-derby" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-derby-output/alfresco"/>
-        <junit fork="true" maxmemory="1024m" dir="test-derby-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-        </junit>
+    <target name="run-alfresco-loadtests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-load-derby"/>
     </target>
 
     <target name="run-sharepoint-tests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
@@ -3512,266 +3260,36 @@
         </junit>
     </target>
 
-    <target name="run-alfresco-tests-postgresql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-postgresql-output/alfresco"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	<!-- test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-postgresql-output/alfresco"/ -->
-        </junit>
+    <target name="run-alfresco-tests-postgresql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-postgresql"/>
     </target>
 
-    <target name="run-alfresco-tests-mysql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-mysql-output/alfresco"/>
-        <junit fork="true" maxmemory="128m" dir="test-mysql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	<!-- test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-mysql-output/alfresco"/ -->
-        </junit>
+    <target name="run-alfresco-tests-mysql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-mysql"/>
     </target>
 
-    <target name="run-cmis-tests-postgresql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-postgresql-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-            <!-- MHL -->
-        </junit>
+    <target name="run-cmis-tests-postgresql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-postgresql"/>
     </target>
 
-    <target name="run-cmis-tests-mysql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-mysql-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-mysql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-            <!-- MHL -->
-        </junit>
+    <target name="run-cmis-tests-mysql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-mysql"/>
     </target>
 
-    <target name="run-alfresco-loadtests-postgresql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-postgresql-output/alfresco"/>
-        <junit fork="true" maxmemory="1024m" dir="test-postgresql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        </junit>
+    <target name="run-alfresco-loadtests-postgresql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-load-postgresql"/>
     </target>
 
-    <target name="run-alfresco-loadtests-mysql" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-mysql-output/alfresco"/>
-        <junit fork="true" maxmemory="1024m" dir="test-mysql-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        </junit>
+    <target name="run-alfresco-loadtests-mysql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-load-mysql"/>
     </target>
 
-    <target name="run-cmis-loadtests-postgresql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-postgresql-output/cmis"/>
-        <junit fork="true" maxmemory="1024m" dir="test-postgresql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-        </junit>
+    <target name="run-cmis-loadtests-postgresql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-load-postgresql"/>
     </target>
 
-    <target name="run-cmis-loadtests-mysql" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-mysql-output/cmis"/>
-        <junit fork="true" maxmemory="1024m" dir="test-mysql-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-        </junit>
+    <target name="run-cmis-loadtests-mysql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-load-mysql"/>
     </target>
 
     <target name="run-filesystem-tests-HSQLDB" depends="compile-filesystem-tests,calculate-filesystem-tests-condition" if="filesystem-tests.include">
@@ -4046,141 +3564,20 @@
         </junit>
     </target>
 
-    <target name="run-alfresco-tests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-HSQLDB-output/alfresco"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	  <!-- test name="org.apache.manifoldcf.alfresco_tests.APISanityIT" todir="test-HSQLDB-output/alfresco"/ -->
-        	 
-        </junit>
+    <target name="run-alfresco-tests-HSQLDB" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-HSQLDB"/>
     </target>
 
-    <target name="run-cmis-tests-HSQLDB" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-HSQLDB-output/cmis"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/libr">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-        </junit>
+    <target name="run-cmis-tests-HSQLDB" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-HSQLDB"/>
     </target>
     
-    <target name="run-alfresco-loadtests-HSQLDB" depends="compile-alfresco-tests,calculate-alfresco-tests-condition" if="alfresco-tests.include">
-        <mkdir dir="test-HSQLDB-output/alfresco"/>
-        <junit fork="true" maxmemory="1024m" dir="test-HSQLDB-output/alfresco" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-            	<fileset dir="lib">
-            	            <include name="h2*.jar"/>
-            	          </fileset>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/alfresco/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/alfresco-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-       	
-        </junit>
+    <target name="run-alfresco-loadtests-HSQLDB" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+        <ant dir="tests/alfresco" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-cmis-loadtests-HSQLDB" depends="compile-cmis-tests,calculate-cmis-tests-condition" if="cmis-tests.include">
-        <mkdir dir="test-HSQLDB-output/cmis"/>
-        <junit fork="true" maxmemory="1024m" dir="test-HSQLDB-output/cmis" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/cmis/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/cmis-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-	    
-        	
-        </junit>
+    <target name="run-cmis-loadtests-HSQLDB" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
+        <ant dir="tests/cmis" target="run-load-HSQLDB"/>
     </target>
 
     <target name="run-sharepoint-tests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
