@@ -2693,7 +2693,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getJavascriptString(locale,"MeridioConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
+"        <input type=\"button\" value=\"Delete\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2719,7 +2719,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getJavascriptString(locale,"MeridioConnector.AddAccessToken") + "\"/>\n"+
+"        <input type=\"button\" value=\"Add\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddAccessToken") + "\"/>\n"+
 "      </a>&nbsp;\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2894,7 +2894,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\"><input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
 "      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecDeleteMapping(Integer.toString(i),\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getJavascriptString(locale,"MeridioConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
+"        <input type=\"button\" onClick='Javascript:SpecDeleteMapping(Integer.toString(i),\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"MeridioConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
@@ -2915,7 +2915,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
 "      <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getJavascriptString(locale,"MeridioConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
+"        <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"MeridioConnector.AddToMappings") + "\" value=\"Add\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">" + Messages.getBodyString(locale,"MeridioConnector.MatchRegexp") + "&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></td>\n"+
