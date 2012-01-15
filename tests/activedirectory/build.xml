@@ -19,22 +19,4 @@
 
     <import file="../test-build.xml"/>
     
-    <target name="run-UI-derby" depends="mcf-test-build.run-UI-derby">
-        <mkdir dir="test-derby-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
-            <classpath>
-                <path refid="test-classpath"/>
-                <pathelement location="build/test/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.activedirectory_tests.NavigationDerbyUI" todir="test-derby-output"/>
-            <!-- MHL -->
-        </junit>
-    </target>
-
-
 </project>

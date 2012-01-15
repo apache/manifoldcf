@@ -19,7 +19,7 @@
 
     <import file="../ino-test-build.xml"/>
     
-    <target name="run-derby" depends="mcf-ino-test-build.run-derby">
+    <target name="run-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
@@ -37,7 +37,7 @@
         </junit>
     </target>
 
-    <target name="run-UI-derby" depends="mcf-ino-test-build.run-UI-derby">
+    <target name="run-UI-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>

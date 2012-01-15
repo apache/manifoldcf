@@ -19,7 +19,7 @@
 
     <import file="../ino-test-build.xml"/>
     
-    <target name="run-derby" depends="mcf-ino-test-build.run-derby">
+    <target name="run-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
