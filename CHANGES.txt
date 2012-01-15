@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-382: Add more Japanese localization for JDBC connector.
+(Hitoshi Ozawa)
+
 CONNECTORS-376: Provide Japanese localization of Meridio connector.
 (Hitoshi Ozawa, Karl Wright)
 
