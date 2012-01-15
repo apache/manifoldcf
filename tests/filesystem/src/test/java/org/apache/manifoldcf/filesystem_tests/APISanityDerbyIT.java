@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: APISanity.java 996524 2010-09-13 13:38:01Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,36 +18,39 @@
 */
 package org.apache.manifoldcf.filesystem_tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
+/** This is a very basic sanity check */
+public class APISanityDerbyIT extends BaseDerby
 {
-  protected String[] getConnectorNames()
+  protected APISanityTester tester;
+  
+  public APISanityDerbyIT()
   {
-    return new String[]{"File Connector"};
+    tester = new APISanityTester(mcfInstance);
   }
   
-  protected String[] getConnectorClasses()
+  @Before
+  public void setupTester()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    tester.setupTestArea();
   }
   
-  protected String[] getOutputNames()
+  @After
+  public void teardownTester()
+    throws Exception
   {
-    return new String[]{"Null Output"};
+    tester.teardownTestArea();
   }
   
-  protected String[] getOutputClasses()
+  @Test
+  public void sanityCheck()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+    tester.executeTest();
   }
-
+  
 }

@@ -1,4 +1,4 @@
-/* $Id: APISanity.java 996524 2010-09-13 13:38:01Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,14 +22,14 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class APISanityIT extends BaseDerby
+/** This is a test which checks to be sure hopcount functionality is working properly. */
+public class HopcountDerbyIT extends BaseDerby
 {
-  protected APISanityTester tester;
+  protected HopcountTester tester;
   
-  public APISanityIT()
+  public HopcountDerbyIT()
   {
-    tester = new APISanityTester(mcfInstance);
+    tester = new HopcountTester(mcfInstance);
   }
   
   @Before
@@ -47,7 +47,7 @@ public class APISanityIT extends BaseDerby
   }
   
   @Test
-  public void sanityCheck()
+  public void hopcountCheck()
     throws Exception
   {
     tester.executeTest();

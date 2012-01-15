@@ -1,4 +1,4 @@
-/* $Id: Sanity.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,14 +22,14 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a very basic sanity check */
-public class SanityIT extends BaseDerby
+/** This is a test which checks to see if document expiration works properly. */
+public class ExpirationDerbyIT extends BaseDerby
 {
-  protected SanityTester tester;
+  protected ExpirationTester tester;
   
-  public SanityIT()
+  public ExpirationDerbyIT()
   {
-    tester = new SanityTester(mcfInstance);
+    tester = new ExpirationTester(mcfInstance);
   }
   
   @Before
@@ -47,10 +47,9 @@ public class SanityIT extends BaseDerby
   }
   
   @Test
-  public void sanityCheck()
+  public void expirationCheck()
     throws Exception
   {
     tester.executeTest();
   }
- 
 }

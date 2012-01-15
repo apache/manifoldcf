@@ -117,36 +117,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     button = window.findButton(testerInstance.createStringDescription("Save this connection"));
     button.click();
     
-    // Define an authority connection via the UI
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List authorities"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add a new connection"));
-    link.click();
-    // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
-    textarea.setValue(testerInstance.createStringDescription("MyAuthorityConnection"));
-    link = window.findLink(testerInstance.createStringDescription("Type tab"));
-    link.click();
-    // Select a type
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
-    button.click();
-    // Go back to the Name tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Name tab"));
-    link.click();
-    // Now save the connection.
-    window = testerInstance.findWindow(null);
-    button = window.findButton(testerInstance.createStringDescription("Save this authority connection"));
-    button.click();
-
     // Create a job
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("List jobs"));
@@ -228,14 +198,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     loop.breakWhenTrue(isJobNotPresent);
     loop.endLoop();
     
-    // Delete the authority connection
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List authorities"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Delete MyAuthorityConnection"));
-    link.click();
-
     // Delete the repository connection
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("List repository connections"));

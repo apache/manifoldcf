@@ -16,41 +16,28 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.filesystem_tests;
+package org.apache.manifoldcf.nullauthority_tests;
+
+import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.crawler.interfaces.*;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a test which checks to be sure hopcount functionality is working properly. */
-public class HopcountIT extends BaseDerby
+/** Tests that run the "agents daemon" should be derived from this */
+public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
 {
-  protected HopcountTester tester;
-  
-  public HopcountIT()
+  protected String[] getAuthorityClasses()
   {
-    tester = new HopcountTester(mcfInstance);
+    return new String[]{"org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"};
   }
   
-  @Before
-  public void setupTester()
-    throws Exception
+  protected String[] getAuthorityNames()
   {
-    tester.setupTestArea();
+    return new String[]{"Null authority"};
   }
-  
-  @After
-  public void teardownTester()
-    throws Exception
-  {
-    tester.teardownTestArea();
-  }
-  
-  @Test
-  public void hopcountCheck()
-    throws Exception
-  {
-    tester.executeTest();
-  }
-  
+
 }
