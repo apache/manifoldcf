@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright 2002-2004 The Apache Software Foundation
 
@@ -15,7 +15,7 @@
   limitations under the License.
 -->
 
-<site label="ManifoldCF" href="" xmlns="http://apache.org/forrest/linkmap/1.0">
+<site label="ManifoldCF" href="" xmlns="http://apache.org/forrest/linkmap/1.0" tab="main">
 
   <project label="About">
     <news        label="Welcome"          href="index.html" />    
@@ -74,5 +74,19 @@
     <sponsor   href="http://www.apache.org/foundation/sponsorship.html" />
     <thanks    href="http://www.apache.org/foundation/thanks.html" />
   </external-refs>
+
+  <japanese label="日本語" href="ja_JP/" tab="ja_JP">
+    <index label="概要" href="index.html" tab="ja_JP"/>
+    <docs label="ドキュメント">
+      <dev label="ダウンロード" href="download_ja_JP.html" />
+      <dev label="概要" href="concepts_ja_JP.html"/>
+      <dev label="コネクタ一覧" href="included-connectors_ja_JP.html"/>
+      <dev label="Ｑ＆Ａ" href="faq_ja_JP.html"/>
+      <dev label="Javadoc" href="javadoc_ja_JP.html"/>
+      <mail label="メーリングリスト"    href="mail_ja_JP.html" />   
+      <dev label="開発者リソース" href="developer-resources_ja_JP.html"/>
+      <dev label="エンドユーザマニュアル (HTML)" href="end-user-documentation_ja_JP.html"/>
+    </docs>
+  </japanese>
  
 </site>

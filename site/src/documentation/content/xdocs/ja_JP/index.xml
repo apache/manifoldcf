@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
           "http://forrest.apache.org/dtd/document-v20.dtd">
@@ -23,15 +23,15 @@
 <document> 
 
   <header> 
-    <title>Welcome to ManifoldCF!</title> 
+    <title>ManifoldCFにようこそ！</title> 
   </header> 
 
   <body> 
     <section>
-	<title>What Is ManifoldCF?</title>
-	<p>ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr or OpenSearchServer.  ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
+	<title>ManifoldCFとは？</title>
+	<p>ManifoldCFとは、マイクロソフトSharepointやEMC DocumentumのようなソースコンテンツリポジトリをApache SolrやOpenSearchServerのようなターゲットリポジトリ及び索引に接続するオープンソースフレームワークである。ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
 	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC connector, an RSS feed connector, a Wiki connector, and a general web connector.
-            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS and OpenSearchServer.  The complete repository compatibility list can be found <a href="included-connectors.html">here</a>.</p>
+            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS and OpenSearchServer.  The complete repository compatibility list can be found <a href="included-connectors_ja_JP.html">here</a>.</p>
 	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
     </section>
 
@@ -43,7 +43,7 @@
     
     <section>
 	<title>Project status</title>
-	<p>Apache ManifoldCF 0.3-incubating is available!  Download it <a href="download.html">here</a>.</p>
+	<p>Apache ManifoldCF 0.3-incubating is available!  Download it <a href="download_ja_JP.html">here</a>.</p>
     </section>
 
     <section>
@@ -54,10 +54,6 @@
 
     <section>
         <title>News</title>
-          <section>
-             <title>18 Dec 2011 - ManifoldCF 0.4-incubating release candidate generated</title>
-                <p>Developer community reviews first release candidate for the ManifoldCF 0.4-incubating release</p>
-          </section>
           <section>
              <title>08 Nov 2011 - ManifoldCF in Vancouver</title>
                 <p>ManifoldCF general talk planned for Apache North America 2011, Vancouver, British Columbia, Canada</p>

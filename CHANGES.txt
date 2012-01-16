@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-336: Add Japanese documentation.
+(Hitoshi Ozawa)
+
 CONNECTORS-383: Add more Japanese localization for JCIFS connector.
 (Hitoshi Ozawa)
 
