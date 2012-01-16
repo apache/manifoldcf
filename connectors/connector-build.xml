@@ -187,10 +187,11 @@
                 <path refid="connector-classpath"/>
             </classpath>
             <fileset dir="interface/src/main/java" includes="**/*.java"/>
+            <fileset dir="connector/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
 
-    <target name="doc" depends="doc-rmi,compile-wsdls,compile-xsds,precompile-check" if="canBuild">
+    <target name="doc" depends="doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
         <mkdir dir="dist/doc"/>
         <javadoc destdir="dist/doc" source="1.5">
             <classpath>

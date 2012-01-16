@@ -27,7 +27,7 @@
         </condition>
     </target>
 
-    <target name="calculate-testcode-condition">
+    <target name="calculate-testcode-condition" depends="calculate-condition" if="canBuild">
         <available file="alfresco-war/alfresco.war" property="alfrescoTestcodeStatus"/>
         <condition property="canTest">
             <isset property="alfrescoTestcodeStatus"/>
