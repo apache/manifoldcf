@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="jcifs-connector" default="all">
+<project name="jcifs" default="all">
 
     <import file="../ino-test-build.xml"/>
     

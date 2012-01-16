@@ -80,6 +80,10 @@
         <ant dir="tests/filesystem" target="clean"/>
         <ant dir="tests/gts" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
+        <ant dir="tests/solr" target="clean"/>
+        <ant dir="tests/jcifs" target="clean"/>
+        <ant dir="tests/jdbc" target="clean"/>
+        <ant dir="tests/sharepoint" target="clean"/>
         <ant dir="tests/webcrawler" target="clean"/>
         <ant dir="tests/wiki" target="clean"/>
 
@@ -2059,122 +2063,6 @@
       </condition>
     </target>
 
-    <target name="compile-jcifs-tests" depends="build-framework,build-jcifs-connector,build-nulloutput-connector,calculate-jcifs-tests-condition,build-tests-jcifs-connector,build-tests-nulloutput-connector" if="jcifs-tests.include">
-        <mkdir dir="build/jcifs-tests/classes"/>
-        <javac srcdir="tests/jcifs/src/test/java" destdir="build/jcifs-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jcifs/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jcifs/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-jdbc-tests" depends="build-framework,build-jdbc-connector,build-nulloutput-connector,calculate-jdbc-tests-condition,build-tests-jdbc-connector,build-tests-nulloutput-connector" if="jdbc-tests.include">
-        <mkdir dir="build/jdbc-tests/classes"/>
-        <javac srcdir="tests/jdbc/src/test/java" destdir="build/jdbc-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jdbc/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jdbc/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-solr-tests" depends="build-framework,build-filesystem-connector,build-solr-connector,calculate-solr-tests-condition,build-tests-filesystem-connector,build-tests-solr-connector" if="solr-tests.include">
-        <mkdir dir="build/solr-tests/classes"/>
-        <javac srcdir="tests/solr/src/test/java" destdir="build/solr-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/solr/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/solr/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-sharepoint-tests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
-        <mkdir dir="build/sharepoint-tests/classes"/>
-        <javac srcdir="tests/sharepoint/src/test/java" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="run-activedirectory-UI-tests-derby" depends="build-tests-framework,build-tests-activedirectory-connector,calculate-activedirectory-tests-condition" if="activedirectory-tests.include">
         <ant dir="tests/activedirectory" target="run-UI-derby"/>
     </target>
@@ -2191,106 +2079,16 @@
         <ant dir="tests/filesystem" target="run-load-derby"/>
     </target>
 
-    <target name="run-jcifs-UI-tests-derby" depends="compile-jcifs-tests,calculate-jcifs-tests-condition" if="jcifs-tests.include">
-        <mkdir dir="test-derby-output/jcifs"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/jcifs" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jcifs/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jcifs/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/jcifs-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.jcifs_tests.NavigationDerbyUI" todir="test-derby-output/jcifs"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-jcifs-UI-tests-derby" depends="build-tests-framework,build-tests-jcifs-connector,build-tests-nulloutput-connector,calculate-jcifs-tests-condition" if="jcifs-tests.include">
+        <ant dir="tests/jcifs" target="run-UI-derby"/>
     </target>
 
-    <target name="run-jdbc-UI-tests-derby" depends="compile-jdbc-tests,calculate-jdbc-tests-condition" if="jdbc-tests.include">
-        <mkdir dir="test-derby-output/jdbc"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/jdbc" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jdbc/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/jdbc/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/jdbc-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.jdbc_tests.NavigationDerbyUI" todir="test-derby-output/jdbc"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-jdbc-UI-tests-derby" depends="build-tests-framework,build-tests-jdbc-connector,build-tests-nulloutput-connector,calculate-jdbc-tests-condition" if="jdbc-tests.include">
+        <ant dir="tests/jdbc" target="run-UI-jdbc"/>
     </target>
 
-    <target name="run-solr-UI-tests-derby" depends="compile-solr-tests,calculate-solr-tests-condition" if="solr-tests.include">
-        <mkdir dir="test-derby-output/solr"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/solr" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/solr/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/solr/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/solr-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.solr_tests.NavigationDerbyUI" todir="test-derby-output/solr"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-solr-UI-tests-derby" depends="build-tests-framework,build-tests-solr-connector,build-tests-filesystem-connector,calculate-solr-tests-condition" if="solr-tests.include">
+        <ant dir="tests/solr" target="run-UI-derby"/>
     </target>
 
     <target name="run-gts-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-gts-connector,calculate-gts-tests-condition" if="gts-tests.include">
@@ -2353,70 +2151,12 @@
         <ant dir="tests/alfresco" target="run-load-derby"/>
     </target>
 
-    <target name="run-sharepoint-tests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-derby-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-tests-derby" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-derby"/>
     </target>
 
-    <target name="run-sharepoint-loadtests-derby" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-derby-output/sharepoint"/>
-        <junit fork="true" maxmemory="256m" dir="test-derby-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-loadtests-derby" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-load-derby"/>
     </target>
 
     <target name="run-filesystem-tests-postgresql" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
@@ -2499,136 +2239,20 @@
         <ant dir="tests/wiki" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-sharepoint-tests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-postgresql-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-tests-postgresql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-postgresql"/>
     </target>
 
-    <target name="run-sharepoint-tests-mysql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-mysql-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-mysql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-tests-mysql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-mysql"/>
     </target>
 
-    <target name="run-sharepoint-loadtests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-postgresql-output/sharepoint"/>
-        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-loadtests-postgresql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-load-postgreql"/>
     </target>
 
-    <target name="run-sharepoint-loadtests-mysql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-mysql-output/sharepoint"/>
-        <junit fork="true" maxmemory="256m" dir="test-mysql-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-loadtests-mysql" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-load-mysql"/>
     </target>
 
     <target name="run-alfresco-tests-HSQLDB" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
@@ -2647,70 +2271,12 @@
         <ant dir="tests/cmis" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-sharepoint-tests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-HSQLDB-output/sharepoint"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-tests-HSQLDB" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-HSQLDB"/>
     </target>
 
-    <target name="run-sharepoint-loadtests-HSQLDB" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
-        <mkdir dir="test-HSQLDB-output/sharepoint"/>
-        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/sharepoint" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/sharepoint/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/sharepoint-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-sharepoint-loadtests-HSQLDB" depends="build-tests-framework,build-tests-sharepoint-connector,build-tests-nulloutput-connector,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">
+        <ant dir="tests/sharepoint" target="run-load-HSQLDB"/>
     </target>
 
     <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector"/>
