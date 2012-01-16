@@ -60,7 +60,13 @@
         <available file="build.xml" property="canBuild"/>
     </target>
 
+    <target name="calculate-testcode-condition" depends="calculate-condition" if="canBuild">
+        <available file="build.xml" property="canTest"/>
+    </target>
+
     <target name="precompile-check" depends="calculate-condition" unless="canBuild"/>
+
+    <target name="pretest-check" depends="calculate-testcode-condition" unless="canTest"/>
 
     <target name="has-native2ascii-check" depends="precompile-check" if="canBuild">
         <available file="connector/src/main/native2ascii" property="hasNative2Ascii"/>
@@ -384,6 +390,8 @@
     <target name="build" depends="lib,server-process,registry-process,integration"/>
     
     <target name="build-tests" depends="build,jar-tests"/>
+
+    <target name="build-test-materials"/>
 
     <target name="run-tests"/>
     <target name="run-tests-derby"/>
