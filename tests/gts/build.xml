@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="gts-connector" default="all">
+<project name="gts" default="all">
 
     <import file="../ifs-test-build.xml"/>
     

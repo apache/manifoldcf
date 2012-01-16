@@ -78,6 +78,7 @@
         <ant dir="tests/alfresco" target="clean"/>
         <ant dir="tests/cmis" target="clean"/>
         <ant dir="tests/filesystem" target="clean"/>
+        <ant dir="tests/gts" target="clean"/>
         
     </target>
 
@@ -2142,64 +2143,6 @@
         </javac>
     </target>
 
-    <target name="compile-gts-tests" depends="build-framework,build-filesystem-connector,build-gts-connector,calculate-gts-tests-condition,build-tests-filesystem-connector,build-tests-gts-connector" if="gts-tests.include">
-        <mkdir dir="build/gts-tests/classes"/>
-        <javac srcdir="tests/gts/src/test/java" destdir="build/gts-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/gts/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/gts/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-rss-tests" depends="build-framework,build-rss-connector,build-nulloutput-connector,calculate-rss-tests-condition,build-tests-rss-connector,build-tests-nulloutput-connector" if="rss-tests.include">
-        <mkdir dir="build/rss-tests/classes"/>
-        <javac srcdir="tests/rss/src/test/java" destdir="build/rss-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="compile-webcrawler-tests" depends="build-framework,build-webcrawler-connector,build-nulloutput-connector,calculate-webcrawler-tests-condition,build-tests-webcrawler-connector,build-tests-nulloutput-connector" if="webcrawler-tests.include">
         <mkdir dir="build/webcrawler-tests/classes"/>
         <javac srcdir="tests/webcrawler/src/test/java" destdir="build/webcrawler-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -2405,212 +2348,28 @@
         </junit>
     </target>
 
-    <target name="run-gts-UI-tests-derby" depends="compile-gts-tests,calculate-gts-tests-condition" if="gts-tests.include">
-        <mkdir dir="test-derby-output/gts"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/gts" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/filesystem/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/gts/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/gts/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/gts-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.gts_tests.NavigationDerbyUI" todir="test-derby-output/gts"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-gts-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-gts-connector,calculate-gts-tests-condition" if="gts-tests.include">
+        <ant dir="tests/gts" target="run-UI-derby"/>
     </target>
 
-    <target name="run-rss-UI-tests-derby" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
-        <mkdir dir="test-derby-output/rss"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/rss-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.rss_tests.NavigationDerbyUI" todir="test-derby-output/rss"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-rss-UI-tests-derby" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
+        <ant dir="tests/rss" target="run-UI-derby"/>
     </target>
 
-    <target name="run-rss-loadtests-derby" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
-        <mkdir dir="test-derby-output/rss"/>
-        <junit fork="true" maxmemory="384m" dir="test-derby-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/rss-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.rss_tests.BigCrawlDerbyLT" todir="test-derby-output/rss"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-rss-loadtests-derby" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
+        <ant dir="tests/rss" target="run-load-derby"/>
     </target>
 
-    <target name="run-rss-loadtests-postgresql" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
-        <mkdir dir="test-postgresql-output/rss"/>
-        <junit fork="true" maxmemory="384m" dir="test-postgresql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/rss-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.rss_tests.BigCrawlPostgresqlLT" todir="test-postgresql-output/rss"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-rss-loadtests-postgresql" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
+        <ant dir="tests/rss" target="run-load-postgresql"/>
     </target>
 
-    <target name="run-rss-loadtests-mysql" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
-        <mkdir dir="test-mysql-output/rss"/>
-        <junit fork="true" maxmemory="384m" dir="test-mysql-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/rss-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.rss_tests.BigCrawlMySQLLT" todir="test-mysql-output/rss"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-rss-loadtests-mysql" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
+        <ant dir="tests/rss" target="run-load-mysql"/>
     </target>
 
-    <target name="run-rss-loadtests-HSQLDB" depends="compile-rss-tests,calculate-rss-tests-condition" if="rss-tests.include">
-        <mkdir dir="test-HSQLDB-output/rss"/>
-        <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output/rss" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/rss/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/rss-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.rss_tests.BigCrawlHSQLDBLT" todir="test-HSQLDB-output/rss"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-rss-loadtests-HSQLDB" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
+        <ant dir="tests/rss" target="run-load-HSQLDB"/>
     </target>
 
     <target name="run-webcrawler-UI-tests-derby" depends="compile-webcrawler-tests,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">

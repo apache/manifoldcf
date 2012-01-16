@@ -19,5 +19,37 @@
 <project name="mcf-ifs-test-build">
 
     <import file="test-build.xml"/>
+
+    <path id="mcf-ifs-test-build.test-classpath">
+        <path refid="mcf-test-build.test-classpath"/>
+        <fileset dir="../../connectors/filesystem/dist/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="../../connectors/filesystem/build/test-jar">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="test-classpath">
+        <path refid="mcf-ifs-test-build.test-classpath"/>
+    </path>
+
+    <target name="run-derby" depends="mcf-test-build.run-derby"/>
+    <target name="run-postgresql" depends="mcf-test-build.run-postgresql"/>
+    <target name="run-HSQLDB" depends="mcf-test-build.run-HSQLDB"/>
+    <target name="run-HSQLDBext" depends="mcf-test-build.run-HSQLDBext"/>
+    <target name="run-mysql" depends="mcf-test-build.run-mysql"/>
+    
+    <target name="run-load-derby" depends="mcf-test-build.run-load-derby"/>
+    <target name="run-load-postgresql" depends="mcf-test-build.run-load-postgresql"/>
+    <target name="run-load-HSQLDB" depends="mcf-test-build.run-load-HSQLDB"/>
+    <target name="run-load-HSQLDBext" depends="mcf-test-build.run-load-HSQLDBext"/>
+    <target name="run-load-mysql" depends="mcf-test-build.run-load-mysql"/>
+    
+    <target name="run-UI-derby" depends="mcf-test-build.run-UI-derby"/>
+    <target name="run-UI-postgresql" depends="mcf-test-build.run-UI-postgresql"/>
+    <target name="run-UI-HSQLDB" depends="mcf-test-build.run-UI-HSQLDB"/>
+    <target name="run-UI-HSQLDBext" depends="mcf-test-build.run-UI-HSQLDBext"/>
+    <target name="run-UI-mysql" depends="mcf-test-build.run-UI-mysql"/>
     
 </project>

@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="rss-connector" default="all">
+<project name="rss" default="all">
 
     <import file="../ino-test-build.xml"/>
     
