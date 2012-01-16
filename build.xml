@@ -79,7 +79,10 @@
         <ant dir="tests/cmis" target="clean"/>
         <ant dir="tests/filesystem" target="clean"/>
         <ant dir="tests/gts" target="clean"/>
-        
+        <ant dir="tests/rss" target="clean"/>
+        <ant dir="tests/webcrawler" target="clean"/>
+        <ant dir="tests/wiki" target="clean"/>
+
     </target>
 
     <target name="cleanup-afterbuild">
@@ -2143,64 +2146,6 @@
         </javac>
     </target>
 
-    <target name="compile-webcrawler-tests" depends="build-framework,build-webcrawler-connector,build-nulloutput-connector,calculate-webcrawler-tests-condition,build-tests-webcrawler-connector,build-tests-nulloutput-connector" if="webcrawler-tests.include">
-        <mkdir dir="build/webcrawler-tests/classes"/>
-        <javac srcdir="tests/webcrawler/src/test/java" destdir="build/webcrawler-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/webcrawler/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/webcrawler/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="compile-wiki-tests" depends="build-framework,build-wiki-connector,build-nulloutput-connector,calculate-wiki-tests-condition,build-tests-wiki-connector,build-tests-nulloutput-connector" if="wiki-tests.include">
-        <mkdir dir="build/wiki-tests/classes"/>
-        <javac srcdir="tests/wiki/src/test/java" destdir="build/wiki-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-                 <fileset dir="framework/lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-            </classpath>
-        </javac>
-    </target>
-
     <target name="compile-sharepoint-tests" depends="build-framework,build-sharepoint-connector,build-nulloutput-connector,calculate-sharepoint-tests-condition,build-tests-sharepoint-connector,build-tests-nulloutput-connector" if="sharepoint-tests.include">
         <mkdir dir="build/sharepoint-tests/classes"/>
         <javac srcdir="tests/sharepoint/src/test/java" destdir="build/sharepoint-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
@@ -2372,143 +2317,20 @@
         <ant dir="tests/rss" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-webcrawler-UI-tests-derby" depends="compile-webcrawler-tests,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
-        <mkdir dir="test-derby-output/webcrawler"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/webcrawler" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/webcrawler/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/webcrawler/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/webcrawler-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.webcrawler_tests.NavigationDerbyUI" todir="test-derby-output/webcrawler"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-webcrawler-UI-tests-derby" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <ant dir="tests/webcrawler" target="run-UI-derby"/>
     </target>
 
-    <target name="run-wiki-tests-derby" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-derby-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.wiki_tests.SanityDerbyIT" todir="test-derby-output/wiki"/>
-            <!-- MHL -->
-
-        </junit>
+    <target name="run-wiki-tests-derby" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-derby"/>
     </target>
 
-    <target name="run-wiki-UI-tests-derby" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-derby-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-derby-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.wiki_tests.NavigationDerbyUI" todir="test-derby-output/wiki"/>
-            <!-- MHL -->
-        </junit>
+    <target name="run-wiki-UI-tests-derby" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-UI-derby"/>
     </target>
 
-    <target name="run-wiki-loadtests-derby" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-derby-output/wiki"/>
-        <junit fork="true" maxmemory="256m" dir="test-derby-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-wiki-loadtests-derby" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-load-derby"/>
     </target>
     
     <target name="run-alfresco-tests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
@@ -2613,142 +2435,20 @@
         <ant dir="tests/filesystem" target="run-load-mysql"/>
     </target>
 
-    <target name="run-wiki-tests-postgresql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-postgresql-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-postgresql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-wiki-tests-postgresql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-postgresql"/>
     </target>
 
-    <target name="run-wiki-tests-mysql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-mysql-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-mysql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-wiki-tests-mysql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-mysql"/>
     </target>
 
-    <target name="run-wiki-loadtests-postgresql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-postgresql-output/wiki"/>
-        <junit fork="true" maxmemory="256m" dir="test-postgresql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-            
-        </junit>
+    <target name="run-wiki-loadtests-postgresql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-load-postgresql"/>
     </target>
 
-    <target name="run-wiki-loadtests-mysql" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-mysql-output/wiki"/>
-        <junit fork="true" maxmemory="256m" dir="test-mysql-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-            
-        </junit>
+    <target name="run-wiki-loadtests-mysql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-load-mysql"/>
     </target>
 
     <target name="run-alfresco-tests-postgresql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
@@ -2791,72 +2491,12 @@
         <ant dir="tests/filesystem" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-wiki-tests-HSQLDB" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-HSQLDB-output/wiki"/>
-        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-wiki-tests-HSQLDB" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-HSQLDB"/>
     </target>
 
-    <target name="run-wiki-loadtests-HSQLDB" depends="compile-wiki-tests,calculate-wiki-tests-condition" if="wiki-tests.include">
-        <mkdir dir="test-HSQLDB-output/wiki"/>
-        <junit fork="true" maxmemory="256m" dir="test-HSQLDB-output/wiki" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <fileset dir="framework/lib">
-                    <include name="*.jar"/>
-                </fileset>
-	      <fileset dir="framework/build/jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="framework/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/wiki/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/dist/lib">
-		<include name="*.jar"/>
-	      </fileset>
-	      <fileset dir="connectors/nulloutput/build/test-jar">
-		<include name="*.jar"/>
-	      </fileset>
-                <pathelement location="build/wiki-tests/classes"/>
-                <pathelement location="tests/wiki/src/test/resources"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <!-- MHL -->
-        </junit>
+    <target name="run-wiki-loadtests-HSQLDB" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
+        <ant dir="tests/wiki" target="run-load-HSQLDB"/>
     </target>
 
     <target name="run-sharepoint-tests-postgresql" depends="compile-sharepoint-tests,calculate-sharepoint-tests-condition" if="sharepoint-tests.include">

@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="wiki-connector" default="all">
+<project name="wiki" default="all">
 
     <import file="../ino-test-build.xml"/>
     

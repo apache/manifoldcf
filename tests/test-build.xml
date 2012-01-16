@@ -51,13 +51,13 @@
     </path>
 
     <target name="has-resources-check">
-        <available file="src/main/resources" property="hasResources"/>
+        <available file="src/test/resources" property="hasResources"/>
     </target>
 
     <target name="compile-test-resources" depends="has-resources-check" if="hasResources">
         <mkdir dir="build/test/classes"/>
         <copy todir="build/test/classes">
-            <fileset dir="src/main/resources"/>
+            <fileset dir="src/test/resources"/>
         </copy>
     </target>
 
