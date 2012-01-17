@@ -19,18 +19,4 @@
 
     <import file="../connector-build.xml"/>
 
-    <target name="run-tests" depends="compile-tests">
-        <mkdir dir="test-output"/>
-        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <classpath>
-                <path refid="connector-test-classpath"/>
-                <pathelement location="build/connector-tests/classes"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-
-            <test name="org.apache.manifoldcf.crawler.connectors.rss.tests.URLTest" todir="test-output"/>
-            <!-- MHL -->
-        </junit>
-    </target>
-
 </project>

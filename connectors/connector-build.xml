@@ -117,12 +117,20 @@
     </target>
 
     <target name="calculate-testcode-condition" depends="calculate-condition" if="canBuild">
-        <available file="build.xml" property="canTest"/>
+        <available file="connector/src/test/java" property="canTest"/>
     </target>
 
     <target name="precompile-check" depends="calculate-condition" unless="canBuild"/>
 
     <target name="pretest-check" depends="calculate-testcode-condition" unless="canTest"/>
+
+    <target name="has-tests-check" depends="precompile-check" if="canBuild">
+        <available file="connector/src/test/java" property="hasTests"/>
+    </target>
+
+    <target name="has-test-resources-check" depends="has-tests-check" if="hasTests">
+        <available file="connector/src/test/resources" property="hasTestResources"/>
+    </target>
 
     <target name="has-native2ascii-check" depends="precompile-check" if="canBuild">
         <available file="connector/src/main/native2ascii" property="hasNative2Ascii"/>
@@ -147,14 +155,6 @@
         </condition>
     </target>
     
-    <target name="has-tests-check" depends="precompile-check" if="canBuild">
-        <available file="connector/src/test" property="hasTests"/>
-    </target>
-
-    <target name="has-test-resources-check" depends="has-tests-check" if="hasTests">
-        <available file="connector/src/test/resources" property="hasTestResources"/>
-    </target>
-
     <target name="classcreate-wsdl">
         <mkdir dir="build/wsdljava"/>
         <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true">
@@ -493,13 +493,103 @@
 
     <target name="build-test-materials"/>
 
-    <target name="run-tests"/>
-    <target name="run-tests-derby"/>
-    <target name="run-tests-postgresql"/>
-    <target name="run-tests-mysql"/>
-    <target name="run-tests-HSQLDB"/>
-    <target name="run-tests-HSQLDBext"/>
+    <target name="run-tests" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*Test.class"/>
+                    <exclude name="**/*DerbyTest.class"/>
+                    <exclude name="**/*PostgresqlTest.class"/>
+                    <exclude name="**/*MySQLTest.class"/>
+                    <exclude name="**/*HSQLDBTest.class"/>
+                    <exclude name="**/*HSQLDBextTest.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="run-tests-derby" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-derby-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+            <batchtest todir="test-derby-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*DerbyTest.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
     
+    <target name="run-tests-postgresql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-postgresql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-postgresql-output" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <batchtest todir="test-postgresql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*PostgresqlTest.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="run-tests-mysql" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-mysql-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-mysql-output" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <batchtest todir="test-mysql-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*MySQLTest.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="run-tests-HSQLDB" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDB-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <batchtest todir="test-HSQLDB-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBTest.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="run-tests-HSQLDBext" depends="compile-tests,has-tests-check" if="hasTests">
+        <mkdir dir="test-HSQLDBext-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="connector-test-classpath"/>
+                <pathelement location="build/connector-tests/classes"/>
+            </classpath>
+            <batchtest todir="test-HSQLDBext-output">
+                <fileset dir="build/connector-tests/classes">
+                    <include name="**/*HSQLDBextTest.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
     <target name="download-dependencies"/>
 
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
