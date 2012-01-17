@@ -30,7 +30,47 @@
     </target>
 
     <path id="mcf-connector-build.connector-classpath">
-        <fileset dir="lib" includes="*.jar"/>
+        <fileset dir="../../build/jar">
+            <include name="json.jar"/>
+        </fileset>
+        <fileset dir="../../lib">
+            <include name="commons-codec*.jar"/>
+            <include name="commons-collections*.jar"/>
+            <include name="commons-el*.jar"/>
+            <include name="commons-fileupload*.jar"/>
+            <include name="commons-httpclient-mcf.jar"/>
+            <include name="commons-io*.jar"/>
+            <include name="commons-lang*.jar"/>
+            <include name="commons-logging*.jar"/>
+            <include name="eclipse*.jar"/>
+            <include name="jasper*.jar"/>
+            <include name="jetty*.jar"/>
+            <include name="jdbcpool-0.99.jar"/>
+            <include name="jsp-2.1*.jar"/>
+            <include name="jsp-api*.jar"/>
+            <include name="junit*.jar"/>
+            <include name="log4j*.jar"/>
+            <include name="serializer*.jar"/>
+            <include name="servlet-api*.jar"/>
+            <include name="tomcat-juli*.jar"/>
+            <include name="xalan*.jar"/>
+            <include name="xercesImpl-mcf.jar"/>
+            <include name="xml-apis*.jar"/>
+        </fileset>
+        <fileset dir="../../lib">
+            <include name="axis*.jar"/>
+            <include name="saaj*.jar"/>
+            <include name="wsdl*.jar"/>
+            <include name="commons-discovery*.jar"/>
+            <include name="activation*.jar"/>
+        </fileset>
+        <fileset dir="../../lib">
+            <include name="castor*.jar"/>
+            <include name="geronimo-activation_1.1_spec*.jar"/>
+            <include name="geronimo-javamail_1.4_spec*.jar"/>
+            <include name="commons-discovery*.jar"/>
+        </fileset>
+        <fileset dir="../../framework/build/jar"/>
         <pathelement location="build/wsdlclasses"/>
         <pathelement location="build/xsdclasses"/>
         <pathelement location="build/interface/classes"/>
@@ -39,6 +79,22 @@
     
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
+    </path>
+
+    <path id="mcf-connector-build.connector-test-classpath">
+        <path refid="connector-classpath"/>
+        <pathelement location="build/connector/classes"/>
+        <fileset dir="../../framework/build/test-jar"/>
+        <fileset dir="../../lib">
+            <include name="postgresql*.jar"/>
+            <include name="derby*.jar"/>
+            <include name="hsqldb*.jar"/>
+            <include name="mysql*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
     </path>
 
     <path id="mcf-connector-build.implementation-classpath">
@@ -103,7 +159,14 @@
         <mkdir dir="build/wsdljava"/>
         <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true">
             <classpath>
-                <fileset dir="lib" includes="*.jar"/>
+                <fileset dir="../../lib">
+                    <include name="axis*.jar"/>
+                    <include name="saaj*.jar"/>
+                    <include name="wsdl*.jar"/>
+                    <include name="activation*.jar"/>
+                    <include name="commons-discovery*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
             </classpath>
             <arg value="--timeout"/>
             <arg value="0"/>
@@ -118,8 +181,11 @@
         <mkdir dir="build/xsdjava"/>
         <java classname="org.exolab.castor.builder.SourceGeneratorMain" fork="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
+                <fileset dir="../../lib">
+                    <include name="castor*.jar"/>
+                    <include name="geronimo-activation_1.1_spec*.jar"/>
+                    <include name="geronimo-javamail_1.4_spec*.jar"/>
+                    <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
             <arg value="-i"/>
@@ -142,7 +208,14 @@
         <mkdir dir="build/wsdlclasses"/>
         <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                <fileset dir="lib" includes="*.jar"/>
+                <fileset dir="../../lib">
+                    <include name="axis*.jar"/>
+                    <include name="saaj*.jar"/>
+                    <include name="wsdl*.jar"/>
+                    <include name="activation*.jar"/>
+                    <include name="commons-discovery*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
             </classpath>
         </javac>
     </target>
@@ -157,7 +230,9 @@
         <mkdir dir="build/xsdclasses"/>
         <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                <fileset dir="lib" includes="*.jar"/>
+                <fileset dir="../../lib">
+                    <include name="castor*.jar"/>
+                </fileset>
             </classpath>
         </javac>
     </target>
@@ -287,8 +362,7 @@
         <mkdir dir="build/connector-tests/classes"/>
         <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="connector-classpath"/>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
             </classpath>
         </javac>
     </target>
@@ -345,7 +419,31 @@
         <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-interface.jar"/>
     </target>
     
-    <target name="lib" depends="lib-rmi,jar-connector,precompile-check" if="canBuild">
+    <target name="lib-wsdls" depends="has-wsdls-check" if="hasWSDLs">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="axis*.jar"/>
+                <include name="saaj*.jar"/>
+                <include name="wsdl*.jar"/>
+                <include name="activation*.jar"/>
+                <include name="commons-discovery*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="lib-xsds" depends="has-xsds-check" if="hasXSDs">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="castor*.jar"/>
+                <include name="geronimo-activation_1.1_spec*.jar"/>
+                <include name="geronimo-javamail_1.4_spec*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="lib" depends="lib-rmi,lib-wsdls,lib-xsds,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}.jar"/>
     </target>

@@ -23,10 +23,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>

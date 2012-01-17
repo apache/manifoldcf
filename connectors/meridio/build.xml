@@ -90,18 +90,4 @@
         </copy>
     </target>
 
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="castor*.jar"/>
-                <include name="geronimo-activation_1.1_spec*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
 </project>

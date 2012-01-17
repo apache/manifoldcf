@@ -19,10 +19,17 @@
 
     <import file="../connector-build.xml"/>
 
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="../../lib">
+            <include name="poi*.jar"/>
+        </fileset>
+    </path>
+    
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="lib">
+            <fileset dir="../../lib">
                 <include name="poi*.jar"/>
             </fileset>
         </copy>

@@ -45,15 +45,32 @@
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="alfresco-ws-client" includes="*.jar"/>
+        <fileset dir="../../lib">
+            <include name="axis*.jar"/>	
+            <include name="commons-discovery*.jar"/>
+            <include name="jaxrpc*.jar"/>
+            <include name="mail*.jar"/>
+            <include name="opensaml*.jar"/>
+            <include name="wsdl4j*.jar"/>
+            <include name="wss4j*.jar"/>
+            <!--include name="xalan*.jar"/-->
+            <!--include name="xercesImpl*.jar"/-->
+            <include name="xmlsec*.jar"/>
+        </fileset>
     </path>
 
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset file="../../lib/h2*.jar"/>
+    </path>
+    
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="alfresco-ws-client">
                 <include name="alfresco-web-service-client*.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../../lib">
                 <include name="axis*.jar"/>	
                 <include name="commons-discovery*.jar"/>
                 <include name="jaxrpc*.jar"/>
@@ -61,8 +78,8 @@
                 <include name="opensaml*.jar"/>
                 <include name="wsdl4j*.jar"/>
                 <include name="wss4j*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
+                <!--include name="xalan*.jar"/-->
+                <!--include name="xercesImpl*.jar"/-->
                 <include name="xmlsec*.jar"/>
             </fileset>
         </copy>
@@ -81,13 +98,7 @@
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <fileset dir="alfresco-ws-client">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>

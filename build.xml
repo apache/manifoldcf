@@ -32,47 +32,26 @@
         <delete dir="test-HSQLDBext-output"/>
         <ant dir="site" target="clean"/>
         <ant dir="framework" target="clean"/>
-        <delete dir="framework/lib"/>
         <ant dir="connectors/alfresco" target="clean"/>
-        <delete dir="connectors/alfresco/lib"/>
         <ant dir="connectors/cmis" target="clean"/>
-        <delete dir="connectors/cmis/lib"/>
         <ant dir="connectors/activedirectory" target="clean"/>
-        <delete dir="connectors/activedirectory/lib"/>
         <ant dir="connectors/documentum" target="clean"/>
-        <delete dir="connectors/documentum/lib"/>
         <ant dir="connectors/filenet" target="clean"/>
-        <delete dir="connectors/filenet/lib"/>
         <ant dir="connectors/filesystem" target="clean"/>
-        <delete dir="connectors/filesystem/lib"/>
         <ant dir="connectors/gts" target="clean"/>
-        <delete dir="connectors/gts/lib"/>
         <ant dir="connectors/jcifs" target="clean"/>
-        <delete dir="connectors/jcifs/lib"/>
         <ant dir="connectors/jdbc" target="clean"/>
-        <delete dir="connectors/jdbc/lib"/>
         <ant dir="connectors/livelink" target="clean"/>
-        <delete dir="connectors/livelink/lib"/>
         <ant dir="connectors/solr" target="clean"/>
-        <delete dir="connectors/solr/lib"/>
         <ant dir="connectors/memex" target="clean"/>
-        <delete dir="connectors/memex/lib"/>
         <ant dir="connectors/meridio" target="clean"/>
-        <delete dir="connectors/meridio/lib"/>
         <ant dir="connectors/opensearchserver" target="clean"/>
-        <delete dir="connectors/opensearchserver/lib"/>
         <ant dir="connectors/nullauthority" target="clean"/>
-        <delete dir="connectors/nullauthority/lib"/>
         <ant dir="connectors/nulloutput" target="clean"/>
-        <delete dir="connectors/nulloutput/lib"/>
         <ant dir="connectors/rss" target="clean"/>
-        <delete dir="connectors/rss/lib"/>
         <ant dir="connectors/sharepoint" target="clean"/>
-        <delete dir="connectors/sharepoint/lib"/>
         <ant dir="connectors/webcrawler" target="clean"/>
-        <delete dir="connectors/webcrawler/lib"/>
         <ant dir="connectors/wiki" target="clean"/>
-        <delete dir="connectors/wiki/lib"/>
         
         <ant dir="tests/activedirectory" target="clean"/>
         <ant dir="tests/alfresco" target="clean"/>
@@ -99,49 +78,40 @@
         <delete dir="test-HSQLDBext-output"/>
         <ant dir="site" target="clean"/>
         <ant dir="framework" target="clean"/>
-        <delete dir="framework/lib"/>
         <ant dir="connectors/alfresco" target="clean"/>
-        <delete dir="connectors/alfresco/lib"/>
         <ant dir="connectors/cmis" target="clean"/>
-        <delete dir="connectors/cmis/lib"/>
         <ant dir="connectors/activedirectory" target="clean"/>
-        <delete dir="connectors/activedirectory/lib"/>
         <ant dir="connectors/documentum" target="clean"/>
-        <delete dir="connectors/documentum/lib"/>
         <ant dir="connectors/filenet" target="clean"/>
-        <delete dir="connectors/filenet/lib"/>
-        <delete dir="connectors/filesystem/build"/>
-        <delete dir="connectors/filesystem/dist"/>
-        <delete dir="connectors/filesystem/lib"/>
+        <ant dir="connectors/filesystem" target="clean"/>
         <ant dir="connectors/gts" target="clean"/>
-        <delete dir="connectors/gts/lib"/>
         <ant dir="connectors/jcifs" target="clean"/>
-        <delete dir="connectors/jcifs/lib"/>
         <ant dir="connectors/jdbc" target="clean"/>
-        <delete dir="connectors/jdbc/lib"/>
         <ant dir="connectors/livelink" target="clean"/>
-        <delete dir="connectors/livelink/lib"/>
         <ant dir="connectors/solr" target="clean"/>
-        <delete dir="connectors/solr/lib"/>
         <ant dir="connectors/memex" target="clean"/>
-        <delete dir="connectors/memex/lib"/>
         <ant dir="connectors/meridio" target="clean"/>
-        <delete dir="connectors/meridio/lib"/>
         <ant dir="connectors/opensearchserver" target="clean"/>
-        <delete dir="connectors/opensearchserver/lib"/>
         <ant dir="connectors/nullauthority" target="clean"/>
-        <delete dir="connectors/nullauthority/lib"/>
         <ant dir="connectors/nulloutput" target="clean"/>
-        <delete dir="connectors/nulloutput/lib"/>
         <ant dir="connectors/rss" target="clean"/>
-        <delete dir="connectors/rss/lib"/>
         <ant dir="connectors/sharepoint" target="clean"/>
-        <delete dir="connectors/sharepoint/lib"/>
         <ant dir="connectors/webcrawler" target="clean"/>
-        <delete dir="connectors/webcrawler/lib"/>
         <ant dir="connectors/wiki" target="clean"/>
-        <delete dir="connectors/wiki/lib"/>
-        
+
+        <ant dir="tests/activedirectory" target="clean"/>
+        <ant dir="tests/alfresco" target="clean"/>
+        <ant dir="tests/cmis" target="clean"/>
+        <ant dir="tests/filesystem" target="clean"/>
+        <ant dir="tests/gts" target="clean"/>
+        <ant dir="tests/rss" target="clean"/>
+        <ant dir="tests/solr" target="clean"/>
+        <ant dir="tests/jcifs" target="clean"/>
+        <ant dir="tests/jdbc" target="clean"/>
+        <ant dir="tests/sharepoint" target="clean"/>
+        <ant dir="tests/webcrawler" target="clean"/>
+        <ant dir="tests/wiki" target="clean"/>
+
     </target>
     
     <target name="build-site">
@@ -161,45 +131,7 @@
         <jar destfile="build/jar/json.jar" basedir="build/json/classes"/>
     </target>
     
-    <target name="setup-framework" depends="jar-json">
-        <mkdir dir="framework/lib"/>
-        <!-- Individually specify the needed libraries, since otherwise that information would not be available readily -->
-        <copy todir="framework/lib">
-            <fileset dir="build/jar">
-                <include name="json.jar"/>
-            </fileset>
-            <fileset dir="lib">
-                <include name="commons-codec*.jar"/>
-                <include name="commons-collections*.jar"/>
-                <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient-mcf.jar"/>
-                <include name="commons-io*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="eclipse*.jar"/>
-                <include name="jasper*.jar"/>
-                <include name="jetty*.jar"/>
-                <include name="jdbcpool-0.99.jar"/>
-                <include name="jsp-2.1*.jar"/>
-                <include name="jsp-api*.jar"/>
-                <include name="junit*.jar"/>
-                <include name="log4j*.jar"/>
-                <include name="serializer*.jar"/>
-                <include name="servlet-api*.jar"/>
-                <include name="tomcat-juli*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl-mcf.jar"/>
-                <include name="xml-apis*.jar"/>
-            </fileset>
-            <fileset dir="lib">
-                <include name="postgresql*.jar"/>
-                <include name="derby*.jar"/>
-                <include name="hsqldb*.jar"/>
-                <include name="mysql*.jar"/>
-            </fileset>
-        </copy>
-      </target>
+    <target name="setup-framework" depends="jar-json"/>
       
       <target name="build-framework" depends="setup-framework">
         <ant dir="framework" target="build"/>
@@ -237,22 +169,9 @@
         <ant dir="framework" target="run-tests-HSQLDBext"/>
     </target>
 
-    <target name="setup-activedirectory-connector" depends="build-framework">
-        <mkdir dir="connectors/activedirectory/lib"/>
-        <copy todir="connectors/activedirectory/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/activedirectory/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-activedirectory-connector" depends="build-framework"/>
 
-    <target name="setup-activedirectory-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/activedirectory/lib"/>
-        <copy todir="connectors/activedirectory/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-activedirectory-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-activedirectory-connector" depends="setup-activedirectory-connector">
         <ant dir="connectors/activedirectory" target="build"/>
@@ -286,74 +205,13 @@
         <ant dir="connectors/activedirectory" target="run-tests-HSQLDB"/>
     </target>
     
-    <target name="setup-alfresco-connector" depends="build-framework">
-        <mkdir dir="connectors/alfresco/lib"/>
-        <copy todir="connectors/alfresco/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/alfresco/lib">
-            <fileset dir="lib">
-                <include name="alfresco-web-service-client*.jar"/>
-                <include name="axis*.jar"/>	
-                <include name="commons-discovery*.jar"/>
-                <include name="commons-logging*.jar"/>
-                <include name="commons-lang*.jar"/>
-                <include name="mail*.jar"/>
-                <include name="opensaml*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="wss4j*.jar"/>
-                <include name="xalan*.jar"/>
-                <include name="xercesImpl*.jar"/>
-                <include name="xmlsec*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="connectors/alfresco/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-alfresco-connector" depends="build-framework"/>
 
-    <target name="setup-cmis-connector" depends="build-framework">
-        <mkdir dir="connectors/cmis/lib"/>
-        <copy todir="connectors/cmis/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/cmis/lib">
-            <fileset dir="lib">
-                <include name="chemistry*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="stax*.jar"/>
-                <include name="streambuffer*.jar"/>
-                <include name="jaxb*.jar"/>
-                <include name="jaxws*.jar"/>
-                <include name="wstx-asl*.jar"/>
-                <include name="mimepull*.jar"/>
-                <include name="resolver*.jar"/>
-                <include name="org.osgi.core*.jar"/>
-                <include name="jsr181-api*.jar"/>
-                <include name="jsr250-api*.jar"/>
-                <include name="activation*.jar"/>
-                <include name="commons-lang*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="connectors/cmis/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-cmis-connector" depends="build-framework"/>
     
-    <target name="setup-alfresco-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/alfresco/lib"/>
-        <copy todir="connectors/alfresco/lib">
-            <fileset dir="framework/build/test-jar"/>
-        	  <fileset file="lib/h2*.jar"/>
-        </copy>
-    </target>
+    <target name="setup-alfresco-connector-tests" depends="build-tests-framework"/>
 
-    <target name="setup-cmis-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/cmis/lib"/>
-        <copy todir="connectors/cmis/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-cmis-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-alfresco-connector" depends="setup-alfresco-connector">
         <ant dir="connectors/alfresco" target="build"/>
@@ -391,7 +249,7 @@
         <ant dir="connectors/cmis" target="run-tests"/>
     </target>
 
-	<target name="run-tests-derby-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests">
+    <target name="run-tests-derby-alfresco-connector" depends="setup-alfresco-connector,setup-alfresco-connector-tests">
         <ant dir="connectors/alfresco" target="run-tests-derby"/>
     </target>
 
@@ -423,22 +281,9 @@
         <ant dir="connectors/cmis" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-documentum-connector" depends="build-framework">
-        <mkdir dir="connectors/documentum/lib"/>
-        <copy todir="connectors/documentum/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/documentum/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-documentum-connector" depends="build-framework"/>
 
-    <target name="setup-documentum-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/documentum/lib"/>
-        <copy todir="connectors/documentum/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-documentum-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-documentum-connector" depends="setup-documentum-connector">
         <ant dir="connectors/documentum" target="build"/>
@@ -472,23 +317,10 @@
         <ant dir="connectors/documentum" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-filenet-connector" depends="build-framework">
-        <mkdir dir="connectors/filenet/lib"/>
-        <copy todir="connectors/filenet/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/filenet/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-filenet-connector" depends="build-framework"/>
   
-      <target name="setup-filenet-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/filenet/lib"/>
-        <copy todir="connectors/filenet/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
-
+    <target name="setup-filenet-connector-tests" depends="build-tests-framework"/>
+    
     <target name="build-filenet-connector" depends="setup-filenet-connector">
         <ant dir="connectors/filenet" target="build"/>
     </target>
@@ -521,22 +353,9 @@
         <ant dir="connectors/filenet" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-filesystem-connector" depends="build-framework">
-        <mkdir dir="connectors/filesystem/lib"/>
-        <copy todir="connectors/filesystem/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/filesystem/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-filesystem-connector" depends="build-framework"/>
     
-    <target name="setup-filesystem-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/filesystem/lib"/>
-        <copy todir="connectors/filesystem/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-filesystem-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-filesystem-connector" depends="setup-filesystem-connector">
         <ant dir="connectors/filesystem" target="build"/>
@@ -570,25 +389,9 @@
         <ant dir="connectors/filesystem" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-gts-connector" depends="build-framework">
-        <mkdir dir="connectors/gts/lib"/>
-        <copy todir="connectors/gts/lib">
-            <fileset dir="framework/lib"/>
-            <fileset dir="lib">
-	      <include name="poi*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="connectors/gts/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-gts-connector" depends="build-framework"/>
 
-    <target name="setup-gts-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/gts/lib"/>
-        <copy todir="connectors/gts/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-gts-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-gts-connector" depends="setup-gts-connector">
         <ant dir="connectors/gts" target="build"/>
@@ -622,20 +425,9 @@
         <ant dir="connectors/gts" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-jcifs-connector" depends="build-framework">
-        <mkdir dir="connectors/jcifs/lib"/>
-        <copy todir="connectors/jcifs/lib">
-            <fileset dir="framework/lib"/>
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-jcifs-connector" depends="build-framework"/>
 
-    <target name="setup-jcifs-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/jcifs/lib"/>
-        <copy todir="connectors/jcifs/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-jcifs-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-jcifs-connector" depends="setup-jcifs-connector">
         <ant dir="connectors/jcifs" target="build"/>
@@ -669,22 +461,9 @@
         <ant dir="connectors/jcifs" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-jdbc-connector" depends="build-framework">
-        <mkdir dir="connectors/jdbc/lib"/>
-        <copy todir="connectors/jdbc/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/jdbc/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-jdbc-connector" depends="build-framework"/>
 
-    <target name="setup-jdbc-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/jdbc/lib"/>
-        <copy todir="connectors/jdbc/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-jdbc-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-jdbc-connector" depends="setup-jdbc-connector">
         <ant dir="connectors/jdbc" target="build"/>
@@ -718,22 +497,9 @@
         <ant dir="connectors/jdbc" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-livelink-connector" depends="build-framework">
-        <mkdir dir="connectors/livelink/lib"/>
-        <copy todir="connectors/livelink/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/livelink/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-livelink-connector" depends="build-framework"/>
     
-    <target name="setup-livelink-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/livelink/lib"/>
-        <copy todir="connectors/livelink/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-livelink-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-livelink-connector" depends="setup-livelink-connector">
         <ant dir="connectors/livelink" target="build"/>
@@ -767,22 +533,9 @@
         <ant dir="connectors/livelink" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-solr-connector" depends="build-framework">
-        <mkdir dir="connectors/solr/lib"/>
-        <copy todir="connectors/solr/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/solr/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-solr-connector" depends="build-framework"/>
 
-    <target name="setup-solr-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/solr/lib"/>
-        <copy todir="connectors/solr/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-solr-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-solr-connector" depends="setup-solr-connector">
         <ant dir="connectors/solr" target="build"/>
@@ -816,22 +569,9 @@
         <ant dir="connectors/solr" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-memex-connector" depends="build-framework">
-        <mkdir dir="connectors/memex/lib"/>
-        <copy todir="connectors/memex/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/memex/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-memex-connector" depends="build-framework"/>
     
-    <target name="setup-memex-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/memex/lib"/>
-        <copy todir="connectors/memex/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-memex-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-memex-connector" depends="setup-memex-connector">
         <ant dir="connectors/memex" target="build"/>
@@ -865,33 +605,9 @@
         <ant dir="connectors/memex" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-meridio-connector" depends="build-framework">
-        <mkdir dir="connectors/meridio/lib"/>
-        <copy todir="connectors/meridio/lib">
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="castor*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="activation*.jar"/>
-                <include name="geronimo-javamail_1.4_spec*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="connectors/meridio/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/meridio/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-meridio-connector" depends="build-framework"/>
 
-    <target name="setup-meridio-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/meridio/lib"/>
-        <copy todir="connectors/meridio/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-meridio-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-meridio-connector" depends="setup-meridio-connector">
         <ant dir="connectors/meridio" target="build"/>
@@ -925,22 +641,9 @@
         <ant dir="connectors/meridio" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-opensearchserver-connector" depends="build-framework">
-        <mkdir dir="connectors/opensearchserver/lib"/>
-        <copy todir="connectors/opensearchserver/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/opensearchserver/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-opensearchserver-connector" depends="build-framework"/>
 
-    <target name="setup-opensearchserver-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/opensearchserver/lib"/>
-        <copy todir="connectors/opensearchserver/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-opensearchserver-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-opensearchserver-connector" depends="setup-opensearchserver-connector">
       <ant dir="connectors/opensearchserver" target="build"/>
@@ -974,22 +677,9 @@
         <ant dir="connectors/opensearchserver" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-nullauthority-connector" depends="build-framework">
-        <mkdir dir="connectors/nullauthority/lib"/>
-        <copy todir="connectors/nulloutput/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/nullauthority/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-nullauthority-connector" depends="build-framework"/>
     
-    <target name="setup-nullauthority-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/nullauthority/lib"/>
-        <copy todir="connectors/nullauthority/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-nullauthority-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-nullauthority-connector" depends="setup-nullauthority-connector">
         <ant dir="connectors/nullauthority" target="build"/>
@@ -1023,22 +713,9 @@
         <ant dir="connectors/nullauthority" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-nulloutput-connector" depends="build-framework">
-        <mkdir dir="connectors/nulloutput/lib"/>
-        <copy todir="connectors/nulloutput/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/nulloutput/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-nulloutput-connector" depends="build-framework"/>
     
-    <target name="setup-nulloutput-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/nulloutput/lib"/>
-        <copy todir="connectors/nulloutput/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-nulloutput-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-nulloutput-connector" depends="setup-nulloutput-connector">
         <ant dir="connectors/nulloutput" target="build"/>
@@ -1072,22 +749,9 @@
         <ant dir="connectors/nulloutput" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-rss-connector" depends="build-framework">
-        <mkdir dir="connectors/rss/lib"/>
-        <copy todir="connectors/rss/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/rss/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-rss-connector" depends="build-framework"/>
 
-    <target name="setup-rss-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/rss/lib"/>
-        <copy todir="connectors/rss/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-rss-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-rss-connector" depends="setup-rss-connector">
         <ant dir="connectors/rss" target="build"/>
@@ -1121,31 +785,9 @@
         <ant dir="connectors/rss" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-sharepoint-connector" depends="build-framework">
-        <mkdir dir="connectors/sharepoint/lib"/>
-        <copy todir="connectors/sharepoint/lib">
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="commons-discovery*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="connectors/sharepoint/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/sharepoint/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-sharepoint-connector" depends="build-framework"/>
     
-    <target name="setup-sharepoint-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/sharepoint/lib"/>
-        <copy todir="connectors/sharepoint/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-sharepoint-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-sharepoint-connector" depends="setup-sharepoint-connector">
         <ant dir="connectors/sharepoint" target="build"/>
@@ -1179,22 +821,9 @@
         <ant dir="connectors/sharepoint" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-webcrawler-connector" depends="build-framework">
-        <mkdir dir="connectors/webcrawler/lib"/>
-        <copy todir="connectors/webcrawler/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/webcrawler/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-webcrawler-connector" depends="build-framework"/>
     
-    <target name="setup-webcrawler-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/webcrawler/lib"/>
-        <copy todir="connectors/webcrawler/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-webcrawler-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-webcrawler-connector" depends="setup-webcrawler-connector">
         <ant dir="connectors/webcrawler" target="build"/>
@@ -1228,22 +857,9 @@
         <ant dir="connectors/webcrawler" target="run-tests-HSQLDB"/>
     </target>
 
-    <target name="setup-wiki-connector" depends="build-framework">
-        <mkdir dir="connectors/wiki/lib"/>
-        <copy todir="connectors/wiki/lib">
-            <fileset dir="framework/lib"/>
-        </copy>
-        <copy todir="connectors/wiki/lib">
-            <fileset dir="framework/build/jar"/>
-        </copy>
-    </target>
+    <target name="setup-wiki-connector" depends="build-framework"/>
     
-    <target name="setup-wiki-connector-tests" depends="build-tests-framework">
-        <mkdir dir="connectors/wiki/lib"/>
-        <copy todir="connectors/wiki/lib">
-            <fileset dir="framework/build/test-jar"/>
-        </copy>
-    </target>
+    <target name="setup-wiki-connector-tests" depends="build-tests-framework"/>
 
     <target name="build-wiki-connector" depends="setup-wiki-connector">
         <ant dir="connectors/wiki" target="build"/>
@@ -2084,7 +1700,7 @@
     </target>
 
     <target name="run-jdbc-UI-tests-derby" depends="build-tests-framework,build-tests-jdbc-connector,build-tests-nulloutput-connector,calculate-jdbc-tests-condition" if="jdbc-tests.include">
-        <ant dir="tests/jdbc" target="run-UI-jdbc"/>
+        <ant dir="tests/jdbc" target="run-UI-derby"/>
     </target>
 
     <target name="run-solr-UI-tests-derby" depends="build-tests-framework,build-tests-solr-connector,build-tests-filesystem-connector,calculate-solr-tests-condition" if="solr-tests.include">

@@ -28,10 +28,45 @@
         <delete dir="test-HSQLDBext-output"/>
     </target>
 
-    <path id="mcf-test-build.test-classpath">
-        <fileset dir="../../framework/lib"> 
-            <include name="*.jar"/> 
+    <path id="framework-classpath">
+        <fileset dir="../../build/jar">
+            <include name="json.jar"/>
         </fileset>
+        <fileset dir="../../lib">
+            <include name="commons-codec*.jar"/>
+            <include name="commons-collections*.jar"/>
+            <include name="commons-el*.jar"/>
+            <include name="commons-fileupload*.jar"/>
+            <include name="commons-httpclient-mcf.jar"/>
+            <include name="commons-io*.jar"/>
+            <include name="commons-lang*.jar"/>
+            <include name="commons-logging*.jar"/>
+            <include name="eclipse*.jar"/>
+            <include name="jasper*.jar"/>
+            <include name="jetty*.jar"/>
+            <include name="jdbcpool-0.99.jar"/>
+            <include name="jsp-2.1*.jar"/>
+            <include name="jsp-api*.jar"/>
+            <include name="junit*.jar"/>
+            <include name="log4j*.jar"/>
+            <include name="serializer*.jar"/>
+            <include name="servlet-api*.jar"/>
+            <include name="tomcat-juli*.jar"/>
+            <include name="xalan*.jar"/>
+            <include name="xercesImpl-mcf.jar"/>
+            <include name="xml-apis*.jar"/>
+        </fileset>
+        <fileset dir="../../lib">
+            <include name="postgresql*.jar"/>
+            <include name="derby*.jar"/>
+            <include name="hsqldb*.jar"/>
+            <include name="mysql*.jar"/>
+        </fileset>
+
+    </path>
+
+    <path id="mcf-test-build.test-classpath">
+        <path refid="framework-classpath"/>
         <fileset dir="../../framework/build/jar">
             <include name="*.jar"/>
         </fileset>

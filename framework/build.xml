@@ -17,6 +17,8 @@
 
 <project default="all">
 
+    <import file="../common-build.xml"/>
+
     <target name="clean">
       <delete dir="build"/>
       <delete dir="dist"/>
@@ -28,13 +30,48 @@
       <delete dir="test-HSQLDBext-output"/>
     </target>
     
+    <path id="framework-classpath">
+        <fileset dir="../build/jar">
+            <include name="json.jar"/>
+        </fileset>
+        <fileset dir="../lib">
+            <include name="commons-codec*.jar"/>
+            <include name="commons-collections*.jar"/>
+            <include name="commons-el*.jar"/>
+            <include name="commons-fileupload*.jar"/>
+            <include name="commons-httpclient-mcf.jar"/>
+            <include name="commons-io*.jar"/>
+            <include name="commons-lang*.jar"/>
+            <include name="commons-logging*.jar"/>
+            <include name="eclipse*.jar"/>
+            <include name="jasper*.jar"/>
+            <include name="jetty*.jar"/>
+            <include name="jdbcpool-0.99.jar"/>
+            <include name="jsp-2.1*.jar"/>
+            <include name="jsp-api*.jar"/>
+            <include name="junit*.jar"/>
+            <include name="log4j*.jar"/>
+            <include name="serializer*.jar"/>
+            <include name="servlet-api*.jar"/>
+            <include name="tomcat-juli*.jar"/>
+            <include name="xalan*.jar"/>
+            <include name="xercesImpl-mcf.jar"/>
+            <include name="xml-apis*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
+            <include name="postgresql*.jar"/>
+            <include name="derby*.jar"/>
+            <include name="hsqldb*.jar"/>
+            <include name="mysql*.jar"/>
+        </fileset>
+
+    </path>
+    
     <target name="doc">
         <mkdir dir="dist/doc"/>
         <javadoc destdir="dist/doc" maxmemory="256M" source="1.5" useexternalfile="true">
             <classpath>
-                <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
             </classpath>
             <fileset dir="core/src/main/java" includes="**/*.java"/>
             <fileset dir="agents/src/main/java" includes="**/*.java"/>
@@ -50,9 +87,7 @@
         <mkdir dir="build/core/classes"/>
         <javac srcdir="core/src/main/java" destdir="build/core/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                <fileset dir="lib"> 
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
             </classpath>
         </javac>
     </target>
@@ -61,9 +96,7 @@
         <mkdir dir="build/ui-core/classes"/>
         <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
@@ -74,9 +107,7 @@
         <mkdir dir="build/agents/classes"/>
         <javac srcdir="agents/src/main/java" destdir="build/agents/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
            </classpath>
         </javac>
@@ -86,9 +117,7 @@
         <mkdir dir="build/pull-agent/classes"/>
         <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/agents/classes"/>
             </classpath>
@@ -99,9 +128,7 @@
         <mkdir dir="build/jetty-runner/classes"/>
         <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
@@ -113,7 +140,7 @@
         <mkdir dir="build/multiprocess-jetty-runner/classes"/>
         <javac srcdir="multiprocess-jetty-runner/src/main/java" destdir="build/multiprocess-jetty-runner/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
+                 <fileset dir="../lib"> 
                     <include name="jetty*.jar"/> 
                 </fileset>
             </classpath>
@@ -124,9 +151,7 @@
         <mkdir dir="build/script-engine/classes"/>
         <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
@@ -136,9 +161,7 @@
         <mkdir dir="build/authority-servlet/classes"/>
         <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
@@ -150,9 +173,7 @@
         <mkdir dir="build/api-servlet/classes"/>
         <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -166,9 +187,7 @@
         <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
             <classpath id="jspc.classpath"> 
                 <pathelement location="${java.home}/../lib/tools.jar"/>
-                <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -183,9 +202,7 @@
         <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
-                <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -240,7 +257,7 @@
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -257,7 +274,7 @@
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
@@ -277,7 +294,7 @@
     <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -294,7 +311,7 @@
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
@@ -320,7 +337,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -337,7 +354,7 @@
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
@@ -396,7 +413,7 @@
     <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/multiprocess-example/processes/jar"/>
         <copy todir="dist/multiprocess-example/processes/jar">
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -414,7 +431,7 @@
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
@@ -447,7 +464,7 @@
             <fileset dir="build/jar">
                 <include name="mcf-multiprocess-jetty-runner.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="jetty*.jar"/>
                 <include name="servlet-api*.jar"/>
             </fileset>
@@ -458,7 +475,7 @@
     <target name="script-engine" depends="jar-script-engine,jar-core">
         <mkdir dir="dist/script-engine/jar"/>
         <copy todir="dist/script-engine/jar">
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-httpclient-mcf.jar"/>
@@ -483,7 +500,7 @@
     <target name="single-process-example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -507,7 +524,7 @@
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
             </fileset>
-            <fileset dir="lib">
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
@@ -540,9 +557,7 @@
         <mkdir dir="build/core-tests/classes"/>
         <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
@@ -552,9 +567,7 @@
         <mkdir dir="build/agents-tests/classes"/>
         <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -566,9 +579,7 @@
         <mkdir dir="build/pull-agent-tests/classes"/>
         <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -582,9 +593,7 @@
         <mkdir dir="build/script-engine-tests/classes"/>
         <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
             <classpath>
-                 <fileset dir="lib"> 
-                    <include name="*.jar"/> 
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/script-engine/classes"/>
             </classpath>
@@ -624,9 +633,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/script-engine/classes"/>
                 <pathelement location="build/script-engine-tests/classes"/>
@@ -643,9 +650,7 @@
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <fileset dir="build/test-jar">
                     <include name="mcf-core-tests.jar"/>
                 </fileset>
@@ -663,9 +668,7 @@
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -688,9 +691,7 @@
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -713,9 +714,7 @@
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -738,9 +737,7 @@
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
@@ -763,9 +760,7 @@
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>

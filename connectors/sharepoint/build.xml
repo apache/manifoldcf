@@ -77,17 +77,6 @@
         </copy>
     </target>
 
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="lib">
-                <include name="axis*.jar"/>
-                <include name="wsdl4j*.jar"/>
-                <include name="commons-discovery*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-
     <target name="download-dependencies">
         <get src="http://www.wssdemo.com/_vti_bin/Permissions.asmx?wsdl=true" dest="wsdls/Permissions.wsdl"/>
         <get src="http://www.wssdemo.com/_vti_bin/DspSts.asmx?wsdl=true" dest="wsdls/DspSts.wsdl"/>

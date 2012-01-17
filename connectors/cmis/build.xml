@@ -19,10 +19,30 @@
 
     <import file="../connector-build.xml"/>
     
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="../../lib">
+            <include name="chemistry*.jar"/>
+            <include name="saaj*.jar"/>
+            <include name="stax*.jar"/>
+            <include name="streambuffer*.jar"/>
+            <include name="jaxb*.jar"/>
+            <include name="jaxws*.jar"/>
+            <include name="wstx-asl*.jar"/>
+            <include name="mimepull*.jar"/>
+            <include name="resolver*.jar"/>
+            <include name="org.osgi.core*.jar"/>
+            <include name="jsr181-api*.jar"/>
+            <include name="jsr250-api*.jar"/>
+            <include name="activation*.jar"/>
+            <include name="commons-lang*.jar"/>
+        </fileset>
+    </path>
+
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="lib">
+            <fileset dir="../../lib">
                 <include name="chemistry*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="stax*.jar"/>
@@ -44,10 +64,7 @@
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
