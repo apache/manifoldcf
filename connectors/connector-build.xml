@@ -185,6 +185,7 @@
                     <include name="castor*.jar"/>
                     <include name="geronimo-activation_1.1_spec*.jar"/>
                     <include name="geronimo-javamail_1.4_spec*.jar"/>
+                    <include name="xerces*.jar"/>
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
