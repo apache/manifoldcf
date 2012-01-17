@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: BaseDerby.java 1225812 2011-30-12 13:08:38Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -18,21 +18,6 @@
 */
 package org.apache.manifoldcf.cmis_tests;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.manifoldcf.core.interfaces.Configuration;
-import org.apache.manifoldcf.core.interfaces.ILockManager;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
-import org.apache.manifoldcf.crawler.interfaces.IJobDescription;
-import org.apache.manifoldcf.crawler.interfaces.IJobManager;
-import org.apache.manifoldcf.crawler.interfaces.JobManagerFactory;
-import org.apache.manifoldcf.crawler.interfaces.JobStatus;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
 import org.junit.Before;
