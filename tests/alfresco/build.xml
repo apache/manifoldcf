@@ -18,7 +18,25 @@
 <project name="alfresco" default="all">
 
     <import file="../ino-test-build.xml"/>
-    
+
+    <path id="test-classpath">
+        <path refid="mcf-ino-test-build.test-classpath"/>
+        <fileset dir="../../lib">
+            <include name="h2*.jar"/>
+            <include name="axis*.jar"/>	
+            <include name="saaj*.jar"/>	
+            <include name="commons-discovery*.jar"/>
+            <include name="jaxrpc*.jar"/>
+            <include name="mail*.jar"/>
+            <include name="opensaml*.jar"/>
+            <include name="wsdl4j*.jar"/>
+            <include name="wss4j*.jar"/>
+            <!--include name="xalan*.jar"/-->
+            <!--include name="xercesImpl*.jar"/-->
+            <include name="xmlsec*.jar"/>
+        </fileset>
+    </path>
+
     <target name="run-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">

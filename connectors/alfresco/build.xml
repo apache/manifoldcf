@@ -47,6 +47,7 @@
         <fileset dir="alfresco-ws-client" includes="*.jar"/>
         <fileset dir="../../lib">
             <include name="axis*.jar"/>	
+            <include name="saaj*.jar"/>	
             <include name="commons-discovery*.jar"/>
             <include name="jaxrpc*.jar"/>
             <include name="mail*.jar"/>
@@ -72,6 +73,7 @@
             </fileset>
             <fileset dir="../../lib">
                 <include name="axis*.jar"/>	
+                <include name="saaj*.jar"/>	
                 <include name="commons-discovery*.jar"/>
                 <include name="jaxrpc*.jar"/>
                 <include name="mail*.jar"/>
