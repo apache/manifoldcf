@@ -23,10 +23,7 @@
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
@@ -41,10 +38,7 @@
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             
@@ -58,10 +52,7 @@
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             
@@ -75,10 +66,7 @@
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" showoutput="true" haltonfailure="true">
             <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-                <pathelement location="build/connector/classes"/>
+                <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
             </classpath>
             
