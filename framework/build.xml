@@ -257,6 +257,9 @@
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -267,7 +270,6 @@
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
-                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -294,6 +296,9 @@
     <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -304,7 +309,6 @@
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
-                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -335,8 +339,9 @@
             <fileset dir="crawler-ui/src/main/webapp/WEB-INF/lib">
                 <include name="*.jar"/>
             </fileset>
-        </copy>
-        <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -347,7 +352,6 @@
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
-                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -413,6 +417,9 @@
     <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/multiprocess-example/processes/jar"/>
         <copy todir="dist/multiprocess-example/processes/jar">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -423,7 +430,6 @@
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
-                <include name="json.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
@@ -475,6 +481,9 @@
     <target name="script-engine" depends="jar-script-engine,jar-core">
         <mkdir dir="dist/script-engine/jar"/>
         <copy todir="dist/script-engine/jar">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -482,7 +491,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="json.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
@@ -500,6 +508,9 @@
     <target name="single-process-example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
             <fileset dir="../lib">
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -513,7 +524,6 @@
                 <include name="jasper*.jar"/>
                 <include name="jdbcpool-0.99.jar"/>
                 <include name="jetty*.jar"/>
-                <include name="json.jar"/>
                 <include name="jsp-api*.jar"/>
                 <include name="jsp-2.5*.jar"/>
                 <include name="log4j*.jar"/>
