@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="alfresco-connector" default="all">
+<project name="alfresco" default="all">
 
     <import file="../connector-build.xml"/>
 

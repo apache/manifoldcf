@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="jdbc-connector" default="all">
+<project name="jdbc" default="all">
 
     <import file="../connector-build.xml"/>
 

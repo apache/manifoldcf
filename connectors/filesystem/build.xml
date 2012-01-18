@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="filesystem-connector" default="all">
+<project name="filesystem" default="all">
 
     <import file="../connector-build.xml"/>
 

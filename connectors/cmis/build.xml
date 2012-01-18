@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="cmis-connector" default="all">
+<project name="cmis" default="all">
 
     <import file="../connector-build.xml"/>
     

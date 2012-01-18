@@ -372,7 +372,7 @@
         <mkdir dir="build/xsdclasses"/>
         <mkdir dir="build/wsdlclasses"/>
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}.jar">
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector.jar">
         	<fileset dir="build/connector/classes"/>
           <fileset dir="build/xsdclasses"/>
           <fileset dir="build/wsdlclasses"/>
@@ -381,43 +381,43 @@
 
     <target name="jar-tests" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="build/test-jar"/>
-        <jar destfile="build/test-jar/mcf-${ant.project.name}-tests.jar" basedir="build/connector-tests/classes"/>
+        <jar destfile="build/test-jar/mcf-${ant.project.name}-connector-tests.jar" basedir="build/connector-tests/classes"/>
     </target>
 
     <target name="jar-interface" depends="compile-interface,has-RMI-check" if="hasRMI">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}-interface.jar" basedir="build/interface/classes"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-interface.jar" basedir="build/interface/classes"/>
     </target>
 
     <target name="jar-implementation" depends="compile-implementation,has-RMI-check" if="hasRMI">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}-implementation.jar" basedir="build/implementation/classes"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-implementation.jar" basedir="build/implementation/classes"/>
     </target>
 
     <target name="jar-rmiskel" depends="compile-rmic,has-RMI-check" if="hasRMI">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}-rmiskel.jar" basedir="build/rmiskel/classes"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-rmiskel.jar" basedir="build/rmiskel/classes"/>
     </target>
 
     <target name="jar-rmistub" depends="compile-rmic,has-RMI-check" if="hasRMI">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}-rmistub.jar" basedir="build/rmistub/classes"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-rmistub.jar" basedir="build/rmistub/classes"/>
     </target>
 
     <target name="jar-server" depends="compile-server,has-RMI-check" if="hasRMI">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}-server.jar" basedir="build/server/classes"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-server.jar" basedir="build/server/classes"/>
     </target>
 
     <target name="jar-registry" depends="compile-registry,has-RMI-check" if="hasRMI">
         <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/mcf-${ant.project.name}-registry.jar" basedir="build/registry/classes"/>
+        <jar destfile="build/jar/mcf-${ant.project.name}-connector-registry.jar" basedir="build/registry/classes"/>
     </target>
 
     <target name="lib-rmi" depends="jar-interface,jar-rmistub,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-rmistub.jar"/>
-        <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-interface.jar"/>
+        <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-connector-rmistub.jar"/>
+        <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-connector-interface.jar"/>
     </target>
     
     <target name="lib-wsdls" depends="has-wsdls-check" if="hasWSDLs">
@@ -446,7 +446,7 @@
 
     <target name="lib" depends="lib-rmi,lib-wsdls,lib-xsds,jar-connector,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}.jar"/>
+        <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-connector.jar"/>
     </target>
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
@@ -454,10 +454,10 @@
         <mkdir dir="dist/server-process/script"/>
         <copy todir="dist/server-process/jar">
             <fileset dir="build/jar">
-                <include name="mcf-${ant.project.name}-server.jar"/>
-                <include name="mcf-${ant.project.name}-interface.jar"/>
-                <include name="mcf-${ant.project.name}-rmiskel.jar"/>
-                <include name="mcf-${ant.project.name}-implementation.jar"/>
+                <include name="mcf-${ant.project.name}-connector-server.jar"/>
+                <include name="mcf-${ant.project.name}-connector-interface.jar"/>
+                <include name="mcf-${ant.project.name}-connector-rmiskel.jar"/>
+                <include name="mcf-${ant.project.name}-connector-implementation.jar"/>
             </fileset>
         </copy>
         <copy todir="dist/server-process/script">
@@ -473,8 +473,8 @@
         <mkdir dir="dist/registry-process/script"/>
         <copy todir="dist/registry-process/jar">
             <fileset dir="build/jar">
-                <include name="mcf-${ant.project.name}-registry.jar"/>
-                <include name="mcf-${ant.project.name}-interface.jar"/>
+                <include name="mcf-${ant.project.name}-connector-registry.jar"/>
+                <include name="mcf-${ant.project.name}-connector-interface.jar"/>
             </fileset>
         </copy>
         <copy todir="dist/registry-process/script">

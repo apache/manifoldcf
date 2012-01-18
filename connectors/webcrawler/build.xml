@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="web-connector" default="all">
+<project name="webcrawler" default="all">
 
     <import file="../connector-build.xml"/>
 

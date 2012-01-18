@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="meridio-connector" default="all">
+<project name="meridio" default="all">
 
     <import file="../connector-build.xml"/>
 

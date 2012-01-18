@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="livelink-connector" default="all">
+<project name="livelink" default="all">
 
     <import file="../connector-build.xml"/>
 

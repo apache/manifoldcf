@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="activedirectory-connector" default="all">
+<project name="activedirectory" default="all">
 
     <import file="../connector-build.xml"/>
     
