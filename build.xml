@@ -1000,6 +1000,18 @@
         </copy>
     </target>
 
+    <target name="general-add-authority-connector">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-name}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-output-connector">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-name}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+    
+    <target name="general-add-repository-connector">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-name}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+    
     <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
         <available file="connectors/activedirectory/dist/lib" type="dir" property="activedirectory.exists"/>
         <condition property="activedirectory.include">
@@ -1018,7 +1030,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="activedirectory"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Active Directory&quot; class=&quot;org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority&quot;/&gt;"/>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="Active Directory"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority"/>
+        </antcall>
     </target>
 
     <target name="deliver-activedirectory-connector-doc" depends="calculate-activedirectory-doc-condition" if="activedirectory-doc.include">
@@ -1055,7 +1070,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="alfresco"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Alfresco&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Alfresco"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector"/>
+        </antcall>
     </target>
 
     <target name="deliver-alfresco-connector-doc" depends="calculate-alfresco-doc-condition" if="alfresco-doc.include">
@@ -1082,8 +1100,14 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="cmis"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;CMIS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector&quot;/&gt;"/>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;CMIS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="CMIS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="CMIS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
+        </antcall>
     </target>
 
     <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
@@ -1110,8 +1134,14 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="documentum"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Documentum&quot; class=&quot;org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector&quot;/&gt;"/>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Documentum&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.DCTM.DCTM&quot;/&gt;"/>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="Documentum"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Documentum"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.DCTM.DCTM"/>
+        </antcall>
     </target>
     
     <target name="deliver-documentum-connector-doc" depends="calculate-documentum-doc-condition" if="documentum-doc.include">
@@ -1138,7 +1168,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="filenet"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;FileNet&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="FileNet"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-filenet-connector-doc" depends="calculate-filenet-doc-condition" if="filenet-doc.include">
@@ -1165,7 +1198,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="filesystem"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;File system&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="File system"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-filesystem-connector-doc" depends="calculate-filesystem-doc-condition" if="filesystem-doc.include">
@@ -1192,7 +1228,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="gts"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;MetaCarta GTS&quot; class=&quot;org.apache.manifoldcf.agents.output.gts.GTSConnector&quot;/&gt;"/>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="MetaCarta GTS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.gts.GTSConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-gts-connector-doc" depends="calculate-gts-doc-condition" if="gts-doc.include">
@@ -1219,7 +1258,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="jdbc"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;JDBC&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="JDBC"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-jdbc-connector-doc" depends="calculate-jdbc-doc-condition" if="jdbc-doc.include">
@@ -1246,7 +1288,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="jcifs"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Windows shares&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Windows shares"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-jcifs-connector-doc" depends="calculate-jcifs-doc-condition" if="jcifs-doc.include">
@@ -1273,8 +1318,14 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="livelink"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;LiveLink&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority&quot;/&gt;"/>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;LiveLink&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector&quot;/&gt;"/>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="LiveLink"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="LiveLink"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector"/>
+        </antcall>
     </target>
 
     <target name="deliver-livelink-connector-doc" depends="calculate-livelink-doc-condition" if="livelink-doc.include">
@@ -1301,7 +1352,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="solr"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Solr&quot; class=&quot;org.apache.manifoldcf.agents.output.solr.SolrConnector&quot;/&gt;"/>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="Solr"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.solr.SolrConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-solr-connector-doc" depends="calculate-solr-doc-condition" if="solr-doc.include">
@@ -1328,8 +1382,14 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="memex"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Memex Patriarch&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority&quot;/&gt;"/>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Memex Patriarch&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.memex.MemexConnector&quot;/&gt;"/>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="Memex Patriarch"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Memex Patriarch"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-memex-connector-doc" depends="calculate-memex-doc-condition" if="memex-doc.include">
@@ -1356,8 +1416,14 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="meridio"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Meridio&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.meridio.MeridioAuthority&quot;/&gt;"/>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Meridio&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.meridio.MeridioConnector&quot;/&gt;"/>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="Meridio"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioAuthority"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Meridio"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-meridio-connector-doc" depends="calculate-meridio-doc-condition" if="meridio-doc.include">
@@ -1384,7 +1450,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="opensearchserver"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;OpenSearchServer&quot; class=&quot;org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector&quot;/&gt;"/>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="OpenSearchServer"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector"/>
+        </antcall>
     </target>
 
     <target name="deliver-opensearchserver-connector-doc" depends="calculate-opensearchserver-doc-condition" if="opensearchserver-doc.include">
@@ -1411,7 +1480,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="nullauthority"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Null&quot; class=&quot;org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority&quot;/&gt;"/>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="Null"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"/>
+        </antcall>
     </target>
     
     <target name="deliver-nullauthority-connector-doc" depends="calculate-nullauthority-doc-condition" if="nullauthority-doc.include">
@@ -1438,7 +1510,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="nulloutput"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Null&quot; class=&quot;org.apache.manifoldcf.agents.output.nullconnector.NullConnector&quot;/&gt;"/>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="Null"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.nullconnector.NullConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-nulloutput-connector-doc" depends="calculate-nulloutput-doc-condition" if="nulloutput-doc.include">
@@ -1465,7 +1540,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="rss"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;RSS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.rss.RSSConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="RSS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-rss-connector-doc" depends="calculate-rss-doc-condition" if="rss-doc.include">
@@ -1492,7 +1570,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="sharepoint"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;SharePoint&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="SharePoint"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository"/>
+        </antcall>
     </target>
     
     <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">
@@ -1519,7 +1600,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="webcrawler"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Web&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Web"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-webcrawler-connector-doc" depends="calculate-webcrawler-doc-condition" if="webcrawler-doc.include">
@@ -1546,7 +1630,10 @@
         <antcall target="general-connector-delivery">
             <param name="connector-name" value="wiki"/>
         </antcall>
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Wiki&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector&quot;/&gt;"/>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="Wiki"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-wiki-connector-doc" depends="calculate-wiki-doc-condition" if="wiki-doc.include">
