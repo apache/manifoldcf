@@ -1814,6 +1814,10 @@
     <target name="run-alfresco-tests-mysql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <ant dir="tests/alfresco" target="run-mysql"/>
     </target>
+	
+    <target name="run-alfresco-UI-tests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
+	      <ant dir="tests/alfresco" target="run-UI-derby"/>
+	  </target>
 
     <target name="run-cmis-tests-postgresql" depends="build-tests-framework,build-tests-cmis-connector,build-tests-nulloutput-connector,calculate-cmis-tests-condition" if="cmis-tests.include">
         <ant dir="tests/cmis" target="run-postgresql"/>
