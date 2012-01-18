@@ -25,7 +25,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
-            <jvmarg value="-DopenCmisServerWarPath=../../../lib/chemistry-opencmis-server-inmemory-war.war"/>
+            <jvmarg value="-DopenCmisServerWarPath=../../../lib/chemistry-opencmis-server-inmemory.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -43,7 +43,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
-            <jvmarg value="-DopenCmisServerWarPath=../../../lib/chemistry-opencmis-server-inmemory-war.war"/>
+            <jvmarg value="-DopenCmisServerWarPath=../../../lib/chemistry-opencmis-server-inmemory.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>

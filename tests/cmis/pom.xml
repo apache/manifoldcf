@@ -60,11 +60,11 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.apache.chemistry.opencmis</groupId>
-                  <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
-                  <version>0.5.0</version>
+                  <artifactId>chemistry-opencmis-server-inmemory</artifactId>
+                  <version>0.6.0</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
-                  <destFileName>chemistry-opencmis-server-inmemory-war.war</destFileName>
+                  <destFileName>chemistry-opencmis-server-inmemory.war</destFileName>
                 </artifactItem>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
@@ -105,7 +105,7 @@
             <crawlerWarPath>../dependency/mcf-crawler-ui.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service.war</authorityserviceWarPath>
             <apiWarPath>../dependency/mcf-api-service.war</apiWarPath>
-            <openCmisServerWarPath>../dependency/chemistry-opencmis-server-inmemory-war.war</openCmisServerWarPath>
+            <openCmisServerWarPath>../dependency/chemistry-opencmis-server-inmemory.war</openCmisServerWarPath>
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
@@ -135,8 +135,8 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
-      <artifactId>chemistry-opencmis-server-inmemory-war</artifactId>
-      <version>0.5.0</version>
+      <artifactId>chemistry-opencmis-server-inmemory</artifactId>
+      <version>0.6.0</version>
       <type>war</type>
     </dependency>
     <dependency>
@@ -280,7 +280,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-client-impl</artifactId>
-      <version>0.5.0</version>
+      <version>0.6.0</version>
   </dependency>
   <dependency>
       <groupId>commons-lang</groupId>

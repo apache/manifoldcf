@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-329: Upgrade to OpenCMIS 0.6.0
+(Piergiorgio Lucidi)
+
 CONNECTORS-385: Fix broken Forrest generation of Japanese HTML.
 This workaround simply sets the environment for Forrest up so that
 Cocoon does not fail.

@@ -57,7 +57,7 @@ public class CmisConfig {
   public static final String SERVER_DEFAULT_VALUE = "localhost";
   public static final String PORT_DEFAULT_VALUE = "9090";
   public static final String BINDING_DEFAULT_VALUE = "atom";
-  public static final String PATH_DEFAULT_VALUE = "/chemistry-opencmis-server-inmemory-war/atom";
+  public static final String PATH_DEFAULT_VALUE = "/chemistry-opencmis-server-inmemory/atom";
   public static final String REPOSITORY_ID_DEFAULT_VALUE = StringUtils.EMPTY;
   public static final String BINDING_ATOM_VALUE = "atom";
   public static final String BINDING_WS_VALUE = "ws";

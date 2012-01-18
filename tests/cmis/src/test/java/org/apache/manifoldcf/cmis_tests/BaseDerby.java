@@ -63,13 +63,13 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
     cmisServer = new Server(9090);
     cmisServer.setStopAtShutdown(true);
 
-    String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory-war.war";
+    String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory.war";
 
     if (System.getProperty("openCmisServerWarPath") != null)
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");
     
     //Initialize OpenCMIS Server bindings
-    WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory-war");
+    WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory");
     openCmisServerApi.setParentLoaderPriority(false);
     cmisServer.addHandler(openCmisServerApi);
     
