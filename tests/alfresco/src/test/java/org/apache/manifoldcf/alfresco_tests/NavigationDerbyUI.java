@@ -125,11 +125,12 @@ public class NavigationDerbyUI extends BaseUIDerby
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();
+    window = testerInstance.findWindow(null);
     // Now save the connection.
     button = window.findButton(testerInstance.createStringDescription("Save this connection"));
     button.click();
     
- // Create a job
+    // Create a job
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("List jobs"));
     link.click();
