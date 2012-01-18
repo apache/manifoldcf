@@ -949,6 +949,57 @@
         </copy>
     </target>
 
+    <target name="general-connector-integration-check">
+        <available file="connectors/${connector-name}/dist/integration" type="dir" property="${connector-name}.has-integration"/>
+    </target>
+
+    <target name="general-connector-processes-check">
+        <available file="connectors/${connector-name}/dist/server-process" type="dir" property="${connector-name}.has-server-process"/>
+        <available file="connectors/${connector-name}/dist/registry-process" type="dir" property="${connector-name}.has-registry-process"/>
+        <condition property="${connector-name}.has-processes">
+          <and>
+              <isset property="${connector-name}.has-server-process"/>
+              <isset property="${connector-name}.has-registry-process"/>
+          </and>
+        </condition>
+    </target>
+
+    <target name="general-connector-delivery-integration" depends="general-connector-integration-check" if="${connector-name}.has-integration">
+        <mkdir dir="dist/${connector-name}-integration"/>
+        <copy todir="dist/${connector-name}-integration">
+            <fileset dir="connectors/${connector-name}/dist/integration"/>
+        </copy>
+    </target>
+
+    <target name="general-connector-delivery-processes" depends="general-connector-processes-check" if="${connector-name}.has-processes">
+        <mkdir dir="dist/${connector-name}-server-process"/>
+        <copy todir="dist/${connector-name}-server-process">
+            <fileset dir="connectors/${connector-name}/dist/server-process"/>
+        </copy>
+        <mkdir dir="dist/${connector-name}-registry-process"/>
+        <copy todir="dist/${connector-name}-registry-process">
+            <fileset dir="connectors/${connector-name}/dist/registry-process"/>
+        </copy>
+    </target>
+
+    <target name="general-connector-delivery" depends="general-connector-delivery-integration,general-connector-delivery-processes">
+        <mkdir dir="dist/connector-lib"/>
+        <copy todir="dist/connector-lib">
+            <fileset dir="connectors/${connector-name}/dist/lib"/>
+        </copy>
+    </target>
+
+    <target name="general-connector-doc-check">
+        <available file="connectors/${connector-name}/dist/doc" type="dir" property="${connector-name}.has-doc"/>
+    </target>
+
+    <target name="general-connector-doc-delivery" depends="general-connector-doc-check" if="${connector-name}.has-doc">
+        <mkdir dir="dist/doc/api/${connector-name}"/>
+        <copy todir="dist/doc/api/${connector-name}">
+	  <fileset dir="connectors/${connector-name}/dist/doc"/>
+        </copy>
+    </target>
+
     <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
         <available file="connectors/activedirectory/dist/lib" type="dir" property="activedirectory.exists"/>
         <condition property="activedirectory.include">
@@ -964,18 +1015,16 @@
     </target>
 
     <target name="deliver-activedirectory-connector" depends="calculate-activedirectory-condition" if="activedirectory.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/activedirectory/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="activedirectory"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Active Directory&quot; class=&quot;org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority&quot;/&gt;"/>
     </target>
 
     <target name="deliver-activedirectory-connector-doc" depends="calculate-activedirectory-doc-condition" if="activedirectory-doc.include">
-        <mkdir dir="dist/doc/api/activedirectory"/>
-        <copy todir="dist/doc/api/activedirectory">
-	  <fileset dir="connectors/activedirectory/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="activedirectory"/>
+        </antcall>
     </target>
     
     <target name="calculate-alfresco-condition" depends="build-alfresco-connector">
@@ -1003,18 +1052,16 @@
     </target>
 
     <target name="deliver-alfresco-connector" depends="calculate-alfresco-condition" if="alfresco.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/alfresco/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="alfresco"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Alfresco&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector&quot;/&gt;"/>
     </target>
 
     <target name="deliver-alfresco-connector-doc" depends="calculate-alfresco-doc-condition" if="alfresco-doc.include">
-        <mkdir dir="dist/doc/api/alfresco"/>
-        <copy todir="dist/doc/api/alfresco">
-	  <fileset dir="connectors/alfresco/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="alfresco"/>
+        </antcall>
     </target>
     
     <target name="calculate-cmis-condition" depends="build-cmis-connector">
@@ -1032,19 +1079,17 @@
     </target>
 
     <target name="deliver-cmis-connector" depends="calculate-cmis-condition" if="cmis.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/cmis/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="cmis"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;CMIS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector&quot;/&gt;"/>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;CMIS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector&quot;/&gt;"/>
     </target>
 
     <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
-        <mkdir dir="dist/doc/api/cmis"/>
-        <copy todir="dist/doc/api/cmis">
-	  <fileset dir="connectors/cmis/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="cmis"/>
+        </antcall>
     </target>
 
     <target name="calculate-documentum-condition" depends="build-documentum-connector">
@@ -1062,27 +1107,17 @@
     </target>
 
     <target name="deliver-documentum-connector" depends="calculate-documentum-condition" if="documentum.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/documentum/dist/lib"/>
-        </copy>
-        <mkdir dir="dist/documentum-server-process"/>
-        <copy todir="dist/documentum-server-process">
-            <fileset dir="connectors/documentum/dist/server-process"/>
-        </copy>
-        <mkdir dir="dist/documentum-registry-process"/>
-        <copy todir="dist/documentum-registry-process">
-            <fileset dir="connectors/documentum/dist/registry-process"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="documentum"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Documentum&quot; class=&quot;org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector&quot;/&gt;"/>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Documentum&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.DCTM.DCTM&quot;/&gt;"/>
     </target>
     
     <target name="deliver-documentum-connector-doc" depends="calculate-documentum-doc-condition" if="documentum-doc.include">
-        <mkdir dir="dist/doc/api/documentum"/>
-        <copy todir="dist/doc/api/documentum">
-	  <fileset dir="connectors/documentum/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="documentum"/>
+        </antcall>
     </target>
 
     <target name="calculate-filenet-condition" depends="build-filenet-connector">
@@ -1100,26 +1135,16 @@
     </target>
 
     <target name="deliver-filenet-connector" depends="calculate-filenet-condition" if="filenet.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/filenet/dist/lib"/>
-        </copy>
-        <mkdir dir="dist/filenet-server-process"/>
-        <copy todir="dist/filenet-server-process">
-            <fileset dir="connectors/filenet/dist/server-process"/>
-        </copy>
-        <mkdir dir="dist/filenet-registry-process"/>
-        <copy todir="dist/filenet-registry-process">
-            <fileset dir="connectors/filenet/dist/registry-process"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="filenet"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;FileNet&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-filenet-connector-doc" depends="calculate-filenet-doc-condition" if="filenet-doc.include">
-        <mkdir dir="dist/doc/api/filenet"/>
-        <copy todir="dist/doc/api/filenet">
-	  <fileset dir="connectors/filenet/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="filenet"/>
+        </antcall>
     </target>
 
     <target name="calculate-filesystem-condition" depends="build-filesystem-connector">
@@ -1137,18 +1162,16 @@
     </target>
 
     <target name="deliver-filesystem-connector" depends="calculate-filesystem-condition" if="filesystem.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/filesystem/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="filesystem"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;File system&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-filesystem-connector-doc" depends="calculate-filesystem-doc-condition" if="filesystem-doc.include">
-        <mkdir dir="dist/doc/api/filesystem"/>
-        <copy todir="dist/doc/api/filesystem">
-	  <fileset dir="connectors/filesystem/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="filesystem"/>
+        </antcall>
     </target>
 
     <target name="calculate-gts-condition" depends="build-gts-connector">
@@ -1166,18 +1189,16 @@
     </target>
 
     <target name="deliver-gts-connector" depends="calculate-gts-condition" if="gts.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/gts/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="gts"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;MetaCarta GTS&quot; class=&quot;org.apache.manifoldcf.agents.output.gts.GTSConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-gts-connector-doc" depends="calculate-gts-doc-condition" if="gts-doc.include">
-        <mkdir dir="dist/doc/api/gts"/>
-        <copy todir="dist/doc/api/gts">
-	  <fileset dir="connectors/gts/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="gts"/>
+        </antcall>
     </target>
 
     <target name="calculate-jdbc-condition" depends="build-jdbc-connector">
@@ -1195,18 +1216,16 @@
     </target>
 
     <target name="deliver-jdbc-connector" depends="calculate-jdbc-condition" if="jdbc.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/jdbc/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="jdbc"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;JDBC&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-jdbc-connector-doc" depends="calculate-jdbc-doc-condition" if="jdbc-doc.include">
-        <mkdir dir="dist/doc/api/jdbc"/>
-        <copy todir="dist/doc/api/jdbc">
-	  <fileset dir="connectors/jdbc/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="jdbc"/>
+        </antcall>
     </target>
 
     <target name="calculate-jcifs-condition" depends="build-jcifs-connector">
@@ -1224,18 +1243,16 @@
     </target>
 
     <target name="deliver-jcifs-connector" depends="calculate-jcifs-condition" if="jcifs.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/jcifs/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="jcifs"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Windows shares&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-jcifs-connector-doc" depends="calculate-jcifs-doc-condition" if="jcifs-doc.include">
-        <mkdir dir="dist/doc/api/jcifs"/>
-        <copy todir="dist/doc/api/jcifs">
-	  <fileset dir="connectors/jcifs/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="jcifs"/>
+        </antcall>
     </target>
 
     <target name="calculate-livelink-condition" depends="build-livelink-connector">
@@ -1253,19 +1270,17 @@
     </target>
 
     <target name="deliver-livelink-connector" depends="calculate-livelink-condition" if="livelink.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/livelink/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="livelink"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;LiveLink&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority&quot;/&gt;"/>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;LiveLink&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector&quot;/&gt;"/>
     </target>
 
     <target name="deliver-livelink-connector-doc" depends="calculate-livelink-doc-condition" if="livelink-doc.include">
-        <mkdir dir="dist/doc/api/livelink"/>
-        <copy todir="dist/doc/api/livelink">
-	  <fileset dir="connectors/livelink/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="livelink"/>
+        </antcall>
     </target>
 
     <target name="calculate-solr-condition" depends="build-solr-connector">
@@ -1283,22 +1298,16 @@
     </target>
 
     <target name="deliver-solr-connector" depends="calculate-solr-condition" if="solr.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/solr/dist/lib"/>
-        </copy>
-        <mkdir dir="dist/solr-integration"/>
-        <copy todir="dist/solr-integration">
-            <fileset dir="connectors/solr/dist/integration"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="solr"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Solr&quot; class=&quot;org.apache.manifoldcf.agents.output.solr.SolrConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-solr-connector-doc" depends="calculate-solr-doc-condition" if="solr-doc.include">
-        <mkdir dir="dist/doc/api/solr"/>
-        <copy todir="dist/doc/api/solr">
-	  <fileset dir="connectors/solr/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="solr"/>
+        </antcall>
     </target>
 
     <target name="calculate-memex-condition" depends="build-memex-connector">
@@ -1316,19 +1325,17 @@
     </target>
 
     <target name="deliver-memex-connector" depends="calculate-memex-condition" if="memex.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/memex/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="memex"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Memex Patriarch&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority&quot;/&gt;"/>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Memex Patriarch&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.memex.MemexConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-memex-connector-doc" depends="calculate-memex-doc-condition" if="memex-doc.include">
-        <mkdir dir="dist/doc/api/memex"/>
-        <copy todir="dist/doc/api/memex">
-	  <fileset dir="connectors/memex/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="memex"/>
+        </antcall>
     </target>
 
     <target name="calculate-meridio-condition" depends="build-meridio-connector">
@@ -1346,23 +1353,17 @@
     </target>
 
     <target name="deliver-meridio-connector" depends="calculate-meridio-condition" if="meridio.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/meridio/dist/lib"/>
-        </copy>
-        <mkdir dir="dist/meridio-integration"/>
-        <copy todir="dist/meridio-integration">
-            <fileset dir="connectors/meridio/dist/integration"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="meridio"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Meridio&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.meridio.MeridioAuthority&quot;/&gt;"/>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Meridio&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.meridio.MeridioConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-meridio-connector-doc" depends="calculate-meridio-doc-condition" if="meridio-doc.include">
-        <mkdir dir="dist/doc/api/meridio"/>
-        <copy todir="dist/doc/api/meridio">
-	  <fileset dir="connectors/meridio/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="meridio"/>
+        </antcall>
     </target>
 
     <target name="calculate-opensearchserver-condition" depends="build-opensearchserver-connector">
@@ -1380,18 +1381,16 @@
     </target>
 
    <target name="deliver-opensearchserver-connector" depends="calculate-opensearchserver-condition" if="opensearchserver.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/opensearchserver/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="opensearchserver"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;OpenSearchServer&quot; class=&quot;org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector&quot;/&gt;"/>
     </target>
 
     <target name="deliver-opensearchserver-connector-doc" depends="calculate-opensearchserver-doc-condition" if="opensearchserver-doc.include">
-        <mkdir dir="dist/doc/api/opensearchserver"/>
-        <copy todir="dist/doc/api/opensearchserver">
-	  <fileset dir="connectors/opensearchserver/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="opensearchserver"/>
+        </antcall>
     </target>
 
     <target name="calculate-nullauthority-condition" depends="build-nullauthority-connector">
@@ -1409,18 +1408,16 @@
     </target>
 
     <target name="deliver-nullauthority-connector" depends="calculate-nullauthority-condition" if="nullauthority.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/nullauthority/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="nullauthority"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;Null&quot; class=&quot;org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority&quot;/&gt;"/>
     </target>
     
     <target name="deliver-nullauthority-connector-doc" depends="calculate-nullauthority-doc-condition" if="nullauthority-doc.include">
-        <mkdir dir="dist/doc/api/nullauthority"/>
-        <copy todir="dist/doc/api/nullauthority">
-	  <fileset dir="connectors/nullauthority/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="nullauthority"/>
+        </antcall>
     </target>
 
     <target name="calculate-nulloutput-condition" depends="build-nulloutput-connector">
@@ -1438,18 +1435,16 @@
     </target>
 
     <target name="deliver-nulloutput-connector" depends="calculate-nulloutput-condition" if="nulloutput.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/nulloutput/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="nulloutput"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;Null&quot; class=&quot;org.apache.manifoldcf.agents.output.nullconnector.NullConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-nulloutput-connector-doc" depends="calculate-nulloutput-doc-condition" if="nulloutput-doc.include">
-        <mkdir dir="dist/doc/api/nulloutput"/>
-        <copy todir="dist/doc/api/nulloutput">
-	  <fileset dir="connectors/nulloutput/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="nulloutput"/>
+        </antcall>
     </target>
 
     <target name="calculate-rss-condition" depends="build-rss-connector">
@@ -1467,18 +1462,16 @@
     </target>
 
     <target name="deliver-rss-connector" depends="calculate-rss-condition" if="rss.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/rss/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="rss"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;RSS&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.rss.RSSConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-rss-connector-doc" depends="calculate-rss-doc-condition" if="rss-doc.include">
-        <mkdir dir="dist/doc/api/rss"/>
-        <copy todir="dist/doc/api/rss">
-	  <fileset dir="connectors/rss/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="rss"/>
+        </antcall>
     </target>
 
     <target name="calculate-sharepoint-condition" depends="build-sharepoint-connector">
@@ -1496,22 +1489,16 @@
     </target>
 
     <target name="deliver-sharepoint-connector" depends="calculate-sharepoint-condition" if="sharepoint.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/sharepoint/dist/lib"/>
-        </copy>
-        <mkdir dir="dist/sharepoint-integration"/>
-        <copy todir="dist/sharepoint-integration">
-            <fileset dir="connectors/sharepoint/dist/integration"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="sharepoint"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;SharePoint&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository&quot;/&gt;"/>
     </target>
     
     <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">
-        <mkdir dir="dist/doc/api/sharepoint"/>
-        <copy todir="dist/doc/api/sharepoint">
-	  <fileset dir="connectors/sharepoint/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="sharepoint"/>
+        </antcall>
     </target>
 
     <target name="calculate-webcrawler-condition" depends="build-webcrawler-connector">
@@ -1529,18 +1516,16 @@
     </target>
 
     <target name="deliver-webcrawler-connector" depends="calculate-webcrawler-condition" if="webcrawler.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/webcrawler/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="webcrawler"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Web&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-webcrawler-connector-doc" depends="calculate-webcrawler-doc-condition" if="webcrawler-doc.include">
-        <mkdir dir="dist/doc/api/webcrawler"/>
-        <copy todir="dist/doc/api/webcrawler">
-	  <fileset dir="connectors/webcrawler/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="webcrawler"/>
+        </antcall>
     </target>
 
     <target name="calculate-wiki-condition" depends="build-wiki-connector">
@@ -1558,18 +1543,16 @@
     </target>
 
     <target name="deliver-wiki-connector" depends="calculate-wiki-condition" if="wiki.include">
-        <mkdir dir="dist/connector-lib"/>
-        <copy todir="dist/connector-lib">
-            <fileset dir="connectors/wiki/dist/lib"/>
-        </copy>
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="wiki"/>
+        </antcall>
         <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;Wiki&quot; class=&quot;org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector&quot;/&gt;"/>
     </target>
     
     <target name="deliver-wiki-connector-doc" depends="calculate-wiki-doc-condition" if="wiki-doc.include">
-        <mkdir dir="dist/doc/api/wiki"/>
-        <copy todir="dist/doc/api/wiki">
-	  <fileset dir="connectors/wiki/dist/doc"/>
-        </copy>
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="wiki"/>
+        </antcall>
     </target>
 
     <target name="calculate-filesystem-tests-condition" depends="calculate-filesystem-condition,calculate-nulloutput-condition">
