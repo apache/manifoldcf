@@ -24,9 +24,11 @@
     <target name="dist">
         <exec executable="cmd.exe" dir="." searchpath="true" failonerror="true" osfamily="windows">
             <arg line="/c forrest.bat site"/>
+            <env key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF8"/>
         </exec>
         <exec executable="forrest" dir="." searchpath="true" failonerror="true" osfamily="unix">
             <arg line="site"/>
+            <env key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF8"/>
         </exec>
     </target>
     

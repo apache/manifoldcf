@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-385: Fix broken Forrest generation of Japanese HTML.
+This workaround simply sets the environment for Forrest up so that
+Cocoon does not fail.
+(Karl Wright)
+
 CONNECTORS-386: CMIS Integration tests implementation compile error
 (Piergiorgio Lucidi)
 
