@@ -19,52 +19,55 @@
 <!--
 function checkConfig()
 {
-
   return true;
 }
  
 function checkConfigForSave()
 {
 	if (editconnection.username.value == "")
-	  {
-	    alert("The username must be not null");
-	    editconnection.username.focus();
-	    return false;
-	  }
-	  if (editconnection.password.value == "")
-	  {
-	    alert("The password must be not null");
-	    editconnection.password.focus();
-	    return false;
-	  }
-	  
-	  if (editconnection.server.value ==""){
-		  alert("Server name must be not null");
-		  editconnection.server.focus();
-		  return false;
-	  } else if(!editconnection.server.value.indexOf('/')==-1) {
-		  alert("Server name can't contain the character '/'");
-		  editconnection.server.focus();
-		  return false;
-	  }
-	  
-	  if (editconnection.port.value == "")
-	  {
-		alert("The port must be not null");
-		editconnection.port.focus();
-		return false;
-	  } else if (!isInteger(editconnection.port.value)){
-		alert("The server port must be a valid integer");
-		editconnection.port.focus();
-		return false;
-	  }
-	  
-	  if(editconnection.path.value == ""){
-		  alert("Path must be not null");
+  {
+    alert("The username must be not null");
+    SelectTab("Server");
+    editconnection.username.focus();
+    return false;
+  }
+  if (editconnection.password.value == "")
+  {
+    alert("The password must be not null");
+    SelectTab("Server");
+    editconnection.password.focus();
+    return false;
+  }
+  if (editconnection.server.value =="") {
+    alert("Server name must be not null");
+    SelectTab("Server");
+	  editconnection.server.focus();
+	  return false;
+  } else if(!editconnection.server.value.indexOf('/')==-1) {
+  	alert("Server name can't contain the character '/'");
+  	SelectTab("Server");
+	  editconnection.server.focus();
+	  return false;
+  }
+  if (editconnection.port.value == "")
+  {
+  	alert("The port must be not null");
+  	SelectTab("Server");
+  	editconnection.port.focus();
+  	return false;
+  } else if (!isInteger(editconnection.port.value)){
+  	alert("The server port must be a valid integer");
+  	SelectTab("Server");
+  	editconnection.port.focus();
+  	return false;
+  }
+  if(editconnection.path.value == ""){
+  		alert("Path must be not null");
+  		SelectTab("Server");
 		  editconnection.path.focus();
 		  return false;
 	  }
   return true;
 }
-//-->
+// -->
 </script>
