@@ -86,6 +86,7 @@
       <mail label="メーリングリスト"    href="mail_ja_JP.html" />   
       <dev label="開発者リソース" href="developer-resources_ja_JP.html"/>
       <dev label="エンドユーザマニュアル (HTML)" href="end-user-documentation_ja_JP.html"/>
+      <dev label="エンドユーザマニュアル (PDF)" href="end-user-documentation_ja_JP.pdf"/>
     </docs>
   </japanese>
  
