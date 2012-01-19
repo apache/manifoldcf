@@ -453,6 +453,7 @@
         <copy todir="dist/multiprocess-example/processes/script">
             <fileset dir="scripts"/>
         </copy>
+        <mkdir dir="dist/multiprocess-example/syncharea"/>
     </target>
 
     <target name="multi-process-example" depends="jar-multiprocess-jetty-runner,multi-wars,multi-processes">
@@ -561,6 +562,67 @@
                 <include name="*.bat"/>
             </fileset>
         </copy>
+        
+        <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
+        custom task, so I've hard coded all the class path libs. -->
+        <property name="manifest-classpath-0" value=""/>
+        
+        <property name="manifest-classpath-1" value="${manifest-classpath-0} lib/commons-lang.jar"/>
+        <property name="manifest-classpath-2" value="${manifest-classpath-1} lib/commons-codec.jar"/>
+        <property name="manifest-classpath-3" value="${manifest-classpath-2} lib/commons-collections.jar"/>
+        <property name="manifest-classpath-4" value="${manifest-classpath-3} lib/commons-el.jar"/>
+        <property name="manifest-classpath-5" value="${manifest-classpath-4} lib/commons-fileupload.jar"/>
+        <property name="manifest-classpath-6" value="${manifest-classpath-5} lib/commons-httpclient-mcf.jar"/>
+        <property name="manifest-classpath-7" value="${manifest-classpath-6} lib/commons-io.jar"/>
+        <property name="manifest-classpath-8" value="${manifest-classpath-7} lib/commons-logging.jar"/>
+        <property name="manifest-classpath-9" value="${manifest-classpath-8} lib/hsqldb.jar"/>
+        <property name="manifest-classpath-10" value="${manifest-classpath-9} lib/derbyclient.jar"/>
+        <property name="manifest-classpath-11" value="${manifest-classpath-10} lib/derby.jar"/>
+        <property name="manifest-classpath-12" value="${manifest-classpath-11} lib/derbyLocale_cs.jar"/>
+        <property name="manifest-classpath-13" value="${manifest-classpath-12} lib/derbyLocale_de_DE.jar"/>
+        <property name="manifest-classpath-14" value="${manifest-classpath-13} lib/derbyLocale_es.jar"/>
+        <property name="manifest-classpath-15" value="${manifest-classpath-14} lib/derbyLocale_fr.jar"/>
+        <property name="manifest-classpath-16" value="${manifest-classpath-15} lib/derbyLocale_hu.jar"/>
+        <property name="manifest-classpath-17" value="${manifest-classpath-16} lib/derbyLocale_it.jar"/>
+        <property name="manifest-classpath-18" value="${manifest-classpath-17} lib/derbyLocale_ja_JP"/>
+        <property name="manifest-classpath-19" value="${manifest-classpath-18} lib/derbyLocale_ko_KR.jar"/>
+        <property name="manifest-classpath-20" value="${manifest-classpath-19} lib/derbyLocale_pl.jar"/>
+        <property name="manifest-classpath-21" value="${manifest-classpath-20} lib/derbyLocale_pt_BR.jar"/>
+        <property name="manifest-classpath-22" value="${manifest-classpath-21} lib/derbyLocale_ru.jar"/>
+        <property name="manifest-classpath-23" value="${manifest-classpath-22} lib/derbyLocale_zh_CN.jar"/>
+        <property name="manifest-classpath-24" value="${manifest-classpath-23} lib/derbyLocale_zh_TW.jar"/>
+        <property name="manifest-classpath-25" value="${manifest-classpath-24} lib/derbyrun.jar"/>
+        <property name="manifest-classpath-26" value="${manifest-classpath-25} lib/derbytools.jar"/>
+        <property name="manifest-classpath-27" value="${manifest-classpath-26} lib/jasper-6.0.24.jar"/>
+        <property name="manifest-classpath-28" value="${manifest-classpath-27} lib/jasper-el-6.0.24.jar"/>
+        <property name="manifest-classpath-29" value="${manifest-classpath-28} lib/jdbcpool-0.99.jar"/>
+        <property name="manifest-classpath-30" value="${manifest-classpath-29} lib/jetty-6.1.26-patched-JETTY-1340.jar"/>
+        <property name="manifest-classpath-31" value="${manifest-classpath-30} lib/jetty-util-6.1.26-patched-JETTY-1340.jar"/>
+        <property name="manifest-classpath-32" value="${manifest-classpath-31} lib/jsp-api-2.1-glassfish-2.1.v20091210.jar"/>
+        <property name="manifest-classpath-33" value="${manifest-classpath-32} lib/json.jar"/>
+        <property name="manifest-classpath-34" value="${manifest-classpath-33} lib/mcf-core.jar"/>
+        <property name="manifest-classpath-35" value="${manifest-classpath-34} lib/mcf-agents.jar"/>
+        <property name="manifest-classpath-36" value="${manifest-classpath-35} lib/mcf-jetty-runner.jar"/>
+        <property name="manifest-classpath-37" value="${manifest-classpath-36} lib/mcf-pull-agent.jar"/>
+        <property name="manifest-classpath-38" value="${manifest-classpath-37} lib/mcf-ui-core.jar"/>
+        <property name="manifest-classpath-39" value="${manifest-classpath-38} lib/log4j-1.2.jar"/>
+        <property name="manifest-classpath-40" value="${manifest-classpath-39} lib/postgresql.jar"/>
+        <property name="manifest-classpath-41" value="${manifest-classpath-40} lib/mysql-connector-java-5.1.18.jar"/>
+        <property name="manifest-classpath-42" value="${manifest-classpath-41} lib/serializer.jar"/>
+        <property name="manifest-classpath-43" value="${manifest-classpath-42} lib/servlet-api-2.5-20081211.jar"/>
+        <property name="manifest-classpath-44" value="${manifest-classpath-43} lib/tomcat-juli-6.0.24.jar"/>
+        <property name="manifest-classpath-45" value="${manifest-classpath-44} lib/xalan2.jar"/>
+        <property name="manifest-classpath-46" value="${manifest-classpath-45} lib/xercesImpl-mcf.jar"/>
+        <property name="manifest-classpath-47" value="${manifest-classpath-46} lib/xml-apis.jar"/>
+        
+        <property name="manifest-classpath" value="${manifest-classpath-47}"/>
+        <mkdir dir="build/example"/>
+        <manifest file="build/example/manifest">
+            <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
+            <attribute name="Class-Path" value="${manifest-classpath}"/>
+        </manifest>
+        <jar destfile="dist/example/start.jar" manifest="build/example/manifest"/>
+
     </target>
 
     <target name="compile-core-tests" depends="compile-core">
