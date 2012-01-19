@@ -614,8 +614,10 @@
         <property name="manifest-classpath-45" value="${manifest-classpath-44} lib/xalan2.jar"/>
         <property name="manifest-classpath-46" value="${manifest-classpath-45} lib/xercesImpl-mcf.jar"/>
         <property name="manifest-classpath-47" value="${manifest-classpath-46} lib/xml-apis.jar"/>
-        
-        <property name="manifest-classpath" value="${manifest-classpath-47}"/>
+        <property name="manifest-classpath-48" value="${manifest-classpath-47} lib/derbynet.jar"/>
+        <property name="manifest-classpath-49" value="${manifest-classpath-48} lib/eclipse-ecj.jar"/>
+
+        <property name="manifest-classpath" value="${manifest-classpath-49}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
