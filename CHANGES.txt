@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-389: Chemistry in-memory war renaming breaks mvn-bootstrap
+(Piergiorgio Lucidi)
+
 CONNECTORS-329: Upgrade to OpenCMIS 0.6.0
 (Piergiorgio Lucidi)
 
