@@ -484,6 +484,10 @@
             <fileset dir="../lib">
                 <include name="jetty*.jar"/>
                 <include name="servlet-api*.jar"/>
+                <include name="eclipse*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="tomcat-juli*.jar"/>
+                <include name="jsp-api*.jar"/>
             </fileset>
         </copy>
         <mkdir dir="dist/multiprocess-example/logs"/>

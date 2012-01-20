@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-391: Multiprocess example web apps didn't work, due to missing
+jars.
+(Karl Wright)
+
 CONNECTORS-390: JDBC drivers cannot work from anything other than the
 root classpath.  This is because of a flaw with JDBC.  I've changed the instructions
 accordingly, and provided built-in support for all drivers the JDBC connector
