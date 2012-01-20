@@ -2261,12 +2261,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="download-mysql">
-        <get src="http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.18/mysql-connector-java-5.1.18.jar" dest="lib"/>
+        <get src="http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.18/mysql-connector-java-5.1.18.jar" dest="lib/mysql-connector-java.jar"/>
     </target>
 
-    <target name="download-dependencies" depends="download-mysql">
+    <target name="download-jtds">
+        <get src="http://repo1.maven.org/maven2/net/sourceforge/jtds/jtds/1.2.4/jtds-1.2.4.jar" dest="lib/jtds.jar"/>
+    </target>
+
+    <target name="download-dependencies" depends="download-mysql,download-jtds">
         <ant dir="connectors/jcifs" target="download-dependencies"/>
-        <ant dir="connectors/jdbc" target="download-dependencies"/>
         <ant dir="connectors/sharepoint" target="download-dependencies"/>
         <ant dir="connectors/alfresco" target="download-dependencies"/>
     </target>

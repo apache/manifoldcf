@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-390: JDBC drivers cannot work from anything other than the
+root classpath.  This is because of a flaw with JDBC.  I've changed the instructions
+accordingly, and provided built-in support for all drivers the JDBC connector
+knows about.
+(Karl Wright)
+
 CONNECTORS-389: Chemistry in-memory war renaming breaks mvn-bootstrap
 (Piergiorgio Lucidi)
 

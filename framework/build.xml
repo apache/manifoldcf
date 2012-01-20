@@ -63,6 +63,8 @@
             <include name="derby*.jar"/>
             <include name="hsqldb*.jar"/>
             <include name="mysql*.jar"/>
+            <include name="ojdbc*.jar"/>
+            <include name="jtds*.jar"/>
         </fileset>
 
     </path>
@@ -281,6 +283,8 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
                 <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
@@ -320,6 +324,8 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
                 <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
@@ -363,6 +369,8 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
                 <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
@@ -442,6 +450,8 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
                 <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
@@ -540,6 +550,8 @@
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
                 <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
@@ -607,7 +619,7 @@
         <property name="manifest-classpath-38" value="${manifest-classpath-37} lib/mcf-ui-core.jar"/>
         <property name="manifest-classpath-39" value="${manifest-classpath-38} lib/log4j-1.2.jar"/>
         <property name="manifest-classpath-40" value="${manifest-classpath-39} lib/postgresql.jar"/>
-        <property name="manifest-classpath-41" value="${manifest-classpath-40} lib/mysql-connector-java-5.1.18.jar"/>
+        <property name="manifest-classpath-41" value="${manifest-classpath-40} lib/mysql-connector-java.jar"/>
         <property name="manifest-classpath-42" value="${manifest-classpath-41} lib/serializer.jar"/>
         <property name="manifest-classpath-43" value="${manifest-classpath-42} lib/servlet-api-2.5-20081211.jar"/>
         <property name="manifest-classpath-44" value="${manifest-classpath-43} lib/tomcat-juli-6.0.24.jar"/>
@@ -616,8 +628,10 @@
         <property name="manifest-classpath-47" value="${manifest-classpath-46} lib/xml-apis.jar"/>
         <property name="manifest-classpath-48" value="${manifest-classpath-47} lib/derbynet.jar"/>
         <property name="manifest-classpath-49" value="${manifest-classpath-48} lib/eclipse-ecj.jar"/>
+        <property name="manifest-classpath-50" value="${manifest-classpath-49} lib/ojdbc.jar"/>
+        <property name="manifest-classpath-51" value="${manifest-classpath-50} lib/jtds.jar"/>
 
-        <property name="manifest-classpath" value="${manifest-classpath-49}"/>
+        <property name="manifest-classpath" value="${manifest-classpath-51}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>

@@ -22,16 +22,19 @@ Oracle (via a proprietary, but freely downloadable Oracle JDBC driver)
 
 The connector was tested against the following versions of the above:
 
-Oracle: oracle jdbc4 jdk1.4 version 10.1.0-2.0
+Oracle: oracle ojdbc5 jdk1.5 and ojdbc6 jdk1.6
 Jtds: version 1.2.2, downloadable from SourceForge
 Postgresql: the debian postgresql driver package for postgresql 8.3.7, aka libpg-java, version 8.2-504-2.
 
 None of these required custom changes.
 
 To build this connector with Oracle support, copy the Oracle JDBC
-driver into this directory before building.  To build with Mssql/Sybase,
-copy a version of the jtds driver into this directory.  Then, build the
-connector using the normal ant build script.  Further information can be
+driver into the root "lib" directory, calling it "ojdbc.jar", before building.
+To build with Mssql/Sybase, copy a version of the jtds driver into that same directory,
+and call it "jtds.jar".  DO NOT COPY JDBC DRIVERS TO THIS DIRECTORY;
+they will not be picked up by ManifoldCF.
+
+Then, build the connector using the normal ant build script.  Further information can be
 found on the "how-to-build-and-deploy.html" documentation page.
 
 
