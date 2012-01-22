@@ -57,6 +57,7 @@
             <include name="xalan*.jar"/>
             <include name="xercesImpl-mcf.jar"/>
             <include name="xml-apis*.jar"/>
+            <include name="velocity*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="postgresql*.jar"/>
@@ -363,6 +364,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -444,6 +446,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -548,6 +551,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl-mcf.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -634,8 +638,8 @@
         <property name="manifest-classpath-49" value="${manifest-classpath-48} lib/eclipse-ecj.jar"/>
         <property name="manifest-classpath-50" value="${manifest-classpath-49} lib/ojdbc.jar"/>
         <property name="manifest-classpath-51" value="${manifest-classpath-50} lib/jtds.jar"/>
-
-        <property name="manifest-classpath" value="${manifest-classpath-51}"/>
+        <property name="manifest-classpath-52" value="${manifest-classpath-51} lib/velocity-1.7.jar"/>
+        <property name="manifest-classpath" value="${manifest-classpath-52}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>

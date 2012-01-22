@@ -16,49 +16,49 @@
 -->
 
 <table class="displaytable">
-	<tr>
-		<td class="separator" colspan="2">
-			<hr />
-		</td>
-	</tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Binding:
-			</nobr>
-		</td>
-		<td class="value">
-			<select id="binding" name="binding">
-				<option value="atom" selected="selected">
-					AtomPub
-				</option>
-				<option value="ws">
-					Web Services
-				</option>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Username:
-			</nobr>
-		</td>
-		<td class="value">
-			<input type="text" id="username" name="username" value="${USERNAME:A}" />
-		</td>
-	</tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Password:
-			</nobr>
-		</td>
-		<td class="value">
-			<input type="password" id="password" name="password" value="${PASSWORD:A}" />
-		</td>
-	</tr>
-	<tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Binding:
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="binding" name="binding">
+        <option value="atom" selected="selected">
+          AtomPub
+        </option>
+        <option value="ws">
+          Web Services
+        </option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Username:
+      </nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="username" name="username" value="$USERNAME_A" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Password:
+      </nobr>
+    </td>
+    <td class="value">
+      <input type="password" id="password" name="password" value="$PASSWORD_A" />
+    </td>
+  </tr>
+  <tr>
     <td class="description">
       <nobr>
         Protocol:
@@ -78,7 +78,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="server" name="server" type="text" size="32" value="${SERVER:A}"/>
+        <input id="server" name="server" type="text" size="32" value="$SERVER_A"/>
     </td>
   </tr>
   <tr>
@@ -88,7 +88,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="port" name="port" type="text" size="5" value="${PORT:A}" />
+        <input id="port" name="port" type="text" size="5" value="$PORT_A" />
     </td>
   </tr>
   <tr>
@@ -98,27 +98,27 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="path" name="path" type="text" size="32" value="${PATH:A}" />
+        <input id="path" name="path" type="text" size="32" value="$PATH_A" />
     </td>
   </tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Repository ID:
-			</nobr>
-		</td>
-		<td class="value">
-			<input type="text" id="repositoryId" name="repositoryId" value="${REPOSITORYID:A}" />
-			<nobr>
-				(optional)
-			</nobr>
-		</td>
-	</tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Repository ID:
+      </nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="repositoryId" name="repositoryId" value="$REPOSITORYID_A" />
+      <nobr>
+        (optional)
+      </nobr>
+    </td>
+  </tr>
 </table>
 
 <script type="text/javascript">
 <!--
-var binding = "${BINDING:BJ}";
+var binding = "$BINDING_BJ";
 var bindingSelect = editconnection.binding;
 if(binding==bindingSelect.options[1].value){
   bindingSelect.options[1].selected = true;
@@ -126,7 +126,7 @@ if(binding==bindingSelect.options[1].value){
   bindingSelect.options[0].selected = true;
 }
 
-var protocol = "${PROTOCOL:BJ}";
+var protocol = "$PROTOCOL_BJ";
 var protocolSelect = editconnection.protocol;
 if(protocol==protocolSelect.options[1].value){
   protocolSelect.options[1].selected = true;

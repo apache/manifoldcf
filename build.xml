@@ -936,7 +936,7 @@
     <target name="deliver-framework-doc" depends="doc-framework">
         <mkdir dir="dist/doc/api/framework"/>
         <copy todir="dist/doc/api/framework">
-	  <fileset dir="framework/dist/doc"/>
+    <fileset dir="framework/dist/doc"/>
         </copy>
     </target>
 
@@ -987,7 +987,7 @@
     <target name="general-connector-doc-delivery" depends="general-connector-doc-check" if="${connector-name}.has-doc">
         <mkdir dir="dist/doc/api/${connector-name}"/>
         <copy todir="dist/doc/api/${connector-name}">
-	  <fileset dir="connectors/${connector-name}/dist/doc"/>
+    <fileset dir="connectors/${connector-name}/dist/doc"/>
         </copy>
     </target>
 
@@ -1424,10 +1424,10 @@
     </target>
 
     <target name="calculate-opensearchserver-condition" depends="build-opensearchserver-connector">
-	    <available file="connectors/opensearchserver/dist/lib" type="dir" property="opensearchserver.exists"/>
-	    <condition property="opensearchserver.include">
-	        <isset property="opensearchserver.exists"/>
-	    </condition>
+      <available file="connectors/opensearchserver/dist/lib" type="dir" property="opensearchserver.exists"/>
+      <condition property="opensearchserver.include">
+          <isset property="opensearchserver.exists"/>
+      </condition>
     </target>
 
     <target name="calculate-opensearchserver-doc-condition" depends="doc-opensearchserver-connector">
@@ -1875,7 +1875,7 @@
     <target name="run-alfresco-tests-mysql" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <ant dir="tests/alfresco" target="run-mysql"/>
     </target>
-	
+  
     <target name="run-alfresco-UI-tests-derby" depends="build-tests-framework,build-tests-alfresco-connector,build-tests-nulloutput-connector,calculate-alfresco-tests-condition" if="alfresco-tests.include">
         <ant dir="tests/alfresco" target="run-UI-derby"/>
     </target>

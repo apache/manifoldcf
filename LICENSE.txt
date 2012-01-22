@@ -187,6 +187,7 @@ including, but not limited to:
   - Apache Xerces2
   - Apache Jetty
   - Apache Chemistry
+  - Apache Velocity
 
 This product includes code from: http://www.json.org
 License: JSON license (http://www.json.org/license.html)

@@ -18,21 +18,22 @@
 */
 package org.apache.manifoldcf.ui.i18n;
 
-import java.util.Locale;
-import java.util.Map;
-import java.util.Iterator;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Writer;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
-
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.ui.util.Encoder;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 public class Messages extends org.apache.manifoldcf.core.i18n.Messages
 {
@@ -119,6 +120,90 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
   */
   protected Messages()
   {
+  }
+  
+  /** Write a resource to HTTP output, specifying what to substitute, and more importantly, how.
+   * ${PARAM_NAME} will be substituted directly with the value.
+   * ${PARAM_NAME:A} will be substituted with HTML attribute-escaped value.
+   * ${PARAM_NAME:B} will be substituted with HTML body-escaped value.
+   * ${PARAM_NAME:AJ} will be substituted with HTML attribute + Javascript escaped value.
+   * ${PARAM_NAME:BJ} will be substituted with HTML body + Javascript escaped value.
+   */
+   public static void outputResourceWithVelocity(IHTTPOutput output, VelocityEngine engine, String pathName,
+     Locale locale, String resourceKey, Map<String,String> substitutionParameters, boolean mapToUpperCase)
+     throws ManifoldCFException
+  {
+    try {
+      VelocityContext  context = new VelocityContext();
+      if (substitutionParameters != null)
+      {
+        Iterator<String> i = substitutionParameters.keySet().iterator();
+        while(i.hasNext())
+        {
+          String key = i.next();
+          String value = substitutionParameters.get(key);
+          if (mapToUpperCase)
+            key = key.toUpperCase();
+          if (value == null)
+            value = "";
+             
+          context.put(key,value);
+          context.put(key+"_A",Encoder.attributeEscape(value));
+          context.put(key+"_B",Encoder.bodyEscape(value));
+          context.put(key+"_AJ",Encoder.attributeJavascriptEscape(value));
+          context.put(key+"_BJ",Encoder.bodyJavascriptEscape(value));
+        }
+      }
+      
+      String resourcePath = localizeResourceName(pathName, resourceKey, locale);
+          
+      Writer outputWriter = new OutputWriter(output);
+      engine.mergeTemplate(resourcePath, "UTF-8", context, outputWriter);
+      outputWriter.flush();
+    } catch (IOException e) {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  private static class OutputWriter extends Writer
+  {
+    private IHTTPOutput output;
+    
+    public OutputWriter(IHTTPOutput output)
+    {
+      super();
+      this.output = output;
+    }
+    
+    public void write(char[] cbuf, int off, int len)
+      throws IOException
+    {
+      if (off == 0 && len == cbuf.length)
+        output.print(cbuf);
+      else
+        output.print(new String(cbuf,off,len));
+    }
+
+    public void close()
+      throws IOException
+    {
+    }
+    
+    public void flush()
+      throws IOException
+    {
+    }
+    
+  }
+  
+  private static String localizeResourceName(String pathName, String resourceName, Locale locale)
+  {
+    // Path names temporarily disabled, since they don't work.
+    // MHL
+    int dotIndex = resourceName.lastIndexOf(".");
+    if (dotIndex == -1)
+      return /*pathName + "." + */resourceName + "_" + locale.toString();
+    return /*pathName + "." + */resourceName.substring(0,dotIndex) + "_" + locale.toString() + resourceName.substring(dotIndex);
   }
   
   /** Write a resource to HTTP output, specifying what to substitute, and more importantly, how.

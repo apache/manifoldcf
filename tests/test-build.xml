@@ -55,6 +55,7 @@
             <include name="xalan*.jar"/>
             <include name="xercesImpl-mcf.jar"/>
             <include name="xml-apis*.jar"/>
+            <include name="velocity*.jar"/>
         </fileset>
         <fileset dir="../../lib">
             <include name="postgresql*.jar"/>

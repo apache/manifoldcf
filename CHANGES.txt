@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-388: Incorporate Apache Velocity as a connector UI rendering
+option, and modify the CMIS connector's UI to use it as an example.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-391: Multiprocess example web apps didn't work, due to missing
 jars.
 (Karl Wright)

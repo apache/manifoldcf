@@ -45,7 +45,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" name="username" value="${USERNAME:A}" />
+			<input type="text" name="username" value="$USERNAME_A" />
 		</td>
 	</tr>
 	<tr>
@@ -55,7 +55,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="password" name="password" value="${PASSWORD:A}" />
+			<input type="password" name="password" value="$PASSWORD_A" />
 		</td>
 	</tr>
 	<tr>
@@ -65,7 +65,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" name="endpoint" value="${ENDPOINT:A}" size="50" />
+			<input type="text" name="endpoint" value="$ENDPOINT_A" size="50" />
 		</td>
 	</tr>
 	<tr>
@@ -75,7 +75,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" id="repositoryId" name="repositoryId" value="{REPOSITORYID:A}" />
+			<input type="text" id="repositoryId" name="repositoryId" value="REPOSITORYID_A" />
 			<nobr>
 				（任意）
 			</nobr>
@@ -85,7 +85,7 @@
 
 <script type="text/javascript">
 <!--
-var binding = "${BINDING:BJ}";
+var binding = "$BINDING_BJ";
 var bindingSelect = editconnection.binding;
 if(binding==bindingSelect.options[1].value){
   bindingSelect.options[1].selected = true;
@@ -93,7 +93,7 @@ if(binding==bindingSelect.options[1].value){
   bindingSelect.options[0].selected = true;
 }
 
-var protocol = "${PROTOCOL:BJ}";
+var protocol = "$PROTOCOL_BJ";
 var protocolSelect = editconnection.protocol;
 if(protocol==protocolSelect.options[1].value){
   protocolSelect.options[1].selected = true;
