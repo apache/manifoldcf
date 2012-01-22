@@ -936,7 +936,7 @@
     <target name="deliver-framework-doc" depends="doc-framework">
         <mkdir dir="dist/doc/api/framework"/>
         <copy todir="dist/doc/api/framework">
-    <fileset dir="framework/dist/doc"/>
+            <fileset dir="framework/dist/doc"/>
         </copy>
     </target>
 
@@ -987,7 +987,7 @@
     <target name="general-connector-doc-delivery" depends="general-connector-doc-check" if="${connector-name}.has-doc">
         <mkdir dir="dist/doc/api/${connector-name}"/>
         <copy todir="dist/doc/api/${connector-name}">
-    <fileset dir="connectors/${connector-name}/dist/doc"/>
+            <fileset dir="connectors/${connector-name}/dist/doc"/>
         </copy>
     </target>
 
