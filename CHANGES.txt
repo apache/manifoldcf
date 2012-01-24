@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-392: Complete translation to Japanese of index.xml and
+concepts.xml.
+(Hitoshi Ozawa)
+
 CONNECTORS-388: Incorporate Apache Velocity as a connector UI rendering
 option, and modify the CMIS connector's UI to use it as an example.
 (Piergiorgio Lucidi, Karl Wright)

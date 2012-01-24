@@ -45,7 +45,7 @@
       <section>
         <title>ManifoldCFコンテンツモデル</title>
         <p></p>
-        <p>Each document in ManifoldCF consists of some opaque binary data, plus some opaque associated metadata (which is described by name-value pairs), and is uniquely addressed by a URI.  The back-end search engines which ManifoldCF communicates with are all expected to support, to a greater or lesser degree, this model.</p>
+        <p>ManifoldCFの各コンテンツはバイナリデータとそれに関連するメタデータから攻勢され、ユニークURIに関連付けられています。検索用に組み合わせて利用する検索エンジンはこのモデルに対応する必要があります。</p>
         <p></p>
         <p>コンテンツはアクセストークンと関連つけることができます。アクセストークンについては次の節で説明します。</p>
         <p></p>
@@ -53,15 +53,15 @@
       <section>
         <title>ManifoldCFセキュリティモデル</title>
         <p></p>
-        <p>The ManifoldCF security model is based loosely on the standard authorization concepts and hierarchies found in Microsoft's Active Directory.  Active Directory is quite common in the kinds of environments where data repositories exist that are ripe for indexing.  Active Directory's authorization model is also easily used in a general way to represent authorization for a huge variety of third-party content repositories.</p>
+        <p>ManifoldCFセキュリティモデルは、マイクロソフトActive Directoryの認証及び階層のモデルに対応しています。ファイル及びコンテンツの承認／権限にActive Directoryを利用している企業が多いからです。また、Active Directoryは多くの第三者ソフトウエアでも利用されているからです。</p>
         <p></p>
-        <p>ManifoldCF defines a concept of an <em>access token</em>.  An access token, to ManifoldCF, is a string which is meaningful only to a specific connector or connectors.  This string describes the ability of a user to view (or not view) some set of documents.  For documents protected by Active Directory itself, an access token would be an Active Directory SID (e.g. "S-1-23-4-1-45").  But, for example, for documents protected by Livelink a wholly different string would be used.</p>
+        <p>ManifoldCFは<em>アクセストークン</em>という概念を使っています。ManifoldCFでアクセストークンとは、コネクタに内容が依存する文字列です。ユーザにコンテンツを表示するか、表示しないかはこの文字列で制御されます。Active Directoryを利用する場合は、アクセストークンはActive Directory SID（例：S-1-23-4-1-45）です。LiveLinkでは別の意味をもつ文字列になります。</p>
         <p></p>
-        <p>In the ManifoldCF security model, it is the job of an <em>authority</em> to provide a list of access tokens for a given searching user.  Multiple authorities cooperate in that each one can add to the list of access tokens describing a given user's security.  The resulting access tokens are handed to the search engine as part of every search request, so that the search engine may properly exclude documents that the user is not allowed to see.</p>
+        <p>ManifoldCFセキュリティモデルでは、<em>権限コネクタ</em>が検索を実行したユーザのアクセストークン一覧を作成します。複数の異なるセキュリティで管理されたサーバを検索する場合は、権限コネクタがアクセストークンを組み合わせます。作成されたアクセストークン一覧は検索結果と共に検索エンジンに送られます。検索エンジンはこの情報を元にユーザに表示する内容を制限することができます。</p>
         <p></p>
-        <p>When document indexing is done, therefore, it is the job of the crawler to hand access tokens to the search engine, so that it may categorize the documents properly according to their accessibility.  Note that the access tokens so provided are meaningful only within the space of the governing authority.  Access tokens can be provided as "grant" tokens, or as "deny" tokens.  Finally, there are multiple levels of tokens, which correspond to Active Directory's concepts of "share" security, "directory" security, or "file" security.  (The latter concepts are rarely used except for documents that come from Windows or Samba systems.)</p>
+        <p>コンテンツの索引を作成した後に、ManifoldCFは亜食えすトークンを検索エンジンに送ります。亜食えすトークンには「許可」と「拒否」の2種類のトークンがあります。なお、アクセストークンはActive Directoryと同様に「共有」,「フォルダ」,「ファイル」にセキュリティを設定することができます。</p>
         <p></p>
-        <p>Once all these documents and their access tokens are handed to the search engine, it is the search engine's job to enforce security by excluding inappropriate documents from the search results.  For Solr 1.5, this infrastructure has been submitted in jira ticket SOLR-1895, found <a href="https://issues.apache.org/jira/browse/SOLR-1895">here</a>, where you can download a SearchComponent plug-in and simple instructions for setting up your copy of Solr to enforce ManifoldCF's model of document security.  Bear in mind that this plug-in is still not a complete solution, as it requires an authenticated user name to be passed to it from some upstream source, possibly a JAAS authenticator within an application server framework.</p>
+        <p>検索エンジンはアクセストークンの内容に基づき表示する検索結果の内容を決めます。検索エンジンにSolr 1.5を利用される場合はこの処理を標準で行えるようにするためにApache SolrプロジェクトにSearchComponentプラグインとそれを利用する説明書を提供しています（ <a href="https://issues.apache.org/jira/browse/SOLR-1895">SOLR-1895</a>）。</p>
         <p></p>
       </section>
       <section>
@@ -78,14 +78,13 @@
             <li>出力コネクタ</li>
           </ul>
           <p></p>
-          <p>すべてのコネクタには共通した機能があります。先ず、すべてのコネクタはプールされています。ManifoldCFは設定したコネクタのインスタンスを管理します。インスタンス数の上限を設定することもできます。
-  Connector implementations have specific methods in them for managing their existence in the pools that ManifoldCF keeps them in.  Second, they are configurable.  The configuration description for a connector is an XML document, whose precise format is determined by the connector implementation.  A configured connector instance is called a <em>connection</em>, by common ManifoldCF convention.</p>
+          <p>すべてのコネクタには共通した機能があります。先ず、すべてのコネクタはプールされています。ManifoldCFは設定したコネクタのインスタンスを管理します。インスタンス数の上限を設定することもできます。コネクタの実装はManifoldCFが管理するプール内で自身を管理するためのメソッドを実装しています。コネクタは設定可能です。コネクタの設定はコネクタの実装に依存したXML文で行えます。ManifoldCFでは、設定されたコネクタのインスタンスを<em>コネクション</em>と呼びます。</p>
           <p></p>
           <p>コネクタは次のような機能をもちます：</p>
           <p></p>
           <table>
             <tr><th>コネクタタイプ</th><th>機能</th></tr>
-            <tr><td>権限コネクタ</td><td>Furnishes a standard way of mapping a user name to access tokens that are meaningful for a given type of repository</td></tr>
+            <tr><td>権限コネクタ</td><td>はリポジトリに意味あるようにユーザ名とアクセストークを対応つけます。</td></tr>
             <tr><td>リポジトリコネクタ</td><td>指定されたリポジトリ（例：SharePointやWeb）からコンテンツを収集する</td></tr>
             <tr><td>出力コネクタ</td><td>収集したコンテンツと処理（追加や削除など）をバックエンド検索エンジン又はLuceneのようなエンティティに送信する</td></tr>
           </table>
@@ -94,20 +93,20 @@
         <section>
           <title>コネクション</title>
           <p></p>
-          <p>As described above, a <em>connection</em> is a connector implementation plus connector-specific configuration information.  A user can define a connection of all three types in the crawler UI.</p>
+          <p>上で説明した通りに、<em>コネクション</em>とはコネクタの実装とコネクタ固有の設定情報です。Webブラウザからこれらの設定を行うことができます。</p>
           <p></p>
-          <p>The kind of information included in the configuration data for a connector typically describes the "how", as opposed to the "what".  For example, you'd configure a LiveLink connection by specifying how to talk to the LiveLink server.  You would <strong>not</strong> include information about which documents to select in such a configuration.</p>
+          <p>コネクタには「何を」よりも「どのように」という情報を設定します。例えば、LiveLinkコネクションにはLiveLinkサーバと接続の仕方を設定します。どの文書ファイルを収集するかのような情報は設定しません。</p>
           <p></p>
-          <p>There is one difference between how you define a <em>repository connection</em>, vs. how you would define an <em>authority connection</em> or <em>output connection</em>.  The difference is that you must specify a governing authority connection for your repository connection.  This is because <strong>all</strong> documents ingested by ManifoldCF need to include appropriate access tokens, and those access tokens are specific to the governing authority.</p>
+          <p><en>リポジトリコネクション</em>と<em>権限コネクション</em>及び<em>出力コネクションの設定は異なります。リポジトリコネクションには、権限コネクションを設定します。ManifoldCFが収集する<strong>すべて</strong>の文書は適切なアクセストークンが必要だからです。</p>
           <p></p>
         </section>
         <section>
           <title>ジョブ</title>
           <p></p>
-          <p>ManifoldCFで<em>ジョブ</em>とは、a description of some kind of synchronization that needs to occur between a specified repository connection and a specified output connection.  A job includes the following:</p>
+          <p>ManifoldCFで<em>ジョブ</em>とは、指定したリポジトリコネクションと出力コネクションの同期をとるための情報です。ジョブには次の情報を含みます：</p>
           <p></p>
           <ul>
-            <li>A verbal description</li>
+            <li>詳細説明</li>
             <li>リポジトリコネクション（暗黙的に権限コネクションを含む）</li>
             <li>出力コネクション</li>
             <li>リポジトリコネクションに特定したジョブが対象とするコンテンツとメタデータの説明</li>
@@ -115,7 +114,7 @@
             <li>ジョブの実行スケジュール：指定された時間帯または即時</li>
           </ul>
           <p></p>
-          <p>Jobs are allowed to share the same repository connection, and thus they can overlap in the set of documents they describe.  ManifoldCF permits this situation, although when it occurs it is probably an accident.</p>
+          <p>複数のジョブで同じリポジトリコネクションを使うことができます。即ち、ManifoldCFでは複数のジョブで同じ文書を収集するように設定することを許可していますが、普通は同じ文書を異なるジョブで収集しないように設定します。</p>
         </section>
       </section>
     </section>

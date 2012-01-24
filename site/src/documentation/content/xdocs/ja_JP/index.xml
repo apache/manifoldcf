@@ -29,70 +29,68 @@
   <body> 
     <section>
 	<title>ManifoldCFとは？</title>
-	<p>ManifoldCFとは、マイクロソフトSharepointやEMC DocumentumのようなソースコンテンツリポジトリをApache SolrやOpenSearchServerのようなターゲットリポジトリ及び索引に接続するオープンソースフレームワークである。ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
-	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC connector, an RSS feed connector, a Wiki connector, and a general web connector.
-            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS and OpenSearchServer.  The complete repository compatibility list can be found <a href="included-connectors_ja_JP.html">here</a>.</p>
-	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
+	<p>ManifoldCFとは、インターネットやイントラネットの様々なサーバに保管されている文書ファイルやWebページなどコンテンツを収集し、それを検索エンジンに送るJavaプログラムです。なお、コンテンツを収集する際にActiveDirectoryなど認証基盤と連携してコンテンツ毎に権限情報も収集し、検索するときにその権限情報を利用して表示内容を制限することもできます。例えば、人事情報に関する文書は、人事部のユーザが検索した時のみに表示するようにできます。</p>
+	<p>現バージョンのManifoldCFは、FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows共有(Microsoft), SharePoint (Microsoft)のような商用商品に保存されているコンテンツと次のような汎用コネクタを使って様々なコンテンツを収集することができます：CMISコネクタ, ファイルシステムコネクタ, JDBCコネクタ, RSSフィードコネクタ, Wikiコネクタ, HTMLコネクタ。また収集したコンテンツをApache Solr, QBase(旧MetaCarta) GTS, OpenSearchServerに送ることができます。対応している製品及び規格一覧は<a href="included-connectors_ja_JP.html">ここ</a>にあります。</p>
+	<p>Apache ManifoldCFはMetaCarta, Inc.により開発されました。5年間の年月の間に複数企業用に開発／テストが繰り返された後の2009年12月にApache Software Foundationにコードソースが寄贈されました。</p>
     </section>
 
     <section>
-        <title>Incubation Status</title>
-        <p>Apache ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
-        </p>
+        <title>インキュベーションプロジェクト</title>
+        <p>Apache ManifoldCF (旧Apache Connectors Framework)は、Lucene PMCに支援されているApache Software Foundation(ASF)のインキュベーション段階のプロジェクトであります。ASFが受け取ったプロジェクトすべては他の成功したASFプロジェクトと同様にプロジェクトのインフラ、コミュニケーション、意志決定プロセスが安定したと判断されるまではインキュベーションになります。インキュベーションとはソースコードの完成度及び安定度を示すものではなく、ASFによってそのプロジェクトが完全に承認されていないことを示すだけです。</p>
     </section>
     
     <section>
-	<title>Project status</title>
-	<p>Apache ManifoldCF 0.3-incubating is available!  Download it <a href="download_ja_JP.html">here</a>.</p>
+	<title>プロジェクトの状況</title>
+	<p>Apache ManifoldCF 0.3-incubatingは<a href="download_ja_JP.html">ここ</a>からダウンロードすることができます。</p>
     </section>
 
     <section>
-	<title>A philosophical note about third-party repositories</title>
-	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in order to be built.  The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled; that is, you as a developer must supply the necessary third-party components before the connector will build.  While we have every intention of trying to reduce the number of affected connectors by means of clean-room development under the auspices of ASF, realistically the current situation will not change in any dramatic way very quickly.  The focus of this group remains primarily on providing solutions.</p>
-	<p>The required libraries, tools, and procedures for building each of these connectors are well documented in the Wiki pages for this project.</p>
+	<title>第三者リポジトリについて</title>
+	<p>ManifoldCFにふくまれる商用ソフトウエア用のコネクタをビルドするには、第三者のライブラリ、パッケージ、そのソフトウエアが必要な場合があります。開発者はビルドする時にこれら第三者ソフトウエアを入手する必要はありますが、条件付きでコンパイルすることができるため、コネクタ自体のソースコードはApacheとして配布することができます。できる限りすべてをApacheライセンスに準拠するようにしたいと思っていますが、短期的の変化は期待していでください。</p>
+	<p>第三者ソフトウエアを含めてビルドする手順はWikiページに掲載しています。</p>
     </section>
 
     <section>
-        <title>News</title>
+        <title>ニュース</title>
           <section>
-             <title>08 Nov 2011 - ManifoldCF in Vancouver</title>
-                <p>ManifoldCF general talk planned for Apache North America 2011, Vancouver, British Columbia, Canada</p>
+             <title>2011年11月08日 - ManifoldCF in Vancouver</title>
+                <p>Apache北アメリカ2011で一般的なManifoldCFの発表, バンクーバー, ブリティッシュコロンビア, カナダ</p>
           </section>
           <section>
-             <title>19 Oct 2011 - ManifoldCF in Barcelona</title>
-                <p>ManifoldCF authorization talk planned for Apache Eurocon 2011, Barcelona, Catalonia, Spain</p>
+             <title>2011年10月19日 - ManifoldCF in Barcelona</title>
+                <p>Apache Eurocon 2011, バルセロナ, カタルーニャ, スペインでManifoldCFの権限について発表</p>
           </section>
           <section>
-             <title>20 Sep 2011 - ManifoldCF 0.3-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on third release</p>
+             <title>2011年09月20日 - ManifoldCF 0.3-incubatingを公開！</title>
+                <p>開発者コミュニティ及びApacheインキュベータはリリース3を承認</p>
           </section>
 	  <section>
-	     <title>17 May 2011 - ManifoldCF 0.2-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on second release</p>
+	     <title>2011年05月17日 - ManifoldCF 0.2-incubatingを公開！</title>
+                <p>開発者コミュニティ及びApacheインキュベータはリリース2を承認</p>
 	  </section>
 	  <section>
-	     <title>31 January 2011 - ManifoldCF 0.1-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on first release</p>
+	     <title>2011年01月31日 - ManifoldCF 0.1-incubatingを公開！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは初期リリースを承認</p>
 	  </section>
 	  <section>
-	     <title>03 October 2010 - Apache Connectors Framework officially becomes Apache ManifoldCF</title>
-                <p>Developer community approves second name change</p>
+	     <title>2010年10月03日 - ApacheコネクタフレームワークはApache ManifoldCFに命名変更</title>
+                <p>開発者コミュニティは命名変更を承認e</p>
 	  </section>
 	  <section>
-	     <title>19 August 2010 - Lucene Connectors Framework officially becomes Apache Connectors Framework</title>
-                <p>Developer community approves name change</p>
+	     <title>2010年08月19日 - LuceneコネクタフレームワークはApacheコネクタフレームワークに命名変更</title>
+                <p>開発者コミュニティの名前を変更</p>
 	  </section>
             <section>
-                <title>07 July 2010 - Lucene Connectors Framework first release proposed</title>
-                <p>Criteria for LCF's first official release proposed</p>
+                <title>2010年07月07日 - Luceneコネクタフレームワークの初期リリースを提案</title>
+                <p>LCFの初期リリースの条件を提案</p>
             </section>
             <section>
-                <title>21 May 2010 - Lucene Connectors Framework in Prague</title>
-                <p>LCF introductory talk planned for Lucene/Solr Eurocon, Prague, Czech Republic</p>
+                <title>2010年05月21日 - Lucene Connectors Framework in Prague</title>
+                <p>Lucene/Solr Eurocon, プラハ, チェコ共和国でLCFの紹介を発表</p>
             </section>
             <section>
-                <title>12 January 2010 - Lucene Connectors Framework launches!</title>
-                <p>LCF officially becomes an incubating project of the Apache Software Foundation</p>
+                <title>2010年01月12日 - Luceneコネクタフレームワーク開始！</title>
+                <p>LCFが正式にApache Software Foundationインキュベーションプロジェクトになりました。</p>
             </section>
 
     </section>
