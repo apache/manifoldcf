@@ -188,6 +188,9 @@ including, but not limited to:
   - Apache Jetty
   - Apache Chemistry
   - Apache Velocity
+  - Apache Avalon
+  - Apache FOP
+  - Apache XMLGraphics Commons
 
 This product includes code from: http://www.json.org
 License: JSON license (http://www.json.org/license.html)

@@ -19,9 +19,60 @@
 
     <target name="clean">
         <delete dir="build"/>
+        <delete dir="font-build"/>
+    </target>
+
+    <target name="calculate-dejavu-condition">
+        <available file="fonts/dejavu-fonts-ttf-2.33.zip" property="dejavuAvailable"/>
+    </target>
+
+    <target name="dejavu-check" depends="calculate-dejavu-condition" unless="dejavuAvailable">
+        <echo message="Dejavu fonts cannot be built without dejavu-fonts-ttf-2.33.zip"/>
+    </target>
+
+    <target name="calculate-ipa-condition">
+        <available file="fonts/IPAGTTC00303.zip" property="ipaAvailable"/>
+    </target>
+
+    <target name="ipa-check" depends="calculate-ipa-condition" unless="ipaAvailable">
+        <echo message="IPA fonts cannot be built without IPAGTTC00303.zip"/>
+    </target>
+
+    <target name="build-ipa-fonts" depends="ipa-check" if="ipaAvailable">
+        <mkdir dir="font-build/ipa-fonts"/>
+        <unzip src="fonts/IPAGTTC00303.zip" dest="font-build/ipa-fonts"/>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="-ttcname"/>
+            <arg value="IPAPGothic"/>
+            <arg value="font-build/ipa-fonts/IPAGTTC00303/ipag.ttc"/>
+            <arg value="font-build/ipapgothic.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="-ttcname"/>
+            <arg value="IPAGothic"/>
+            <arg value="font-build/ipa-fonts/IPAGTTC00303/ipag.ttc"/>
+            <arg value="font-build/ipagothic.xml"/>
+        </java>
+
     </target>
     
-    <target name="dist">
+    <target name="dist" depends="build-ipa-fonts,ipa-check" if="ipaAvailable">
         <exec executable="cmd.exe" dir="." searchpath="true" failonerror="true" osfamily="windows">
             <arg line="/c forrest.bat site"/>
             <env key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF8"/>
@@ -30,6 +81,21 @@
             <arg line="site"/>
             <env key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF8"/>
         </exec>
+    </target>
+    
+    <target name="download-dejavu-fonts">
+      <mkdir dir="fonts"/>
+      <get src="http://downloads.sourceforge.net/project/dejavu/dejavu/2.33/dejavu-fonts-ttf-2.33.zip?r=&amp;ts=1327734867&amp;use_mirror=cdnetworks-us-2" dest="fonts"/>
+    </target>
+    
+    <target name="download-ipa-fonts">
+      <mkdir dir="fonts"/>
+      <!-- http://ossipedia.ipa.go.jp/ipafont/download.html?ruleagreement=%E5%90%8C%E6%84%8F%E3%81%99%E3%82%8B%2FAccept -->
+      <!-- get src="http://ossipedia.ipa.go.jp/ipafont/IPAGTTC00303.php" dest="fonts/IPAGTTC00303.zip"/ -->
+      <get src="http://info.openlab.ipa.go.jp/ipafont/fontdata/IPAGTTC00303.zip" dest="fonts"/>
+    </target>
+    
+    <target name="download-dependencies" depends="download-dejavu-fonts,download-ipa-fonts">
     </target>
     
     <target name="all" depends="dist"/>
