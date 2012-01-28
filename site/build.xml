@@ -45,6 +45,7 @@
             <classpath>
                 <fileset dir="../lib">
                     <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
                     <include name="avalon*.jar"/>
                     <include name="commons-io*.jar"/>
                     <include name="commons-logging*.jar"/>
