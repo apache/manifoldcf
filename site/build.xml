@@ -59,9 +59,17 @@
         </copy>
         <!-- Replace the fop jar with a more up-to-date version -->
         <delete file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/lib/fop-0.95.jar"/>
+        <delete file="tmp/forrest/build/plugins/lib/fop-0.95.jar"/>
         <copy todir="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/lib">
             <fileset dir="../lib">
                 <include name="fop*.jar"/>
+            </fileset>
+        </copy>
+        <!-- Same with the XML Graphics jar -->
+        <delete file="tmp/forrest/lib/core/xmlgraphics-commons-1.3.1.jar"/>
+        <copy todir="tmp/forrest/lib/core">
+            <fileset dir="../lib">
+                <include name="xmlgraphics-commons*.jar"/>
             </fileset>
         </copy>
         <!-- Replace the file tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/output.xmap with our own patched version -->
@@ -99,6 +107,7 @@
             <classpath>
                 <fileset dir="../lib">
                     <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
                     <include name="avalon*.jar"/>
                     <include name="commons-io*.jar"/>
                     <include name="commons-logging*.jar"/>
