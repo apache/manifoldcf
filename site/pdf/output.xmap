@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE map:sitemap [
+<!ENTITY % symbols-project
+  PUBLIC "-//Apache Forrest//ENTITIES Symbols Project v1.0//EN"
+  "symbols-project-v10.ent">
+  %symbols-project;
+<!ENTITY % symbols-core
+  PUBLIC "-//Apache Forrest//ENTITIES Symbols Core v1.0//EN"
+  "symbols-core-v10.ent">
+  %symbols-core;
+]>
+<map:sitemap xmlns:map="http://apache.org/cocoon/sitemap/1.0">
+  <map:components>
+    <map:transformers default="xslt">
+      <map:transformer name="i18n" src="org.apache.cocoon.transformation.I18nTransformer">
+        <catalogues default="pdfmessages">
+          <catalogue id="pdfmessages" name="OutputPDFMessages" location="{lm:plugin.translations}"/>
+        </catalogues>
+      </map:transformer>
+    </map:transformers>
+    <map:serializers default="fo2pdf">
+      <map:serializer name="fo2pdf" src="org.apache.cocoon.blocks.fop.FOPNGSerializer" mime-type="application/pdf">
+      	<user-config>{root}/tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/config.xml</user-config>
+      </map:serializer> 
+    </map:serializers>
+  </map:components>
+  <map:pipelines>
+    <map:pipeline>
+      <map:act type="locale" >
+        
+        <map:match type="regexp" pattern="^(.*?)([^/]*).fo$">
+            <map:select type="exists">
+                <map:when test="{lm:project.{1}{2}.fo}">
+                    <map:generate src="{lm:project.{1}{2}.fo}"/>
+                </map:when>
+                <map:otherwise>
+                    <map:aggregate element="site">
+                        <map:part src="cocoon://module.properties.properties"/>
+                        <map:part src="cocoon://skinconf.xml"/>
+                        <map:part src="cocoon://{1}{2}.xml"/>
+                    </map:aggregate>
+                    <!-- <map:transform type="idgen"/> -->
+                    <map:transform type="xinclude"/>
+                    <map:transform type="linkrewriter" src="cocoon://{1}linkmap-{2}.fo"/>
+                    <map:transform src="{lm:pdf.transform.document.fo}">
+                        <map:parameter name="imagesdir"  value="{properties:resources.images}/"/>
+                        <map:parameter name="xmlbasedir" value="{properties:content.xdocs}{1}"/>
+                        <map:parameter name="path"       value="{1}"/>
+                    </map:transform>
+                </map:otherwise>
+            </map:select>
+            <map:serialize type="xml"/>
+        </map:match>
+
+<!-- generate .pdf files from .fo -->
+        <map:match type="regexp" pattern="^(.*?)([^/]*).pdf$">
+            <map:select type="exists">
+                <map:when test="{lm:project.{1}{2}.pdf}">
+                    <map:read src="{lm:project.{1}{2}.pdf}"/>
+                </map:when>
+                <map:when test="{lm:project.{1}{2}.fo}">
+                    <map:generate src="{lm:project.{1}{2}.fo}"/>
+                    <map:transform type="i18n">
+                      <map:parameter name="locale" value="{../locale}"/>
+                    </map:transform>
+                    <map:serialize type="fo2pdf"/>
+                </map:when>
+                <map:otherwise>
+                    <map:generate src="cocoon://{1}{2}.fo"/>
+                    <map:transform type="i18n">
+                      <map:parameter name="locale" value="{../locale}"/>
+                    </map:transform>
+                    <map:serialize type="fo2pdf"/>
+                </map:otherwise>
+            </map:select>
+        </map:match>
+              
+      </map:act>
+    </map:pipeline>
+  </map:pipelines>
+</map:sitemap>

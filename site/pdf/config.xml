@@ -19,10 +19,9 @@
   <renderers>
     <renderer mime="application/pdf">
       <fonts>
-        <auto-detect/>
         
         <!-- IPAGothic -->
-        <font metrics-file="font-build/ipagothic.xml" kerning="yes" embed-url="file://font-build/ipa-fonts/IPAGTTC00303/ipag.ttc">
+        <!-- font metrics-file="{root}/tmp/font/ipagothic.xml" kerning="yes" sub-font="IPAGothic" embed-url="file:///{root}/tmp/font/ipa-fonts/IPAGTTC00303/ipag.ttc">
           <font-triplet name="IPAGothic" style="normal" weight="normal"/>
           <font-triplet name="IPAGothic" style="normal" weight="bold"/>
           <font-triplet name="IPAGothic" style="normal" weight="100"/>
@@ -45,10 +44,10 @@
           <font-triplet name="IPAGothic" style="italic" weight="700"/>
           <font-triplet name="IPAGothic" style="italic" weight="800"/>
           <font-triplet name="IPAGothic" style="italic" weight="900"/>
-        </font>
+        </font -->
 
         <!-- IPAPGothic -->
-        <font metrics-file="font-build/ipapgothic.xml" kerning="yes" embed-url="file://font-build/ipa-fonts/IPAGTTC00303/ipag.ttc">
+        <!-- font metrics-file="{root}/tmp/font/ipapgothic.xml" kerning="yes" sub-font="IPAPGothic" embed-url="file:///{root}/tmp/font/ipa-fonts/IPAGTTC00303/ipag.ttc">
           <font-triplet name="IPAPGothic" style="normal" weight="normal"/>
           <font-triplet name="IPAPGothic" style="normal" weight="bold"/>
           <font-triplet name="IPAPGothic" style="normal" weight="100"/>
@@ -71,7 +70,7 @@
           <font-triplet name="IPAPGothic" style="italic" weight="700"/>
           <font-triplet name="IPAPGothic" style="italic" weight="800"/>
           <font-triplet name="IPAPGothic" style="italic" weight="900"/>
-        </font>
+        </font -->
       </fonts>
     </renderer>
   </renderers>

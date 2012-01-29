@@ -158,7 +158,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         ntlmDomain = userName.substring(0,index);
       }
       else
-        throw new ManifoldCFException("Invalid user name - need <domain>\\<name>");
+      {
+        strippedUserName = null;
+        ntlmDomain = null;
+      }
 
       serverUrl = serverProtocol + "://" + serverName;
       if (serverProtocol.equals("https"))
@@ -1019,10 +1022,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     clientConf.setParams(new HostParams());
                     clientConf.setHost(serverName,serverPort,myFactory.getProtocol(serverProtocol));
 
-                    Credentials credentials =  new NTCredentials(strippedUserName, password, currentHost, ntlmDomain);
+                    Credentials credentials;
+                    if (strippedUserName != null)
+                      credentials =  new NTCredentials(strippedUserName, password, currentHost, ntlmDomain);
+                    else
+                      credentials = null;
 
-                    httpClient.getState().setCredentials(new AuthScope(serverName,serverPort,null),
-                      credentials);
+                    if (credentials != null)
+                      httpClient.getState().setCredentials(new AuthScope(serverName,serverPort,null),
+                        credentials);
 
                     HttpMethodBase method = new GetMethod( encodedServerLocation + encodedDocumentPath );
                     try
@@ -1459,7 +1467,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "    editconnection.serverPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.userName.value == \"\" || editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
+"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.TheConnectionRequiresAValidSharePointUserName")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+

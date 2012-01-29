@@ -678,7 +678,7 @@ public class CommonsHTTPSender extends BasicHandler {
         userID = info;
       }
     }
-    if (userID != null) {
+    if (userID != null && userID.length() > 0) {
       Credentials proxyCred =
         new UsernamePasswordCredentials(userID,
         passwd);

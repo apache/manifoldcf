@@ -19,9 +19,23 @@
 
     <target name="clean">
         <delete dir="build"/>
-        <delete dir="font-build"/>
+        <delete dir="tmp"/>
     </target>
 
+    <target name="get-forrest-root">
+        <property environment="env"/>
+        <echo message="${env.FORREST_HOME}"/>
+        <property name="forrest-root" value="${env.FORREST_HOME}"/>
+    </target>
+    
+    <target name="calculate-forrest-condition" depends="get-forrest-root">
+        <available file="${forrest-root}" property="forrestAvailable"/>
+    </target>
+
+    <target name="forrest-check" depends="calculate-forrest-condition" unless="forrestAvailable">
+        <echo message="Site cannot be built without Apache Forrest installed"/>
+    </target>
+    
     <target name="calculate-dejavu-condition">
         <available file="fonts/dejavu-fonts-ttf-2.33.zip" property="dejavuAvailable"/>
     </target>
@@ -38,9 +52,34 @@
         <echo message="IPA fonts cannot be built without IPAGTTC00303.zip"/>
     </target>
 
+    <target name="setup-local-forrest" depends="forrest-check" if="forrestAvailable">
+        <mkdir dir="tmp/forrest"/>
+        <copy todir="tmp/forrest">
+            <fileset dir="${forrest-root}"/>
+        </copy>
+        <!-- Replace the fop jar with a more up-to-date version -->
+        <delete file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/lib/fop-0.95.jar"/>
+        <copy todir="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/lib">
+            <fileset dir="../lib">
+                <include name="fop*.jar"/>
+            </fileset>
+        </copy>
+        <!-- Replace the file tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/output.xmap with our own patched version -->
+        <delete file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/output.xmap"/>
+        <copy todir="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf">
+            <fileset dir="pdf">
+                <include name="output.xmap"/>
+                <include name="config.xml"/>
+            </fileset>
+        </copy>
+        <dirname file="build.xml" property="project-path"/>
+        <replace file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/output.xmap" token="{root}" value="${project-path}"/>
+        <replace file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/config.xml" token="{root}" value="${project-path}"/>
+    </target>
+
     <target name="build-ipa-fonts" depends="ipa-check" if="ipaAvailable">
-        <mkdir dir="font-build/ipa-fonts"/>
-        <unzip src="fonts/IPAGTTC00303.zip" dest="font-build/ipa-fonts"/>
+        <mkdir dir="tmp/font/ipa-fonts"/>
+        <unzip src="fonts/IPAGTTC00303.zip" dest="tmp/font/ipa-fonts"/>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
             <classpath>
                 <fileset dir="../lib">
@@ -53,8 +92,8 @@
             </classpath>
             <arg value="-ttcname"/>
             <arg value="IPAPGothic"/>
-            <arg value="font-build/ipa-fonts/IPAGTTC00303/ipag.ttc"/>
-            <arg value="font-build/ipapgothic.xml"/>
+            <arg value="tmp/font/ipa-fonts/IPAGTTC00303/ipag.ttc"/>
+            <arg value="tmp/font/ipapgothic.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
             <classpath>
@@ -67,20 +106,34 @@
             </classpath>
             <arg value="-ttcname"/>
             <arg value="IPAGothic"/>
-            <arg value="font-build/ipa-fonts/IPAGTTC00303/ipag.ttc"/>
-            <arg value="font-build/ipagothic.xml"/>
+            <arg value="tmp/font/ipa-fonts/IPAGTTC00303/ipag.ttc"/>
+            <arg value="tmp/font/ipagothic.xml"/>
         </java>
 
     </target>
     
-    <target name="dist" depends="build-ipa-fonts,ipa-check" if="ipaAvailable">
+    <target name="dependencies-check" depends="ipa-check,dejavu-check,forrest-check">
+        <condition property="dependenciesAvailable">
+          <and>
+              <isset property="ipaAvailable"/>
+              <isset property="dejavuAvailable"/>
+              <isset property="forrestAvailable"/>
+          </and>
+        </condition>
+    </target>
+    
+    <target name="dist" depends="setup-local-forrest,build-ipa-fonts,dependencies-check" if="dependenciesAvailable">
+        <dirname file="tmp/forrest/LICENSE.txt" property="forrest-dir"/>
+        <echo message="${forrest-dir}"/>
         <exec executable="cmd.exe" dir="." searchpath="true" failonerror="true" osfamily="windows">
-            <arg line="/c forrest.bat site"/>
+            <arg line="/c .\tmp\forrest\bin\forrest.bat site"/>
             <env key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF8"/>
+            <env key="FORREST_HOME" value="${forrest-dir}"/>
         </exec>
-        <exec executable="forrest" dir="." searchpath="true" failonerror="true" osfamily="unix">
+        <exec executable="./tmp/forrest/bin/forrest" dir="." searchpath="true" failonerror="true" osfamily="unix">
             <arg line="site"/>
             <env key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF8"/>
+            <env key="FORREST_HOME" value="${forrest-dir}"/>
         </exec>
     </target>
     

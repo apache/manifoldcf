@@ -2025,6 +2025,8 @@
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="/site/fonts/"/>
           <exclude name="/dist/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
@@ -2046,6 +2048,8 @@
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="/site/fonts/"/>
           <exclude name="/dist/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
@@ -2067,6 +2071,8 @@
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="/site/fonts/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
@@ -2088,6 +2094,8 @@
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
+          <exclude name="/site/fonts/"/>
           <exclude name="/connectors/*/dist/"/>
           <exclude name="/framework/dist/"/>
           <exclude name="**/test-output/"/>
@@ -2225,6 +2233,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </fileset>
         <fileset dir="site/">
           <exclude name="**/build/"/>
+          <exclude name="**/tmp/"/>
           <exclude name="src/documentation/skins/common/xslt/html/split.xsl"/>
           <exclude name="src/documentation/skins/lucene/note.txt"/>
         </fileset>
@@ -2271,6 +2280,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/jcifs" target="download-dependencies"/>
         <ant dir="connectors/sharepoint" target="download-dependencies"/>
         <ant dir="connectors/alfresco" target="download-dependencies"/>
+        <ant dir="site" target="download-dependencies"/>
     </target>
 
 </project>
