@@ -33,7 +33,8 @@
       <title>ManifoldCF</title>
       
       <section>
-        <title>Latest release (Apache ManifoldCF 0.4-incubating, 2012 Jan 15)</title>
+        <title>Latest release (Apache ManifoldCF 0.4-incubating, RC2, not yet formally approved by Apache Incubator and subject to change, 2012 Jan 15)</title>
+        <!--
         <p>
           <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating.KEYS">KEYS</a><br/>
           <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating.CHANGES.txt">CHANGES.txt</a><br/>
@@ -59,6 +60,33 @@
             [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.asc">PGP</a>]
             [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.md5">MD5</a>]<br/>
             [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.sha">SHA</a>]<br/>
+        </p>
+        -->
+        <p>
+          <a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating.KEYS">KEYS</a><br/>
+          <a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+        </p>
+
+        <p>Sources only:<br/>
+          <a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.tar.gz">apache-manifoldcf-0.4-incubating-src.tar.gz</a>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.tar.gz.asc">PGP</a>]
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.zip">apache-manifoldcf-0.4-incubating-src.zip</a>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.zip.asc">PGP</a>]
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.zip.md5">MD5</a>]<br/>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-src.zip.sha">SHA</a>]<br/>
+        </p>
+
+        <p>Source + Binary:<br/>
+          <a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.tar.gz">apache-manifoldcf-0.4-incubating-bin.tar.gz</a>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.tar.gz.asc">PGP</a>]
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip">apache-manifoldcf-0.4-incubating-bin.zip</a>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.zip.asc">PGP</a>]
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.zip.md5">MD5</a>]<br/>
+            [<a href="http://people.apache.org/~kwright/apache-manifoldcf-0.4-incubating/apache-manifoldcf-0.4-incubating-bin.zip.sha">SHA</a>]<br/>
         </p>
 
       </section>
@@ -161,7 +189,8 @@
       <section>
         <title>Solr 3.x Plug-in</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Solr-3.x Plug-in 0.1-incubating, 2012 Jan 15)</title>
+          <title>Latest release (Apache ManifoldCF Solr-3.x Plug-in 0.1-incubating, RC1, not yet formally approved by Apache Incubator and subject to change, 2012 Jan 15)</title>
+          <!--
           <p>
             <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.1-incubating.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
@@ -184,6 +213,29 @@
               [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
               [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
           </p>
+          -->
+          <p>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating.KEYS">KEYS</a><br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+          </p>
+
+          <p>Sources only:<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.tar.gz">apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.tar.gz</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.tar.gz.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.zip">apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.zip</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.zip.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-src.zip.md5">MD5</a>]<br/>
+          </p>
+
+          <p>Binary:<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.tar.gz">apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.tar.gz</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip">apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
+          </p>
 
         </section>
       </section>
@@ -191,7 +243,8 @@
       <section>
         <title>Solr 4.x Plug-in</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Solr-4.x Plug-in 0.1-incubating, 2012 Jan 15)</title>
+          <title>Latest release (Apache ManifoldCF Solr-4.x Plug-in 0.1-incubating, RC1, not yet formally approved by Apache Incubator and subject to change, 2012 Jan 15)</title>
+          <!--
           <p>
             <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.1-incubating.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
@@ -214,7 +267,30 @@
               [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
               [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
           </p>
+          -->
+          <p>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating.KEYS">KEYS</a><br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+          </p>
 
+          <p>Sources only:<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.tar.gz">apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.tar.gz</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.tar.gz.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.zip">apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.zip</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.zip.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-src.zip.md5">MD5</a>]<br/>
+          </p>
+
+          <p>Binary:<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.tar.gz">apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.tar.gz</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip">apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
+          </p>
+          
         </section>
 
       </section>
@@ -222,7 +298,8 @@
       <section>
         <title>SharePoint 3.0 Plug-in</title>
         <section>
-          <title>Latest release (Apache ManifoldCF SharePoint 3.0 Plug-in 0.1-incubating, 2012 Jan 15)</title>
+          <title>Latest release (Apache ManifoldCF SharePoint 3.0 Plug-in 0.1-incubating, RC1, not yet formally approved by Apache Incubator and subject to change, 2012 Jan 15)</title>
+          <!--
           <p>
             <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
@@ -245,7 +322,29 @@
               [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
               [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
           </p>
+          -->
+          <p>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating.KEYS">KEYS</a><br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+          </p>
 
+          <p>Sources only:<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip.md5">MD5</a>]<br/>
+          </p>
+
+          <p>Binary:<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip</a>
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
+              [<a href="http://people.apache.org/~kwright/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
+          </p>
         </section>
 
       </section>
