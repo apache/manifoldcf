@@ -31,7 +31,8 @@
     directory (ends in '/'), in which case /index.html will be added
   -->
 
-  <tab id="main" label="Main" dir=""/>  
-  <tab id="wiki" label="Wiki" href="http://cwiki.apache.org/confluence/display/CONNECTORS/Index"/>
+  <tab id="launch" label="Hello!"/>  
+  <tab id="en_US" label="English" dir="en_US"/>  
   <tab id="ja_JP" label="日本語" dir="ja_JP"/> 
+  <tab id="wiki" label="Wiki" href="http://cwiki.apache.org/confluence/display/CONNECTORS/Index"/>
 </tabs>

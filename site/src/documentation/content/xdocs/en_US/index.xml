@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>Welcome to ManifoldCF!</title> 
+  </header> 
+
+  <body> 
+    <section>
+	<title>What Is ManifoldCF?</title>
+	<p>ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr or OpenSearchServer.  ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
+	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC connector, an RSS feed connector, a Wiki connector, and a general web connector.
+            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS and OpenSearchServer.  The complete repository compatibility list can be found <a href="included-connectors.html">here</a>.</p>
+	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
+    </section>
+
+    <section>
+        <title>Incubation Status</title>
+        <p>Apache ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
+        </p>
+    </section>
+    
+    <section>
+	<title>Project status</title>
+	<p>Apache ManifoldCF 0.3-incubating is available!  Download it <a href="download.html">here</a>.</p>
+    </section>
+
+    <section>
+	<title>A philosophical note about third-party repositories</title>
+	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in order to be built.  The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled; that is, you as a developer must supply the necessary third-party components before the connector will build.  While we have every intention of trying to reduce the number of affected connectors by means of clean-room development under the auspices of ASF, realistically the current situation will not change in any dramatic way very quickly.  The focus of this group remains primarily on providing solutions.</p>
+	<p>The required libraries, tools, and procedures for building each of these connectors are well documented in the Wiki pages for this project.</p>
+    </section>
+
+    <section>
+        <title>News</title>
+          <section>
+             <title>18 Dec 2011 - ManifoldCF 0.4-incubating release candidate generated</title>
+                <p>Developer community reviews first release candidate for the ManifoldCF 0.4-incubating release</p>
+          </section>
+          <section>
+             <title>08 Nov 2011 - ManifoldCF in Vancouver</title>
+                <p>ManifoldCF general talk planned for Apache North America 2011, Vancouver, British Columbia, Canada</p>
+          </section>
+          <section>
+             <title>19 Oct 2011 - ManifoldCF in Barcelona</title>
+                <p>ManifoldCF authorization talk planned for Apache Eurocon 2011, Barcelona, Catalonia, Spain</p>
+          </section>
+          <section>
+             <title>20 Sep 2011 - ManifoldCF 0.3-incubating is released!</title>
+                <p>Developer community and Apache Incubator sign off on third release</p>
+          </section>
+	  <section>
+	     <title>17 May 2011 - ManifoldCF 0.2-incubating is released!</title>
+                <p>Developer community and Apache Incubator sign off on second release</p>
+	  </section>
+	  <section>
+	     <title>31 January 2011 - ManifoldCF 0.1-incubating is released!</title>
+                <p>Developer community and Apache Incubator sign off on first release</p>
+	  </section>
+	  <section>
+	     <title>03 October 2010 - Apache Connectors Framework officially becomes Apache ManifoldCF</title>
+                <p>Developer community approves second name change</p>
+	  </section>
+	  <section>
+	     <title>19 August 2010 - Lucene Connectors Framework officially becomes Apache Connectors Framework</title>
+                <p>Developer community approves name change</p>
+	  </section>
+            <section>
+                <title>07 July 2010 - Lucene Connectors Framework first release proposed</title>
+                <p>Criteria for LCF's first official release proposed</p>
+            </section>
+            <section>
+                <title>21 May 2010 - Lucene Connectors Framework in Prague</title>
+                <p>LCF introductory talk planned for Lucene/Solr Eurocon, Prague, Czech Republic</p>
+            </section>
+            <section>
+                <title>12 January 2010 - Lucene Connectors Framework launches!</title>
+                <p>LCF officially becomes an incubating project of the Apache Software Foundation</p>
+            </section>
+
+    </section>
+
+  </body>
+
+</document>

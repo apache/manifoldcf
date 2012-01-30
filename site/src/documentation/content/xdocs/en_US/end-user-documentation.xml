@@ -36,7 +36,7 @@
                   will not work properly.  Please let your system integrator know if you find any browser incompatibility problems.</p>
             <p>When you do manage to enter the Framework user interface the first time, you should see a screen that looks something like this:</p>
             <br/><br/>
-            <figure src="images/welcome-screen.PNG" alt="Welcome Screen" width="80%"/>
+            <figure src="images/en_US/welcome-screen.PNG" alt="Welcome Screen" width="80%"/>
             <br/><br/>
             <p>On the left, there are menu options you can select.  The main pane on the right shows a welcome message, but depending on what you select on the left, the contents of the main pane
                   will change.  Before you try to accomplish anything, please take a moment to read the descriptions below of the menu selections, and thus get an idea of how the Framework works
@@ -49,19 +49,19 @@
                 <p>All jobs must specify an output connection.  You can create an output connection by clicking the "List Output Connections" link in the left-side navigation menu.  When you do this, the
                        following screen will appear:</p>
                 <br/><br/>
-                <figure src="images/list-output-connections.PNG" alt="List Output Connections" width="80%"/>
+                <figure src="images/en_US/list-output-connections.PNG" alt="List Output Connections" width="80%"/>
                 <br/><br/>
                 <p>On a freshly created system, there may well be no existing output connections listed.  If there are already output connections, they will be listed on this screen, along with links that allow
                       you to view, edit, or delete them.  To create a new output connection, click the "Add new output connection" link at the bottom.  The following screen will then appear:</p>
                 <br/><br/>
-                <figure src="images/add-new-output-connection-name.PNG" alt="Add New Output Connection, specify Name" width="80%"/>
+                <figure src="images/en_US/add-new-output-connection-name.PNG" alt="Add New Output Connection, specify Name" width="80%"/>
                 <br/><br/>
                 <p>The tabs across the top each present a different view of your output connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
                        depends on the connection type you choose for the connection.</p>
                 <p>Start by giving your connection a name and a description.  Remember that all output connection names must be unique, and cannot be changed after the connection is defined.  The name must be
                        no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
                 <br/><br/>
-                <figure src="images/add-new-output-connection-type.PNG" alt="Add New Output Connection, select Type" width="80%"/>
+                <figure src="images/en_US/add-new-output-connection-type.PNG" alt="Add New Output Connection, select Type" width="80%"/>
                 <br/><br/>
                 <p>The list of output connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of output connection
                        type are described in separate sections below.</p>
@@ -70,7 +70,7 @@
                        will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>Every output connection has a "Throttling" tab.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/output-throttling.PNG" alt="Output Connection Throttling" width="80%"/>
+                <figure src="images/en_US/output-throttling.PNG" alt="Output Connection Throttling" width="80%"/>
                 <br/><br/>
                 <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the output connection talks with.  This restriction helps prevent
                        that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for greater overall throughput.  The default
@@ -95,19 +95,19 @@
                 <p>You can create an authority connection by clicking the "List Authority Connections" link in the left-side navigation menu.  When you do this, the
                        following screen will appear:</p>
                 <br/><br/>
-                <figure src="images/list-authority-connections.PNG" alt="List Authority Connections" width="80%"/>
+                <figure src="images/en_US/list-authority-connections.PNG" alt="List Authority Connections" width="80%"/>
                 <br/><br/>
                 <p>On a freshly created system, there may well be no existing authority connections listed.  If there are already authority connections, they will be listed on this screen, along with links
                        that allow you to view, edit, or delete them.  To create a new authority connection, click the "Add a new connection" link at the bottom.  The following screen will then appear:</p>
                 <br/><br/>
-                <figure src="images/add-new-authority-connection-name.PNG" alt="Add New Authority Connection, specify Name" width="80%"/>
+                <figure src="images/en_US/add-new-authority-connection-name.PNG" alt="Add New Authority Connection, specify Name" width="80%"/>
                 <br/><br/>
                 <p>The tabs across the top each present a different view of your authority connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
                        depends on the connection type you choose for the connection.</p>
                 <p>Start by giving your connection a name and a description.  Remember that all authority connection names must be unique, and cannot be changed after the connection is defined.  The name must be
                        no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
                 <br/><br/>
-                <figure src="images/add-new-authority-connection-type.PNG" alt="Add New Authority Connection, select Type" width="80%"/>
+                <figure src="images/en_US/add-new-authority-connection-type.PNG" alt="Add New Authority Connection, select Type" width="80%"/>
                 <br/><br/>
                 <p>The list of authority connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of authority connection
                        type are described in separate sections below.</p>
@@ -116,7 +116,7 @@
                        will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>Every authority connection has a "Throttling" tab.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/authority-throttling.PNG" alt="Authority Connection Throttling" width="80%"/>
+                <figure src="images/en_US/authority-throttling.PNG" alt="Authority Connection Throttling" width="80%"/>
                 <br/><br/>
                 <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
                        that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
@@ -143,19 +143,19 @@
                 <p>You can create a repository connection by clicking the "List Repository Connections" link in the left-side navigation menu.  When you do this, the
                        following screen will appear:</p>
                 <br/><br/>
-                <figure src="images/list-repository-connections.PNG" alt="List Repository Connections" width="80%"/>
+                <figure src="images/en_US/list-repository-connections.PNG" alt="List Repository Connections" width="80%"/>
                 <br/><br/>
                 <p>On a freshly created system, there may well be no existing repository connections listed.  If there are already repository connections, they will be listed on this screen, along with links
                        that allow you to view, edit, or delete them.  To create a new repository connection, click the "Add a new connection" link at the bottom.  The following screen will then appear:</p>
                 <br/><br/>
-                <figure src="images/add-new-repository-connection-name.PNG" alt="Add New Repository Connection, specify Name" width="80%"/>
+                <figure src="images/en_US/add-new-repository-connection-name.PNG" alt="Add New Repository Connection, specify Name" width="80%"/>
                 <br/><br/>
                 <p>The tabs across the top each present a different view of your repository connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
                        depends on the connection type you choose for the connection.</p>
                 <p>Start by giving your connection a name and a description.  Remember that all repository connection names must be unique, and cannot be changed after the connection is defined.  The name must be
                        no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
                 <br/><br/>
-                <figure src="images/add-new-repository-connection-type.PNG" alt="Add New Repository Connection, select Type" width="80%"/>
+                <figure src="images/en_US/add-new-repository-connection-type.PNG" alt="Add New Repository Connection, select Type" width="80%"/>
                 <br/><br/>
                 <p>The list of repository connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of repository connection
                        type are described in separate sections below.</p>
@@ -166,7 +166,7 @@
                        will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>Every repository connection has a "Throttling" tab.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/repository-throttling.PNG" alt="Repository Connection Throttling" width="80%"/>
+                <figure src="images/en_US/repository-throttling.PNG" alt="Repository Connection Throttling" width="80%"/>
                 <br/><br/>
                 <p>On this tab, you can specify two things.  The first is how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
                        that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
@@ -182,7 +182,7 @@
                 <p>The simplest regular expression you can use is the empty regular expression.  This will match all of the connection's throttle bins, and thus will allow you to specify a default
                        throttling policy for the connection.  Set the desired average fetch rate, and click the "Add" button.  The throttling tab will then appear something like this:</p>
                 <br/><br/>
-                <figure src="images/repository-throttling-with-throttle.PNG" alt="Repository Connection Throttling With Throttle" width="80%"/>
+                <figure src="images/en_US/repository-throttling-with-throttle.PNG" alt="Repository Connection Throttling With Throttle" width="80%"/>
                 <br/><br/>
                 <p>If no throttle descriptions are added, no fetch-rate throttling will be performed.</p>
                 <p>Please refer to the section of the manual describing your chosen repository connection type for a description of the tabs appropriate for that connection type.</p>
@@ -227,17 +227,17 @@
                 <p>There is no restriction in ManifoldCF as to how many jobs many running at any given time.</p>
                 <p>You create a job by first clicking on the "List All Jobs" link on the left-side menu.  The following screen will appear:</p>
                 <br/><br/>
-                <figure src="images/list-jobs.PNG" alt="List Jobs" width="80%"/>
+                <figure src="images/en_US/list-jobs.PNG" alt="List Jobs" width="80%"/>
                 <br/><br/>
                 <p>You may view, edit, or delete any existing jobs by clicking on the appropriate link.  You may also create a new job that is a copy of an existing job.  But to create a brand-new job,
                        click the "Add a new job" link at the bottom.  You will then see the following page:</p>
                 <br/><br/>
-                <figure src="images/add-new-job-name.PNG" alt="Add New Job, name tab" width="80%"/>
+                <figure src="images/en_US/add-new-job-name.PNG" alt="Add New Job, name tab" width="80%"/>
                 <br/><br/>
                 <p>Give your job a name.  Note that job names do <b>not</b> have to be unique, although it is probably less confusing to have a different name for each one.  Then, click the
                        "Connection" tab:</p>
                 <br/><br/>
-                <figure src="images/add-new-job-connection.PNG" alt="Add New Job, connection tab" width="80%"/>
+                <figure src="images/en_US/add-new-job-connection.PNG" alt="Add New Job, connection tab" width="80%"/>
                 <br/><br/>
                 <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the job is saved
                        the first time.</p>
@@ -250,7 +250,7 @@
                        will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>All jobs have a "Scheduling" tab.  The scheduling tab allows you to set up schedule-related configuration information:</p>
                 <br/><br/>
-                <figure src="images/add-new-job-scheduling.PNG" alt="Add New Job, scheduling tab" width="80%"/>
+                <figure src="images/en_US/add-new-job-scheduling.PNG" alt="Add New Job, scheduling tab" width="80%"/>
                 <br/><br/>
                 <p>On this tab, you can specify the following parameters:</p>
                 <ul>
@@ -267,7 +267,7 @@
                        of the selected values for <b>each</b> of the specified fields.</p>
                 <p>Once you have selected the schedule values you want, click the "Add Scheduled Time" button:</p>
                 <br/><br/>
-                <figure src="images/add-new-job-scheduling-with-record.PNG" alt="Add New Job, scheduling tab with record" width="80%"/>
+                <figure src="images/en_US/add-new-job-scheduling-with-record.PNG" alt="Add New Job, scheduling tab with record" width="80%"/>
                 <br/><br/>
                 <p>The example shows a schedule where crawls are run on Saturday and Sunday nights at 2 AM, and run for no more than 4 hours.</p>
                 <p>The rest of the job tabs depend on the types of the connections you selected.  Please refer to the section of the manual
@@ -278,7 +278,7 @@
                 <p>You can follow what is going on, and control the execution of your jobs, by clicking on the "Status and Job Management" link on the left-side navigation menu.  When you do, you might
                        see something like this:</p>
                 <br/><br/>
-                <figure src="images/job-status.PNG" alt="Job Status" width="80%"/>
+                <figure src="images/en_US/job-status.PNG" alt="Job Status" width="80%"/>
                 <br/><br/>
                 <p>From here, you can click the "Refresh" link at the bottom of the main pane to see an updated status display, or you can directly control the job using the links in the leftmost
                        status column.  Allowed actions you may see at one point or another include:</p>
@@ -311,16 +311,16 @@
                            trying to figure out (for example) whether a specific document had been processed yet during a job run.</p>
                     <p>Click on the "Document Status" link on the left-hand menu.  You will see a screen that looks something like this:</p>
                     <br/><br/>
-                    <figure src="images/document-status-select-connection.PNG" alt="Document Status, select connection" width="80%"/>
+                    <figure src="images/en_US/document-status-select-connection.PNG" alt="Document Status, select connection" width="80%"/>
                     <br/><br/>
                     <p>Select the desired connection.  You may also select the desired document state and status, as well as specify a regular expression for the document identifier, if you want.  Then,
                            click the "Continue" button:</p>
                     <br/><br/>
-                    <figure src="images/document-status-select-job.PNG" alt="Document Status, select job" width="80%"/>
+                    <figure src="images/en_US/document-status-select-job.PNG" alt="Document Status, select job" width="80%"/>
                     <br/><br/>
                     <p>Select the job whose documents you want to see, and click "Continue" once again.  The results will display:</p>
                     <br/><br/>
-                    <figure src="images/document-status-example.PNG" alt="Document Status, example" width="80%"/>
+                    <figure src="images/en_US/document-status-example.PNG" alt="Document Status, example" width="80%"/>
                     <br/><br/>
                     <p>You may alter the criteria, and click "Go" again, if you so choose.  Or, you can alter the number of result rows displayed at a time, and click "Go" to redisplay.  Finally, you can page
                            up and down through the results using the "Prev" and "Next" links.</p>
@@ -335,16 +335,16 @@
                            column positions.</p>
                     <p>Click the "Queue Status" link on the left-hand menu.  You will see a screen that looks like this:</p>
                     <br/><br/>
-                    <figure src="images/queue-status-select-connection.PNG" alt="Queue Status, select connection" width="80%"/>
+                    <figure src="images/en_US/queue-status-select-connection.PNG" alt="Queue Status, select connection" width="80%"/>
                     <br/><br/>
                     <p>Select the desired connection.  You may also select the desired document state and status, as well as specify a regular expression for the document identifier, if you want.  You
                            will probably want to change the document identifier class from its default value of "(.*)".  Then, click the "Continue" button:</p>
                     <br/><br/>
-                    <figure src="images/queue-status-select-job.PNG" alt="Queue Status, select job" width="80%"/>
+                    <figure src="images/en_US/queue-status-select-job.PNG" alt="Queue Status, select job" width="80%"/>
                     <br/><br/>
                     <p>Select the job whose documents you want to see, and click "Continue" once again.  The results will display:</p>
                     <br/><br/>
-                    <figure src="images/queue-status-example.PNG" alt="Queue Status, example" width="80%"/>
+                    <figure src="images/en_US/queue-status-example.PNG" alt="Queue Status, example" width="80%"/>
                     <br/><br/>
                     <p>You may alter the criteria, and click "Go" again, if you so choose.  Or, you can alter the number of result rows displayed at a time, and click "Go" to redisplay.  Finally, you can page
                            up and down through the results using the "Prev" and "Next" links.</p>
@@ -382,18 +382,18 @@
                            the identifier involved, the number of bytes involved, and the results of the event.  Once displayed, you may choose to display more or less data, or reorder the display by column, or page through the data.</p>
                     <p>To get started, click on the "Simple History" link on the left-hand menu.  You will see a screen that looks like this:</p>
                     <br/><br/>
-                    <figure src="images/simple-history-select-connection.PNG" alt="Simple History Report, select connection" width="80%"/>
+                    <figure src="images/en_US/simple-history-select-connection.PNG" alt="Simple History Report, select connection" width="80%"/>
                     <br/><br/>
                     <p>Now, select the desired repository connection from the pulldown in the upper left hand corner.  If you like, you can also change the specified date/time range, or specify an identifier
                            regular expression or result code regular expression.  By default, the date/time range selects all events within the last hour, while the identifier regular expression and result code
                            regular expression matches all identifiers and result codes.</p>
                     <p>Next, click the "Continue" button.  A list of pertinent activities should then appear in a pulldown in the upper right:</p>
                     <br/><br/>
-                    <figure src="images/simple-history-select-activities.PNG" alt="Simple History Report, select activities" width="80%"/>
+                    <figure src="images/en_US/simple-history-select-activities.PNG" alt="Simple History Report, select activities" width="80%"/>
                     <br/><br/>
                     <p>You may select one or more activities that you would like a report on.  When you are done, click the "Go" button.  The results will appear, ordered by time, most recent event first:</p>
                     <br/><br/>
-                    <figure src="images/simple-history-example.PNG" alt="Simple History Report, example" width="80%"/>
+                    <figure src="images/en_US/simple-history-example.PNG" alt="Simple History Report, example" width="80%"/>
                     <br/><br/>
                     <p>You may alter the criteria, and click "Go" again, if you so choose.  Or, you can alter the number of result rows displayed at a time, and click "Go" to redisplay.  Finally, you can page
                            up and down through the results using the "Prev" and "Next" links.</p>
@@ -440,28 +440,28 @@
                        all crawls done through a Solr connection while they are underway, to be sure there isn't a misconfiguration of this kind.</p>
                 <p>When you create a Solr output connection, three configuration tabs appear.  The "Server" tab allows you to configure the HTTP target of the connection:</p>
                 <br/><br/>
-                <figure src="images/solr-configure-server.PNG" alt="Solr Configuration, Server tab" width="80%"/>
+                <figure src="images/en_US/solr-configure-server.PNG" alt="Solr Configuration, Server tab" width="80%"/>
                 <br/><br/>
                 <p>Fill in the fields according to your Solr configuration.  The Solr connection type supports only basic authentication at this time; if you have this enabled, supply the credentials
                        as requested on the bottom part of the form.</p>
                 <p>The second tab is the "Schema" tab, which allows you to specify the name of the Solr field to use as a document identifier.  The Solr connection type will treat
                        this field as being a unique key for locating the indexed document for further modification or deletion:</p>
                 <br/><br/>
-                <figure src="images/solr-configure-schema.PNG" alt="Solr Configuration, Schema tab" width="80%"/>
+                <figure src="images/en_US/solr-configure-schema.PNG" alt="Solr Configuration, Schema tab" width="80%"/>
                 <br/><br/>
                 <p>The third tab is the "Arguments" tab, which allows you to specify arbitrary arguments to be sent to Solr. All valid Solr update request parameters
                        can be specified here. A popular example is <a href="http://wiki.apache.org/solr/CommitWithin">commitWithin=60000</a>, which tells Solr to automatically commit documents behind the scenes, ensuring
                        an indexing latency of maximum 60000ms (1m). Another example is <a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a> to select the document processing pipeline/chain to use for
                        processing documents in Solr. See the Solr documentation for more valid arguments. The tab looks like:</p>
                 <br/><br/>
-                <figure src="images/solr-configure-arguments.PNG" alt="Solr Configuration, Arguments tab" width="80%"/>
+                <figure src="images/en_US/solr-configure-arguments.PNG" alt="Solr Configuration, Arguments tab" width="80%"/>
                 <br/><br/>
                 <p>Fill in the argument name and value, and click the "Add" button.  Bear in mind that if you add an argument with the same name as an existing one, it will replace the
                        existing one with the new specified value.  You can delete existing arguments by clicking the "Delete" button next to the argument you want to delete.</p>
                 <p>When you are done, don't forget to click the "Save" button to save your changes!  When you do, a connection summary and status screen will be presented, which
                        may look something like this:</p>
                 <br/><br/>
-                <figure src="images/solr-status.PNG" alt="Solr Status" width="80%"/>
+                <figure src="images/en_US/solr-status.PNG" alt="Solr Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the Solr connection is not responding, which is leading to an error status message instead of "Connection working".</p>
                 <p>When you configure a job to use a Solr-type output connection, the Solr connection type provides a tab called "Field Mapping".  The purpose of this tab
@@ -469,7 +469,7 @@
                        the names of the metadata items are often determined by the repository, with no alignment to fields defined in the Solr schema.  You may also
                        suppress specific metadata items from being sent to the index using this tab.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/solr-job-field-mapping.PNG" alt="Solr Specification, Field Mapping tab" width="80%"/>
+                <figure src="images/en_US/solr-job-field-mapping.PNG" alt="Solr Specification, Field Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>Add a new mapping by filling in the "source" with the name of the metadata item from the repository, and "target" as the name of the output field in
                        Solr, and click the "Add" button.  Leaving the "target" field blank will result in all metadata items of that name not being sent to Solr.</p>
@@ -481,7 +481,7 @@
             	to be as easy to use as possible.</p>
             	<p>After creating an OpenSearchServer ouput connection, you have to populate the parameters tab. Fill in the fields according your OpenSearchServer configuration. Each
             	OpenSearchServer output connector instance works with one index. To work with muliple indexes, just create one output connector for each index.</p>
-            	<figure src="images/opensearchserver-connection-parameters.PNG" alt="OpenSearchServer, parameters tab" width="80%"/>
+            	<figure src="images/en_US/opensearchserver-connection-parameters.PNG" alt="OpenSearchServer, parameters tab" width="80%"/>
             	<p>The parameters are:</p><br/>
             	<ul>
             		<li>Server location: An URL that references your OpenSearchServer instance. The default value (http://localhost:8080) is valid if your OpenSearchServer instance runs
@@ -490,17 +490,17 @@
             		<li>User name and API Key: The credentials required to connect to the OpenSearchServer instance. It can be left empty if no user has been created. The next figure shows
             		where to find the user's informations in the OpenSearchServer user interface.</li>
             	</ul>
-            	<figure src="images/opensearchserver-user.PNG" alt="OpenSearchServer, user configuration" width="80%"/>
+            	<figure src="images/en_US/opensearchserver-user.PNG" alt="OpenSearchServer, user configuration" width="80%"/>
             	<p>Once you created a new job, having selected the OpenSearchServer output connector, you will have the OpenSearchServer tab. This tab let you:</p><br/>
             	<ul>
             		<li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
             		<li>The allowed mime types. Warning it does not work with all repository connectors.</li>
             		<li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
             	</ul>
-            	<figure src="images/opensearchserver-job-parameters.PNG" alt="OpenSearchServer, job parameters" width="80%"/>
+            	<figure src="images/en_US/opensearchserver-job-parameters.PNG" alt="OpenSearchServer, job parameters" width="80%"/>
             	<p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
             	   index optimization. The targeted index is automatically optimized when the job is ending.</p>
-            	<figure src="images/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
+            	<figure src="images/en_US/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
              	<p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
             </section>
             
@@ -541,7 +541,7 @@
                 <br/>
                 <p>An active directory authority connection type has a single special tab in the authority connection editing screen: the "Domain Controller" tab:</p>
                 <br/><br/>
-                <figure src="images/ad-configure-dc.PNG" alt="AD Configuration, Domain Controller tab" width="80%"/>
+                <figure src="images/en_US/ad-configure-dc.PNG" alt="AD Configuration, Domain Controller tab" width="80%"/>
                 <br/><br/>
                 <p>Fill in the requested values.  Note that the "Administrative user name" field usually requires no domain suffix, but depending on the details of how the domain
                        controller is configured, may sometimes only accept the "name@domain" format.</p>
@@ -549,7 +549,7 @@
                        summary and status screen will be presented, which
                        may look something like this:</p>
                 <br/><br/>
-                <figure src="images/ad-status.PNG" alt="AD Status" width="80%"/>
+                <figure src="images/en_US/ad-status.PNG" alt="AD Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the Active Directory connection is not responding, which is leading to an error status message instead of "Connection working".</p>
             </section>
@@ -564,12 +564,12 @@
                 <p>A LiveLink authority connection has two special tabs you will need to configure: the "Server" tab, and the "User Mapping" tab.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/livelink-authority-server.PNG" alt="LiveLink Authority, Server tab" width="80%"/>
+                <figure src="images/en_US/livelink-authority-server.PNG" alt="LiveLink Authority, Server tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink credentials.</p>
                 <p>The "User Mapping" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/livelink-authority-user-mapping.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
+                <figure src="images/en_US/livelink-authority-user-mapping.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its LiveLink equivalent.
                        The mapping consists of a match expression, which is a regular expression where parentheses ("("
@@ -580,7 +580,7 @@
                     <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name <code>subdomain\myusername</code>.</p>
                 <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
                 <br/><br/>
-                <figure src="images/livelink-authority-status.PNG" alt="LiveLink Authority Status" width="80%"/>
+                <figure src="images/en_US/livelink-authority-status.PNG" alt="LiveLink Authority Status" width="80%"/>
                 <br/><br/>
                 <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the LiveLink server would not accept connections, which
                     is leading to an error status message instead of "Connection working".</p>
@@ -598,13 +598,13 @@
                 <p>A Documentum authority connection has three special tabs you will need to configure: the "Docbase" tab, the "User Mapping" tab, and the "System ACLs" tab.</p>
                 <p>The "Docbase" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/documentum-authority-docbase.PNG" alt="Documentum Authority, Docbase tab" width="80%"/>
+                <figure src="images/en_US/documentum-authority-docbase.PNG" alt="Documentum Authority, Docbase tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the desired Content Server docbase name, and enter the appropriate credentials.  You may leave the "Domain" field blank if the Content Server you specify does not have
                     Active Directory support enabled.</p>
                 <p>The "User Mapping" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/documentum-authority-user-mapping.PNG" alt="Documentum Authority, User Mapping tab" width="80%"/>
+                <figure src="images/en_US/documentum-authority-user-mapping.PNG" alt="Documentum Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>Here you can specify whether the mapping between incoming user names and Content Server user names is case sensitive or case insensitive.  No other mappings
                     are currently permitted.  Typically, Documentum instances operate in conjunction with Active Directory, such that Documentum user names are either the same as the Active Directory user names,
@@ -612,14 +612,14 @@
                     this option.</p>
                 <p>The "System ACLs" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/documentum-authority-system-acls.PNG" alt="Documentum Authority, System ACLs tab" width="80%"/>
+                <figure src="images/en_US/documentum-authority-system-acls.PNG" alt="Documentum Authority, System ACLs tab" width="80%"/>
                 <br/><br/>
                 <p>Here, you can choose to ignore all auto-generated ACLs associated with a user.  We recommend that you try ignoring such ACLs, and only choose the default if you have
                     reason to believe that your Documentum content is protected in a significant way by the use of auto-generated ACLs.  Your may need to consult with your Documentum system administrator to
                     decide what the proper setting should be for this option.</p>
                 <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented:</p>
                 <br/><br/>
-                <figure src="images/documentum-authority-status.PNG" alt="Documentum Authority Status" width="80%"/>
+                <figure src="images/en_US/documentum-authority-status.PNG" alt="Documentum Authority Status" width="80%"/>
                 <br/><br/>
                 <p>Pay careful attention to the status, and be prepared to correct any
                     problems that are displayed.</p>
@@ -632,13 +632,13 @@
                     Also needed are the Memex credentials that should be used to retrieve a user's permissions from the Memex server.</p>
                 <p>A Memex authority connection has the following special tabs you will need to configure: the "Memex Server" tab, and the "User Mapping" tab.  The "Memex Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/memex-authority-memex-server.PNG" alt="Memex Authority, Memex Server tab" width="80%"/>
+                <figure src="images/en_US/memex-authority-memex-server.PNG" alt="Memex Authority, Memex Server tab" width="80%"/>
                 <br/><br/>
                 <p>You must supply the name of your Memex server, and the connection port, along with the Memex credentials for a user that has sufficient permissions to retrieve Memex user
                     information.  You must also select the Memex server's character encoding.  If you do not know the encoding, consult your Memex system administrator.</p>
                 <p>The "User Mapping" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/memex-authority-user-mapping.PNG" alt="Memex Authority, User Mapping tab" width="80%"/>
+                <figure src="images/en_US/memex-authority-user-mapping.PNG" alt="Memex Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its Memex equivalent.
                        The mapping consists of a match expression, which is a regular expression where parentheses ("("
@@ -649,7 +649,7 @@
                     <code>MyUserName@subdomain.domain.com</code> into the Memex user name <code>subdomain\myusername</code>.</p>
                 <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
                 <br/><br/>
-                <figure src="images/memex-authority-status.PNG" alt="Memex Authority Status" width="80%"/>
+                <figure src="images/en_US/memex-authority-status.PNG" alt="Memex Authority Status" width="80%"/>
                 <br/><br/>
                 <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the Memex server has a license error, which
                     is leading to an error status message instead of "Connection working".</p>
@@ -665,7 +665,7 @@
                 <p>A Meridio authority connection has the following special tabs you will need to configure: the "Document Server" tab, the "Records Server" tab, the "User Service Server" tab,
                     and the "Credentials" tab.  The "Document Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-authority-document-server.PNG" alt="Meridio Authority, Document Server tab" width="80%"/>
+                <figure src="images/en_US/meridio-authority-document-server.PNG" alt="Meridio Authority, Document Server tab" width="80%"/>
                 <br/><br/>
                 <p>Select the correct protocol, and enter the correct server name, port, and location to reference the Meridio document server services.  If a proxy is involved, enter the proxy host
                     and port.  Authenticated proxies are not supported by this connection type at this time.</p>
@@ -673,7 +673,7 @@
                     no assumptions, and permits the most general configuration.</p>
                 <p>The "Records Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-authority-records-server.PNG" alt="Meridio Authority, Records Server tab" width="80%"/>
+                <figure src="images/en_US/meridio-authority-records-server.PNG" alt="Meridio Authority, Records Server tab" width="80%"/>
                 <br/><br/>
                 <p>Select the correct protocol, and enter the correct server name, port, and location to reference the Meridio records server services.  If a proxy is involved, enter the proxy host
                     and port.  Authenticated proxies are not supported by this connection type at this time.</p>
@@ -681,7 +681,7 @@
                     no assumptions, and permits the most general configuration.</p>
                 <p>The "User Service Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-authority-user-service-server.PNG" alt="Meridio Authority, User Service Server tab" width="80%"/>
+                <figure src="images/en_US/meridio-authority-user-service-server.PNG" alt="Meridio Authority, User Service Server tab" width="80%"/>
                 <br/><br/>
                 <p>You will require knowledge of where the special Meridio Authority extensions have been installed in order to fill out this tab.</p>
                 <p>Select the correct protocol, and enter the correct server name, port, and location to reference the Meridio user service server services.  If a proxy is involved, enter the proxy host
@@ -690,12 +690,12 @@
                     no assumptions, and permits the most general configuration.</p>
                 <p>The "Credentials" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-authority-credentials.PNG" alt="Meridio Authority, Credentials tab" width="80%"/>
+                <figure src="images/en_US/meridio-authority-credentials.PNG" alt="Meridio Authority, Credentials tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the Meridio server credentials needed to access the Meridio system.</p>
                 <p>When you are done, click the "Save" button.  You will then see a screen looking something like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-authority-status.PNG" alt="Meridio Authority Status" width="80%"/>
+                <figure src="images/en_US/meridio-authority-status.PNG" alt="Meridio Authority Status" width="80%"/>
                 <br/><br/>
                 <p>In this example, logon has not succeeded because the server on which the Meridio Authority is running is unknown to the Windows domain under which Meridio is running.
                     This results in an error message, instead of the "Connection working" message that you would see if the authority was working properly.</p>
@@ -718,14 +718,14 @@
               <p>The CMIS specification includes the concept of authorities only depending on a specific document, this authority connector is only based on a regular expression comparator.</p>
               <p>A CMIS authority connection has the following special tabs you will need to configure: the "Repository" tab and the "User Mapping" tab. The "Repository" tab looks like this:</p>
               <br/><br/>
-              <figure src="images/cmis-authority-connection-configuration-repository.png" alt="CMIS Authority, Repository configuration" width="80%"/>
+              <figure src="images/en_US/cmis-authority-connection-configuration-repository.png" alt="CMIS Authority, Repository configuration" width="80%"/>
               <br/><br/>
               <p>The repository configuration will be only used to track an ID for a specific CMIS repository. No calls will be performed against the CMIS repository.</p>
               <br/><br/>
               <p>The second tab that you need to configure is the "User Mapping" tab that allows you to define a regular expression to specify the user mapping.</p>
               <p>The "User Mapping" tab looks like the following:</p>
               <br/><br/>
-              <figure src="images/cmis-authority-connection-configuration-usermapping.png" alt="CMIS Authority, User Mapping configuration" width="80%"/>
+              <figure src="images/en_US/cmis-authority-connection-configuration-usermapping.png" alt="CMIS Authority, User Mapping configuration" width="80%"/>
               <br/><br/>
               <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its CMIS user equivalent.
                      The mapping consists of a match expression, which is a regular expression where parentheses ("("
@@ -736,7 +736,7 @@
                   <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name <code>subdomain\myusername</code>.</p>
               <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
               <br/><br/>
-              <figure src="images/cmis-authority-connection-configuration-save.png" alt="CMIS Authority, saving configuration" width="80%"/>
+              <figure src="images/en_US/cmis-authority-connection-configuration-save.png" alt="CMIS Authority, saving configuration" width="80%"/>
               <br/><br/>
             </section>
             
@@ -758,7 +758,7 @@
                        system, the same basic functionality is also used in the Web connection type, where it is a more important feature.  The file system connection type gives you a way to see
                        how this feature works, in a more predictable environment:</p>
                 <br/><br/>
-                <figure src="images/filesystem-job-hopcount.PNG" alt="File System Connection, Hop Filters tab" width="80%"/>
+                <figure src="images/en_US/filesystem-job-hopcount.PNG" alt="File System Connection, Hop Filters tab" width="80%"/>
                 <br/><br/>
                 <p>In the case of the file system connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
                        restrict the document set by how far away a document is from the path root, enter the maximum allowed number of hops in the text box.  Leaving the box blank
@@ -770,7 +770,7 @@
                        the Framework will discard the necessary bookkeeping information permanently.</p>
                 <p>The "Paths" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/filesystem-job-paths.PNG" alt="File System Connection, Paths tab" width="80%"/>
+                <figure src="images/en_US/filesystem-job-paths.PNG" alt="File System Connection, Paths tab" width="80%"/>
                 <br/><br/>
                 <p>This tab allows you to type in a set of paths which function as the roots of the crawl.  For each desired path, type in the path and click the "Add" button to add it to
                        the list.  The form of the path you type in obviously needs to be meaningful for the operating system the Framework is running on.</p>
@@ -797,7 +797,7 @@
                        This model works reasonably well for news, which is what RSS is often used for.</p>
                 <p>An RSS connection has the following special tabs: "Email", "Robots", "Bandwidth", and "Proxy".  The "Email" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-configure-email.PNG" alt="RSS Connection, Email tab" width="80%"/>
+                <figure src="images/en_US/rss-configure-email.PNG" alt="RSS Connection, Email tab" width="80%"/>
                 <br/><br/>
                 <p>Enter an email address.  This email address will be included in all requests made by the RSS connection, so that webmasters can report any difficulties that their
                        sites experience as the result of improper throttling, etc.</p>
@@ -806,12 +806,12 @@
                        a crawler that does not seem to be behaving in a polite manner.</p>
                 <p>The "Robots" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-configure-robots.PNG" alt="RSS Connection, Robots tab" width="80%"/>
+                <figure src="images/en_US/rss-configure-robots.PNG" alt="RSS Connection, Robots tab" width="80%"/>
                 <br/><br/>
                 <p>Select how the connection will interpret robots.txt.  Remember that you have an interest in crawling people's sites as politely as is possible.</p>
                 <p>The "Bandwidth" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-configure-bandwidth.PNG" alt="RSS Connection, Bandwidth tab" width="80%"/>
+                <figure src="images/en_US/rss-configure-bandwidth.PNG" alt="RSS Connection, Bandwidth tab" width="80%"/>
                 <br/><br/>
                 <p>This tab allows you to control the <b>maximum</b> rate at which the connection fetches data, on a per-server basis, as well as the <b>maximum</b> fetches per minute,
                        also per-server.  Finally, the maximum number of socket connections made per server at any one time is also controllable by this tab.</p>
@@ -836,19 +836,19 @@
                 <p>The "Proxy" tab allows you to specify a proxy that you want to crawl through.  The RSS connection type supports proxies that are secured with all forms of the NTLM
                        authentication method.  This is quite typical of large organizations.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-configure-proxy.PNG" alt="RSS Connection, Proxy tab" width="80%"/>
+                <figure src="images/en_US/rss-configure-proxy.PNG" alt="RSS Connection, Proxy tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the proxy server you will be proxying through in the "Proxy host" field.  Enter the proxy port in the "Proxy port" field.  If your server is authenticated, enter the
                        domain, username, and password in the corresponding fields.  Leave all fields blank if you want to use no proxy whatsoever.</p>
                 <p>When you save your RSS connection, you should see a status screen that looks something like this:</p>
                 <br/><br/>
-                <figure src="images/rss-status.PNG" alt="RSS Status" width="80%"/>
+                <figure src="images/en_US/rss-status.PNG" alt="RSS Status" width="80%"/>
                 <br/><br/>
                 <p></p>
                 <p>Jobs created using connections of the RSS type have the following additional tabs: "URLs", "Canonicalization", "Mappings", "Time Values", "Security", "Metadata", and
                        "Dechromed Content".  The URLs tab is where you describe the feeds that are part of the job.  It looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-urls.PNG" alt="RSS job, URLs tab" width="80%"/>
+                <figure src="images/en_US/rss-job-urls.PNG" alt="RSS job, URLs tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the list of feed URLs you want to crawl, separated by newlines.  You may also have comments by starting lines with ("#") characters.</p>
                 <p>The "Canonicalization" tab controls how the job handles url canonicalization.  Canonicalization refers to the fact that many different URLs may all refer to the
@@ -856,7 +856,7 @@
                        <code>b=2&amp;a=1</code>.  Other canonical operations include removal of session cookies, which some dynamic web sites include in the URL.</p>
                 <p>The "Canonicalization" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-canonicalization.PNG" alt="RSS job, Canonicalization tab" width="80%"/>
+                <figure src="images/en_US/rss-job-canonicalization.PNG" alt="RSS job, Canonicalization tab" width="80%"/>
                 <br/><br/>
                 <p>The tab displays a list of canonicalization rules.  Each rule consists of a regular expression (which is matched against a document's URL), and some switch selections.
                        The switch selections allow you to specify whether arguments are reordered, or whether certain specific kinds of session cookies are removed.  Specific kinds of
@@ -866,7 +866,7 @@
                 <p>The "Mappings" tab permits you to change the URL under which documents that are fetched will get indexed.  This is sometimes useful in an intranet setting because
                        the crawling server might have open access to content, while the users may have restricted access through a somewhat different URL.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-mappings.PNG" alt="RSS job, Mappings tab" width="80%"/>
+                <figure src="images/en_US/rss-job-mappings.PNG" alt="RSS job, Mappings tab" width="80%"/>
                 <br/><br/>
                 <p>The "Mappings" tab uses the same regular expression/replacement string paradigm as is used by many connection types running under the Framework.
                        The mappings consist of a list of rules.  Each rule has a match expression, which is a regular expression where parentheses ("("
@@ -879,7 +879,7 @@
                 <p>To add a rule, fill in the match expression and output string, and click the "Add" button.</p>
                 <p>The "Time Values" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-time-values.PNG" alt="RSS job, Time Values tab" width="80%"/>
+                <figure src="images/en_US/rss-job-time-values.PNG" alt="RSS job, Time Values tab" width="80%"/>
                 <br/><br/>
                 <p>Fill in the desired time values.  A description of each value is below.</p>
                 <table>
@@ -892,7 +892,7 @@
                 <p>The "Security" tab allows you to assign access tokens to the documents indexed with this job.  In order to use it, you must first decide what authority connection to use
                        to secure these documents, and what the access tokens from that authority connection look like.  The tab itself looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-security.PNG" alt="RSS job, Security tab" width="80%"/>
+                <figure src="images/en_US/rss-job-security.PNG" alt="RSS job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>To add an access token, fill in the text box with the access token value, and click the "Add" button.  If there are no access tokens, security will be considered
                        to be "off" for the job.</p>
@@ -908,14 +908,14 @@
                 </table>
                 <p>You can add additional metadata to each document using the "Metadata" tab.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-metadata.PNG" alt="RSS job, Metadata tab" width="80%"/>
+                <figure src="images/en_US/rss-job-metadata.PNG" alt="RSS job, Metadata tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the name of the metadata item you want on the left, and its desired value on the right, and click the "Add" button to add it to the metadata list.</p>
                 <p>The "Dechromed Content" tab allows you to index the description of the content from the feed, instead of the document's contents.  This is helpful when the
                        description of the documents in the feeds you are crawling is sufficient for indexing purposes, and the actual documents are full of navigation clutter or "chrome".
                        The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/rss-job-dechromed-content.PNG" alt="RSS job, Dechromed Content tab" width="80%"/>
+                <figure src="images/en_US/rss-job-dechromed-content.PNG" alt="RSS job, Dechromed Content tab" width="80%"/>
                 <br/><br/>
                 <p>Select the mode you want the connection to operate in.</p>
             </section>
@@ -949,7 +949,7 @@
                 <p>A Web connection has the following special tabs: "Email", "Robots", "Bandwidth", "Access Credentials", and "Certificates".  The "Email" tab
                        looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-configure-email.PNG" alt="Web Connection, Email tab" width="80%"/>
+                <figure src="images/en_US/web-configure-email.PNG" alt="Web Connection, Email tab" width="80%"/>
                 <br/><br/>
                 <p>Enter an email address.  This email address will be included in all requests made by the Web connection, so that webmasters can report any difficulties that their
                        sites experience as the result of improper throttling, etc.</p>
@@ -958,7 +958,7 @@
                        a crawler that does not seem to be behaving in a polite manner.</p>
                 <p>The "Robots" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-configure-robots.PNG" alt="Web Connection, Robots tab" width="80%"/>
+                <figure src="images/en_US/web-configure-robots.PNG" alt="Web Connection, Robots tab" width="80%"/>
                 <br/><br/>
                 <p>Select how the connection will interpret robots.txt.  Remember that you have an interest in crawling people's sites as politely as is possible.</p>
                 <p>The "Bandwidth" tab allows you to specify a list of bandwidth rules.  Each rule has a regular expression matched against a URL's throttle bin.
@@ -966,7 +966,7 @@
                        connections, and fetch rate.  You can have as many rules as you like; if a URL matches more than one rule, then the most conservative value will be used.</p>
                 <p>This is what the "Bandwidth" tab looks like:</p>
                 <br/><br/>
-                <figure src="images/web-configure-bandwidth.PNG" alt="Web Connection, Bandwidth tab" width="80%"/>
+                <figure src="images/en_US/web-configure-bandwidth.PNG" alt="Web Connection, Bandwidth tab" width="80%"/>
                 <br/><br/>
                 <p>The screen shot shows the tab configured with a setting that is reasonably polite.  The default value for this tab is blank, meaning that, by default, there is no throttling
                        whatsoever!  Please do not make the mistake of crawling other people's sites without adequate politeness parameters in place.</p>
@@ -988,7 +988,7 @@
                        basic auth or all forms of NTLM), as well as session-based authentication (which involves the fetch of many pages to establish a logged-in session).  The initial
                        appearance of the "Access Credentials" tab shows both kinds of authentication:</p>
                 <br/><br/>
-                <figure src="images/web-configure-access-credentials.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
+                <figure src="images/en_US/web-configure-access-credentials.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
                 <br/><br/>
 
                 <p>Comparing Page and Session Based Authentication:</p>
@@ -1092,13 +1092,13 @@
                       
                 <p>To add a session authentication rule, fill in a regular expression describing the site pages that are being protected, and click the "Add" button:</p>
                 <br/><br/>
-                <figure src="images/web-configure-access-credentials-session.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
+                <figure src="images/en_US/web-configure-access-credentials-session.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
                 <br/><br/>
                 <p>Note that you can now add login page descriptions to the newly-created rule.  To add a login page description, enter a URL regular expression, a type of login page, a
                        target link or form name regular expression, and click the "Add" button.</p>
                 <p>When you add a login page of the "form" type, you can then add form fill-in information to the login page, as seen below:</p>
                 <br/><br/>
-                <figure src="images/web-configure-access-credentials-session-form.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
+                <figure src="images/en_US/web-configure-access-credentials-session-form.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
                 <br/><br/>
                 <p>Supply a regular expression for the name of the form element you want to set, and also provide a value.  If you want the value to not be visible in clear text, fill in the
                        "password" column instead of the "value" column.  You can usually figure out the name of the form and its elements by viewing the source of the HTML page in a
@@ -1127,13 +1127,13 @@
                 <p>The "Certificates" tab is used in conjunction with SSL, and permits you to define independent trust certificate stores for URLs matching specified regular expressions.
                        You can also allow the connection to trust all certificates it sees, if you so choose.  The "Certificates" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-configure-certificates.PNG" alt="Web Connection, Certificates tab" width="80%"/>
+                <figure src="images/en_US/web-configure-certificates.PNG" alt="Web Connection, Certificates tab" width="80%"/>
                 <br/><br/>
                 <p>Type in a URL regular expression, and either check the "Trust everything" box, or browse for the appropriate certificate authority certificate that you wish to trust.  (It will
                        also work to simply trust a server's certificate, but that certificate may change from time to time, as it expires.)  Click "Add" to add the certificate rule to the list.</p>
                 <p>When you are done, and you click the "Save" button, you will see a summary page looking something like this:</p>
                 <br/><br/>
-                <figure src="images/web-status.PNG" alt="Web Status" width="80%"/>
+                <figure src="images/en_US/web-status.PNG" alt="Web Status" width="80%"/>
                 <br/><br/>
                 <p></p>
                 <p>When you create a job that uses a repository connection of the Web type, the tabs "Hop Filters", "Seeds", "Canonicalization", "Inclusions", "Exclusions", "Security", and "Metadata"
@@ -1146,7 +1146,7 @@
                        reach from a seed, <b>and</b> more than two redirections, will be considered out-of-set.</p>
                 <p>The "Hop Filters" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-hop-filters.PNG" alt="Web Job, Hop Filters tab" width="80%"/>
+                <figure src="images/en_US/web-job-hop-filters.PNG" alt="Web Job, Hop Filters tab" width="80%"/>
                 <br/><br/>
                 <p>On this same tab, you can tell the Framework what to do should there be changes in the distance from the root to a document.  The choice "Delete unreachable
                        documents" requires the Framework to recalculate the distance to every potentially affected document whenever a change takes place.  This may require
@@ -1155,12 +1155,12 @@
                        the Framework will discard the necessary bookkeeping information permanently.  This last option is the most efficient.</p>
                 <p>The "Seeds" tab is where you enter the starting points for your crawl.  It looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-seeds.PNG" alt="Web Job, Seeds tab" width="80%"/>
+                <figure src="images/en_US/web-job-seeds.PNG" alt="Web Job, Seeds tab" width="80%"/>
                 <br/><br/>
                 <p>Enter a list of seeds, separated by newline characters.  Blank lines, or lines that begin with a "#' character, will be ignored.</p>
                 <p>The "Canonicalization" tab controls how a web job converts URLs into a standard form.  It looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-canonicalization.PNG" alt="Web Job, Canonicalization tab" width="80%"/>
+                <figure src="images/en_US/web-job-canonicalization.PNG" alt="Web Job, Canonicalization tab" width="80%"/>
                 <br/><br/>
                 <p>The tab displays a list of canonicalization rules.  Each rule consists of a regular expression (which is matched against a document's URL), and some switch selections.
                        The switch selections allow you to specify whether arguments are reordered, or whether certain specific kinds of session cookies are removed.  Specific kinds of
@@ -1170,26 +1170,26 @@
                 <p>The "Inclusions" tab lets you specify, by means of a set of regular expressions, exactly what URLs will be included as part of the document set for a web job.  The tab
                        looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-inclusions.PNG" alt="Web Job, Inclusions tab" width="80%"/>
+                <figure src="images/en_US/web-job-inclusions.PNG" alt="Web Job, Inclusions tab" width="80%"/>
                 <br/><br/>
                 <p>You will need to provide a series of zero or more regular expressions, separated by newlines.</p>
                 <p>Remember that, by default, a web job includes <b>all</b> documents in the world that are linked to your seeds in any way that the web connection type can determine.</p>
                 <p>If you wish to restrict which documents are actually processed within your overall set of included documents, you may want to supply some regular expressions on the
                        "Exclusions" tab, which looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-exclusions.PNG" alt="Web Job, Exclusions tab" width="80%"/>
+                <figure src="images/en_US/web-job-exclusions.PNG" alt="Web Job, Exclusions tab" width="80%"/>
                 <br/><br/>
                 <p>Once again you will need to provide a series of zero or more regular expressions, separated by newlines.  It is typical to use the "Exclusions" tab to remove documents from
                        consideration which are suspected to contain content that both has no extractable links, and is not useful to the index you are trying to build, e.g. movie files.</p>
                 <p>The "Security" tab allows you to specify the access tokens that the documents in the web job get indexed with, and looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-security.PNG" alt="Web Job, Security tab" width="80%"/>
+                <figure src="images/en_US/web-job-security.PNG" alt="Web Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>You will need to know the format of the access tokens for the
                        governing authority before you can add security to your documents in this way.  Enter the access token you desire and click the "Add" button.</p>
                 <p>The "Metadata" tab allows you to include specified metadata along with all documents belonging to a web job.  It looks like this:</p>
                 <br/><br/>
-                <figure src="images/web-job-metadata.PNG" alt="Web Job, Metadata tab" width="80%"/>
+                <figure src="images/en_US/web-job-metadata.PNG" alt="Web Job, Metadata tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the name of the desired metadata on the left, and the desired value (if any) on the right, and click the "Add" button.</p>
             </section>
@@ -1212,7 +1212,7 @@
                        of the Active Directory type to control access to these documents.</p>
                 <p>A Windows Share connection has a single special tab on the repository connection editing screen: the "Server" tab:</p>
                 <br/><br/>
-                <figure src="images/jcifs-configure-server.PNG" alt="Windows Share Connection, Server tab" width="80%"/>
+                <figure src="images/en_US/jcifs-configure-server.PNG" alt="Windows Share Connection, Server tab" width="80%"/>
                 <br/><br/>
                 <p>You must enter the name of the server to form the connection with in the "Server" field.  This can either be an actual machine name, or a domain name (if you intend
                        to connect to a Windows domain-based DFS root).  If you supply an actual machine name, it is usually the right thing to do to provide the server name in an unqualified
@@ -1224,7 +1224,7 @@
                        server-side problems.</p>
                 <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-status.PNG" alt="Windows Share Status" width="80%"/>
+                <figure src="images/en_US/jcifs-status.PNG" alt="Windows Share Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the Windows Share connection is not responding, which is leading to an error status message instead of "Connection working".</p>
                 <p></p>
@@ -1232,7 +1232,7 @@
                        "Metadata", "Content Length", "File Mapping", and "URL Mapping".</p>
                 <p>The "Paths" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-job-paths.PNG" alt="Windows Share Job, Paths tab" width="80%"/>
+                <figure src="images/en_US/jcifs-job-paths.PNG" alt="Windows Share Job, Paths tab" width="80%"/>
                 <br/><br/>
                 <p>This tab allows you to construct starting-point paths by drilling down, and then add the constructed paths to a list, or remove existing paths from the list.  Without any
                        starting paths, your job includes zero documents.</p>
@@ -1248,7 +1248,7 @@
                        a new rule above any existing rule, by using one of the "Insert" buttons.</p>
                 <p>The "Security" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-job-security.PNG" alt="Windows Share Job, Security tab" width="80%"/>
+                <figure src="images/en_US/jcifs-job-security.PNG" alt="Windows Share Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>The "Security" tab lets you control three things: File security, share security, and (if security is off) the security tokens attached to all documents indexed by the job.</p>
                 <p><b>File security</b> is the security Windows applies to individual files.  This kind of security is supported by practically all Windows-compatible NAS-type servers,
@@ -1261,7 +1261,7 @@
                        than for demonstrations.</p>
                 <p>The "Metadata" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-job-metadata.PNG" alt="Windows Share Job, Metadata tab" width="80%"/>
+                <figure src="images/en_US/jcifs-job-metadata.PNG" alt="Windows Share Job, Metadata tab" width="80%"/>
                 <br/><br/>
                 <p>This tab allows you to ingest a document's path, as modified by a set of regular expression rules, as a piece of document metadata.  Enter the metadata name you want
                        in the "Path attribute name" field.  Then, add the rules you want to the list of rules.  Each rule has a match expression, which is a regular expression where parentheses ("("
@@ -1273,20 +1273,20 @@
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
                 <p>The "Content Length tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-job-content-length.PNG" alt="Windows Share Job, Content Length tab" width="80%"/>
+                <figure src="images/en_US/jcifs-job-content-length.PNG" alt="Windows Share Job, Content Length tab" width="80%"/>
                 <br/><br/>
                 <p>This tab allows you to set a maximum content length cutoff value, to avoid having the job try to index exceptionally large documents.  Enter the desired maximum value.
                        A blank value indicates an unlimited cutoff length.</p>
                 <p>The "File Mapping" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-job-file-mapping.PNG" alt="Windows Share Job, File Mapping tab" width="80%"/>
+                <figure src="images/en_US/jcifs-job-file-mapping.PNG" alt="Windows Share Job, File Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The mappings specified here are similar in all respects to the path attribute mapping setup described above.  The mappings are applied to change the actual file path
                        discovered by the crawler into a different file path.  This can sometimes be useful if there is some kind of conversion process between raw documents and
                        parallel data files that contain extracted data.</p>
                 <p>The "URL Mapping" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jcifs-job-url-mapping.PNG" alt="Windows Share Job, URL Mapping tab" width="80%"/>
+                <figure src="images/en_US/jcifs-job-url-mapping.PNG" alt="Windows Share Job, URL Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The mappings specified here are similar in all respects to the path attribute mapping setup described above.  If no mappings are present, the file path is converted
                        to a canonical file IRI.  If mappings are present, the conversion is presumed to produce a valid URL, which can be used to access the document via some
@@ -1300,7 +1300,7 @@
                   in order to fetch content.  Only publicly visible documents will be indexed, and there is thus no need of an authority for Wiki content.</p>
                 <p>A Wiki connection has only one special tab on the repository connection editing screen: the "Server" tab.  The "Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/wiki-configure-server.PNG" alt="Wiki Connection, Server tab" width="80%"/>
+                <figure src="images/en_US/wiki-configure-server.PNG" alt="Wiki Connection, Server tab" width="80%"/>
                 <br/><br/>
                 <p>The protocol must be selected in the "Protocol" field.  At the moment only the "http" protocol is supported.  The server name must be provided in the "Server name" field.
                       The server port must be provided in the "Port" field.  Finally, the path part of the Wiki URL must be provided in the "Path name" field and must start with a "/" character.</p>
@@ -1326,12 +1326,12 @@
                 <p>A generic database connection has three special tabs on the repository connection editing screen: the "Database Type" tab, the "Server" tab, and the
                        "Credentials" tab.  The "Database Type" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jdbc-configure-database-type.PNG" alt="Generic Database Connection, Database Type tab" width="80%"/>
+                <figure src="images/en_US/jdbc-configure-database-type.PNG" alt="Generic Database Connection, Database Type tab" width="80%"/>
                 <br/><br/>
                 <p>Select the kind of database you want to connect to, from the pulldown.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/jdbc-configure-server.PNG" alt="Generic Database Connection, Server tab" width="80%"/>
+                <figure src="images/en_US/jdbc-configure-server.PNG" alt="Generic Database Connection, Server tab" width="80%"/>
                 <br/><br/>
                 <p>The server name and port must be provided in the "Database host and port" field.  For example, for Oracle, the standard Oracle installation uses port 1521, so you would
                        enter something like, "my-oracle-server:1521" for this field.  Postgresql uses port 5432 by default, so "my-postgresql-server:5432" would be required.  SQL Server's
@@ -1340,19 +1340,19 @@
                        "my-instance-name/my-database-name".  For SQL Server using the default instance, use just the database name.</p>
                 <p>The "Credentials" tab is straightforward:</p>
                 <br/><br/>
-                <figure src="images/jdbc-configure-credentials.PNG" alt="Generic Database Connection, Credentials tab" width="80%"/>
+                <figure src="images/en_US/jdbc-configure-credentials.PNG" alt="Generic Database Connection, Credentials tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the database user credentials.</p>
                 <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
                 <br/><br/>
-                <figure src="images/jdbc-status.PNG" alt="Generic Database Status" width="80%"/>
+                <figure src="images/en_US/jdbc-status.PNG" alt="Generic Database Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the generic database connection is not properly authenticated, which is leading to an error status message instead of "Connection working".</p>
                 <p></p>
                 <p>When you configure a job to use a repository connection of the generic database type, several additional tabs are presented.  These are, in order, "Queries", and "Security".</p>
                 <p>The "Queries" tab looks something like this:</p>
                 <br/><br/>
-                <figure src="images/jdbc-job-queries.PNG" alt="Generic Database Job, Queries tab" width="80%"/>
+                <figure src="images/en_US/jdbc-job-queries.PNG" alt="Generic Database Job, Queries tab" width="80%"/>
                 <br/><br/>
                 <p>You must supply at least two queries.  (A third query is optional.)  The purpose of these queries is to obtain the data needed for the database to be properly crawled.
                        But in order for you to write these queries, you must make some decisions first.  Basically, you need to figure out how best to map the constructs within your database
@@ -1425,7 +1425,7 @@
                        type.  This is what the "Security" tab looks like:</p>
                 <br/>
                 <br/>
-                <figure src="images/jdbc-job-security.PNG" alt="Generic Database Job, Security tab" width="80%"/>
+                <figure src="images/en_US/jdbc-job-security.PNG" alt="Generic Database Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>Enter a desired access token, and click the "Add" button.  You may enter multiple access tokens.</p>
             </section>
@@ -1447,18 +1447,18 @@
                     appropriate credentials.  The "Webtop" tab describes the location of a Webtop server that will be used to display the documents from that Content Server, after they have been indexed.</p>
                 <p>The "Docbase" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/documentum-docbase.PNG" alt="Documentum Connection, Docbase tab" width="80%"/>
+                <figure src="images/en_US/documentum-docbase.PNG" alt="Documentum Connection, Docbase tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the Content Server Docbase instance name, and provide your credentials.  You may leave the "Domain" field blank, if the Content Server instance does not have AD integration enabled.</p>
                 <p>The "Webtop tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/documentum-webtop.PNG" alt="Documentum Connection, Docbase tab" width="80%"/>
+                <figure src="images/en_US/documentum-webtop.PNG" alt="Documentum Connection, Docbase tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the components of the base URL of the Webtop instance you want to use for serving the documents.  Remember that this information will only be used to construct
                     a URL to the document to allow user inspection; it will not be used for any crawling activities.</p>
                 <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented:</p>
                 <br/><br/>
-                <figure src="images/documentum-status.PNG" alt="Documentum Connection Status" width="80%"/>
+                <figure src="images/en_US/documentum-status.PNG" alt="Documentum Connection Status" width="80%"/>
                 <br/><br/>
                 <p>Pay careful attention to the status, and be prepared to correct any
                     problems that are displayed.</p>
@@ -1494,12 +1494,12 @@
                     The "Document View" tab affects how URLs to the fetched documents are constructed, for viewing results of searches.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/livelink-connection-server.PNG" alt="LiveLink Connection, Server tab" width="80%"/>
+                <figure src="images/en_US/livelink-connection-server.PNG" alt="LiveLink Connection, Server tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the LiveLink server name, port, and credentials.</p>
                 <p>The "Document Access" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/livelink-connection-document-access.PNG" alt="LiveLink Connection, Document Access tab" width="80%"/>
+                <figure src="images/en_US/livelink-connection-document-access.PNG" alt="LiveLink Connection, Document Access tab" width="80%"/>
                 <br/><br/>
                 <p>The server name is presumed to be the same as is on the "Server" tab.  Select the desired protocol.  If your LiveLink server is using a non-standard HTTP port for the specified protocol, enter the 
                     port number.  If your LiveLink server is using NTLM authentication, enter an AD user name, password, and domain.  If your LiveLink is using HTTPS, browse locally for the appropriate
@@ -1507,20 +1507,20 @@
                     server's certificate may be changed periodically.)</p>
                 <p>The "Document View" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/livelink-connection-document-view.PNG" alt="LiveLink Connection, Document Viewtab" width="80%"/>
+                <figure src="images/en_US/livelink-connection-document-view.PNG" alt="LiveLink Connection, Document Viewtab" width="80%"/>
                 <br/><br/>
                 <p>If you want each document's view URL to be the same as its access URL, you can leave this tab unchanged.  If you want to direct users to a different CGI path when they view search results,
                     you can specify that here.</p>
                 <p>When you are done, click the "Save" button.  You will see a summary screen that looks something like this:</p>
                 <br/><br/>
-                <figure src="images/livelink-connection-status.PNG" alt="LiveLink Connection Status" width="80%"/>
+                <figure src="images/en_US/livelink-connection-status.PNG" alt="LiveLink Connection Status" width="80%"/>
                 <br/><br/>
                 <p>Make note of and correct any reported connection errors.  In this example, the connection has been correctly set up, so the connection status is "Connection working".</p>
                 <p></p>
                 <p>A job created to use a LiveLink connection has the following additional tabs associated with it: "Paths", "Filters", "Security", and "Metadata".</p>
                 <p>The "Paths" tab allows you to manage a list of LiveLink paths that act as starting points for indexing content:</p>
                 <br/><br/>
-                <figure src="images/livelink-job-paths.PNG" alt="LiveLink Job, Paths tab" width="80%"/>
+                <figure src="images/en_US/livelink-job-paths.PNG" alt="LiveLink Job, Paths tab" width="80%"/>
                 <br/><br/>
                 <p>Build each path by selecting from the available dropdown, and clicking the "+" button.  When your path is complete, click the "Add" button to add the path to the list of starting points.</p>
                 <p>The "Filters" tab controls the criteria the LiveLink job will use to include or exclude content.  The filters are basically a list of rules.  Each rule has a document match field,
@@ -1528,19 +1528,19 @@
                     If the rule matches, then it will be included or excluded from the job's document set depending on what you have selected for the matching action. A rule's match field specifies a
                     character match, where "*" will match any number of characters, and "?" will match any single character.</p>
                 <br/><br/>
-                <figure src="images/livelink-job-filters.PNG" alt="LiveLink Job, Filters tab" width="80%"/>
+                <figure src="images/en_US/livelink-job-filters.PNG" alt="LiveLink Job, Filters tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the match field value, select the match action, and click the "Add" button to add to the list of filters.</p>
                 <p>The "Security" tab allows you to disable (or enable) LiveLink security for the documents associated with this job:</p>
                 <br/><br/>
-                <figure src="images/livelink-job-security.PNG" alt="LiveLink Job, Security tab" width="80%"/>
+                <figure src="images/en_US/livelink-job-security.PNG" alt="LiveLink Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>If you disable security, you can add your own access tokens to all
                     jobs in the document set as they are indexed.  The format of the access tokens you would enter depends on the governing authority associated with the job's repository connection.
                     Enter a token and click the "Add" button to add it to the list.</p>
                 <p>The "Metadata" tab allows you to select what specific metadata values from LiveLink you want to pass to the index:</p>
                 <br/><br/>
-                <figure src="images/livelink-job-metadata.PNG" alt="LiveLink Job, Metadata tab" width="80%"/>
+                <figure src="images/en_US/livelink-job-metadata.PNG" alt="LiveLink Job, Metadata tab" width="80%"/>
                 <br/><br/>
                 <p>If you want to pass all available LiveLink metadata to the index, then click the "All metadata" radio button.  Otherwise, you need to build LiveLink metadata paths and add them to the metadata list.
                     Select the next metadata path segment, and click the appropriate "+" button to add it to the path.  You may add folder information, or a metadata category, at any point.</p>
@@ -1564,19 +1564,19 @@
                 <p>A Memex connection has the following special tabs on the repository connection editing screen: the "Memex Server" tab, and the "Web Server" tab.  The "Memex Server" tab
                     looks like this:</p>
                 <br/><br/>
-                <figure src="images/memex-connection-memex-server.PNG" alt="Memex Connection, Memex Server tab" width="80%"/>
+                <figure src="images/en_US/memex-connection-memex-server.PNG" alt="Memex Connection, Memex Server tab" width="80%"/>
                 <br/><br/>
                 <p>You must supply the name of your Memex server, and the connection port, along with the Memex credentials for a user that has sufficient permissions to retrieve Memex
                     documents.  You must also select the Memex server's character encoding, and timezone.  If you do not know the encoding or timezone, consult your Memex system administrator.</p>
                 <p>The "Web Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/memex-connection-web-server.PNG" alt="Memex Connection, Web Server tab" width="80%"/>
+                <figure src="images/en_US/memex-connection-web-server.PNG" alt="Memex Connection, Web Server tab" width="80%"/>
                 <br/><br/>
                 <p>Here you must provide information that allows a Memex connection to construct a unique URL for each of your Memex documents.  Select a protocol, and fill in the server name and 
                     port.</p>
                 <p>When you are done, click the "Save" button.  You should see a status page, something like this:</p>
                 <br/><br/>
-                <figure src="images/memex-connection-status.PNG" alt="Memex Connection Status" width="80%"/>
+                <figure src="images/en_US/memex-connection-status.PNG" alt="Memex Connection Status" width="80%"/>
                 <br/><br/>
                 <p></p>
                 <p>Jobs based on Memex connections have the following special tabs: "Record Criteria", "Entities", and "Security".</p>
@@ -1594,7 +1594,7 @@
                 <p>A Meridio connection has the following special tabs on the repository connection editing screen: the "Document Server" tab, the "Records Server" tab, the "Web Client" tab,
                     and the "Credentials" tab.  The "Document Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-connection-document-server.PNG" alt="Meridio Connection, Document Server tab" width="80%"/>
+                <figure src="images/en_US/meridio-connection-document-server.PNG" alt="Meridio Connection, Document Server tab" width="80%"/>
                 <br/><br/>
                 <p>Select the correct protocol, and enter the correct server name, port, and location to reference the Meridio document server services.  If a proxy is involved, enter the proxy host
                     and port.  Authenticated proxies are not supported by this connection type at this time.</p>
@@ -1602,7 +1602,7 @@
                     no assumptions, and permits the most general configuration.</p>
                 <p>The "Records Server" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-connection-records-server.PNG" alt="Meridio Connection, Records Server tab" width="80%"/>
+                <figure src="images/en_US/meridio-connection-records-server.PNG" alt="Meridio Connection, Records Server tab" width="80%"/>
                 <br/><br/>
                 <p>Select the correct protocol, and enter the correct server name, port, and location to reference the Meridio records server services.  If a proxy is involved, enter the proxy host
                     and port.  Authenticated proxies are not supported by this connection type at this time.</p>
@@ -1610,19 +1610,19 @@
                     no assumptions, and permits the most general configuration.</p>
                 <p>The "Web Client" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-connection-web-client.PNG" alt="Meridio Connection, Web Client tab" width="80%"/>
+                <figure src="images/en_US/meridio-connection-web-client.PNG" alt="Meridio Connection, Web Client tab" width="80%"/>
                 <br/><br/>
                 <p>The purpose of the Meridio Connection web client tab is to allow the connection to build a useful URL for each document it indexes.
                     Select the correct protocol, and enter the correct server name, port, and location to reference the Meridio web client service.  No proxy information is required, as no documents
                     will be fetched from this service.</p>
                 <p>The "Credentials" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-connection-credentials.PNG" alt="Meridio Connection, Credentials tab" width="80%"/>
+                <figure src="images/en_US/meridio-connection-credentials.PNG" alt="Meridio Connection, Credentials tab" width="80%"/>
                 <br/><br/>
                 <p>Enter the Meridio server credentials needed to access the Meridio system.</p>
                 <p>When you are done, click the "Save" button to save the connection.  You will see a summary screen, looking something like this:</p>
                 <br/><br/>
-                <figure src="images/meridio-connection-status.PNG" alt="Meridio Connection Status" width="80%"/>
+                <figure src="images/en_US/meridio-connection-status.PNG" alt="Meridio Connection Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the Meridio connection is not actually correctly configured, which is leading to an error status message instead of "Connection working".</p>
                 <p>Since Meridio uses Windows IIS for authentication, there are many ways in which the configuration of either IIS or the Windows domain under which Meridio runs can affect
@@ -1658,7 +1658,7 @@
                     your documents to be secured, please follow the direction in the section titled "Active Directory Authority Connection".</p>
                 <p>A SharePoint connection has one special tab on the repository connection editing screen: the "Server" tab, which looks like this:</p>
                 <br/><br/>
-                <figure src="images/sharepoint-configure-server.PNG" alt="SharePoint Connection, Server tab" width="80%"/>
+                <figure src="images/en_US/sharepoint-configure-server.PNG" alt="SharePoint Connection, Server tab" width="80%"/>
                 <br/><br/>
                 <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with insufficient security protection,
                     or you
@@ -1672,7 +1672,7 @@
                     certificate, and click the "Add" button.</p>
                 <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
                 <br/><br/>
-                <figure src="images/sharepoint-status.PNG" alt="SharePoint Status" width="80%"/>
+                <figure src="images/en_US/sharepoint-status.PNG" alt="SharePoint Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the SharePoint connection is not actually referencing a SharePoint instance, which is leading to an error status message instead of "Connection working".</p>
                 <p>Since SharePoint uses Windows IIS for authentication, there are many ways in which the configuration of either IIS or the Windows domain under which SharePoint runs can affect
@@ -1701,7 +1701,7 @@
                     you want to append or insert by first constructing the path, from left to right, using your choice of text and context-dependent pulldowns with existing server path information listed.  This is what the tab
                     may look like for you.  Bear in mind that if you are using a connection that does not display the status, "Connection working", you may not see the selections you should in these pulldowns:</p>
                 <br/><br/>
-                <figure src="images/sharepoint-job-paths.PNG" alt="SharePoint Job, Paths tab" width="80%"/>
+                <figure src="images/en_US/sharepoint-job-paths.PNG" alt="SharePoint Job, Paths tab" width="80%"/>
                 <br/><br/>
                 <p>To build a rule, first build the rule's matching path.  Make an appropriate selection or enter desired text, then click either the "Add Site", "Add Library", or "Add Text" button, depending on your choice.
                     Repeat this process until the path is what you want it to be.  At this point, if the SharePoint connection does not know what kind of entity your path describes, you will need to select the
@@ -1710,13 +1710,13 @@
                 <p>The "Security" tab allows you to specify whether SharePoint's security model should be applied to this set of documents, or not.  You also have the option of applying some specified set of access
                     tokens to the documents described by the job.  The tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/sharepoint-job-security.PNG" alt="SharePoint Job, Security tab" width="80%"/>
+                <figure src="images/en_US/sharepoint-job-security.PNG" alt="SharePoint Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>Select whether SharePoint security is on or off using the radio buttons provided.  If security is off, you may add access tokens in the text box and click the "Add" button.  The access tokens must
                     be in the proper form expected by the authority that governs your SharePoint connection for this feature to be useful.</p>
                 <p>The "Metadata" tab allows you to specify what metadata will be included for each document.  The tab is similar to the "Paths" tab, which you may want to review above:</p>
                 <br/><br/>
-                <figure src="images/sharepoint-job-metadata.PNG" alt="SharePoint Job, Security tab" width="80%"/>
+                <figure src="images/en_US/sharepoint-job-metadata.PNG" alt="SharePoint Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>The main difference is that instead of rules that include or exclude individual sites, libraries, or documents, the rules describe inclusion and exclusion of document metadata.  Since metadata is associated
                     with files, all of the metadata rules are applied only to file paths, and there are no such things as "site" or "library" metadata path rules.</p>
@@ -1743,7 +1743,7 @@
               <br/>
               <p>A CMIS connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
-              <figure src="images/cmis-repository-connection-configuration.png" alt="CMIS Repository Connection, configuration parameters" width="80%"/>
+              <figure src="images/en_US/cmis-repository-connection-configuration.png" alt="CMIS Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
               <p>Select the correct CMIS binding protocol (AtomPub or Web Services) and enter the correct username, password and the endpoint to reference the CMIS document server services.</p>
               <p>The endpoint consists of the HTTP protocol, hostname, port and the context path of the CMIS service exposed by the CMIS server:</p>
@@ -1761,17 +1761,17 @@
               <br/><br/>
               <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
               <br/><br/>
-              <figure src="images/cmis-repository-connection-configuration-save.png" alt="CMIS Repository Connection, saving configuration" width="80%"/>
+              <figure src="images/en_US/cmis-repository-connection-configuration-save.png" alt="CMIS Repository Connection, saving configuration" width="80%"/>
               <br/><br/>
               <p>When you configure a job to use the CMIS repository connection an additional tab is presented. This is the "CMIS Query" tab:</p>
               <br/><br/>
-              <figure src="images/cmis-repository-connection-job-cmisquery.png" alt="CMIS Repository Connection, CMIS Query" width="80%"/>
+              <figure src="images/en_US/cmis-repository-connection-job-cmisquery.png" alt="CMIS Repository Connection, CMIS Query" width="80%"/>
               <br/><br/>
               <p>The CMIS Query tab allows you to specify the query based on the CMIS Query Language to get all the result documents that need to be ingested.</p>
               <p>Note that the CMIS Connector during the ingestion process, for each result, if it will find a folder node (that must have cmis:folder as the baseType), it will ingest all the children of the folder node; otherwise it will directly ingest the document (that must have cmis:document as the baseType).</p>
               <p>When you are done, and you click the "Save" button, you will see a summary page looking something like this:</p>
               <br/><br/>
-              <figure src="images/cmis-repository-connection-job-save.png" alt="CMIS Repository Connection, saving job" width="80%"/>
+              <figure src="images/en_US/cmis-repository-connection-job-save.png" alt="CMIS Repository Connection, saving job" width="80%"/>
               <br/><br/>
             </section>
             
@@ -1782,7 +1782,7 @@
               <br/>
               <p>An Alfresco connection has the following configuration parameters on the repository connection editing screen:</p>
               <br/><br/>
-              <figure src="images/alfresco-repository-connection-configuration.png" alt="Alfresco Repository Connection, configuration parameters" width="80%"/>
+              <figure src="images/en_US/alfresco-repository-connection-configuration.png" alt="Alfresco Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
               <p>Enter the correct username, password and the endpoint to reference the Alfresco document server services.</p>
               <p>The endpoint consists of the HTTP protocol, hostname, port and the context path of the Alfresco Web Services API exposed by the Alfresco server.</p>
@@ -1792,18 +1792,18 @@
               <br/><br/>
               <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
               <br/><br/>
-              <figure src="images/alfresco-repository-connection-configuration-save.png" alt="Alfresco Repository Connection, saving configuration" width="80%"/>
+              <figure src="images/en_US/alfresco-repository-connection-configuration-save.png" alt="Alfresco Repository Connection, saving configuration" width="80%"/>
               <br/><br/>
               <p>When you configure a job to use the Alfresco repository connection an additional tab is presented. This is the "Lucene Query" tab:</p>
               <br/><br/>
-              <figure src="images/alfresco-repository-connection-job-lucenequery.png" alt="Alfresco Repository Connection, Lucene Query" width="80%"/>
+              <figure src="images/en_US/alfresco-repository-connection-job-lucenequery.png" alt="Alfresco Repository Connection, Lucene Query" width="80%"/>
               <br/><br/>
               <p>The Lucene Query tab allows you to specify the query based on the Lucene Query Language to get all the result documents that need to be ingested.</p>
               <p>Please note that if the Lucene Query is null, the connector will ingest all the contents in the Alfresco repository under the Company Home.</p>
               <p>Please also note that the Alfresco Connector during the ingestion process, for each result, if it will find a folder node (that must have any child association defined for the node type), it will ingest all the children of the folder node; otherwise it will directly ingest the document (that must have any d:content as one of the properties of the node).</p>
               <p>When you are done, and you click the "Save" button, you will see a summary page looking something like this:</p>
               <br/><br/>
-              <figure src="images/alfresco-repository-connection-job-save.png" alt="Alfresco Repository Connection, saving job" width="80%"/>
+              <figure src="images/en_US/alfresco-repository-connection-job-save.png" alt="Alfresco Repository Connection, saving job" width="80%"/>
               <br/><br/>
             </section>
             

@@ -36,11 +36,11 @@
           <title>Security Architecture Diagrams</title>
           <p>For those who prefer a pictorial representation of ManifoldCF's security architecture, this might help.</p>
           <br/><br/>
-          <figure src="images/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
+          <figure src="images/en_US/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
           <br/><br/>
           <p>If you are using Apache to perform authentication, the model is slightly different.</p>
           <br/><br/>
-          <figure src="images/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
+          <figure src="images/en_US/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
           <br/><br/>
     </section>
 
@@ -48,7 +48,7 @@
           <title>Process Architecture Diagrams</title>
           <p>A pictorial representation of ManifoldCF's process architecture is below.</p>
           <br/><br/>
-          <figure src="images/MCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
+          <figure src="images/en_US/MCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
           <br/><br/>
     </section>
 

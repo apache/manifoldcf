@@ -36,11 +36,11 @@
           <title>セキュリティアーキテクチャ図</title>
           <p>以下はManifoldCFのセキュリティアーキテクチャ図です：</p>
           <br/><br/>
-          <figure src="images/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
+          <figure src="images/ja_JP/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
           <br/><br/>
           <p>Apacheを使って認証を行う場合は、以下のようなモデルになります：</p>
           <br/><br/>
-          <figure src="images/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
+          <figure src="images/ja_JP/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
           <br/><br/>
     </section>
 
@@ -48,7 +48,7 @@
           <title>プロセスアーキテクチャ図</title>
           <p>以下はManifoldCFのプロセスアーキテクチャ図です：</p>
           <br/><br/>
-          <figure src="images/MCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
+          <figure src="images/ja_JP/MCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
           <br/><br/>
     </section>
 
