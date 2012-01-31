@@ -426,7 +426,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       String value = params.getParameter(key);
       paramMap.put(key,value);
     }
-    Messages.outputResource(out,locale,resName,paramMap,true);
+    Messages.outputResourceWithVelocity(out,locale,resName,paramMap,true);
   }
 
   /**

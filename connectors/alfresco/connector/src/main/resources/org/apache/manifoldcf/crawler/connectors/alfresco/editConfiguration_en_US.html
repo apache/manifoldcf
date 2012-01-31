@@ -28,7 +28,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="${TENANTDOMAIN:A}" />
+        <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="$TENANTDOMAIN_A" />
     </td>
   </tr>
 	<tr>
@@ -38,7 +38,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input id="username" type="text" name="username" value="${USERNAME:A}" />
+			<input id="username" type="text" name="username" value="$USERNAME_A" />
 		</td>
 	</tr>
 	<tr>
@@ -48,7 +48,7 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input id="password" type="password" name="password" value="${PASSWORD:A}" />
+			<input id="password" type="password" name="password" value="$PASSWORD_A" />
 		</td>
 	</tr>
 	<tr>
@@ -59,8 +59,13 @@
 		</td>
 		<td class="value">
 			<select id="protocol" name="protocol">
-			  <option value="http">http</option>
-			  <option value="https">https</option>
+			#if($PROTOCOL_BJ == "https")
+        <option value="http">http</option>
+        <option value="https" selected="selected">https</option>
+      #else
+        <option value="http" selected="selected">http</option>
+        <option value="https">https</option>
+      #end
 			</select>
 		</td>
 	</tr>
@@ -71,7 +76,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="server" name="server" type="text" size="32" value="${SERVER:A}"/>
+        <input id="server" name="server" type="text" size="32" value="$SERVER_A"/>
     </td>
   </tr>
   <tr>
@@ -81,7 +86,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="port" name="port" type="text" size="5" value="${PORT:A}" />
+        <input id="port" name="port" type="text" size="5" value="$PORT_A" />
     </td>
   </tr>
   <tr>
@@ -91,19 +96,7 @@
       </nobr>
     </td>
     <td class="value">
-        <input id="path" name="path" type="text" size="32" value="${PATH:A}" />
+        <input id="path" name="path" type="text" size="32" value="$PATH_A" />
     </td>
   </tr>
 </table>
-
-<script type="text/javascript">
-<!--
-var protocol = "${PROTOCOL:BJ}";
-var protocolSelect = editconnection.protocol;
-if(protocol=="https"){
-  protocolSelect.options[1].selected = true;
-} else {
-  protocolSelect.options[0].selected = true;
-}
-//-->
-</script>

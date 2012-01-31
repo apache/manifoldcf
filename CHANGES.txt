@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-397: Alfresco Connector UI must be conformed with Apache Velocity
+(Piergiorgio Lucidi)
+
 CONNECTORS-395: CMIS Connector UI must be completely conformed with Apache Velocity
 (Piergiorgio Lucidi)
 
