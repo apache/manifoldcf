@@ -29,12 +29,13 @@
     </td>
     <td class="value">
       <select id="binding" name="binding">
-        <option value="atom" selected="selected">
-          AtomPub
-        </option>
-        <option value="ws">
-          Web Services
-        </option>
+      #if($BINDING_BJ == "atom")
+        <option value="atom" selected="selected">AtomPub</option>
+        <option value="ws">Web Services</option>
+      #else
+        <option value="atom">AtomPub</option>
+        <option value="ws" selected="selected">Web Services</option>
+      #end
       </select>
     </td>
   </tr>
@@ -66,8 +67,13 @@
     </td>
     <td class="value">
       <select id="protocol" name="protocol">
+      #if($PROTOCOL_BJ == "https")
         <option value="http">http</option>
+        <option value="https" selected="selected">https</option>
+      #else
+        <option value="http" selected="selected">http</option>
         <option value="https">https</option>
+      #end
       </select>
     </td>
   </tr>
@@ -115,23 +121,3 @@
     </td>
   </tr>
 </table>
-
-<script type="text/javascript">
-<!--
-var binding = "$BINDING_BJ";
-var bindingSelect = editconnection.binding;
-if(binding==bindingSelect.options[1].value){
-  bindingSelect.options[1].selected = true;
-} else if (binding==bindingSelect.options[0].value){
-  bindingSelect.options[0].selected = true;
-}
-
-var protocol = "$PROTOCOL_BJ";
-var protocolSelect = editconnection.protocol;
-if(protocol==protocolSelect.options[1].value){
-  protocolSelect.options[1].selected = true;
-} else if (protocol == protocolSelect.options[0].value){
-  protocolSelect.options[0].selected = true;
-}
-//-->
-</script>

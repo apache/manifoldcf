@@ -29,12 +29,13 @@
 		</td>
 		<td class="value">
 			<select id="binding" name="binding">
-				<option value="atom" selected="selected">
-					AtomPub
-				</option>
-				<option value="ws">
-					Web Services
-				</option>
+		  #if($BINDING_BJ == "atom")
+        <option value="atom" selected="selected">AtomPub</option>
+        <option value="ws">Web Services</option>
+      #else
+        <option value="atom">AtomPub</option>
+        <option value="ws" selected="selected">Web Services</option>
+      #end
 			</select>
 		</td>
 	</tr>
@@ -59,15 +60,53 @@
 		</td>
 	</tr>
 	<tr>
-		<td class="description">
-			<nobr>
-				エンドポイント：
-			</nobr>
-		</td>
-		<td class="value">
-			<input type="text" name="endpoint" value="$ENDPOINT_A" size="50" />
-		</td>
-	</tr>
+    <td class="description">
+      <nobr>
+        Protocol:
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="protocol" name="protocol">
+      #if($PROTOCOL_BJ == "https")
+        <option value="http">http</option>
+        <option value="https" selected="selected">https</option>
+      #else
+        <option value="http" selected="selected">http</option>
+        <option value="https">https</option>
+      #end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Server:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="server" name="server" type="text" size="32" value="$SERVER_A"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Port:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="port" name="port" type="text" size="5" value="$PORT_A" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Path:
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="path" name="path" type="text" size="32" value="$PATH_A" />
+    </td>
+  </tr>
 	<tr>
 		<td class="description">
 			<nobr>
@@ -75,30 +114,10 @@
 			</nobr>
 		</td>
 		<td class="value">
-			<input type="text" id="repositoryId" name="repositoryId" value="REPOSITORYID_A" />
+			<input type="text" id="repositoryId" name="repositoryId" value="$REPOSITORYID_A" />
 			<nobr>
 				（任意）
 			</nobr>
 		</td>
 	</tr>
 </table>
-
-<script type="text/javascript">
-<!--
-var binding = "$BINDING_BJ";
-var bindingSelect = editconnection.binding;
-if(binding==bindingSelect.options[1].value){
-  bindingSelect.options[1].selected = true;
-} else if (binding==bindingSelect.options[0].value){
-  bindingSelect.options[0].selected = true;
-}
-
-var protocol = "$PROTOCOL_BJ";
-var protocolSelect = editconnection.protocol;
-if(protocol==protocolSelect.options[1].value){
-  protocolSelect.options[1].selected = true;
-} else if (protocol == protocolSelect.options[0].value){
-  protocolSelect.options[0].selected = true;
-}
-//-->
-</script>

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-395: CMIS Connector UI must be completely conformed with Apache Velocity
+(Piergiorgio Lucidi)
+
 CONNECTORS-392: Complete translation to Japanese of index.xml and
 concepts.xml.
 (Hitoshi Ozawa)
