@@ -18,14 +18,20 @@
 -->
 
 <properties>
-  <property name="output.pdf.fontFamily.serif" value="IPAPGothic"/>
-  <property name="output.pdf.fontFamily.sansSerif" value="IPAPGothic"/>
-  <property name="output.pdf.fontFamily.monospace" value="IPAPGothic"/>
-  <property name="output.pdf.fontFamily.arial" value="IPAPGothic"/>
+  <!-- Default values -->
+  <property name="output.pdf.fontFamily.serif" value="DejaVuSerif"/>
+  <property name="output.pdf.fontFamily.sansSerif" value="DejaVuSans"/>
+  <property name="output.pdf.fontFamily.monospace" value="DejaVuSansMono"/>
+  <!-- Overrides for ja_JP -->
+  <property name="output.pdf.fontFamily.serif.ja_JP" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.sansSerif.ja_JP" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.monospace.ja_JP" value="IPAPGothic"/>
+
+  <!-- property name="output.pdf.fontFamily.arial" value="IPAPGothic"/>
   <property name="output.pdf.fontFamily.TimesNewRoman" value="IPAPGothic"/>
   <property name="output.pdf.fontFamily.Courier" value="IPAPGothic"/>
   <property name="output.pdf.fontFamily.arialMT" value="IPAPGothic"/>
   <property name="output.pdf.fontFamily.arial-BoldMT" value="IPAPGothic"/>
   <property name="output.pdf.fontFamily.arial-ItalicMT" value="IPAPGothic"/>
-  <property name="output.pdf.fontFamily.TimesNewRomanPSMT" value="IPAPGothic"/>
+  <property name="output.pdf.fontFamily.TimesNewRomanPSMT" value="IPAPGothic"/ -->
 </properties>

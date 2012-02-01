@@ -83,8 +83,111 @@
         <dirname file="build.xml" property="project-path"/>
         <replace file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/output.xmap" token="{root}" value="${project-path}"/>
         <replace file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/config.xml" token="{root}" value="${project-path}"/>
+        <delete file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/resources/stylesheets/document-to-fo.xsl"/>
+        <copy todir="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/resources/stylesheets">
+            <fileset dir="pdf">
+                <include name="document-to-fo.xsl"/>
+            </fileset>
+        </copy>
     </target>
 
+    <target name="build-dejavu-fonts" depends="dejavu-check" if="dejavuAvailable">
+        <mkdir dir="tmp/font/dejavu-fonts"/>
+        <unzip src="fonts/dejavu-fonts-ttf-2.33.zip" dest="tmp/font/dejavu-fonts"/>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans.ttf"/>
+            <arg value="tmp/font/DejaVuSans.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Oblique.ttf"/>
+            <arg value="tmp/font/DejaVuSans-Oblique.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Bold.ttf"/>
+            <arg value="tmp/font/DejaVuSans-Bold.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif.ttf"/>
+            <arg value="tmp/font/DejaVuSerif.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Italic.ttf"/>
+            <arg value="tmp/font/DejaVuSerif-Italic.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Bold.ttf"/>
+            <arg value="tmp/font/DejaVuSerif-Bold.xml"/>
+        </java>
+        <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
+            <classpath>
+                <fileset dir="../lib">
+                    <include name="fop*.jar"/>
+                    <include name="xmlgraphics-commons*.jar"/>
+                    <include name="avalon*.jar"/>
+                    <include name="commons-io*.jar"/>
+                    <include name="commons-logging*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSansMono.ttf"/>
+            <arg value="tmp/font/DejaVuSansMono.xml"/>
+        </java>
+
+    </target>
+    
     <target name="build-ipa-fonts" depends="ipa-check" if="ipaAvailable">
         <mkdir dir="tmp/font/ipa-fonts"/>
         <unzip src="fonts/IPAGTTC00303.zip" dest="tmp/font/ipa-fonts"/>
@@ -131,7 +234,7 @@
         </condition>
     </target>
     
-    <target name="dist" depends="setup-local-forrest,build-ipa-fonts,dependencies-check" if="dependenciesAvailable">
+    <target name="dist" depends="setup-local-forrest,build-ipa-fonts,build-dejavu-fonts,dependencies-check" if="dependenciesAvailable">
         <dirname file="tmp/forrest/LICENSE.txt" property="forrest-dir"/>
         <echo message="${forrest-dir}"/>
         <exec executable="cmd.exe" dir="." searchpath="true" failonerror="true" osfamily="windows">

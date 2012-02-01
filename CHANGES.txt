@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-387: Generate end-user-documentation.pdf properly in Japanese.
+(Hitoshi Ozawa, Karl Wright)
+
 CONNECTORS-397: Alfresco Connector UI must be conformed with Apache Velocity
 (Piergiorgio Lucidi)
 
