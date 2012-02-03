@@ -27,52 +27,52 @@ function checkConfigForSave()
   if (editconnection.username.value == "")
   {
     alert("ユーザ名を入力してください");
-    SelectTab("Server");
+    SelectTab("サーバ");
     editconnection.username.focus();
     return false;
   }
   if (editconnection.password.value == "")
   {
     alert("パスワードを入力してください");
-    SelectTab("Server");
+    SelectTab("サーバ");
     editconnection.password.focus();
     return false;
   }
   if (editconnection.binding.value == "")
   {
     alert("バイディングを入力してください");
-    SelectTab("Server");
+    SelectTab("サーバ");
     editconnection.binding.focus();
     return false;
   }
   if (editconnection.server.value ==""){
-    alert("Server name must be not null");
-    SelectTab("Server");
+    alert("サーバ名を入力してください");
+    SelectTab("サーバ");
     editconnection.server.focus();
     return false;
   }
   if(!editconnection.server.value.indexOf('/')==-1) {
-    alert("Server name can't contain the character '/'");
-    SelectTab("Server");
+    alert("サーバ名には文字「/」を含めないでください");
+    SelectTab("サーバ");
     editconnection.server.focus();
     return false;
   }
   if (editconnection.port.value == "")
   {
-    alert("The port must be not null");
-    SelectTab("Server");
+    alert("ポート番号を入力してください");
+    SelectTab("サーバ");
     editconnection.port.focus();
     return false;
   }
   if (!isInteger(editconnection.port.value)){
-    alert("The server port must be a valid integer");
-    SelectTab("Server");
+    alert("サーバポートには整数を入力してください");
+    SelectTab("サーバ");
     editconnection.port.focus();
     return false;
   }
   if(editconnection.path.value == ""){
-    alert("Path must be not null");
-    SelectTab("Server");
+    alert("パスを入力してください");
+    SelectTab("サーバ");
     editconnection.path.focus();
     return false;
   }
