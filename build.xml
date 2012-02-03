@@ -901,6 +901,11 @@
                 <exclude name="**/broken-links.xml"/>
               </fileset>
           </copy>
+          <copy todir="dist/doc">
+              <fileset dir="site">
+                  <include name=".htaccess"/>
+              </fileset>
+          </copy>
     </target>
 
     <target name="preclean-for-delivery">
