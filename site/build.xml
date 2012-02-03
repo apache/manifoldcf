@@ -57,6 +57,8 @@
         <copy todir="tmp/forrest">
             <fileset dir="${forrest-root}"/>
         </copy>
+        <chmod dir="tmp/forrest/bin" perm="ugo+rx" includes="forrest"/>
+        <chmod dir="tmp/forrest/tools/ant/bin" perm="ugo+rx" includes="ant"/>
         <!-- Replace the fop jar with a more up-to-date version -->
         <delete file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/lib/fop-0.95.jar"/>
         <delete file="tmp/forrest/build/plugins/lib/fop-0.95.jar"/>

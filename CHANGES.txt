@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-399: Update Japanese site to reflect release of ManifoldCF 0.4-incubating.
+(Hitoshi Ozawa)
+
 CONNECTORS-387: Generate end-user-documentation.pdf properly in Japanese.
 (Hitoshi Ozawa, Karl Wright)
 

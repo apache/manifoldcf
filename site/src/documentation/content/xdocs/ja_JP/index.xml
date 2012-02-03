@@ -41,7 +41,7 @@
     
     <section>
 	<title>プロジェクトの状況</title>
-	<p>Apache ManifoldCF 0.3-incubatingは<a href="download_ja_JP.html">ここ</a>からダウンロードすることができます。</p>
+	<p>Apache ManifoldCF 0.4-incubatingは<a href="download_ja_JP.html">ここ</a>からダウンロードすることができます。</p>
     </section>
 
     <section>
@@ -53,11 +53,15 @@
     <section>
         <title>ニュース</title>
           <section>
-             <title>2011年11月08日 - ManifoldCF in Vancouver</title>
+            <title>2012年02月02日 - ManifoldCF 0.4-incubatingを公開！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは4版を承認</p>
+          </section>
+          <section>
+             <title>2011年11月08日 - バンクーバーでManifoldCFについて講演</title>
                 <p>Apache北アメリカ2011で一般的なManifoldCFの発表, バンクーバー, ブリティッシュコロンビア, カナダ</p>
           </section>
           <section>
-             <title>2011年10月19日 - ManifoldCF in Barcelona</title>
+             <title>2011年10月19日 - バルセロナでManifoldCFについて発表</title>
                 <p>Apache Eurocon 2011, バルセロナ, カタルーニャ, スペインでManifoldCFの権限について発表</p>
           </section>
           <section>
@@ -66,7 +70,7 @@
           </section>
 	  <section>
 	     <title>2011年05月17日 - ManifoldCF 0.2-incubatingを公開！</title>
-                <p>開発者コミュニティ及びApacheインキュベータはリリース2を承認</p>
+                <p>開発者コミュニティ及びApacheインキュベータは2版を承認</p>
 	  </section>
 	  <section>
 	     <title>2011年01月31日 - ManifoldCF 0.1-incubatingを公開！</title>

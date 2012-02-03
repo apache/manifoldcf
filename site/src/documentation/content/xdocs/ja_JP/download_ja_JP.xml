@@ -29,8 +29,40 @@
 
   <body> 
 
+      <section>
+        <title>最新 （Apache ManifoldCF 0.3-incubating, 2012年02月02日）</title>
+        <p>
+          <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating.KEYS">KEYS</a><br/>
+          <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+        </p>
+
+        <p>ソース：<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz">apache-manifoldcf-0.4-incubating-src.tar.gz</a>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip">apache-manifoldcf-0.4-incubating-src.zip</a>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip.sha">SHA</a>]<br/>
+        </p>
+
+        <p>ソース＋バイナリ：<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz">apache-manifoldcf-0.4-incubating-bin.tar.gz</a>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip">apache-manifoldcf-0.4-incubating-bin.zip</a>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.sha">SHA</a>]<br/>
+        </p>
+      </section>
+      
     <section>
-      <title>最新 (Apache ManifoldCF 0.3-incubating, 2011年９月２０日)</title>
+      <title>旧リリース</title>
+    <section>
+      <title>Apache ManifoldCF 0.3-incubating, 2011年09月20日</title>
       <p>
         <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.KEYS">KEYS</a><br/>
         <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.CHANGES.txt">CHANGES.txt</a><br/>
@@ -56,11 +88,8 @@
 
     </section>
 
-    <section>
-      <title>旧リリース</title>
-      
-      <section>
-        <title>Apache ManifoldCF 0.2-incubating, 2011年５月17日</title>
+       <section>
+        <title>Apache ManifoldCF 0.2-incubating, 2011年05月17日</title>
         <p>
           <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating.KEYS">KEYS</a><br/>
           <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating.CHANGES.txt">CHANGES.txt</a><br/>
