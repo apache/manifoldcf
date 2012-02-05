@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-398: Japanese localization for Alfresco connector.
+(Hitoshi Ozawa)
+
 CONNECTORS-396: Japanese updates for the CMIS connector.
 (Hitoshi Ozawa)
 
