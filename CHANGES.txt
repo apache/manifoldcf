@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-351: Alfresco Connector documentation must be updated
+(Piergiorgio Lucidi)
+
 CONNECTORS-398: Japanese localization for Alfresco connector.
 (Hitoshi Ozawa)
 
