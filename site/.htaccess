@@ -15,6 +15,7 @@
 
 Options +FollowSymlinks
 RewriteEngine on
+RewriteBase http://incubator.apache.org/connectors/
 rewriterule ^end-user-documentation\.html$ en_US/end-user-documentation.html [r=301,nc] 
 rewriterule ^end-user-documentation\.pdf$ en_US/end-user-documentation.pdf [r=301,nc] 
 rewriterule ^how-to-build-and-deploy\.html$ en_US/how-to-build-and-deploy.html [r=301,nc] 
