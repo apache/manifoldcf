@@ -24,7 +24,7 @@ function checkConfig()
  
 function checkConfigForSave()
 {
-	if (editconnection.username.value == "")
+  if (editconnection.username.value == "")
   {
     alert("ユーザ名を入力してください");
     SelectTab("サーバ");
@@ -38,35 +38,41 @@ function checkConfigForSave()
     editconnection.password.focus();
     return false;
   }
-  if (editconnection.server.value =="") {
+  if (editconnection.server.value =="")
+  {
     alert("サーバ名を入力してください");
     SelectTab("サーバ");
-	  editconnection.server.focus();
-	  return false;
-  } else if(!editconnection.server.value.indexOf('/')==-1) {
-  	alert("サーバ名に文字「/」を含めないでください");
-  	SelectTab("サーバ");
-	  editconnection.server.focus();
-	  return false;
+    editconnection.server.focus();
+    return false;
+  }
+  else if(!editconnection.server.value.indexOf('/')==-1)
+  {
+    alert("サーバ名に文字「/」を含めないでください");
+    SelectTab("サーバ");
+    editconnection.server.focus();
+    return false;
   }
   if (editconnection.port.value == "")
   {
-  	alert("ポート番号を入力してください");
-  	SelectTab("サーバ");
-  	editconnection.port.focus();
-  	return false;
-  } else if (!isInteger(editconnection.port.value)){
-  	alert("サーバポートには整数を入力してください");
-  	SelectTab("サーバ");
-  	editconnection.port.focus();
-  	return false;
+    alert("ポート番号を入力してください");
+    SelectTab("サーバ");
+    editconnection.port.focus();
+    return false;
   }
-  if(editconnection.path.value == ""){
-  		alert("パスを入力してください");
-  		SelectTab("サーバ");
-		  editconnection.path.focus();
-		  return false;
-	  }
+  else if (!isInteger(editconnection.port.value))
+  {
+    alert("サーバポートには整数を入力してください");
+    SelectTab("サーバ");
+    editconnection.port.focus();
+    return false;
+  }
+  if(editconnection.path.value == "")
+  {
+    alert("パスを入力してください");
+    SelectTab("サーバ");
+    editconnection.path.focus();
+    return false;
+  }
   return true;
 }
 // -->

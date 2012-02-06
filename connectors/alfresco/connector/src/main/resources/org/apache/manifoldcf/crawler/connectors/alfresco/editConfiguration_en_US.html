@@ -16,12 +16,12 @@
 -->
 
 <table class="displaytable">
-	<tr>
-		<td class="separator" colspan="2">
-			<hr />
-		</td>
-	</tr>
-	<tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr />
+    </td>
+  </tr>
+  <tr>
     <td class="description">
       <nobr>
         Tenant domain:
@@ -31,45 +31,48 @@
         <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="$TENANTDOMAIN_A" />
     </td>
   </tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Username:
-			</nobr>
-		</td>
-		<td class="value">
-			<input id="username" type="text" name="username" value="$USERNAME_A" />
-		</td>
-	</tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Password:
-			</nobr>
-		</td>
-		<td class="value">
-			<input id="password" type="password" name="password" value="$PASSWORD_A" />
-		</td>
-	</tr>
-	<tr>
-		<td class="description">
-			<nobr>
-				Protocol:
-			</nobr>
-		</td>
-		<td class="value">
-			<select id="protocol" name="protocol">
-			#if($PROTOCOL_BJ == "https")
-        <option value="http">http</option>
-        <option value="https" selected="selected">https</option>
-      #else
+  <tr>
+    <td class="description">
+      <nobr>
+        Username:
+      </nobr>
+    </td>
+    <td class="value">
+      <input id="username" type="text" name="username" value="$USERNAME_A" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Password:
+      </nobr>
+    </td>
+    <td class="value">
+      <input id="password" type="password" name="password" value="$PASSWORD_A" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        Protocol:
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="protocol" name="protocol">
+#if($PROTOCOL == "http")
         <option value="http" selected="selected">http</option>
+#else
+        <option value="http">http</option>
+#end
+#if($PROTOCOL == "https")
+        <option value="https" selected="selected">https</option>
+#else
         <option value="https">https</option>
-      #end
-			</select>
-		</td>
-	</tr>
-	<tr>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
     <td class="description">
       <nobr>
         Server:

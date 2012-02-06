@@ -24,7 +24,7 @@ function checkConfig()
  
 function checkConfigForSave()
 {
-	if (editconnection.username.value == "")
+  if (editconnection.username.value == "")
   {
     alert("The username must be not null");
     SelectTab("Server");
@@ -38,35 +38,41 @@ function checkConfigForSave()
     editconnection.password.focus();
     return false;
   }
-  if (editconnection.server.value =="") {
+  if (editconnection.server.value =="")
+  {
     alert("Server name must be not null");
     SelectTab("Server");
-	  editconnection.server.focus();
-	  return false;
-  } else if(!editconnection.server.value.indexOf('/')==-1) {
-  	alert("Server name can't contain the character '/'");
-  	SelectTab("Server");
-	  editconnection.server.focus();
-	  return false;
+    editconnection.server.focus();
+    return false;
+  }
+  else if(!editconnection.server.value.indexOf('/')==-1)
+  {
+    alert("Server name can't contain the character '/'");
+    SelectTab("Server");
+    editconnection.server.focus();
+    return false;
   }
   if (editconnection.port.value == "")
   {
-  	alert("The port must be not null");
-  	SelectTab("Server");
-  	editconnection.port.focus();
-  	return false;
-  } else if (!isInteger(editconnection.port.value)){
-  	alert("The server port must be a valid integer");
-  	SelectTab("Server");
-  	editconnection.port.focus();
-  	return false;
+    alert("The port must be not null");
+    SelectTab("Server");
+    editconnection.port.focus();
+    return false;
   }
-  if(editconnection.path.value == ""){
-  		alert("Path must be not null");
-  		SelectTab("Server");
-		  editconnection.path.focus();
-		  return false;
-	  }
+  else if (!isInteger(editconnection.port.value))
+  {
+    alert("The server port must be a valid integer");
+    SelectTab("Server");
+    editconnection.port.focus();
+    return false;
+  }
+  if(editconnection.path.value == "")
+  {
+    alert("Path must be not null");
+    SelectTab("Server");
+    editconnection.path.focus();
+    return false;
+  }
   return true;
 }
 // -->
