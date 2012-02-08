@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-401: Update the website with some material about the project
+(Piergiorgio Lucidi)
+
 CONNECTORS-351: Alfresco Connector documentation must be updated
 (Piergiorgio Lucidi)
 

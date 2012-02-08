@@ -24,8 +24,9 @@
     <news        label="Welcome"          href="index.html" tab="en_US" />    
       
     <project label="About">
-      <who         label="Who We Are"       href="who.html" />    
+      <who         label="Who We Are"       href="who.html" />
       <book        label="Get the Book"      href="ext:book" />
+      <books-and-presentations label="Books and Presentations" href="books-and-presentations.html" />
       <store       label="Buy Stuff"        href="ext:store" />    
       <sponsor     label="Sponsor Apache"     href="ext:sponsor" />    
       <thanks      label="Sponsors of Apache" href="ext:thanks" />    

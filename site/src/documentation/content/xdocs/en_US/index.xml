@@ -76,6 +76,13 @@
           <section>
              <title>20 Sep 2011 - ManifoldCF 0.3-incubating is released!</title>
                 <p>Developer community and Apache Incubator sign off on third release</p>
+                <p>Some of the new features and improvements of this latest release:</p>
+                <ul>
+                  <li>CMIS Connector</li>
+                  <li>OpenSearchServer Connector</li>
+                  <li><a href="script.html">Scripting Language</a></li>
+                  <li><a href="http://alturl.com/j7gtq">Several bug fixes</a> over the 0.2-incubating release</li>
+                </ul>
           </section>
 	  <section>
 	     <title>17 May 2011 - ManifoldCF 0.2-incubating is released!</title>
