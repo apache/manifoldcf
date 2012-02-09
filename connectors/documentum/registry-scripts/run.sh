@@ -27,11 +27,11 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     
         # Build the classpath
         CLASSPATH=""
-        for filename in $(ls -1 "$MCF_HOME"/documentum-registry-process/jar) ; do
+        for filename in $(ls -1 "$MCF_HOME"/../documentum-registry-process/jar) ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/documentum-registry-process/jar/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../documentum-registry-process/jar/"$filename"
             else
-                CLASSPATH="$MCF_HOME"/documentum-registry-process/jar/"$filename"
+                CLASSPATH="$MCF_HOME"/../documentum-registry-process/jar/"$filename"
             fi
         done
         

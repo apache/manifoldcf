@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-403: Fix the sidecar process scripts to use the same
+definition for MCF_HOME as everything else uses.  Also promote these
+scripts to the root level in their individual process directory.
+(Karl Wright)
+
 CONNECTORS-401: Update the website with some material about the project
 (Piergiorgio Lucidi)
 

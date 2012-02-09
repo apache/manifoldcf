@@ -21,9 +21,9 @@ rem TODO: Check this on a windows system!
 if not exist "%DOCUMENTUM%\dmcl.ini" goto nodctmhome
 rem save existing path here
 set OLDDIR=%CD%
-cd "%MCF_HOME%\documentum-server-process"
+cd "%MCF_HOME%\..\documentum-server-process"
 set CLASSPATH=.
-for %%f in (jar/*) do call script\setclasspath.bat %%f
+for %%f in (jar/*) do call setclasspath.bat %%f
 rem restore old path here
 cd "%OLDDIR%"
 set LIB_STATEMENT=

@@ -452,7 +452,6 @@
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/server-process/jar"/>
-        <mkdir dir="dist/server-process/script"/>
         <copy todir="dist/server-process/jar">
             <fileset dir="build/jar">
                 <include name="mcf-${ant.project.name}-connector-server.jar"/>
@@ -461,7 +460,7 @@
                 <include name="mcf-${ant.project.name}-connector-implementation.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/server-process/script">
+        <copy todir="dist/server-process">
             <fileset dir="server-scripts">
                 <include name="*.sh"/>
                 <include name="*.bat"/>
@@ -471,14 +470,13 @@
 
     <target name="registry-process" depends="jar-registry,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/registry-process/jar"/>
-        <mkdir dir="dist/registry-process/script"/>
         <copy todir="dist/registry-process/jar">
             <fileset dir="build/jar">
                 <include name="mcf-${ant.project.name}-connector-registry.jar"/>
                 <include name="mcf-${ant.project.name}-connector-interface.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/registry-process/script">
+        <copy todir="dist/registry-process">
             <fileset dir="registry-scripts">
                 <include name="*.sh"/>
                 <include name="*.bat"/>

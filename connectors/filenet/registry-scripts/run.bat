@@ -19,9 +19,9 @@ if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 if not exist "%MCF_HOME%\properties.xml" goto nolcfhome
 rem save existing path here
 set OLDDIR=%CD%
-cd "%MCF_HOME%\filenet-registry-process"
+cd "%MCF_HOME%\..\filenet-registry-process"
 set CLASSPATH=.
-for %%f in (jar/*) do call script\setclasspath.bat %%f
+for %%f in (jar/*) do call setclasspath.bat %%f
 rem restore old path here
 cd "%OLDDIR%"
 "%JAVA_HOME%\bin\java" -Xmx32m -Xms32m -classpath "%CLASSPATH%" org.apache.manifoldcf.crawler.registry.filenet.Filenet
