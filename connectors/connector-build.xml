@@ -451,8 +451,8 @@
     </target>
 
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
-        <mkdir dir="dist/server-process/jar"/>
-        <copy todir="dist/server-process/jar">
+        <mkdir dir="dist/server-process/lib"/>
+        <copy todir="dist/server-process/lib">
             <fileset dir="build/jar">
                 <include name="mcf-${ant.project.name}-connector-server.jar"/>
                 <include name="mcf-${ant.project.name}-connector-interface.jar"/>
@@ -469,8 +469,8 @@
     </target>
 
     <target name="registry-process" depends="jar-registry,has-RMI-check" if="hasRMI">
-        <mkdir dir="dist/registry-process/jar"/>
-        <copy todir="dist/registry-process/jar">
+        <mkdir dir="dist/registry-process/lib"/>
+        <copy todir="dist/registry-process/lib">
             <fileset dir="build/jar">
                 <include name="mcf-${ant.project.name}-connector-registry.jar"/>
                 <include name="mcf-${ant.project.name}-connector-interface.jar"/>

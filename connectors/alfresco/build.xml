@@ -21,14 +21,14 @@
 
   
     <target name="calculate-condition">
-        <available file="alfresco-ws-client/alfresco-web-service-client-3.4.e.jar" property="alfrescoStatus"/>
+        <available file="lib-proprietary/alfresco-web-service-client-3.4.e.jar" property="alfrescoStatus"/>
         <condition property="canBuild">
             <isset property="alfrescoStatus"/>
         </condition>
     </target>
 
     <target name="calculate-testcode-condition" depends="calculate-condition" if="canBuild">
-        <available file="alfresco-war/alfresco.war" property="alfrescoTestcodeStatus"/>
+        <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
         <condition property="canTest">
             <isset property="alfrescoTestcodeStatus"/>
         </condition>
@@ -44,7 +44,7 @@
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="alfresco-ws-client" includes="*.jar"/>
+        <fileset dir="lib-proprietary" includes="*.jar"/>
         <fileset dir="../../lib">
             <include name="axis*.jar"/>	
             <include name="saaj*.jar"/>	
@@ -68,9 +68,6 @@
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="alfresco-ws-client">
-                <include name="alfresco-web-service-client*.jar"/>
-            </fileset>
             <fileset dir="../../lib">
                 <include name="axis*.jar"/>	
                 <include name="saaj*.jar"/>	
@@ -85,19 +82,25 @@
                 <include name="xmlsec*.jar"/>
             </fileset>
         </copy>
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="lib-proprietary">
+                <include name="alfresco-web-service-client*.jar"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="build-test-materials" depends="pretest-check" if="canTest">
         <mkdir dir="build/alfresco-war"/>
         <copy todir="build/alfresco-war">
-            <fileset dir="alfresco-war">
+            <fileset dir="test-materials-proprietary">
                 <include name="alfresco*.war"/>
             </fileset>
         </copy>
     </target>
 
     <target name="download-alfresco-ws-client">
-      <get src="http://maven.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-web-service-client/3.4.e/alfresco-web-service-client-3.4.e.jar" dest="alfresco-ws-client"/>
+      <get src="http://maven.alfresco.com/nexus/service/local/repositories/releases/content/org/alfresco/alfresco-web-service-client/3.4.e/alfresco-web-service-client-3.4.e.jar" dest="lib-proprietary"/>
     </target>
 	
     <target name="download-dependencies" depends="download-alfresco-ws-client"/>

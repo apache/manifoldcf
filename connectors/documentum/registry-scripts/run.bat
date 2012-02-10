@@ -21,7 +21,7 @@ rem save existing path here
 set OLDDIR=%CD%
 cd "%MCF_HOME%\..\documentum-registry-process"
 set CLASSPATH=.
-for %%f in (jar/*) do call setclasspath.bat %%f
+for %%f in (lib/*) do call setclasspath.bat %%f
 rem restore old path here
 cd "%OLDDIR%"
 "%JAVA_HOME%\bin\java" -Xmx32m -Xms32m -classpath "%CLASSPATH%" org.apache.manifoldcf.crawler.registry.DCTM.DCTM

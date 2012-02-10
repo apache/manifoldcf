@@ -912,9 +912,14 @@
         <mkdir dir="dist"/>
         <mkdir dir="dist/example"/>
         <mkdir dir="dist/multiprocess-example"/>
+        <mkdir dir="dist/example-proprietary"/>
+        <mkdir dir="dist/multiprocess-example-proprietary"/>
         <delete file="dist/connectors.xml"/>
+        <delete file="dist/connectors-proprietary.xml"/>
         <delete file="dist/example/properties.xml"/>
+        <delete file="dist/example-proprietary/properties.xml"/>
         <delete file="dist/multiprocess-example/properties.xml"/>
+        <delete file="dist/multiprocess-example-proprietary/properties.xml"/>
     </target>
     
     <target name="deliver-framework" depends="preclean-for-delivery,build-framework">
@@ -922,9 +927,17 @@
         <copy todir="dist/multiprocess-example">
             <fileset dir="framework/dist/multiprocess-example"/>
         </copy>
+        <mkdir dir="dist/multiprocess-example-proprietary"/>
+        <copy todir="dist/multiprocess-example-proprietary">
+            <fileset dir="framework/dist/multiprocess-example-proprietary"/>
+        </copy>
         <mkdir dir="dist/example"/>
         <copy todir="dist/example">
             <fileset dir="framework/dist/example"/>
+        </copy>
+        <mkdir dir="dist/example-proprietary"/>
+        <copy todir="dist/example-proprietary">
+            <fileset dir="framework/dist/example-proprietary"/>
         </copy>
         <mkdir dir="dist/script-engine"/>
         <copy todir="dist/script-engine">
@@ -934,7 +947,16 @@
         <copy todir="dist">
             <fileset dir="framework/dist">
                 <include name="connectors.xml"/>
+                <include name="connectors-proprietary.xml"/>
             </fileset>
+        </copy>
+        <mkdir dir="dist/connector-lib"/>
+        <copy todir="dist/connector-lib">
+            <fileset dir="framework/dist/connector-lib"/>
+        </copy>
+        <mkdir dir="dist/connector-lib-proprietary"/>
+        <copy todir="dist/connector-lib-proprietary">
+            <fileset dir="framework/dist/connector-lib-proprietary"/>
         </copy>
     </target>
     
@@ -978,7 +1000,18 @@
         </copy>
     </target>
 
-    <target name="general-connector-delivery" depends="general-connector-delivery-integration,general-connector-delivery-processes">
+    <target name="general-connector-proprietary-check">
+        <available file="connectors/${connector-name}/dist/lib-proprietary" type="dir" property="${connector-name}.is-proprietary"/>
+    </target>
+
+    <target name="general-connector-proprietary-delivery" depends="general-connector-proprietary-check" if="${connector-name}.is-proprietary">
+        <mkdir dir="dist/connector-lib-proprietary"/>
+        <copy todir="dist/connector-lib-proprietary">
+            <fileset dir="connectors/${connector-name}/dist/lib-proprietary"/>
+        </copy>
+    </target>
+    
+    <target name="general-connector-delivery" depends="general-connector-proprietary-delivery,general-connector-delivery-integration,general-connector-delivery-processes">
         <mkdir dir="dist/connector-lib"/>
         <copy todir="dist/connector-lib">
             <fileset dir="connectors/${connector-name}/dist/lib"/>
@@ -996,16 +1029,40 @@
         </copy>
     </target>
 
-    <target name="general-add-authority-connector">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-name}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="general-add-authority-connector-proprietary" depends="general-connector-proprietary-check" if="${connector-name}.is-proprietary">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;!--authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
     </target>
 
-    <target name="general-add-output-connector">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-name}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    <target name="general-add-authority-connector-non-proprietary" depends="general-connector-proprietary-check" unless="${connector-name}.is-proprietary">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
     </target>
-    
-    <target name="general-add-repository-connector">
-        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-name}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+
+    <target name="general-add-authority-connector" depends="general-add-authority-connector-proprietary,general-add-authority-connector-non-proprietary">
+        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-output-connector-proprietary" depends="general-connector-proprietary-check" if="${connector-name}.is-proprietary">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;!--outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-output-connector-non-proprietary" depends="general-connector-proprietary-check" unless="${connector-name}.is-proprietary">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-output-connector" depends="general-add-output-connector-proprietary,general-add-output-connector-non-proprietary">
+        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your output connectors here --&gt;" value="&lt;!-- Add your output connectors here --&gt;&#0010;  &lt;outputconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-repository-connector-proprietary" depends="general-connector-proprietary-check" if="${connector-name}.is-proprietary">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;!--repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-repository-connector-non-proprietary" depends="general-connector-proprietary-check" unless="${connector-name}.is-proprietary">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-repository-connector" depends="general-add-repository-connector-proprietary,general-add-repository-connector-non-proprietary">
+        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your repository connectors here --&gt;" value="&lt;!-- Add your repository connectors here --&gt;&#0010;  &lt;repositoryconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
     </target>
     
     <target name="calculate-activedirectory-condition" depends="build-activedirectory-connector">
@@ -1027,7 +1084,8 @@
             <param name="connector-name" value="activedirectory"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="Active Directory"/>
+            <param name="connector-name" value="activedirectory"/>
+            <param name="connector-label" value="Active Directory"/>
             <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority"/>
         </antcall>
     </target>
@@ -1067,7 +1125,8 @@
             <param name="connector-name" value="alfresco"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Alfresco"/>
+            <param name="connector-name" value="alfresco"/>
+            <param name="connector-label" value="Alfresco"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector"/>
         </antcall>
     </target>
@@ -1097,11 +1156,13 @@
             <param name="connector-name" value="cmis"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="CMIS"/>
+            <param name="connector-name" value="cmis"/>
+            <param name="connector-label" value="CMIS"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="CMIS"/>
+            <param name="connector-name" value="cmis"/>
+            <param name="connector-label" value="CMIS"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector"/>
         </antcall>
     </target>
@@ -1131,11 +1192,13 @@
             <param name="connector-name" value="documentum"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="Documentum"/>
+            <param name="connector-name" value="documentum"/>
+            <param name="connector-label" value="Documentum"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Documentum"/>
+            <param name="connector-name" value="documentum"/>
+            <param name="connector-label" value="Documentum"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.DCTM.DCTM"/>
         </antcall>
     </target>
@@ -1165,7 +1228,8 @@
             <param name="connector-name" value="filenet"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="FileNet"/>
+            <param name="connector-name" value="filenet"/>
+            <param name="connector-label" value="FileNet"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector"/>
         </antcall>
     </target>
@@ -1195,7 +1259,8 @@
             <param name="connector-name" value="filesystem"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="File system"/>
+            <param name="connector-name" value="filesystem"/>
+            <param name="connector-label" value="File system"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"/>
         </antcall>
     </target>
@@ -1225,7 +1290,8 @@
             <param name="connector-name" value="gts"/>
         </antcall>
         <antcall target="general-add-output-connector">
-            <param name="connector-name" value="MetaCarta GTS"/>
+            <param name="connector-name" value="gts"/>
+            <param name="connector-label" value="MetaCarta GTS"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.output.gts.GTSConnector"/>
         </antcall>
     </target>
@@ -1255,7 +1321,8 @@
             <param name="connector-name" value="jdbc"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="JDBC"/>
+            <param name="connector-name" value="jdbc"/>
+            <param name="connector-label" value="JDBC"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector"/>
         </antcall>
     </target>
@@ -1285,7 +1352,8 @@
             <param name="connector-name" value="jcifs"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Windows shares"/>
+            <param name="connector-name" value="jcifs"/>
+            <param name="connector-label" value="Windows shares"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector"/>
         </antcall>
     </target>
@@ -1315,11 +1383,13 @@
             <param name="connector-name" value="livelink"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="LiveLink"/>
+            <param name="connector-name" value="livelink"/>
+            <param name="connector-label" value="LiveLink"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="LiveLink"/>
+            <param name="connector-name" value="livelink"/>
+            <param name="connector-label" value="LiveLink"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector"/>
         </antcall>
     </target>
@@ -1349,7 +1419,8 @@
             <param name="connector-name" value="solr"/>
         </antcall>
         <antcall target="general-add-output-connector">
-            <param name="connector-name" value="Solr"/>
+            <param name="connector-name" value="solr"/>
+            <param name="connector-label" value="Solr"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.output.solr.SolrConnector"/>
         </antcall>
     </target>
@@ -1379,11 +1450,13 @@
             <param name="connector-name" value="memex"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="Memex Patriarch"/>
+            <param name="connector-name" value="memex"/>
+            <param name="connector-label" value="Memex Patriarch"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Memex Patriarch"/>
+            <param name="connector-name" value="memex"/>
+            <param name="connector-label" value="Memex Patriarch"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.memex.MemexConnector"/>
         </antcall>
     </target>
@@ -1413,11 +1486,13 @@
             <param name="connector-name" value="meridio"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="Meridio"/>
+            <param name="connector-name" value="meridio"/>
+            <param name="connector-label" value="Meridio"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioAuthority"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Meridio"/>
+            <param name="connector-name" value="meridio"/>
+            <param name="connector-label" value="Meridio"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.meridio.MeridioConnector"/>
         </antcall>
     </target>
@@ -1447,7 +1522,8 @@
             <param name="connector-name" value="opensearchserver"/>
         </antcall>
         <antcall target="general-add-output-connector">
-            <param name="connector-name" value="OpenSearchServer"/>
+            <param name="connector-name" value="opensearchserver"/>
+            <param name="connector-label" value="OpenSearchServer"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector"/>
         </antcall>
     </target>
@@ -1477,7 +1553,8 @@
             <param name="connector-name" value="nullauthority"/>
         </antcall>
         <antcall target="general-add-authority-connector">
-            <param name="connector-name" value="Null"/>
+            <param name="connector-name" value="nullauthority"/>
+            <param name="connector-label" value="Null"/>
             <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"/>
         </antcall>
     </target>
@@ -1507,7 +1584,8 @@
             <param name="connector-name" value="nulloutput"/>
         </antcall>
         <antcall target="general-add-output-connector">
-            <param name="connector-name" value="Null"/>
+            <param name="connector-name" value="nulloutput"/>
+            <param name="connector-label" value="Null"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.output.nullconnector.NullConnector"/>
         </antcall>
     </target>
@@ -1537,7 +1615,8 @@
             <param name="connector-name" value="rss"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="RSS"/>
+            <param name="connector-name" value="rss"/>
+            <param name="connector-label" value="RSS"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"/>
         </antcall>
     </target>
@@ -1567,7 +1646,8 @@
             <param name="connector-name" value="sharepoint"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="SharePoint"/>
+            <param name="connector-name" value="sharepoint"/>
+            <param name="connector-label" value="SharePoint"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository"/>
         </antcall>
     </target>
@@ -1597,7 +1677,8 @@
             <param name="connector-name" value="webcrawler"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Web"/>
+            <param name="connector-name" value="webcrawler"/>
+            <param name="connector-label" value="Web"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector"/>
         </antcall>
     </target>
@@ -1627,7 +1708,8 @@
             <param name="connector-name" value="wiki"/>
         </antcall>
         <antcall target="general-add-repository-connector">
-            <param name="connector-name" value="Wiki"/>
+            <param name="connector-name" value="wiki"/>
+            <param name="connector-label" value="Wiki"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.wiki.WikiConnector"/>
         </antcall>
     </target>
@@ -2041,6 +2123,14 @@
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="/legacy-*/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </zipfileset>
@@ -2064,6 +2154,14 @@
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="/legacy-*/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </tarfileset>
@@ -2086,8 +2184,20 @@
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="/legacy-*/"/>
           <exclude name="**/*.pdf"/>
+          <exclude name="dist/connector-lib-proprietary/*.jar"/>
+          <exclude name="dist/connectors-proprietary.xml"/>
+          <exclude name="dist/example-proprietary/"/>
+          <exclude name="dist/multiprocess-example-proprietary/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </zipfileset>
       </zip>
@@ -2109,8 +2219,20 @@
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="**/test-materials-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.war"/>
+          <exclude name="**/test-materials-proprietary/*.war"/>
+          <exclude name="**/lib-proprietary/*.wsdl"/>
+          <exclude name="**/test-materials-proprietary/*.wsdl"/>
+          <exclude name="**/lib-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/*.xsd"/>
           <exclude name="/legacy-*/"/>
           <exclude name="**/*.pdf"/>
+          <exclude name="dist/connector-lib-proprietary/*.jar"/>
+          <exclude name="dist/connectors-proprietary.xml"/>
+          <exclude name="dist/example-proprietary/"/>
+          <exclude name="dist/multiprocess-example-proprietary/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </tarfileset>
       </tar>
@@ -2274,11 +2396,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="download-mysql">
-        <get src="http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.18/mysql-connector-java-5.1.18.jar" dest="lib/mysql-connector-java.jar"/>
+        <get src="http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.18/mysql-connector-java-5.1.18.jar" dest="lib-proprietary/mysql-connector-java.jar"/>
     </target>
 
     <target name="download-jtds">
-        <get src="http://repo1.maven.org/maven2/net/sourceforge/jtds/jtds/1.2.4/jtds-1.2.4.jar" dest="lib/jtds.jar"/>
+        <get src="http://repo1.maven.org/maven2/net/sourceforge/jtds/jtds/1.2.4/jtds-1.2.4.jar" dest="lib-proprietary/jtds.jar"/>
     </target>
 
     <target name="download-dependencies" depends="download-mysql,download-jtds">

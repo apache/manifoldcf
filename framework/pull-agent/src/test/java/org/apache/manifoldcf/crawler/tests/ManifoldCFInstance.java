@@ -407,9 +407,9 @@ public class ManifoldCFInstance
     server = new Server( testPort );    
     server.setStopAtShutdown( true );
     
-    String crawlerWarPath = "../../framework/build/war/mcf-crawler-ui.war";
-    String authorityserviceWarPath = "../../framework/build/war/mcf-authority-service.war";
-    String apiWarPath = "../../framework/build/war/mcf-api-service.war";
+    String crawlerWarPath = "../../framework/build/war-proprietary/mcf-crawler-ui.war";
+    String authorityserviceWarPath = "../../framework/build/war-proprietary/mcf-authority-service.war";
+    String apiWarPath = "../../framework/build/war-proprietary/mcf-api-service.war";
 
     if (System.getProperty("crawlerWarPath") != null)
     	crawlerWarPath = System.getProperty("crawlerWarPath");

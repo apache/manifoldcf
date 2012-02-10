@@ -20,7 +20,7 @@
     <import file="../connector-build.xml"/>
 
     <target name="calculate-condition">
-        <available file="filenet-api/Jace.jar" property="JaceStatus"/>
+        <available file="lib-proprietary/Jace.jar" property="JaceStatus"/>
         <condition property="canBuild">
             <isset property="JaceStatus"/>
         </condition>
@@ -32,7 +32,7 @@
 
     <path id="implementation-classpath">
         <path refid="mcf-connector-build.implementation-classpath"/>
-        <fileset dir="filenet-api"> 
+        <fileset dir="lib-proprietary"> 
             <include name="*.jar"/> 
         </fileset> 
     </path>
@@ -48,10 +48,11 @@
     </target>
     
     <target name="server-process" depends="mcf-connector-build.server-process,has-RMI-check" if="hasRMI">
-        <mkdir dir="dist/server-process/jar"/>
-        <copy todir="dist/server-process/jar">
-            <fileset dir="filenet-api" includes="*.jar"/>
+        <mkdir dir="dist/server-process/lib-proprietary"/>
+        <copy todir="dist/server-process/lib-proprietary">
+            <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
+        <copy todir="dist/server-process/lib-proprietary" file="server/README.txt"/>
     </target>
 
 </project>

@@ -20,7 +20,7 @@
     <import file="../connector-build.xml"/>
 
     <target name="calculate-condition">
-        <available file="jcifs/jcifs.jar" property="jcifsStatus"/>
+        <available file="lib-proprietary/jcifs.jar" property="jcifsStatus"/>
         <condition property="canBuild">
             <isset property="jcifsStatus"/>
         </condition>
@@ -32,19 +32,19 @@
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="jcifs" includes="*.jar"/>
+        <fileset dir="lib-proprietary" includes="*.jar"/>
     </path>
 
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="jcifs" includes="*.jar"/>
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+            <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
     </target>
 
     <target name="download-jcifs">
         <property name="jcifs-version" value="1.3.17"/>
-        <get src="http://jcifs.samba.org/src/jcifs-${jcifs-version}.jar" dest="jcifs/jcifs.jar"/>
+        <get src="http://jcifs.samba.org/src/jcifs-${jcifs-version}.jar" dest="lib-proprietary/jcifs.jar"/>
     </target>
 
     <target name="download-dependencies" depends="download-jcifs"/>

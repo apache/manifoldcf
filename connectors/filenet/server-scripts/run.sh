@@ -27,14 +27,22 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     
         # Build the classpath
         CLASSPATH=""
-        for filename in $(ls -1 "$MCF_HOME"/../filenet-server-process/jar) ; do
+        for filename in $(ls -1 "$MCF_HOME"/../filenet-server-process/lib) ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../filenet-server-process/jar/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../filenet-server-process/lib/"$filename"
             else
-                CLASSPATH="$MCF_HOME"/../filenet-server-process/jar/"$filename"
+                CLASSPATH="$MCF_HOME"/../filenet-server-process/lib/"$filename"
             fi
         done
-        
+
+        for filename in $(ls -1 "$MCF_HOME"/../filenet-server-process/lib-proprietary/*.jar) ; do
+            if [ -n "$CLASSPATH" ] ; then
+                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../filenet-server-process/lib-proprietary/"$filename"
+            else
+                CLASSPATH="$MCF_HOME"/../filenet-server-process/lib-proprietary/"$filename"
+            fi
+        done
+
         WASP_STATEMENT=""
         if [[ $WASP_HOME != "" ]] ; then
             WASP_STATEMENT=-Dwasp.location="WASP_HOME"

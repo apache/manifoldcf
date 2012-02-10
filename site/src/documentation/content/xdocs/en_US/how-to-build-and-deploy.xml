@@ -81,26 +81,43 @@
           <tr><th><em>dist</em> file/directory</th><th>Meaning</th></tr>
           <tr><td><em>connectors.xml</em></td><td>an xml file describing the connectors that should be registered</td></tr>
           <tr><td><em>connector-lib</em></td><td>jars for all the connectors, referred to by properties.xml</td></tr>
+          <tr><td><em>connector-lib-proprietary</em></td><td>proprietary jars for all the connectors, referred to by properties.xml; not included in binary release</td></tr>
           <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
-          <tr><td><em>multiprocess-example</em></td><td>scripts and jars for an example that uses the multiple process model</td></tr>
-          <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes)</td></tr>
+          <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), excluding all proprietary libraries</td></tr>
+          <tr><td><em>example-proprietary</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), including proprietary libraries; not included in binary release</td></tr>
+          <tr><td><em>multiprocess-example</em></td><td>scripts and jars for an example that uses the multiple process model, excluding all proprietary libraries</td></tr>
+          <tr><td><em>multiprocess-example-proprietary</em></td><td>scripts and jars for an example that uses the multiple process model, including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
           <tr><td><em>xxx-integration</em></td><td>pre-built integration components to deploy on target system "xxx", e.g. Solr</td></tr>
         </table>
         <p></p>
-        <p>For all of the <em>dist/xxx-process</em> subdirectories above, any scripts resulting from the build that pertain to that process will be placed in a <em>script</em> subdirectory.  Thus, the scripts for the <em>filenet-process</em> subdirectory will be found in <em>dist/filenet-process/script</em>.
+        <p>If you downloaded the binary distribution, you may notice that the <em>connector-lib-proprietary</em> directory contains only a README.txt file.  This is because under
+            Apache licensing rules, incompatibly-licensed jars may not be redistributed.  Therefore, in order to get a connector with proprietary dependencies to work, you will need to supply the
+            missing jars in the <em>connector-lib-proprietary</em> directory, as well as enable the connector's registration by uncommenting its entry in the <em>connectors.xml</em>
+            connector registration file.</p>
+        <p></p>
+        <p>NOTE: The prebuilt binary distribution cannot, at this time, include support for MySQL.  Nor can the JDBC Connector access MySQL, MSSQL, SyBase, or Oracle databases in that
+            distribution.  In order to use these JDBC drivers, you must build ManifoldCF yourself.  Start by downloading the drivers and placing them in the <em>lib-proprietary</em> directory.  The command
+            <em>ant download-dependencies</em> will do most of this for you, with the exception of the Oracle JDBC driver.</p>
+        <p></p>
+        <p>For all of the <em>dist/xxx-process</em> subdirectories above, any scripts that pertain to that process will be placed in the root level of the subdirectory.
             The supplied scripts for a process generally take care of building an appropriate classpath and setting necessary -D switches.  (Note: none of the current connectors require special -D switches
             at this time.)  If you need to construct a classpath by hand, it is important to remember that "more" is not necessarily "better".  The process deployment strategy implied by the build structure has
             been carefully thought out to avoid jar conflicts.  Indeed, several connectors are structured using multiple processes precisely for that reason.</p>
+        <p>The proprietary libraries required by the secondary process <em>xxx-process</em> should be in the directory <em>xxx-process/lib-proprietary</em>.  These jars are not included in the
+            binary distribution, and you will need to supply them in order to make the process work.  A README.txt file is placed in each <em>lib-proprietary</em> directory describing what needs to
+            be provided there.</p>
         <p></p>
         <p>The <em>xxx-integration</em> directories contain components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr
             connector includes plug-in classes for enforcing ManifoldCF security on Solr 3.x and 4.x.  See the README file in each directory for detailed instructions on how to deploy the components.</p>
         <p></p>
-        <p>Inside the <em>examples</em> directory, you will find everything you need to fire up ManifoldCF in a single-process model under Jetty.  Everything is included so that all you need to do is change
-            to that directory, and start it using the command <em>&lt;java&gt; -jar start.jar</em>.  This is described in more detail later, and is the recommended way for beginners to try out ManifoldCF.</p>
+        <p>Inside the <em>example</em> directory, you will find everything you need to fire up ManifoldCF in a single-process model under Jetty.  Everything is included so that all you need to do is change
+            to that directory, and start it using the command <em>&lt;java&gt; -jar start.jar</em>.  This is described in more detail later, and is the recommended way for beginners to try out ManifoldCF.
+            The directory <em>example-proprietary</em> contains an equivalent example that includes proprietary connectors and jars.  This is the standard place to start if you build ManifoldCF yourself.</p>
         <p></p>
-        <p>ManifoldCF can also be deployed in a multi-process model.  Inside the <em>multiprocess-example</em> directory, you will find everything you need to do this.  Below is a list of
+        <p>ManifoldCF can also be deployed in a multi-process model.  Inside the <em>multiprocess-example</em> directory, you will find everything you need to do this.  (The
+            <em>multiprocess-example-proprietary</em> directory is similar but includes proprietary material and is available only if you build ManifoldCF yourself.)  Below is a list of
             what you will find in this directory.</p>
         <p></p>
         <table>
@@ -125,59 +142,68 @@
         <section>
           <title>Building and testing the Alfresco connector</title>
           <p></p>
-          <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. To install this jar you will need to execute the specific build process using Ant or Maven, the jar will be downloaded from the Alfresco Maven repository.</p>
-          <p>Before building with Ant the alfresco-web-service-client.jar download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
+          <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. Place this jar into the directory <em>connectors/alfresco/lib-proprietary</em> before you build.
+              This will occur automatically if you execute the ant target "download-dependencies" from the ManifoldCF root directory.</p>
           <p></p>
-          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder) into the connectors/alfresco/alfresco-war folder. Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
+          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder)
+              into the <em>connectors/alfresco/test-materials-proprietary</em> folder.  Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the Documentum connector</title>
           <p></p>
-          <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar, and dctm.jar into the directory "connectors/documentum/dfc".</p>
+          <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar,
+              and dctm.jar into the directory <em>connectors/documentum/lib-proprietary</em>.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the FileNet connector</title>
           <p></p>
-          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be build.  Install the FileNet P8 API on the build system, and copy at least "Jace.jar" from that installation into "connectors/filenet/filenet-api".</p>
+          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be build.  Install the FileNet P8 API on the build system, and copy at least "Jace.jar" from that installation
+              into <em>connectors/filenet/lib-proprietary</em>.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the JDBC connector, including Oracle, SQLServer, or Sybase JDBC drivers</title>
+          <title>Building the JDBC connector, including Oracle, MSSQL, MySQL, SQLServer, and Sybase JDBC drivers</title>
           <p></p>
-          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  For Oracle, download the appropriate Oracle JDBC jar from the Oracle site, and copy it into the directory "connectors/jdbc/jdbc-drivers".  For SQLServer and Sybase, download jtds.jar, and copy it into the same directory.  The jtds.jar download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
+          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  In order to support these databases, start by placing the mysql-connector-java.jar,
+            the jtds.jar, and the ojdbc.jar in the <em>lib-proprietary</em> directory.  The ant target "download-dependencies" will do this for you automatically.  For Oracle, download the appropriate
+            Oracle JDBC jar from the Oracle site, and copy it into the same directory before you build ManifoldCF.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the jCIFS connector</title>
           <p></p>
-          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.  You can also just type "ant download-dependencies" and this step will be done for you.</p>
+          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the <em>connectors/jcifs/lib-proprietary</em>
+              directory.  You can also just type "ant download-dependencies" from the root ManifoldCF directory and this step will be done for you.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the LiveLink connector</title>
           <p></p>
-          <p>This connector needs LAPI, which is a proprietary java library that allows access to OpenText's LiveLink server.  Copy the lapi.jar into the "connectors/livelink/lapi" directory.</p>
+          <p>This connector needs LAPI, which is a proprietary java library that allows access to OpenText's LiveLink server.  Copy the lapi.jar into the <em>connectors/livelink/lib-proprietary</em>
+              directory.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the Memex connector</title>
           <p></p>
-          <p>This connector needs the Memex API jar, usually called JavaMXIELIB.jar.  Copy this jar into the "connectors/memex/mxie-java" directory.</p>
+          <p>This connector needs the Memex API jar, usually called JavaMXIELIB.jar.  Copy this jar into the <em>connectors/memex/lib-proprietary</em> directory.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the Meridio connector</title>
           <p></p>
-          <p>The Meridio connector needs wsdls and xsds downloaded from an installed Meridio instance using <strong>disco.exe</strong>, which is installed as part of Microsoft Visual Studio, typically under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".  Obtain the preliminary wsdls and xsds by interrogating the following Meridio web services:</p>
+          <p>The Meridio connector needs wsdls and xsds downloaded from an installed Meridio instance using <strong>disco.exe</strong>, which is installed as part of
+              Microsoft Visual Studio, typically under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".  Obtain the preliminary wsdls and xsds by interrogating the
+              following Meridio web services:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;meridio_server&#62;/DMWS/MeridioDMWS.asmx</li>
@@ -194,7 +220,9 @@
              <li>RMClassificationDataSet.xsd</li>
           </ul>
           <p></p>
-          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can be found in "connectors/meridio/upstream-diffs".  After the patching, rename so that you have the files:</p>
+          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from
+              <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can
+              be found in <em>connectors/meridio/lib-proprietary</em>.  After the patching, rename so that you have the files:</p>
           <p></p>
           <ul>
              <li>MeridioDMWS_axis.wsdl</li>
@@ -204,7 +232,7 @@
              <li>RMClassificationDataSet_castor.xsd</li>
           </ul>
           <p></p>
-          <p>Finally, copy all of these to: "connectors/meridio/wsdls".</p>
+          <p>Finally, copy all of these to <em>connectors/meridio/lib-proprietary</em>.</p>
           <p></p>
         </section>
         
@@ -233,7 +261,7 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/wsdls</em> before building.</p>
+          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/lib-proprietary</em> before building.</p>
           <p></p>
           <p>The wsdl files download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
           <p></p>
@@ -476,6 +504,11 @@ cd dist/example
           <table>
             <caption>Property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
+            <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
+            <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
+            <tr><td>org.apache.manifoldcf.usejettyparentclassloader</td><td>Yes, for Jetty</td><td>true for single-process example, false for multiprocess example.</td></tr>
+            <tr><td>org.apache.manifoldcf.jettyport</td><td>No</td><td>Port that Jetty will use; defaults to 8345.</td></tr>
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>

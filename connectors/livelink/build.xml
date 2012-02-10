@@ -20,7 +20,7 @@
     <import file="../connector-build.xml"/>
 
     <target name="calculate-condition">
-        <available file="lapi/lapi.jar" property="lapiStatus"/>
+        <available file="lib-proprietary/lapi.jar" property="lapiStatus"/>
         <condition property="canBuild">
             <isset property="lapiStatus"/>
         </condition>
@@ -32,13 +32,13 @@
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="lapi" includes="*.jar"/>
+        <fileset dir="lib-proprietary" includes="*.jar"/>
     </path>
 
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-	    <fileset dir="lapi" includes="*.jar"/>
+        <mkdir dir="dist/lib-proprietary"/>
+        <copy todir="dist/lib-proprietary">
+	    <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
     </target>
 

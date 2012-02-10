@@ -21,7 +21,8 @@ rem save existing path here
 set OLDDIR=%CD%
 cd "%MCF_HOME%\..\filenet-server-process"
 set CLASSPATH=.
-for %%f in (jar/*) do call setclasspath.bat %%f
+for %%f in (lib/*) do call setclasspath.bat %%f lib
+for %%f in (lib-proprietary/*.jar) do call setclasspath.bat %%f lib-proprietary
 rem restore old path here
 cd "%OLDDIR%"
 set WASP_STATEMENT=

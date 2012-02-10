@@ -29,14 +29,22 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     
             # Build the classpath
             CLASSPATH=""
-            for filename in $(ls -1 "$MCF_HOME"/../documentum-server-process/jar) ; do
+            for filename in $(ls -1 "$MCF_HOME"/../documentum-server-process/lib) ; do
                 if [ -n "$CLASSPATH" ] ; then
-                    CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../documentum-server-process/jar/"$filename"
+                    CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../documentum-server-process/lib/"$filename"
                 else
-                    CLASSPATH="$MCF_HOME"/../documentum-server-process/jar/"$filename"
+                    CLASSPATH="$MCF_HOME"/../documentum-server-process/lib/"$filename"
                 fi
             done
-            
+
+            for filename in $(ls -1 "$MCF_HOME"/../documentum-server-process/lib-proprietary/*.jar) ; do
+                if [ -n "$CLASSPATH" ] ; then
+                    CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../documentum-server-process/lib-proprietary/"$filename"
+                else
+                    CLASSPATH="$MCF_HOME"/../documentum-server-process/lib-proprietary/"$filename"
+                fi
+            done
+
             LIB_STATEMENT=""
             if [[ $JAVA_LIB_PATH != "" ]] ; then
                 LIB_STATEMENT=-Djava.library.path="$JAVA_LIB_PATH"

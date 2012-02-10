@@ -13,4 +13,4 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-set CLASSPATH=%CLASSPATH%;%MCF_HOME%\..\filenet-server-process\jar\%1
+set CLASSPATH=%CLASSPATH%;%MCF_HOME%\..\filenet-server-process\%2\%1

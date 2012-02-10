@@ -29,7 +29,7 @@ Postgresql: the debian postgresql driver package for postgresql 8.3.7, aka libpg
 None of these required custom changes.
 
 To build this connector with Oracle support, copy the Oracle JDBC
-driver into the root "lib" directory, calling it "ojdbc.jar", before building.
+driver into the root "lib-proprietary" directory, calling it "ojdbc.jar", before building.
 To build with Mssql/Sybase, copy a version of the jtds driver into that same directory,
 and call it "jtds.jar".  DO NOT COPY JDBC DRIVERS TO THIS DIRECTORY;
 they will not be picked up by ManifoldCF.

@@ -63,6 +63,8 @@
             <include name="postgresql*.jar"/>
             <include name="derby*.jar"/>
             <include name="hsqldb*.jar"/>
+        </fileset>
+        <fileset dir="../lib-proprietary">
             <include name="mysql*.jar"/>
             <include name="ojdbc*.jar"/>
             <include name="jtds*.jar"/>
@@ -266,9 +268,6 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
@@ -279,6 +278,49 @@
             </fileset>
         </copy>
         <jar destfile="build/webapp/authority-service/WEB-INF/lib/mcf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
+    </target>
+
+    <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
+        <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
+        <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
+        <jar destfile="build/webapp/authority-service-proprietary/WEB-INF/lib/mcf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
     </target>
 
     <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
@@ -307,9 +349,6 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
@@ -321,6 +360,50 @@
             </fileset>
         </copy>
         <jar destfile="build/webapp/api-service/WEB-INF/lib/mcf-api-servlet.jar" basedir="build/api-servlet/classes"/>
+    </target>
+
+    <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
+        <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
+        <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
+                <include name="xml-apis*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
+        <jar destfile="build/webapp/api-service-proprietary/WEB-INF/lib/mcf-api-servlet.jar" basedir="build/api-servlet/classes"/>
     </target>
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
@@ -353,9 +436,6 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
@@ -376,13 +456,69 @@
             <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
     </target>
-    
-    <target name="example-common">
-        <copy todir="dist">
-            <fileset dir="example-common">
-                <include name="connectors.xml"/>
+  
+      <target name="webapp-crawler-ui-proprietary" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
+        <mkdir dir="build/webapp/crawler-ui-proprietary/WEB-INF/lib"/>
+        <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
+            <fileset dir="crawler-ui/src/main/webapp/WEB-INF/lib">
+                <include name="*.jar"/>
+            </fileset>
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
             </fileset>
         </copy>
+        <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-ui-core.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="build/webapp/crawler-ui-proprietary/WEB-INF/jsp"/>
+        <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/jsp">
+            <fileset dir="crawler-ui/src/main/webapp/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/crawler-ui-proprietary">
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+    </target>
+
+    <target name="example-common">
+        <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
+        <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
+        <mkdir dir="dist/connector-lib"/>
+        <mkdir dir="dist/connector-lib-proprietary"/>
+        <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
     </target>
     
     <target name="war-authority-service" depends="webapp-authority-service">
@@ -390,14 +526,29 @@
         <war destfile="build/war/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
     </target>
 
+    <target name="war-authority-service-proprietary" depends="webapp-authority-service-proprietary">
+        <mkdir dir="build/war-proprietary"/>
+        <war destfile="build/war-proprietary/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service-proprietary"/>
+    </target>
+
     <target name="war-api-service" depends="webapp-api-service">
         <mkdir dir="build/war"/>
         <war destfile="build/war/mcf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service"/>
     </target>
 
+    <target name="war-api-service-proprietary" depends="webapp-api-service-proprietary">
+        <mkdir dir="build/war-proprietary"/>
+        <war destfile="build/war-proprietary/mcf-api-service.war" webxml="api-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/api-service-proprietary"/>
+    </target>
+
     <target name="war-crawler-ui" depends="webapp-crawler-ui">
         <mkdir dir="build/war"/>
         <war destfile="build/war/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui"/>
+    </target>
+
+    <target name="war-crawler-ui-proprietary" depends="webapp-crawler-ui-proprietary">
+        <mkdir dir="build/war-proprietary"/>
+        <war destfile="build/war-proprietary/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui-proprietary"/>
     </target>
 
     <target name="multi-wars" depends="war-authority-service,war-api-service,war-crawler-ui">
@@ -406,7 +557,14 @@
             <fileset dir="build/war"/>
         </copy>
     </target>
-    
+
+    <target name="multi-wars-proprietary" depends="war-authority-service-proprietary,war-api-service-proprietary,war-crawler-ui-proprietary">
+        <mkdir dir="dist/multiprocess-example-proprietary/web/war"/>
+        <copy todir="dist/multiprocess-example-proprietary/web/war">
+            <fileset dir="build/war-proprietary"/>
+        </copy>
+    </target>
+
     <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/multiprocess-example/processes/jar"/>
         <copy todir="dist/multiprocess-example/processes/jar">
@@ -435,9 +593,6 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
@@ -452,14 +607,63 @@
         <mkdir dir="dist/multiprocess-example/syncharea"/>
     </target>
 
+    <target name="multi-processes-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/multiprocess-example-proprietary/processes/jar"/>
+        <copy todir="dist/multiprocess-example-proprietary/processes/jar">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-example-proprietary/processes/script"/>
+        <copy todir="dist/multiprocess-example-proprietary/processes/script">
+            <fileset dir="scripts"/>
+        </copy>
+        <mkdir dir="dist/multiprocess-example-proprietary/syncharea"/>
+    </target>
+
     <target name="multi-process-example" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-wars,multi-processes">
         <mkdir dir="dist/multiprocess-example"/>
         <copy todir="dist/multiprocess-example">
-            <fileset dir="example-multiprocess">
-                <include name="properties.xml"/>
+            <fileset dir="example-multiprocess-common">
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess">
+                <include name="properties.xml"/>
             </fileset>
         </copy>
         <mkdir dir="dist/multiprocess-example/lib"/>
@@ -489,7 +693,47 @@
         </copy>
         <mkdir dir="dist/multiprocess-example/logs"/>
     </target>
-    
+  
+      <target name="multi-process-example-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-wars-proprietary,multi-processes-proprietary">
+        <mkdir dir="dist/multiprocess-example-proprietary"/>
+        <copy todir="dist/multiprocess-example-proprietary">
+            <fileset dir="example-multiprocess-common">
+                <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-multiprocess-proprietary">
+                <include name="properties.xml"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-example-proprietary/lib"/>
+        <copy todir="dist/multiprocess-example-proprietary/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="jetty*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="eclipse*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="tomcat-juli*.jar"/>
+                <include name="jsp-api*.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/multiprocess-example-proprietary/logs"/>
+    </target>
+
     <target name="script-engine" depends="jar-script-engine,jar-core">
         <mkdir dir="dist/script-engine/jar"/>
         <copy todir="dist/script-engine/jar">
@@ -551,9 +795,6 @@
                 <include name="postgresql*.jar"/>
                 <include name="derby*.jar"/>
                 <include name="hsqldb*.jar"/>
-                <include name="mysql*.jar"/>
-                <include name="ojdbc*.jar"/>
-                <include name="jtds*.jar"/>
             </fileset>
             <fileset dir="build/jar">
                 <include name="mcf-core.jar"/>
@@ -569,77 +810,206 @@
         </copy>
         <mkdir dir="dist/example/logs"/>
         <copy todir="dist/example">
-            <fileset dir="example-singleprocess">
-                <include name="properties.xml"/>
+            <fileset dir="example-singleprocess-common">
                 <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-singleprocess">
+                <include name="properties.xml"/>
             </fileset>
         </copy>
         
         <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
         custom task, so I've hard coded all the class path libs. -->
-        <property name="manifest-classpath-0" value=""/>
+        <property name="manifest-cp-0" value=""/>
         
-        <property name="manifest-classpath-1" value="${manifest-classpath-0} lib/commons-lang.jar"/>
-        <property name="manifest-classpath-2" value="${manifest-classpath-1} lib/commons-codec.jar"/>
-        <property name="manifest-classpath-3" value="${manifest-classpath-2} lib/commons-collections.jar"/>
-        <property name="manifest-classpath-4" value="${manifest-classpath-3} lib/commons-el.jar"/>
-        <property name="manifest-classpath-5" value="${manifest-classpath-4} lib/commons-fileupload.jar"/>
-        <property name="manifest-classpath-6" value="${manifest-classpath-5} lib/commons-httpclient-mcf.jar"/>
-        <property name="manifest-classpath-7" value="${manifest-classpath-6} lib/commons-io.jar"/>
-        <property name="manifest-classpath-8" value="${manifest-classpath-7} lib/commons-logging.jar"/>
-        <property name="manifest-classpath-9" value="${manifest-classpath-8} lib/hsqldb.jar"/>
-        <property name="manifest-classpath-10" value="${manifest-classpath-9} lib/derbyclient.jar"/>
-        <property name="manifest-classpath-11" value="${manifest-classpath-10} lib/derby.jar"/>
-        <property name="manifest-classpath-12" value="${manifest-classpath-11} lib/derbyLocale_cs.jar"/>
-        <property name="manifest-classpath-13" value="${manifest-classpath-12} lib/derbyLocale_de_DE.jar"/>
-        <property name="manifest-classpath-14" value="${manifest-classpath-13} lib/derbyLocale_es.jar"/>
-        <property name="manifest-classpath-15" value="${manifest-classpath-14} lib/derbyLocale_fr.jar"/>
-        <property name="manifest-classpath-16" value="${manifest-classpath-15} lib/derbyLocale_hu.jar"/>
-        <property name="manifest-classpath-17" value="${manifest-classpath-16} lib/derbyLocale_it.jar"/>
-        <property name="manifest-classpath-18" value="${manifest-classpath-17} lib/derbyLocale_ja_JP"/>
-        <property name="manifest-classpath-19" value="${manifest-classpath-18} lib/derbyLocale_ko_KR.jar"/>
-        <property name="manifest-classpath-20" value="${manifest-classpath-19} lib/derbyLocale_pl.jar"/>
-        <property name="manifest-classpath-21" value="${manifest-classpath-20} lib/derbyLocale_pt_BR.jar"/>
-        <property name="manifest-classpath-22" value="${manifest-classpath-21} lib/derbyLocale_ru.jar"/>
-        <property name="manifest-classpath-23" value="${manifest-classpath-22} lib/derbyLocale_zh_CN.jar"/>
-        <property name="manifest-classpath-24" value="${manifest-classpath-23} lib/derbyLocale_zh_TW.jar"/>
-        <property name="manifest-classpath-25" value="${manifest-classpath-24} lib/derbyrun.jar"/>
-        <property name="manifest-classpath-26" value="${manifest-classpath-25} lib/derbytools.jar"/>
-        <property name="manifest-classpath-27" value="${manifest-classpath-26} lib/jasper-6.0.24.jar"/>
-        <property name="manifest-classpath-28" value="${manifest-classpath-27} lib/jasper-el-6.0.24.jar"/>
-        <property name="manifest-classpath-29" value="${manifest-classpath-28} lib/jdbcpool-0.99.jar"/>
-        <property name="manifest-classpath-30" value="${manifest-classpath-29} lib/jetty-6.1.26-patched-JETTY-1340.jar"/>
-        <property name="manifest-classpath-31" value="${manifest-classpath-30} lib/jetty-util-6.1.26-patched-JETTY-1340.jar"/>
-        <property name="manifest-classpath-32" value="${manifest-classpath-31} lib/jsp-api-2.1-glassfish-2.1.v20091210.jar"/>
-        <property name="manifest-classpath-33" value="${manifest-classpath-32} lib/json.jar"/>
-        <property name="manifest-classpath-34" value="${manifest-classpath-33} lib/mcf-core.jar"/>
-        <property name="manifest-classpath-35" value="${manifest-classpath-34} lib/mcf-agents.jar"/>
-        <property name="manifest-classpath-36" value="${manifest-classpath-35} lib/mcf-jetty-runner.jar"/>
-        <property name="manifest-classpath-37" value="${manifest-classpath-36} lib/mcf-pull-agent.jar"/>
-        <property name="manifest-classpath-38" value="${manifest-classpath-37} lib/mcf-ui-core.jar"/>
-        <property name="manifest-classpath-39" value="${manifest-classpath-38} lib/log4j-1.2.jar"/>
-        <property name="manifest-classpath-40" value="${manifest-classpath-39} lib/postgresql.jar"/>
-        <property name="manifest-classpath-41" value="${manifest-classpath-40} lib/mysql-connector-java.jar"/>
-        <property name="manifest-classpath-42" value="${manifest-classpath-41} lib/serializer.jar"/>
-        <property name="manifest-classpath-43" value="${manifest-classpath-42} lib/servlet-api-2.5-20081211.jar"/>
-        <property name="manifest-classpath-44" value="${manifest-classpath-43} lib/tomcat-juli-6.0.24.jar"/>
-        <property name="manifest-classpath-45" value="${manifest-classpath-44} lib/xalan2.jar"/>
-        <property name="manifest-classpath-46" value="${manifest-classpath-45} lib/xercesImpl-mcf.jar"/>
-        <property name="manifest-classpath-47" value="${manifest-classpath-46} lib/xml-apis.jar"/>
-        <property name="manifest-classpath-48" value="${manifest-classpath-47} lib/derbynet.jar"/>
-        <property name="manifest-classpath-49" value="${manifest-classpath-48} lib/eclipse-ecj.jar"/>
-        <property name="manifest-classpath-50" value="${manifest-classpath-49} lib/ojdbc.jar"/>
-        <property name="manifest-classpath-51" value="${manifest-classpath-50} lib/jtds.jar"/>
-        <property name="manifest-classpath-52" value="${manifest-classpath-51} lib/velocity-1.7.jar"/>
-        <property name="manifest-classpath" value="${manifest-classpath-52}"/>
+        <property name="manifest-cp-1" value="${manifest-cp-0} lib/commons-lang.jar"/>
+        <property name="manifest-cp-2" value="${manifest-cp-1} lib/commons-codec.jar"/>
+        <property name="manifest-cp-3" value="${manifest-cp-2} lib/commons-collections.jar"/>
+        <property name="manifest-cp-4" value="${manifest-cp-3} lib/commons-el.jar"/>
+        <property name="manifest-cp-5" value="${manifest-cp-4} lib/commons-fileupload.jar"/>
+        <property name="manifest-cp-6" value="${manifest-cp-5} lib/commons-httpclient-mcf.jar"/>
+        <property name="manifest-cp-7" value="${manifest-cp-6} lib/commons-io.jar"/>
+        <property name="manifest-cp-8" value="${manifest-cp-7} lib/commons-logging.jar"/>
+        <property name="manifest-cp-9" value="${manifest-cp-8} lib/hsqldb.jar"/>
+        <property name="manifest-cp-10" value="${manifest-cp-9} lib/derbyclient.jar"/>
+        <property name="manifest-cp-11" value="${manifest-cp-10} lib/derby.jar"/>
+        <property name="manifest-cp-12" value="${manifest-cp-11} lib/derbyLocale_cs.jar"/>
+        <property name="manifest-cp-13" value="${manifest-cp-12} lib/derbyLocale_de_DE.jar"/>
+        <property name="manifest-cp-14" value="${manifest-cp-13} lib/derbyLocale_es.jar"/>
+        <property name="manifest-cp-15" value="${manifest-cp-14} lib/derbyLocale_fr.jar"/>
+        <property name="manifest-cp-16" value="${manifest-cp-15} lib/derbyLocale_hu.jar"/>
+        <property name="manifest-cp-17" value="${manifest-cp-16} lib/derbyLocale_it.jar"/>
+        <property name="manifest-cp-18" value="${manifest-cp-17} lib/derbyLocale_ja_JP"/>
+        <property name="manifest-cp-19" value="${manifest-cp-18} lib/derbyLocale_ko_KR.jar"/>
+        <property name="manifest-cp-20" value="${manifest-cp-19} lib/derbyLocale_pl.jar"/>
+        <property name="manifest-cp-21" value="${manifest-cp-20} lib/derbyLocale_pt_BR.jar"/>
+        <property name="manifest-cp-22" value="${manifest-cp-21} lib/derbyLocale_ru.jar"/>
+        <property name="manifest-cp-23" value="${manifest-cp-22} lib/derbyLocale_zh_CN.jar"/>
+        <property name="manifest-cp-24" value="${manifest-cp-23} lib/derbyLocale_zh_TW.jar"/>
+        <property name="manifest-cp-25" value="${manifest-cp-24} lib/derbyrun.jar"/>
+        <property name="manifest-cp-26" value="${manifest-cp-25} lib/derbytools.jar"/>
+        <property name="manifest-cp-27" value="${manifest-cp-26} lib/jasper-6.0.24.jar"/>
+        <property name="manifest-cp-28" value="${manifest-cp-27} lib/jasper-el-6.0.24.jar"/>
+        <property name="manifest-cp-29" value="${manifest-cp-28} lib/jdbcpool-0.99.jar"/>
+        <property name="manifest-cp-30" value="${manifest-cp-29} lib/jetty-6.1.26-patched-JETTY-1340.jar"/>
+        <property name="manifest-cp-31" value="${manifest-cp-30} lib/jetty-util-6.1.26-patched-JETTY-1340.jar"/>
+        <property name="manifest-cp-32" value="${manifest-cp-31} lib/jsp-api-2.1-glassfish-2.1.v20091210.jar"/>
+        <property name="manifest-cp-33" value="${manifest-cp-32} lib/json.jar"/>
+        <property name="manifest-cp-34" value="${manifest-cp-33} lib/mcf-core.jar"/>
+        <property name="manifest-cp-35" value="${manifest-cp-34} lib/mcf-agents.jar"/>
+        <property name="manifest-cp-36" value="${manifest-cp-35} lib/mcf-jetty-runner.jar"/>
+        <property name="manifest-cp-37" value="${manifest-cp-36} lib/mcf-pull-agent.jar"/>
+        <property name="manifest-cp-38" value="${manifest-cp-37} lib/mcf-ui-core.jar"/>
+        <property name="manifest-cp-39" value="${manifest-cp-38} lib/log4j-1.2.jar"/>
+        <property name="manifest-cp-40" value="${manifest-cp-39} lib/postgresql.jar"/>
+        <property name="manifest-cp-42" value="${manifest-cp-39} lib/serializer.jar"/>
+        <property name="manifest-cp-43" value="${manifest-cp-42} lib/servlet-api-2.5-20081211.jar"/>
+        <property name="manifest-cp-44" value="${manifest-cp-43} lib/tomcat-juli-6.0.24.jar"/>
+        <property name="manifest-cp-45" value="${manifest-cp-44} lib/xalan2.jar"/>
+        <property name="manifest-cp-46" value="${manifest-cp-45} lib/xercesImpl-mcf.jar"/>
+        <property name="manifest-cp-47" value="${manifest-cp-46} lib/xml-apis.jar"/>
+        <property name="manifest-cp-48" value="${manifest-cp-47} lib/derbynet.jar"/>
+        <property name="manifest-cp-49" value="${manifest-cp-48} lib/eclipse-ecj.jar"/>
+        <property name="manifest-cp-52" value="${manifest-cp-49} lib/velocity-1.7.jar"/>
+        <property name="manifest-cp" value="${manifest-cp-52}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
-            <attribute name="Class-Path" value="${manifest-classpath}"/>
+            <attribute name="Class-Path" value="${manifest-cp}"/>
         </manifest>
         <jar destfile="dist/example/start.jar" manifest="build/example/manifest"/>
+
+    </target>
+
+    <target name="single-process-example-proprietary" depends="war-crawler-ui-proprietary,war-api-service-proprietary,war-authority-service-proprietary,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+        <mkdir dir="dist/example-proprietary/lib"/>
+        <copy todir="dist/example-proprietary/lib">
+            <fileset dir="../build/jar">
+                <include name="json.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient-mcf.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="eclipse*.jar"/>
+                <include name="jasper*.jar"/>
+                <include name="jdbcpool-0.99.jar"/>
+                <include name="jetty*.jar"/>
+                <include name="jsp-api*.jar"/>
+                <include name="jsp-2.5*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="servlet-api*.jar"/>
+                <include name="tomcat-juli*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl-mcf.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-ui-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-jetty-runner.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="dist/example-proprietary/war"/>
+        <copy todir="dist/example-proprietary/war">
+            <fileset dir="build/war-proprietary"/>
+        </copy>
+        <mkdir dir="dist/example-proprietary/logs"/>
+        <copy todir="dist/example-proprietary">
+            <fileset dir="example-singleprocess-common">
+                <include name="logging.ini"/>
+                <include name="*.sh"/>
+                <include name="*.bat"/>
+            </fileset>
+            <fileset dir="example-singleprocess-proprietary">
+                <include name="properties.xml"/>
+            </fileset>
+        </copy>
+        
+        <!-- Build a manifest file.  There doesn't seem to be any good way to do this automatically in ant without developing my own
+        custom task, so I've hard coded all the class path libs. -->
+        <property name="manifest-cp-proprietary-0" value=""/>
+        
+        <property name="manifest-cp-proprietary-1" value="${manifest-cp-proprietary-0} lib/commons-lang.jar"/>
+        <property name="manifest-cp-proprietary-2" value="${manifest-cp-proprietary-1} lib/commons-codec.jar"/>
+        <property name="manifest-cp-proprietary-3" value="${manifest-cp-proprietary-2} lib/commons-collections.jar"/>
+        <property name="manifest-cp-proprietary-4" value="${manifest-cp-proprietary-3} lib/commons-el.jar"/>
+        <property name="manifest-cp-proprietary-5" value="${manifest-cp-proprietary-4} lib/commons-fileupload.jar"/>
+        <property name="manifest-cp-proprietary-6" value="${manifest-cp-proprietary-5} lib/commons-httpclient-mcf.jar"/>
+        <property name="manifest-cp-proprietary-7" value="${manifest-cp-proprietary-6} lib/commons-io.jar"/>
+        <property name="manifest-cp-proprietary-8" value="${manifest-cp-proprietary-7} lib/commons-logging.jar"/>
+        <property name="manifest-cp-proprietary-9" value="${manifest-cp-proprietary-8} lib/hsqldb.jar"/>
+        <property name="manifest-cp-proprietary-10" value="${manifest-cp-proprietary-9} lib/derbyclient.jar"/>
+        <property name="manifest-cp-proprietary-11" value="${manifest-cp-proprietary-10} lib/derby.jar"/>
+        <property name="manifest-cp-proprietary-12" value="${manifest-cp-proprietary-11} lib/derbyLocale_cs.jar"/>
+        <property name="manifest-cp-proprietary-13" value="${manifest-cp-proprietary-12} lib/derbyLocale_de_DE.jar"/>
+        <property name="manifest-cp-proprietary-14" value="${manifest-cp-proprietary-13} lib/derbyLocale_es.jar"/>
+        <property name="manifest-cp-proprietary-15" value="${manifest-cp-proprietary-14} lib/derbyLocale_fr.jar"/>
+        <property name="manifest-cp-proprietary-16" value="${manifest-cp-proprietary-15} lib/derbyLocale_hu.jar"/>
+        <property name="manifest-cp-proprietary-17" value="${manifest-cp-proprietary-16} lib/derbyLocale_it.jar"/>
+        <property name="manifest-cp-proprietary-18" value="${manifest-cp-proprietary-17} lib/derbyLocale_ja_JP"/>
+        <property name="manifest-cp-proprietary-19" value="${manifest-cp-proprietary-18} lib/derbyLocale_ko_KR.jar"/>
+        <property name="manifest-cp-proprietary-20" value="${manifest-cp-proprietary-19} lib/derbyLocale_pl.jar"/>
+        <property name="manifest-cp-proprietary-21" value="${manifest-cp-proprietary-20} lib/derbyLocale_pt_BR.jar"/>
+        <property name="manifest-cp-proprietary-22" value="${manifest-cp-proprietary-21} lib/derbyLocale_ru.jar"/>
+        <property name="manifest-cp-proprietary-23" value="${manifest-cp-proprietary-22} lib/derbyLocale_zh_CN.jar"/>
+        <property name="manifest-cp-proprietary-24" value="${manifest-cp-proprietary-23} lib/derbyLocale_zh_TW.jar"/>
+        <property name="manifest-cp-proprietary-25" value="${manifest-cp-proprietary-24} lib/derbyrun.jar"/>
+        <property name="manifest-cp-proprietary-26" value="${manifest-cp-proprietary-25} lib/derbytools.jar"/>
+        <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-26} lib/jasper-6.0.24.jar"/>
+        <property name="manifest-cp-proprietary-28" value="${manifest-cp-proprietary-27} lib/jasper-el-6.0.24.jar"/>
+        <property name="manifest-cp-proprietary-29" value="${manifest-cp-proprietary-28} lib/jdbcpool-0.99.jar"/>
+        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-29} lib/jetty-6.1.26-patched-JETTY-1340.jar"/>
+        <property name="manifest-cp-proprietary-31" value="${manifest-cp-proprietary-30} lib/jetty-util-6.1.26-patched-JETTY-1340.jar"/>
+        <property name="manifest-cp-proprietary-32" value="${manifest-cp-proprietary-31} lib/jsp-api-2.1-glassfish-2.1.v20091210.jar"/>
+        <property name="manifest-cp-proprietary-33" value="${manifest-cp-proprietary-32} lib/json.jar"/>
+        <property name="manifest-cp-proprietary-34" value="${manifest-cp-proprietary-33} lib/mcf-core.jar"/>
+        <property name="manifest-cp-proprietary-35" value="${manifest-cp-proprietary-34} lib/mcf-agents.jar"/>
+        <property name="manifest-cp-proprietary-36" value="${manifest-cp-proprietary-35} lib/mcf-jetty-runner.jar"/>
+        <property name="manifest-cp-proprietary-37" value="${manifest-cp-proprietary-36} lib/mcf-pull-agent.jar"/>
+        <property name="manifest-cp-proprietary-38" value="${manifest-cp-proprietary-37} lib/mcf-ui-core.jar"/>
+        <property name="manifest-cp-proprietary-39" value="${manifest-cp-proprietary-38} lib/log4j-1.2.jar"/>
+        <property name="manifest-cp-proprietary-40" value="${manifest-cp-proprietary-39} lib/postgresql.jar"/>
+        <property name="manifest-cp-proprietary-41" value="${manifest-cp-proprietary-40} lib/mysql-connector-java.jar"/>
+        <property name="manifest-cp-proprietary-42" value="${manifest-cp-proprietary-41} lib/serializer.jar"/>
+        <property name="manifest-cp-proprietary-43" value="${manifest-cp-proprietary-42} lib/servlet-api-2.5-20081211.jar"/>
+        <property name="manifest-cp-proprietary-44" value="${manifest-cp-proprietary-43} lib/tomcat-juli-6.0.24.jar"/>
+        <property name="manifest-cp-proprietary-45" value="${manifest-cp-proprietary-44} lib/xalan2.jar"/>
+        <property name="manifest-cp-proprietary-46" value="${manifest-cp-proprietary-45} lib/xercesImpl-mcf.jar"/>
+        <property name="manifest-cp-proprietary-47" value="${manifest-cp-proprietary-46} lib/xml-apis.jar"/>
+        <property name="manifest-cp-proprietary-48" value="${manifest-cp-proprietary-47} lib/derbynet.jar"/>
+        <property name="manifest-cp-proprietary-49" value="${manifest-cp-proprietary-48} lib/eclipse-ecj.jar"/>
+        <property name="manifest-cp-proprietary-50" value="${manifest-cp-proprietary-49} lib/ojdbc.jar"/>
+        <property name="manifest-cp-proprietary-51" value="${manifest-cp-proprietary-50} lib/jtds.jar"/>
+        <property name="manifest-cp-proprietary-52" value="${manifest-cp-proprietary-51} lib/velocity-1.7.jar"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-52}"/>
+        <mkdir dir="build/example-proprietary"/>
+        <manifest file="build/example-proprietary/manifest">
+            <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
+            <attribute name="Class-Path" value="${manifest-cp-proprietary}"/>
+        </manifest>
+        <jar destfile="dist/example-proprietary/start.jar" manifest="build/example-proprietary/manifest"/>
 
     </target>
 
@@ -879,7 +1249,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-example,single-process-example,example-common,script-engine"/>
+    <target name="build" depends="multi-process-example,multi-process-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     

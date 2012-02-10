@@ -20,9 +20,9 @@
     <import file="../connector-build.xml"/>
 
     <target name="calculate-condition">
-        <available file="dfc/dfc.jar" property="dfcStatus"/>
-        <available file="dfc/dfcbase.jar" property="dfcbaseStatus"/>
-        <available file="dfc/dctm.jar" property="dctmStatus"/>
+        <available file="lib-proprietary/dfc.jar" property="dfcStatus"/>
+        <available file="lib-proprietary/dfcbase.jar" property="dfcbaseStatus"/>
+        <available file="lib-proprietary/dctm.jar" property="dctmStatus"/>
         <condition property="canBuild">
             <and>
                 <isset property="dfcStatus"/>
@@ -38,7 +38,7 @@
 
     <path id="implementation-classpath">
         <path refid="mcf-connector-build.implementation-classpath"/>
-        <fileset dir="dfc"> 
+        <fileset dir="lib-proprietary"> 
             <include name="*.jar"/> 
         </fileset> 
     </path>
@@ -61,10 +61,11 @@
     
     
     <target name="server-process" depends="mcf-connector-build.server-process,has-RMI-check" if="hasRMI">
-        <mkdir dir="dist/server-process/jar"/>
-        <copy todir="dist/server-process/jar">
-            <fileset dir="dfc" includes="*.jar"/>
+        <mkdir dir="dist/server-process/lib-proprietary"/>
+        <copy todir="dist/server-process/lib-proprietary">
+            <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
+        <copy todir="dist/server-process/lib-proprietary" file="server/README.txt"/>
     </target>
 
 </project>

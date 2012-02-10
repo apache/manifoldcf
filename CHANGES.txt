@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-402: Change the ant build process to produce two artifacts -
+one with proprietary material, and the other without.  This allows for
+releases that include built connectors even though we do not ship the
+proprietary material.
+(Karl Wright, Piergiorgio Lucidi)
+
 CONNECTORS-403: Fix the sidecar process scripts to use the same
 definition for MCF_HOME as everything else uses.  Also promote these
 scripts to the root level in their individual process directory.
