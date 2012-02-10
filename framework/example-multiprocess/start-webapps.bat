@@ -20,7 +20,7 @@ if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 set CLASSPATH=.
 for %%f in (lib/*) do call setclasspath.bat %%f
 rem invoke java with the jetty class
-"%JAVA_HOME%\bin\java" -cp "%CLASSPATH%" org.apache.manifoldcf.multiprocessjettyrunner.MCFMultiprocessJettyRunner
+"%JAVA_HOME%\bin\java" -cp "%CLASSPATH%" org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.

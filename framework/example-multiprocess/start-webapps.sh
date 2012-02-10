@@ -33,7 +33,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         fi
     done
 
-    "%JAVA_HOME%"/bin/java -cp "$CLASSPATH" org.apache.manifoldcf.multiprocessjettyrunner.MCFMultiprocessJettyRunner
+    "%JAVA_HOME%"/bin/java -cp "$CLASSPATH" org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner
     exit $?
         
 else

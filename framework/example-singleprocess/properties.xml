@@ -17,6 +17,12 @@
 -->
 
 <configuration>
+  <!-- Point to the wars and configure Jetty -->
+  <property name="org.apache.manifoldcf.crawleruiwarpath" value="./war/mcf-crawler-ui.war"/>
+  <property name="org.apache.manifoldcf.authorityservicewarpath" value="./war/mcf-authority-service.war"/>
+  <property name="org.apache.manifoldcf.apiservicewarpath" value="./war/mcf-api-service.war"/>
+  <property name="org.apache.manifoldcf.usejettyparentclassloader" value="true"/>
+  <property name="org.apache.manifoldcf.jettyport" value="8345"/>
   <!-- Select Derby as the database implementation, and specify where the database will be stored -->
   <property name="org.apache.manifoldcf.databaseimplementationclass" value="org.apache.manifoldcf.core.database.DBInterfaceDerby"/>
   <property name="org.apache.manifoldcf.derbydatabasepath" value="."/>

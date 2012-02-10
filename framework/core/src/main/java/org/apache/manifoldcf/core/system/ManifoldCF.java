@@ -330,6 +330,21 @@ public class ManifoldCF
     return resolvePath(value);
   }
   
+  /** Read a boolean property
+  */
+  public static boolean getBooleanProperty(String s, boolean defaultValue)
+    throws ManifoldCFException
+  {
+    String value = getProperty(s);
+    if (value == null)
+      return defaultValue;
+    if (value.equals("true") || value.equals("yes"))
+      return true;
+    if (value.equals("false") || value.equals("no"))
+      return false;
+    throw new ManifoldCFException("Illegal property value for boolean property '"+s+"': '"+value+"'");
+  }
+  
   /** Read an integer propert, either from the system properties, or from the local configuration file.
   */
   public static int getIntProperty(String s, int defaultValue)
