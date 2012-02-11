@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-405: Do not include sources in binary distribution.  This
+is no longer essential since we deliver built jars for all the connectors
+now.
+(Karl Wright)
+
 CONNECTORS-327: Share the web applications among all the examples.
 (Karl Wright)
 
