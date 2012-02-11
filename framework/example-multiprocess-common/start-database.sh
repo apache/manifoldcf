@@ -17,7 +17,7 @@
 
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
-    "%JAVA_HOME%"/bin/java -cp processes/jar/hsqldb.jar org.hsqldb.Server -database.0 file:extdb;hsqldb.tx=mvcc;hsqldb.cache_file_scale=512 -dbname.0 xdb
+    "%JAVA_HOME%"/bin/java -cp processes/lib/hsqldb.jar org.hsqldb.Server -database.0 file:extdb;hsqldb.tx=mvcc;hsqldb.cache_file_scale=512 -dbname.0 xdb
     exit $?
         
 else
