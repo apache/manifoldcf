@@ -88,6 +88,8 @@
           <tr><td><em>example-proprietary</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>multiprocess-example</em></td><td>scripts and jars for an example that uses the multiple process model, excluding all proprietary libraries</td></tr>
           <tr><td><em>multiprocess-example-proprietary</em></td><td>scripts and jars for an example that uses the multiple process model, including proprietary libraries; not included in binary release</td></tr>
+          <tr><td><em>web</em></td><td>app-server deployable web applications (wars), excluding all proprietary libraries</td></tr>
+          <tr><td><em>web-proprietary</em></td><td>app-server deployable web applications (wars), including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
           <tr><td><em>xxx-integration</em></td><td>pre-built integration components to deploy on target system "xxx", e.g. Solr</td></tr>
         </table>

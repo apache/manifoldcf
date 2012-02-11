@@ -513,14 +513,6 @@
         </copy>
     </target>
 
-    <target name="example-common">
-        <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
-        <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
-        <mkdir dir="dist/connector-lib"/>
-        <mkdir dir="dist/connector-lib-proprietary"/>
-        <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
-    </target>
-    
     <target name="war-authority-service" depends="webapp-authority-service">
         <mkdir dir="build/war"/>
         <war destfile="build/war/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
@@ -551,20 +543,28 @@
         <war destfile="build/war-proprietary/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui-proprietary"/>
     </target>
 
-    <target name="multi-wars" depends="war-authority-service,war-api-service,war-crawler-ui">
-        <mkdir dir="dist/multiprocess-example/web/war"/>
-        <copy todir="dist/multiprocess-example/web/war">
+    <target name="wars" depends="war-authority-service,war-api-service,war-crawler-ui">
+        <mkdir dir="dist/web/war"/>
+        <copy todir="dist/web/war">
             <fileset dir="build/war"/>
         </copy>
     </target>
 
-    <target name="multi-wars-proprietary" depends="war-authority-service-proprietary,war-api-service-proprietary,war-crawler-ui-proprietary">
-        <mkdir dir="dist/multiprocess-example-proprietary/web/war"/>
-        <copy todir="dist/multiprocess-example-proprietary/web/war">
+    <target name="wars-proprietary" depends="war-authority-service-proprietary,war-api-service-proprietary,war-crawler-ui-proprietary">
+        <mkdir dir="dist/web-proprietary/war"/>
+        <copy todir="dist/web-proprietary/war">
             <fileset dir="build/war-proprietary"/>
         </copy>
     </target>
 
+    <target name="example-common" depends="wars,wars-proprietary">
+        <copy file="example-common/connectors.xml" tofile="dist/connectors.xml"/>
+        <copy file="example-common/connectors.xml" tofile="dist/connectors-proprietary.xml"/>
+        <mkdir dir="dist/connector-lib"/>
+        <mkdir dir="dist/connector-lib-proprietary"/>
+        <copy file="example-common/README.txt" todir="dist/connector-lib-proprietary"/>
+    </target>
+    
     <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/multiprocess-example/processes/lib"/>
         <copy todir="dist/multiprocess-example/processes/lib">
@@ -652,7 +652,7 @@
         <mkdir dir="dist/multiprocess-example-proprietary/syncharea"/>
     </target>
 
-    <target name="multi-process-example" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-wars,multi-processes">
+    <target name="multi-process-example" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes">
         <mkdir dir="dist/multiprocess-example"/>
         <copy todir="dist/multiprocess-example">
             <fileset dir="example-multiprocess-common">
@@ -692,7 +692,7 @@
         <mkdir dir="dist/multiprocess-example/logs"/>
     </target>
   
-      <target name="multi-process-example-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-wars-proprietary,multi-processes-proprietary">
+      <target name="multi-process-example-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-proprietary">
         <mkdir dir="dist/multiprocess-example-proprietary"/>
         <copy todir="dist/multiprocess-example-proprietary">
             <fileset dir="example-multiprocess-common">
@@ -759,7 +759,7 @@
         </copy>
     </target>
     
-    <target name="single-process-example" depends="war-crawler-ui,war-api-service,war-authority-service,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="single-process-example" depends="jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="../build/jar">
@@ -801,10 +801,6 @@
                 <include name="mcf-pull-agent.jar"/>
                 <include name="mcf-jetty-runner.jar"/>
             </fileset>
-        </copy>
-        <mkdir dir="dist/example/war"/>
-        <copy todir="dist/example/war">
-            <fileset dir="build/war"/>
         </copy>
         <mkdir dir="dist/example/logs"/>
         <copy todir="dist/example">
@@ -881,7 +877,7 @@
 
     </target>
 
-    <target name="single-process-example-proprietary" depends="war-crawler-ui-proprietary,war-api-service-proprietary,war-authority-service-proprietary,jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="single-process-example-proprietary" depends="jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example-proprietary/lib"/>
         <copy todir="dist/example-proprietary/lib">
             <fileset dir="../build/jar">
@@ -928,10 +924,6 @@
                 <include name="mcf-pull-agent.jar"/>
                 <include name="mcf-jetty-runner.jar"/>
             </fileset>
-        </copy>
-        <mkdir dir="dist/example-proprietary/war"/>
-        <copy todir="dist/example-proprietary/war">
-            <fileset dir="build/war-proprietary"/>
         </copy>
         <mkdir dir="dist/example-proprietary/logs"/>
         <copy todir="dist/example-proprietary">

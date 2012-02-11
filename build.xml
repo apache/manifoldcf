@@ -923,6 +923,14 @@
     </target>
     
     <target name="deliver-framework" depends="preclean-for-delivery,build-framework">
+        <mkdir dir="dist/web"/>
+        <copy todir="dist/web">
+            <fileset dir="framework/dist/web"/>
+        </copy>
+        <mkdir dir="dist/web-proprietary"/>
+        <copy todir="dist/web-proprietary">
+            <fileset dir="framework/dist/web-proprietary"/>
+        </copy>
         <mkdir dir="dist/multiprocess-example"/>
         <copy todir="dist/multiprocess-example">
             <fileset dir="framework/dist/multiprocess-example"/>
@@ -2198,6 +2206,7 @@
           <exclude name="dist/connectors-proprietary.xml"/>
           <exclude name="dist/example-proprietary/"/>
           <exclude name="dist/multiprocess-example-proprietary/"/>
+          <exclude name="dist/web-proprietary/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </zipfileset>
       </zip>
@@ -2233,6 +2242,7 @@
           <exclude name="dist/connectors-proprietary.xml"/>
           <exclude name="dist/example-proprietary/"/>
           <exclude name="dist/multiprocess-example-proprietary/"/>
+          <exclude name="dist/web-proprietary/"/>
           <exclude name="/apache-manifoldcf-*"/>
         </tarfileset>
       </tar>

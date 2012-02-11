@@ -18,9 +18,9 @@
 
 <configuration>
   <!-- Point to the wars and configure Jetty -->
-  <property name="org.apache.manifoldcf.crawleruiwarpath" value="./web/war/mcf-crawler-ui.war"/>
-  <property name="org.apache.manifoldcf.authorityservicewarpath" value="./web/war/mcf-authority-service.war"/>
-  <property name="org.apache.manifoldcf.apiservicewarpath" value="./web/war/mcf-api-service.war"/>
+  <property name="org.apache.manifoldcf.crawleruiwarpath" value="../web-proprietary/war/mcf-crawler-ui.war"/>
+  <property name="org.apache.manifoldcf.authorityservicewarpath" value="../web-proprietary/war/mcf-authority-service.war"/>
+  <property name="org.apache.manifoldcf.apiservicewarpath" value="../web-proprietary/war/mcf-api-service.war"/>
   <property name="org.apache.manifoldcf.usejettyparentclassloader" value="false"/>
   <property name="org.apache.manifoldcf.jettyport" value="8345"/>
   <!-- Point to the synchronization area -->

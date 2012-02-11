@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-327: Share the web applications among all the examples.
+(Karl Wright)
+
 CONNECTORS-402: Change the ant build process to produce two artifacts -
 one with proprietary material, and the other without.  This allows for
 releases that include built connectors even though we do not ship the
