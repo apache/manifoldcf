@@ -27,11 +27,11 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
     
         # Build the classpath
         CLASSPATH=""
-        for filename in $(ls -1 "$MCF_HOME"/processes/jar) ; do
+        for filename in $(ls -1 "$MCF_HOME"/processes/lib) ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/processes/jar/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/processes/lib/"$filename"
             else
-                CLASSPATH="$MCF_HOME"/processes/jar/"$filename"
+                CLASSPATH="$MCF_HOME"/processes/lib/"$filename"
             fi
         done
 

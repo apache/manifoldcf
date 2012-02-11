@@ -21,10 +21,10 @@ rem save existing path here
 set OLDDIR=%CD%
 cd "%MCF_HOME%\processes"
 set CLASSPATH=.
-for %%f in (jar/*) do call script\setclasspath.bat %%f
-for /f "delims=" %%a in ('type %MCF_HOME%\processes\script\options.env') do set JAVAOPTIONS=%%a
+for %%f in (lib/*) do call setclasspath.bat %%f
+for /f "delims=" %%a in ('type %MCF_HOME%\processes\options.env') do set JAVAOPTIONS=%%a
 set JAVADEFINES=
-for %%g in (define/*) do call script\setdefine.bat %%g
+for %%g in (define/*) do call setdefine.bat %%g
 rem restore old path here
 cd "%OLDDIR%"
 "%JAVA_HOME%\bin\java" "-Dorg.apache.manifoldcf.configfile=%MCF_HOME%\properties.xml" %JAVAOPTIONS% %JAVADEFINES% -classpath "%CLASSPATH%" %*

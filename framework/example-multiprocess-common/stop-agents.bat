@@ -19,8 +19,8 @@ if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 if not exist ".\properties.xml" goto nolcfhome
 rem set MCF_HOME
 set MCF_HOME=%CD%
-rem invoke the AgentRun command
-cmd /c "processes\script\executecommand.bat org.apache.manifoldcf.agents.AgentStop"
+rem invoke the AgentStop command
+cmd /c "processes\executecommand.bat org.apache.manifoldcf.agents.AgentStop"
 goto done
 :nojavahome
 echo Environment variable JAVA_HOME is not set properly.

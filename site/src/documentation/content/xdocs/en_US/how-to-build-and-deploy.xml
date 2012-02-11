@@ -137,7 +137,7 @@
           <tr><td><em>lock-clean[.sh|.bat]</em></td><td>script to clean up dirty locks (run only when all webapps and processes are stopped)</td></tr>
         </table>
         <p></p>
-        <p>The basic multiprocess command scripts will be placed in the <em>processes/script</em> subdirectory.  The script for executing commands is <em>processes/script/executecommand[.sh|.bat]</em>.
+        <p>The basic multiprocess command scripts will be placed in the <em>processes</em> subdirectory.  The script for executing commands is <em>processes/executecommand[.sh|.bat]</em>.
             This script requires two environment variables to be set before execution: JAVA_HOME, and MCF_HOME, which should point to ManifoldCF's home execution directory, where the <em>properties.xml</em> file is found.)</p>
         <section>
           <title>Building and testing the Alfresco connector</title>
@@ -407,7 +407,7 @@ cd dist/example
           <li>Change directory to <em>dist/multiprocess-example</em>.</li>
           <li>Deploy the war files from <em>web/war</em> to your application server.</li>
           <li>Set the starting environment variables for your app server to include any -D commands found in <em>web/define</em>.  The -D commands should be of the form, "-D&#60;file name&#62;=&#60;file contents&#62;".  You will also need a "-Dorg.apache.manifoldcf.configfile=&#60;properties file&#62;" define option, or the equivalent, in the application server's JVM startup in order for ManifoldCF to be able to locate its configuration file.</li>
-          <li>Use the <em>processes/script/executecommand[.bat|.sh]</em> command from execute the appropriate commands from the next section below, being sure to first set the JAVA_HOME and MCF_HOME environment variables properly.</li>
+          <li>Use the <em>processes/executecommand[.bat|.sh]</em> command from execute the appropriate commands from the next section below, being sure to first set the JAVA_HOME and MCF_HOME environment variables properly.</li>
           <li>Start any supporting processes that result from your build.  (Some connectors such as Documentum and FileNet have auxiliary processes you need to run to make these connectors functional.)</li>
           <li>Start your application server.</li>
           <li>Start the ManifoldCF agents process.</li>
@@ -607,8 +607,10 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.authorities.SynchronizeAuthorities</td><td>None</td><td>Un-register all registered authority connector classes that can't be found</td></tr>
           </table>
           <p></p>
-          <p>Remember that you need to include all the jars under <em>dist/processes/jar</em> in the classpath whenever you run one of these commands!  You also must include the corresponding -D switches if present, as described earlier.  But, luckily, there are scripts which do all of this available.  These can be found in <em>dist/processes/script/executecommand[.sh,.bat]</em>.
-              The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be found at <em>MCF_HOME/properties.xml</em>.</p>
+          <p>Remember that you need to include all the jars under <em>dist/multiprocess-example/processes/lib</em> in the classpath whenever you run one of these commands!
+              But, luckily, there are scripts which do this for you.  These can be found in <em>dist/multiprocess-example/processes/executecommand[.sh,.bat]</em>.
+              The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be
+              found at <em>MCF_HOME/properties.xml</em>.</p>
           <p></p>
         </section>
         <section>
@@ -627,9 +629,6 @@ cd dist/example
           <p></p>
           <p>For each of the application servers involved with ManifoldCF, you must set the following define, so that the ManifoldCF web applications can locate the configuration file:</p>
           <p>-Dorg.apache.manifoldcf.configfile=&#60;configuration file path&#62;</p>
-          <p>Under <em>dist/multiprocess-example/web/define</em>, if it exists at all, you may also see files that are not war files.  These files are meant to be used as command-line -D switches for the application server process.
-                The switches may or may not be identical for the two web applications, but they will never conflict.  You may need to alter environment variables or your application server startup scripts in order to
-                provide these switches.  Luckily, no existing connectors require these at this time.</p>
           <p></p>
         </section>
         <section>
@@ -645,13 +644,20 @@ cd dist/example
           <p></p>
           <table>
             <tr><th>Connector</th><th>Process</th><th>Main class</th><th>Script name (relative to <em>dist</em>)</th></tr>
-            <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>documentum-server-process/script/run[.sh|.bat]</td></tr>
-            <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>documentum-registry-process/script/run[.sh|.bat]</td></tr>
-            <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>filenet-server-process/script/run[.sh|.bat]</td></tr>
-            <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>filenet-registry-process/script/run[.sh|.bat]</td></tr>
+            <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>documentum-server-process/run[.sh|.bat]</td></tr>
+            <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>documentum-registry-process/run[.sh|.bat]</td></tr>
+            <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>filenet-server-process/run[.sh|.bat]</td></tr>
+            <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>filenet-registry-process/run[.sh|.bat]</td></tr>
           </table>
-          <p>The registry process in all cases must be started before the corresponding server process, or the server process will report an error.  (It will, however, retry after some period of time.)  The scripts all require an MCF_HOME environment variable pointing to the place where properties.xml is found, as well as a JAVA_HOME environment variable pointing the JDK.  The server scripts also require other environment variables as well, consistent with the needs of the DFC or the FileNet API respectively.  For example, DFC requires the DOCUMENTUM environment variable to be set, while the FileNet server script requires the WASP_HOME environment variable.</p>
-          <p>It is important to understand that the scripts work by building a classpath out of all jars that get copied into the <em>jar</em> directory underneath each process during the ant build.  These jars come in part from the <em>dfc</em> or <em>filenet-api</em> directories underneath the documentum or filenet connector directories.  For the server startup scripts to work properly, therefore, these directories should have <strong>all</strong> of the jars needed to allow the api code to function, and the ant build scripts will take care of the rest.</p>
+          <p>The registry process in all cases must be started before the corresponding server process, or the server process will report an error.  (It will, however, retry after some period of time.)
+              The scripts all require an MCF_HOME environment variable pointing to the place where properties.xml is found, as well as a JAVA_HOME environment variable pointing the JDK.
+              The server scripts also require other environment variables as well, consistent with the needs of the DFC or the FileNet API respectively.  For example, DFC requires the
+              DOCUMENTUM environment variable to be set, while the FileNet server script requires the WASP_HOME environment variable.</p>
+          <p>It is important to understand that the scripts work by building a classpath out of all jars that get copied into the <em>lib</em> and <em>lib-proprietary</em> directory underneath
+              each process during the ant build.  The <em>lib-proprietary</em> jars cannot be distributed in the binary version of ManifoldCF, so if you use this option you will still need to
+              copy them there yourself for the processes to run.  If you build ManifoldCF yourself, these jars are copied from the <em>lib-proprietary</em> directories underneath the documentum
+              or filenet connector directories.  For the server startup scripts to work properly, the <em>lib-proprietary</em> directories should have <strong>all</strong> of the jars needed to
+              allow the api code to function.</p>
           <p></p>
         </section>
       </section>

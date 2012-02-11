@@ -566,8 +566,8 @@
     </target>
 
     <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-example/processes/jar"/>
-        <copy todir="dist/multiprocess-example/processes/jar">
+        <mkdir dir="dist/multiprocess-example/processes/lib"/>
+        <copy todir="dist/multiprocess-example/processes/lib">
             <fileset dir="../build/jar">
                 <include name="json.jar"/>
             </fileset>
@@ -600,16 +600,15 @@
                 <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-example/processes/script"/>
-        <copy todir="dist/multiprocess-example/processes/script">
+        <copy todir="dist/multiprocess-example/processes">
             <fileset dir="scripts"/>
         </copy>
         <mkdir dir="dist/multiprocess-example/syncharea"/>
     </target>
 
     <target name="multi-processes-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
-        <mkdir dir="dist/multiprocess-example-proprietary/processes/jar"/>
-        <copy todir="dist/multiprocess-example-proprietary/processes/jar">
+        <mkdir dir="dist/multiprocess-example-proprietary/processes/lib"/>
+        <copy todir="dist/multiprocess-example-proprietary/processes/lib">
             <fileset dir="../build/jar">
                 <include name="json.jar"/>
             </fileset>
@@ -647,8 +646,7 @@
                 <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/multiprocess-example-proprietary/processes/script"/>
-        <copy todir="dist/multiprocess-example-proprietary/processes/script">
+        <copy todir="dist/multiprocess-example-proprietary/processes">
             <fileset dir="scripts"/>
         </copy>
         <mkdir dir="dist/multiprocess-example-proprietary/syncharea"/>
