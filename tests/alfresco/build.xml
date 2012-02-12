@@ -35,6 +35,9 @@
             <!--include name="xercesImpl*.jar"/-->
             <include name="xmlsec*.jar"/>
         </fileset>
+        <fileset dir="../../connectors/alfresco/dist/lib-proprietary">
+            <include name="*.jar"/>
+        </fileset>
     </path>
 
     <target name="run-derby" depends="compile-tests">
