@@ -735,8 +735,8 @@
     </target>
 
     <target name="script-engine" depends="jar-script-engine,jar-core">
-        <mkdir dir="dist/script-engine/jar"/>
-        <copy todir="dist/script-engine/jar">
+        <mkdir dir="dist/script-engine/lib"/>
+        <copy todir="dist/script-engine/lib">
             <fileset dir="../build/jar">
                 <include name="json.jar"/>
             </fileset>
@@ -753,7 +753,7 @@
                 <include name="mcf-script-engine.jar"/>
             </fileset>
         </copy>
-        <copy todir="dist/script-engine/script">
+        <copy todir="dist/script-engine">
             <fileset dir="engine-scripts"/>
         </copy>
         <copy todir="dist/script-engine">

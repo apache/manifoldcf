@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-408: Rearrange the script-engine directory in a manner
+consistent with other dist directories, and also use a different env variable
+(ENGINE_HOME) so that we don't conflict with MCF_HOME.
+(Karl Wright)
+
 CONNECTORS-407: Set the executable bit in the distribution directory
 for .sh files during ant build.
 (Karl Wright)

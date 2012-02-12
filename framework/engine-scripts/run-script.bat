@@ -16,12 +16,12 @@ rem limitations under the License.
 
 rem check that JAVA_HOME is set
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
-if not exist "%MCF_HOME%\script-engine\jar" goto nolcfhome
+if not exist "%ENGINE_HOME%\lib" goto nolcfhome
 rem save existing path here
 set OLDDIR=%CD%
-cd "%MCF_HOME%\script-engine"
+cd "%ENGINE_HOME%"
 set CLASSPATH=.
-for %%f in (jar/*) do call script\setclasspath.bat %%f
+for %%f in (lib/*) do call setclasspath.bat %%f
 rem restore old path here
 cd "%OLDDIR%"
 "%JAVA_HOME%\bin\java" -classpath "%CLASSPATH%" org.apache.manifoldcf.scriptengine.ScriptParser %*
@@ -30,6 +30,6 @@ goto done
 echo Environment variable JAVA_HOME is not set properly.
 goto done
 :nolcfhome
-echo Environment variable MCF_HOME is not set properly.
+echo Environment variable ENGINE_HOME is not set properly.
 goto done
 :done

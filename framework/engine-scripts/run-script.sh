@@ -23,15 +23,15 @@ fi
 
 #Make sure environment variables are properly set
 if [ -e "$JAVA_HOME"/bin/java ] ; then
-    if [ -e "$MCF_HOME"/script-engine/jar ] ; then
+    if [ -e "$ENGINE_HOME"/lib ] ; then
     
         # Build the classpath
         CLASSPATH=""
-        for filename in $(ls -1 "$MCF_HOME"/script-engine/jar) ; do
+        for filename in $(ls -1 "$ENGINE_HOME"/lib) ; do
             if [ -n "$CLASSPATH" ] ; then
-                CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/script-engine/jar/"$filename"
+                CLASSPATH="$CLASSPATH""$PATHSEP""$ENGINE_HOME"/lib/"$filename"
             else
-                CLASSPATH="$MCF_HOME"/script-engine/jar/"$filename"
+                CLASSPATH="$ENGINE_HOME"/lib/"$filename"
             fi
         done
 
@@ -39,7 +39,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         exit $?
         
     else
-        echo "Environment variable MCF_HOME is not properly set." 1>&2
+        echo "Environment variable ENGINE_HOME is not properly set." 1>&2
         exit 1
     fi
     
