@@ -690,6 +690,7 @@
             </fileset>
         </copy>
         <mkdir dir="dist/multiprocess-example/logs"/>
+        <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
     </target>
   
       <target name="multi-process-example-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-proprietary">
@@ -730,6 +731,7 @@
             </fileset>
         </copy>
         <mkdir dir="dist/multiprocess-example-proprietary/logs"/>
+        <chmod dir="dist/multiprocess-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
     <target name="script-engine" depends="jar-script-engine,jar-core">
@@ -757,6 +759,7 @@
         <copy todir="dist/script-engine">
             <fileset dir="script-example"/>
         </copy>
+        <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
     </target>
     
     <target name="single-process-example" depends="jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
@@ -874,6 +877,7 @@
             <attribute name="Class-Path" value="${manifest-cp}"/>
         </manifest>
         <jar destfile="dist/example/start.jar" manifest="build/example/manifest"/>
+        <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
 
     </target>
 
@@ -1000,7 +1004,7 @@
             <attribute name="Class-Path" value="${manifest-cp-proprietary}"/>
         </manifest>
         <jar destfile="dist/example-proprietary/start.jar" manifest="build/example-proprietary/manifest"/>
-
+        <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
     <target name="compile-core-tests" depends="compile-core">
