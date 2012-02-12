@@ -90,6 +90,8 @@
             <include name="postgresql*.jar"/>
             <include name="derby*.jar"/>
             <include name="hsqldb*.jar"/>
+        </fileset>
+        <fileset dir="../../lib-proprietary">
             <include name="mysql*.jar"/>
         </fileset>
     </path>
