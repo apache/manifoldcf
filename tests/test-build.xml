@@ -109,9 +109,9 @@
     <target name="run-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -128,9 +128,9 @@
     <target name="run-postgresql" depends="compile-tests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -147,9 +147,9 @@
     <target name="run-HSQLDB" depends="compile-tests">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -166,9 +166,9 @@
     <target name="run-HSQLDBext" depends="compile-tests">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -185,9 +185,9 @@
     <target name="run-mysql" depends="compile-tests">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -204,9 +204,9 @@
     <target name="run-load-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="384m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -223,9 +223,9 @@
     <target name="run-load-postgresql" depends="compile-tests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="384m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -242,9 +242,9 @@
     <target name="run-load-HSQLDB" depends="compile-tests">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="384m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -261,9 +261,9 @@
     <target name="run-load-HSQLDBext" depends="compile-tests">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="384m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -280,9 +280,9 @@
     <target name="run-load-mysql" depends="compile-tests">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="384m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -299,9 +299,9 @@
     <target name="run-UI-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>
         <junit fork="true" maxmemory="128m" dir="test-derby-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -318,9 +318,9 @@
     <target name="run-UI-postgresql" depends="compile-tests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -337,9 +337,9 @@
     <target name="run-UI-HSQLDB" depends="compile-tests">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -356,9 +356,9 @@
     <target name="run-UI-HSQLDBext" depends="compile-tests">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -375,9 +375,9 @@
     <target name="run-UI-mysql" depends="compile-tests">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
-            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
-            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
-            <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
+            <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
+            <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
+            <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
