@@ -56,22 +56,24 @@ java -cp ... org.apache.manifoldcf.scriptengine.ScriptParser &lt;script_file&gt;
       <section>
         <title>Running the script interpreter by hand</title>
         <p></p>
-        <p>When you build ManifoldCF, the required dependent jars for the scripting language are copied to <em>dist/script-engine/jar</em>.
+        <p>When you build ManifoldCF, the required dependent jars for the scripting language are copied to <em>dist/script-engine/lib</em>.
           You can run the interpreter in interactive mode by typing:</p>
         <source>
-cd dist
-script-engine\script\run-script.bat &lt;args&gt;
+cd dist\script-engine
+run-script.bat &lt;args&gt;
         </source>
         <p>Or, on Linux:</p>
         <source>
-cd dist
-script-engine/script/run-script.sh &lt;args&gt;
+cd dist/script-engine
+run-script.sh &lt;args&gt;
         </source>
+        <p>You will need to set the environment variable <strong>ENGINE_HOME</strong> to point at the <em>dist/script-engine</em> directory beforehand, so that
+            the scripts can locate the appropriate jars.</p>
       </section>
       <section>
         <title>Running the script interpreter using Ant</title>
         <p></p>
-        <p>You can also start the script interpreter with all the correct required jars using Ant.  Simple type the following:</p>
+        <p>You can also start the script interpreter with all the correct required jars using Ant.  Simply type the following:</p>
         <source>
 ant run-script-interpreter
         </source>
