@@ -60,19 +60,26 @@ public class PUTCommand implements Command
     try
     {
       String json = configuration.toJSON();
-      HttpClient client = new HttpClient();
+      HttpClient client = sp.getHttpClient();
       PutMethod method = new PutMethod(urlString);
-      method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
-      method.setRequestBody(json);
-      int resultCode = client.executeMethod(method);
-      byte[] responseData = method.getResponseBody();
-      // We presume that the data is utf-8, since that's what the API
-      // uses throughout.
-      String resultJSON = new String(responseData,"utf-8");
+      try
+      {
+        method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
+        method.setRequestBody(json);
+        int resultCode = client.executeMethod(method);
+        byte[] responseData = method.getResponseBody();
+        // We presume that the data is utf-8, since that's what the API
+        // uses throughout.
+        String resultJSON = new String(responseData,"utf-8");
 
-      result.setReference(new VariableResult(resultCode,resultJSON));
-    
-      return false;
+        result.setReference(new VariableResult(resultCode,resultJSON));
+      
+        return false;
+      }
+      finally
+      {
+        method.releaseConnection();
+      }
     }
     catch (ManifoldCFException e)
     {

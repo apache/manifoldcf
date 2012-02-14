@@ -19,6 +19,7 @@
 
 package org.apache.manifoldcf.scriptengine;
 
+import org.apache.commons.httpclient.*;
 import java.util.*;
 import java.io.*;
 
@@ -26,6 +27,15 @@ import java.io.*;
 */
 public class ScriptParser
 {
+  /** The connection manager. */
+  protected HttpConnectionManager connectionManager = null;
+  
+  /** The client instance */
+  protected HttpClient httpClient = null;
+  
+  /** The lock for the httpclient factory */
+  protected Integer httpClientLock = new Integer(0);
+  
   /** The current variable context. */
   protected Map<String,ContextVariableReference> context = new HashMap<String,ContextVariableReference>();
   
@@ -1131,6 +1141,18 @@ public class ScriptParser
       t.throwException(message + ": "+t);
   }
   
+  public HttpClient getHttpClient()
+  {
+    synchronized (httpClientLock)
+    {
+      if (httpClient == null)
+      {
+        connectionManager = new MultiThreadedHttpConnectionManager();
+        httpClient = new HttpClient(connectionManager);
+      }
+    }
+    return httpClient;
+  }
   
   public static void main(String[] argv)
   {

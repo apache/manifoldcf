@@ -50,17 +50,24 @@ public class DELETECommand implements Command
     
     try
     {
-      HttpClient client = new HttpClient();
+      HttpClient client = sp.getHttpClient();
       DeleteMethod method = new DeleteMethod(urlString);
-      int resultCode = client.executeMethod(method);
-      byte[] responseData = method.getResponseBody();
-      // We presume that the data is utf-8, since that's what the API
-      // uses throughout.
-      String resultJSON = new String(responseData,"utf-8");
+      try
+      {
+        int resultCode = client.executeMethod(method);
+        byte[] responseData = method.getResponseBody();
+        // We presume that the data is utf-8, since that's what the API
+        // uses throughout.
+        String resultJSON = new String(responseData,"utf-8");
 
-      result.setReference(new VariableResult(resultCode,resultJSON));
-    
-      return false;
+        result.setReference(new VariableResult(resultCode,resultJSON));
+      
+        return false;
+      }
+      finally
+      {
+        method.releaseConnection();
+      }
     }
     catch (IOException e)
     {
