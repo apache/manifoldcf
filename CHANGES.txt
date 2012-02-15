@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-409: Set mcf-ui-core.jar to all the examples lib.
+(Shinichiro Abe)
+
 CONNECTORS-408: Rearrange the script-engine directory in a manner
 consistent with other dist directories, and also use a different env variable
 (ENGINE_HOME) so that we don't conflict with MCF_HOME.

@@ -652,7 +652,7 @@
         <mkdir dir="dist/multiprocess-example-proprietary/syncharea"/>
     </target>
 
-    <target name="multi-process-example" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes">
+    <target name="multi-process-example" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes">
         <mkdir dir="dist/multiprocess-example"/>
         <copy todir="dist/multiprocess-example">
             <fileset dir="example-multiprocess-common">
@@ -693,7 +693,7 @@
         <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
     </target>
   
-      <target name="multi-process-example-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-proprietary">
+      <target name="multi-process-example-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-jetty-runner,multi-processes-proprietary">
         <mkdir dir="dist/multiprocess-example-proprietary"/>
         <copy todir="dist/multiprocess-example-proprietary">
             <fileset dir="example-multiprocess-common">
@@ -762,7 +762,7 @@
         <chmod dir="dist/script-engine" perm="a+x" includes="**/*.sh"/>
     </target>
     
-    <target name="single-process-example" depends="jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="single-process-example" depends="jar-jetty-runner,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="../build/jar">
@@ -881,7 +881,7 @@
 
     </target>
 
-    <target name="single-process-example-proprietary" depends="jar-jetty-runner,jar-core,jar-agents,jar-pull-agent">
+    <target name="single-process-example-proprietary" depends="jar-jetty-runner,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example-proprietary/lib"/>
         <copy todir="dist/example-proprietary/lib">
             <fileset dir="../build/jar">
