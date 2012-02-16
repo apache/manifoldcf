@@ -33,6 +33,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.w3c.dom.Document;
@@ -57,6 +58,10 @@ public class OpenSearchServerConnection {
 
   private Document xmlResponse;
 
+  private MultiThreadedHttpConnectionManager connectionManager;
+  
+  private HttpClient httpClient;
+  
   protected String xPathStatus = "/response/entry[@key='Status']/text()";
   protected String xPathException = "/response/entry[@key='Exception']/text()";
 
@@ -76,6 +81,15 @@ public class OpenSearchServerConnection {
     indexName = config.getIndexName();
     userName = config.getUserName();
     apiKey = config.getApiKey();
+    connectionManager = new MultiThreadedHttpConnectionManager();
+    // I don't know where CommonsHTTPClientPropertiesFactory.create() gets its parameters, but it was too small
+    // by default.  Since we control
+    // the pool sizes at a higher level, these should be pretty much wide open at this level
+    //cm.getParams().setDefaultMaxConnectionsPerHost(clientProperties.getMaximumConnectionsPerHost());
+    //cm.getParams().setMaxTotalConnections(clientProperties.getMaximumTotalConnections());
+    connectionManager.getParams().setDefaultMaxConnectionsPerHost(1000);
+    connectionManager.getParams().setMaxTotalConnections(1000);
+    httpClient = new HttpClient(connectionManager);
   }
 
   protected final String urlEncode(String t) throws ManifoldCFException {
@@ -105,7 +119,7 @@ public class OpenSearchServerConnection {
   }
 
   protected void call(HttpMethod method) throws ManifoldCFException {
-    HttpClient hc = new HttpClient();
+    HttpClient hc = httpClient;
     try {
       hc.executeMethod(method);
       if (!checkResultCode(method.getStatusCode()))

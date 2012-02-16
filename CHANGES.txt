@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-406: Use MultiThreadedHttpConnection manager in script
+engine and in OpenSearchServer connector.
+(Luca Stancapiano, Karl Wright)
+
 CONNECTORS-409: Set mcf-ui-core.jar to all the examples lib.
 (Shinichiro Abe)
 
