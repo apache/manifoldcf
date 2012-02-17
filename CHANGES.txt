@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-411: Execution of integration tests from Maven is broken
+(Piergiorgio Lucidi)
+
 CONNECTORS-406: Use MultiThreadedHttpConnection manager in script
 engine and in OpenSearchServer connector.
 (Luca Stancapiano, Karl Wright)

@@ -73,7 +73,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.10</version>
+        <version>2.12</version>
         <configuration>
           <skipTests>${skipITs}</skipTests>
           <systemPropertyVariables>
@@ -88,6 +88,20 @@
           <forkMode>always</forkMode>
           <workingDirectory>target/test-output</workingDirectory>
         </configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
