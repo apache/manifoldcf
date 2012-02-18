@@ -25,7 +25,7 @@ fi
 if [ -e "$JAVA_HOME"/bin/java ] ; then
     if [ -f "$MCF_HOME"/properties.xml ] ; then
         # TODO: Check this on both Windows and Redhat
-        if [ -f "$DOCUMENTUM"/dmcl.ini ] ; then
+        if [ -f "$DOCUMENTUM"/dmcl.ini -o -f "$DOCUMENTUM"/dfc.properties ] ; then
     
             # Build the classpath
             CLASSPATH=""

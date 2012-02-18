@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-410: Allow dfc.properties to be used instead of dmcl.ini for
+determination of correct value of the DOCUMENTUM environment variable.
+(Karl Wright)
+
 CONNECTORS-411: Execution of integration tests from Maven is broken
 (Piergiorgio Lucidi)
 

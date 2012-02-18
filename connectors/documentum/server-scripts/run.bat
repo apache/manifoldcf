@@ -18,7 +18,9 @@ rem check that JAVA_HOME and MCF_HOME are set
 if not exist "%JAVA_HOME%\bin\java.exe" goto nojavahome
 if not exist "%MCF_HOME%\properties.xml" goto nolcfhome
 rem TODO: Check this on a windows system!
-if not exist "%DOCUMENTUM%\dmcl.ini" goto nodctmhome
+if exist "%DOCUMENTUM%\dmcl.ini" goto dctmhomefound
+if not exist "%DOCUMENTUM%\dfc.properties" goto nodctmhome
+:dctmhomefound
 rem save existing path here
 set OLDDIR=%CD%
 cd "%MCF_HOME%\..\documentum-server-process"
