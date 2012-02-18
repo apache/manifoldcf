@@ -121,5 +121,13 @@ public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
       substitutionParameters,mapToUpperCase);
   }
   
+  public static void outputResourceWithVelocity(IHTTPOutput output, Locale locale, String resourceKey,
+      Map<String,String> substitutionParameters, boolean mapToUpperCase)
+      throws ManifoldCFException
+    {
+      outputResourceWithVelocity(output,createVelocityEngine(Messages.class),DEFAULT_PATH_NAME,locale,resourceKey,
+        substitutionParameters,mapToUpperCase);
+    }
+  
 }
 

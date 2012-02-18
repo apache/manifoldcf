@@ -109,7 +109,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
    */
   private static void outputResource(String resName, IHTTPOutput out,
       Locale locale, OpenSearchServerParam params) throws ManifoldCFException {
-    Messages.outputResource(out,locale,resName,(params==null)?null:params.buildMap(),false);
+    Messages.outputResourceWithVelocity(out,locale,resName,(params==null)?null:params.buildMap(),false);
   }
 
   @Override

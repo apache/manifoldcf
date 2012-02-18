@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-412: Port OpenSearchServer connector to use Velocity rather than
+the internal home-grown substitution.
+(Luca Stancapiano)
+
 CONNECTORS-410: Allow dfc.properties to be used instead of dmcl.ini for
 determination of correct value of the DOCUMENTUM environment variable.
 (Karl Wright)
