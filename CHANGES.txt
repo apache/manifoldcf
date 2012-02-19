@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-413: Use the right variable variant in all places for the Open
+Search Server connector.
+(Karl Wright)
+
 CONNECTORS-412: Port OpenSearchServer connector to use Velocity rather than
 the internal home-grown substitution.
 (Luca Stancapiano)
