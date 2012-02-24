@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-414: Fix incorrect path in executecommand.sh, start-webapps.sh
+and start-database.sh
+(Shinichiro Abe)
+
 CONNECTORS-413: Use the right variable variant in all places for the Open
 Search Server connector.
 (Karl Wright)

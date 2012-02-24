@@ -36,7 +36,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         done
 
         # Build the options
-	OPTIONS=$(cat "$MCF_HOME"/processes/script/options.env)
+	OPTIONS=$(cat "$MCF_HOME"/processes/options.env)
         
         # Build the defines
         DEFINES="-Dorg.apache.manifoldcf.configfile=$MCF_HOME/properties.xml"
