@@ -1511,7 +1511,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "{\n"+
 "  if (editconnection.connections_bandwidth.value != \"\" && !isInteger(editconnection.connections_bandwidth.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumConnectionsMustBeAnInteger")+");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumConnectionsMustBeAnInteger")+"\");\n"+
 "    editconnection.connections_bandwidth.focus();\n"+
 "    return;\n"+
 "  }\n"+

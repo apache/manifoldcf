@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-416: Fix web connector authentication tab.
+(Karl Wright)
+
 CONNECTORS-415: Fix script language documentation.
 (Karl Wright)
 
