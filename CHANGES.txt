@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-415: Fix script language documentation.
+(Karl Wright)
+
 CONNECTORS-414: Fix incorrect path in executecommand.sh, start-webapps.sh
 and start-database.sh
 (Shinichiro Abe)

@@ -297,7 +297,7 @@ print "3".__int__+7;
       </section>
       <section>
         <title>Dictionaries</title>
-        <p>Array variable types are created using the "new" operator, e.g. <strong>new</strong> <strong>dictionary</strong>.</p>
+        <p>Dictionary variable types are created using the "new" operator, e.g. <strong>new</strong> <strong>dictionary</strong>.</p>
         <p>The operations supported for this variable type, and their meanings, are listed in the table below:</p>
         <table>
           <caption>Array operations</caption>
@@ -310,14 +310,14 @@ print "3".__int__+7;
       <section>
         <title>Configurations</title>
         <p>Configuration variables contain the equivalent of the JSON used to communicate with the ManifoldCF API.  They can be created using an initializer
-          of the form <strong>{</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>}</strong>.  For example, the script code '{ &lt; "outputconnector" : "" :  : , &lt; "description" : "Solr" :  :  &gt;, &lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt; &gt; }'
+          of the form <strong>{</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>}</strong>.  For example, the script code '{ &lt;&lt; "outputconnector" : "" :  : , &lt;&lt; "description" : "Solr" :  :  &gt;&gt;, &lt;&lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt;&gt; &gt;&gt; }'
           would create a configuration variable equivalent to one that might be returned from the ManifoldCF API if it was queried for the output connectors registered by the system.</p>
         <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
         <table>
           <caption>Configuration operations</caption>
           <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
           <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
-          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt; "something" : "somethingvalue" : : &gt;</td></tr>
+          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt;&lt; "something" : "somethingvalue" : : &gt;&gt;</td></tr>
         </table>
         <p>In addition, the standard attributes <em>__script__</em>, <em>__dict__</em>, and <em>__size__</em> are supported 
           by configuration variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
@@ -333,7 +333,7 @@ print "3".__int__+7;
         </ul>
         <p>Configuration node variable types can be created using an initializer of the form <strong>&lt;&lt;</strong> <em>expression</em> <strong>:</strong> <em>expression</em> <strong>:</strong> [<em>expression</em> <strong>=</strong> <em>expression</em> [<strong>,</strong> <em>expression</em> <strong>=</strong> <em>expression</em> ...]] <strong>:</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ... ]] '&gt;&gt;'.
           The first expression represents the type of the node.  The second is the node's value.  The series of '=' expressions represents attribute names and values.  The last series represents
-          the children of the node.  For example, the script code '&lt; "description" : "Solr" :  :  &gt;' represents a node of type 'description' with a value of 'Solr', with no attributes or children.</p>
+          the children of the node.  For example, the script code '&lt;&lt; "description" : "Solr" :  :  &gt;&gt;' represents a node of type 'description' with a value of 'Solr', with no attributes or children.</p>
         <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
         <table>
           <caption>Configuration node operations</caption>
