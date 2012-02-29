@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-417: CMIS Connector creates documentURI with wrong value when version is null. 
+Now the documentURI to get the content stream is retrieved from the CMIS server using an internal method of the OpenCMIS API.
+(Piergiorgio Lucidi)
+
 CONNECTORS-416: Fix web connector authentication tab.
 (Karl Wright)
 

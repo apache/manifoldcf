@@ -1,3 +1,5 @@
+/* $Id$ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -16,12 +18,9 @@
  */
 package org.apache.manifoldcf.crawler.connectors.cmis;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.rmi.NotBoundException;
@@ -31,8 +30,8 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
@@ -50,7 +49,6 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.impl.Constants;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -1156,9 +1154,15 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           }
           
           //ingestion
+          
+          //version label
           String version = document.getVersionLabel();
-          String endpoint = protocol+"://"+server+":"+port+path;
-          String documentURI = endpoint+"/"+id+"/"+version;
+          if(StringUtils.isEmpty(version))
+            version = StringUtils.EMPTY;
+          
+          //documentURI
+          String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
+          
           activities.ingestDocument(id, version, documentURI, rd);
 
         } finally {

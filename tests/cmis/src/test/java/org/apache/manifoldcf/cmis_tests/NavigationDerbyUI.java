@@ -18,16 +18,10 @@
 */
 package org.apache.manifoldcf.cmis_tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-
-import java.io.*;
-import java.util.*;
-import org.junit.*;
+import java.util.Locale;
 
 import org.apache.manifoldcf.core.tests.HTMLTester;
+import org.junit.Test;
 
 /** Basic UI navigation tests */
 public class NavigationDerbyUI extends BaseUIDerby

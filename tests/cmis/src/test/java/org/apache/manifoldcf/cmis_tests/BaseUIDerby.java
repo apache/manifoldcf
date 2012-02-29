@@ -18,15 +18,6 @@
 */
 package org.apache.manifoldcf.cmis_tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-
-import java.io.*;
-import java.util.*;
-import org.junit.*;
-
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
 {

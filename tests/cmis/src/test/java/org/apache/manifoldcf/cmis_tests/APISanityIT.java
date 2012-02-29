@@ -1,5 +1,4 @@
-package org.apache.manifoldcf.cmis_tests;
-/* $Id$ */
+/* $Id: APISanityIT.java 1234472 2012-01-22 09:59:32Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,7 +16,7 @@ package org.apache.manifoldcf.cmis_tests;
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
+package org.apache.manifoldcf.cmis_tests;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
