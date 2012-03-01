@@ -63,12 +63,13 @@ public class Messages
   }
   
   
-  /** Read a resource as an input stream, given a classloader, path, locale, and resource key.
+  /** Read a resource as an input stream, given a class, path, locale, and resource key.
   */
   public static InputStream getResourceAsStream(Class classInstance, String pathName,
-    Locale locale, String resourceKey)
+    Locale originalLocale, String resourceKey)
     throws ManifoldCFException
   {
+    Locale locale = originalLocale;
     InputStream is = classInstance.getResourceAsStream(localizeResourceName(pathName,resourceKey,locale));
     if (is == null)
     {
@@ -89,7 +90,13 @@ public class Messages
           locale = new Locale(locale.getLanguage());
           is = classInstance.getResourceAsStream(localizeResourceName(pathName,resourceKey,locale));
           if (is == null)
-            throw new ManifoldCFException("No language resource in path '"+pathName+"' named '"+resourceKey+"' found for locale '"+locale.toString()+"'");
+          {
+            complainMissingResource("No resource in path '"+pathName+"' named '"+resourceKey+"' found for locale '"+locale.toString()+"'",
+              new Exception("Resource not found"),pathName,locale,resourceKey);
+            is = classInstance.getResourceAsStream(localizeResourceName(pathName,resourceKey,null));
+            if (is == null)
+              throw new ManifoldCFException("No matching language resource in path '"+pathName+"' named '"+resourceKey+"' found for locale '"+originalLocale.toString()+"'");
+          }
         }
       }
     }
@@ -100,18 +107,21 @@ public class Messages
   {
     // Path names temporarily disabled, since they don't work.
     // MHL
+    if (locale == null)
+      return /*pathName + "." + */resourceName;
     int dotIndex = resourceName.lastIndexOf(".");
     if (dotIndex == -1)
       return /*pathName + "." + */resourceName + "_" + locale.toString();
     return /*pathName + "." + */resourceName.substring(0,dotIndex) + "_" + locale.toString() + resourceName.substring(dotIndex);
   }
   
-  /** Obtain a string given a classloader, bundle, locale, message key, and arguments.
+  /** Obtain a resource bundle given a class, bundle name, and locale.
+  *@return null if the resource bundle could not be found.
   */
-  public static String getString(ClassLoader classLoader, String bundleName, Locale locale,
-    String messageKey, Object[] args)
+  public static ResourceBundle getResourceBundle(Class clazz, String bundleName, Locale locale)
   {
     ResourceBundle resources;
+    ClassLoader classLoader = clazz.getClassLoader();
     try
     {
       resources = ResourceBundle.getBundle(bundleName, locale, classLoader);
@@ -147,23 +157,44 @@ public class Messages
           catch (MissingResourceException e4)
           {
             complainMissingBundle("No backup en bundle found! "+e4.getMessage(),e4,bundleName,locale);
-            return messageKey;
+            return null;
           }
         }
       }
     }
+    return resources;
+  }
+  
+  /** Obtain a message given a resource bundle and message key.
+  *@return null if the message could not be found.
+  */
+  public static String getMessage(Class clazz, String bundleName, Locale locale, String messageKey)
+  {
+    ResourceBundle resources = getResourceBundle(clazz,bundleName,locale);
+    if (resources == null)
+      return null;
     
     String message;
     try
     {
-      message = resources.getString(messageKey);
+      return resources.getString(messageKey);
     }
     catch (MissingResourceException e)
     {
       complainMissingMessage("Missing resource '" + messageKey + "' in bundle '" + bundleName + "' for locale '"+locale.toString()+"'",
         e,bundleName,locale,messageKey);
-      message = messageKey;
+      return null;
     }
+  }
+  
+  /** Obtain a string given a class, bundle, locale, message key, and arguments.
+  */
+  public static String getString(Class clazz, String bundleName, Locale locale,
+    String messageKey, Object[] args)
+  {
+    String message = getMessage(clazz,bundleName,locale,messageKey);
+    if (message == null)
+      return messageKey;
 
     // Format the message
     String formatMessage;

@@ -26,7 +26,9 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -93,27 +95,27 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
   
   public static String getString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   public static String getAttributeString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getAttributeString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getAttributeString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   public static String getBodyString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getBodyString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getBodyString(Messages.class, bundleName, locale, messageKey, args);
   }
   
   public static String getAttributeJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getAttributeJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getAttributeJavascriptString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   public static String getBodyJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getBodyJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getBodyJavascriptString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   /** Constructor - do no instantiate
@@ -121,37 +123,32 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
   protected Messages()
   {
   }
-  
-  /** Write a resource to HTTP output, specifying what to substitute, and more importantly, how.
-   * ${PARAM_NAME} will be substituted directly with the value.
-   * ${PARAM_NAME:A} will be substituted with HTML attribute-escaped value.
-   * ${PARAM_NAME:B} will be substituted with HTML body-escaped value.
-   * ${PARAM_NAME:AJ} will be substituted with HTML attribute + Javascript escaped value.
-   * ${PARAM_NAME:BJ} will be substituted with HTML body + Javascript escaped value.
-   */
-   public static void outputResourceWithVelocity(IHTTPOutput output, VelocityEngine engine, String pathName,
-     Locale locale, String resourceKey, Map<String,String> substitutionParameters, boolean mapToUpperCase)
-     throws ManifoldCFException
+
+  public static void outputResourceWithVelocity(IHTTPOutput output, Class clazz, String bundleName, String pathName,
+    Locale locale, String resourceKey, Map<String,Object> contextObjects)
+    throws ManifoldCFException
   {
+    VelocityEngine engine = createVelocityEngine(clazz);
     try {
-      VelocityContext  context = new VelocityContext();
-      if (substitutionParameters != null)
+      VelocityContext context = new VelocityContext();
+      
+      // Add utility methods the UI needs
+      context.put("Encoder",org.apache.manifoldcf.ui.util.Encoder.class);
+      context.put("Formatter",org.apache.manifoldcf.ui.util.Formatter.class);
+      context.put("MultilineParser",org.apache.manifoldcf.ui.util.MultilineParser.class);
+      
+      // Add in the resource bundle
+      ResourceBundle rb = getResourceBundle(clazz,bundleName,locale);
+      context.put("ResourceBundle",rb);
+      
+      if (contextObjects != null)
       {
-        Iterator<String> i = substitutionParameters.keySet().iterator();
+        Iterator<String> i = contextObjects.keySet().iterator();
         while(i.hasNext())
         {
           String key = i.next();
-          String value = substitutionParameters.get(key);
-          if (mapToUpperCase)
-            key = key.toUpperCase();
-          if (value == null)
-            value = "";
-             
+          Object value = contextObjects.get(key);
           context.put(key,value);
-          context.put(key+"_A",Encoder.attributeEscape(value));
-          context.put(key+"_B",Encoder.bodyEscape(value));
-          context.put(key+"_AJ",Encoder.attributeJavascriptEscape(value));
-          context.put(key+"_BJ",Encoder.bodyJavascriptEscape(value));
         }
       }
       
@@ -163,6 +160,41 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
     } catch (IOException e) {
       throw new ManifoldCFException(e.getMessage(),e);
     }
+  }
+  
+  /** Write a resource to HTTP output, specifying what to substitute, and more importantly, how.
+   * $PARAM_NAME will be substituted directly with the value.
+   * $PARAM_NAME_A will be substituted with HTML attribute-escaped value.
+   * $PARAM_NAME_B will be substituted with HTML body-escaped value.
+   * $PARAM_NAME_AJ will be substituted with HTML attribute + Javascript escaped value.
+   * $PARAM_NAME_BJ will be substituted with HTML body + Javascript escaped value.
+   */
+   public static void outputResourceWithVelocity(IHTTPOutput output, Class clazz, String bundleName, String pathName,
+     Locale locale, String resourceKey, Map<String,String> substitutionParameters, boolean mapToUpperCase)
+     throws ManifoldCFException
+  {
+    Map<String,Object> contextObjects = null;
+    if (substitutionParameters != null)
+    {
+      contextObjects = new HashMap<String,Object>();
+      Iterator<String> i = substitutionParameters.keySet().iterator();
+      while(i.hasNext())
+      {
+        String key = i.next();
+        String value = substitutionParameters.get(key);
+        if (mapToUpperCase)
+          key = key.toUpperCase();
+        if (value == null)
+          value = "";
+             
+        contextObjects.put(key,value);
+        contextObjects.put(key+"_A",Encoder.attributeEscape(value));
+        contextObjects.put(key+"_B",Encoder.bodyEscape(value));
+        contextObjects.put(key+"_AJ",Encoder.attributeJavascriptEscape(value));
+        contextObjects.put(key+"_BJ",Encoder.bodyJavascriptEscape(value));
+      }
+    }
+    outputResourceWithVelocity(output,clazz,bundleName,pathName,locale,resourceKey,contextObjects);
   }
   
   private static class OutputWriter extends Writer
@@ -285,34 +317,34 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
   
   /** Obtain a string given a classloader, bundle, locale, message key, and arguments, and escape it for HTML body context.
   */
-  public static String getBodyString(ClassLoader classLoader, String bundleName, Locale locale,
+  public static String getBodyString(Class clazz, String bundleName, Locale locale,
     String messageKey, Object[] args)
   {
-    return Encoder.bodyEscape(getString(classLoader,bundleName,locale,messageKey,args));
+    return Encoder.bodyEscape(getString(clazz,bundleName,locale,messageKey,args));
   }
   
   /** Obtain a string given a classloader, bundle, locale, message key, and arguments, and escape it for HTML attribute context.
   */
-  public static String getAttributeString(ClassLoader classLoader, String bundleName, Locale locale,
+  public static String getAttributeString(Class clazz, String bundleName, Locale locale,
     String messageKey, Object[] args)
   {
-    return Encoder.attributeEscape(getString(classLoader,bundleName,locale,messageKey,args));
+    return Encoder.attributeEscape(getString(clazz,bundleName,locale,messageKey,args));
   }
 
   /** Obtain a string given a classloader, bundle, locale, message key, and arguments, and escape it for HTML attribute/javascript context.
   */
-  public static String getAttributeJavascriptString(ClassLoader classLoader, String bundleName, Locale locale,
+  public static String getAttributeJavascriptString(Class clazz, String bundleName, Locale locale,
     String messageKey, Object[] args)
   {
-    return Encoder.attributeJavascriptEscape(getString(classLoader,bundleName,locale,messageKey,args));
+    return Encoder.attributeJavascriptEscape(getString(clazz,bundleName,locale,messageKey,args));
   }
 
   /** Obtain a string given a classloader, bundle, locale, message key, and arguments, and escape it for HTML body/javascript context.
   */
-  public static String getBodyJavascriptString(ClassLoader classLoader, String bundleName, Locale locale,
+  public static String getBodyJavascriptString(Class clazz, String bundleName, Locale locale,
     String messageKey, Object[] args)
   {
-    return Encoder.bodyJavascriptEscape(getString(classLoader,bundleName,locale,messageKey,args));
+    return Encoder.bodyJavascriptEscape(getString(clazz,bundleName,locale,messageKey,args));
   }
 
 }

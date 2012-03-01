@@ -88,27 +88,27 @@ public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
   
   public static String getString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   public static String getAttributeString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getAttributeString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getAttributeString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   public static String getBodyString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getBodyString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getBodyString(Messages.class, bundleName, locale, messageKey, args);
   }
   
   public static String getAttributeJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getAttributeJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getAttributeJavascriptString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   public static String getBodyJavascriptString(String bundleName, Locale locale, String messageKey, Object[] args)
   {
-    return getBodyJavascriptString(Messages.class.getClassLoader(), bundleName, locale, messageKey, args);
+    return getBodyJavascriptString(Messages.class, bundleName, locale, messageKey, args);
   }
 
   // Resource output
@@ -122,12 +122,20 @@ public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
   }
   
   public static void outputResourceWithVelocity(IHTTPOutput output, Locale locale, String resourceKey,
-      Map<String,String> substitutionParameters, boolean mapToUpperCase)
-      throws ManifoldCFException
-    {
-      outputResourceWithVelocity(output,createVelocityEngine(Messages.class),DEFAULT_PATH_NAME,locale,resourceKey,
-        substitutionParameters,mapToUpperCase);
-    }
+    Map<String,String> substitutionParameters, boolean mapToUpperCase)
+    throws ManifoldCFException
+  {
+    outputResourceWithVelocity(output,Messages.class,DEFAULT_BUNDLE_NAME,DEFAULT_PATH_NAME,locale,resourceKey,
+      substitutionParameters,mapToUpperCase);
+  }
+
+  public static void outputResourceWithVelocity(IHTTPOutput output, Locale locale, String resourceKey,
+    Map<String,Object> contextObjects)
+    throws ManifoldCFException
+  {
+    outputResourceWithVelocity(output,Messages.class,DEFAULT_BUNDLE_NAME,DEFAULT_PATH_NAME,locale,resourceKey,
+      contextObjects);
+  }
   
 }
 

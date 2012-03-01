@@ -24,99 +24,99 @@
   <tr>
     <td class="description">
       <nobr>
-        Binding:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.BindingColon'))
       </nobr>
     </td>
     <td class="value">
       <select id="binding" name="binding">
-      #if($BINDING_BJ == "atom")
+#if($BINDING == "atom")
         <option value="atom" selected="selected">AtomPub</option>
         <option value="ws">Web Services</option>
-      #else
+#else
         <option value="atom">AtomPub</option>
         <option value="ws" selected="selected">Web Services</option>
-      #end
+#end
       </select>
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Username:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.UsernameColon'))
       </nobr>
     </td>
     <td class="value">
-      <input type="text" id="username" name="username" value="$USERNAME_A" />
+      <input type="text" id="username" name="username" value="$Encoder.attributeEscape($USERNAME)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Password:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.PasswordColon'))
       </nobr>
     </td>
     <td class="value">
-      <input type="password" id="password" name="password" value="$PASSWORD_A" />
+      <input type="password" id="password" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Protocol:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.ProtocolColon'))
       </nobr>
     </td>
     <td class="value">
       <select id="protocol" name="protocol">
-      #if($PROTOCOL_BJ == "https")
+#if($PROTOCOL == "https")
         <option value="http">http</option>
         <option value="https" selected="selected">https</option>
-      #else
+#else
         <option value="http" selected="selected">http</option>
         <option value="https">https</option>
-      #end
+#end
       </select>
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Server:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.ServerColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="server" name="server" type="text" size="32" value="$SERVER_A"/>
+        <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Port:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.PortColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="port" name="port" type="text" size="5" value="$PORT_A" />
+        <input id="port" name="port" type="text" size="5" value="$Encoder.attributeEscape($PORT)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Path:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.PathColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="path" name="path" type="text" size="32" value="$PATH_A" />
+        <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Repository ID:
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.RepositoryIDColon'))
       </nobr>
     </td>
     <td class="value">
-      <input type="text" id="repositoryId" name="repositoryId" value="$REPOSITORYID_A" />
+      <input type="text" id="repositoryId" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />
       <nobr>
-        (optional)
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.Optional'))
       </nobr>
     </td>
   </tr>
