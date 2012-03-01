@@ -64,7 +64,7 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
     alfrescoServer = new Server(9090);
     alfrescoServer.setStopAtShutdown(true);
 
-    String alfrescoServerWarPath = "../../connectors/alfresco/build/alfresco-war/alfresco.war";
+    String alfrescoServerWarPath = "../../connectors/alfresco/alfresco-war/alfresco.war";
 
     if (System.getProperty("alfrescoServerWarPath") != null)
       alfrescoServerWarPath = System.getProperty("alfrescoServerWarPath");

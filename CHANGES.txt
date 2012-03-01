@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-419: Alfresco Connector needs to invoke the ingestDocument for each d:content property of a node
+(Piergiorgio Lucidi)
+
 CONNECTORS-417: CMIS Connector creates documentURI with wrong value when version is null. 
 Now the documentURI to get the content stream is retrieved from the CMIS server using an internal method of the OpenCMIS API.
 (Piergiorgio Lucidi)

@@ -26,9 +26,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
+/**
+ * Utility class dedicatd to manage Alfresco properties
+ * @author Piergiorgio Lucidi
+ *
+ */
 public class PropertiesUtils {
 
-  private static final String PROP_CONTENT_PREFIX = "contentUrl";
+  private static final String PROP_CONTENT_PREFIX_1 = "contentUrl";
+  private static final String PROP_CONTENT_PREFIX_2 = "ContentData";
   
   public static String[] getPropertyValues(NamedValue[]  properties, String qname){
     String[] propertyValues = null;
@@ -72,7 +78,8 @@ public class PropertiesUtils {
           if(property.getIsMultiValue()!=null){
             if(!property.getIsMultiValue()){
               if(StringUtils.isNotEmpty(property.getValue())){
-                if(property.getValue().startsWith(PROP_CONTENT_PREFIX)){
+                if(property.getValue().startsWith(PROP_CONTENT_PREFIX_1)
+                    || property.getValue().startsWith(PROP_CONTENT_PREFIX_2)){
                     contentProperties.add(property);
                 }
               }
@@ -111,6 +118,20 @@ public class PropertiesUtils {
       nodeReference = storeProtocol+"://"+storeId+"/"+uuid;
     }
     return nodeReference;
+  }
+  
+  /**
+   * 
+   * @param properties
+   * @return version label of the latest version of the node
+   */
+  public static String getVersionLabel(NamedValue[] properties){
+    String[] versionLabelList = PropertiesUtils.getPropertyValues(properties, Constants.PROP_VERSION_LABEL);
+    String versionLabel = StringUtils.EMPTY;
+    if(versionLabelList!=null && versionLabelList.length>0){
+      versionLabel = versionLabelList[0];
+    }
+    return versionLabel;
   }
   
 }

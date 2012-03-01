@@ -33,6 +33,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 /**
  * 
  * This is an utility class dedicated to the Alfresco Node Web Services API  
+ * @author Piergiorgio Lucidi
  *
  */
 public class NodeUtils {

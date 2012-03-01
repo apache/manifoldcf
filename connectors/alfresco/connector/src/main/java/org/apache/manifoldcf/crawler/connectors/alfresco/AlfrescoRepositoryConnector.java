@@ -124,6 +124,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   
   /** Alfresco Server configuration tab name */
   private static final String ALFRESCO_SERVER_TAB_NAME = "Server";
+  
+  /** Separator used when a node has more than one content stream. More than one d:content property */
+  private static final String INGESTION_SEPARATOR_FOR_MULTI_BINARY = ";";
 
   /**
    * Constructor
@@ -859,8 +862,26 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             fileLength = binary.getLength();
             is = ContentReader.getBinary(binary, username, password, session);
             rd.setBinary(is, fileLength);
+            
+            //id is the node reference only if the node has an unique content stream
+            //For a node with a single d:content property: id = node reference
+            String id = PropertiesUtils.getNodeReference(properties);
+            
+            //For a node with multiple d:content properties: id = node reference;QName
+            //The QName of a property of type d:content will be appended to the node reference
+            if(contentProperties.size()>1){
+              id = id + INGESTION_SEPARATOR_FOR_MULTI_BINARY + contentProperty.getName();
+            }
+            
+            //version label
+            String version = PropertiesUtils.getVersionLabel(properties);
+            
+            //the document uri is related to the specific d:content property available in the node
+            //we want to ingest each content stream that are nested in a single node
+            String documentURI = binary.getUrl();
+            activities.ingestDocument(id, version, documentURI, rd);
           }
-
+          
         } finally {
           try {
             if(is!=null){

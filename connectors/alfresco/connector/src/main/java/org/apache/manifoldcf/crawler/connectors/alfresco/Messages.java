@@ -23,6 +23,11 @@ import java.util.Map;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
+/**
+ * 
+ * @author Piergiorgio Lucidi
+ *
+ */
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
 {
   public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.crawler.connectors.alfresco.common";

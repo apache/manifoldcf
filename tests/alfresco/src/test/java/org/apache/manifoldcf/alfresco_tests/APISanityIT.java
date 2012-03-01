@@ -1,4 +1,3 @@
-package org.apache.manifoldcf.alfresco_tests;
 /* $Id$ */
 
 /**
@@ -18,6 +17,7 @@ package org.apache.manifoldcf.alfresco_tests;
 * limitations under the License.
 */
 
+package org.apache.manifoldcf.alfresco_tests;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
@@ -516,7 +516,7 @@ public class APISanityIT extends BaseDerby
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 4)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
 
       // Now, delete the job.
       deleteJob(jobIDString);
