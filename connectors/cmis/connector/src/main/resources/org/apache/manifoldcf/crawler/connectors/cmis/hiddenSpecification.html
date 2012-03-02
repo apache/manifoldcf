@@ -14,14 +14,4 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-
-<table class="displaytable">
-	<tr>
-		<td class="description">
-			CMISクエリー：
-		</td>
-		<td class="value">
-			$CMISQUERY_B
-		</td>
-	</tr>
-</table>
+<input type="hidden" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />

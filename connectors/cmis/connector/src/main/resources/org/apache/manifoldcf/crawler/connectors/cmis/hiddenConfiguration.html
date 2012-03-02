@@ -14,19 +14,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-
-<script type="text/javascript">
-<!--
-function checkSpecification()
-{
-  // Does nothing right now.
-  return true;
-}
- 
-function SpecOp(n, opValue, anchorvalue)
-{
-  eval("editjob."+n+".value = \""+opValue+"\"");
-  postFormSetAnchor(anchorvalue);
-}
-//-->
-</script>
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)" />
+<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)" />
+<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)" />
+<input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
+<input type="hidden" name="binding" value="$Encoder.attributeEscape($BINDING)" />
+<input type="hidden" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />

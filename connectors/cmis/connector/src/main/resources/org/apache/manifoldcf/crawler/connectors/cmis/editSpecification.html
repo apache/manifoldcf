@@ -14,4 +14,23 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<input type="hidden" name="cmisQuery" value="$CMISQUERY_A" />
+
+<table class="displaytable">
+  <tr>
+    <td class="separator" colspan="3">
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.CMISQueryColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <nobr>
+        <input type="text" size="120" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
+      </nobr>
+    </td>
+  </tr>
+</table>
