@@ -14,6 +14,18 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<input type="hidden" name="maxfilesize" value="$MAXFILESIZE_A" />
-<input type="hidden" name="mimetypes" value="$MIMETYPES_A" />
-<input type="hidden" name="extensions" value="$EXTENSIONS_A" />
+
+<table class="displaytable">
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.MaxFileSizeBytesColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($MAXFILESIZE)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.AllowedMIMETypesColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($MIMETYPES)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenSearchServerConnector.AllowedFileExtensionsColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($EXTENSIONS)</td>
+  </tr>
+</table>

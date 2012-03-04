@@ -60,8 +60,9 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       OPENSEARCHSERVER_INDEXATION_ACTIVITY, OPENSEARCHSERVER_DELETION_ACTIVITY,
       OPENSEARCHSERVER_OPTIMIZE_ACTIVITY };
 
-  private final static String OPENSEARCHSERVER_TAB_OPENSEARCHSERVER = "OpenSearchServer";
-
+  private final static String OPENSEARCHSERVER_TAB_MESSAGE = "OpenSearchServerConnector.OpenSearchServer";
+  private final static String PARAMETERS_TAB_MESSAGE = "OpenSearchServerConnector.Parameters";
+      
   /** Forward to the HTML template for rendering hidden fields when the Server tab is not selected */
   private static final String HIDDEN_CONFIG_FORWARD = "hiddenConfiguration.html";
   
@@ -117,7 +118,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     super.outputConfigurationHeader(threadContext, out, locale, parameters, tabsArray);
-    tabsArray.add(Messages.getString(locale,"OpenSearchServerConnector.Parameters"));
+    tabsArray.add(Messages.getString(locale,PARAMETERS_TAB_MESSAGE));
     outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, null);
   }
 
@@ -127,7 +128,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, IOException {
     super.outputConfigurationBody(threadContext, out, locale, parameters, tabName);
     OpenSearchServerConfig config = this.getConfigParameters(parameters);
-    if (Messages.getString(locale,"OpenSearchServerConnector.Parameters").equals(tabName)) {
+    if (Messages.getString(locale,PARAMETERS_TAB_MESSAGE).equals(tabName)) {
       outputResource(EDIT_CONFIG_FORWARD, out, locale, config);
     } else {
       outputResource(HIDDEN_CONFIG_FORWARD, out, locale, config);
@@ -139,7 +140,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       Locale locale, OutputSpecification os, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     super.outputSpecificationHeader(out, locale, os, tabsArray);
-    tabsArray.add(OPENSEARCHSERVER_TAB_OPENSEARCHSERVER);
+    tabsArray.add(Messages.getString(locale,OPENSEARCHSERVER_TAB_MESSAGE));
     outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, null);
   }
 
@@ -160,7 +161,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       String tabName) throws ManifoldCFException, IOException {
     super.outputSpecificationBody(out, locale, os, tabName);
     OpenSearchServerSpecs specs = getSpecParameters(os);
-    if (OPENSEARCHSERVER_TAB_OPENSEARCHSERVER.equals(tabName)) {
+    if (Messages.getString(locale,OPENSEARCHSERVER_TAB_MESSAGE).equals(tabName)) {
       outputResource(EDIT_SPEC_FORWARD, out, locale, specs);
     } else {
       outputResource(HIDDEN_SPEC_FORWARD, out, locale, specs);
