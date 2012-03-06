@@ -103,6 +103,7 @@ public class BaseMySQL extends org.apache.manifoldcf.core.tests.BaseMySQL
       try
       {
         super.localCleanUp();
+        ManifoldCF.resetEnvironment();
       }
       catch (Exception e)
       {

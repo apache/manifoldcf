@@ -103,6 +103,7 @@ public class BaseHSQLDBext extends org.apache.manifoldcf.core.tests.BaseHSQLDBex
       try
       {
         super.localCleanUp();
+        ManifoldCF.resetEnvironment();
       }
       catch (Exception e)
       {

@@ -103,6 +103,7 @@ public class BaseDerby extends org.apache.manifoldcf.core.tests.BaseDerby
       try
       {
         super.localCleanUp();
+        ManifoldCF.resetEnvironment();
       }
       catch (Exception e)
       {

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-421: Add hooks to permit agents "process" to be reset
+by ManifoldCF.resetEnvironment().
+(Karl Wright)
+
 CONNECTORS-420: Revise the way we use Velocity so that we can make
 better use of it for internationalization purposes, and for things like loops
 etc.

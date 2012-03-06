@@ -103,6 +103,7 @@ public class BasePostgresql extends org.apache.manifoldcf.core.tests.BasePostgre
       try
       {
         super.localCleanUp();
+        ManifoldCF.resetEnvironment();
       }
       catch (Exception e)
       {
