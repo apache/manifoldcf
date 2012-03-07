@@ -24,37 +24,37 @@
   <tr>
     <td class="description">
       <nobr>
-        Tenant domain:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.TenantDomainColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="$TENANTDOMAIN_A" />
+        <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Username:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.UserNameColon'))
       </nobr>
     </td>
     <td class="value">
-      <input id="username" type="text" name="username" value="$USERNAME_A" />
+      <input id="username" type="text" name="username" value="$Encoder.attributeEscape($USERNAME)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Password:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PasswordColon'))
       </nobr>
     </td>
     <td class="value">
-      <input id="password" type="password" name="password" value="$PASSWORD_A" />
+      <input id="password" type="password" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Protocol:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ProtocolColon'))
       </nobr>
     </td>
     <td class="value">
@@ -75,31 +75,31 @@
   <tr>
     <td class="description">
       <nobr>
-        Server:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ServerColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="server" name="server" type="text" size="32" value="$SERVER_A"/>
+        <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Port:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PortColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="port" name="port" type="text" size="5" value="$PORT_A" />
+        <input id="port" name="port" type="text" size="5" value="$Encoder.attributeEscape($PORT)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        Path:
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PathColon'))
       </nobr>
     </td>
     <td class="value">
-        <input id="path" name="path" type="text" size="32" value="$PATH_A" />
+        <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
     </td>
   </tr>
 </table>

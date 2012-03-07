@@ -15,18 +15,22 @@
  limitations under the License.
 -->
 
-<script type="text/javascript">
-<!--
-function checkSpecification()
-{
-  // Does nothing right now.
-  return true;
-}
- 
-function SpecOp(n, opValue, anchorvalue)
-{
-  eval("editjob."+n+".value = \""+opValue+"\"");
-  postFormSetAnchor(anchorvalue);
-}
-//-->
-</script>
+<table class="displaytable">
+  <tr>
+    <td class="separator" colspan="3">
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.LuceneQueryColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <nobr>
+        <input type="text" size="120" name="luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
+      </nobr>
+    </td>
+  </tr>
+</table>

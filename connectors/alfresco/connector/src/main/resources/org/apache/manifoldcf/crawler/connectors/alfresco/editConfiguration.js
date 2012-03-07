@@ -26,50 +26,50 @@ function checkConfigForSave()
 {
   if (editconnection.username.value == "")
   {
-    alert("ユーザ名を入力してください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.TheUsernameMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.username.focus();
     return false;
   }
   if (editconnection.password.value == "")
   {
-    alert("パスワードを入力してください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.ThePasswordMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.password.focus();
     return false;
   }
   if (editconnection.server.value =="")
   {
-    alert("サーバ名を入力してください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.ServerNameMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.server.focus();
     return false;
   }
   else if(!editconnection.server.value.indexOf('/')==-1)
   {
-    alert("サーバ名に文字「/」を含めないでください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.ServerNameCantContainSlash'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.server.focus();
     return false;
   }
   if (editconnection.port.value == "")
   {
-    alert("ポート番号を入力してください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.ThePortMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.port.focus();
     return false;
   }
   else if (!isInteger(editconnection.port.value))
   {
-    alert("サーバポートには整数を入力してください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.TheServerPortMustBeAValidInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.port.focus();
     return false;
   }
   if(editconnection.path.value == "")
   {
-    alert("パスを入力してください");
-    SelectTab("サーバ");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.PathMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('AlfrescoConnector.Server'))");
     editconnection.path.focus();
     return false;
   }

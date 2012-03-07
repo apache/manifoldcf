@@ -17,20 +17,11 @@
 
 <table class="displaytable">
   <tr>
-    <td class="separator" colspan="3">
-      <hr />
-    </td>
-  </tr>
-  <tr>
     <td class="description">
-      <nobr>
-        Lucene Query:
-      </nobr>
+      $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.LuceneQueryColon'))
     </td>
     <td class="value">
-      <nobr>
-        <input type="text" size="120" name="luceneQuery" value="$LUCENEQUERY_A" />
-      </nobr>
+      $Encoder.bodyEscape($LUCENEQUERY)
     </td>
   </tr>
 </table>

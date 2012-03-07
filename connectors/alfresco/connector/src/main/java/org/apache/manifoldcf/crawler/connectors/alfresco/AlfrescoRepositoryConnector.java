@@ -117,13 +117,13 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
 
   /** The Lucene Query label for the configuration tab of the job settings */
-  private static final String TAB_LABEL_LUCENE_QUERY = "Lucene Query";
+  private static final String TAB_LABEL_LUCENE_QUERY_RESOURCE = "AlfrescoConnector.LuceneQuery";
 
   /** Read activity */
   protected final static String ACTIVITY_READ = "read document";
   
   /** Alfresco Server configuration tab name */
-  private static final String ALFRESCO_SERVER_TAB_NAME = "Server";
+  private static final String ALFRESCO_SERVER_TAB_RESOURCE = "AlfrescoConnector.Server";
   
   /** Separator used when a node has more than one content stream. More than one d:content property */
   private static final String INGESTION_SEPARATOR_FOR_MULTI_BINARY = ";";
@@ -511,7 +511,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public void outputConfigurationHeader(IThreadContext threadContext,
       IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    tabsArray.add(ALFRESCO_SERVER_TAB_NAME);
+    tabsArray.add(Messages.getString(locale,ALFRESCO_SERVER_TAB_RESOURCE));
     outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, parameters);
   }
 
@@ -562,7 +562,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     parameters.setParameter(AlfrescoConfig.PATH_PARAM, path);
     parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
       
-    if(ALFRESCO_SERVER_TAB_NAME.equals(tabName)){
+    if(Messages.getString(locale,ALFRESCO_SERVER_TAB_RESOURCE).equals(tabName)){
       outputResource(EDIT_CONFIG_FORWARD, out, locale, parameters);  
 
     } else {
@@ -752,7 +752,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     
     ConfigParams params = new ConfigParams();
     params.setParameter(AlfrescoConfig.LUCENE_QUERY_PARAM, luceneQuery);
-    if (tabName.equals(TAB_LABEL_LUCENE_QUERY)) {
+    if (tabName.equals(Messages.getString(locale,TAB_LABEL_LUCENE_QUERY_RESOURCE))) {
       outputResource(EDIT_SPEC_FORWARD, out, locale, params);
     } else {
       outputResource(HIDDEN_SPEC_FORWARD, out, locale, params);
@@ -777,7 +777,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public void outputSpecificationHeader(IHTTPOutput out,
       Locale locale, DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    tabsArray.add(TAB_LABEL_LUCENE_QUERY);
+    tabsArray.add(Messages.getString(locale,TAB_LABEL_LUCENE_QUERY_RESOURCE));
     outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, params);
   }
 

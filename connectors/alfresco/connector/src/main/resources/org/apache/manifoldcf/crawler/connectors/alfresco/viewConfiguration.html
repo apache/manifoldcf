@@ -19,36 +19,36 @@
   <tr>
     <td class="description" colspan="1">
       <nobr>
-        引数：
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ParametersColon'))
       </nobr>
     </td>
     <td class="value" colspan="3">
       <nobr>
-        テナントドメイン=$TENANTDOMAIN_B
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.TenantDomainEquals'))$Encoder.bodyEscape($TENANTDOMAIN)
       </nobr>
       <br />
       <nobr>
-        ユーザ名=$USERNAME_B
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.UserNameEquals'))$Encoder.bodyEscape($USERNAME)
       </nobr>
       <br />
       <nobr>
-        パスワード=********
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PasswordEquals'))********
       </nobr>
       <br />
       <nobr>
-        プロトコル=$PROTOCOL_B
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ProtocolEquals'))$Encoder.bodyEscape($PROTOCOL)
       </nobr>
       <br />
       <nobr>
-        サーバ=$SERVER_B
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ServerEquals'))$Encoder.bodyEscape($SERVER)
       </nobr>
       <br />
       <nobr>
-        ポート=$PORT_B
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PortEquals'))$Encoder.bodyEscape($PORT)
       </nobr>
       <br />
       <nobr>
-        パス=$PATH_B
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PathEquals'))$Encoder.bodyEscape($PATH)
       </nobr>
       <br />
     </td>
