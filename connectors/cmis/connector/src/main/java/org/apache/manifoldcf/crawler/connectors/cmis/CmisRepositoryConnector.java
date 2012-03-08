@@ -881,19 +881,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
     int i = 0;
-    boolean seenAny = false;
     ConfigParams specificationParams = new ConfigParams();
+    String cmisQuery = "";
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        if (seenAny == false) {
-          seenAny = true;
-        }
-        specificationParams.setParameter(
-            CmisConfig.CMIS_QUERY_PARAM.toUpperCase(), sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM));
+        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
       }
       i++;
     }
+    specificationParams.setParameter(CmisConfig.CMIS_QUERY_PARAM.toUpperCase(), cmisQuery);
     outputResource(VIEW_SPEC_FORWARD, out, locale, specificationParams);
   }
 
