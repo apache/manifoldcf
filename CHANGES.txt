@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-381: Add an OpenSearchServer UI test.  While we were
+at it fixed a broken CMIS UI.
+(Karl Wright)
+
 CONNECTORS-421: Add hooks to permit agents "process" to be reset
 by ManifoldCF.resetEnvironment().
 (Karl Wright)

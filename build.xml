@@ -58,6 +58,7 @@
         <ant dir="tests/cmis" target="clean"/>
         <ant dir="tests/filesystem" target="clean"/>
         <ant dir="tests/gts" target="clean"/>
+        <ant dir="tests/opensearchserver" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
         <ant dir="tests/solr" target="clean"/>
         <ant dir="tests/jcifs" target="clean"/>
@@ -104,6 +105,7 @@
         <ant dir="tests/cmis" target="clean"/>
         <ant dir="tests/filesystem" target="clean"/>
         <ant dir="tests/gts" target="clean"/>
+        <ant dir="tests/opensearchserver" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
         <ant dir="tests/solr" target="clean"/>
         <ant dir="tests/jcifs" target="clean"/>
@@ -1786,6 +1788,15 @@
       </condition>
     </target>
 
+    <target name="calculate-opensearchserver-tests-condition" depends="calculate-filesystem-condition,calculate-opensearchserver-condition">
+      <condition property="opensearchserver-tests.include">
+        <and>
+            <isset property="filesystem.include"/>
+            <isset property="opensearchserver.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-rss-tests-condition" depends="calculate-rss-condition,calculate-nulloutput-condition">
       <condition property="rss-tests.include">
         <and>
@@ -1870,6 +1881,10 @@
 
     <target name="run-gts-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-gts-connector,calculate-gts-tests-condition" if="gts-tests.include">
         <ant dir="tests/gts" target="run-UI-derby"/>
+    </target>
+
+    <target name="run-opensearchserver-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-opensearchserver-connector,calculate-opensearchserver-tests-condition" if="opensearchserver-tests.include">
+        <ant dir="tests/opensearchserver" target="run-UI-derby"/>
     </target>
 
     <target name="run-rss-UI-tests-derby" depends="build-tests-framework,build-tests-rss-connector,build-tests-nulloutput-connector,calculate-rss-tests-condition" if="rss-tests.include">
@@ -2275,7 +2290,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 

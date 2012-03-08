@@ -14,7 +14,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<input type="hidden" name="serverlocation" value="$SERVERLOCATION_A" />
-<input type="hidden" name="indexname" value="$INDEXNAME_A" />
-<input type="hidden" name="username" value="$USERNAME_A" />
-<input type="hidden" name="apikey" value="$APIKEY_A" />
+<input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
+<input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+<input type="hidden" name="apikey" value="$Encoder.attributeEscape($APIKEY)" />

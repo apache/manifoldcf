@@ -230,15 +230,7 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
   
   private static String localizeResourceName(String pathName, String resourceName, Locale locale)
   {
-    // Temporarily return the resource name unmodified.
-    if (true)
-      return resourceName;
-    // Path names temporarily disabled, since they don't work.
-    // MHL
-    int dotIndex = resourceName.lastIndexOf(".");
-    if (dotIndex == -1)
-      return /*pathName + "." + */resourceName + "_" + locale.toString();
-    return /*pathName + "." + */resourceName.substring(0,dotIndex) + "_" + locale.toString() + resourceName.substring(dotIndex);
+    return resourceName;
   }
   
   /** Write a resource to HTTP output, specifying what to substitute, and more importantly, how.
