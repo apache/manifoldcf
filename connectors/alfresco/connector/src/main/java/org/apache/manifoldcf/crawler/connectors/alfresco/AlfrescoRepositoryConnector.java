@@ -654,20 +654,16 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
     int i = 0;
-    boolean seenAny = false;
     ConfigParams specificationParams = new ConfigParams();
+    String luceneQuery = "";
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        if (seenAny == false) {
-          seenAny = true;
-        }
-        specificationParams.setParameter(
-            AlfrescoConfig.LUCENE_QUERY_PARAM.toUpperCase(),
-            sn.getAttributeValue(AlfrescoConfig.LUCENE_QUERY_PARAM));
+        luceneQuery = sn.getAttributeValue(AlfrescoConfig.LUCENE_QUERY_PARAM);
       }
       i++;
     }
+    specificationParams.setParameter(AlfrescoConfig.LUCENE_QUERY_PARAM.toUpperCase(), luceneQuery);
     outputResource(VIEW_SPEC_FORWARD, out, locale, specificationParams);
   }
 

@@ -21,7 +21,7 @@ function checkConfig()
 {
   return true;
 }
- 
+
 function checkConfigForSave()
 {
   if (editconnection.username.value == "")
