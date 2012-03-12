@@ -15,6 +15,8 @@
  limitations under the License.
 -->
 
+#if($TABNAME == $ResourceBundle.getString('AlfrescoConnector.Server'))
+
 <table class="displaytable">
   <tr>
     <td class="separator" colspan="2">
@@ -24,54 +26,49 @@
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.BindingColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.TenantDomainColon'))
       </nobr>
     </td>
     <td class="value">
-      <select id="binding" name="binding">
-#if($BINDING == "atom")
-        <option value="atom" selected="selected">AtomPub</option>
-        <option value="ws">Web Services</option>
-#else
-        <option value="atom">AtomPub</option>
-        <option value="ws" selected="selected">Web Services</option>
-#end
-      </select>
+        <input id="tenantDomain" name="tenantDomain" type="text" size="32" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.UsernameColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.UserNameColon'))
       </nobr>
     </td>
     <td class="value">
-      <input type="text" id="username" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+      <input id="username" type="text" name="username" value="$Encoder.attributeEscape($USERNAME)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.PasswordColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PasswordColon'))
       </nobr>
     </td>
     <td class="value">
-      <input type="password" id="password" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+      <input id="password" type="password" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
     </td>
   </tr>
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.ProtocolColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ProtocolColon'))
       </nobr>
     </td>
     <td class="value">
       <select id="protocol" name="protocol">
-#if($PROTOCOL == "https")
+#if($PROTOCOL == "http")
+        <option value="http" selected="selected">http</option>
+#else
         <option value="http">http</option>
+#end
+#if($PROTOCOL == "https")
         <option value="https" selected="selected">https</option>
 #else
-        <option value="http" selected="selected">http</option>
         <option value="https">https</option>
 #end
       </select>
@@ -80,7 +77,7 @@
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.ServerColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.ServerColon'))
       </nobr>
     </td>
     <td class="value">
@@ -90,7 +87,7 @@
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.PortColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PortColon'))
       </nobr>
     </td>
     <td class="value">
@@ -100,24 +97,24 @@
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.PathColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.PathColon'))
       </nobr>
     </td>
     <td class="value">
         <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
     </td>
   </tr>
-  <tr>
-    <td class="description">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.RepositoryIDColon'))
-      </nobr>
-    </td>
-    <td class="value">
-      <input type="text" id="repositoryId" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.Optional'))
-      </nobr>
-    </td>
-  </tr>
 </table>
+
+#else
+
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)" />
+<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)" />
+<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)" />
+<input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
+<input type="hidden" name="tenantDomain" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
+
+#end
+

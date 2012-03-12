@@ -15,6 +15,8 @@
  limitations under the License.
 -->
 
+#if($TabName == $ResourceBundle.getString('OpenSearchServerConnector.Parameters'))
+
 <table class="displaytable">
   <tr>
     <td class="description">
@@ -41,3 +43,12 @@
       size="40" /></td>
   </tr>
 </table>
+
+#else
+
+<input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
+<input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+<input type="hidden" name="apikey" value="$Encoder.attributeEscape($APIKEY)" />
+
+#end

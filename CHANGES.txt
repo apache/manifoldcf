@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-422: Rearrange Velocity templates so that there's one
+template per tab.
+(Karl Wright)
+
 CONNECTORS-381: Add an OpenSearchServer UI test.  While we were
 at it fixed a broken CMIS UI.
 (Karl Wright)

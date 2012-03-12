@@ -60,15 +60,14 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       OPENSEARCHSERVER_INDEXATION_ACTIVITY, OPENSEARCHSERVER_DELETION_ACTIVITY,
       OPENSEARCHSERVER_OPTIMIZE_ACTIVITY };
 
+  // Tab resources
+
   private final static String OPENSEARCHSERVER_TAB_MESSAGE = "OpenSearchServerConnector.OpenSearchServer";
   private final static String PARAMETERS_TAB_MESSAGE = "OpenSearchServerConnector.Parameters";
       
-  /** Forward to the HTML template for rendering hidden fields when the Server tab is not selected */
-  private static final String HIDDEN_CONFIG_FORWARD = "hiddenConfiguration.html";
-  
-  /** Forward to the HTML template for rendering hidden fields when the CMIS Query tab is not selected */
-  private static final String HIDDEN_SPEC_FORWARD = "hiddenSpecification.html";
-  
+  // Velocity templates
+  // These are not broken down by tabs because the design of this connector makes it difficult to do it that way.
+
   /** Forward to the HTML template to edit the configuration parameters */
   private static final String EDIT_CONFIG_FORWARD = "editConfiguration.html";
   
@@ -86,6 +85,8 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
 
   /** Forward to the javascript to check the specification parameters for the job */
   private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+
+  // Private data
 
   private String specsCacheOutpuDescription;
   private OpenSearchServerSpecs specsCache;
@@ -109,8 +110,15 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
    * @throws ManifoldCFException
    */
   private static void outputResource(String resName, IHTTPOutput out,
-      Locale locale, OpenSearchServerParam params) throws ManifoldCFException {
-    Messages.outputResourceWithVelocity(out,locale,resName,(params==null)?null:params.buildMap(),false);
+    Locale locale, OpenSearchServerParam params, String tabName) throws ManifoldCFException {
+    Map<String,String> paramMap = null;
+    if (params != null) {
+      paramMap = params.buildMap();
+      if (tabName != null) {
+        paramMap.put("TabName", tabName);
+      }
+    }
+    Messages.outputResourceWithVelocity(out,locale,resName,paramMap,false);
   }
 
   @Override
@@ -119,7 +127,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, IOException {
     super.outputConfigurationHeader(threadContext, out, locale, parameters, tabsArray);
     tabsArray.add(Messages.getString(locale,PARAMETERS_TAB_MESSAGE));
-    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, null);
+    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, null, null);
   }
 
   @Override
@@ -128,11 +136,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, IOException {
     super.outputConfigurationBody(threadContext, out, locale, parameters, tabName);
     OpenSearchServerConfig config = this.getConfigParameters(parameters);
-    if (Messages.getString(locale,PARAMETERS_TAB_MESSAGE).equals(tabName)) {
-      outputResource(EDIT_CONFIG_FORWARD, out, locale, config);
-    } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, config);
-    }
+    outputResource(EDIT_CONFIG_FORWARD, out, locale, config, tabName);
   }
 
   @Override
@@ -141,7 +145,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       throws ManifoldCFException, IOException {
     super.outputSpecificationHeader(out, locale, os, tabsArray);
     tabsArray.add(Messages.getString(locale,OPENSEARCHSERVER_TAB_MESSAGE));
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, null);
+    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, null, null);
   }
 
   final private SpecificationNode getSpecNode(OutputSpecification os) {
@@ -161,11 +165,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       String tabName) throws ManifoldCFException, IOException {
     super.outputSpecificationBody(out, locale, os, tabName);
     OpenSearchServerSpecs specs = getSpecParameters(os);
-    if (Messages.getString(locale,OPENSEARCHSERVER_TAB_MESSAGE).equals(tabName)) {
-      outputResource(EDIT_SPEC_FORWARD, out, locale, specs);
-    } else {
-      outputResource(HIDDEN_SPEC_FORWARD, out, locale, specs);
-    }
+    outputResource(EDIT_SPEC_FORWARD, out, locale, specs, tabName);
   }
 
   @Override
@@ -193,9 +193,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       ConfigParams configParams) {
     if (configParams == null)
       configParams = getConfiguration();
-    synchronized (this) {
-      return new OpenSearchServerConfig(configParams);
-    }
+    return new OpenSearchServerConfig(configParams);
   }
 
   final private OpenSearchServerSpecs getSpecParameters(OutputSpecification os)
@@ -254,13 +252,13 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
-    outputResource(VIEW_CONFIG_FORWARD, out, locale, getConfigParameters(parameters));
+    outputResource(VIEW_CONFIG_FORWARD, out, locale, getConfigParameters(parameters), null);
   }
 
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
       throws ManifoldCFException, IOException {
-    outputResource(VIEW_SPEC_FORWARD, out, locale, getSpecParameters(os));
+    outputResource(VIEW_SPEC_FORWARD, out, locale, getSpecParameters(os), null);
   }
 
   @Override

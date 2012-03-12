@@ -14,10 +14,31 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
-<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
-<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)" />
-<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)" />
-<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)" />
-<input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
-<input type="hidden" name="tenantDomain" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
+
+#if($TABNAME == $ResourceBundle.getString('AlfrescoConnector.LuceneQuery'))
+
+<table class="displaytable">
+  <tr>
+    <td class="separator" colspan="3">
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.LuceneQueryColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <nobr>
+        <input type="text" size="120" name="luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
+      </nobr>
+    </td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="luceneQuery" value="$Encoder.attributeEscape($LUCENEQUERY)" />
+
+#end

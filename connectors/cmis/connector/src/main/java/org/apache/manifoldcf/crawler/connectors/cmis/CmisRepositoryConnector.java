@@ -80,33 +80,33 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
   private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
       "yyyy-MM-dd'T'HH:mm:ssZ");
+
+  // Tab name properties
+  
+  private static final String CMIS_SERVER_TAB_PROPERTY = "CmisRepositoryConnector.Server";
+  private static final String CMIS_QUERY_TAB_PROPERTY = "CmisRepositoryConnector.CMISQuery";
+
+  
+  // Template names
+
+    /** Forward to the javascript to check the configuration parameters */
+  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
+
+  /** Server tab template */
+  private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_Server.html";
+
+  /** Forward to the javascript to check the specification parameters for the job */
+  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+  
+  /** Forward to the template to edit the configuration parameters for the job */
+  private static final String EDIT_SPEC_FORWARD_CMISQUERY = "editSpecification_CMISQuery.html";
   
   /** Forward to the HTML template to view the configuration parameters */
   private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
   
-  /** Forward to the HTML template to edit the configuration parameters */
-  private static final String EDIT_CONFIG_FORWARD = "editConfiguration.html";
-  
-  /** Forward to the javascript to check the configuration parameters */
-  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
-  
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
   
-  /** Forward to the template to edit the configuration parameters for the job */
-  private static final String EDIT_SPEC_FORWARD = "editSpecification.html";
-  
-  /** Forward to the javascript to check the specification parameters for the job */
-  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
-  
-  /** Forward to the HTML template for rendering hidden fields when the Server tab is not selected */
-  private static final String HIDDEN_CONFIG_FORWARD = "hiddenConfiguration.html";
-  
-  /** Forward to the HTML template for rendering hidden fields when the CMIS Query tab is not selected */
-  private static final String HIDDEN_SPEC_FORWARD = "hiddenSpecification.html";
-  
-  private static final String CMIS_SERVER_TAB_PROPERTY = "CmisRepositoryConnector.Server";
-  private static final String CMIS_QUERY_TAB_PROPERTY = "CmisRepositoryConnector.CMISQuery";
   
   /**
    * CMIS Session handle
@@ -167,7 +167,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String[] getBinNames(String documentIdentifier) {
-    return new String[] { protocol+"://"+server+":"+port+path };
+    return new String[] { server };
   }
 
   protected class GetSessionThread extends Thread {
@@ -688,73 +688,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    * @throws ManifoldCFException
    */
   private static void outputResource(String resName, IHTTPOutput out,
-      Locale locale, ConfigParams params) throws ManifoldCFException {
-    Map<String,String> paramMap = new HashMap<String,String>();
-    Iterator<String> i = params.listParameters();
-    while(i.hasNext()){
-      String key = i.next();
-      String value = params.getParameter(key);
-      paramMap.put(key,value);
-    }
+      Locale locale, Map<String,String> paramMap) throws ManifoldCFException {
     Messages.outputResourceWithVelocity(out,locale,resName,paramMap,true);
   }
-  
-  /**
-   * View configuration. This method is called in the body section of the
-   * connector's view configuration page. Its purpose is to present the
-   * connection information to the user. The coder can presume that the HTML that
-   * is output from this configuration will be within appropriate <html> and
-   * <body> tags.
-   * 
-   * @param threadContext
-   *          is the local thread context.
-   * @param out
-   *          is the output to which any HTML should be sent.
-   * @param parameters
-   *          are the configuration parameters, as they currently exist, for
-   *          this connection being configured.
-   */
-  @Override
-  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
-    String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
-    if(StringUtils.isEmpty(repositoryId))
-      repositoryId = StringUtils.EMPTY;
-    parameters.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
-    outputResource(VIEW_CONFIG_FORWARD, out, locale, parameters);
-  }
 
-  /**
-
-   * Output the configuration header section. This method is called in the head
-   * section of the connector's configuration page. Its purpose is to add the
-   * required tabs to the list, and to output any javascript methods that might
-   * be needed by the configuration editing HTML.
-   * 
-   * @param threadContext
-   *          is the local thread context.
-   * @param out
-   *          is the output to which any HTML should be sent.
-   * @param parameters
-   *          are the configuration parameters, as they currently exist, for
-   *          this connection being configured.
-   * @param tabsArray
-   *          is an array of tab names. Add to this array any tab names that are
-   *          specific to the connector.
-   */
-  @Override
-  public void outputConfigurationHeader(IThreadContext threadContext,
-      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
-      throws ManifoldCFException, IOException {
-    tabsArray.add(Messages.getString(locale,CMIS_SERVER_TAB_PROPERTY));
-    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, parameters);
-  }
-
-  @Override
-  public void outputConfigurationBody(IThreadContext threadContext,
-      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
-      throws ManifoldCFException, IOException {
-    
+  /** Fill in a Server tab configuration parameter map for calling a Velocity template.
+  *@param newMap is the map to fill in
+  *@param parameters is the current set of configuration parameters
+  */
+  private static void fillInServerConfigurationMap(Map<String,String> newMap, ConfigParams parameters)
+  {
     String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
     String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
     String protocol = parameters.getParameter(CmisConfig.PROTOCOL_PARAM);
@@ -781,20 +724,91 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     if(binding == null)
       binding = CmisConfig.BINDING_ATOM_VALUE;
       
-    ConfigParams newMap = new ConfigParams();
-    newMap.setParameter(CmisConfig.USERNAME_PARAM, username);
-    newMap.setParameter(CmisConfig.PASSWORD_PARAM, password);
-    newMap.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
-    newMap.setParameter(CmisConfig.SERVER_PARAM, server);
-    newMap.setParameter(CmisConfig.PORT_PARAM, port);
-    newMap.setParameter(CmisConfig.PATH_PARAM, path);
-    newMap.setParameter(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
-    newMap.setParameter(CmisConfig.BINDING_PARAM, binding);
-    if(Messages.getString(locale,CMIS_SERVER_TAB_PROPERTY).equals(tabName)){
-      outputResource(EDIT_CONFIG_FORWARD, out, locale, newMap);
-    } else {
-      outputResource(HIDDEN_CONFIG_FORWARD, out, locale, newMap);
-    }
+    newMap.put(CmisConfig.USERNAME_PARAM, username);
+    newMap.put(CmisConfig.PASSWORD_PARAM, password);
+    newMap.put(CmisConfig.PROTOCOL_PARAM, protocol);
+    newMap.put(CmisConfig.SERVER_PARAM, server);
+    newMap.put(CmisConfig.PORT_PARAM, port);
+    newMap.put(CmisConfig.PATH_PARAM, path);
+    newMap.put(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
+    newMap.put(CmisConfig.BINDING_PARAM, binding);
+  }
+  
+  /**
+   * View configuration. This method is called in the body section of the
+   * connector's view configuration page. Its purpose is to present the
+   * connection information to the user. The coder can presume that the HTML that
+   * is output from this configuration will be within appropriate <html> and
+   * <body> tags.
+   * 
+   * @param threadContext
+   *          is the local thread context.
+   * @param out
+   *          is the output to which any HTML should be sent.
+   * @param parameters
+   *          are the configuration parameters, as they currently exist, for
+   *          this connection being configured.
+   */
+  @Override
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
+    Map<String,String> paramMap = new HashMap<String,String>();
+	
+    // Fill in map from each tab
+    fillInServerConfigurationMap(paramMap, parameters);
+
+    outputResource(VIEW_CONFIG_FORWARD, out, locale, paramMap);
+  }
+
+  /**
+
+   * Output the configuration header section. This method is called in the head
+   * section of the connector's configuration page. Its purpose is to add the
+   * required tabs to the list, and to output any javascript methods that might
+   * be needed by the configuration editing HTML.
+   * 
+   * @param threadContext
+   *          is the local thread context.
+   * @param out
+   *          is the output to which any HTML should be sent.
+   * @param parameters
+   *          are the configuration parameters, as they currently exist, for
+   *          this connection being configured.
+   * @param tabsArray
+   *          is an array of tab names. Add to this array any tab names that are
+   *          specific to the connector.
+   */
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext,
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
+      throws ManifoldCFException, IOException {
+    // Add the Server tab
+    tabsArray.add(Messages.getString(locale,CMIS_SERVER_TAB_PROPERTY));
+    // Map the parameters
+    Map<String,String> paramMap = new HashMap<String,String>();
+
+    // Fill in the parameters from each tab
+    fillInServerConfigurationMap(paramMap, parameters);
+
+    // Output the Javascript - only one Velocity template for all tabs
+    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, paramMap);
+  }
+
+  @Override
+  public void outputConfigurationBody(IThreadContext threadContext,
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
+      throws ManifoldCFException, IOException {
+
+    // Call the Velocity templates for each tab
+
+    // Server tab
+    Map<String,String> paramMap = new HashMap<String,String>();
+    // Set the tab name
+    paramMap.put("TabName", tabName);
+    // Fill in the parameters
+    fillInServerConfigurationMap(paramMap, parameters);
+    outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);
+	
   }
 
   /**
@@ -866,6 +880,22 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     return null;
   }
 
+  /** Fill in specification Velocity parameter map for CMISQuery tab.
+  */
+  private static void fillInCMISQuerySpecificationMap(Map<String,String> newMap, DocumentSpecification ds)
+  {
+    int i = 0;
+    String cmisQuery = "";
+    while (i < ds.getChildCount()) {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
+        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
+      }
+      i++;
+    }
+    newMap.put(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
+  }
+
   /**
    * View specification. This method is called in the body section of a job's
    * view page. Its purpose is to present the document specification information
@@ -880,18 +910,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
-    int i = 0;
-    ConfigParams specificationParams = new ConfigParams();
-    String cmisQuery = "";
-    while (i < ds.getChildCount()) {
-      SpecificationNode sn = ds.getChild(i);
-      if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
-      }
-      i++;
-    }
-    specificationParams.setParameter(CmisConfig.CMIS_QUERY_PARAM.toUpperCase(), cmisQuery);
-    outputResource(VIEW_SPEC_FORWARD, out, locale, specificationParams);
+	
+    Map<String,String> paramMap = new HashMap<String,String>();
+
+    // Fill in the map with data from all tabs
+    fillInCMISQuerySpecificationMap(paramMap, ds);
+  
+    outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
   }
 
   /**
@@ -913,7 +938,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public String processSpecificationPost(IPostParameters variableContext,
       DocumentSpecification ds) throws ManifoldCFException {
     String cmisQuery = variableContext.getParameter(CmisConfig.CMIS_QUERY_PARAM);
-    if (StringUtils.isNotEmpty(cmisQuery)) {
+    if (cmisQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
@@ -927,18 +952,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       node.setAttribute(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
       variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
       ds.addChild(ds.getChildCount(), node);
-    } else {
-      int i = 0;
-      while (i < ds.getChildCount()) {
-        SpecificationNode oldNode = ds.getChild(i);
-        if (oldNode.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-          variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM,
-              oldNode.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM));
-        }
-        i++;
-      }
     }
-
     return null;
   }
 
@@ -961,24 +975,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void outputSpecificationBody(IHTTPOutput out,
       Locale locale, DocumentSpecification ds, String tabName) throws ManifoldCFException,
       IOException {
-    String cmisQuery = StringUtils.EMPTY;
-    int i = 0;
-    while (i < ds.getChildCount()) {
-      SpecificationNode n = ds.getChild(i);
-      if (n.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        cmisQuery = n.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
-        break;
-      }
-      i++;
-    }
 
-    ConfigParams params = new ConfigParams();
-    params.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
-    if (tabName.equals(Messages.getString(locale,CMIS_QUERY_TAB_PROPERTY))) {
-      outputResource(EDIT_SPEC_FORWARD, out, locale, params);
-    } else {
-      outputResource(HIDDEN_SPEC_FORWARD, out, locale, params);
-    }
+    // Output CMISQuery tab
+    Map<String,String> paramMap = new HashMap<String,String>();
+    paramMap.put("TabName", tabName);
+    fillInCMISQuerySpecificationMap(paramMap, ds);
+    outputResource(EDIT_SPEC_FORWARD_CMISQUERY, out, locale, paramMap);
   }
 
   /**
@@ -1000,7 +1002,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       Locale locale, DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale,CMIS_QUERY_TAB_PROPERTY));
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, params);
+	
+    Map<String,String> paramMap = new HashMap<String,String>();
+	
+    // Fill in the specification header map, using data from all tabs.
+    fillInCMISQuerySpecificationMap(paramMap, ds);
+
+    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, paramMap);
   }
 
   /** Process a set of documents.
