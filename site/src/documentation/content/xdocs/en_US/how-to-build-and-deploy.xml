@@ -69,6 +69,7 @@
           <li>MetaCarta GTS output connector</li>
           <li>Apache Solr output connector</li>
           <li>OpenSearchServer output connector</li>
+          <li>ElasticSearch output connector</li>
           <li>Null output connector</li>
         </ul>
         <p></p>

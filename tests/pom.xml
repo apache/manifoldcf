@@ -28,6 +28,7 @@
   <name>ManifoldCF - Tests</name>
   <packaging>pom</packaging>
   <modules>
+    <module>elasticsearch</module>
     <module>alfresco</module> 
     <module>wiki</module>
     <module>cmis</module>

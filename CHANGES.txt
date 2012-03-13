@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-288: Add Elastic Search connector.
+(Luca Stancapiano, Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-422: Rearrange Velocity templates so that there's one
 template per tab.
 (Karl Wright)

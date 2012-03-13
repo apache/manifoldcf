@@ -48,6 +48,7 @@
     <module>opensearchserver</module>
     <module>wiki</module>
     <module>alfresco</module>
+    <module>elasticsearch</module>
   </modules>
 
 </project>

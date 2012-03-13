@@ -43,6 +43,7 @@
       <p><a href="../api/livelink/index.html">LiveLink権限コネクタ</a></p>
       <p><a href="../api/meridio/index.html">Meridio権限コネクタ</a></p>
       <p><a href="../api/opensearchserver/index.html">OpenSearchServer出力コネクタ</a></p>
+      <p><a href="../api/elasticsearch/index.html">ElasticSearch出力コネクタ</a></p>
       <p><a href="../api/nullauthority/index.html">Null権限コネクタ</a></p>
       <p><a href="../api/nulloutput/index.html">Null出力コネクタ</a></p>
       <p><a href="../api/rss/index.html">RSSコネクタ</a></p>
