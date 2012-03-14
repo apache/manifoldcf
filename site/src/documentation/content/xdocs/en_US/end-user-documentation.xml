@@ -509,8 +509,8 @@
             	<p>The ElasticSearch Output Connection allow ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
             	to be as easy to use as possible.</p>
             	<p>After creating an ElasticSearch ouput connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
-            	ElasticSearch output connector instance works with one index. To work with muliple indexes, just create one output connector for each index.</p>
-            	<figure src="images/en_US/elasticsearch-connection-parameters.PNG" alt="ElasticSearch, parameters tab" width="80%"/>
+            	ElasticSearch output connector instance works with one index. To work with multiple indexes, just create one output connector for each index.</p>
+            	<!--figure src="images/en_US/elasticsearch-connection-parameters.PNG" alt="ElasticSearch, parameters tab" width="80%"/-->
             	<p>The parameters are:</p><br/>
             	<ul>
             		<li>Server location: An URL that references your ElasticSearch instance. The default value (http://localhost:8080) is valid if your ElasticSearch instance runs
@@ -519,18 +519,18 @@
             		<li>User name and API Key: The credentials required to connect to the ElasticSearch instance. It can be left empty if no user has been created. The next figure shows
             		where to find the user's informations in the ElasticSearch user interface.</li>
             	</ul>
-            	<figure src="images/en_US/elasticsearch-user.PNG" alt="ElasticSearch, user configuration" width="80%"/>
+            	<!--figure src="images/en_US/elasticsearch-user.PNG" alt="ElasticSearch, user configuration" width="80%"/-->
             	<p>Once you created a new job, having selected the ElasticSearch output connector, you will have the ElasticSearch tab. This tab let you:</p><br/>
             	<ul>
             		<li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
             		<li>The allowed mime types. Warning it does not work with all repository connectors.</li>
             		<li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
             	</ul>
-            	<figure src="images/en_US/elasticsearch-job-parameters.PNG" alt="ElasticSearch, job parameters" width="80%"/>
+            	<!--figure src="images/en_US/elasticsearch-job-parameters.PNG" alt="ElasticSearch, job parameters" width="80%"/-->
             	<p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
             	   index optimization. The targeted index is automatically optimized when the job is ending.</p>
-            	<figure src="images/en_US/elasticsearch-history-report.PNG" alt="ElasticSearch, history report" width="80%"/>
-             	<p>You may also refer to the <a href="http://www.elasticsearch.org/guide">ElasticSearch's user documentation</a>.</p>
+            	<!--figure src="images/en_US/elasticsearch-history-report.PNG" alt="ElasticSearch, history report" width="80%"/-->
+             	<p>You may also refer to <a href="http://www.elasticsearch.org/guide">ElasticSearch's user documentation</a>.</p>
             </section>
             
             <section id="gtsoutputconnector">
