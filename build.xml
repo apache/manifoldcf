@@ -2327,6 +2327,7 @@
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/elasticsearch*"/>
           <exclude name="/legacy-*/"/>
           <exclude name="dist/connector-lib-proprietary/*.jar"/>
           <exclude name="dist/connectors-proprietary.xml"/>
@@ -2363,6 +2364,7 @@
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
           <exclude name="**/test-materials-proprietary/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/elasticsearch*"/>
           <exclude name="/legacy-*/"/>
           <exclude name="dist/connector-lib-proprietary/*.jar"/>
           <exclude name="dist/connectors-proprietary.xml"/>
@@ -2459,6 +2461,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <fileset dir="mod-authz-annotate/">
         </fileset>
         <fileset dir="connectors/">
+          <exclude name="**/*"/>
+          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-0.18.7/"/>
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
@@ -2467,16 +2471,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
-          <exclude name="filenet/filenet-api/*.jar"/>
-          <exclude name="documentum/dfc/*.jar"/>
-          <exclude name="jcifs/jcifs/*.jar"/>
-          <exclude name="jcifs/jcifs/*.diffs"/>
-          <exclude name="livelink/lapi/*.jar"/>
-          <exclude name="meridio/wsdls/*.wsdl"/>
-          <exclude name="meridio/wsdls/*.xsd"/>
-          <exclude name="meridio/integration/WebService/Setup.Ini"/>
-          <exclude name="meridio/integration/TestHarness/Setup.Ini"/>
-          <exclude name="sharepoint/wsdls/*.wsdl"/>
+          <exclude name="filenet/lib-proprietary/*.jar"/>
+          <exclude name="documentum/lib-proprietary/*.jar"/>
+          <exclude name="jcifs/lib-proprietary/*.jar"/>
+          <exclude name="jcifs/lib-proprietary/*.diffs"/>
+          <exclude name="livelink/lib-proprietary/*.jar"/>
+          <exclude name="meridio/lib-proprietary/*.wsdl"/>
+          <exclude name="meridio/lib-proprietary/*.xsd"/>
+          <exclude name="sharepoint/lib-proprietary/*.wsdl"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
         </fileset>
@@ -2492,9 +2494,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="**/web-generated.xml"/>
           <exclude name="**/surefire-reports/"/>
           <exclude name="**/target/"/>
+          <exclude name="lib-proprietary/*.jar"/>
           <exclude name="scripts/options.env"/>
         </fileset>
         <fileset dir="site/">
+          <exclude name="fonts/"/>
           <exclude name="**/build/"/>
           <exclude name="**/tmp/"/>
           <exclude name="src/documentation/skins/common/xslt/html/split.xsl"/>
