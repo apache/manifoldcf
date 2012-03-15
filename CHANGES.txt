@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-427: The default value for "include only host matching seeds"
+should be yes/checked
+(Erlend Garåsen)
+
 CONNECTORS-288: Add Elastic Search connector.
 (Luca Stancapiano, Piergiorgio Lucidi, Karl Wright)
 

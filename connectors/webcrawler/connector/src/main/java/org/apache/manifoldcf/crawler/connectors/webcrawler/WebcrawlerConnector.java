@@ -3462,7 +3462,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String exclusions = "";
     String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
-    boolean includeMatching = false;
+    boolean includeMatching = true;
     
     // Now, loop through description
     i = 0;
