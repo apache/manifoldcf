@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-428: Include LICENSE.txt file mention of the IPA license
+for Japanese PDF documentation fonts.
+(Karl Wright
+
 CONNECTORS-425: Elastic Search documentation missing images
 (Piergiorgio Lucidi)
 

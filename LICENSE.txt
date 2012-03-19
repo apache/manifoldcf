@@ -288,6 +288,9 @@ License: Common Development and Distribution License (CDDL) v1.0 (https://glassf
 This product includes a jstl-impl-1.2.jar.
 License: Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html)
 
+This product may include pdf files that embed IPA-licensed fonts.
+License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
+
 ==========================================================================
 The following license applies to json.jar, which is generated from the json
 sources from http://www.json.org/java/index.html
