@@ -36,10 +36,7 @@ public class ElasticSearchDelete extends ElasticSearchConnection
       DeleteMethod method = new DeleteMethod(config.getServerLocation());
       method.setPath("/" + config.getIndexName() + "/" + config.getIndexType()
           + "/" + idField);
-      System.out.println("Deleting '"+idField+"'...");
       call(method);
-      System.out.println("... completed");
-      System.out.println(jsonStatus);
       if ("ok".equals(jsonStatus))
         return;
       setResult(Result.ERROR, checkJson(jsonException));
