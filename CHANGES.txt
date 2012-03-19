@@ -3,6 +3,12 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-425: Elastic Search documentation missing images
+(Piergiorgio Lucidi)
+
+CONNECTORS-423: Elastic Search connector should handle document metadata
+(Luca Stancapiano, Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-424: Add RepositoryDocument.getFileName for posting file
 name as metadata.
 (Shinichiro Abe)

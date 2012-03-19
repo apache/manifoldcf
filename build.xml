@@ -1600,7 +1600,7 @@
     </target>
 
     <target name="calculate-elasticsearch-testmaterials-condition" depends="calculate-elasticsearch-condition">
-        <available file="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.18.7" type="dir" property="elasticsearch-testmaterials.exists"/>
+        <available file="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0" type="dir" property="elasticsearch-testmaterials.exists"/>
         <condition property="elasticsearch-testmaterials.include">
           <and>
               <isset property="elasticsearch-testmaterials.exists"/>
@@ -1612,7 +1612,7 @@
     <target name="calculate-elasticsearch-tests-condition" depends="calculate-elasticsearch-testmaterials-condition,calculate-elasticsearch-condition,calculate-cmis-condition">
       <condition property="elasticsearch-tests.include">
         <and>
-            <not>
+        	  <not>
                 <equals arg1="${ant.java.version}" arg2="1.5" />
             </not>
             <isset property="elasticsearch.include"/>
@@ -1634,7 +1634,8 @@
             <param name="connector-name" value="elasticsearch"/>
         </antcall>
         <antcall target="general-add-output-connector">
-            <param name="connector-name" value="ElasticSearch"/>
+            <param name="connector-name" value="elasticsearch"/>
+        	<param name="connector-label" value="ElasticSearch"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnector"/>
         </antcall>
     </target>

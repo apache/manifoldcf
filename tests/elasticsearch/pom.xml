@@ -307,7 +307,7 @@
     <dependency>
 	    <groupId>org.elasticsearch</groupId>
 	    <artifactId>elasticsearch</artifactId>
-	    <version>0.18.7</version>
+	    <version>0.19.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
@@ -332,12 +332,19 @@
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-highlighter</artifactId>
-      <version>2.4.0</version>
+      <version>3.5.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-queries</artifactId>
-      <version>2.4.0</version>
+      <version>3.5.0</version>
+    </dependency>
+    
+    <!-- Attachment Plugin -->
+    <dependency>
+      <groupId>org.elasticsearch</groupId>
+      <artifactId>elasticsearch-mapper-attachments</artifactId>
+      <version>1.2.0</version>
     </dependency>
   </dependencies>
 </project>

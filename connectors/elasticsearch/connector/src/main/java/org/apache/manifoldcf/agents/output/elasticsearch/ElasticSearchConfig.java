@@ -1,3 +1,5 @@
+/* $Id: ElasticSearchConfig.java 1299512 2012-03-12 00:58:38Z piergiorgio $ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -31,7 +33,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST =
   { ParameterEnum.SERVERLOCATION, ParameterEnum.INDEXNAME,
-      ParameterEnum.INDEXTYPE, ParameterEnum.USERNAME, ParameterEnum.APIKEY };
+      ParameterEnum.INDEXTYPE};
 
   /** Build a set of ElasticSearchParameters by reading ConfigParams. If the
    * value returned by ConfigParams.getParameter is null, the default value is
@@ -88,13 +90,4 @@ public class ElasticSearchConfig extends ElasticSearchParam
     return get(ParameterEnum.INDEXTYPE);
   }
 
-  final public String getUserName()
-  {
-    return get(ParameterEnum.USERNAME);
-  }
-
-  final public String getApiKey()
-  {
-    return get(ParameterEnum.APIKEY);
-  }
 }

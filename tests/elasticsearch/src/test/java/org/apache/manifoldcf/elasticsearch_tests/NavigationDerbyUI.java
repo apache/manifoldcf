@@ -84,10 +84,6 @@ public class NavigationDerbyUI extends BaseUIDerby
     textarea.setValue(testerInstance.createStringDescription("index"));
     textarea = form.findTextarea(testerInstance.createStringDescription("indextype"));
     textarea.setValue(testerInstance.createStringDescription("generictype"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("username"));
-    textarea.setValue(testerInstance.createStringDescription("foo"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("apikey"));
-    textarea.setValue(testerInstance.createStringDescription("bar"));
     
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));

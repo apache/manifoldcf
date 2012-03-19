@@ -1,3 +1,5 @@
+/* $Id: ElasticSearchConnection.java 1299512 2012-03-12 00:58:38Z piergiorgio $ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -35,10 +37,6 @@ public class ElasticSearchConnection
 
   private String indexName;
 
-  private String userName;
-
-  private String apiKey;
-
   private String resultDescription;
 
   private String callUrlSnippet;
@@ -64,8 +62,6 @@ public class ElasticSearchConnection
     callUrlSnippet = null;
     serverLocation = config.getServerLocation();
     indexName = config.getIndexName();
-    userName = config.getUserName();
-    apiKey = config.getApiKey();
   }
 
   protected final String urlEncode(String t) throws ManifoldCFException
@@ -88,14 +84,6 @@ public class ElasticSearchConnection
       url.append(urlEncode(indexName)+"/");
     url.append(command);
     callUrlSnippet = url.toString();
-    if (userName != null && apiKey != null && userName.length() > 0
-        && apiKey.length() > 0)
-    {
-      url.append("&login=");
-      url.append(urlEncode(userName));
-      url.append("&key=");
-      url.append(apiKey);
-    }
     return url;
   }
 

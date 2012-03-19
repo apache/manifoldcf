@@ -1,3 +1,5 @@
+/* $Id: ElasticSearchSpecs.java 1299512 2012-03-12 00:58:38Z piergiorgio $ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with

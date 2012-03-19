@@ -23,6 +23,7 @@
         <path refid="mcf-icmis-test-build.test-classpath"/>
         <fileset dir="../../connectors/elasticsearch/test-materials-proprietary">
             <include name="elasticsearch*/lib/*.jar"/>
+        	  <include name="elasticsearch*/plugins/mapper-attachments/*.jar"/>
         </fileset>
     </path>
 
@@ -38,11 +39,8 @@
                 <pathelement location="build/test/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
-            <batchtest todir="test-derby-output">
-                <fileset dir="build/test/classes">
-                    <include name="**/*DerbyIT.class"/>
-                </fileset>
-            </batchtest>
+        	  
+        	  <test name="org.apache.manifoldcf.elasticsearch_tests.APISanityDerbyIT" todir="test-derby-output"/>
         </junit>
     </target>
 

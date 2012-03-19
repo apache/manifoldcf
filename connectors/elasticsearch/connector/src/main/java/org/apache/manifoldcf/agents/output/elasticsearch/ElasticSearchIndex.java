@@ -1,3 +1,5 @@
+/* $Id: ElasticSearchIndex.java 1299512 2012-03-12 00:58:38Z piergiorgio $ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -21,12 +23,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Iterator;
 
-import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
@@ -36,11 +39,13 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   private class IndexRequestEntity implements RequestEntity
   {
 
+    private RepositoryDocument document;
     private InputStream inputStream;
 
-    public IndexRequestEntity(InputStream inputStream)
+    public IndexRequestEntity(RepositoryDocument document, InputStream inputStream)
       throws ManifoldCFException
     {
+      this.document = document;
       this.inputStream = inputStream;
     }
 
@@ -65,14 +70,41 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       try
       {
         pw.print("{");
-        //pw.print("\"fieldName\" : ");
-        //pw.print("\"" + documentURI + "\"" + ",");
-        //pw.print("\"fileName\" : ");
-        //pw.print("\"" + fileName + "\"" + ",");
-        pw.print("\"binaryValue\" : \"");
-        Base64 base64 = new Base64();
-        base64.encodeStream(inputStream, pw);
-        pw.print("\"");
+        Iterator<String> i = document.getFields();
+        boolean existentFields = false;
+        while (i.hasNext()){
+          String fieldName = i.next();
+          String[] fieldValues = document.getFieldAsStrings(fieldName);
+          if(fieldValues.length>1){
+            for(int j=0; j<fieldValues.length; j++){
+              String fieldValue = fieldValues[j];
+              pw.print("\""+fieldName+"\" : \""+fieldValue+"\"");
+              if(j<fieldValues.length-1){
+                pw.print(",");
+              }
+              existentFields = true;
+            }
+          } else if(fieldValues.length==1){
+            String fieldValue = fieldValues[0];
+            pw.print("\""+fieldName+"\" : \""+fieldValue+"\"");
+            if(i.hasNext()){
+              pw.print(",");
+            }
+            existentFields = true;
+          }
+        }
+        
+        if(inputStream!=null){
+          if(existentFields){
+            pw.print(",");
+          }
+          pw.print("\"type\" : \"attachment\",");
+          pw.print("\"file\" : \"");
+          Base64 base64 = new Base64();
+          base64.encodeStream(inputStream, pw);
+          pw.print("\"");
+        }
+        
         pw.print("}");
       } catch (ManifoldCFException e)
       {
@@ -84,8 +116,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     }
   }
 
-  public ElasticSearchIndex(HttpClient client, String documentURI, InputStream inputStream,
-      ElasticSearchConfig config) throws ManifoldCFException
+  public ElasticSearchIndex(HttpClient client, String documentURI, RepositoryDocument document, 
+      InputStream inputStream, ElasticSearchConfig config) throws ManifoldCFException
   {
     super(config, client);
     
@@ -101,7 +133,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     PutMethod put = new PutMethod(url.toString());
-    RequestEntity entity = new IndexRequestEntity(inputStream);
+    RequestEntity entity = new IndexRequestEntity(document, inputStream);
     put.setRequestEntity(entity);
     call(put);
     if ("true".equals(checkJson(jsonStatus)))

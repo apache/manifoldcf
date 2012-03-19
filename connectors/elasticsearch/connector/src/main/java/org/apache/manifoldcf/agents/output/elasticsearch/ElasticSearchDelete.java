@@ -1,3 +1,5 @@
+/* $Id: ElasticSearchDelete.java 1299512 2012-03-12 00:58:38Z piergiorgio $ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -17,9 +19,8 @@
 
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
-import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class ElasticSearchDelete extends ElasticSearchConnection

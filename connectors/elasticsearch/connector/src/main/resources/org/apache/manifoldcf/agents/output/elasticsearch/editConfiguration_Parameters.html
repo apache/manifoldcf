@@ -37,16 +37,6 @@
     <td class="value"><input name="indextype" type="text" value="$Encoder.attributeEscape($INDEXTYPE)"
       size="24" /></td>
   </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UserNameColon'))</nobr></td>
-    <td class="value"><input name="username" type="text" value="$Encoder.attributeEscape($USERNAME)"
-      size="24" /></td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.APIKeyColon'))</nobr></td>
-    <td class="value"><input name="apikey" type="text" value="$Encoder.attributeEscape($APIKEY)"
-      size="40" /></td>
-  </tr>
 </table>
 
 #else
@@ -54,7 +44,5 @@
 <input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
 <input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
 <input type="hidden" name="indextype" value="$Encoder.attributeEscape($INDEXTYPE)" />
-<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
-<input type="hidden" name="apikey" value="$Encoder.attributeEscape($APIKEY)" />
 
 #end

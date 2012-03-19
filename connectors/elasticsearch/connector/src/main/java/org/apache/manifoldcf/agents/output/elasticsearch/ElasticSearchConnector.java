@@ -1,3 +1,5 @@
+/* $Id: ElasticSearchConnector.java 1299512 2012-03-12 00:58:38Z piergiorgio $ */
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -86,8 +88,6 @@ public class ElasticSearchConnector extends BaseOutputConnector
 
   private MultiThreadedHttpConnectionManager connectionManager = null;
   private HttpClient client = null;
-  private String specsCacheOutpuDescription = null;
-  private ElasticSearchSpecs specsCache = null;
 
   public ElasticSearchConnector()
   {
@@ -319,8 +319,8 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchConfig config = getConfigParameters(null);
     InputStream inputStream = document.getBinaryStream();
     long startTime = System.currentTimeMillis();
-    ElasticSearchIndex oi = new ElasticSearchIndex(client, documentURI,
-      inputStream, config);
+    ElasticSearchIndex oi = new ElasticSearchIndex(client, documentURI, 
+        document, inputStream, config);
     activities.recordActivity(startTime, ELASTICSEARCH_INDEXATION_ACTIVITY,
       document.getBinaryLength(), documentURI, oi.getResult().name(),
       oi.getResultDescription());

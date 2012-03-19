@@ -325,18 +325,6 @@ public class APISanityDerbyIT extends BaseDerby
       indexType.setValue("generictype");
       child.addChild(child.getChildCount(), indexType);
       
-      //username
-      ConfigurationNode username = new ConfigurationNode("_PARAMETER_");
-      username.setAttribute("name", "username");
-      username.setValue("");
-      child.addChild(child.getChildCount(), username);
-      
-      //apikey
-      ConfigurationNode apikey = new ConfigurationNode("_PARAMETER_");
-      apikey.setAttribute("name", "apikey");
-      apikey.setValue("");
-      child.addChild(child.getChildCount(), apikey);
-      
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       requestObject = new Configuration();
