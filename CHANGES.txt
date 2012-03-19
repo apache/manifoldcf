@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.5-dev =====================
 
+CONNECTORS-424: Add RepositoryDocument.getFileName for posting file
+name as metadata.
+(Shinichiro Abe)
+
 CONNECTORS-427: The default value for "include only host matching seeds"
 should be yes/checked
 (Erlend Garåsen)

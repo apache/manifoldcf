@@ -44,7 +44,8 @@ public class RepositoryDocument
   protected Security fileSecurity = new Security();
   protected Security shareSecurity = new Security();
   protected List<Security> directorySecurity = new ArrayList<Security>();
-
+  protected String fileName = "docname";
+  
   /** Constructor.
   */
   public RepositoryDocument()
@@ -158,6 +159,22 @@ public class RepositoryDocument
   {
     return binaryFieldData;
   }
+  
+  /** Set the file name.
+   *@param fileName is the file name.
+   */
+   public void setFileName(String fileName)
+   {
+     this.fileName = fileName;
+   }
+
+   /** Get the file Name.
+   *@return the string of file name.
+   */
+   public String getFileName()
+   {
+     return fileName;
+   }
 
   /** Get the binary length.
   *@return the length in bytes.

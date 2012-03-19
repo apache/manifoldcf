@@ -771,6 +771,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                       {
                         RepositoryDocument rd = new RepositoryDocument();
                         rd.setBinary(inputStream, tempFile.length());
+                        rd.setFileName(file.getName());
                         int index = 0;
                         index = setDocumentSecurity(rd,version,index);
                         index = setPathMetadata(rd,version,index);
@@ -823,6 +824,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                   {
                     RepositoryDocument rd = new RepositoryDocument();
                     rd.setBinary(inputStream, fileLength(file));
+                    rd.setFileName(file.getName());
                     int index = 0;
                     index = setDocumentSecurity(rd,version,index);
                     index = setPathMetadata(rd,version,index);

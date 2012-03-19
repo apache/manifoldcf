@@ -278,6 +278,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     long fileBytes = file.length();
                     RepositoryDocument data = new RepositoryDocument();
                     data.setBinary(is,fileBytes);
+                    data.setFileName(file.getName());
                     data.addField("uri",file.toString());
                     // MHL for other metadata
                     activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);

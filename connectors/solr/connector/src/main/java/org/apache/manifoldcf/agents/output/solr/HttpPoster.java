@@ -899,7 +899,7 @@ public class HttpPoster
     if (fileName != null)
       value += "; filename=\""+fileName+"\"";
     value += "\r\n";
-    byte[] tmp = value.getBytes("ASCII");
+    byte[] tmp = value.getBytes("UTF-8");
     rval += tmp.length;
     tmp = ("Content-Type: "+contentType+"\r\n\r\n").getBytes("ASCII");
     rval += tmp.length;
@@ -962,7 +962,7 @@ public class HttpPoster
     if (fileName != null)
       value += "; filename=\""+fileName+"\"";
     value += "\r\n";
-    byte[] tmp = value.getBytes("ASCII");
+    byte[] tmp = value.getBytes("UTF-8");
     out.write(tmp, 0, tmp.length);
     tmp = ("Content-Type: "+contentType+"\r\n\r\n").getBytes("ASCII");
     out.write(tmp, 0, tmp.length);
@@ -1147,7 +1147,7 @@ public class HttpPoster
                   totalLength += lengthField(COMMITWITHIN_METADATA,commitWithin);
                 // Count the binary data
                 totalLength += lengthPreamble();
-                totalLength += lengthBoundary("application/octet-stream","myfile","docname");
+                totalLength += lengthBoundary("application/octet-stream","myfile",document.getFileName());
                 totalLength += length;
                 // Count the postamble
                 totalLength += lengthPostamble();
@@ -1217,7 +1217,7 @@ public class HttpPoster
                 // Write the content
                 writePreamble(out);
 
-                writeBoundary(out,"application/octet-stream","myfile","docname");
+                writeBoundary(out,"application/octet-stream","myfile",document.getFileName());
 
                 // Stream the data
                 long total = 0;
