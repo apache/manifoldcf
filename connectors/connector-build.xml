@@ -171,7 +171,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <jvmarg value="-Dfile.encoding=ASCII"/>
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
             <arg value="--timeout"/>
             <arg value="0"/>
             <arg value="--noImports"/>
@@ -193,7 +193,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <jvmarg value="-Dfile.encoding=ASCII"/>
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
             <arg value="-i"/>
             <arg value="${xsdname}"/>
             <arg value="=f"/>
