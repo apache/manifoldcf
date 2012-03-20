@@ -1194,6 +1194,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
     }
+    else if(se.getMessage().indexOf("No process is on the other end of the pipe") != -1)
+    {
+      Logging.connectors.warn("JCIFS: 'No process is on the other end of the pipe' response when "+activity+" for "+documentIdentifier+": retrying...",se);
+      // 'No process is on the other end of the pipe' skip the document and keep going
+      throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
+        currentTime + 3 * 60 * 60000L,-1,false);
+    }
     else if (se.getMessage().indexOf("cannot find") != -1 || se.getMessage().indexOf("cannot be found") != -1)
     {
       return;
