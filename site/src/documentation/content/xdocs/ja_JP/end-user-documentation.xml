@@ -378,23 +378,22 @@
             	<title>ElasticSearch出力コネクション</title>
             	<p>ElasticSearch出力コネクションは、XML文書をHTTP APIを介してElasticSearchに送ります。このコネクタは、できるだけ簡単に利用できるように設計されています。</p>
             	<p>ElasticSearch出力コネクションタイプを選択した後には、「引数」タブの項目をElasticSearchの設定に従って入力してください。各ElasticSearch出力コネクションは１つの索引と対応しています。一つ以上の索引を利用する場合は、索引毎に出力コネクションを作成してください。</p>
-            	<!--figure src="images/ja_JP/elasticsearch-connection-parameters_ja_JP.PNG" alt="ElasticSearch, parameters tab" width="80%"/-->
+            	<figure src="images/ja_JP/elasticsearch-connection-parameters_ja_JP.png" alt="ElasticSearch, parameters tab" width="80%"/>
             	<p>引数：</p><br/>
             	<ul>
             		<li>サーバアドレス：ElasticSearchインスタンスのURL。デフォルトURL（http://localhost:8080）はElasticSearchがManifoldCFと同じサーバで起動している場合のアドレスです。</li>
             		<li>索引名：コネクタは指定された索引にデータを作成します。</li>
             		<li>ユーザ名とAPIキー：ElasticSearchインスタンスに接続するためのユーザ認証情報。ユーザが作成されていない場合は、空白にしてください。次の画像はElasticSearchで、認証情報が記載されている画面です。</li>
             	</ul>
-            	<!--figure src="images/ja_JP/elasticsearch-user_ja_JP.PNG" alt="ElasticSearch, user configuration" width="80%"/-->
             	<p>ジョブでElasticSearch出力コネクションを選択した場合は、「ElasticSearch」タブが表示されます。このタブから以下の設定を指定する事ができます：</p><br/>
             	<ul>
             		<li>対象とするコンテンツの最大サイズ（バイト）。デフォルトでは16MBです。</li>
             		<li>対象とするMIMEタイプ。リポジトリコネクションによっては正しく処されません。</li>
             		<li>対象とするファイル拡張子。リポジトリコネクションによっては正しく処されません。</li>
             	</ul>
-            	<!--figure src="images/ja_JP/elasticsearch-job-parameters_ja_JP.PNG" alt="ElasticSearch, job parameters" width="80%"/-->
+            	<figure src="images/ja_JP/elasticsearch-job-parameters_ja_JP.png" alt="ElasticSearch, job parameters" width="80%"/>
             	<p>すべてのアクティビティは履歴レポートから参照することができます。コネクタは３つのアクティビティに対応しています：コンテンツの読込み（索引の作成）、コンテンツの削除、索引の最適化。ジョブが終了すると索引は最適化されます。</p>
-            	<!--figure src="images/ja_JP/elasticsearch-history-report_ja_JP.PNG" alt="ElasticSearch, history report" width="80%"/-->
+            	<figure src="images/ja_JP/elasticsearch-history-report_ja_JP.png" alt="ElasticSearch, history report" width="80%"/>
              	<p>ElasticSearchの詳細に付いては<a href="http://www.elasticsearch.org/guide">ElasticSearchユーザマニュアル</a>を参照してください。</p>
             </section>
             
