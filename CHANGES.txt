@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 0.5-dev =====================
+======================= Release 0.5 =========================
 
 CONNECTORS-429: Check for the 'no process at end of pipe' condition
 in the JCIFS connector.
