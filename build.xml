@@ -124,6 +124,14 @@
       <ant dir="site" target="all"/>
     </target>
     
+    <target name="check-site-built" depends="build-site">
+      <available file="site/build/site" type="dir" property="site-exists"/>
+    </target>
+
+    <target name="presite-check" depends="check-site-built" unless="site-exists">
+      <echo message="Site did not build.  Was FORREST_HOME set properly?"/>
+    </target>
+    
     <target name="build-json">
         <mkdir dir="build/json/classes"/>
         <javac srcdir="json" destdir="build/json/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
@@ -938,7 +946,7 @@
     </target>
 
 
-    <target name="deliver-site-doc" depends="build-site">
+    <target name="deliver-site-doc" depends="presite-check" if="site-exists">
           <mkdir dir="dist/doc"/>
           <copy todir="dist/doc">
               <fileset dir="site/build/site">
