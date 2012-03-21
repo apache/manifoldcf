@@ -13,8 +13,7 @@
 		the specific language governing permissions and limitations under the
 		License.
 	-->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <!--
         | Prerequisites: Mysql installed. Just run mvn clean install -Prun to run Alfresco
         | How it works:
@@ -30,7 +29,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-test-materials</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 	<modelVersion>4.0.0</modelVersion>
@@ -39,7 +38,7 @@
 	
 	<name>ManifoldCF - Test Materials - Alfresco WAR</name>
 	<packaging>war</packaging>
-	<url></url>
+	<url />
 	<description>Alfresco WAR builder</description>
     <!-- oOo SINGLE POINT OF CONFIGURATION FOR COMMON ALFRESCO PROPERTIES oOo -->
 	<properties>
@@ -55,7 +54,7 @@
             | You can also specify a meaningful log directory for the server (add a trailing slash, e.g. '/var/log/alfresco/' ) 
             | Jetty embedded run logs by default in ${project.basedir}/alfresco.log
             -->
-        <log.dir></log.dir>
+        <log.dir />
         <!-- 
          | By default the src/main/properties/local/alfresco-global.properties uses the property "alfresco.data.location" to specify where 
          | alf_data gets created. For env=local you can use this shortcut property below, which gets filtered in the alfresco-global.properties file
@@ -81,7 +80,7 @@
             | <svn.url> https://mycompany.com/repos/my-test-project </svn.url>
             -->
         <!--
-            | Uncomment this property together with the maven-release-plugin <plugin><configuration><tagBase/></configuration></plugin> section downwards
+            | Uncomment this property together with the maven-release-plugin <plugin><configuration><tagBase /></configuration></plugin> section downwards
             |  <svn.tags.url>${svn.url}/tags</svn.tags.url>
             -->
         <!--
@@ -538,7 +537,7 @@
 			<properties>
 				<alfresco.data.location>./alf_data</alfresco.data.location>
 				<alfresco.db.name>alf_jboss</alfresco.db.name>
-				<log.dir></log.dir>
+				<log.dir />
 			</properties>
 			<build>
 				<defaultGoal>cargo:deploy</defaultGoal>
@@ -553,7 +552,7 @@
 					<resource>
 						<directory>src/main/resources</directory>
 						<includes>
-							<include></include>
+							<include />
 						</includes>
 						<filtering>true</filtering>
 					</resource>
@@ -626,7 +625,7 @@
 			<properties>
 				<alfresco.data.location>./alf_data</alfresco.data.location>
 				<alfresco.db.name>alf_tomcat</alfresco.db.name>
-				<log.dir></log.dir>
+				<log.dir />
 			</properties>
 			<build>
 				<defaultGoal>package</defaultGoal>

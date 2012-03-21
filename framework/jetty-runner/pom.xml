@@ -16,12 +16,11 @@
  limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<groupId>org.apache.manifoldcf</groupId>
 		<artifactId>mcf-framework</artifactId>
-		<version>0.5.0-SNAPSHOT</version>
+		<version>0.6-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -85,7 +84,7 @@
           <arguments>
             <argument>-Dorg.apache.manifoldcf.configfile=src/main/resources/properties.xml</argument>
             <argument>-classpath</argument>
-            <classpath/>
+            <classpath />
             <argument>org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner</argument>
             <argument>8345</argument>
             <argument>target/dependency/mcf-crawler-ui-${project.version}.war</argument>
