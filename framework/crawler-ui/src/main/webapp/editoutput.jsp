@@ -141,7 +141,7 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.ConnectionMustHaveAName")%>);
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.ConnectionMustHaveAName")%>");
 				SelectTab(<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name")%>);
 				document.editconnection.connname.focus();
 				return;
@@ -181,7 +181,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editoutput.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
 			editconnection.maxconnections.focus();
 			return false;
 		}

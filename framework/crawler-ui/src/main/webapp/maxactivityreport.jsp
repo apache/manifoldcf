@@ -41,43 +41,43 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalNumberForRowsPerPage")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalNumberForRowsPerPage")%>");
 			report.rowcount.focus();
 			return;
 		}
 		if (!isInteger(report.reportinterval.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalIntervalSizeInMinutes")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalIntervalSizeInMinutes")%>");
 			report.reportinterval.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value == "")
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionCannotBeEmpty")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionCannotBeEmpty")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeABalidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeABalidRegularExpression")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>");
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
 			report.reportresultcodematch.focus();
 			return;
 		}
@@ -91,25 +91,25 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>");
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
 			report.reportresultcodematch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}

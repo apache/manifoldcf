@@ -42,31 +42,31 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (report.statusbucketdesc.value == "")
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>");
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusbucketdesc.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isInteger(report.rowcount.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.EnterALegalNumberForRowsPerPage")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.EnterALegalNumberForRowsPerPage")%>");
 			report.rowcount.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>");
 			report.statusidentifiermatch.focus();
 			return;
 		}
@@ -80,25 +80,25 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (report.statusbucketdesc.value == "")
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>");
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusbucketdesc.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
 			report.statusbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>");
 			report.statusidentifiermatch.focus();
 			return;
 		}

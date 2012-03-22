@@ -223,8 +223,8 @@
 			// Check our part of the form, for save
 			if (editjob.description.value == "")
 			{
-				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.JobMustHaveAName")%>);
-				SelectTab(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name")%>);
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.JobMustHaveAName")%>");
+				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.Name")%>");
 				document.editjob.description.focus();
 				return;
 			}
@@ -259,7 +259,7 @@
 	{
 		if (editjob.duration.value != "" && !isInteger(editjob.duration.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DurationMustBeAValidInteger")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.DurationMustBeAValidInteger")%>");
 			editjob.duration.focus();
 			return;
 		}
@@ -310,7 +310,7 @@
 			var propertyname = "duration" + i;
 			if (eval("editjob."+propertyname+".value") != "" && !isInteger(eval("editjob."+propertyname+".value")))
 			{
-				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DurationMustBeAValidInteger")%>);
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.DurationMustBeAValidInteger")%>");
 				eval("editjob."+propertyname+".focus()");
 				return false;
 			}
@@ -323,7 +323,7 @@
 	{
 		if (editjob.recrawlinterval.value != "" && !isInteger(editjob.recrawlinterval.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalMustBeAValidIntegerOrNull")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalMustBeAValidIntegerOrNull")%>");
 			editjob.recrawlinterval.focus();
 			return false;
 		}
@@ -334,7 +334,7 @@
 	{
 		if (editjob.reseedinterval.value != "" && !isInteger(editjob.reseedinterval.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalMustBeAValidIntegerOrNull")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalMustBeAValidIntegerOrNull")%>");
 			editjob.reseedinterval.focus();
 			return false;
 		}
@@ -345,7 +345,7 @@
 	{
 		if (editjob.expirationinterval.value != "" && !isInteger(editjob.expirationinterval.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalMustBeAValidIntegerOrNull")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalMustBeAValidIntegerOrNull")%>");
 			editjob.expirationinterval.focus();
 			return false;
 		}

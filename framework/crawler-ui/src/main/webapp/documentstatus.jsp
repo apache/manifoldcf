@@ -43,13 +43,13 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.EnterALegalNumberForRowsPerPage")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"documentstatus.EnterALegalNumberForRowsPerPage")%>");
 			report.rowcount.focus();
 			return;
 		}
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.IdentifierMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"documentstatus.IdentifierMatchMustBeAValidRegularExpression")%>");
 			report.statusidentifiermatch.focus();
 			return;
 		}
@@ -63,7 +63,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.statusidentifiermatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.IdentifierMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"documentstatus.IdentifierMatchMustBeAValidRegularExpression")%>");
 			report.statusidentifiermatch.focus();
 			return;
 		}

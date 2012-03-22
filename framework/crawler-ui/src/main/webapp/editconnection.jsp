@@ -158,7 +158,7 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ConnectionMustHaveAName")%>);
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editconnection.ConnectionMustHaveAName")%>");
 				SelectTab(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Name")%>);
 				document.editconnection.connname.focus();
 				return;
@@ -196,13 +196,13 @@
 	{
 		if (!isInteger(editconnection.throttlevalue.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.ThrottleRateMustBeAnInteger")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editconnection.ThrottleRateMustBeAnInteger")%>");
 			document.editconnection.throttlevalue.focus();
 			return;
 		}
 		if (!isRegularExpression(editconnection.throttle.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.TheThrottleExpressionMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editconnection.TheThrottleExpressionMustBeAValidRegularExpression")%>");
 			editconnection.throttle.focus();
 			return;
 		}
@@ -223,7 +223,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"editconnection.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editconnection.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
 			editconnection.maxconnections.focus();
 			return false;
 		}

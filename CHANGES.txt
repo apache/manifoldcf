@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-432: Make sure quotations are in the javascript everywhere,
+not in the translation resources.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-431: Update pom.xml versions.
 (Karl Wright)
 

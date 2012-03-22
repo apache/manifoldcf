@@ -42,19 +42,19 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.EnterALegalNumberForRowsPerPage")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EnterALegalNumberForRowsPerPage")%>");
 			report.rowcount.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>");
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>");
 			report.reportresultcodematch.focus();
 			return;
 		}
@@ -68,13 +68,13 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>");
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>");
 			report.reportresultcodematch.focus();
 			return;
 		}

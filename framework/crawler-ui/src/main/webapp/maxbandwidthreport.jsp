@@ -41,43 +41,43 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isInteger(report.rowcount.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EnterALegalNumberForRowsPerPage")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EnterALegalNumberForRowsPerPage")%>");
 			report.rowcount.focus();
 			return;
 		}
 		if (!isInteger(report.reportinterval.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EnterALegalIntervalSizeInMinutes")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EnterALegalIntervalSizeInMinutes")%>");
 			report.reportinterval.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value == "")
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionCannotBeEmpty")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionCannotBeEmpty")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EntityMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EntityMatchMustBeAValidRegularExpression")%>");
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ResultCodeMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
 			report.reportresultcodematch.focus();
 			return;
 		}
@@ -91,25 +91,25 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	{
 		if (!isRegularExpression(report.reportentitymatch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EntityMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EntityMatchMustBeAValidRegularExpression")%>");
 			report.reportentitymatch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportresultcodematch.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ResultCodeMatchMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
 			report.reportresultcodematch.focus();
 			return;
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
 		if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
 		{
-			alert(<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>);
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
