@@ -3401,7 +3401,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    }\n"+
 "    catch (e)\n"+
 "    {\n"+
-"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.FoundAnIllegalRegularExpressionIn")+"\"+thecontext+\": '\"+theexp+\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ErrorWas")+"\"+e);\n"+
+"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.FoundAnIllegalRegularExpressionIn")+"\"+thecontext+\": '\"+theexp+\"'"+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ErrorWas")+"\"+e);\n"+
 "      rval = false;\n"+
 "    }\n"+
 "  }\n"+
