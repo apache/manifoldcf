@@ -12,6 +12,9 @@ CONNECTORS-431: Update pom.xml versions.
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-433: Update copyright date.
+(Karl Wright)
+
 CONNECTORS-429: Check for the 'no process at end of pipe' condition
 in the JCIFS connector.
 (T.Akagi, Karl Wright)
