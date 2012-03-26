@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-434: Describe which licenses we select for our dual-licensed
+jars.
+(Karl Wright)
+
 CONNECTORS-433: Update copyright date.
 (Karl Wright)
 
