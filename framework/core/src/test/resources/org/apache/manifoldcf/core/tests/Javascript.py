@@ -622,41 +622,41 @@ class JSToken:
 
     def __str__( self ):
         if self.punc_value != None:
-            return "Punctuation: "+self.punc_value
+            return "Punctuation: "+str(self.punc_value)
         elif self.string_value != None:
-            return "String: '"+self.string_value+"'"
+            return "String: '"+str(self.string_value)+"'"
         elif self.int_value != None:
-            return "Int: "+self.int_value
+            return "Int: "+str(self.int_value)
         elif self.float_value != None:
-            return "Float: "+self.float_value
+            return "Float: "+str(self.float_value)
         elif self.regexp_value != None:
-            rexp = "Regexp: "+self.regexp_value+"("
+            rexp = "Regexp: "+str(self.regexp_value)+"("
             if self.regexp_global:
                 rexp += "g"
             if self.regexp_insensitive:
                 rexp += "i"
             return rexp + ")"
         else:
-            return "Symbol: "+self.symbol_value
+            return "Symbol: "+str(self.symbol_value)
 
     def __unicode__( self ):
         if self.punc_value != None:
-            return "Punctuation: "+self.punc_value
+            return "Punctuation: "+unicode(self.punc_value)
         elif self.string_value != None:
-            return "String: '"+self.string_value+"'"
+            return "String: '"+unicode(self.string_value)+"'"
         elif self.int_value != None:
-            return "Int: "+self.int_value
+            return "Int: "+unicode(self.int_value)
         elif self.float_value != None:
-            return "Float: "+self.float_value
+            return "Float: "+unicode(self.float_value)
         elif self.regexp_value != None:
-            rexp = "Regexp: "+self.regexp_value+"("
+            rexp = "Regexp: "+unicode(self.regexp_value)+"("
             if self.regexp_global:
                 rexp += "g"
             if self.regexp_insensitive:
                 rexp += "i"
             return rexp + ")"
         else:
-            return "Symbol: "+self.symbol_value
+            return "Symbol: "+unicode(self.symbol_value)
 
     def get_punc( self ):
         return self.punc_value
@@ -1047,10 +1047,12 @@ class JSTokenStream:
                 self.skip_statement( )
         else:
             # Process up to terminating semicolon token
+            unknown_tokens = [ ]
             while True:
                 token = self.peek( )
                 if token == None:
-                    raise Exception("Unexpected end of statement; need semicolon")
+                    raise Exception("Unexpected end of statement; unknown tokens: '%s'; need semicolon" % str(unknown_tokens))
+                unknown_tokens += [ str(token) ]
                 self.advance( )
                 if token.get_punc( ) == ";":
                     break
