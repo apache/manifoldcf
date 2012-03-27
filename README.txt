@@ -27,36 +27,72 @@ http://incubator.apache.org/connectors
 Getting Started
 ---------------
 
-You will need to build ManifoldCF before you can do anything else.
+If you downloaded the binary version of the package, you can just run it.
 
-Instructions for Building Apache ManifoldCF from Source
------------------------------------------------------
-
-1. Download the Java SE 5 JDK (Java Development Kit), or greater, from http://java.sun.com.
-   You will need the JDK installed, and the %JAVA_HOME%\bin directory included
-   on your command path.  To test this, issue a "java -version" command from your
-   shell and verify that the Java version is 1.5 or greater.
-
-2. Download the Apache Ant binary distribution (1.7.0 or greater) from http://ant.apache.org.
-   You will need Ant installed and the %ANT_HOME%\bin directory included on your
-   command path.  To test this, issue a "ant -version" command from your
-   shell and verify that Ant is available.
-
-3. If you want to build the site documents, check out, build, and install Apache Forrest
-   version 0.9-dev.
+1. Download and install the Java SE 5 JDK (Java Development Kit), or greater,
+   from http://java.sun.com.  You will need the JDK installed, and the
+   %JAVA_HOME%/bin directory included on your command path.  To test this,
+   issue a "java -version" command from your shell and verify that the Java
+   version is 1.5 or greater.
    
-4. In a shell, change to the root directory of the source (where you find the outermost
-   build.xml file), and type "ant" for directions.
+2. In your shell, change to the single-process example directory, "dist/example".
+
+3. In your shell, type "java -jar start.jar" to start ManifoldCF.
 
 
-Some Files Included In Apache ManifoldCF Distributions
-----------------------------------------------------
+Using Proprietary or GPL-Licensed Connectors in the Binary Distribution
+-------------------------------------------------------------------
+
+
+If you downloaded a binary distribution and want to use a connector which requires
+any jars that cannot be redistributed by Apache, you will need to supply the missing
+jars and enable your connector before starting ManifoldCF.  Connectors are
+described in the file "dist/connectors.xml", and required jars should be
+placed in "dist/connector-lib", EXCEPT in the case of jars required by the FileNet and
+Documentum connectors.  See the documentation at
+"dist/doc/en_US/how-to-build-and-deploy.html" for more details.
+
+
+Some Files Included In Apache ManifoldCF Binary Distributions
+-----------------------------------------------------------
 
 dist/doc/index.html
   The Apache ManifoldCF documentation root, which includes the Javadoc.
 
-dist/doc/how-to-build-and-deploy.html
-  The Apache ManifoldCF documentation page describing building and deployment.
+dist/doc/en_US/how-to-build-and-deploy.html
+  The English Apache ManifoldCF documentation page describing building and deployment.
+
+dist/example
+  A single-process example.
+
+dist/multiprocess-example
+  A multi-process example.
+
+
+Instructions for Building Apache ManifoldCF from Source
+-----------------------------------------------------
+
+1. Download a source distribution of ManifoldCF.
+
+2. Download the Java SE 5 JDK (Java Development Kit), or greater, from http://java.sun.com.
+   You will need the JDK installed, and the %JAVA_HOME%\bin directory included
+   on your command path.  To test this, issue a "java -version" command from your
+   shell and verify that the Java version is 1.5 or greater.
+
+3. Download the Apache Ant binary distribution (1.7.0 or greater) from http://ant.apache.org.
+   You will need Ant installed and the %ANT_HOME%\bin directory included on your
+   command path.  To test this, issue a "ant -version" command from your
+   shell and verify that Ant is available.
+
+4. If you want to build the site documents, check out, build, and install Apache Forrest
+   version 0.9-dev or higher.
+   
+5. In a shell, change to the root directory of the source (where you find the outermost
+   build.xml file), and type "ant" for directions.
+
+
+Some Files and Directories Included in Apache ManifoldCF Source Distributions
+--------------------------------------------------------------------------
 
 framework
   The sources for the Apache ManifoldCF framework.
@@ -66,16 +102,20 @@ connectors
 
 site
   The sources for the Apache ManifoldCF documentation.
-  
+
+tests
+  The sources for the Apache ManifoldCF integration and load tests.
+
 build.xml
   The root ant build script for Apache ManifoldCF.
 
-Running the example
---------------------
-
-After you build, the example can be found under dist/example.  Start the example
-by going to that directory and typing "<path_to_java> -jar start.jar".  Full documentation
-can also be found in "dist/doc".
+mvn-bootstrap[.sh|.bat]
+  The Apache Maven bootstrap script which installs required jars into the local Maven
+  repository.
+  
+pom.xml
+  The root Maven build file, which builds certain ManifoldCF jars and war files.  Invoke
+  with "mvn clean install".
 
 Licensing
 ---------

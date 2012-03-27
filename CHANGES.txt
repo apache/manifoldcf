@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-436: Upgrade the README.txt file to accurately describe
+how to work with the binary distribution.
+(Karl Wright)
+
 CONNECTORS-432: Make sure quotations are in the javascript everywhere,
 not in the translation resources.
 (Erlend Garåsen, Karl Wright)
