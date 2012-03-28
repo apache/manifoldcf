@@ -571,6 +571,16 @@ class JSReference( JSObject ):
     def construct( self, argset, context ):
         return self.get_referenced_object().construct(argset,context)
 
+# Non-settable reference to a scalar
+class JSNonSettableReference( JSReference ):
+    def __init__( self, obj ):
+        JSReference.__init__( self )
+        assert isinstance( obj, JSObject )
+        self.object = obj
+        
+    def get_referenced_object( self ):
+        return self.object
+
 # object/member style reference
 class JSObjMemberReference( JSReference ):
     def __init__( self, obj, member ):
@@ -782,12 +792,18 @@ class JSTokenStream:
             context.define_value( varname, value )
             token = self.peek( )
             if token == None:
-                raise Exception("Didn't find expected ';' at end of var statement, saw EOF, in %s" % place)
+                raise Exception("Didn't find expected ';' at end of var statement defining '%s', saw EOF, in %s" % (varname, place))
             if token.get_punc( ) == ";":
                 self.advance( )
                 return None
             else:
-                raise Exception("Didn't find expected ';' at end of var statement, saw %s, in %s" % (unicode(token),place))
+                unknown_tokens = [ unicode(token) ]
+                while True:
+                    self.advance( )
+                    token = self.peek( )
+                    if token == None or token.get_punc( ) == ";":
+                        raise Exception("Didn't find expected ';' at end of var statement defining '%s', saw '%s', in %s" % (varname, unicode(unknown_tokens),place))
+                    unknown_tokens += [ unicode(token) ]
 
         elif token.get_symbol( ) == "if":
             self.advance( )
@@ -1396,6 +1412,36 @@ class JSTokenStream:
                 self.advance( )
                 if parse_only==False:
                     reference_object = JSObjMemberReference( reference_object.get_referenced_object( ), str(int(value.num_value( ))) )
+            elif token != None and token.get_punc( ) == "(":
+                # Method invocation
+                self.advance( )
+                arguments = [ ]
+                token = self.peek( )
+                if token == None:
+                    raise Exception("Missing expression in argument list, saw EOF in %s" % place)
+                if token.get_punc( ) == ")":
+                    self.advance( )
+                else:
+                    while True:
+                        nextvalue = self.evaluate_expr( context, place, parse_only )
+                        if nextvalue == None:
+                            raise Exception("Missing expression in actual arguments in %s" % place)
+                        arguments.append( nextvalue )
+                        token = self.peek( )
+                        if token == None:
+                            raise Exception("Missing ',' in actual argument list, saw EOF")
+                        if token.get_punc( ) == ")":
+                            self.advance( )
+                            break
+                        if token.get_punc( ) != ",":
+                            raise Exception("Missing ',' in actual argument list, saw %s instead, in %s" % (unicode(token),place))
+                        self.advance( )
+                # Invoke method
+                if parse_only:
+                    reference_object = JSNonSettableReference( JSNull() )
+                else:
+                    reference_object = JSNonSettableReference( reference_object.call( arguments, context ) )
+
             else:
                 break
 
@@ -1410,35 +1456,6 @@ class JSTokenStream:
                 return JSNull()
             reference_object.set_referenced_object( value )
             return value
-        elif token != None and token.get_punc( ) == "(":
-            # Method invocation
-            self.advance( )
-            arguments = [ ]
-            token = self.peek( )
-            if token == None:
-                raise Exception("Missing expression in argument list, saw EOF in %s" % place)
-            if token.get_punc( ) == ")":
-                self.advance( )
-            else:
-                while True:
-                    nextvalue = self.evaluate_expr( context, place, parse_only )
-                    if nextvalue == None:
-                        raise Exception("Missing expression in actual arguments in %s" % place)
-                    arguments.append( nextvalue )
-                    token = self.peek( )
-                    if token == None:
-                        raise Exception("Missing ',' in actual argument list, saw EOF")
-                    if token.get_punc( ) == ")":
-                        self.advance( )
-                        break
-                    if token.get_punc( ) != ",":
-                        raise Exception("Missing ',' in actual argument list, saw %s instead, in %s" % (unicode(token),place))
-                    self.advance( )
-            # Invoke method
-            if parse_only:
-                return JSNull()
-            return reference_object.call( arguments, context )
-
         else:
             # Just an object reference.  Look up the value
             if parse_only:
