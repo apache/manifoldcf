@@ -1480,7 +1480,7 @@ class JSTokenStream:
             return JSNull( )
         if token != None and token.get_string( ) != None:
             self.advance( )
-            return JSString( token.get_string( ) )
+            return JSNonSettableReference( JSString( token.get_string( ) ) )
         if token != None and token.get_int( ) != None:
             self.advance( )
             return JSNumber( token.get_int( ) )
@@ -1489,7 +1489,7 @@ class JSTokenStream:
             return JSNumber( token.get_float( ) )
         if token != None and token.get_regexp( ) != None:
             self.advance( )
-            return JSRegexp( token.get_regexp( ), token.get_regexp_global( ), token.get_regexp_insensitive( ) )
+            return JSNonSettableReference( JSRegexp( token.get_regexp( ), token.get_regexp_global( ), token.get_regexp_insensitive( ) ) )
         if token != None and token.get_symbol( ) == "new":
             self.advance( )
             token = self.peek( )
