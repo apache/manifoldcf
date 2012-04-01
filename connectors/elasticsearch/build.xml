@@ -23,7 +23,7 @@
         
         <mkdir dir="build/download"/>
         <get src="http://cloud.github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.19.0.tar.gz" 
-          dest="build/download/elasticsearch.tar.gz"/>
+            dest="build/download/elasticsearch.tar.gz"/>
         <gunzip src="build/download/elasticsearch.tar.gz"/>
         <untar src="build/download/elasticsearch.tar" dest="test-materials-proprietary"/>
         
@@ -31,17 +31,23 @@
         <mkdir dir="test-materials-proprietary/elasticsearch-0.19.0/plugins"/>
         
         <get src="http://cloud.github.com/downloads/elasticsearch/elasticsearch-mapper-attachments/elasticsearch-mapper-attachments-1.2.0.zip" 
-          dest="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments.zip"/>
+            dest="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments.zip"/>
         
         <unzip src="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments.zip" dest="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments"/>
         
         <chmod dir="test-materials-proprietary/elasticsearch-0.19.0" perm="ugo+rxw">
-         <fileset dir="**/*"/>
+            <fileset dir="**/*"/>
         </chmod>
         <chmod file="test-materials-proprietary/elasticsearch-0.19.0/bin/plugin" perm="ugo+rx"/>
         <chmod file="test-materials-proprietary/elasticsearch-0.19.0/bin/elasticsearch" perm="ugo+rx"/>
         <chmod file="test-materials-proprietary/elasticsearch-0.19.0/bin/elasticsearch.in.sh" perm="ugo+rx"/>
       
+    </target>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="test-materials-proprietary" excludes="README*.txt"/>
+        </delete>
     </target>
 
 </project>

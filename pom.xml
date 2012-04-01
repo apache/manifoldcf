@@ -39,11 +39,31 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- dependency versions -->
     <junit.version>4.8.2</junit.version>
-    <postgresql.version>8.4-702.jdbc4</postgresql.version>
+    <postgresql.version>9.1-901.jdbc4</postgresql.version>
     <mysql.version>5.1.18</mysql.version>
-    <hsqldb.version>2.2.6.12-04-2011</hsqldb.version>
-    <derby.version>10.7.1.1</derby.version>
+    <hsqldb.version>2.2.8</hsqldb.version>
+    <derby.version>10.8.2.2</derby.version>
     <jetty.version>6.1.26</jetty.version>
+    <commons-codec.version>1.5</commons-codec.version>
+    <commons-io.version>2.0.1</commons-io.version>
+    <commons-logging.version>1.1.1</commons-logging.version>
+    <commons-collections.version>3.2.1</commons-collections.version>
+    <commons-fileupload.version>1.2.2</commons-fileupload.version>
+    <commons-httpclient.version>3.1-mcf-1</commons-httpclient.version>
+    <commons-el.version>1.0</commons-el.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <xalan.version>2.7.1</xalan.version>
+    <xerces.version>2.9.1-mcf-1</xerces.version>
+    <jtds.version>1.2.4</jtds.version>
+    <servlet-api.version>2.5</servlet-api.version>
+    <jstl.version>1.2</jstl.version>
+    <jsp-api-2.1.version>6.1.14</jsp-api-2.1.version>
+    <jsp-api.version>2.1</jsp-api.version>
+    <jsp-2.1-glassfish.version>2.1.v20091210</jsp-2.1-glassfish.version>
+    <log4j.version>1.2.16</log4j.version>
+    <jdbcpool.version>0.99</jdbcpool.version>
+    <json.version>20090211</json.version>
+    <velocity.version>1.7</velocity.version>
   </properties>
 
   <modules>
@@ -72,6 +92,9 @@
         <configuration>
           <source>1.5</source>
           <target>1.5</target>
+          <fork>true</fork>
+          <meminitial>128m</meminitial>
+          <maxmem>512m</maxmem>
         </configuration>
       </plugin>
       <plugin>

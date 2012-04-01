@@ -38,14 +38,14 @@
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
-            <include name="commons-httpclient-mcf.jar"/>
+            <include name="commons-httpclient*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
             <include name="eclipse*.jar"/>
             <include name="jasper*.jar"/>
             <include name="jetty*.jar"/>
-            <include name="jdbcpool-0.99.jar"/>
+            <include name="jdbcpool*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>
@@ -54,7 +54,7 @@
             <include name="servlet-api*.jar"/>
             <include name="tomcat-juli*.jar"/>
             <include name="xalan*.jar"/>
-            <include name="xercesImpl-mcf.jar"/>
+            <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
         </fileset>
@@ -595,6 +595,8 @@
 
     <target name="download-dependencies"/>
 
+    <target name="download-cleanup"/>
+    
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-derby,run-tests-HSQLDB"/>
 
 </project>

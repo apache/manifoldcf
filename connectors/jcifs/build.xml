@@ -49,4 +49,13 @@
 
     <target name="download-dependencies" depends="download-jcifs"/>
 
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="lib-proprietary">
+                <exclude name="README.txt"/>
+                <exclude name="*.diffs"/>
+            </fileset>
+        </delete>
+    </target>
+    
 </project>

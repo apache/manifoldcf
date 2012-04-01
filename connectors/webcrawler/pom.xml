@@ -91,23 +91,23 @@
     </dependency>
     <dependency>
       <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient-mcf</artifactId>
-      <version>3.1</version>
+      <artifactId>commons-httpclient</artifactId>
+      <version>${commons-httpclient.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>1.1.1</version>
+      <version>${commons-logging.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.5</version>
+      <version>${commons-codec.version}</version>
     </dependency>
     <dependency>
       <groupId>xerces</groupId>
-      <artifactId>xercesImpl-mcf</artifactId>
-      <version>2.9.1</version>
+      <artifactId>xercesImpl</artifactId>
+      <version>${xerces.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
