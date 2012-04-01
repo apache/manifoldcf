@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-436: Refer to older releases via archive.apache.org, not
+via the mirrors.
+(Karl Wright)
+
 CONNECTORS-436: Upgrade the README.txt file to accurately describe
 how to work with the binary distribution.
 (Karl Wright)

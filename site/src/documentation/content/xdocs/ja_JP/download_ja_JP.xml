@@ -64,26 +64,26 @@
     <section>
       <title>Apache ManifoldCF 0.3-incubating, 2011年09月20日</title>
       <p>
-        <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.KEYS">KEYS</a><br/>
-        <a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+        <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.KEYS">KEYS</a><br/>
+        <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.CHANGES.txt">CHANGES.txt</a><br/>
       </p>
 
       <p>ソース：<br/>
-        <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz">apache-manifoldcf-0.3-incubating-src.tar.gz</a>
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz.asc">PGP</a>]
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz.md5">MD5</a>]<br/>
-        <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip">apache-manifoldcf-0.3-incubating-src.zip</a>
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip.asc">PGP</a>]
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip.md5">MD5</a>]<br/>
+        <a href="http://archive.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz">apache-manifoldcf-0.3-incubating-src.tar.gz</a>
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz.asc">PGP</a>]
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz.md5">MD5</a>]<br/>
+        <a href="http://archive.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip">apache-manifoldcf-0.3-incubating-src.zip</a>
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip.asc">PGP</a>]
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip.md5">MD5</a>]<br/>
       </p>
 
       <p>ソース＋バイナリ：<br/>
-        <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz">apache-manifoldcf-0.3-incubating-bin.tar.gz</a>
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz.asc">PGP</a>]
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz.md5">MD5</a>]<br/>
-        <a href="http://www.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip">apache-manifoldcf-0.3-incubating-bin.zip</a>
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip.asc">PGP</a>]
-          [<a href="http://www.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip.md5">MD5</a>]<br/>
+        <a href="http://archive.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz">apache-manifoldcf-0.3-incubating-bin.tar.gz</a>
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz.asc">PGP</a>]
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz.md5">MD5</a>]<br/>
+        <a href="http://archive.apache.org/dyn/closer.cgi/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip">apache-manifoldcf-0.3-incubating-bin.zip</a>
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip.asc">PGP</a>]
+          [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip.md5">MD5</a>]<br/>
       </p>
 
     </section>
