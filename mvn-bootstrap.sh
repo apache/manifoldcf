@@ -23,16 +23,13 @@
 
 ant download-dependencies
 
-mvn install:install-file -Dfile=lib/jdbcpool-0.99.jar -DgroupId=com.bitmechanic -DartifactId=jdbcpool -Dversion=0.99 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/hsqldb.jar -DgroupId=org.hsqldb -DartifactId=hsqldb -Dversion=2.2.6.12-04-2011 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/jdbcpool.jar -DgroupId=com.bitmechanic -DartifactId=jdbcpool -Dversion=0.99 -Dpackaging=jar
 
-mvn install:install-file -Dfile=lib/commons-httpclient-mcf.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient-mcf -Dversion=3.1  -Dpackaging=jar
-mvn install:install-file -Dfile=lib/xercesImpl-mcf.jar -DgroupId=xerces -DartifactId=xercesImpl-mcf -Dversion=2.9.1  -Dpackaging=jar
+mvn install:install-file -Dfile=lib/commons-httpclient.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient -Dversion=3.1-mcf-1  -Dpackaging=jar
+mvn install:install-file -Dfile=lib/xercesImpl.jar -DgroupId=xerces -DartifactId=xercesImpl -Dversion=2.9.1-mcf-1  -Dpackaging=jar
 mvn install:install-file -Dfile=connectors/jcifs/lib-proprietary/jcifs.jar -DgroupId=org.samba.jcifs -DartifactId=jcifs -Dversion=1.3.17  -Dpackaging=jar
 
-mvn install:install-file -Dfile=lib/chemistry-opencmis-server-inmemory.war -DgroupId=org.apache.chemistry.opencmis -DartifactId=chemistry-opencmis-server-inmemory -Dversion=0.6.0 -Dpackaging=war
-
-mvn install:install-file -Dfile=lib/opensaml-1.0.1.jar -DgroupId=org.opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/xmlsec-1.4.1.jar -DgroupId=xml-security -DartifactId=xmlsec -Dversion=1.4.1 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/opensaml.jar -DgroupId=org.opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
+mvn install:install-file -Dfile=lib/xmlsec.jar -DgroupId=xml-security -DartifactId=xmlsec -Dversion=1.4.1 -Dpackaging=jar
 
 echo "Dependencies installed"

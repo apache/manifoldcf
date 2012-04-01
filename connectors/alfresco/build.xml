@@ -105,4 +105,10 @@
 	
     <target name="download-dependencies" depends="download-alfresco-ws-client"/>
 
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="lib-proprietary" excludes="README*.txt"/>
+        </delete>
+    </target>
+
 </project>

@@ -265,7 +265,11 @@
     
     <target name="download-dependencies" depends="download-dejavu-fonts,download-ipa-fonts">
     </target>
-    
+
+    <target name="download-cleanup">
+        <delete dir="fonts"/>
+    </target>
+
     <target name="all" depends="dist"/>
     
 </project>

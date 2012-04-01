@@ -17,5 +17,24 @@
 
 <project name="mcf-common-build">
 
+    <target name="setup-maven-url">
+        <property name="maven-base-url" value="http://repo1.maven.org/maven2"/>
+    </target>
+    
+    <target name="download-via-maven" depends="setup-maven-url">
+        <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
+    </target>
+    
+    <target name="setup-svn-url">
+        <property name="svn-base-url" value="http://svn.apache.org/repos/asf/incubator/lcf"/>
+    </target>
+
+    <target name="download-via-svn" depends="setup-svn-url">
+        <get src="${svn-base-url}/bin-dist/${project-desc}-${artifact-version}/${artifact-name}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
+    </target>
+
+    <target name="download-via-escaped-svn" depends="setup-svn-url">
+        <get src="${svn-base-url}/bin-dist/${project-desc}-${artifact-version}/${escaped-artifact-name}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
+    </target>
 
 </project>

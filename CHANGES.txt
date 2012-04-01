@@ -16,6 +16,11 @@ CONNECTORS-431: Update pom.xml versions.
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-437: Change the ant jar distribution model so that no
+binary files are included in the source distribution.  All of them are now
+downloaded via the ant "download-dependencies" target.
+(Karl Wright)
+
 CONNECTORS-434: Describe which licenses we select for our dual-licensed
 jars.
 (Karl Wright)
