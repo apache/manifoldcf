@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-442: Fix the binary exclusion rules to not include target
+or the xml build files.
+(Karl Wright)
+
 CONNECTORS-441: Refactor how integration packages are delivered for
 better consistency.
 (Karl Wright)
