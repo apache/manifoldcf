@@ -2405,10 +2405,6 @@
       <zip destfile="apache-manifoldcf-${release-version}-src.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/lib/"/>
-          <exclude name="/connectors/sharepoint/integration/*.wsp"/>
-          <exclude name="/connectors/sharepoint/integration/*.bat"/>
-          <exclude name="/connectors/sharepoint/integration/Installation Readme.bat"/>
-          <exclude name="/connectors/solr/integration/*.jar"/>
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>
@@ -2443,10 +2439,6 @@
       <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/lib/"/>
-          <exclude name="/connectors/sharepoint/integration/*.wsp"/>
-          <exclude name="/connectors/sharepoint/integration/*.bat"/>
-          <exclude name="/connectors/sharepoint/integration/Installation Readme.bat"/>
-          <exclude name="/connectors/solr/integration/*.jar"/>
           <exclude name="/connectors/*/lib/"/>
           <exclude name="/framework/lib/"/>
           <exclude name="**/build/"/>

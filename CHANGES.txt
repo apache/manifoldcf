@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-441: Refactor how integration packages are delivered for
+better consistency.
+(Karl Wright)
+
 CONNECTORS-436: Refer to older releases via archive.apache.org, not
 via the mirrors.
 (Karl Wright)
