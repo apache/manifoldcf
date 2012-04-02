@@ -20,6 +20,10 @@ CONNECTORS-431: Update pom.xml versions.
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-440: Build should exclude integration content from external
+sources.
+(Karl Wright, Shinichiro Abe)
+
 CONNECTORS-437: Change the ant jar distribution model so that no
 binary files are included in the source distribution.  All of them are now
 downloaded via the ant "download-dependencies" target.
