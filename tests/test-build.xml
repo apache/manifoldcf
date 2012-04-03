@@ -51,7 +51,7 @@
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
-            <include name="tomcat-juli*.jar"/>
+            <include name="juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
