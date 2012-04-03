@@ -39,13 +39,15 @@
         <p>To build the ManifoldCF framework code, and the particular connectors you are interested in, you currently need to do the following:</p>
         <p></p>
         <ol>
-          <li>Check out https://svn.apache.org/repos/asf/incubator/lcf/trunk, or unpack the source or binary distribution.  (The binary distribution includes sources).</li>
-          <li>Install desired dependent LGPL and proprietary libraries, wsdls, and xsds.  See below for details.</li>
-          <li>cd to "trunk".</li>
+          <li>Check out the desired release from https://svn.apache.org/repos/asf/incubator/lcf/tags, or unpack the desired source distribution.</li>
+          <li>cd to the top-level directory.</li>
+          <li>EITHER: overlay the lib directory from the corresponding lib distribution (preferred), OR run "ant make-core-deps" to build the code dependencies.</li>
+          <li>Run "ant make-deps", to download LGPL and other open source but non-Apache compatible libraries.</li>
+          <li>Install desired dependent proprietary libraries, wsdls, and xsds.  See below for details.</li>
           <li>Run "ant build".</li>
         </ol>
         <p></p>
-        <p>If you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
+        <p>If you do not run the ant "make-deps" target, and you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
         <p></p>
         <ul>
           <li>CMIS connector</li>
@@ -53,6 +55,7 @@
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
           <li>RSS connector</li>
           <li>Webcrawler connector</li>
+          <li>Wiki connector</li>
         </ul>
         <p></p>
         <p>In addition, the following authority connectors will be built:</p>

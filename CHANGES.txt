@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-444: Update documentation to reflect new process for
+building from source.
+(Karl Wright)
+
 CONNECTORS-443: Build all patched jars we distribute; do not rely on svn
 for any binaries.
 (Karl Wright)

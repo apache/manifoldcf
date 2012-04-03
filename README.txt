@@ -32,20 +32,27 @@ You will need to build ManifoldCF before you can do anything else.
 Instructions for Building Apache ManifoldCF from Source
 -----------------------------------------------------
 
-1. Download the Java SE 5 JDK (Java Development Kit), or greater, from http://java.sun.com.
+1. Download a source distribution of ManifoldCF, and unpack it.
+
+2. Download the corresponding lib distribution of ManifoldCF, containing the binary
+   dependencies, and unpack it.
+   
+3. Copy the lib folder in the lib distribution into the source distribution.
+
+4. Download the Java SE 5 JDK (Java Development Kit), or greater, from http://java.sun.com.
    You will need the JDK installed, and the %JAVA_HOME%\bin directory included
    on your command path.  To test this, issue a "java -version" command from your
    shell and verify that the Java version is 1.5 or greater.
 
-2. Download the Apache Ant binary distribution (1.7.0 or greater) from http://ant.apache.org.
+5. Download the Apache Ant binary distribution (1.7.0 or greater) from http://ant.apache.org.
    You will need Ant installed and the %ANT_HOME%\bin directory included on your
    command path.  To test this, issue a "ant -version" command from your
    shell and verify that Ant is available.
 
-3. If you want to build the site documents, check out, build, and install Apache Forrest
-   version 0.9-dev.
+6. If you want to build the site documents, check out, build, and install Apache Forrest
+   version 0.9-dev or higher.
    
-4. In a shell, change to the root directory of the source (where you find the outermost
+7. In a shell, change to the root directory of the source (where you find the outermost
    build.xml file), and type "ant" for directions.
 
 

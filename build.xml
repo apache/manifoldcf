@@ -2498,6 +2498,7 @@
           <exclude name="/target/"/>
           <exclude name="/lib/"/>
           <exclude name="/lib-proprietary/"/>
+          <exclude name="/upstream-diffs/"/>
           <exclude name="/json/"/>
           <exclude name="/site/"/>
           <exclude name="/connectors/"/>
@@ -2536,6 +2537,7 @@
           <exclude name="/target/"/>
           <exclude name="/lib/"/>
           <exclude name="/lib-proprietary/"/>
+          <exclude name="/upstream-diffs/"/>
           <exclude name="/json/"/>
           <exclude name="/site/"/>
           <exclude name="/connectors/"/>

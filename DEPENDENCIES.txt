@@ -1,7 +1,8 @@
 ManifoldCF requires
 ------------------
 * JRE 1.5 or above
-* All other libraries checked in under lib
+* Many other libraries, available from the ManifoldCF XXX-lib distribution, or by running
+  the "make-core-deps" ant target
 
 For building ManifoldCF:
 ----------------------
