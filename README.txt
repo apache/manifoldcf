@@ -23,12 +23,6 @@ For a complete description of the ManifoldCF project, team composition, source
 code repositories, and other details, please see the ManifoldCF web site at
 http://incubator.apache.org/connectors
 
-
-Getting Started
----------------
-
-You will need to build ManifoldCF before you can do anything else.
-
 Instructions for Building Apache ManifoldCF from Source
 -----------------------------------------------------
 
@@ -121,11 +115,6 @@ may be subject to export controls on cryptographic software:
 
     - HTTPS support
 
-  ManifoldCF interfaces with the
-  Java Cryptography Extension (JCE) API to provide
-
-    - NTLM authentication
-
   ManifoldCF does not include any
   implementation of JSSE or JCE.
 
@@ -135,103 +124,3 @@ Contact
   o For general information visit the main project site at
     http://incubator.apache.org/connectors
 
-
-=========================================================================
-==     Jetty Notice                                                    ==
-=========================================================================
-==============================================================
- Jetty Web Container 
- Copyright 1995-2006 Mort Bay Consulting Pty Ltd
-==============================================================
-
-This product includes some software developed at The Apache Software 
-Foundation (http://www.apache.org/).
-
-The javax.servlet package used by Jetty is copyright 
-Sun Microsystems, Inc and Apache Software Foundation. It is 
-distributed under the Common Development and Distribution License.
-You can obtain a copy of the license at 
-https://glassfish.dev.java.net/public/CDDLv1.0.html.
-
-The UnixCrypt.java code ~Implements the one way cryptography used by
-Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
-modified April 2001  by Iris Van den Broeke, Daniel Deville.
-
-The default JSP implementation is provided by the Glassfish JSP engine
-from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
-Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
-
-Some portions of the code are Copyright:
-  2006 Tim Vernum 
-  1999 Jason Gilbert.
-
-The jboss integration module contains some LGPL code.
-
-=========================================================================
-==     HSQLDB Notice                                                   ==
-=========================================================================
-
-For content, code, and products originally developed by Thomas Mueller and the Hypersonic SQL Group:
-
-Copyright (c) 1995-2000 by the Hypersonic SQL Group.
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-
-Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-
-Neither the name of the Hypersonic SQL Group nor the names of its
-contributors may be used to endorse or promote products derived from this
-software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE HYPERSONIC SQL GROUP,
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-This software consists of voluntary contributions made by many individuals on behalf of the
-Hypersonic SQL Group.
-
-For work added by the HSQL Development Group (a.k.a. hsqldb_lic.txt):
-
-Copyright (c) 2001-2005, The HSQL Development Group
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-
-Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-
-Neither the name of the HSQL Development Group nor the names of its
-contributors may be used to endorse or promote products derived from this
-software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL HSQL DEVELOPMENT GROUP, HSQLDB.ORG,
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
