@@ -1002,6 +1002,8 @@
         <delete file="dist/example-proprietary/properties.xml"/>
         <delete file="dist/multiprocess-example/properties.xml"/>
         <delete file="dist/multiprocess-example-proprietary/properties.xml"/>
+        <delete file="dist/NOTICE.txt"/>
+        <delete file="dist/LICENSE.txt"/>
     </target>
     
     <target name="deliver-framework" depends="preclean-for-delivery,build-framework" if="downloaded">
@@ -1053,6 +1055,9 @@
         <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/multiprocess-example-proprietary" perm="a+x" includes="**/*.sh"/>
+        <copy todir="dist" file="dist-license/README.txt"/>
+        <copy todir="dist" file="dist-license/NOTICE.txt"/>
+        <copy todir="dist" file="dist-license/LICENSE.txt"/>
     </target>
     
     <target name="deliver-framework-doc" depends="doc-framework" if="downloaded">
@@ -2441,6 +2446,8 @@
           <include name="/lib/"/>
           <include name="/connectors/*/lib/"/>
           <include name="/framework/lib/"/>
+        </zipfileset>
+        <zipfileset dir="lib-license" prefix="apache-manifoldcf-${release-version}">
           <include name="*.txt"/>
         </zipfileset>
       </zip>
@@ -2493,77 +2500,24 @@
 
     <target name="create-bin-zip" depends="build,doc,javadoc,set-version">
       <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
-        <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <exclude name="/build/"/>
-          <exclude name="/target/"/>
-          <exclude name="/lib/"/>
-          <exclude name="/lib-proprietary/"/>
-          <exclude name="/upstream-diffs/"/>
-          <exclude name="/json/"/>
-          <exclude name="/site/"/>
-          <exclude name="/connectors/"/>
-          <exclude name="/framework/"/>
-          <exclude name="/tests/"/>
-          <exclude name="/mod-authz-annotate/"/>
-          <exclude name="mvn-bootstrap.*"/>
-          <exclude name="build.xml"/>
-          <exclude name="common-build.xml"/>
-          <exclude name="pom.xml"/>
-          <exclude name="/test-materials/"/>
-          <exclude name="**/lib-proprietary/*.jar"/>
-          <exclude name="**/test-materials-proprietary/*.jar"/>
-          <exclude name="**/lib-proprietary/*.war"/>
-          <exclude name="**/test-materials-proprietary/*.war"/>
-          <exclude name="**/lib-proprietary/*.wsdl"/>
-          <exclude name="**/test-materials-proprietary/*.wsdl"/>
-          <exclude name="**/lib-proprietary/*.xsd"/>
-          <exclude name="**/test-materials-proprietary/*.xsd"/>
-          <exclude name="/legacy-*/"/>
-          <exclude name="dist/connector-lib-proprietary/*.jar"/>
-          <exclude name="dist/connectors-proprietary.xml"/>
-          <exclude name="dist/example-proprietary/"/>
-          <exclude name="dist/multiprocess-example-proprietary/"/>
-          <exclude name="dist/web-proprietary/"/>
-          <exclude name="apache-manifoldcf-*"/>
-          <exclude name="*.xml"/>
+        <zipfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
+          <exclude name="connector-lib-proprietary/*.jar"/>
+          <exclude name="connectors-proprietary.xml"/>
+          <exclude name="/example-proprietary/"/>
+          <exclude name="/multiprocess-example-proprietary/"/>
+          <exclude name="/web-proprietary/"/>
         </zipfileset>
       </zip>
     </target>
     
     <target name="create-bin-tar" depends="build,doc,javadoc,set-version">
       <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
-        <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <exclude name="/build/"/>
-          <exclude name="/target/"/>
-          <exclude name="/lib/"/>
-          <exclude name="/lib-proprietary/"/>
-          <exclude name="/upstream-diffs/"/>
-          <exclude name="/json/"/>
-          <exclude name="/site/"/>
-          <exclude name="/connectors/"/>
-          <exclude name="/framework/"/>
-          <exclude name="/tests/"/>
-          <exclude name="/mod-authz-annotate/"/>
-          <exclude name="mvn-bootstrap.*"/>
-          <exclude name="build.xml"/>
-          <exclude name="common-build.xml"/>
-          <exclude name="pom.xml"/>
-          <exclude name="/test-materials/"/>
-          <exclude name="**/lib-proprietary/*.jar"/>
-          <exclude name="**/test-materials-proprietary/*.jar"/>
-          <exclude name="**/lib-proprietary/*.war"/>
-          <exclude name="**/test-materials-proprietary/*.war"/>
-          <exclude name="**/lib-proprietary/*.wsdl"/>
-          <exclude name="**/test-materials-proprietary/*.wsdl"/>
-          <exclude name="**/lib-proprietary/*.xsd"/>
-          <exclude name="**/test-materials-proprietary/*.xsd"/>
-          <exclude name="/legacy-*/"/>
-          <exclude name="dist/connector-lib-proprietary/*.jar"/>
-          <exclude name="dist/connectors-proprietary.xml"/>
-          <exclude name="dist/example-proprietary/"/>
-          <exclude name="dist/multiprocess-example-proprietary/"/>
-          <exclude name="dist/web-proprietary/"/>
-          <exclude name="apache-manifoldcf-*"/>
+        <tarfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
+          <exclude name="connector-lib-proprietary/*.jar"/>
+          <exclude name="connectors-proprietary.xml"/>
+          <exclude name="/example-proprietary/"/>
+          <exclude name="/multiprocess-example-proprietary/"/>
+          <exclude name="/web-proprietary/"/>
         </tarfileset>
       </tar>
     </target>
