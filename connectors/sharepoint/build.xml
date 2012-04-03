@@ -69,7 +69,7 @@
     <target name="integration">
         <mkdir dir="dist/integration"/>
         <copy todir="dist/integration">
-          <fileset dir="lib">
+          <fileset dir="../../lib">
               <include name="*.bat"/>
               <include name="*.wsp"/>
               <include name="Installation Readme.txt"/>
@@ -84,39 +84,12 @@
         <get src="http://www.wssdemo.com/_vti_bin/usergroup.asmx?wsdl=true" dest="lib-proprietary/usergroup.wsdl"/>
         <get src="http://www.wssdemo.com/_vti_bin/versions.asmx?wsdl=true" dest="lib-proprietary/versions.wsdl"/>
         <get src="http://www.wssdemo.com/_vti_bin/webs.asmx?wsdl=true" dest="lib-proprietary/webs.wsdl"/>
-
-        <property name="sharepoint-plugin-version" value="0.1-incubating"/>
-        <property name="sharepoint-plugin-description" value="mcf-sharepoint-3.0-plugin"/>
-        
-        <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/><param name="project-desc" value="${sharepoint-plugin-description}"/><param name="artifact-version" value="${sharepoint-plugin-version}"/>
-            <param name="artifact-name" value="MetaCarta.SharePoint.MCPermissionsService"/>
-            <param name="artifact-type" value="wsp"/>
-        </antcall>
-        <antcall target="download-via-escaped-svn"><param name="target" value="lib"/><param name="project-desc" value="${sharepoint-plugin-description}"/><param name="artifact-version" value="${sharepoint-plugin-version}"/>
-            <param name="escaped-artifact-name" value="Installation%20Readme"/>
-            <param name="artifact-name" value="Installation Readme"/>
-            <param name="artifact-type" value="txt"/>
-        </antcall>
-        <antcall target="download-via-svn"><param name="target" value="lib"/><param name="project-desc" value="${sharepoint-plugin-description}"/><param name="artifact-version" value="${sharepoint-plugin-version}"/>
-            <param name="artifact-name" value="setup"/>
-            <param name="artifact-type" value="bat"/>
-        </antcall>
-        <antcall target="download-via-svn"><param name="target" value="lib"/><param name="project-desc" value="${sharepoint-plugin-description}"/><param name="artifact-version" value="${sharepoint-plugin-version}"/>
-            <param name="artifact-name" value="remove"/>
-            <param name="artifact-type" value="bat"/>
-        </antcall>
-        <antcall target="download-via-svn"><param name="target" value="lib"/><param name="project-desc" value="${sharepoint-plugin-description}"/><param name="artifact-version" value="${sharepoint-plugin-version}"/>
-            <param name="artifact-name" value="upgrade"/>
-            <param name="artifact-type" value="bat"/>
-        </antcall>
     </target>
 
     <target name="download-cleanup">
         <delete>
             <fileset dir="lib-proprietary" excludes="README.txt"/>
         </delete>
-        <delete dir="lib"/>
     </target>
 
 </project>

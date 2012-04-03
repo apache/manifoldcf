@@ -19,26 +19,6 @@
 
     <import file="../connector-build.xml"/>
 
-    <target name="download-dependencies">
-        <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="mcf-solr-3.x-plugin"/>
-            <param name="artifact-version" value="0.1-incubating"/>
-            <param name="artifact-name" value="mcf-solr-3.x-plugin"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="mcf-solr-4.x-plugin"/>
-            <param name="artifact-version" value="0.1-incubating"/>
-            <param name="artifact-name" value="mcf-solr-4.x-plugin"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-    </target>
-
-    <target name="download-cleanup">
-        <delete dir="lib"/>
-    </target>
-
     <target name="integration">
         <mkdir dir="dist/integration"/>
         <copy todir="dist/integration">
@@ -46,8 +26,8 @@
               <include name="README-3.x.txt"/>
               <include name="README-4.x.txt"/>
           </fileset>
-          <fileset dir="lib">
-              <include name="*.jar"/>
+          <fileset dir="../../lib">
+              <include name="apache-solr-mcf-*.jar"/>
           </fileset>
         </copy>
     </target>

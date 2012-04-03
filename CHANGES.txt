@@ -7,10 +7,6 @@ CONNECTORS-442: Fix the binary exclusion rules to not include target
 or the xml build files.
 (Karl Wright)
 
-CONNECTORS-441: Refactor how integration packages are delivered for
-better consistency.
-(Karl Wright)
-
 CONNECTORS-436: Refer to older releases via archive.apache.org, not
 via the mirrors.
 (Karl Wright)
@@ -27,6 +23,14 @@ CONNECTORS-431: Update pom.xml versions.
 (Karl Wright)
 
 ======================= Release 0.5 =========================
+
+CONNECTORS-443: Build all patched jars we distribute; do not rely on svn
+for any binaries.
+(Karl Wright)
+
+CONNECTORS-441: Refactor how integration packages are delivered for
+better consistency.
+(Karl Wright)
 
 CONNECTORS-440: Build should exclude integration content from external
 sources.
