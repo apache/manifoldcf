@@ -2495,6 +2495,7 @@
       <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
         <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/build/"/>
+          <exclude name="/target/"/>
           <exclude name="/lib/"/>
           <exclude name="/lib-proprietary/"/>
           <exclude name="/json/"/>
@@ -2503,10 +2504,10 @@
           <exclude name="/framework/"/>
           <exclude name="/tests/"/>
           <exclude name="/mod-authz-annotate/"/>
-          <exclude name="/mvn-bootstrap.*"/>
-          <exclude name="/build.xml"/>
-          <exclude name="/common-build.xml"/>
-          <exclude name="/pom.xml"/>
+          <exclude name="mvn-bootstrap.*"/>
+          <exclude name="build.xml"/>
+          <exclude name="common-build.xml"/>
+          <exclude name="pom.xml"/>
           <exclude name="/test-materials/"/>
           <exclude name="**/lib-proprietary/*.jar"/>
           <exclude name="**/test-materials-proprietary/*.jar"/>
@@ -2522,7 +2523,8 @@
           <exclude name="dist/example-proprietary/"/>
           <exclude name="dist/multiprocess-example-proprietary/"/>
           <exclude name="dist/web-proprietary/"/>
-          <exclude name="/apache-manifoldcf-*"/>
+          <exclude name="apache-manifoldcf-*"/>
+          <exclude name="*.xml"/>
         </zipfileset>
       </zip>
     </target>
@@ -2531,6 +2533,7 @@
       <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
           <exclude name="/build/"/>
+          <exclude name="/target/"/>
           <exclude name="/lib/"/>
           <exclude name="/lib-proprietary/"/>
           <exclude name="/json/"/>
@@ -2539,10 +2542,10 @@
           <exclude name="/framework/"/>
           <exclude name="/tests/"/>
           <exclude name="/mod-authz-annotate/"/>
-          <exclude name="/mvn-bootstrap.*"/>
-          <exclude name="/build.xml"/>
-          <exclude name="/common-build.xml"/>
-          <exclude name="/pom.xml"/>
+          <exclude name="mvn-bootstrap.*"/>
+          <exclude name="build.xml"/>
+          <exclude name="common-build.xml"/>
+          <exclude name="pom.xml"/>
           <exclude name="/test-materials/"/>
           <exclude name="**/lib-proprietary/*.jar"/>
           <exclude name="**/test-materials-proprietary/*.jar"/>
@@ -2558,7 +2561,7 @@
           <exclude name="dist/example-proprietary/"/>
           <exclude name="dist/multiprocess-example-proprietary/"/>
           <exclude name="dist/web-proprietary/"/>
-          <exclude name="/apache-manifoldcf-*"/>
+          <exclude name="apache-manifoldcf-*"/>
         </tarfileset>
       </tar>
     </target>
