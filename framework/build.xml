@@ -53,7 +53,7 @@
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="servlet-api*.jar"/>
-            <include name="tomcat-juli*.jar"/>
+            <include name="juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
@@ -683,7 +683,7 @@
                 <include name="servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
-                <include name="tomcat-juli*.jar"/>
+                <include name="juli*.jar"/>
                 <include name="jsp-api*.jar"/>
             </fileset>
         </copy>
@@ -724,7 +724,7 @@
                 <include name="servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
-                <include name="tomcat-juli*.jar"/>
+                <include name="juli*.jar"/>
                 <include name="jsp-api*.jar"/>
             </fileset>
         </copy>
@@ -784,7 +784,7 @@
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
-                <include name="tomcat-juli*.jar"/>
+                <include name="juli*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
@@ -861,7 +861,7 @@
         <property name="manifest-cp-40" value="${manifest-cp-39} lib/postgresql.jar"/>
         <property name="manifest-cp-42" value="${manifest-cp-39} lib/serializer.jar"/>
         <property name="manifest-cp-43" value="${manifest-cp-42} lib/servlet-api.jar"/>
-        <property name="manifest-cp-44" value="${manifest-cp-43} lib/tomcat-juli.jar"/>
+        <property name="manifest-cp-44" value="${manifest-cp-43} lib/juli.jar"/>
         <property name="manifest-cp-45" value="${manifest-cp-44} lib/xalan.jar"/>
         <property name="manifest-cp-46" value="${manifest-cp-45} lib/xercesImpl.jar"/>
         <property name="manifest-cp-47" value="${manifest-cp-46} lib/xml-apis.jar"/>
@@ -903,7 +903,7 @@
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
-                <include name="tomcat-juli*.jar"/>
+                <include name="juli*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
@@ -986,7 +986,7 @@
         <property name="manifest-cp-proprietary-41" value="${manifest-cp-proprietary-40} lib/mysql-connector-java.jar"/>
         <property name="manifest-cp-proprietary-42" value="${manifest-cp-proprietary-41} lib/serializer.jar"/>
         <property name="manifest-cp-proprietary-43" value="${manifest-cp-proprietary-42} lib/servlet-api.jar"/>
-        <property name="manifest-cp-proprietary-44" value="${manifest-cp-proprietary-43} lib/tomcat-juli.jar"/>
+        <property name="manifest-cp-proprietary-44" value="${manifest-cp-proprietary-43} lib/juli.jar"/>
         <property name="manifest-cp-proprietary-45" value="${manifest-cp-proprietary-44} lib/xalan.jar"/>
         <property name="manifest-cp-proprietary-46" value="${manifest-cp-proprietary-45} lib/xercesImpl.jar"/>
         <property name="manifest-cp-proprietary-47" value="${manifest-cp-proprietary-46} lib/xml-apis.jar"/>

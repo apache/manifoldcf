@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-443: Build all patched jars we distribute; do not rely on svn
+for any binaries.
+(Karl Wright)
+
 CONNECTORS-441: Refactor how integration packages are delivered for
 better consistency.
 (Karl Wright)

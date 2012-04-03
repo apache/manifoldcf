@@ -24,7 +24,7 @@
     <target name="download-via-maven" depends="setup-maven-url">
         <get src="${maven-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
     </target>
-    
+
     <target name="setup-svn-url">
         <property name="svn-base-url" value="http://svn.apache.org/repos/asf/incubator/lcf"/>
     </target>
@@ -37,4 +37,21 @@
         <get src="${svn-base-url}/bin-dist/${project-desc}-${artifact-version}/${escaped-artifact-name}.${artifact-type}" dest="${target}/${artifact-name}.${artifact-type}"/>
     </target>
 
+    <target name="checkout-source-via-svn">
+        <mkdir dir="${root-dir}"/>
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true">
+              <arg value="checkout" />
+              <arg value="${svn-url}" />
+              <arg value="${dir-name}" />
+        </exec>
+    </target>
+
+    <target name="patch-source-via-svn">
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true">
+              <arg value="patch" />
+              <arg value="${diff-file}" />
+              <arg value="${dir-name}" />
+        </exec>
+    </target>
+    
 </project>

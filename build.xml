@@ -38,7 +38,7 @@
     </target>
     
     <target name="downloaded-check" depends="downloaded-condition" unless="downloaded">
-        <echo message="Run download-dependencies target first"/>
+        <echo message="Overlay -lib package, or run 'make-core-deps' target first"/>
     </target>
 
     <target name="clean">
@@ -2434,7 +2434,18 @@
         </zipfileset>
       </zip>
     </target>
-    
+
+    <target name="create-lib-zip" depends="set-version">
+      <zip destfile="apache-manifoldcf-${release-version}-lib.zip" update="false">
+        <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <include name="/lib/"/>
+          <include name="/connectors/*/lib/"/>
+          <include name="/framework/lib/"/>
+          <include name="*.txt"/>
+        </zipfileset>
+      </zip>
+    </target>
+
     <target name="create-source-tar" depends="set-version">
       <tar destfile="apache-manifoldcf-${release-version}-src.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
@@ -2465,6 +2476,17 @@
           <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-0.19.0/"/>
           <exclude name="/legacy-*/"/>
           <exclude name="/apache-manifoldcf-*"/>
+        </tarfileset>
+      </tar>
+    </target>
+
+    <target name="create-lib-tar" depends="set-version">
+      <tar destfile="apache-manifoldcf-${release-version}-lib.tar.gz" compression="gzip" longfile="gnu">
+        <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
+          <include name="/lib/"/>
+          <include name="/connectors/*/lib/"/>
+          <include name="/framework/lib/"/>
+          <include name="*.txt"/>
         </tarfileset>
       </tar>
     </target>
@@ -2541,7 +2563,7 @@
       </tar>
     </target>
 
-    <target name="image" depends="create-source-zip,create-source-tar,create-bin-zip,create-bin-tar"/>
+    <target name="image" depends="create-source-zip,create-source-tar,create-lib-zip,create-lib-tar,create-bin-zip,create-bin-tar"/>
     
     <target name="test-dr" depends="run-tests-derby-framework,run-tests-derby-open-connectors,run-tests-derby-lgpl-connectors,run-tests-derby-proprietary-connectors,end-to-end-tests-derby"/>
 
@@ -2603,8 +2625,11 @@ all      - Build code and docs, and test (requires Apache Forrest)
 
 run-script-interpreter - Run the ManifoldCF script interpreter
 
-download-dependencies  - Fetch all required dependencies
-download-cleanup       - Clean up downloaded binaries
+make-deps              - Fetch non-redistributable dependencies
+clean-deps             - Clean up non-redistributable binaries
+
+make-core-deps         - Download and build core dependencies
+clean-core-deps        - Clean up core dependencies
 
 Use Apache Forrest version forrest-0.9-dev or higher.
       </echo>
@@ -2772,13 +2797,22 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-hsqldb">
         <mkdir dir="lib"/>
-        <property name="hsqldb-version" value="2.2.8-jdk1.5"/>
-        <property name="hsqldb-package" value="org/hsqldb"/>
-        <property name="hsqldb-description" value="hsqldb"/>
-        <antcall target="download-via-svn"><param name="project-desc" value="${hsqldb-description}"/><param name="project-path" value="${hsqldb-package}"/><param name="artifact-version" value="${hsqldb-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="hsqldb"/>
-            <param name="artifact-type" value="jar"/>
+        <!-- Download and build a jdk-1.5 version of hsqldb 2.2.8 -->
+        <mkdir dir="build/download"/>
+        <delete dir="build/download/hsqldb"/>
+        <antcall target="checkout-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="svn-url" value="https://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/tags/2.2.8"/>
+            <param name="dir-name" value="hsqldb"/>
         </antcall>
+        <!-- Build it -->
+        <exec dir="build/download/hsqldb/build" executable="cmd" osfamily="windows">
+            <arg line="/c ant.bat hsqldb"/>
+        </exec>
+        <exec dir="build/download/hsqldb/build" executable="ant" osfamily="unix">
+            <arg value="hsqldb" />
+        </exec>
+        <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/>
     </target>
     
     <target name="download-postgresql">
@@ -2828,25 +2862,24 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-castor">
         <mkdir dir="lib"/>
 
-        <!-- biblio is just too slow -->
+        <!-- biblio is very slow -->
         <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5.jar" dest="lib/castor.jar"/ -->
         <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5-xml.jar" dest="lib/castor-xml.jar"/ -->
         <!-- get src="http://mirrors.ibiblio.org/pub/mirrors/maven/castor/1.0.5/castor-1.0.5-commons.jar" dest="lib/castor-commons.jar"/ -->
-
         <property name="castor-version" value="1.0.5"/>
-        <property name="castor-description" value="castor"/>
-        <antcall target="download-via-svn"><param name="project-desc" value="${castor-description}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+        <property name="castor-path" value="org/codehaus/castor"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="castor"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-desc" value="${castor-description}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+        <!-- antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="castor-xml"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-desc" value="${castor-description}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${castor-path}"/><param name="artifact-version" value="${castor-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="castor-commons"/>
             <param name="artifact-type" value="jar"/>
-        </antcall>
+        </antcall -->
     </target>
   
     <target name="download-wsdl4j">
@@ -2891,12 +2924,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="commons-fileupload"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="commons-httpclient"/>
-            <param name="artifact-version" value="3.1-mcf-1"/>
-            <param name="artifact-name" value="commons-httpclient"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-io"/>
             <param name="artifact-version" value="1.3.2"/>
@@ -2915,33 +2942,56 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="commons-logging"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <!-- Download and build patched version of commons-httpclient 3.1 -->
+        <mkdir dir="build/download"/>
+        <delete dir="build/download/commons-httpclient"/>
+        <antcall target="checkout-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="svn-url" value="https://svn.apache.org/repos/asf/httpcomponents/oac.hc3x/tags/HTTPCLIENT_3_1"/>
+            <param name="dir-name" value="commons-httpclient"/>
+        </antcall>
+        <!-- Apply cumulative post-3.1 fixes patch -->
+        <antcall target="patch-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="diff-file" value="../../upstream-diffs/commons-httpclient-3.1.cumulative.patch"/>
+            <param name="dir-name" value="commons-httpclient"/>
+        </antcall>
+        <!-- Apply mcf-specific features and fixes patch -->
+        <antcall target="patch-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="diff-file" value="../../upstream-diffs/commons-httpclient-3.1.mcf.patch"/>
+            <param name="dir-name" value="commons-httpclient"/>
+        </antcall>
+        <!-- Supply dependencies -->
+        <mkdir dir="build/download/commons-httpclient/lib"/>
+        <copy todir="build/download/commons-httpclient/lib" file="lib/commons-logging.jar"/>
+        <copy todir="build/download/commons-httpclient/lib" file="lib/commons-codec.jar"/>
+        <!-- Build it -->
+        <ant dir="build/download/commons-httpclient" target="dist"/>
+        <copy todir="lib" file="build/download/commons-httpclient/dist/commons-httpclient.jar"/>
     </target>
     
     <target name="download-jetty">
         <mkdir dir="lib"/>
-        <property name="jetty-version" value="6.1.26-patched-JETTY-1340"/>
+        <property name="jetty-version" value="6.1.26"/>
         <property name="jetty-package" value="org/mortbay/jetty"/>
-        <property name="jetty-description" value="jetty"/>
-
-        <!-- Non-patched version has encoding issues -->
-        
-        <antcall target="download-via-svn"><param name="project-package" value="${jetty-package}"/><param name="project-desc" value="${jetty-description}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-package" value="${jetty-package}"/><param name="project-desc" value="${jetty-description}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-naming"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-package" value="${jetty-package}"/><param name="project-desc" value="${jetty-description}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-plus"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-package" value="${jetty-package}"/><param name="project-desc" value="${jetty-description}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-util"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-package" value="${jetty-package}"/><param name="project-desc" value="${jetty-description}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jsp-2.1-jetty"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -2949,12 +2999,30 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xerces">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="xerces2-j"/>
-            <param name="artifact-version" value="2.9.1-mcf-1"/>
-            <param name="artifact-name" value="xercesImpl"/>
-            <param name="artifact-type" value="jar"/>
+        <!-- Download and build patched version of xerces 2.9.1 -->
+        <mkdir dir="build/download"/>
+        <delete dir="build/download/xerces2-j"/>
+        <antcall target="checkout-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="svn-url" value="https://svn.apache.org/repos/asf/xerces/java/tags/Xerces-J_2_9_1"/>
+            <param name="dir-name" value="xerces2-j"/>
         </antcall>
+        <!-- Apply mcf-specific features and fixes patch -->
+        <antcall target="patch-source-via-svn">
+            <param name="root-dir" value="build/download"/>
+            <param name="diff-file" value="../../upstream-diffs/xerces2-j-2.9.1.mcf.patch"/>
+            <param name="dir-name" value="xerces2-j"/>
+        </antcall>
+        <!-- Build it -->
+        <exec dir="build/download/xerces2-j" executable="cmd" osfamily="windows">
+            <arg line="/c build.bat jar"/>
+        </exec>
+        <exec dir="build/download/xerces2-j" executable="/bin/sh" osfamily="unix">
+            <arg value="-c" />
+            <arg value="build.sh" />
+            <arg value="jar" />
+        </exec>
+        <copy todir="lib" file="build/download/xerces2-j/build/xercesImpl.jar"/>
     </target>
     
     <target name="download-xalan">
@@ -2992,11 +3060,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-avalon-framework">
+        <property name="avalon.path" value="org/apache/avalon/framework"/>
+        <property name="avalon.version" value="4.3.1"/>
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="avalon-framework"/>
-            <param name="artifact-version" value="4.2.0"/>
-            <param name="artifact-name" value="avalon-framework"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${avalon.path}"/><param name="artifact-version" value="${avalon.version}"/>
+            <param name="artifact-name" value="avalon-framework-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/><param name="project-path" value="${avalon.path}"/><param name="artifact-version" value="${avalon.version}"/>
+            <param name="artifact-name" value="avalon-framework-impl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3033,39 +3105,31 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-h2">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="h2"/>
-            <param name="artifact-version" value="1.3.158"/>
-            <param name="artifact-name" value="h2"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <!-- Alfresco dependency, so download from there -->
+        <get src="http://repo2.maven.org/maven2/com/h2database/h2/1.3.158/h2-1.3.158.jar" dest="lib/h2.jar"/>
     </target>
     
     <target name="download-h2-support">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="h2-support"/>
-            <param name="artifact-version" value="1.1"/>
-            <param name="artifact-name" value="h2-support"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <!-- Alfresco dependency, so download from there -->
+        <get src="http://clojars.org/repo/it/sk/alfresco/h2-support/1.1/h2-support-1.1.jar" dest="lib/h2-support.jar"/>
     </target>
     
     <target name="download-tomcat">
         <mkdir dir="lib"/>
-        <property name="tomcat-version" value="6.0.24"/>
+        <property name="tomcat-version" value="6.0.35"/>
         <property name="tomcat-package" value="org/apache/tomcat"/>
-        <property name="tomcat-description" value="tomcat"/>
-        <antcall target="download-via-svn"><param name="project-desc" value="${tomcat-description}"/><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+        
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jasper"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-desc" value="${tomcat-description}"/><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jasper-el"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="project-desc" value="${tomcat-description}"/><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="tomcat-juli"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${tomcat-package}"/><param name="artifact-version" value="${tomcat-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="juli"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3088,15 +3152,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-jaxws">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="jaxws-api"/>
-            <param name="artifact-version" value="2.1"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/xml/ws"/>
+            <param name="artifact-version" value="2.2.6"/>
             <param name="artifact-name" value="jaxws-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="jaxws-rt"/>
-            <param name="artifact-version" value="2.1.7"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/ws"/>
+            <param name="artifact-version" value="2.2.6"/>
             <param name="artifact-name" value="jaxws-rt"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -3104,12 +3168,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-jdbcpool">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="jdbcpool"/>
-            <param name="artifact-version" value="0.99"/>
-            <param name="artifact-name" value="jdbcpool"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <mkdir dir="build/download"/>
+        <get src="http://ftp.nerim.net/FreeBSD/ports/i386/packages/databases/jdbcpool-0.99_3.tbz" dest="build/download/jdbcpool-0.99_3.tbz"/>
+        <untar src="build/download/jdbcpool-0.99_3.tbz" compression="bzip2" dest="build/download/jdbcpool"/>
+        <copy todir="lib" file="build/download/jdbcpool/share/java/classes/jdbcpool.jar"/>
     </target>
 
     <target name="download-chemistry">
@@ -3217,19 +3279,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-opensaml">
-        <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="opensaml"/>
-            <param name="artifact-version" value="1.0.1"/>
-            <param name="artifact-name" value="opensaml"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
+        <!-- This dependency is for alfresco, so we use the jar alfresco has -->
+        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/3rd-party/lib/opensaml-1.0.1.jar" dest="lib/opensaml.jar"/>
     </target>
     
     <target name="download-osgi">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="org.osgi.core"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/felix"/>
             <param name="artifact-version" value="1.0.0"/>
             <param name="artifact-name" value="org.osgi.core"/>
             <param name="artifact-type" value="jar"/>
@@ -3238,10 +3296,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xml-resolver">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="xml-resolver"/>
-            <param name="artifact-version" value="20050927"/>
-            <param name="artifact-name" value="resolver"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="xml-resolver"/>
+            <param name="artifact-version" value="1.2"/>
+            <param name="artifact-name" value="xml-resolver"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3293,20 +3351,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-wss4j">
-        <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="wss4j"/>
-            <param name="artifact-version" value="1.5.4-patched"/>
-            <param name="artifact-name" value="wss4j"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <!-- This dependency is for alfresco, so download their patched jar from their svn -->
+        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/3rd-party/lib/wss4j-1.5.4-patched.jar" dest="lib/wss4j.jar"/>
     </target>
     
     <target name="download-xmlgraphics-commons">
         <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="xmlgraphics-commons"/>
-            <param name="artifact-version" value="1.5svn"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/xmlgraphics"/>
+            <param name="artifact-version" value="1.4"/>
             <param name="artifact-name" value="xmlgraphics-commons"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -3323,13 +3376,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-xmlsec">
-        <mkdir dir="lib"/>
-        <antcall target="download-via-svn"><param name="target" value="lib"/>
-            <param name="project-desc" value="xmlsec"/>
-            <param name="artifact-version" value="1.4.1"/>
-            <param name="artifact-name" value="xmlsec"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <!-- Alfresco dependency, so resolve it from alfresco svn -->
+        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/3rd-party/lib/xmlsec-1.4.1.jar" dest="lib/xmlsec.jar"/>
     </target>
     
     <target name="download-xml-apis">
@@ -3352,7 +3400,33 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="download-core-dependencies" depends="download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jsr181-api,download-jsr250-api,download-jaxws,download-jdbcpool,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-commons,download-derby,download-hsqldb,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-xerces,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="download-sharepoint-plugin">
+        <mkdir dir="lib"/>
+        <!-- Download and unpack binary artifact -->
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-3.0-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-sharepoint-3.0-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-3.0-plugin-bin"/>
+        <copy todir="lib">
+            <fileset dir="build/download/apache-manifoldcf-sharepoint-3.0-plugin-bin/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating/dist"/>
+        </copy>
+    </target>
+
+    <target name="download-solr-plugins">
+        <mkdir dir="lib"/>
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.1-incubating-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
+        <copy todir="lib">
+            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-0.1-incubating/dist"/>
+        </copy>
+        <get src="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.1-incubating-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
+        <copy todir="lib">
+            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-0.1-incubating/dist"/>
+        </copy>
+    </target>
+
+    <target name="make-core-deps" depends="download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugin,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jsr181-api,download-jsr250-api,download-jaxws,download-jdbcpool,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
     </target>
     
     <target name="download-mysql">
@@ -3375,7 +3449,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-proprietary-dependencies" depends="download-mysql,download-jtds"/>
     
-    <target name="download-dependencies" depends="download-proprietary-dependencies,download-core-dependencies">
+    <target name="make-deps" depends="download-proprietary-dependencies">
         <ant dir="connectors/alfresco" target="download-dependencies"/>
         <ant dir="connectors/cmis" target="download-dependencies"/>
         <ant dir="connectors/activedirectory" target="download-dependencies"/>
@@ -3406,11 +3480,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </delete>
     </target>
 
-    <target name="download-core-cleanup">
+    <target name="clean-core-deps">
         <delete dir="lib"/>
     </target>
 
-    <target name="download-cleanup" depends="download-proprietary-cleanup,download-core-cleanup">
+    <target name="clean-deps" depends="download-proprietary-cleanup">
         <ant dir="connectors/alfresco" target="download-cleanup"/>
         <ant dir="connectors/cmis" target="download-cleanup"/>
         <ant dir="connectors/activedirectory" target="download-cleanup"/>
