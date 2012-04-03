@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-441: Refactor how integration packages are delivered for
+better consistency.
+(Karl Wright)
+
 CONNECTORS-440: Build should exclude integration content from external
 sources.
 (Karl Wright, Shinichiro Abe)
