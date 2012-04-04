@@ -2965,7 +2965,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <arg line="/c build.bat jar"/>
         </exec>
         <exec dir="build/download/xerces2-j" executable="/bin/sh" osfamily="unix">
-            <arg value="-c" />
             <arg value="build.sh" />
             <arg value="jar" />
         </exec>

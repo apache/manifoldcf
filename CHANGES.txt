@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-448: Fix xerces build for Linux machines.
+(Karl Wright)
+
 CONNECTORS-447: Deliver lib contents at root level in lib package.
 (Karl Wright)
 
