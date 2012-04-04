@@ -24,6 +24,9 @@ CONNECTORS-431: Update pom.xml versions.
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-449: Fix browser simulator so that UI tests work again.
+(Karl Wright)
+
 CONNECTORS-448: Fix xerces build for Linux machines.
 (Karl Wright)
 

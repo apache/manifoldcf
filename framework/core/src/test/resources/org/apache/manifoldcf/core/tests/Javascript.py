@@ -1447,7 +1447,7 @@ class JSTokenStream:
 
         token = self.peek( )
         if token != None and token.get_punc( ) == "=":
-                # Assignment operation
+            # Assignment operation
             self.advance( )
             value = self.evaluate_expr( context, place, parse_only )
             if value == None:
@@ -1456,11 +1456,31 @@ class JSTokenStream:
                 return JSNull()
             reference_object.set_referenced_object( value )
             return value
+        elif token != None and token.get_punc( ) == "+=":
+            # += operation
+            self.advance( )
+            value = self.evaluate_expr( context, place, parse_only )
+            if value == None:
+                raise Exception("Missing expression value in += in %s" % place)
+            if parse_only:
+                return JSNull()
+            reference_object.set_referenced_object( self.plus( reference_object.get_referenced_object( ), value ) )
+            return reference_object.get_referenced_object( )
+        elif token != None and token.get_punc( ) == "-=":
+            # -= operation
+            self.advance( )
+            value = self.evaluate_expr( context, place, parse_only )
+            if value == None:
+                raise Exception("Missing expression value in -= in %s" % place)
+            if parse_only:
+                return JSNull()
+            reference_object.set_referenced_object( self.minus( reference_object.get_referenced_object( ), value ) )
+            return reference_object.get_referenced_object( )
         else:
             # Just an object reference.  Look up the value
             if parse_only:
                 return JSNull()
-            return reference_object
+            return reference_object.get_referenced_object( )
 
 
     def evaluate_terminal_token( self, context, place, parse_only=False ):
@@ -1471,22 +1491,22 @@ class JSTokenStream:
 
         if token != None and token.get_symbol( ) == "true":
             self.advance( )
-            return JSBoolean( True )
+            return JSNonSettableReference( JSBoolean( True ) )
         if token != None and token.get_symbol( ) == "false":
             self.advance( )
-            return JSBoolean( False )
+            return JSNonSettableReference( JSBoolean( False ) )
         if token != None and token.get_symbol( ) == "null":
             self.advance( )
-            return JSNull( )
+            return JSNonSettableReferemce( JSNull( ) )
         if token != None and token.get_string( ) != None:
             self.advance( )
             return JSNonSettableReference( JSString( token.get_string( ) ) )
         if token != None and token.get_int( ) != None:
             self.advance( )
-            return JSNumber( token.get_int( ) )
+            return JSNonSettableReference( JSNumber( token.get_int( ) ) )
         if token != None and token.get_float( ) != None:
             self.advance( )
-            return JSNumber( token.get_float( ) )
+            return JSNonSettableReference( JSNumber( token.get_float( ) ) )
         if token != None and token.get_regexp( ) != None:
             self.advance( )
             return JSNonSettableReference( JSRegexp( token.get_regexp( ), token.get_regexp_global( ), token.get_regexp_insensitive( ) ) )
