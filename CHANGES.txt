@@ -24,6 +24,12 @@ CONNECTORS-431: Update pom.xml versions.
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-447: Deliver lib contents at root level in lib package.
+(Karl Wright)
+
+CONNECTORS-446: Correct problems blocking build in Japan.
+(Karl Wright, Shinichiro Abe)
+
 CONNECTORS-445: Each distribution has its own licensing and readme files.
 (Karl Wright)
 
