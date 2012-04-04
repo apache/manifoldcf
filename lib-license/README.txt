@@ -32,8 +32,9 @@ source package.
 
 1. Download and unpacked the source package.
 
-2. Copy the lib directory within this package into the same place in the source
-   package's directory structure.
+2. Create a directory called "lib" at the root level in the source tree.
+
+3. Copy the files in this package into the lib directory in the source tree.
    
 Now you are ready to build the ManifoldCF sources.
 

@@ -2442,14 +2442,7 @@
 
     <target name="create-lib-zip" depends="set-version">
       <zip destfile="apache-manifoldcf-${release-version}-lib.zip" update="false">
-        <zipfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <include name="/lib/"/>
-          <include name="/connectors/*/lib/"/>
-          <include name="/framework/lib/"/>
-        </zipfileset>
-        <zipfileset dir="lib-license" prefix="apache-manifoldcf-${release-version}">
-          <include name="*.txt"/>
-        </zipfileset>
+        <zipfileset dir="lib" prefix="apache-manifoldcf-${release-version}"/>
       </zip>
     </target>
 
@@ -2489,12 +2482,7 @@
 
     <target name="create-lib-tar" depends="set-version">
       <tar destfile="apache-manifoldcf-${release-version}-lib.tar.gz" compression="gzip" longfile="gnu">
-        <tarfileset dir="." prefix="apache-manifoldcf-${release-version}">
-          <include name="/lib/"/>
-          <include name="/connectors/*/lib/"/>
-          <include name="/framework/lib/"/>
-          <include name="*.txt"/>
-        </tarfileset>
+        <tarfileset dir="lib" prefix="apache-manifoldcf-${release-version}"/>
       </tar>
     </target>
 
@@ -2761,7 +2749,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <delete dir="build/download/hsqldb"/>
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="https://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/tags/2.2.8"/>
+            <param name="svn-url" value="http://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/tags/2.2.8"/>
             <param name="dir-name" value="hsqldb"/>
         </antcall>
         <!-- Build it -->
@@ -2906,7 +2894,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <delete dir="build/download/commons-httpclient"/>
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="https://svn.apache.org/repos/asf/httpcomponents/oac.hc3x/tags/HTTPCLIENT_3_1"/>
+            <param name="svn-url" value="http://svn.apache.org/repos/asf/httpcomponents/oac.hc3x/tags/HTTPCLIENT_3_1"/>
             <param name="dir-name" value="commons-httpclient"/>
         </antcall>
         <!-- Apply cumulative post-3.1 fixes patch -->
@@ -2963,7 +2951,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <delete dir="build/download/xerces2-j"/>
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="https://svn.apache.org/repos/asf/xerces/java/tags/Xerces-J_2_9_1"/>
+            <param name="svn-url" value="http://svn.apache.org/repos/asf/xerces/java/tags/Xerces-J_2_9_1"/>
             <param name="dir-name" value="xerces2-j"/>
         </antcall>
         <!-- Apply mcf-specific features and fixes patch -->
@@ -3386,6 +3374,9 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="make-core-deps" depends="download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugin,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jsr181-api,download-jsr250-api,download-jaxws,download-jdbcpool,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+        <copy todir="lib">
+            <fileset dir="lib-license" includes="*.txt"/>
+        </copy>
     </target>
     
     <target name="download-mysql">
