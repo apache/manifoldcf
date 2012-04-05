@@ -12,8 +12,7 @@ CONNECTORS-430: An error should be returned if invalid seeds are typed
 into the seeds list for the web connector
 (Erlend Garåsen, Karl Wright)
 
-CONNECTORS-442: Fix the binary exclusion rules to not include target
-or the xml build files.
+CONNECTORS-449: Fix browser simulator so that UI tests work again.
 (Karl Wright)
 
 CONNECTORS-436: Refer to older releases via archive.apache.org, not
@@ -36,9 +35,6 @@ CONNECTORS-431: Update pom.xml versions.
 CONNECTORS-451: mvn-bootstrap scripts were broken.
 (Karl Wright)
 
-CONNECTORS-449: Fix browser simulator so that UI tests work again.
-(Karl Wright)
-
 CONNECTORS-448: Fix xerces build for Linux machines.
 (Karl Wright)
 
@@ -53,6 +49,10 @@ CONNECTORS-445: Each distribution has its own licensing and readme files.
 
 CONNECTORS-444: Update documentation to reflect new process for
 building from source.
+(Karl Wright)
+
+CONNECTORS-442: Fix the binary exclusion rules to not include target
+or the xml build files.
 (Karl Wright)
 
 CONNECTORS-443: Build all patched jars we distribute; do not rely on svn
