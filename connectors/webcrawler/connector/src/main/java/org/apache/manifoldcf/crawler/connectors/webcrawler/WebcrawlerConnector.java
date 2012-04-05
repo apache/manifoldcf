@@ -3378,6 +3378,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    editjob.exclusions.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (check_seedsList() == false)\n"+
+"  {\n"+
+"    editjob.seeds.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -3406,6 +3411,33 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    }\n"+
 "  }\n"+
 "  return rval;\n"+
+"}\n"+
+"\n"+
+"function check_seedsList()\n"+
+"{\n"+
+"  var regexp = /http(s)?:\\/\\/([a-z0-9+!*(),;?&=\\$_.-]+(\\:[a-z0-9+!*(),;?&=\\$_.-]+)?@)?[a-z0-9+\\$_-]+(\\.[a-z0-9+\\$_-]+)*(\\:[0-9]{2,5})?(\\/([a-z0-9+\\$_-]\\.?)+)*\\/?(\\?[a-z+&\\$_.-][a-z0-9;:@\\/&%=+\\$_.-]*)?(#[a-z_.-][a-z0-9+\\$_.-]*)?/;\n"+
+"  var lines = editjob.seeds.value.split(\"\\n\");\n"+
+"  var trimmedUrlList = \"\";\n"+
+"  var invalidUrlList = \"\";\n"+
+"  var i = 0;\n"+
+"  while (i < lines.length)\n"+
+"  {\n"+
+"    var line = lines[i].replace(/^\\s*/, \"\").replace(/\\s*$/, \"\");\n"+
+"    if (line.length > 0)\n"+
+"    {\n"+
+"      if (!regexp.test(line))\n"+
+"        invalidUrlList = invalidUrlList + line + \"\\n\";\n"+
+"      trimmedUrlList = trimmedUrlList + line + \"\\n\";\n"+      
+"    }\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"  editjob.seeds.value = trimmedUrlList;\n"+ 
+"  if (invalidUrlList.length > 0)\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.InvalidUrlsInSeedsList")+"\\n\" + invalidUrlList);\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
 "}\n"+
 "\n"+
 "function SpecAddToken(anchorvalue)\n"+

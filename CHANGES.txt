@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-430: An error should be returned if invalid seeds are typed
+into the seeds list for the web connector
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-442: Fix the binary exclusion rules to not include target
 or the xml build files.
 (Karl Wright)

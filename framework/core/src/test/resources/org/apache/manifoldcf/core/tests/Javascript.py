@@ -305,6 +305,7 @@ class JSRegexpTestMethod( JSObject ):
             flags += re.MULTILINE
         if self.regexp.is_regexp_insensitive( ):
             flags += re.IGNORECASE
+        
         regexp = re.compile( self.regexp.get_regexp( ), flags )
 
         mo = regexp.match( testvalue )
@@ -1620,7 +1621,15 @@ class JSTokenStream:
                 if new_char == "\\":
                     self.start_index += 1
                     if self.start_index < len(self.body):
-                        the_string += self.body[ self.start_index ]
+                        the_char = self.body[ self.start_index ]
+                        # Deal with special characters
+                        if the_char == "n":
+                            the_char = "\n"
+                        elif the_char == "r":
+                            the_char = "\r"
+                        elif the_char == "t":
+                            the_char = "\t"
+                        the_string += the_char
                         self.start_index += 1
                 elif new_char == this_char:
                     # Maybe the end of the string, but we should zip past the whitespace
