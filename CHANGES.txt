@@ -3,6 +3,11 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-452: Get a version of postgresql jdbc driver compatible
+with JDK 1.5, and make sure it is actually in the classpath for single-
+process example.
+(Karl Wright)
+
 CONNECTORS-451: mvn-bootstrap scripts were broken.
 (Karl Wright)
 

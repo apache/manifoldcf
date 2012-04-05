@@ -859,7 +859,7 @@
         <property name="manifest-cp-38" value="${manifest-cp-37} lib/mcf-ui-core.jar"/>
         <property name="manifest-cp-39" value="${manifest-cp-38} lib/log4j.jar"/>
         <property name="manifest-cp-40" value="${manifest-cp-39} lib/postgresql.jar"/>
-        <property name="manifest-cp-42" value="${manifest-cp-39} lib/serializer.jar"/>
+        <property name="manifest-cp-42" value="${manifest-cp-40} lib/serializer.jar"/>
         <property name="manifest-cp-43" value="${manifest-cp-42} lib/servlet-api.jar"/>
         <property name="manifest-cp-44" value="${manifest-cp-43} lib/juli.jar"/>
         <property name="manifest-cp-45" value="${manifest-cp-44} lib/xalan.jar"/>

@@ -2764,12 +2764,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-postgresql">
         <mkdir dir="lib"/>
-        <property name="postgresql-version" value="9.1-901-1.jdbc4"/>
-        <property name="postgresql-package" value="postgresql"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${postgresql-package}"/><param name="artifact-version" value="${postgresql-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="postgresql"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
+        <get src="http://jdbc.postgresql.org/download/postgresql-9.1-901.jdbc3.jar" dest="lib/postgresql.jar"/>
     </target>
 
     <target name="download-axis">
