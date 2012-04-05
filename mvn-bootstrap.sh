@@ -21,7 +21,7 @@
 # Created: Wednesday, September 21 2011 by Alex Ott
 #
 
-ant download-dependencies
+ant make-deps
 
 mvn install:install-file -Dfile=lib/jdbcpool.jar -DgroupId=com.bitmechanic -DartifactId=jdbcpool -Dversion=0.99 -Dpackaging=jar
 

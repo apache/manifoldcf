@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-451: mvn-bootstrap scripts were broken.
+(Karl Wright)
+
 CONNECTORS-448: Fix xerces build for Linux machines.
 (Karl Wright)
 
