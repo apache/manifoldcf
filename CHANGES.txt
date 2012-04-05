@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-450: Make sure all ant exec operations check properly for
+errors.  This should prevent people from getting a bad dependencies
+build if they have the wrong svn client (for instance).
+(Karl Wright)
+
 CONNECTORS-430: An error should be returned if invalid seeds are typed
 into the seeds list for the web connector
 (Erlend Garåsen, Karl Wright)

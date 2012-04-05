@@ -39,7 +39,7 @@
 
     <target name="checkout-source-via-svn">
         <mkdir dir="${root-dir}"/>
-        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true">
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true" failonerror="true">
               <arg value="checkout" />
               <arg value="${svn-url}" />
               <arg value="${dir-name}" />
@@ -47,7 +47,7 @@
     </target>
 
     <target name="patch-source-via-svn">
-        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true">
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true" failonerror="true">
               <arg value="patch" />
               <arg value="${diff-file}" />
               <arg value="${dir-name}" />

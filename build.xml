@@ -2753,10 +2753,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="dir-name" value="hsqldb"/>
         </antcall>
         <!-- Build it -->
-        <exec dir="build/download/hsqldb/build" executable="cmd" osfamily="windows">
+        <exec dir="build/download/hsqldb/build" executable="cmd" osfamily="windows" failifexecutionfails="true" failonerror="true">
             <arg line="/c ant.bat hsqldb"/>
         </exec>
-        <exec dir="build/download/hsqldb/build" executable="ant" osfamily="unix">
+        <exec dir="build/download/hsqldb/build" executable="ant" osfamily="unix" failifexecutionfails="true" failonerror="true">
             <arg value="hsqldb" />
         </exec>
         <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/>
@@ -2961,10 +2961,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="dir-name" value="xerces2-j"/>
         </antcall>
         <!-- Build it -->
-        <exec dir="build/download/xerces2-j" executable="cmd" osfamily="windows">
+        <exec dir="build/download/xerces2-j" executable="cmd" osfamily="windows" failifexecutionfails="true" failonerror="true">
             <arg line="/c build.bat jar"/>
         </exec>
-        <exec dir="build/download/xerces2-j" executable="/bin/sh" osfamily="unix">
+        <exec dir="build/download/xerces2-j" executable="/bin/sh" osfamily="unix" failifexecutionfails="true" failonerror="true">
             <arg value="build.sh" />
             <arg value="jar" />
         </exec>
