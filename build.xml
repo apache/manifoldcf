@@ -1055,9 +1055,9 @@
         <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/multiprocess-example" perm="a+x" includes="**/*.sh"/>
         <chmod dir="dist/multiprocess-example-proprietary" perm="a+x" includes="**/*.sh"/>
-        <copy todir="dist" file="dist-license/README.txt"/>
-        <copy todir="dist" file="dist-license/NOTICE.txt"/>
-        <copy todir="dist" file="dist-license/LICENSE.txt"/>
+        <copy todir="dist">
+            <fileset dir="dist-license" includes="*.txt"/>
+        </copy>
     </target>
     
     <target name="deliver-framework-doc" depends="doc-framework" if="downloaded">
