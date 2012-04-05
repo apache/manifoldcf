@@ -33,6 +33,9 @@ CONNECTORS-431: Update pom.xml versions.
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-451: mvn-bootstrap scripts were broken.
+(Karl Wright)
+
 CONNECTORS-449: Fix browser simulator so that UI tests work again.
 (Karl Wright)
 
