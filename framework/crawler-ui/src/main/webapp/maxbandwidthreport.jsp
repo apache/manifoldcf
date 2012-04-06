@@ -759,7 +759,7 @@ if (maintenanceUnderway == false)
 		<table class="displaytable">
 		    <tr class="headerrow">
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClass")%></nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytecount");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.HighestBandwidth2")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytecount");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.HighestBandwidth")%></nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.StartTime")%></nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("endtime");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EndTime")%></nobr></a></td>
 		    </tr>

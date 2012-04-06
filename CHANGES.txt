@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-455: Fix an internationalization error on the max activities
+and max bandwidth reports.
+(Karl Wright)
+
 CONNECTORS-450: Make sure all ant exec operations check properly for
 errors.  This should prevent people from getting a bad dependencies
 build if they have the wrong svn client (for instance).
