@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 0.5 =========================
 
+CONNECTORS-457: Fix for i18n problem with unknown locale picking up
+partial translations.
+(Karl Wright, Piergiorgio Lucidi, Alex Ott)
+
 CONNECTORS-454: Provide disclaimer file for all packages, not just
 source package.
 (Karl Wright)
