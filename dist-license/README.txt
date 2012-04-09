@@ -35,7 +35,7 @@ Since you downloaded the binary version of the package, you can just run it.
    issue a "java -version" command from your shell and verify that the Java
    version is 1.5 or greater.
    
-2. In your shell, change to the single-process example directory, "dist/example".
+2. In your shell, change to the single-process example directory, "example".
 
 3. In your shell, type "java -jar start.jar" to start ManifoldCF.
 
