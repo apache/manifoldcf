@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
           "http://forrest.apache.org/dtd/document-v20.dtd">
@@ -52,6 +52,19 @@
 
     <section>
         <title>ニュース</title>
+          <section>
+              <title>2012年04月15日 - ManifoldCF 0.5-incubatingを公開！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは5版を承認</p>
+                <p>主な追加機能:</p>
+                <ul>
+                  <li>コネクタUIテンプレートのApache Velocityサポート</li>
+                  <li>ElasticSearch出力コネクタ</li>
+                  <li>CMISコネクタのCMIS 0.6.0のアップグレード</li>
+                  <li>MySQLのサポート</li>
+                  <li>プロプライエタリコネクタのプレビルドのサポート</li>
+                  <li>多言語対応, 日本語ローカリゼーション</li>
+                </ul>
+          </section>
           <section>
             <title>2012年02月02日 - ManifoldCF 0.4-incubatingを公開！</title>
                 <p>開発者コミュニティ及びApacheインキュベータは4版を承認</p>
