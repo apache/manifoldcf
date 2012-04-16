@@ -55,15 +55,21 @@
     <section>
         <title>News</title>
           <section>
+              <title>15 Apr 2012 - ManifoldCF 0.5-incubating is released!</title>
+                <p>Developer community and Apache Incubator sign off on fifth release:</p>
+                <p>Some of the new features of this release:</p>
+                <ul>
+                  <li>Apache Velocity support for connector UI templates</li>
+                  <li>ElasticSearch Output Connector</li>
+                  <li>CMIS Connector upgraded to CMIS 0.6.0</li>
+                  <li>Support for MySQL database</li>
+                  <li>Prebuilt connector support for proprietary connectors - just add jars and go!</li>
+                  <li>Internationalized, with new Japanese localization</li>
+                </ul>
+          </section>
+          <section>
              <title>02 Feb 2012 - ManifoldCF 0.4-incubating is released!</title>
                 <p>Developer community and Apache Incubator sign off on fourth release.</p>
-                <p>Some of the new features and improvements of this latest release:</p>
-                <ul>
-                  <li>Alfresco Connector</li>
-                  <li>JDBC Connector now supports MySQL</li>
-                  <li>CMIS Connector upgraded to OpenCMIS 0.5.0</li>
-                  <li><a href="http://alturl.com/kfjkx">Several bug fixes</a> over the 0.3-incubating release</li>
-                </ul>
           </section>      
           <section>
              <title>08 Nov 2011 - ManifoldCF in Vancouver</title>
