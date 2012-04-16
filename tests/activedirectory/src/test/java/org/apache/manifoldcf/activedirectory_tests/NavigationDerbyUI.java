@@ -77,12 +77,13 @@ public class NavigationDerbyUI extends BaseUIDerby
     link.click();
     window = testerInstance.findWindow(null);
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("domaincontrollername"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("dcrecord_domaincontrollername"));
     textarea.setValue(testerInstance.createStringDescription("localhost"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("username"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("dcrecord_username"));
     textarea.setValue(testerInstance.createStringDescription("foo"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("authentication"));
-    textarea.setValue(testerInstance.createStringDescription("bar"));
+    button = window.findButton(testerInstance.createStringDescription("Add rule to end of list"));
+    button.click();
+    window = testerInstance.findWindow(null);
 
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));

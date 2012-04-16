@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-460: Add multi-domain-controller support to the
+Active Directory authority.
+(Colin Anderson, Karl Wright)
+
 CONNECTORS-456: Fix a typo in dist-license/README.txt.
 (Karl Wright, Alex Ott)
 

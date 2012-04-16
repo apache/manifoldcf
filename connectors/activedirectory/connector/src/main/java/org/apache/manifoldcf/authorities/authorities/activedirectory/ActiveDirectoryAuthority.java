@@ -41,24 +41,23 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public static final String _rcsid = "@(#)$Id: ActiveDirectoryAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Data from the parameters
-  private String domainControllerName = null;
-  private String userName = null;
-  private String password = null;
-  private String authentication = null;
-  private String userACLsUsername = null;
+  
+  /** The list of suffixes and the associated domain controllers */
+  private List<DCRule> dCRules = null;
+  /** How to create a connection for a DC, keyed by DC name */
+  private Map<String,DCConnectionParameters> dCConnectionParameters = null;
+  
   private String cacheLifetime = null;
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
   private int LRUsize = 1000;
 
-
+  /** Session information for all DC's we talk with. */
+  private Map<String,DCSessionInfo> sessionInfo = null;
+  
   /** Cache manager. */
   private ICacheManager cacheManager = null;
   
-  /** The initialized LDAP context (which functions as a session) */
-  private LdapContext ctx = null;
-  /** The time of last access to this ctx object */
-  private long expiration = -1L;
   
   /** The length of time in milliseconds that the connection remains idle before expiring.  Currently 5 minutes. */
   private static final long expirationInterval = 300000L;
@@ -103,15 +102,48 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
-
-    // First, create server object (llServer)
-    domainControllerName = configParams.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
-    userName = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
-    password = configParams.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
-    authentication = configParams.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
-    userACLsUsername = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
-    if (userACLsUsername == null)
-      userACLsUsername = "sAMAccountName";
+    
+    // Allocate the session data, currently empty
+    sessionInfo = new HashMap<String,DCSessionInfo>();
+    
+    // Set up the DC param set, and the rules
+    dCRules = new ArrayList<DCRule>();
+    dCConnectionParameters = new HashMap<String,DCConnectionParameters>();
+    // For backwards compatibility, look at old-style parameters
+    String domainControllerName = configParams.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
+    String userName = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
+    String password = configParams.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
+    String authentication = configParams.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
+    String userACLsUsername = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
+    if (domainControllerName != null)
+    {
+      // Map the old-style parameters into the new-style structures.
+      dCConnectionParameters.put(domainControllerName,new DCConnectionParameters(userName,password,authentication,userACLsUsername));
+      // Create a single rule, too
+      dCRules.add(new DCRule("",domainControllerName));
+    }
+    else
+    {
+      // New-style parameters.  Read from the config info.
+      int i = 0;
+      while (i < configParams.getChildCount())
+      {
+        ConfigNode cn = configParams.getChild(i++);
+        if (cn.getType().equals(ActiveDirectoryConfig.NODE_DOMAINCONTROLLER))
+        {
+          // Domain controller name is the actual key...
+          String dcName = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_DOMAINCONTROLLER);
+          // Set up the parameters for the domain controller
+          dCConnectionParameters.put(dcName,new DCConnectionParameters(cn.getAttributeValue(ActiveDirectoryConfig.ATTR_USERNAME),
+            deobfuscate(cn.getAttributeValue(ActiveDirectoryConfig.ATTR_PASSWORD)),
+            cn.getAttributeValue(ActiveDirectoryConfig.ATTR_AUTHENTICATION),
+            cn.getAttributeValue(ActiveDirectoryConfig.ATTR_USERACLsUSERNAME)));
+          // Order-based rule, as well
+          dCRules.add(new DCRule(cn.getAttributeValue(ActiveDirectoryConfig.ATTR_SUFFIX),dcName));
+        }
+      }
+    }
+    
     cacheLifetime = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
       cacheLifetime = "1";
@@ -120,6 +152,20 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       cacheLRUsize = "1000";    
   }
 
+  protected static String deobfuscate(String input)
+  {
+    if (input == null)
+      return null;
+    try
+    {
+      return ManifoldCF.deobfuscate(input);
+    }
+    catch (ManifoldCFException e)
+    {
+      return "";
+    }
+  }
+  
   // All methods below this line will ONLY be called if a connect() call succeeded
   // on this instance!
 
@@ -129,38 +175,52 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public String check()
     throws ManifoldCFException
   {
+    // Set up the basic session...
     getSession();
+    // Clear the DC session info, so we're forced to redo it
+    for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
+    {
+      sessionEntry.getValue().closeConnection();
+    }
+    // Loop through all domain controllers and attempt to establish a session with each one.
+    for (String domainController : dCConnectionParameters.keySet())
+    {
+      createDCSession(domainController);
+    }
     return super.check();
   }
 
+  /** Create or lookup a session for a domain controller.
+  */
+  protected LdapContext createDCSession(String domainController)
+    throws ManifoldCFException
+  {
+    getSession();
+    DCConnectionParameters parms = dCConnectionParameters.get(domainController);
+    // Find the session in the hash, if it exists
+    DCSessionInfo session = sessionInfo.get(domainController);
+    if (session == null)
+    {
+      session = new DCSessionInfo();
+      sessionInfo.put(domainController,session);
+    }
+    return session.getSession(domainController,parms);
+  }
+  
   /** Poll.  The connection should be closed if it has been idle for too long.
   */
   @Override
   public void poll()
     throws ManifoldCFException
   {
-    if (expiration != -1L && System.currentTimeMillis() > expiration)
-      closeConnection();
+    long currentTime = System.currentTimeMillis();
+    for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
+    {
+      sessionEntry.getValue().closeIfExpired(currentTime);
+    }
     super.poll();
   }
   
-  /** Close the connection handle, but leave the info around if we open it again. */
-  protected void closeConnection()
-  {
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (NamingException e)
-      {
-        // Eat this error
-      }
-      ctx = null;
-      expiration = -1L;
-    }
-  }
   
   /** Close the connection.  Call this before discarding the repository connector.
   */
@@ -168,12 +228,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public void disconnect()
     throws ManifoldCFException
   {
-    closeConnection();
-    domainControllerName = null;
-    userName = null;
-    password = null;
-    authentication = null;
-    userACLsUsername = null;
+    // Close all connections
+    for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
+    {
+      sessionEntry.getValue().closeConnection();
+    }
+    sessionInfo = null;
+    
     cacheLifetime = null;
     cacheLRUsize = null;
     super.disconnect();
@@ -189,8 +250,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException
   {
     // Construct a cache description object
-    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,domainControllerName,
-      this.userName,this.password,this.responseLifetime,this.LRUsize);
+    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
+      dCConnectionParameters,dCRules,this.responseLifetime,this.LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -229,28 +290,87 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   protected AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
   {
-    //Specify the Base for the search
-    String searchBase = parseUser(userName);
-    if (searchBase == null)
+    //String searchBase = "CN=Administrator,CN=Users,DC=qa-ad-76,DC=metacarta,DC=com";
+    int index = userName.indexOf("@");
+    if (index == -1)
+      throw new ManifoldCFException("Username is in unexpected form (no @): '"+userName+"'");
+    String userPart = userName.substring(0,index);
+    String domainPart = userName.substring(index+1);
+    
+    // Now, look through the rules for the matching domain controller
+    String domainController = null;
+    for (DCRule rule : dCRules)
+    {
+      String suffix = rule.getSuffix();
+      if (suffix.length() == 0 || domainPart.toLowerCase().endsWith(suffix.toLowerCase()) &&
+        (suffix.length() == domainPart.length() || domainPart.charAt(domainPart.length()-suffix.length()) == '.'))
+      {
+        domainController = rule.getDomainControllerName();
+        break;
+      }
+    }
+    if (domainController == null)
+    {
+      // No domain controller found for the user, so return "user not found".
       return userNotFoundResponse;
+    }
+    
+    // Look up connection parameters
+    DCConnectionParameters dcParams = dCConnectionParameters.get(domainController);
+    if (dcParams == null)
+    {
+      // No domain controller, even though it's mentioned in a rule
+      return userNotFoundResponse;
+    }
+    
+    // Use the complete fqn if the field is the "userPrincipalName"
+    String userACLsUsername = dcParams.getUserACLsUsername();
+    if (userACLsUsername != null && userACLsUsername.equals("userPrincipalName")){
+    	userPart = userName;
+    }
+    
+    //Build the DN searchBase from domain part
+    StringBuilder domainsb = new StringBuilder();
+    int j = 0;
+    while (true)
+    {
+      if (j > 0)
+        domainsb.append(",");
 
-    //specify the LDAP search filter
-    String searchFilter = "(objectClass=user)";
-
-    //Create the search controls for finding the access tokens	
-    SearchControls searchCtls = new SearchControls();
-
-    //Specify the search scope, must be base level search for tokenGroups
-    searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
- 
-    //Specify the attributes to return
-    String returnedAtts[]={"tokenGroups","objectSid"};
-    searchCtls.setReturningAttributes(returnedAtts);
+      int k = domainPart.indexOf(".",j);
+      if (k == -1)
+      {
+        domainsb.append("DC=").append(ldapEscape(domainPart.substring(j)));
+        break;
+      }
+      domainsb.append("DC=").append(ldapEscape(domainPart.substring(j,k)));
+      j = k+1;
+    }
 
     try
     {
-      getSession();  
-      //Search for tokens.  Since every user *must* have a SID, the no user detection should be safe.
+      // Establish a session with the selected domain controller
+      LdapContext ctx = createDCSession(domainController);  
+    
+      //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
+      String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
+      if (searchBase == null)
+        return userNotFoundResponse;
+
+      //specify the LDAP search filter
+      String searchFilter = "(objectClass=user)";
+
+      //Create the search controls for finding the access tokens	
+      SearchControls searchCtls = new SearchControls();
+
+      //Specify the search scope, must be base level search for tokenGroups
+      searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
+   
+      //Specify the attributes to return
+      String returnedAtts[]={"tokenGroups","objectSid"};
+      searchCtls.setReturningAttributes(returnedAtts);
+
+      //Search for tokens.  Since every user *must* have a SID, the "no user" detection should be safe.
       NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
 
       ArrayList theGroups = new ArrayList();
@@ -344,72 +464,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
     tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.DomainController"));
     tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.Cache"));
-    
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"function checkConfig()\n"+
-"{\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function checkConfigForSave()\n"+
-"{\n"+
-"  if (editconnection.domaincontrollername.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.EnterADomainControllerServerName") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.DomainController") + "\");\n"+
-"    editconnection.domaincontrollername.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.username.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.DomainController") + "\");\n"+
-"    editconnection.username.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.authentication.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.AuthenticationCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.DomainController") + "\");\n"+
-"    editconnection.authentication.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelifetime.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLifetimeCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
-"    editconnection.cachelifetime.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLifetimeMustBeAnInteger") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
-"    editconnection.cachelifetime.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelrusize.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLRUSizeCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
-"    editconnection.cachelrusize.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.CacheLRUSizeMustBeAnInteger") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"ActiveDirectoryAuthority.Cache") + "\");\n"+
-"    editconnection.cachelrusize.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
   
   /** Output the configuration body section.
@@ -425,97 +480,80 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String domainControllerName = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
-    if (domainControllerName == null)
-      domainControllerName = "";
-    String userName = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME);
-    if (userName == null)
-      userName = "";
-    String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD);
-    if (password == null)
-      password = "";
-    String authentication = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_AUTHENTICATION);
-    if (authentication == null)
-    	authentication = "DIGEST-MD5 GSSAPI";
-    String userACLsUsername = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
-    if (userACLsUsername == null)
-    	userACLsUsername = "sAMAccountName";
-    String cacheLifetime = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELIFETIME);
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TabName",tabName);
+    fillInDomainControllerTab(velocityContext,parameters);
+    fillInCacheTab(velocityContext,parameters);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
+  }
+  
+  protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, ConfigParams parameters)
+  {
+    String domainControllerName = parameters.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
+    String userName = parameters.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
+    String password = parameters.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
+    String authentication = parameters.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
+    String userACLsUsername = parameters.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
+    List<Map<String,String>> domainControllers = new ArrayList<Map<String,String>>();
+    
+    // Backwards compatibility: if domain controller parameter is set, create an entry in the map.
+    if (domainControllerName != null)
+    {
+      domainControllers.add(createDomainControllerMap("",domainControllerName,userName,password,authentication,userACLsUsername));
+    }
+    else
+    {
+      // Go through nodes looking for DC nodes
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i++);
+        if (cn.getType().equals(ActiveDirectoryConfig.NODE_DOMAINCONTROLLER))
+        {
+          // Grab the info
+          String dcSuffix = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_SUFFIX);
+          String dcDomainController = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_DOMAINCONTROLLER);
+          String dcUserName = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_USERNAME);
+          String dcPassword = deobfuscate(cn.getAttributeValue(ActiveDirectoryConfig.ATTR_PASSWORD));
+          String dcAuthentication = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_AUTHENTICATION);
+          String dcUserACLsUsername = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_USERACLsUSERNAME);
+          domainControllers.add(createDomainControllerMap(dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
+        }
+      }
+    }
+    velocityContext.put("DOMAINCONTROLLERS",domainControllers);
+  }
+
+  protected static Map<String,String> createDomainControllerMap(String suffix, String domainControllerName,
+    String userName, String password, String authentication, String userACLsUsername)
+  {
+    Map<String,String> defaultMap = new HashMap<String,String>();
+    if (suffix != null)
+      defaultMap.put("SUFFIX",suffix);
+    if (domainControllerName != null)
+      defaultMap.put("DOMAINCONTROLLER",domainControllerName);
+    if (userName != null)
+      defaultMap.put("USERNAME",userName);
+    if (password != null)
+      defaultMap.put("PASSWORD",password);
+    if (authentication != null)
+      defaultMap.put("AUTHENTICATION",authentication);
+    if (userACLsUsername != null)
+      defaultMap.put("USERACLsUSERNAME",userACLsUsername);
+    return defaultMap;
+  }
+  
+  protected static void fillInCacheTab(Map<String,Object> velocityContext, ConfigParams parameters)
+  {
+    String cacheLifetime = parameters.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
       cacheLifetime = "1";
-    String cacheLRUsize = parameters.getParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
+    velocityContext.put("CACHELIFETIME",cacheLifetime);
+    String cacheLRUsize = parameters.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
     if (cacheLRUsize == null)
-      cacheLRUsize = "1000";    
-    
-    // The "Domain Controller" tab
-    if (tabName.equals(Messages.getString(locale,"ActiveDirectoryAuthority.DomainController")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.DomainControllerName") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"domaincontrollername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainControllerName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.AdministrativeUserName") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.AdministrativePassword") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.Authentication") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.LoginNameADAttribute") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"userACLsUsername\">\n"+
-"        <option value=\"sAMAccountName\""+(userACLsUsername.equals("sAMAccountName")?" selected=\"true\"":"")+">sAMAccountName</option>\n"+
-"        <option value=\"userPrincipalName\""+(userACLsUsername.equals("userPrincipalName")?" selected=\"true\"":"")+">userPrincipalName</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Domain Controller tab
-      out.print(
-"<input type=\"hidden\" name=\"domaincontrollername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainControllerName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
-"<input type=\"hidden\" name=\"authentication\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authentication)+"\"/>\n"
-      );
-    }
-    // The "Cache" tab
-    if (tabName.equals(Messages.getString(locale,"ActiveDirectoryAuthority.Cache")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.CacheLifetime") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime)+"\"/> " + Messages.getBodyString(locale,"ActiveDirectoryAuthority.minutes") + "</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.CacheLRUSize") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize)+"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Domain Controller tab
-      out.print(
-"<input type=\"hidden\" name=\"cachelifetime\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime)+"\"/>\n"+
-"<input type=\"hidden\" name=\"cachelrusize\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize)+"\"/>\n"
-      );
-    }    
+      cacheLRUsize = "1000";
+    velocityContext.put("CACHELRUSIZE",cacheLRUsize);
   }
   
   /** Process a configuration post.
@@ -531,29 +569,100 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
-    String domainControllerName = variableContext.getParameter("domaincontrollername");
-    if (domainControllerName != null)
-      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER,domainControllerName);
-    String userName = variableContext.getParameter("username");
-    if (userName != null)
-      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERNAME,userName);
-    String password = variableContext.getParameter("password");
-    if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_PASSWORD,password);
-    String authentication = variableContext.getParameter("authentication");
-    if (authentication != null)
-      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_AUTHENTICATION,authentication);
-    String userACLsUsername = variableContext.getParameter("userACLsUsername");
-    if (userACLsUsername != null)
-      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_USERACLsUSERNAME,userACLsUsername);
+    String x = variableContext.getParameter("dcrecord_count");
+    if (x != null)
+    {
+      // Delete old stuff
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER,null);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_USERNAME,null);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_PASSWORD,null);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION,null);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME,null);
+      // Delete old nodes
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode cn = parameters.getChild(i);
+        if (cn.getType().equals(ActiveDirectoryConfig.NODE_DOMAINCONTROLLER))
+          parameters.removeChild(i);
+        else
+          i++;
+      }
+      // Scan form fields and apply operations
+      int count = Integer.parseInt(x);
+      i = 0;
+      String op;
+      
+      Set<String> seenDomains = new HashSet<String>();
+      
+      while (i < count)
+      {
+        op = variableContext.getParameter("dcrecord_op_"+i);
+        if (op != null && op.equals("Insert"))
+        {
+          // Insert a new record right here
+          addDomainController(seenDomains,parameters,
+            variableContext.getParameter("dcrecord_suffix"),
+            variableContext.getParameter("dcrecord_domaincontrollername"),
+            variableContext.getParameter("dcrecord_username"),
+            variableContext.getParameter("dcrecord_password"),
+            variableContext.getParameter("dcrecord_authentication"),
+            variableContext.getParameter("dcrecord_userACLsUsername"));
+        }
+        if (op == null || !op.equals("Delete"))
+        {
+          // Add this record back in
+          addDomainController(seenDomains,parameters,
+            variableContext.getParameter("dcrecord_suffix_"+i),
+            variableContext.getParameter("dcrecord_domaincontrollername_"+i),
+            variableContext.getParameter("dcrecord_username_"+i),
+            variableContext.getParameter("dcrecord_password_"+i),
+            variableContext.getParameter("dcrecord_authentication_"+i),
+            variableContext.getParameter("dcrecord_userACLsUsername_"+i));
+        }
+        i++;
+      }
+      op = variableContext.getParameter("dcrecord_op");
+      if (op != null && op.equals("Add"))
+      {
+        // Insert a new record right here
+        addDomainController(seenDomains,parameters,
+          variableContext.getParameter("dcrecord_suffix"),
+          variableContext.getParameter("dcrecord_domaincontrollername"),
+          variableContext.getParameter("dcrecord_username"),
+          variableContext.getParameter("dcrecord_password"),
+          variableContext.getParameter("dcrecord_authentication"),
+          variableContext.getParameter("dcrecord_userACLsUsername"));
+      }
+    }
+    
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
-      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELIFETIME,cacheLifetime);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME,cacheLifetime);
     String cacheLRUsize = variableContext.getParameter("cachelrusize");
     if (cacheLRUsize != null)
-      parameters.setParameter(org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryConfig.PARAM_CACHELRUSIZE,cacheLRUsize);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE,cacheLRUsize);
     
     return null;
+  }
+  
+  protected static void addDomainController(Set<String> seenDomains, ConfigParams parameters,
+    String suffix, String domainControllerName, String userName, String password, String authentication,
+    String userACLsUsername)
+    throws ManifoldCFException
+  {
+    if (!seenDomains.contains(domainControllerName))
+    {
+      ConfigNode cn = new ConfigNode(ActiveDirectoryConfig.NODE_DOMAINCONTROLLER);
+      cn.setAttribute(ActiveDirectoryConfig.ATTR_SUFFIX,suffix);
+      cn.setAttribute(ActiveDirectoryConfig.ATTR_DOMAINCONTROLLER,domainControllerName);
+      cn.setAttribute(ActiveDirectoryConfig.ATTR_USERNAME,userName);
+      cn.setAttribute(ActiveDirectoryConfig.ATTR_PASSWORD,ManifoldCF.obfuscate(password));
+      cn.setAttribute(ActiveDirectoryConfig.ATTR_AUTHENTICATION,authentication);
+      cn.setAttribute(ActiveDirectoryConfig.ATTR_USERACLsUSERNAME,userACLsUsername);
+      parameters.addChild(parameters.getChildCount(),cn);
+      seenDomains.add(domainControllerName);
+    }
   }
   
   /** View configuration.
@@ -567,129 +676,20 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"ActiveDirectoryAuthority.Parameters") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"
-    );
-    Iterator iter = parameters.listParameters();
-    while (iter.hasNext())
-    {
-      String param = (String)iter.next();
-      String value = parameters.getParameter(param);
-      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
-        );
-      }
-      else if (param.length() >="cache lifetime".length() && param.substring(param.length()-"cache lifetime".length()).equalsIgnoreCase("cache lifetime"))
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+" " + Messages.getString(locale,"ActiveDirectoryAuthority.minutes") + "</nobr><br/>\n"
-        );
-      }      
-      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
-      {
-        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" " + Messages.getString(locale,"ActiveDirectoryAuthority.certificate") + "></nobr><br/>\n"
-        );
-      }
-      else
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
-        );
-      }
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    fillInDomainControllerTab(velocityContext,parameters);
+    fillInCacheTab(velocityContext,parameters);
+    Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 
   // Protected methods
 
+  /** Basic "session" setup.  This does not set up sessions with any DC's, but only validates the incoming scalar
+  * parameters.  Setting up sessions with specific DC's requires other method calls in addition to this one.
+  */
   protected void getSession()
     throws ManifoldCFException
   {
-    while (true)
-    {
-      if (ctx == null)
-      {
-        // Calculate the ldap url first
-        String ldapURL = "ldap://" + domainControllerName + ":389";
-        
-        Hashtable env = new Hashtable();
-        env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.SECURITY_AUTHENTICATION,authentication);      
-        env.put(Context.SECURITY_PRINCIPAL,userName);
-        env.put(Context.SECURITY_CREDENTIALS,password);
-                                  
-        //connect to my domain controller
-        env.put(Context.PROVIDER_URL,ldapURL);
-                  
-        //specify attributes to be returned in binary format
-        env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
-   
-        // Now, try the connection...
-        try
-        {
-          ctx = new InitialLdapContext(env,null);
-          // If successful, break
-          break;
-        }
-        catch (AuthenticationException e)
-        {
-          // This means we couldn't authenticate!
-          throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
-        }
-        catch (CommunicationException e)
-        {
-          // This means we couldn't connect, most likely
-          throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
-        }
-        catch (NamingException e)
-        {
-          throw new ManifoldCFException(e.getMessage(),e);
-        }
-      }
-      else
-      {
-        // Attempt to reconnect.  I *hope* this is efficient and doesn't do unnecessary work.
-        try
-        {
-          ctx.reconnect(null);
-          // Break on apparent success
-          break;
-        }
-        catch (AuthenticationException e)
-        {
-          // This means we couldn't authenticate!  Log it and retry creating a whole new context.
-          Logging.authorityConnectors.warn("Reconnect: Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
-        }
-        catch (CommunicationException e)
-        {
-          // This means we couldn't connect, most likely.  Log it and retry creating a whole new context.
-          Logging.authorityConnectors.warn("Reconnect: Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
-        }
-        catch (NamingException e)
-        {
-          Logging.authorityConnectors.warn("Reconnect: Naming exception: "+e.getMessage(),e);
-        }
-        
-        // So we have no chance of leaking resources, attempt to close the context.
-        closeConnection();
-        // Loop back around to try our luck with a fresh connection.
-
-      }
-    }
-    
-    expiration = System.currentTimeMillis() + expirationInterval;
-    
     try
     {
       responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
@@ -702,54 +702,17 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     
   }
   
-  /** Parse a user name into an ldap search base. */
-  protected String parseUser(String userName)
-    throws ManifoldCFException
-  {
-    //String searchBase = "CN=Administrator,CN=Users,DC=qa-ad-76,DC=metacarta,DC=com";
-    int index = userName.indexOf("@");
-    if (index == -1)
-      throw new ManifoldCFException("Username is in unexpected form (no @): '"+userName+"'");
-    String userPart = userName.substring(0,index);
-    String domainPart = userName.substring(index+1);
-    if (userACLsUsername.equals("userPrincipalName")){
-    	userPart = userName;
-    }
-    
-    //Build the DN searchBase from domain part
-    StringBuilder domainsb = new StringBuilder();
-    int j = 0;
-    while (true)
-    {
-      if (j > 0)
-        domainsb.append(",");
-
-      int k = domainPart.indexOf(".",j);
-      if (k == -1)
-      {
-        domainsb.append("DC=").append(ldapEscape(domainPart.substring(j)));
-        break;
-      }
-      domainsb.append("DC=").append(ldapEscape(domainPart.substring(j,k)));
-      j = k+1;
-    }
-
-    //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
-    String userDN = getDistinguishedName(userPart, domainsb.toString());
-
-    return userDN;
-  }
   
-  /** Obtain the DistinguishedNamefor a given user logon name.
+  /** Obtain the DistinguishedName for a given user logon name.
+  *@param ctx is the ldap context to use.
   *@param userName (Domain Logon Name) is the user name or identifier.
   *@param searchBase (Full Domain Name for the search ie: DC=qa-ad-76,DC=metacarta,DC=com)
   *@return DistinguishedName for given domain user logon name. 
   * (Should throws an exception if user is not found.)
   */
-  protected String getDistinguishedName(String userName, String searchBase)
+  protected String getDistinguishedName(LdapContext ctx, String userName, String searchBase, String userACLsUsername)
     throws ManifoldCFException
   {
-    getSession();  
     String returnedAtts[] = {"distinguishedName"};
     String searchFilter = "(&(objectClass=user)(" + userACLsUsername + "=" + userName + "))";
     SearchControls searchCtls = new SearchControls();
@@ -830,6 +793,194 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     return strSID.toString();
   }
 
+  /** Class representing the session information for a specific domain controller
+  * connection.
+  */
+  protected static class DCSessionInfo
+  {
+    /** The initialized LDAP context (which functions as a session) */
+    private LdapContext ctx = null;
+    /** The time of last access to this ctx object */
+    private long expiration = -1L;
+    
+    public DCSessionInfo()
+    {
+    }
+
+    /** Initialize the session. */
+    public LdapContext getSession(String domainControllerName, DCConnectionParameters params)
+      throws ManifoldCFException
+    {
+      String authentication = params.getAuthentication();
+      String userName = params.getUserName();
+      String password = params.getPassword();
+      
+      while (true)
+      {
+        if (ctx == null)
+        {
+          // Calculate the ldap url first
+          String ldapURL = "ldap://" + domainControllerName + ":389";
+          
+          Hashtable env = new Hashtable();
+          env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
+          env.put(Context.SECURITY_AUTHENTICATION,authentication);      
+          env.put(Context.SECURITY_PRINCIPAL,userName);
+          env.put(Context.SECURITY_CREDENTIALS,password);
+                                    
+          //connect to my domain controller
+          env.put(Context.PROVIDER_URL,ldapURL);
+                    
+          //specify attributes to be returned in binary format
+          env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
+     
+          // Now, try the connection...
+          try
+          {
+            ctx = new InitialLdapContext(env,null);
+            // If successful, break
+            break;
+          }
+          catch (AuthenticationException e)
+          {
+            // This means we couldn't authenticate!
+            throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+          }
+          catch (CommunicationException e)
+          {
+            // This means we couldn't connect, most likely
+            throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+          }
+          catch (NamingException e)
+          {
+            throw new ManifoldCFException(e.getMessage(),e);
+          }
+        }
+        else
+        {
+          // Attempt to reconnect.  I *hope* this is efficient and doesn't do unnecessary work.
+          try
+          {
+            ctx.reconnect(null);
+            // Break on apparent success
+            break;
+          }
+          catch (AuthenticationException e)
+          {
+            // This means we couldn't authenticate!  Log it and retry creating a whole new context.
+            Logging.authorityConnectors.warn("Reconnect: Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+          }
+          catch (CommunicationException e)
+          {
+            // This means we couldn't connect, most likely.  Log it and retry creating a whole new context.
+            Logging.authorityConnectors.warn("Reconnect: Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+          }
+          catch (NamingException e)
+          {
+            Logging.authorityConnectors.warn("Reconnect: Naming exception: "+e.getMessage(),e);
+          }
+          
+          // So we have no chance of leaking resources, attempt to close the context.
+          closeConnection();
+          // Loop back around to try our luck with a fresh connection.
+
+        }
+      }
+      
+      // Set the expiration time anew
+      expiration = System.currentTimeMillis() + expirationInterval;
+      return ctx;
+    }
+    
+    /** Close the connection handle. */
+    protected void closeConnection()
+    {
+      if (ctx != null)
+      {
+        try
+        {
+          ctx.close();
+        }
+        catch (NamingException e)
+        {
+          // Eat this error
+        }
+        ctx = null;
+        expiration = -1L;
+      }
+    }
+
+    /** Close connection if it has expired. */
+    protected void closeIfExpired(long currentTime)
+    {
+      if (expiration != -1L && currentTime > expiration)
+        closeConnection();
+    }
+
+  }
+
+  /** Class describing a domain suffix and corresponding domain controller name rule.
+  */
+  protected static class DCRule
+  {
+    private String suffix;
+    private String domainControllerName;
+    
+    public DCRule(String suffix, String domainControllerName)
+    {
+      this.suffix = suffix;
+      this.domainControllerName = domainControllerName;
+    }
+    
+    public String getSuffix()
+    {
+      return suffix;
+    }
+    
+    public String getDomainControllerName()
+    {
+      return domainControllerName;
+    }
+  }
+  
+  /** Class describing the connection parameters to a domain controller.
+  */
+  protected static class DCConnectionParameters
+  {
+    private String userName;
+    private String password;
+    private String authentication;
+    private String userACLsUsername;
+
+    public DCConnectionParameters(String userName, String password, String authentication, String userACLsUsername)
+    {
+      this.userName = userName;
+      this.password = password;
+      this.authentication = authentication;
+      this.userACLsUsername = userACLsUsername;
+    }
+    
+    public String getUserName()
+    {
+      return userName;
+    }
+    
+    public String getPassword()
+    {
+      return password;
+    }
+    
+    public String getAuthentication()
+    {
+      return authentication;
+    }
+    
+    public String getUserACLsUsername()
+    {
+      return userACLsUsername;
+    }
+  }
+  
   protected static StringSet emptyStringSet = new StringSet();
   
   /** This is the cache object descriptor for cached access tokens from
@@ -837,28 +988,25 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   */
   protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
   {
-    /** The user name associated with the access tokens */
+    /** The user name */
     protected String userName;
-    /** The domain controller associated with the access tokens */
-    protected String domainControllerName;
-    /** The admin user name */
-    protected String adminUserName;
-    /** The admin password */
-    protected String adminPassword;
+    /** Connection parameters */
+    protected Map<String,DCConnectionParameters> dcConnectionParams;
+    /** Rules */
+    protected List<DCRule> dcRules;
     /** The response lifetime */
     protected long responseLifetime;
     /** The expiration time */
     protected long expirationTime = -1;
     
     /** Constructor. */
-    public AuthorizationResponseDescription(String userName, String domainControllerName,
-      String adminUserName, String adminPassword, long responseLifetime, int LRUsize)
+    public AuthorizationResponseDescription(String userName, Map<String,DCConnectionParameters> dcConnectionParams,
+      List<DCRule> dcRules, long responseLifetime, int LRUsize)
     {
       super("ActiveDirectoryAuthority",LRUsize);
       this.userName = userName;
-      this.domainControllerName = domainControllerName;
-      this.adminUserName = adminUserName;
-      this.adminPassword = adminPassword;
+      this.dcConnectionParams = dcConnectionParams;
+      this.dcRules = dcRules;
       this.responseLifetime = responseLifetime;
     }
 
@@ -871,8 +1019,16 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     /** Get the critical section name, used for synchronizing the creation of the object */
     public String getCriticalSectionName()
     {
-      return getClass().getName() + "-" + userName + "-" + domainControllerName +
-        "-" + adminUserName + "-" + adminPassword;
+      StringBuilder sb = new StringBuilder(getClass().getName());
+      sb.append("-").append(userName);
+      for (DCRule rule : dcRules)
+      {
+        sb.append("-").append(rule.getSuffix());
+        String domainController = rule.getDomainControllerName();
+        DCConnectionParameters params = dcConnectionParams.get(domainController);
+        sb.append("-").append(domainController).append("-").append(params.getUserName()).append("-").append(params.getPassword());
+      }
+      return sb.toString();
     }
 
     /** Return the object expiration interval */
@@ -885,8 +1041,14 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 
     public int hashCode()
     {
-      return userName.hashCode() + domainControllerName.hashCode() + adminUserName.hashCode() +
-        adminPassword.hashCode();
+      int rval = userName.hashCode();
+      for (DCRule rule : dcRules)
+      {
+        String domainController = rule.getDomainControllerName();
+        DCConnectionParameters params = dcConnectionParams.get(domainController);
+        rval += rule.getSuffix().hashCode() + domainController.hashCode() + params.getUserName().hashCode() + params.getPassword().hashCode();
+      }
+      return rval;
     }
     
     public boolean equals(Object o)
@@ -894,8 +1056,23 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       if (!(o instanceof AuthorizationResponseDescription))
         return false;
       AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
-      return ard.userName.equals(userName) && ard.domainControllerName.equals(domainControllerName) &&
-        ard.adminUserName.equals(adminUserName) && ard.adminPassword.equals(adminPassword);
+      if (!ard.userName.equals(userName))
+        return false;
+      if (ard.dcRules.size() != dcRules.size())
+        return false;
+      for (int i = 0 ; i < dcRules.size() ; i++)
+      {
+        DCRule rule = dcRules.get(i);
+        DCRule ardRule = ard.dcRules.get(i);
+        if (!rule.getSuffix().equals(ardRule.getSuffix()) || !rule.getDomainControllerName().equals(ardRule.getDomainControllerName()))
+          return false;
+        String domainController = rule.getDomainControllerName();
+        DCConnectionParameters params = dcConnectionParams.get(domainController);
+        DCConnectionParameters ardParams = ard.dcConnectionParams.get(domainController);
+        if (!params.getUserName().equals(ardParams.getUserName()) || !params.getPassword().equals(ardParams.getPassword()))
+          return false;
+      }
+      return true;
     }
     
   }

@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.authorities.authorities.activedirectory;
 
 
-/** Parameters and output data for MetaCarta GTS output connector.
+/** Parameters and output data for Active Directory authority.
 */
 public class ActiveDirectoryConfig
 {
@@ -41,5 +41,23 @@ public class ActiveDirectoryConfig
   public static final String PARAM_CACHELIFETIME = "Cache lifetime";
   /** Cache LRU size */
   public static final String PARAM_CACHELRUSIZE = "Cache LRU size";
+
+  /** Domain controller node */
+  public static final String NODE_DOMAINCONTROLLER = "domaincontroller";
+  
+  // Attributes
+  
+  /** Domain suffix */
+  public static final String ATTR_SUFFIX = "suffix";
+  /** DC server name */
+  public static final String ATTR_DOMAINCONTROLLER = "domaincontroller";
+  /** DC user name */
+  public static final String ATTR_USERNAME = "username";
+  /** DC password */
+  public static final String ATTR_PASSWORD = "password";
+  /** DC authentication method */
+  public static final String ATTR_AUTHENTICATION = "authentication";
+  /** DC user acls username attribute name */
+  public static final String ATTR_USERACLsUSERNAME = "useraclsusername";
 
 }

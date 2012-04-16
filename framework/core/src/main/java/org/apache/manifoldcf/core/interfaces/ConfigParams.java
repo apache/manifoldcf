@@ -187,10 +187,13 @@ public class ConfigParams extends Configuration
         i++;
       }
     }
-    ConfigNode cn = new ConfigNode(PARAMETER_TYPE);
-    cn.setAttribute(ATTR_NAME,key);
-    cn.setValue(value);
-    addChild(getChildCount(),cn);
+    if (value != null)
+    {
+      ConfigNode cn = new ConfigNode(PARAMETER_TYPE);
+      cn.setAttribute(ATTR_NAME,key);
+      cn.setValue(value);
+      addChild(getChildCount(),cn);
+    }
   }
 
   /** Set an obfuscated parameter.
