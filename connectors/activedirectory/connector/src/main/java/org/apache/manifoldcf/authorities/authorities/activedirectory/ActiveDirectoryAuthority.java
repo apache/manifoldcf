@@ -303,7 +303,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     {
       String suffix = rule.getSuffix();
       if (suffix.length() == 0 || domainPart.toLowerCase().endsWith(suffix.toLowerCase()) &&
-        (suffix.length() == domainPart.length() || domainPart.charAt(domainPart.length()-suffix.length()) == '.'))
+        (suffix.length() == domainPart.length() || domainPart.charAt((domainPart.length()-suffix.length())-1) == '.'))
       {
         domainController = rule.getDomainControllerName();
         break;
