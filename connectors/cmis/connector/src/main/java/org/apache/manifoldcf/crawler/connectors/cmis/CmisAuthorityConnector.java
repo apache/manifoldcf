@@ -162,10 +162,10 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
     {
     out.print("<table class=\"displaytable\">\n"
         + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.Endpoint") + "</nobr></td>" +
+    out.print("<tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"CmisAuthorityConnector.Endpoint") + "</nobr></td>" +
         "<td class=\"value\"><input type=\"text\" name=\""
         + CONFIG_PARAM_ENDPOINT + "\" value=\""+Encoder.attributeEscape(endpoint)+"\" size=\"50\"/></td></tr>\n");
-    out.print("<tr><td class=\"description\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.RepositoryID") + "</nobr></td>" +
+    out.print("<tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"CmisAuthorityConnector.RepositoryID") + "</nobr></td>" +
         "<td class=\"value\"><input type=\"text\" name=\""
         + CONFIG_PARAM_REPOSITORY_ID + "\" value=\""+Encoder.attributeEscape(repositoryId)+"\"/></td></tr>\n");
     out.print("</table>\n");
@@ -182,7 +182,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.UserMapping") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"CmisAuthorityConnector.UserMapping") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"32\" name=\""+CONFIG_PARAM_USERNAME_REGEXP+"\" value=\""+
   Encoder.attributeEscape(usernameRegexp)+"\"/> ==&gt; \n"+
@@ -233,15 +233,15 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
     out.print("<script type=\"text/javascript\">\n" + "<!--\n"
         + "function checkConfig()\n" + "{\n"
         + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
-        + "    alert(\"" + Messages.getString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
+        + "    alert(\"" + Messages.getBodyJavascriptString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
         + "  }\n" + "\n" + "  return true;\n" + "}\n" + " \n"
         + "function checkConfigForSave()\n" + "{\n"
         + "  if (editconnection.endpoint.value == \"\")\n" + "  {\n"
-        + "    alert(\"" + Messages.getString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
+        + "    alert(\"" + Messages.getBodyJavascriptString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
         + "  }\n" + "  if (editconnection.repositoryId.value == \"\")\n" + "  {\n"
-        + "    alert(\"" + Messages.getString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
+        + "    alert(\"" + Messages.getBodyJavascriptString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.repositoryId.focus();\n" + "    return false;\n"
         + "  }\n" + "  return true;\n" + "}\n" + "\n" + "//-->\n"
         + "</script>\n");
@@ -315,7 +315,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     out.print("<table class=\"displaytable\">\n"
         + "  <tr>\n"
-        + "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"CmisAuthorityConnector.Parameters") + "</nobr></td>\n"
+        + "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"CmisAuthorityConnector.Parameters") + "</nobr></td>\n"
         + "    <td class=\"value\" colspan=\"3\">\n");
     Iterator iter = parameters.listParameters();
     while (iter.hasNext()) {

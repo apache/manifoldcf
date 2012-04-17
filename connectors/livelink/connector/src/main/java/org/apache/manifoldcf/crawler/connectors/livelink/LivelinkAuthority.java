@@ -470,13 +470,13 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "{\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"LivelinkConnector.AValidNumberIsRequired") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberIsRequired") + ");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.usernameregexp.value != \"\" && !isRegularExpression(editconnection.usernameregexp.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"LivelinkConnector.UserNameRegularExpressionMustBeValidRegularExpression") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionMustBeValidRegularExpression") + ");\n"+
 "    editconnection.usernameregexp.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -487,22 +487,22 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"LivelinkConnector.EnterALivelinkServerName") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"LivelinkConnector.Server") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterALivelinkServerName") + ");\n"+
+"    SelectTab(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + ");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"LivelinkConnector.AServerPortNumberIsRequired") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"LivelinkConnector.Server") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired") + ");\n"+
+"    SelectTab(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + ");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.usernameregexp.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"LivelinkConnector.UserNameRegularExpressionCannotBeNull") + ");\n"+
-"    SelectTab(" + Messages.getString(locale,"LivelinkConnector.UserMapping") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionCannotBeNull") + ");\n"+
+"    SelectTab(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserMapping") + ");\n"+
 "    editconnection.usernameregexp.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -568,19 +568,19 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"LivelinkConnector.ServerName") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"LivelinkConnector.ServerPort") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerPort") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"LivelinkConnector.ServerUserName") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerUserName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"LivelinkConnector.ServerPassword") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerPassword") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -604,11 +604,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"LivelinkConnector.UserNameRegularExpression") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.UserNameRegularExpression") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"usernameregexp\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getString(locale,"LivelinkConnector.LivelinkUserExpression") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.LivelinkUserExpression") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"livelinkuserexpr\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/></td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -679,7 +679,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getString(locale,"LivelinkConnector.Parameters") + "</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.Parameters") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"3\">\n"
     );
     Iterator iter = parameters.listParameters();

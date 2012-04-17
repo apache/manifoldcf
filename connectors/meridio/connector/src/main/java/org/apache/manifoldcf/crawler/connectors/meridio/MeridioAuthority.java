@@ -770,7 +770,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "  if (editconnection.metacartawsServerPort.value != \"\" && !isInteger(editconnection.metacartawsServerPort.value))\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.PleaseSupplyAUserServicePortNumber") + "\");\n"+
-"    SelectTab(\"" + Messages.getString(locale,"MeridioConnector.UserServiceServer") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.UserServiceServer") + "\");\n"+
 "    editconnection.metacartawsServerPort.focus();\n"+
 "    return false;\n"+
 "  }\n"+

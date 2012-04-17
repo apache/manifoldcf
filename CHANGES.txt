@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-435: Replace incorrect Messages.getString() calls in the main
+UI with correct ones.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-460: Add multi-domain-controller support to the
 Active Directory authority.
 (Colin Anderson, Karl Wright)

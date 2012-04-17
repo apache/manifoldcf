@@ -1878,7 +1878,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (editjob.pathaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.SelectAFolderFirst") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFolderFirst") + ");\n"+
 "    editjob.pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1889,13 +1889,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (eval(\"editjob.matchfield_\"+docclass+\".value\") == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.SelectAFieldFirst") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFieldFirst") + ");\n"+
 "    eval(\"editjob.matchfield_\"+docclass+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
 "  if (eval(\"editjob.matchtype_\"+docclass+\".value\") == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.SelectAMatchType") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAMatchType") + ");\n"+
 "    eval(\"editjob.matchtype_\"+docclass+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
@@ -1907,7 +1907,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getString(locale,"FilenetConnector.NullTokensNotAllowed") + ");\n"+
+"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.NullTokensNotAllowed") + ");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2228,7 +2228,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                  <input type=\"hidden\" name=\""+"matchcount_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" value=\""+Integer.toString(matchCount)+"\"/>\n"+
 "                  <input type=\"hidden\" name=\""+addOpName+"\" value=\"\"/>\n"+
 "                  <a name=\""+addLabelName+"\">\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getString(locale,"FilenetConnector.AddMatchFor") +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddMatchFor") +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\" onClick='Javascript:SpecAddMatch(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\",\"match_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"_"+Integer.toString(q+1)+"\")'/>\n"+
 "                  </a>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
@@ -2248,9 +2248,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "                </td>\n"+
 "                <td class=\"value\">\n"+
 "                  <select name=\"matchtype_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(documentClass)+"\">\n"+
-"                    <option value=\"=\">" + Messages.getString(locale,"FilenetConnector.Equals") + "</option>\n"+
-"                    <option value=\"!=\">" + Messages.getString(locale,"FilenetConnector.NotEquals") + "</option>\n"+
-"                    <option value=\"LIKE\">" + Messages.getString(locale,"FilenetConnector.Like") + "</option>\n"+
+"                    <option value=\"=\">" + Messages.getBodyString(locale,"FilenetConnector.Equals") + "</option>\n"+
+"                    <option value=\"!=\">" + Messages.getBodyString(locale,"FilenetConnector.NotEquals") + "</option>\n"+
+"                    <option value=\"LIKE\">" + Messages.getBodyString(locale,"FilenetConnector.Like") + "</option>\n"+
 "                  </select>\n"+
 "                </td>\n"+
 "                <td class=\"value\">\n"+
@@ -2480,8 +2480,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FilenetConnector.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
-"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />" + Messages.getString(locale,"FilenetConnector.Enabled") +
-"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getString(locale,"FilenetConnector.Disabled") + 
+"      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+((securityOn)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"FilenetConnector.Enabled") +
+"      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />" + Messages.getBodyString(locale,"FilenetConnector.Disabled") + 
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -2503,7 +2503,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
 "      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+ Messages.getString(locale,"FilenetConnector.DeleteAccessToken")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Delete") + "\" alt=\""+ Messages.getAttributeString(locale,"FilenetConnector.DeleteAccessToken")+Integer.toString(k)+"\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2529,7 +2529,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
 "      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getString(locale,"FilenetConnector.AddAccessToken") + "\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
+"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddAccessToken") + "\" onClick='Javascript:SpecAddToken(\"token_"+Integer.toString(k+1)+"\")'/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">\n"+
@@ -2939,7 +2939,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         if (q == 0)
         {
           out.print(
-"                  <nobr>(" + Messages.getString(locale,"FilenetConnector.AllDocumentsInClass") + "\""+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(docclass)+"\")</nobr>\n"
+"                  <nobr>(" + Messages.getBodyString(locale,"FilenetConnector.AllDocumentsInClass") + "\""+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(docclass)+"\")</nobr>\n"
           );
         }
         out.print(
