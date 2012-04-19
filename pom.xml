@@ -42,7 +42,7 @@
     <mysql.version>5.1.18</mysql.version>
     <hsqldb.version>2.2.8</hsqldb.version>
     <derby.version>10.8.2.2</derby.version>
-    <jetty.version>6.1.26</jetty.version>
+    <jetty.version>7.5.4.v20111024</jetty.version>
     <commons-codec.version>1.5</commons-codec.version>
     <commons-io.version>2.0.1</commons-io.version>
     <commons-logging.version>1.1.1</commons-logging.version>
@@ -56,13 +56,12 @@
     <jtds.version>1.2.4</jtds.version>
     <servlet-api.version>2.5</servlet-api.version>
     <jstl.version>1.2</jstl.version>
-    <jsp-api-2.1.version>6.1.14</jsp-api-2.1.version>
-    <jsp-api.version>2.1</jsp-api.version>
-    <jsp-2.1-glassfish.version>2.1.v20091210</jsp-2.1-glassfish.version>
+    <glassfish.version>2.1.v20091210</glassfish.version>
     <log4j.version>1.2.16</log4j.version>
     <jdbcpool.version>0.99</jdbcpool.version>
     <json.version>20090211</json.version>
     <velocity.version>1.7</velocity.version>
+    <slf4j.version>1.6.4</slf4j.version>
   </properties>
 
   <modules>

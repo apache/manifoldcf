@@ -22,7 +22,7 @@
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
         <available file="lib/derby.jar" property="derby-found"/>
-        <available file="lib/jetty.jar" property="jetty-found"/>
+        <available file="lib/jetty-server.jar" property="jetty-found"/>
         <available file="lib/commons-httpclient.jar" property="httpclient-found"/>
         <available file="lib/xercesImpl.jar" property="xerces-found"/>
         <available file="lib/fop.jar" property="fop-found"/>
@@ -162,20 +162,7 @@
       <echo message="Site did not build.  Was FORREST_HOME set properly?"/>
     </target>
     
-    <target name="build-json">
-        <mkdir dir="build/json/classes"/>
-        <javac srcdir="json" destdir="build/json/classes" target="1.5" source="1.4" debug="true" debuglevel="lines,vars,source">
-            <classpath>
-            </classpath>
-        </javac>
-    </target>
-    
-    <target name="jar-json" depends="build-json">
-        <mkdir dir="build/jar"/>
-        <jar destfile="build/jar/json.jar" basedir="build/json/classes"/>
-    </target>
-    
-    <target name="setup-framework" depends="jar-json,downloaded-check" if="downloaded"/>
+    <target name="setup-framework" depends="downloaded-check" if="downloaded"/>
       
       <target name="build-framework" depends="setup-framework" if="downloaded">
         <ant dir="framework" target="build"/>
@@ -1740,9 +1727,6 @@
     <target name="calculate-elasticsearch-tests-condition" depends="calculate-elasticsearch-testmaterials-condition,calculate-elasticsearch-condition,calculate-cmis-condition">
       <condition property="elasticsearch-tests.include">
         <and>
-        	  <not>
-                <equals arg1="${ant.java.version}" arg2="1.5" />
-            </not>
             <isset property="elasticsearch.include"/>
             <isset property="elasticsearch-testmaterials.include"/>
             <isset property="cmis.include"/>
@@ -2592,9 +2576,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="rat-sources" depends="-taskdef"
       description="runs the tasks over src/java excluding the license directory">
       <rat:report xmlns:rat="antlib:org.apache.rat.anttasks">
-        <fileset dir="json/">
-          <exclude name="**/*.java"/>
-        </fileset>
         <fileset dir="mod-authz-annotate/">
         </fileset>
         <fileset dir="connectors/">
@@ -2672,6 +2653,17 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </java>
     </target>
 
+    <target name="download-json">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/json"/>
+            <param name="artifact-version" value="20090211"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="json"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-derby">
         <mkdir dir="lib"/>
         <property name="derby-version" value="10.8.2.2"/>
@@ -2744,27 +2736,24 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-hsqldb">
         <mkdir dir="lib"/>
-        <!-- Download and build a jdk-1.5 version of hsqldb 2.2.8 -->
-        <mkdir dir="build/download"/>
-        <delete dir="build/download/hsqldb"/>
-        <antcall target="checkout-source-via-svn">
-            <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="http://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/tags/2.2.8"/>
-            <param name="dir-name" value="hsqldb"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/hsqldb"/>
+            <param name="artifact-version" value="2.2.8"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="hsqldb"/>
+            <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- Build it -->
-        <exec dir="build/download/hsqldb/build" executable="cmd" osfamily="windows" failifexecutionfails="true" failonerror="true">
-            <arg line="/c ant.bat hsqldb"/>
-        </exec>
-        <exec dir="build/download/hsqldb/build" executable="ant" osfamily="unix" failifexecutionfails="true" failonerror="true">
-            <arg value="hsqldb" />
-        </exec>
-        <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/>
     </target>
     
     <target name="download-postgresql">
         <mkdir dir="lib"/>
-        <get src="http://jdbc.postgresql.org/download/postgresql-9.1-901.jdbc3.jar" dest="lib/postgresql.jar"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="postgresql"/>
+            <param name="artifact-version" value="9.1-901.jdbc4"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="postgresql"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
     <target name="download-axis">
@@ -2912,17 +2901,35 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="build/download/commons-httpclient" target="dist"/>
         <copy todir="lib" file="build/download/commons-httpclient/dist/commons-httpclient.jar"/>
     </target>
+  
+    <target name="download-slf4j">
+        <mkdir dir="lib"/>
+        <property name="slf4j-version" value="1.6.4"/>
+        <property name="slf4j-package" value="org/slf4j"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="slf4j-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="slf4j-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
     
     <target name="download-jetty">
         <mkdir dir="lib"/>
-        <property name="jetty-version" value="6.1.26"/>
-        <property name="jetty-package" value="org/mortbay/jetty"/>
+        <property name="jetty-version" value="7.5.4.v20111024"/>
+        <property name="jetty-package" value="org/eclipse/jetty"/>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="jetty"/>
+            <param name="artifact-name" value="jetty-server"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="jetty-naming"/>
+            <param name="artifact-name" value="jetty-webapp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-servlet"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
@@ -2934,7 +2941,27 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="jsp-2.1-jetty"/>
+            <param name="artifact-name" value="jetty-http"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-io"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-security"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-continuation"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-xml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-jsp-2.1"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3367,7 +3394,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-    <target name="make-core-deps" depends="download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugin,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jsr181-api,download-jsr250-api,download-jaxws,download-jdbcpool,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="make-core-deps" depends="download-json,download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugin,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jsr181-api,download-jsr250-api,download-jaxws,download-jdbcpool,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

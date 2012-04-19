@@ -31,10 +31,8 @@
     </target>
     
     <path id="framework-classpath">
-        <fileset dir="../build/jar">
-            <include name="json.jar"/>
-        </fileset>
         <fileset dir="../lib">
+            <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
@@ -46,6 +44,7 @@
             <include name="ecj*.jar"/>
             <include name="jasper*.jar"/>
             <include name="jetty*.jar"/>
+            <include name="slf4j*.jar"/>
             <include name="jdbcpool*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
@@ -74,7 +73,7 @@
     
     <target name="doc">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" maxmemory="256M" source="1.5" useexternalfile="true">
+        <javadoc destdir="dist/doc" maxmemory="256M" source="1.6" useexternalfile="true">
             <classpath>
                 <path refid="framework-classpath"/>
             </classpath>
@@ -89,7 +88,7 @@
     
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core/src/main/java" destdir="build/core/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="core/src/main/java" destdir="build/core/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
             </classpath>
@@ -98,7 +97,7 @@
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -109,7 +108,7 @@
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -119,7 +118,7 @@
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -130,7 +129,7 @@
 
     <target name="compile-jetty-runner" depends="compile-core,compile-agents">
         <mkdir dir="build/jetty-runner/classes"/>
-        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -142,7 +141,7 @@
 
     <target name="compile-script-engine" depends="compile-core">
         <mkdir dir="build/script-engine/classes"/>
-        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -152,7 +151,7 @@
 
     <target name="compile-authority-servlet" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-servlet/classes"/>
-        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -164,7 +163,7 @@
 
     <target name="compile-api-servlet" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/api-servlet/classes"/>
-        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -192,7 +191,7 @@
         <jasper2 validateXml="false" uriroot="crawler-ui/src/main/webapp" webXmlFragment="build/crawler-ui/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <path refid="framework-classpath"/>
@@ -245,10 +244,8 @@
     <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -283,10 +280,8 @@
     <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -326,10 +321,8 @@
     <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -365,10 +358,8 @@
     <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -411,11 +402,7 @@
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
-            </fileset>
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
-            <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -460,11 +447,7 @@
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
-            </fileset>
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
-            <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -566,10 +549,8 @@
     <target name="multi-processes" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/multiprocess-example/processes/lib"/>
         <copy todir="dist/multiprocess-example/processes/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -607,10 +588,8 @@
     <target name="multi-processes-proprietary" depends="jar-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/multiprocess-example-proprietary/processes/lib"/>
         <copy todir="dist/multiprocess-example-proprietary/processes/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -664,10 +643,8 @@
         </copy>
         <mkdir dir="dist/multiprocess-example/lib"/>
         <copy todir="dist/multiprocess-example/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
             </fileset>
@@ -680,6 +657,7 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="jetty*.jar"/>
+                <include name="slf4j*.jar"/>
                 <include name="servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
@@ -705,10 +683,8 @@
         </copy>
         <mkdir dir="dist/multiprocess-example-proprietary/lib"/>
         <copy todir="dist/multiprocess-example-proprietary/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
             </fileset>
@@ -721,6 +697,7 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="jetty*.jar"/>
+                <include name="slf4j*.jar"/>
                 <include name="servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
@@ -735,10 +712,8 @@
     <target name="script-engine" depends="jar-script-engine,jar-core">
         <mkdir dir="dist/script-engine/lib"/>
         <copy todir="dist/script-engine/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-httpclient*.jar"/>
@@ -763,10 +738,8 @@
     <target name="single-process-example" depends="jar-jetty-runner,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -779,6 +752,7 @@
                 <include name="jasper*.jar"/>
                 <include name="jdbcpool*.jar"/>
                 <include name="jetty*.jar"/>
+                <include name="slf4j*.jar"/>
                 <include name="jsp-api*.jar"/>
                 <include name="jsp-2.5*.jar"/>
                 <include name="log4j*.jar"/>
@@ -848,7 +822,7 @@
         <property name="manifest-cp-27" value="${manifest-cp-26} lib/jasper.jar"/>
         <property name="manifest-cp-28" value="${manifest-cp-27} lib/jasper-el.jar"/>
         <property name="manifest-cp-29" value="${manifest-cp-28} lib/jdbcpool.jar"/>
-        <property name="manifest-cp-30" value="${manifest-cp-29} lib/jetty.jar"/>
+        <property name="manifest-cp-30" value="${manifest-cp-29} lib/jetty-server.jar"/>
         <property name="manifest-cp-31" value="${manifest-cp-30} lib/jetty-util.jar"/>
         <property name="manifest-cp-32" value="${manifest-cp-31} lib/jsp-api-2.1-glassfish.jar"/>
         <property name="manifest-cp-33" value="${manifest-cp-32} lib/json.jar"/>
@@ -867,8 +841,17 @@
         <property name="manifest-cp-47" value="${manifest-cp-46} lib/xml-apis.jar"/>
         <property name="manifest-cp-48" value="${manifest-cp-47} lib/derbynet.jar"/>
         <property name="manifest-cp-49" value="${manifest-cp-48} lib/ecj.jar"/>
-        <property name="manifest-cp-52" value="${manifest-cp-49} lib/velocity.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-52}"/>
+        <property name="manifest-cp-50" value="${manifest-cp-49} lib/jetty-webapp.jar"/>
+        <property name="manifest-cp-51" value="${manifest-cp-50} lib/jetty-servlet.jar"/>
+        <property name="manifest-cp-52" value="${manifest-cp-51} lib/velocity.jar"/>
+        <property name="manifest-cp-53" value="${manifest-cp-52} lib/jetty-http.jar"/>
+        <property name="manifest-cp-54" value="${manifest-cp-53} lib/jetty-io.jar"/>
+        <property name="manifest-cp-55" value="${manifest-cp-54} lib/jetty-security.jar"/>
+        <property name="manifest-cp-56" value="${manifest-cp-55} lib/jetty-continuation.jar"/>
+        <property name="manifest-cp-57" value="${manifest-cp-56} lib/jetty-xml.jar"/>
+        <property name="manifest-cp-58" value="${manifest-cp-57} lib/slf4j-api.jar"/>
+        <property name="manifest-cp-59" value="${manifest-cp-58} lib/slf4j-simple.jar"/>
+        <property name="manifest-cp" value="${manifest-cp-59}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -882,10 +865,8 @@
     <target name="single-process-example-proprietary" depends="jar-jetty-runner,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
         <mkdir dir="dist/example-proprietary/lib"/>
         <copy todir="dist/example-proprietary/lib">
-            <fileset dir="../build/jar">
-                <include name="json.jar"/>
-            </fileset>
             <fileset dir="../lib">
+                <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -898,6 +879,7 @@
                 <include name="jasper*.jar"/>
                 <include name="jdbcpool*.jar"/>
                 <include name="jetty*.jar"/>
+                <include name="slf4j*.jar"/>
                 <include name="jsp-api*.jar"/>
                 <include name="jsp-2.5*.jar"/>
                 <include name="log4j*.jar"/>
@@ -972,7 +954,7 @@
         <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-26} lib/jasper.jar"/>
         <property name="manifest-cp-proprietary-28" value="${manifest-cp-proprietary-27} lib/jasper-el.jar"/>
         <property name="manifest-cp-proprietary-29" value="${manifest-cp-proprietary-28} lib/jdbcpool.jar"/>
-        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-29} lib/jetty.jar"/>
+        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-29} lib/jetty-server.jar"/>
         <property name="manifest-cp-proprietary-31" value="${manifest-cp-proprietary-30} lib/jetty-util.jar"/>
         <property name="manifest-cp-proprietary-32" value="${manifest-cp-proprietary-31} lib/jsp-api-2.1-glassfish.jar"/>
         <property name="manifest-cp-proprietary-33" value="${manifest-cp-proprietary-32} lib/json.jar"/>
@@ -995,7 +977,16 @@
         <property name="manifest-cp-proprietary-50" value="${manifest-cp-proprietary-49} lib/ojdbc.jar"/>
         <property name="manifest-cp-proprietary-51" value="${manifest-cp-proprietary-50} lib/jtds.jar"/>
         <property name="manifest-cp-proprietary-52" value="${manifest-cp-proprietary-51} lib/velocity.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-52}"/>
+        <property name="manifest-cp-proprietary-53" value="${manifest-cp-proprietary-52} lib/jetty-webapp.jar"/>
+        <property name="manifest-cp-proprietary-54" value="${manifest-cp-proprietary-53} lib/jetty-servlet.jar"/>
+        <property name="manifest-cp-proprietary-55" value="${manifest-cp-proprietary-54} lib/jetty-http.jar"/>
+        <property name="manifest-cp-proprietary-56" value="${manifest-cp-proprietary-55} lib/jetty-io.jar"/>
+        <property name="manifest-cp-proprietary-57" value="${manifest-cp-proprietary-56} lib/jetty-security.jar"/>
+        <property name="manifest-cp-proprietary-58" value="${manifest-cp-proprietary-57} lib/jetty-continuation.jar"/>
+        <property name="manifest-cp-proprietary-59" value="${manifest-cp-proprietary-58} lib/jetty-xml.jar"/>
+        <property name="manifest-cp-proprietary-60" value="${manifest-cp-proprietary-59} lib/slf4j-api.jar"/>
+        <property name="manifest-cp-proprietary-61" value="${manifest-cp-proprietary-60} lib/slf4j-simple.jar"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-61}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1007,7 +998,7 @@
 
     <target name="compile-core-tests" depends="compile-core">
         <mkdir dir="build/core-tests/classes"/>
-        <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -1017,7 +1008,7 @@
 
     <target name="compile-agents-tests" depends="compile-core-tests,compile-agents">
         <mkdir dir="build/agents-tests/classes"/>
-        <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -1029,7 +1020,7 @@
 
     <target name="compile-pull-agent-tests" depends="compile-agents-tests,compile-pull-agent">
         <mkdir dir="build/pull-agent-tests/classes"/>
-        <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -1043,7 +1034,7 @@
 
     <target name="compile-script-engine-tests" depends="compile-core,compile-script-engine">
         <mkdir dir="build/script-engine-tests/classes"/>
-        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>

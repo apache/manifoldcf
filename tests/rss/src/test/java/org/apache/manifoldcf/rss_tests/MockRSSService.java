@@ -18,15 +18,15 @@
 */
 package org.apache.manifoldcf.rss_tests;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.mortbay.thread.QueuedThreadPool;
 
 import java.io.*;
 import java.util.*;
@@ -42,8 +42,10 @@ public class MockRSSService
     server = new Server(8189);
     server.setThreadPool(new QueuedThreadPool(35));
     servlet = new RSSServlet(docsPerFeed);
-    Context asContext = new Context(server,"/rss",Context.SESSIONS);
-    asContext.addServlet(new ServletHolder(servlet), "/gen.php");
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/rss");
+    server.setHandler(context);
+    context.addServlet(new ServletHolder(servlet), "/gen.php");
   }
     
   public void start() throws Exception

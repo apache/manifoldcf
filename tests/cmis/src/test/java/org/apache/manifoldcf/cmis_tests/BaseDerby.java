@@ -21,8 +21,6 @@ package org.apache.manifoldcf.cmis_tests;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
 import org.junit.Before;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
 
 /** Tests that run the "agents daemon" should be derived from this 
  * 
@@ -31,7 +29,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
  * */
 public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
 {
-  protected Server cmisServer = null;
+  protected CMISServer cmisServer = null;
 
   
   protected String[] getConnectorNames()
@@ -60,34 +58,20 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
   public void setUpCMIS()
     throws Exception
   {
-    cmisServer = new Server(9090);
-    cmisServer.setStopAtShutdown(true);
-
     String openCmisServerWarPath = "../../lib/chemistry-opencmis-server-inmemory.war";
 
     if (System.getProperty("openCmisServerWarPath") != null)
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");
-    
-    //Initialize OpenCMIS Server bindings
-    WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory");
-    openCmisServerApi.setParentLoaderPriority(false);
-    cmisServer.addHandler(openCmisServerApi);
-    
+
+    cmisServer = new CMISServer(9090, openCmisServerWarPath);
     cmisServer.start();
-    boolean entered = false;
-    
-    while(cmisServer.isStarted() 
-        && openCmisServerApi.isStarted()
-        && !entered){
-      entered = true;
-      ManifoldCF.sleep(5000);
-    }
   }
   
   @After
   public void cleanUpCMIS()
     throws Exception
   {
+    cmisServer.stop();
   }
   
 }

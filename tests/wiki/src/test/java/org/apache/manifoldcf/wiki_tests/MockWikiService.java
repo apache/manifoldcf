@@ -18,9 +18,10 @@
 */
 package org.apache.manifoldcf.wiki_tests;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -38,9 +39,12 @@ public class MockWikiService
   public MockWikiService(Class theResourceClass)
   {
     server = new Server(8089);
+    server.setThreadPool(new QueuedThreadPool(35));
     servlet = new WikiAPIServlet(theResourceClass);
-    Context asContext = new Context(server,"/w",Context.SESSIONS);
-    asContext.addServlet(new ServletHolder(servlet), "/api.php");
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/w");
+    server.setHandler(context);
+    context.addServlet(new ServletHolder(servlet), "/api.php");
   }
     
   public void start() throws Exception

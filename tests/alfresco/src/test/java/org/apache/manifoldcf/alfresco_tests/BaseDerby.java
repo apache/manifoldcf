@@ -18,9 +18,10 @@
 */
 package org.apache.manifoldcf.alfresco_tests;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.plus.naming.Resource;
-import org.mortbay.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.plus.jndi.Resource;
 
 import org.junit.After;
 import org.junit.Before;
@@ -70,9 +71,12 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
       alfrescoServerWarPath = System.getProperty("alfrescoServerWarPath");
     
     //Initialize Alfresco Server bindings
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    alfrescoServer.setHandler(contexts);
+
     WebAppContext alfrescoServerApi = new WebAppContext(alfrescoServerWarPath,"/alfresco");
     alfrescoServerApi.setParentLoaderPriority(false);
-    alfrescoServer.addHandler(alfrescoServerApi);
+    contexts.addHandler(alfrescoServerApi);
     
     Class h2DataSource = Thread.currentThread().getContextClassLoader().loadClass("org.h2.jdbcx.JdbcDataSource");
     Object o = h2DataSource.newInstance();

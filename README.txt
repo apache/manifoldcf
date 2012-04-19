@@ -33,10 +33,10 @@ Instructions for Building Apache ManifoldCF from Source
    
 3. Copy the lib folder in the lib distribution into the source distribution.
 
-4. Download the Java SE 5 JDK (Java Development Kit), or greater, from http://java.sun.com.
+4. Download the Java SE 6 JDK (Java Development Kit), or greater, from http://java.sun.com.
    You will need the JDK installed, and the %JAVA_HOME%\bin directory included
    on your command path.  To test this, issue a "java -version" command from your
-   shell and verify that the Java version is 1.5 or greater.
+   shell and verify that the Java version is 1.6 or greater.
 
 5. Download the Apache Ant binary distribution (1.7.0 or greater) from http://ant.apache.org.
    You will need Ant installed and the %ANT_HOME%\bin directory included on your

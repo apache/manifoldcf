@@ -30,10 +30,8 @@
     </target>
 
     <path id="mcf-connector-build.connector-classpath">
-        <fileset dir="../../build/jar">
-            <include name="json.jar"/>
-        </fileset>
         <fileset dir="../../lib">
+            <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
@@ -45,6 +43,7 @@
             <include name="eclipse*.jar"/>
             <include name="jasper*.jar"/>
             <include name="jetty*.jar"/>
+            <include name="slf4j*.jar"/>
             <include name="jdbcpool*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
@@ -212,7 +211,7 @@
 
     <target name="compile-wsdls" depends="has-wsdls-check" if="hasWSDLs">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <fileset dir="../../lib">
                     <include name="axis*.jar"/>
@@ -234,7 +233,7 @@
 
     <target name="compile-xsds" depends="has-xsds-check" if="hasXSDs">
         <mkdir dir="build/xsdclasses"/>
-        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="build/xsdjava" destdir="build/xsdclasses" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <fileset dir="../../lib">
                     <include name="castor*.jar"/>
@@ -263,7 +262,7 @@
 
     <target name="doc-rmi" depends="compile-wsdls,compile-xsds,has-RMI-check" if="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.5">
+        <javadoc destdir="dist/doc" source="1.6">
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -274,7 +273,7 @@
 
     <target name="doc" depends="doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" source="1.5">
+        <javadoc destdir="dist/doc" source="1.6">
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -311,7 +310,7 @@
     
     <target name="compile-server" depends="compile-interface,compile-implementation,compile-rmic,has-RMI-check" if="hasRMI">
         <mkdir dir="build/server/classes"/>
-        <javac srcdir="server/src/main/java" destdir="build/server/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="server/src/main/java" destdir="build/server/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <pathelement location="build/interface/classes"/>
                 <pathelement location="build/implementation/classes"/>
@@ -323,7 +322,7 @@
 
     <target name="compile-registry" depends="compile-interface,has-RMI-check" if="hasRMI">
         <mkdir dir="build/registry/classes"/>
-        <javac srcdir="registry/src/main/java" destdir="build/registry/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="registry/src/main/java" destdir="build/registry/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <pathelement location="build/interface/classes"/>
             </classpath>
@@ -332,7 +331,7 @@
 
     <target name="compile-connector" depends="compile-connector-native2ascii,compile-connector-resources,compile-wsdls,compile-xsds,compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
-        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="connector-classpath"/>
             </classpath>
@@ -341,7 +340,7 @@
 
     <target name="compile-implementation" depends="compile-interface,has-RMI-check" if="hasRMI">
         <mkdir dir="build/implementation/classes"/>
-        <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="implementation-classpath"/>
             </classpath>
@@ -350,7 +349,7 @@
 
     <target name="compile-interface" depends="has-RMI-check" if="hasRMI">
         <mkdir dir="build/interface/classes"/>
-        <javac srcdir="interface/src/main/java" destdir="build/interface/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="interface/src/main/java" destdir="build/interface/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="interface-classpath"/>
             </classpath>
@@ -366,7 +365,7 @@
 
     <target name="compile-tests" depends="compile-connector,compile-test-resources,has-tests-check" if="hasTests">
         <mkdir dir="build/connector-tests/classes"/>
-        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="connector/src/test/java" destdir="build/connector-tests/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="connector-test-classpath"/>
             </classpath>

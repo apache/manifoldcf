@@ -29,11 +29,11 @@ Getting Started
 
 Since you downloaded the binary version of the package, you can just run it.
 
-1. Download and install the Java SE 5 JDK (Java Development Kit), or greater,
+1. Download and install the Java SE 6 JDK (Java Development Kit), or greater,
    from http://java.sun.com.  You will need the JDK installed, and the
    %JAVA_HOME%/bin directory included on your command path.  To test this,
    issue a "java -version" command from your shell and verify that the Java
-   version is 1.5 or greater.
+   version is 1.6 or greater.
    
 2. In your shell, change to the single-process example directory, "example".
 

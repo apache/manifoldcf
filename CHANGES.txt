@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-459: Upgrade to require JDK 1.6 across the board.  Get the
+(broken) maven build also working consistently with the ant build.
+(Karl Wright)
+
 CONNECTORS-435: Replace incorrect Messages.getString() calls in the main
 UI with correct ones.
 (Erlend Garåsen, Karl Wright)

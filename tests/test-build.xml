@@ -29,10 +29,8 @@
     </target>
 
     <path id="framework-classpath">
-        <fileset dir="../../build/jar">
-            <include name="json.jar"/>
-        </fileset>
         <fileset dir="../../lib">
+            <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
@@ -44,6 +42,7 @@
             <include name="ecj*.jar"/>
             <include name="jasper*.jar"/>
             <include name="jetty*.jar"/>
+            <include name="slf4j*.jar"/>
             <include name="jdbcpool*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
@@ -101,7 +100,7 @@
 
     <target name="compile-tests" depends="compile-test-resources">
         <mkdir dir="build/test/classes"/>
-        <javac srcdir="src/test/java" destdir="build/test/classes" target="1.5" source="1.5" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="src/test/java" destdir="build/test/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="test-classpath"/>
             </classpath>

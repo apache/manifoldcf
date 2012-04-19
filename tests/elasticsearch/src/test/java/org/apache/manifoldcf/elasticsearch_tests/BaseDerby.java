@@ -22,8 +22,11 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.elasticsearch.node.Node;
 import org.junit.After;
 import org.junit.Before;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
+
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
+
 import static org.elasticsearch.node.NodeBuilder.*;
 
 /**  
@@ -71,9 +74,11 @@ public class BaseDerby extends org.apache.manifoldcf.crawler.tests.BaseITDerby
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");
     
     //Initialize OpenCMIS Server bindings
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    cmisServer.setHandler(contexts);
     WebAppContext openCmisServerApi = new WebAppContext(openCmisServerWarPath,"/chemistry-opencmis-server-inmemory");
     openCmisServerApi.setParentLoaderPriority(false);
-    cmisServer.addHandler(openCmisServerApi);
+    contexts.addHandler(openCmisServerApi);
     
     System.out.println("OpenCMIS InMemory server is starting...");
     cmisServer.start();

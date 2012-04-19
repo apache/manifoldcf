@@ -1,6 +1,6 @@
 ManifoldCF requires
 ------------------
-* JRE 1.5 or above
+* JRE 1.6 or above
 * SVN client, version 1.7 or above
 * Apache Ant, version 1.7 or above
 * Apache Forrest, version 0.9-dev or above

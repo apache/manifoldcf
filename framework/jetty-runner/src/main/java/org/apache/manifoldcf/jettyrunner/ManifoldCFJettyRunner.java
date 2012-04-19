@@ -30,13 +30,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.FilterHolder;
-import org.mortbay.log.Logger;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.Connector;
 
 /**
  * Run ManifoldCF with jetty.
@@ -63,21 +60,23 @@ public class ManifoldCFJettyRunner
     server.setStopAtShutdown( true );
     
     // Initialize the servlets
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    server.setHandler(contexts);
     WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfCrawlerUI.setParentLoaderPriority(useParentLoader);
-    server.addHandler(lcfCrawlerUI);
+    contexts.addHandler(lcfCrawlerUI);
     WebAppContext lcfAuthorityService = new WebAppContext(authorityServiceWarPath,"/mcf-authority-service");
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfAuthorityService.setParentLoaderPriority(useParentLoader);
-    server.addHandler(lcfAuthorityService);
+    contexts.addHandler(lcfAuthorityService);
     WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfApi.setParentLoaderPriority(useParentLoader);
-    server.addHandler(lcfApi);
+    contexts.addHandler(lcfApi);
   }
 
   public void start()

@@ -27,13 +27,11 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.FilterHolder;
-import org.mortbay.log.Logger;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.methods.*;
@@ -420,17 +418,19 @@ public class ManifoldCFInstance
 
     
     // Initialize the servlets
+    ContextHandlerCollection contexts = new ContextHandlerCollection();
+    server.setHandler(contexts);
     WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfCrawlerUI.setParentLoaderPriority(true);
-    server.addHandler(lcfCrawlerUI);
+    contexts.addHandler(lcfCrawlerUI);
     WebAppContext lcfAuthorityService = new WebAppContext(authorityserviceWarPath,"/mcf-authority-service");
     // This will cause jetty to ignore all of the framework and jdbc jars in the war, which is what we want.
     lcfAuthorityService.setParentLoaderPriority(true);
-    server.addHandler(lcfAuthorityService);
+    contexts.addHandler(lcfAuthorityService);
     WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
     lcfApi.setParentLoaderPriority(true);
-    server.addHandler(lcfApi);
+    contexts.addHandler(lcfApi);
     server.start();
 
     // If all worked, then we can start the daemon.
