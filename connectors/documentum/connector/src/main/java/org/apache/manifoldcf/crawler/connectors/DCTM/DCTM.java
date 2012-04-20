@@ -2118,7 +2118,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+" certificate(s)></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+" certificate(s)&gt;</nobr><br/>\n"
         );
       }
       else

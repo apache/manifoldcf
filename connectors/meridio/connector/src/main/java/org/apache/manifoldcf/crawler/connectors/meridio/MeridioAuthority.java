@@ -1295,7 +1295,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"MeridioConnector.certificates") + "></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"MeridioConnector.certificates") + "&gt;</nobr><br/>\n"
         );
       }
       else

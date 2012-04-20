@@ -516,7 +516,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=<"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"WikiConnector.certificates")+"></nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"WikiConnector.certificates")+"&gt;</nobr><br/>\n"
         );
       }
       else
