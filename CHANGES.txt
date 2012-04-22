@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-464: Improve document deletion cleanup logic for
+hopcounts, so that no references to deleted documents remain.
+(Karl Wright)
+
 CONNECTORS-462: Change "<" and ">" characters to HTML entities in
 connectors
 (Erlend Garåsen)

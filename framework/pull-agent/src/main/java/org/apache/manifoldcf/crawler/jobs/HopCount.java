@@ -516,9 +516,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   * also intrinsic links that have the specified document identifiers as sources.
   */
   public void deleteMatchingDocuments(Long jobID, String[] legalLinkTypes,
-    String sourceTableName,
-    String sourceTableIDColumn, String sourceTableJobColumn,
-    String sourceTableCriteria, ArrayList sourceTableParams,
+    String joinTableName,
+    String joinTableIDColumn, String joinTableJobColumn,
+    String joinTableCriteria, ArrayList joinTableParams,
     int hopcountMethod)
     throws ManifoldCFException
   {
@@ -530,9 +530,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // This also removes the links themselves...
       if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
       {
-        doDeleteInvalidation(jobID,legalLinkTypes,false,null,sourceTableName,
-          sourceTableIDColumn,sourceTableJobColumn,
-          sourceTableCriteria,sourceTableParams);
+        doDeleteDocuments(jobID,joinTableName,
+          joinTableIDColumn,joinTableJobColumn,
+          joinTableCriteria,joinTableParams);
       }
 
     }
@@ -557,7 +557,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   /** Remove a set of document identifier hashes.  This will also remove the intrinsic links that have these document
   * identifier hashes as sources, as well as invalidating cached hop counts that depend on them.
   */
-  public void deleteDocumentIdentifiers(Long jobID, String[] legalLinkTypes, String[] sourceDocumentHashes, int hopcountMethod)
+  public void deleteDocumentIdentifiers(Long jobID, String[] legalLinkTypes, String[] documentHashes, int hopcountMethod)
     throws ManifoldCFException
   {
     beginTransaction();
@@ -571,11 +571,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       //
       // ... and then, re-evaluate all hopcount records and their dependencies that are marked for delete.
       //
-
+      // But, the trick is that both source and target links must go away!!  So deleting a document is very different than
+      // updating a link...
 
       // This also removes the links themselves...
       if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
-        doDeleteInvalidation(jobID,legalLinkTypes,false,sourceDocumentHashes,null,null,null,null,null);
+        doDeleteDocuments(jobID,documentHashes);
+      
 
     }
     catch (ManifoldCFException e)
@@ -1040,7 +1042,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
 
         // Invalidate all links with the given source documents that match the common expression
-        doDeleteInvalidation(jobID,legalLinkTypes,true,sourceDocumentHashes,null,null,null,null,null);
+        doDeleteInvalidation(jobID,sourceDocumentHashes);
       }
       // Make all new and existing links become just "base" again.
       intrinsicLinkManager.restoreLinks(jobID,sourceDocumentHashes);
@@ -1062,133 +1064,337 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
+  /** Invalidate links that start with or end in a specific set of documents, described by
+  * a table join.
+  */
+  protected void doDeleteDocuments(Long jobID,
+    String joinTableName,
+    String joinTableIDColumn, String joinTableJobColumn,
+    String joinTableCriteria, ArrayList joinTableParams)
+    throws ManifoldCFException
+  {
+    if (Logging.hopcount.isDebugEnabled())
+    {
+      Logging.hopcount.debug("Marking for delete for job "+jobID+" all hopcount document references"+
+        " from table "+joinTableName+" matching "+joinTableCriteria);
+    }
+    
+    // For this query, postgresql seems to not do the right thing unless the subclause is a three-way join:
+    //
+    // UPDATE hopcount SET x=y WHERE id IN(SELECT t0.ownerid FROM hopdeletedeps t0,jobqueue t99,intrinsiclink t1 WHERE
+    //      t0.jobid=? and t99.jobid=? and t1.jobid=? and
+    //      t0.childidhash=t99.dochash and t0.childid=t99.docid and t99.status='P' and
+    //      t0.parentidhash=t1.parentidhash and t0.childidhash=t1.childidhash and t0.linktype=t1.linktype and
+    //      t0.parentid=t1.parentid and t0.childid=t1.childid)
+        
+    // MHL to figure out the "correct" way to state this for all databases
+
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList list = new ArrayList();
+        
+    sb.append(idField).append(" IN(SELECT t0.").append(deleteDepsManager.ownerIDField).append(" FROM ")
+      .append(deleteDepsManager.getTableName()).append(" t0,").append(joinTableName).append(",")
+      .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ");
+
+    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)})).append(" AND ");
+
+    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t1."+intrinsicLinkManager.jobIDField,jobID),
+      new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
+      new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
+      new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
+
+    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(joinTableJobColumn,jobID),
+      new JoinClause(joinTableIDColumn,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
+          
+    sb.append(joinTableCriteria);
+    list.addAll(joinTableParams);
+
+    sb.append(")");
+
+    HashMap map = new HashMap();
+    // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
+    map.put(distanceField,new Long(-1L));
+    map.put(markForDeathField,markToString(MARK_DELETING));
+    performUpdate(map,sb.toString(),list,null);
+    noteModifications(0,1,0);
+      
+      
+    sb = new StringBuilder("WHERE ");
+    list = new ArrayList();
+        
+    sb.append(idField).append(" IN(SELECT t0.").append(deleteDepsManager.ownerIDField).append(" FROM ")
+      .append(deleteDepsManager.getTableName()).append(" t0,").append(joinTableName).append(",")
+      .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ");
+
+    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)})).append(" AND ");
+
+    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t1."+intrinsicLinkManager.jobIDField,jobID),
+      new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
+      new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
+      new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
+
+    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(joinTableJobColumn,jobID),
+      new JoinClause(joinTableIDColumn,"t0."+deleteDepsManager.parentIDHashField)})).append(" AND ");
+          
+    sb.append(joinTableCriteria);
+    list.addAll(joinTableParams);
+
+    sb.append(")");
+
+    map = new HashMap();
+    // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
+    map.put(distanceField,new Long(-1L));
+    map.put(markForDeathField,markToString(MARK_DELETING));
+    performUpdate(map,sb.toString(),list,null);
+    noteModifications(0,1,0);
+
+
+    if (Logging.hopcount.isDebugEnabled())
+      Logging.hopcount.debug("Done setting hopcount rows for job "+jobID+" to initial distances");
+
+    // Remove the intrinsic links that we said we would - BEFORE we evaluate the queue.
+    intrinsicLinkManager.removeDocumentLinks(jobID,
+      joinTableName,
+      joinTableIDColumn,joinTableJobColumn,
+      joinTableCriteria,joinTableParams);
+
+    // Remove the delete dependencies of the nodes marked as being queued, with distance infinity.
+    ArrayList queryList = new ArrayList();
+    String query = buildConjunctionClause(queryList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(markForDeathField,markToString(MARK_DELETING))});
+    deleteDepsManager.removeMarkedRows(getTableName(),idField,query,queryList);
+
+    // Set the hopcount rows back to just "queued".
+    HashMap newMap = new HashMap();
+    newMap.put(markForDeathField,markToString(MARK_QUEUED));
+    performUpdate(newMap,"WHERE "+query,queryList,null);
+
+    // At this point, we have a queue that contains all the hopcount entries that our dependencies told us
+    // needed to change as a result of the deletions.  Evaluating the queue will clean up hopcount entries
+    // and dependencies that are just going away, as well as updating those that are still around but
+    // will have new hopcount values.
+
+    if (Logging.hopcount.isDebugEnabled())
+      Logging.hopcount.debug("Done queueing for deletion for "+jobID);
+
+  }
+  
+  /** Invalidate links that start with or end in a specific set of documents.
+  */
+  protected void doDeleteDocuments(Long jobID,
+    String[] documentHashes)
+    throws ManifoldCFException
+  {
+    // Clear up hopcount table
+    if (documentHashes.length > 0)
+    {
+      if (Logging.hopcount.isDebugEnabled())
+      {
+        Logging.hopcount.debug("Marking for delete for job "+jobID+" all hopcount document references"+
+          " from:");
+        for (int k = 0; k < documentHashes.length; k++)
+        {
+          Logging.hopcount.debug("  "+documentHashes[k]);
+        }
+      }
+
+      // The query form I found that seems to work ok with postgresql looks like this:
+      //
+      // UPDATE hopcount SET x=y WHERE id IN (SELECT ownerid FROM hopdeletedeps t0
+      //   WHERE ((t0.jobid=? AND t0.childid=?)
+      //       OR (t0.jobid=? AND t0.childid=?)
+      //       ...
+      //       OR (t0.jobid=? AND t0.childid=?))
+      //       AND EXISTS(SELECT 'x' FROM intrinsiclink t1 WHERE t1.linktype=t0.linktype
+      //              AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.jobid=t0.jobid AND t1.isnew='B'))
+      //
+      // Here's a revised form that would take advantage of postgres's better ability to work with joins, if this should
+      // turn out to be necessary:
+      //
+      // UPDATE hopcount SET x=y WHERE id IN (SELECT t0.ownerid FROM hopdeletedeps t0, intrinsiclink t1
+      //      WHERE t1.childidhash=t0.childidhash AND t1.jobid=? AND t1.linktype=t0.linktype AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.isnew='B'
+      //      AND ((t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
+      //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
+      //       ...
+      //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
+
+      int maxClause = maxClauseMarkForDocumentDelete(jobID);
+      ArrayList list = new ArrayList();
+      int i = 0;
+      int k = 0;
+      while (i < documentHashes.length)
+      {
+        if (k == maxClause)
+        {
+          markForDocumentDelete(jobID,list);
+          list.clear();
+          k = 0;
+        }
+        list.add(documentHashes[i]);
+        i++;
+        k++;
+      }
+      if (k > 0)
+        markForDocumentDelete(jobID,list);
+      noteModifications(0,documentHashes.length,0);
+
+      if (Logging.hopcount.isDebugEnabled())
+        Logging.hopcount.debug("Done setting hopcount rows for job "+jobID+" to initial distances");
+
+      // Remove the intrinsic links that we said we would - BEFORE we evaluate the queue.
+      intrinsicLinkManager.removeDocumentLinks(jobID,
+        documentHashes);
+
+      // Remove the delete dependencies of the nodes marked as being queued, with distance infinity.
+      ArrayList queryList = new ArrayList();
+      String query = buildConjunctionClause(queryList,new ClauseDescription[]{
+        new UnitaryClause(jobIDField,jobID),
+        new UnitaryClause(markForDeathField,markToString(MARK_DELETING))});
+      deleteDepsManager.removeMarkedRows(getTableName(),idField,query,queryList);
+
+      // Set the hopcount rows back to just "queued".
+      HashMap newMap = new HashMap();
+      newMap.put(markForDeathField,markToString(MARK_QUEUED));
+      performUpdate(newMap,"WHERE "+query,queryList,null);
+
+      // At this point, we have a queue that contains all the hopcount entries that our dependencies told us
+      // needed to change as a result of the deletions.  Evaluating the queue will clean up hopcount entries
+      // and dependencies that are just going away, as well as updating those that are still around but
+      // will have new hopcount values.
+
+      if (Logging.hopcount.isDebugEnabled())
+        Logging.hopcount.debug("Done queueing for deletion for "+jobID);
+
+    }
+  }
+  
+  protected int maxClauseMarkForDocumentDelete(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)});
+  }
+
+  protected void markForDocumentDelete(Long jobID, ArrayList list)
+    throws ManifoldCFException
+  {
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList thisList = new ArrayList();
+
+    sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ").append(deleteDepsManager.getTableName()).append(" t0 WHERE ")
+      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
+        new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID),
+        new MultiClause("t0."+deleteDepsManager.childIDHashField,list)})).append(" AND ");
+        
+    sb.append("EXISTS(SELECT 'x' FROM ").append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ")
+      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
+        new JoinClause("t1."+intrinsicLinkManager.jobIDField,"t0."+deleteDepsManager.jobIDField),
+        new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
+        new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
+        new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)}));
+    
+    sb.append("))");
+
+    HashMap map = new HashMap();
+    // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
+    map.put(distanceField,new Long(-1L));
+    map.put(markForDeathField,markToString(MARK_DELETING));
+    performUpdate(map,sb.toString(),thisList,null);
+
+    sb = new StringBuilder("WHERE ");
+    thisList = new ArrayList();
+
+    sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ").append(deleteDepsManager.getTableName()).append(" t0 WHERE ")
+      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
+        new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID),
+        new MultiClause("t0."+deleteDepsManager.parentIDHashField,list)})).append(" AND ");
+        
+    sb.append("EXISTS(SELECT 'x' FROM ").append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ")
+      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
+        new JoinClause("t1."+intrinsicLinkManager.jobIDField,"t0."+deleteDepsManager.jobIDField),
+        new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
+        new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
+        new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)}));
+
+    sb.append("))");
+        
+    map = new HashMap();
+    // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
+    map.put(distanceField,new Long(-1L));
+    map.put(markForDeathField,markToString(MARK_DELETING));
+    performUpdate(map,sb.toString(),thisList,null);
+  }
+
   /** Invalidate links meeting a simple criteria which have a given set of source documents.  This also runs a queue
   * which is initialized with all the documents that have sources that exist in the hopcount table.  The purpose
   * of that queue is to re-establish non-infinite values for all nodes that are described in IntrinsicLinks, that are
   * still connected to the root. */
-  protected void doDeleteInvalidation(Long jobID, String[] legalLinkTypes, boolean existingOnly,
-    String[] sourceDocumentHashes, String sourceTableName,
-    String sourceTableIDColumn, String sourceTableJobColumn,
-    String sourceTableCriteria, ArrayList sourceTableParams)
+  protected void doDeleteInvalidation(Long jobID,
+    String[] sourceDocumentHashes)
     throws ManifoldCFException
   {
-
-    String commonNewExpression = null;
-    ArrayList commonNewList = null;
-    if (existingOnly)
-    {
-      commonNewList = new ArrayList();
-      commonNewList.add(intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE));
-      commonNewExpression = intrinsicLinkManager.newField+"=?";
-    }
+    ArrayList commonNewList = new ArrayList();
+    commonNewList.add(intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE));
+    String commonNewExpression = intrinsicLinkManager.newField+"=?";
 
     // Clear up hopcount table
-    if (sourceDocumentHashes == null || sourceDocumentHashes.length > 0)
+    if (sourceDocumentHashes.length > 0)
     {
-
       if (Logging.hopcount.isDebugEnabled())
       {
-        Logging.hopcount.debug("Marking for delete for job "+jobID+" all target document references"+((commonNewExpression==null)?"":" matching '"+commonNewExpression+"'")+
+        Logging.hopcount.debug("Marking for delete for job "+jobID+" all target document references matching '"+commonNewExpression+"'"+
           " from:");
-        if (sourceDocumentHashes != null)
+        for (int k = 0; k < sourceDocumentHashes.length; k++)
         {
-          int k = 0;
-          while (k < sourceDocumentHashes.length)
-          {
-            Logging.hopcount.debug("  "+sourceDocumentHashes[k++]);
-          }
+          Logging.hopcount.debug("  "+sourceDocumentHashes[k]);
         }
-        else
-          Logging.hopcount.debug(" table "+sourceTableName+" matching "+sourceTableCriteria);
       }
 
+      // The query form I found that seems to work ok with postgresql looks like this:
+      //
+      // UPDATE hopcount SET x=y WHERE id IN (SELECT ownerid FROM hopdeletedeps t0
+      //   WHERE ((t0.jobid=? AND t0.childid=?)
+      //       OR (t0.jobid=? AND t0.childid=?)
+      //       ...
+      //       OR (t0.jobid=? AND t0.childid=?))
+      //       AND EXISTS(SELECT 'x' FROM intrinsiclink t1 WHERE t1.linktype=t0.linktype
+      //              AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.jobid=t0.jobid AND t1.isnew='B'))
+      //
+      // Here's a revised form that would take advantage of postgres's better ability to work with joins, if this should
+      // turn out to be necessary:
+      //
+      // UPDATE hopcount SET x=y WHERE id IN (SELECT t0.ownerid FROM hopdeletedeps t0, intrinsiclink t1
+      //      WHERE t1.childidhash=t0.childidhash AND t1.jobid=? AND t1.linktype=t0.linktype AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.isnew='B'
+      //      AND ((t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
+      //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
+      //       ...
+      //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
 
-      if (sourceDocumentHashes != null)
+      int maxClause = maxClauseMarkForDelete(jobID);
+      ArrayList list = new ArrayList();
+      int i = 0;
+      int k = 0;
+      while (i < sourceDocumentHashes.length)
       {
-        // The query form I found that seems to work ok with postgresql looks like this:
-        //
-        // UPDATE hopcount SET x=y WHERE id IN (SELECT ownerid FROM hopdeletedeps t0
-        //   WHERE ((t0.jobid=? AND t0.childid=?)
-        //       OR (t0.jobid=? AND t0.childid=?)
-        //       ...
-        //       OR (t0.jobid=? AND t0.childid=?))
-        //       AND EXISTS(SELECT 'x' FROM intrinsiclink t1 WHERE t1.linktype=t0.linktype
-        //              AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.jobid=t0.jobid AND t1.isnew='B'))
-        //
-        // Here's a revised form that would take advantage of postgres's better ability to work with joins, if this should
-        // turn out to be necessary:
-        //
-        // UPDATE hopcount SET x=y WHERE id IN (SELECT t0.ownerid FROM hopdeletedeps t0, intrinsiclink t1
-        //      WHERE t1.childidhash=t0.childidhash AND t1.jobid=? AND t1.linktype=t0.linktype AND t1.parentid=t0.parentid AND t1.childid=t0.childid AND t1.isnew='B'
-        //      AND ((t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
-        //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?)
-        //       ...
-        //       OR (t0.jobid=? AND t0.childidhash=? AND t0.childid=?))
-
-        int maxClause = maxClauseMarkForDelete(jobID);
-        ArrayList list = new ArrayList();
-        int i = 0;
-        int k = 0;
-        while (i < sourceDocumentHashes.length)
+        if (k == maxClause)
         {
-          if (k == maxClause)
-          {
-            markForDelete(jobID,list,commonNewExpression,commonNewList);
-            list.clear();
-            k = 0;
-          }
-          list.add(sourceDocumentHashes[i]);
-          i++;
-          k++;
-        }
-        if (k > 0)
           markForDelete(jobID,list,commonNewExpression,commonNewList);
-        noteModifications(0,sourceDocumentHashes.length,0);
+          list.clear();
+          k = 0;
+        }
+        list.add(sourceDocumentHashes[i]);
+        i++;
+        k++;
       }
-      else
-      {
-        // For this query, postgresql seems to not do the right thing unless the subclause is a three-way join:
-        //
-        // UPDATE hopcount SET x=y WHERE id IN(SELECT t0.ownerid FROM hopdeletedeps t0,jobqueue t99,intrinsiclink t1 WHERE
-        //      t0.jobid=? and t99.jobid=? and t1.jobid=? and
-        //      t0.childidhash=t99.dochash and t0.childid=t99.docid and t99.status='P' and
-        //      t0.parentidhash=t1.parentidhash and t0.childidhash=t1.childidhash and t0.linktype=t1.linktype and
-        //      t0.parentid=t1.parentid and t0.childid=t1.childid)
-        
-        // MHL to figure out the "correct" way to state this for all databases
-
-        StringBuilder sb = new StringBuilder("WHERE ");
-        ArrayList list = new ArrayList();
-        
-        sb.append(idField).append(" IN(SELECT t0.").append(deleteDepsManager.ownerIDField).append(" FROM ")
-          .append(deleteDepsManager.getTableName()).append(" t0,").append(sourceTableName).append(",")
-          .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ");
-
-        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)})).append(" AND ");
-
-        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause("t1."+intrinsicLinkManager.jobIDField,jobID),
-          new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
-          new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
-          new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
-
-        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause(sourceTableJobColumn,jobID),
-          new JoinClause(sourceTableIDColumn,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
-          
-        sb.append(sourceTableCriteria);
-        list.addAll(sourceTableParams);
-
-        sb.append(")");
-
-        HashMap map = new HashMap();
-        // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
-        map.put(distanceField,new Long(-1L));
-        map.put(markForDeathField,markToString(MARK_DELETING));
-        performUpdate(map,sb.toString(),list,null);
-        noteModifications(0,1,0);
-      }
+      if (k > 0)
+        markForDelete(jobID,list,commonNewExpression,commonNewList);
+      noteModifications(0,sourceDocumentHashes.length,0);
 
       if (Logging.hopcount.isDebugEnabled())
         Logging.hopcount.debug("Done setting hopcount rows for job "+jobID+" to initial distances");
@@ -1196,10 +1402,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // Remove the intrinsic links that we said we would - BEFORE we evaluate the queue.
       intrinsicLinkManager.removeLinks(jobID,
         commonNewExpression,commonNewList,
-        sourceDocumentHashes,
-        sourceTableName,
-        sourceTableIDColumn,sourceTableJobColumn,
-        sourceTableCriteria,sourceTableParams);
+        sourceDocumentHashes);
 
       // Remove the delete dependencies of the nodes marked as being queued, with distance infinity.
       ArrayList queryList = new ArrayList();

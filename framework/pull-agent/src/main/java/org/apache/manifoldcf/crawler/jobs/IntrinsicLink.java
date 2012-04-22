@@ -327,60 +327,170 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
-  /** Remove all target links of the specified source documents that are not marked as "new" or "existing", and
-  * return the others to their base state.
+  /** Remove all links that mention a specific set of documents, as described by a join.
   */
-  public void removeLinks(Long jobID,
-    String commonNewExpression, ArrayList commonNewParams,
-    String[] sourceDocumentIDHashes,
-    String sourceTableName,
-    String sourceTableIDColumn, String sourceTableJobColumn,
-    String sourceTableCriteria, ArrayList sourceTableParams)
+  public void removeDocumentLinks(Long jobID,
+    String joinTableName,
+    String joinTableIDColumn, String joinTableJobColumn,
+    String joinTableCriteria, ArrayList joinTableParams)
     throws ManifoldCFException
   {
     beginTransaction();
     try
     {
-      if (sourceDocumentIDHashes != null)
+      // Delete matches for childIDHashField
+      StringBuilder sb = new StringBuilder("WHERE ");
+      ArrayList list = new ArrayList();
+          
+      sb.append("EXISTS(SELECT 'x' FROM ").append(joinTableName).append(" WHERE ")
+        .append(buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(joinTableJobColumn,jobID),
+          new JoinClause(joinTableIDColumn,getTableName()+"."+childIDHashField)})).append(" AND ");
+
+      sb.append(joinTableCriteria);
+      list.addAll(joinTableParams);
+              
+      sb.append(")");
+              
+      performDelete(sb.toString(),list,null);
+      noteModifications(0,0,1);
+          
+      // Delete matches for parentIDHashField
+      sb = new StringBuilder("WHERE ");
+      list = new ArrayList();
+          
+      sb.append("EXISTS(SELECT 'x' FROM ").append(joinTableName).append(" WHERE ")
+        .append(buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(joinTableJobColumn,jobID),
+          new JoinClause(joinTableIDColumn,getTableName()+"."+parentIDHashField)})).append(" AND ");
+
+      sb.append(joinTableCriteria);
+      list.addAll(joinTableParams);
+              
+      sb.append(")");
+              
+      performDelete(sb.toString(),list,null);
+      noteModifications(0,0,1);
+
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+
+  }
+
+  /** Remove all links that mention a specific set of documents.
+  */
+  public void removeDocumentLinks(Long jobID,
+    String[] documentIDHashes)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      int maxClause = maxClausePerformRemoveDocumentLinks(jobID);
+      ArrayList list = new ArrayList();
+      int i = 0;
+      int k = 0;
+      while (i < documentIDHashes.length)
       {
-        int maxClause = maxClausePerformRemoveLinks(jobID);
-        ArrayList list = new ArrayList();
-        int i = 0;
-        int k = 0;
-        while (i < sourceDocumentIDHashes.length)
+        if (k == maxClause)
         {
-          if (k == maxClause)
-          {
-            performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
-            list.clear();
-            k = 0;
-          }
-          list.add(sourceDocumentIDHashes[i++]);
-          k++;
+          performRemoveDocumentLinks(list,jobID);
+          list.clear();
+          k = 0;
         }
-
-        if (k > 0)
-          performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
-        noteModifications(0,0,sourceDocumentIDHashes.length);
+        list.add(documentIDHashes[i++]);
+        k++;
       }
-      else
+
+      if (k > 0)
+        performRemoveDocumentLinks(list,jobID);
+      noteModifications(0,0,documentIDHashes.length);
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+
+  protected int maxClausePerformRemoveDocumentLinks(Long jobID)
+  {
+    return findConjunctionClauseMax(new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+  }
+    
+  protected void performRemoveDocumentLinks(ArrayList list, Long jobID)
+    throws ManifoldCFException
+  {
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList thisList = new ArrayList();
+
+    sb.append(buildConjunctionClause(thisList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(childIDHashField,list)}));
+    performDelete(sb.toString(),thisList,null);
+      
+    sb = new StringBuilder("WHERE ");
+    thisList = new ArrayList();
+
+    sb.append(buildConjunctionClause(thisList,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(parentIDHashField,list)}));
+    performDelete(sb.toString(),thisList,null);
+  }
+
+  /** Remove all target links of the specified source documents that are not marked as "new" or "existing", and
+  * return the others to their base state.
+  */
+  public void removeLinks(Long jobID,
+    String commonNewExpression, ArrayList commonNewParams,
+    String[] sourceDocumentIDHashes)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      int maxClause = maxClausePerformRemoveLinks(jobID);
+      ArrayList list = new ArrayList();
+      int i = 0;
+      int k = 0;
+      while (i < sourceDocumentIDHashes.length)
       {
-        StringBuilder sb = new StringBuilder("WHERE ");
-        ArrayList list = new ArrayList();
-        
-        sb.append("EXISTS(SELECT 'x' FROM ").append(sourceTableName).append(" WHERE ")
-          .append(buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(sourceTableJobColumn,jobID),
-            new JoinClause(sourceTableIDColumn,getTableName()+"."+childIDHashField)})).append(" AND ");
-
-        sb.append(sourceTableCriteria);
-        list.addAll(sourceTableParams);
-            
-        sb.append(")");
-            
-        performDelete(sb.toString(),list,null);
-        noteModifications(0,0,1);
+        if (k == maxClause)
+        {
+          performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
+          list.clear();
+          k = 0;
+        }
+        list.add(sourceDocumentIDHashes[i++]);
+        k++;
       }
+
+      if (k > 0)
+        performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
+      noteModifications(0,0,sourceDocumentIDHashes.length);
     }
     catch (ManifoldCFException e)
     {
