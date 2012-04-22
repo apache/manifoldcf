@@ -68,11 +68,15 @@ class JSObject:
     def bool_value( self ):
         raise Exception("Object %s has no boolean value" % unicode(self) )
 
-    def get_referenced_object( self ):
-        raise Exception("Object %s has no legal object reference" % unicode(self))
-
-    def set_referenced_object( self, newobject ):
-        raise Exception("Object %s has no legal object reference" % unicode(self))
+    def set_reference( self, newobject ):
+        # For objects that are references, this is how they are set.  All other kinds of objects
+        # do not support this operation.
+        raise Exception("Object %s is not a reference and cannot be set" % unicode(self))
+        
+    def dereference( self ):
+        # For objects that are references, this operation dereferences them.  All others
+        # return self.
+        return self
 
 # Array object.
 class JSArray( JSObject ):
@@ -543,44 +547,28 @@ class JSReference( JSObject ):
         JSObject.__init__( self )
 
     def is_type( self, type ):
-        return self.get_referenced_object().is_type(type)
-
-    def get_referenced_object( self ):
-        raise Exception("Cannot dereference base class");
-
-    def set_referenced_object( self, newobject ):
-        self.get_referenced_object().set_referenced_object(newobject)
+        return self.dereference().is_type(type)
 
     def call( self, argset, context ):
-        return self.get_referenced_object().call(argset,context)
+        return self.dereference().call(argset,context)
 
     def get_value( self, member_name ):
-        return self.get_referenced_object().get_value(member_name)
+        return self.dereference().get_value(member_name)
 
     def set_value( self, member_name, value ):
-        self.get_referenced_object().set_value(member_name,value)
+        self.dereference().set_value(member_name,value)
 
     def str_value( self ):
-        return self.get_referenced_object().str_value()
+        return self.dereference().str_value()
 
     def num_value( self ):
-        return self.get_referenced_object().num_value()
+        return self.dereference().num_value()
 
     def bool_value( self ):
-        return self.get_referenced_object().bool_value()
+        return self.dereference().bool_value()
 
     def construct( self, argset, context ):
-        return self.get_referenced_object().construct(argset,context)
-
-# Non-settable reference to a scalar
-class JSNonSettableReference( JSReference ):
-    def __init__( self, obj ):
-        JSReference.__init__( self )
-        assert isinstance( obj, JSObject )
-        self.object = obj
-        
-    def get_referenced_object( self ):
-        return self.object
+        return self.dereference().construct(argset,context)
 
 # object/member style reference
 class JSObjMemberReference( JSReference ):
@@ -591,10 +579,10 @@ class JSObjMemberReference( JSReference ):
         self.object = obj
         self.member = member
 
-    def get_referenced_object( self ):
+    def dereference( self ):
         return self.object.get_value( self.member )
 
-    def set_referenced_object( self, newobject ):
+    def set_reference( self, newobject ):
         self.object.set_value( self.member, newobject )
 
 
@@ -1099,8 +1087,87 @@ class JSTokenStream:
     # expression evaluation should be refined to be more rigorously correct.
     # Returns a return object, or none for "not me"
     def evaluate_expr( self, context, place, parse_only=False ):
-        # expr -> expr1 ["||" expr1 [...]]
-        # expr -> expr1 ["|" expr1 [...]]
+        # expr = expr [...]
+        # expr += expr [...]
+        # expr -= expr [...]
+        # expr *= expr [...]
+        # expr /= expr [...]
+        rval = self.evaluate_expr0( context, place, parse_only )
+        if rval == None:
+            return rval
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == "=":
+                # = operator
+                self.advance( )
+                nextvalue = self.evaluate_expr0( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '=' in %s" % place)
+                if parse_only==False:
+                    rval = self.assign(rval, nextvalue)
+            elif token != None and token.get_punc( ) == "+=":
+                # += operator
+                self.advance( )
+                nextvalue = self.evaluate_expr0( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '+=' in %s" % place)
+                if parse_only==False:
+                    rval = self.assign_plus(rval, nextvalue)
+            elif token != None and token.get_punc( ) == "-=":
+                # += operator
+                self.advance( )
+                nextvalue = self.evaluate_expr0( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '-=' in %s" % place)
+                if parse_only==False:
+                    rval = self.assign_minus(rval, nextvalue)
+            elif token != None and token.get_punc( ) == "*=":
+                # += operator
+                self.advance( )
+                nextvalue = self.evaluate_expr0( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '*=' in %s" % place)
+                if parse_only==False:
+                    rval = self.assign_plus(rval, nextvalue)
+            elif token != None and token.get_punc( ) == "/=":
+                # += operator
+                self.advance( )
+                nextvalue = self.evaluate_expr0( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '/=' in %s" % place)
+                if parse_only==False:
+                    rval = self.assign_minus(rval, nextvalue)
+            else:
+                return rval
+
+        return self.evaluate_expr0( context, place, parse_only )
+        
+    def assign( self, value1, value2 ):
+        value1.set_reference( value2.dereference( ) )
+        return value1
+
+    def assign_plus( self, value1, value2 ):
+        rval = self.plus( value1, value2 )
+        value1.set_reference( rval.dereference( ) )
+        return value1
+    
+    def assign_minus( self, value1, value2 ):
+        rval = self.minus( value1, value2 )
+        value1.set_reference( rval.dereference( ) )
+        return value1
+
+    def assign_times( self, value1, value2 ):
+        rval = self.times( value1, value2 )
+        value1.set_reference( rval.dereference( ) )
+        return value1
+    
+    def assign_divide( self, value1, value2 ):
+        rval = self.divide( value1, value2 )
+        value1.set_reference( rval.dereference( ) )
+        return value1
+        
+    def evaluate_expr0( self, context, place, parse_only=False ):
+        # expr0 -> expr1 ["||" expr1 [...]]
         rval = self.evaluate_expr1( context, place, parse_only )
         if rval == None:
             return rval
@@ -1116,26 +1183,14 @@ class JSTokenStream:
                     raise Exception("Missing expression after '||' in %s" % place)
                 if parse_only==False:
                     rval = self.logical_or(rval, nextvalue)
-            elif token != None and token.get_punc( ) == "|":
-                # | operator
-                self.advance( )
-                nextvalue = self.evaluate_expr1( context, place, parse_only )
-                if nextvalue == None:
-                    raise Exception("Missing expression after '|' in %s" % place)
-                if parse_only==False:
-                    rval = self.numerical_or(rval, nextvalue)
             else:
                 return rval
 
     def logical_or( self, value1, value2 ):
         return JSBoolean( value1.bool_value( ) or value2.bool_value( ) )
 
-    def numerical_or( self, value1, value2 ):
-        return JSNumber( int(value1.num_value( ) ) | int(value2.num_value( ) ) )
-
     def evaluate_expr1( self, context, place, parse_only=False ):
         # expr1 -> expr2 ["&&" expr2 [...]]
-        # expr1 -> expr2 ["&" expr2 [...]]
         rval = self.evaluate_expr2( context, place, parse_only )
         if rval == None:
             return rval
@@ -1151,10 +1206,65 @@ class JSTokenStream:
                     raise Exception("Missing expression after '&&' in %s" % place)
                 if parse_only==False:
                     rval = self.logical_and(rval, nextvalue)
-            elif token != None and token.get_punc( ) == "&":
+            else:
+                return rval
+
+    def logical_and( self, value1, value2 ):
+        return JSBoolean( value1.bool_value( ) and value2.bool_value( ) )
+
+    def evaluate_expr2( self, context, place, parse_only=False ):
+        # expr2 -> expr3 ["|" expr3 [...]]
+        rval = self.evaluate_expr3( context, place, parse_only )
+        if rval == None:
+            return rval
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == "|":
+                # | operator
+                self.advance( )
+                nextvalue = self.evaluate_expr3( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '|' in %s" % place)
+                if parse_only==False:
+                    rval = self.numerical_or(rval, nextvalue)
+            else:
+                return rval
+
+    def numerical_or( self, value1, value2 ):
+        return JSNumber( int(value1.num_value( ) ) | int(value2.num_value( ) ) )
+
+    def evaluate_expr3( self, context, place, parse_only=False ):
+        # expr3 -> expr4 ["^" expr4 [...]]
+        rval = self.evaluate_expr4( context, place, parse_only )
+        if rval == None:
+            return rval
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == "^":
+                # | operator
+                self.advance( )
+                nextvalue = self.evaluate_expr4( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '^' in %s" % place)
+                if parse_only==False:
+                    rval = self.numerical_xor(rval, nextvalue)
+            else:
+                return rval
+
+    def numerical_xor( self, value1, value2 ):
+        return JSNumber( int(value1.num_value( ) ) ^ int(value2.num_value( ) ) )
+
+    def evaluate_expr4( self, context, place, parse_only=False ):
+        # expr4 -> expr5 ["&" expr5 [...]]
+        rval = self.evaluate_expr5( context, place, parse_only )
+        if rval == None:
+            return rval
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == "&":
                 # & operator
                 self.advance( )
-                nextvalue = self.evaluate_expr2( context, place, parse_only )
+                nextvalue = self.evaluate_expr5( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '&' in %s" % place)
                 if parse_only==False:
@@ -1162,37 +1272,13 @@ class JSTokenStream:
             else:
                 return rval
 
-    def logical_and( self, value1, value2 ):
-        return JSBoolean( value1.bool_value( ) and value2.bool_value( ) )
-
     def numerical_and( self, value1, value2 ):
         return JSNumber( int(value1.num_value( ) ) & int(value2.num_value( ) ) )
 
-    def evaluate_expr2( self, context, place, parse_only=False ):
-        # expr2 -> "!" expr2
-        # expr2 -> expr3
-        token = self.peek( )
-        if token != None and token.get_punc( ) == "!":
-            self.advance( )
-            nextvalue = self.evaluate_expr2( context, place, parse_only )
-            if nextvalue == None:
-                raise Exception("Missing expression after '!' in place %s" % place    )
-            if parse_only:
-                return JSNull()
-            return self.logical_not( nextvalue )
-        return self.evaluate_expr3( context, place, parse_only )
-
-    def logical_not( self, value1 ):
-        return JSBoolean( not value1.bool_value( ) )
-
-    def evaluate_expr3( self, context, place, parse_only=False ):
-        # expr3 -> expr4 ["==" expr4 [...]]
-        # expr3 -> expr4 ["!=" expr4 [...]]
-        # expr3 -> expr4 [">" expr4 [...]]
-        # expr3 -> expr4 ["<" expr4 [...]]
-        # expr3 -> expr4 [">=" expr4 [...]]
-        # expr3 -> expr4 ["<=" expr4 [...]]
-        rval = self.evaluate_expr4( context, place, parse_only )
+    def evaluate_expr5( self, context, place, parse_only=False ):
+        # expr5 -> expr6 ["==" expr6 [...]]
+        # expr5 -> expr6 ["!=" expr6 [...]]
+        rval = self.evaluate_expr6( context, place, parse_only )
         if rval == None:
             return rval
         while True:
@@ -1200,7 +1286,7 @@ class JSTokenStream:
             if token != None and token.get_punc( ) == "==":
                 # == operator
                 self.advance( )
-                nextvalue = self.evaluate_expr4( context, place, parse_only )
+                nextvalue = self.evaluate_expr6( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '==' in %s" % place)
                 if parse_only==False:
@@ -1208,44 +1294,11 @@ class JSTokenStream:
             elif token != None and token.get_punc( ) == "!=":
                 # != operator
                 self.advance( )
-                nextvalue = self.evaluate_expr4( context, place, parse_only )
+                nextvalue = self.evaluate_expr6( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '!=' in %s" % place)
                 if parse_only==False:
                     rval = self.not_equals(rval, nextvalue)
-            elif token != None and token.get_punc( ) == "<=":
-                # <= operator
-                self.advance( )
-                nextvalue = self.evaluate_expr4( context, place, parse_only )
-                if nextvalue == None:
-                    raise Exception("Missing expression after '<=' in %s" % place)
-                if parse_only==False:
-                    rval = self.less_than_or_equals(rval, nextvalue)
-            elif token != None and token.get_punc( ) == ">=":
-                # >= operator
-                self.advance( )
-                nextvalue = self.evaluate_expr4( context, place, parse_only )
-                if nextvalue == None:
-                    raise Exception("Missing expression after '>=' in %s" % place)
-                if parse_only==False:
-                    rval = self.greater_than_or_equals(rval, nextvalue)
-            elif token != None and token.get_punc( ) == "<":
-                # < operator
-                self.advance( )
-                nextvalue = self.evaluate_expr4( context, place, parse_only )
-                if nextvalue == None:
-                    raise Exception("Missing expression after '<' in %s" % place)
-                if parse_only==False:
-                    rval = self.less_than(rval, nextvalue)
-            elif token != None and token.get_punc( ) == ">":
-                # > operator
-                self.advance( )
-                nextvalue = self.evaluate_expr4( context, place, parse_only )
-                if nextvalue == None:
-                    raise Exception("Missing expression after '>' in %s" % place)
-                if parse_only==False:
-                    rval = self.greater_than(rval, nextvalue)
-
             else:
                 return rval
 
@@ -1265,6 +1318,52 @@ class JSTokenStream:
             return JSBoolean( value1.bool_value( ) != value2.bool_value( ) )
         return JSBoolean( value1.num_value( ) != value2.num_value( ) )
 
+    def evaluate_expr6( self, context, place, parse_only=False ):
+        # expr6 -> expr7 [">" expr7 [...]]
+        # expr6 -> expr7 ["<" expr7 [...]]
+        # expr6 -> expr7 [">=" expr7 [...]]
+        # expr6 -> expr7 ["<=" expr7 [...]]
+        rval = self.evaluate_expr7( context, place, parse_only )
+        if rval == None:
+            return rval
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == "<=":
+                # <= operator
+                self.advance( )
+                nextvalue = self.evaluate_expr7( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '<=' in %s" % place)
+                if parse_only==False:
+                    rval = self.less_than_or_equals(rval, nextvalue)
+            elif token != None and token.get_punc( ) == ">=":
+                # >= operator
+                self.advance( )
+                nextvalue = self.evaluate_expr7( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '>=' in %s" % place)
+                if parse_only==False:
+                    rval = self.greater_than_or_equals(rval, nextvalue)
+            elif token != None and token.get_punc( ) == "<":
+                # < operator
+                self.advance( )
+                nextvalue = self.evaluate_expr7( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '<' in %s" % place)
+                if parse_only==False:
+                    rval = self.less_than(rval, nextvalue)
+            elif token != None and token.get_punc( ) == ">":
+                # > operator
+                self.advance( )
+                nextvalue = self.evaluate_expr7( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '>' in %s" % place)
+                if parse_only==False:
+                    rval = self.greater_than(rval, nextvalue)
+
+            else:
+                return rval
+
     def less_than_or_equals( self, value1, value2 ):
         return JSBoolean( value1.num_value( ) <= value2.num_value( ) )
 
@@ -1277,10 +1376,14 @@ class JSTokenStream:
     def greater_than( self, value1, value2 ):
         return JSBoolean( value1.num_value( ) > value2.num_value( ) )
 
-    def evaluate_expr4( self, context, place, parse_only=False ):
-        # expr4 -> expr5 ["+" expr5 [...]]
-        # expr4 -> expr5 ["-" expr5 [...]]
-        rval = self.evaluate_expr5( context, place, parse_only )
+    def evaluate_expr7( self, context, place, parse_only=False ):
+        # >>, << TBD
+        return self.evaluate_expr8( context, place, parse_only )
+
+    def evaluate_expr7( self, context, place, parse_only=False ):
+        # expr7 -> expr8 ["+" expr8 [...]]
+        # expr7 -> expr8 ["-" expr8 [...]]
+        rval = self.evaluate_expr8( context, place, parse_only )
         if rval == None:
             return rval
         while True:
@@ -1288,7 +1391,7 @@ class JSTokenStream:
             if token != None and token.get_punc( ) == "+":
                 # + operator
                 self.advance( )
-                nextvalue = self.evaluate_expr5( context, place, parse_only )
+                nextvalue = self.evaluate_expr8( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '+' in %s" % place)
                 if parse_only==False:
@@ -1296,7 +1399,7 @@ class JSTokenStream:
             elif token != None and token.get_punc( ) == "-":
                 # - operator
                 self.advance( )
-                nextvalue = self.evaluate_expr5( context, place, parse_only )
+                nextvalue = self.evaluate_expr8( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '-' in %s" % place)
                 if parse_only==False:
@@ -1312,10 +1415,11 @@ class JSTokenStream:
     def minus( self, value1, value2 ):
         return JSNumber( value1.num_value( ) - value2.num_value( ) )
 
-    def evaluate_expr5( self, context, place, parse_only=False ):
-        # expr5 -> expr6 ["*" expr6 [...]]
-        # expr5 -> expr6 ["/" expr6 [...]]
-        rval = self.evaluate_expr6( context, place, parse_only )
+    def evaluate_expr8( self, context, place, parse_only=False ):
+        # expr8 -> expr9 ["*" expr9 [...]]
+        # expr8 -> expr9 ["/" expr9 [...]]
+        # expr8 -> expr9 ["%" expr9 [...]]
+        rval = self.evaluate_expr9( context, place, parse_only )
         if rval == None:
             return rval
         while True:
@@ -1323,7 +1427,7 @@ class JSTokenStream:
             if token != None and token.get_punc( ) == "*":
                 # * operator
                 self.advance( )
-                nextvalue = self.evaluate_expr6( context, place, parse_only )
+                nextvalue = self.evaluate_expr9( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '*' in %s" % place)
                 if parse_only==False:
@@ -1331,11 +1435,19 @@ class JSTokenStream:
             elif token != None and token.get_punc( ) == "/":
                 # / operator
                 self.advance( )
-                nextvalue = self.evaluate_expr6( context, place, parse_only )
+                nextvalue = self.evaluate_expr9( context, place, parse_only )
                 if nextvalue == None:
                     raise Exception("Missing expression after '/' in %s" % place)
                 if parse_only==False:
                     rval = self.divide(rval, nextvalue)
+            elif token != None and token.get_punc( ) == "%":
+                # % operator
+                self.advance( )
+                nextvalue = self.evaluate_expr9( context, place, parse_only )
+                if nextvalue == None:
+                    raise Exception("Missing expression after '%' in %s" % place)
+                if parse_only==False:
+                    rval = self.modulo(rval, nextvalue)
             else:
                 return rval
 
@@ -1345,173 +1457,39 @@ class JSTokenStream:
     def divide( self, value1, value2 ):
         return JSNumber( value1.num_value( ) / value2.num_value( ) )
 
-    def evaluate_expr6( self, context, place, parse_only=False ):
-        # expr6 -> "-" expr6
-        # expr6 -> expr7
+    def modulo( self, value1, value2 ):
+        return JSNumber( value1.num_value( ) % value2.num_value( ) )
+
+    def evaluate_expr9( self, context, place, parse_only=False ):
+        # expr9 -> "!" expr9
+        # expr9 -> "-" expr9
+        # expr9 -> expr10
         token = self.peek( )
-        if token != None and token.get_punc( ) == "-":
+        if token != None and token.get_punc( ) == "!":
             self.advance( )
-            nextvalue = self.evaluate_expr6( context, place, parse_only )
+            nextvalue = self.evaluate_expr9( context, place, parse_only )
+            if nextvalue == None:
+                raise Exception("Missing expression after '!' in place %s" % place    )
+            if parse_only:
+                return JSNull()
+            return self.logical_not( nextvalue )
+        elif token != None and token.get_punc( ) == "-":
+            self.advance( )
+            nextvalue = self.evaluate_expr9( context, place, parse_only )
             if nextvalue == None:
                 raise Exception("Missing expression after '-' in %s" % place)
             if parse_only:
                 return JSNull()
             return self.negate ( nextvalue )
-        return self.evaluate_expr7( context, place, parse_only )
-
-    def negate( self, value1 ):
-        return JSNumber( -value1.num_value( ) )
-
-    def evaluate_expr7( self, context, place, parse_only=False ):
-        # expr7 -> objectref
-        # expr7 -> objectref "=" expr
-        # expr7 -> objectref "(" [expr ["," ...]] ")"
-        # expr7 -> "(" expr ")"
-        # expr7 -> number
-        # expr7 -> string
-        # expr7 -> "true"
-        # expr7 -> "false"
-        # expr7 -> "null"
-        # expr7 -> "new" object_name "(" [expr ["," ...]] ")"
-
-        # Resolve keywords
-        token = self.peek( )
-        if token != None and token.get_punc( ) == "(":
+        elif token != None and token.get_punc( ) == "+":
             self.advance( )
-            rval = self.evaluate_expr( context, place, parse_only )
-            token = self.peek( )
-            if token == None or token.get_punc( ) != ")":
-                raise Exception("Missing right parenthesis in %s" % place)
-            self.advance( )
-            return rval
-
-        # Look for a terminal token
-        reference_object = self.evaluate_terminal_token( context, place, parse_only )
-        if reference_object == None:
-            return None
-
-        # Terminal token object found!
-        # Parse trailing operations, if any
-        while True:
-            token = self.peek( )
-            if token != None and token.get_punc( ) == ".":
-                self.advance( )
-                token = self.peek( )
-                if token == None or token.get_symbol( ) == None:
-                    raise Exception("Expecting member name in %s" % place)
-                self.advance( )
-                if parse_only==False:
-                    reference_object = JSObjMemberReference( reference_object.get_referenced_object( ), token.get_symbol( ) )
-            elif token != None and token.get_punc( ) == "[":
-                self.advance( )
-                value = self.evaluate_expr( context, place, parse_only )
-                if value == None:
-                    raise Exception("Expecting index value in %s" % place)
-                token = self.peek( )
-                if token == None or token.get_punc( ) != "]":
-                    raise Exception("Expecting ']' in %s" % place)
-                self.advance( )
-                if parse_only==False:
-                    reference_object = JSObjMemberReference( reference_object.get_referenced_object( ), str(int(value.num_value( ))) )
-            elif token != None and token.get_punc( ) == "(":
-                # Method invocation
-                self.advance( )
-                arguments = [ ]
-                token = self.peek( )
-                if token == None:
-                    raise Exception("Missing expression in argument list, saw EOF in %s" % place)
-                if token.get_punc( ) == ")":
-                    self.advance( )
-                else:
-                    while True:
-                        nextvalue = self.evaluate_expr( context, place, parse_only )
-                        if nextvalue == None:
-                            raise Exception("Missing expression in actual arguments in %s" % place)
-                        arguments.append( nextvalue )
-                        token = self.peek( )
-                        if token == None:
-                            raise Exception("Missing ',' in actual argument list, saw EOF")
-                        if token.get_punc( ) == ")":
-                            self.advance( )
-                            break
-                        if token.get_punc( ) != ",":
-                            raise Exception("Missing ',' in actual argument list, saw %s instead, in %s" % (unicode(token),place))
-                        self.advance( )
-                # Invoke method
-                if parse_only:
-                    reference_object = JSNonSettableReference( JSNull() )
-                else:
-                    reference_object = JSNonSettableReference( reference_object.call( arguments, context ) )
-
-            else:
-                break
-
-        token = self.peek( )
-        if token != None and token.get_punc( ) == "=":
-            # Assignment operation
-            self.advance( )
-            value = self.evaluate_expr( context, place, parse_only )
-            if value == None:
-                raise Exception("Missing expression value in assignment in %s" % place)
+            nextvalue = self.evaluate_expr9( context, place, parse_only )
+            if nextvalue == None:
+                raise Exception("Missing expression after '+' in %s" % place)
             if parse_only:
                 return JSNull()
-            reference_object.set_referenced_object( value )
-            return value
-        elif token != None and token.get_punc( ) == "+=":
-            # += operation
-            self.advance( )
-            value = self.evaluate_expr( context, place, parse_only )
-            if value == None:
-                raise Exception("Missing expression value in += in %s" % place)
-            if parse_only:
-                return JSNull()
-            reference_object.set_referenced_object( self.plus( reference_object.get_referenced_object( ), value ) )
-            return reference_object.get_referenced_object( )
-        elif token != None and token.get_punc( ) == "-=":
-            # -= operation
-            self.advance( )
-            value = self.evaluate_expr( context, place, parse_only )
-            if value == None:
-                raise Exception("Missing expression value in -= in %s" % place)
-            if parse_only:
-                return JSNull()
-            reference_object.set_referenced_object( self.minus( reference_object.get_referenced_object( ), value ) )
-            return reference_object.get_referenced_object( )
-        else:
-            # Just an object reference.  Look up the value
-            if parse_only:
-                return JSNull()
-            return reference_object.get_referenced_object( )
-
-
-    def evaluate_terminal_token( self, context, place, parse_only=False ):
-        # Parse a terminal value, and return the corresponding object.  A "None" return
-        # means "not me".
-
-        token = self.peek( )
-
-        if token != None and token.get_symbol( ) == "true":
-            self.advance( )
-            return JSNonSettableReference( JSBoolean( True ) )
-        if token != None and token.get_symbol( ) == "false":
-            self.advance( )
-            return JSNonSettableReference( JSBoolean( False ) )
-        if token != None and token.get_symbol( ) == "null":
-            self.advance( )
-            return JSNonSettableReferemce( JSNull( ) )
-        if token != None and token.get_string( ) != None:
-            self.advance( )
-            return JSNonSettableReference( JSString( token.get_string( ) ) )
-        if token != None and token.get_int( ) != None:
-            self.advance( )
-            return JSNonSettableReference( JSNumber( token.get_int( ) ) )
-        if token != None and token.get_float( ) != None:
-            self.advance( )
-            return JSNonSettableReference( JSNumber( token.get_float( ) ) )
-        if token != None and token.get_regexp( ) != None:
-            self.advance( )
-            return JSNonSettableReference( JSRegexp( token.get_regexp( ), token.get_regexp_global( ), token.get_regexp_insensitive( ) ) )
-        if token != None and token.get_symbol( ) == "new":
+            return self.positive ( nextvalue )
+        elif token != None and token.get_symbol( ) == "new":
             self.advance( )
             token = self.peek( )
             if token == None or token.get_symbol( ) == None:
@@ -1545,12 +1523,121 @@ class JSTokenStream:
                     self.advance( )
             # Invoke method
             if parse_only:
-                return JSReference()
+                return JSObject()
             value = context.find_symbol( object_name )
             if value == None:
                 raise Exception("Could not locate symbol %s in %s for construction" % (token.get_symbol(),place))
 
             return value.construct( arguments, context )
+
+        return self.evaluate_expr10( context, place, parse_only )
+
+    def logical_not( self, value1 ):
+        return JSBoolean( not value1.bool_value( ) )
+
+    def negate( self, value1 ):
+        return JSNumber( -value1.num_value( ) )
+
+    def positive( self, value1 ):
+        return JSNumber( +value1.num_value( ) )
+
+    def evaluate_expr10( self, context, place, parse_only=False ):
+        # expr10 -> expr11
+        # expr10 -> expr11 "(" [expr ["," ...]] ")"
+        # expr10 -> expr11 "[" [expr "]"
+        # expr10 -> expr11 "." member_name
+        
+        # Look for a terminal token
+        reference_object = self.evaluate_expr11( context, place, parse_only )
+        if reference_object == None:
+            return None
+
+        # Terminal token object found!
+        # Parse trailing operations, if any
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == ".":
+                self.advance( )
+                token = self.peek( )
+                if token == None or token.get_symbol( ) == None:
+                    raise Exception("Expecting member name in %s" % place)
+                self.advance( )
+                if parse_only==False:
+                    reference_object = JSObjMemberReference( reference_object, token.get_symbol( ) )
+            elif token != None and token.get_punc( ) == "[":
+                self.advance( )
+                value = self.evaluate_expr( context, place, parse_only )
+                if value == None:
+                    raise Exception("Expecting index value in %s" % place)
+                token = self.peek( )
+                if token == None or token.get_punc( ) != "]":
+                    raise Exception("Expecting ']' in %s" % place)
+                self.advance( )
+                if parse_only==False:
+                    reference_object = JSObjMemberReference( reference_object, str(int(value.num_value( ))) )
+            elif token != None and token.get_punc( ) == "(":
+                # Method invocation
+                self.advance( )
+                arguments = [ ]
+                token = self.peek( )
+                if token == None:
+                    raise Exception("Missing expression in argument list, saw EOF in %s" % place)
+                if token.get_punc( ) == ")":
+                    self.advance( )
+                else:
+                    while True:
+                        nextvalue = self.evaluate_expr( context, place, parse_only )
+                        if nextvalue == None:
+                            raise Exception("Missing expression in actual arguments in %s" % place)
+                        arguments.append( nextvalue )
+                        token = self.peek( )
+                        if token == None:
+                            raise Exception("Missing ',' in actual argument list, saw EOF")
+                        if token.get_punc( ) == ")":
+                            self.advance( )
+                            break
+                        if token.get_punc( ) != ",":
+                            raise Exception("Missing ',' in actual argument list, saw %s instead, in %s" % (unicode(token),place))
+                        self.advance( )
+                # Invoke method
+                if parse_only:
+                    reference_object = JSNull()
+                else:
+                    reference_object = reference_object.call( arguments, context )
+
+            else:
+                break
+
+        return reference_object
+
+
+    def evaluate_expr11( self, context, place, parse_only=False ):
+        # Parse a terminal value, and return the corresponding object.  A "None" return
+        # means "not me".
+
+        token = self.peek( )
+
+        if token != None and token.get_symbol( ) == "true":
+            self.advance( )
+            return JSBoolean( True )
+        if token != None and token.get_symbol( ) == "false":
+            self.advance( )
+            return JSBoolean( False )
+        if token != None and token.get_symbol( ) == "null":
+            self.advance( )
+            return JSNull( )
+        if token != None and token.get_string( ) != None:
+            self.advance( )
+            return JSString( token.get_string( ) )
+        if token != None and token.get_int( ) != None:
+            self.advance( )
+            return JSNumber( token.get_int( ) )
+        if token != None and token.get_float( ) != None:
+            self.advance( )
+            return JSNumber( token.get_float( ) )
+        if token != None and token.get_regexp( ) != None:
+            self.advance( )
+            return JSRegexp( token.get_regexp( ), token.get_regexp_global( ), token.get_regexp_insensitive( ) )
 
         if token != None and token.get_symbol( ) != None:
             self.advance( )
@@ -1560,7 +1647,16 @@ class JSTokenStream:
                     raise Exception("Could not locate symbol %s in %s" % (token.get_symbol(),place))
                 return value
             else:
-                return JSReference( )
+                return JSObject( )
+
+        if token != None and token.get_punc( ) == "(":
+            self.advance( )
+            rval = self.evaluate_expr( context, place, parse_only )
+            token = self.peek( )
+            if token == None or token.get_punc( ) != ")":
+                raise Exception("Missing right parenthesis in %s" % place)
+            self.advance( )
+            return rval
 
         return None
 
@@ -1728,6 +1824,7 @@ class JSTokenStream:
                 or this_char == ">" and new_char == "=" or this_char == "<" and new_char == "=" \
                 or this_char == "&" and new_char == "&" or this_char == "|" and new_char == "|" \
                 or this_char == "+" and new_char == "=" or this_char == "-" and new_char == "=" \
+                or this_char == "+" and new_char == "+" or this_char == "-" and new_char == "-" \
                 or this_char == "*" and new_char == "=" or this_char == "/" and new_char == "=" \
                 or this_char == "<" and new_char == "<" or this_char == ">" and new_char == ">":
                 self.start_index += 1

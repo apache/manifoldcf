@@ -2,6 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 0.6-dev =====================
+CONNECTORS-465: Revamp the expression parsing in the python
+browser simulator to actually obey the Javascript precedence rules.
+(Karl Wright)
 
 CONNECTORS-464: Improve document deletion cleanup logic for
 hopcounts, so that no references to deleted documents remain.
