@@ -1463,7 +1463,10 @@ class JSTokenStream:
     def evaluate_expr9( self, context, place, parse_only=False ):
         # expr9 -> "!" expr9
         # expr9 -> "-" expr9
-        # expr9 -> expr10
+        # expr9 -> "++" expr9
+        # expr9 -> "--" expr9
+        # expr9 -> expr10 ["++" ...]
+        # expr9 -> expr10 ["--" ...]
         token = self.peek( )
         if token != None and token.get_punc( ) == "!":
             self.advance( )
@@ -1481,6 +1484,14 @@ class JSTokenStream:
             if parse_only:
                 return JSNull()
             return self.negate ( nextvalue )
+        elif token != None and token.get_punc( ) == "--":
+            self.advance( )
+            nextvalue = self.evaluate_expr9( context, place, parse_only )
+            if nextvalue == None:
+                raise Exception("Missing expression after '--' in %s" % place)
+            if parse_only:
+                return JSNull()
+            return self.pre_minusminus ( nextvalue )
         elif token != None and token.get_punc( ) == "+":
             self.advance( )
             nextvalue = self.evaluate_expr9( context, place, parse_only )
@@ -1489,6 +1500,14 @@ class JSTokenStream:
             if parse_only:
                 return JSNull()
             return self.positive ( nextvalue )
+        elif token != None and token.get_punc( ) == "++":
+            self.advance( )
+            nextvalue = self.evaluate_expr9( context, place, parse_only )
+            if nextvalue == None:
+                raise Exception("Missing expression after '++' in %s" % place)
+            if parse_only:
+                return JSNull()
+            return self.pre_plusplus ( nextvalue )
         elif token != None and token.get_symbol( ) == "new":
             self.advance( )
             token = self.peek( )
@@ -1530,8 +1549,24 @@ class JSTokenStream:
 
             return value.construct( arguments, context )
 
-        return self.evaluate_expr10( context, place, parse_only )
-
+        rval = self.evaluate_expr10( context, place, parse_only )
+        if rval == None:
+            return rval
+        while True:
+            token = self.peek( )
+            if token != None and token.get_punc( ) == "++":
+                # ++ operator
+                self.advance( )
+                if parse_only==False:
+                    rval = self.post_plusplus( rval )
+            elif token != None and token.get_punc( ) == "--":
+                # -- operator
+                self.advance( )
+                if parse_only==False:
+                    rval = self.post_minusminus( rval )
+            else:
+                return rval
+        
     def logical_not( self, value1 ):
         return JSBoolean( not value1.bool_value( ) )
 
@@ -1540,6 +1575,24 @@ class JSTokenStream:
 
     def positive( self, value1 ):
         return JSNumber( +value1.num_value( ) )
+
+    def post_minusminus( self, value1 ):
+        rval = value1.dereference( )
+        value1.set_reference( self.minus( value1, JSNumber( 1 ) ).dereference( ) )
+        return rval
+      
+    def post_plusplus( self, value1 ):
+        rval = value1.dereference( )
+        value1.set_reference( self.plus( value1, JSNumber( 1 ) ).dereference( ) )
+        return rval
+
+    def pre_minusminus( self, value1 ):
+        value1.set_reference( self.minus( value1, JSNumber( 1 ) ).dereference( ) )
+        return value1
+      
+    def pre_plusplus( self, value1 ):
+        value1.set_reference( self.plus( value1, JSNumber( 1 ) ).dereference( ) )
+        return value1
 
     def evaluate_expr10( self, context, place, parse_only=False ):
         # expr10 -> expr11
