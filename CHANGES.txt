@@ -2,6 +2,10 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 0.6-dev =====================
+
+CONNECTORS-466: Fix expression error in CMIS connector javascript.
+(Karl Wright)
+
 CONNECTORS-465: Revamp the expression parsing in the python
 browser simulator to actually obey the Javascript precedence rules.
 (Karl Wright)

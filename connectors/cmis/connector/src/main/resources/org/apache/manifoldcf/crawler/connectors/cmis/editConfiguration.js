@@ -51,7 +51,7 @@ function checkConfigForSave()
     editconnection.server.focus();
     return false;
   }
-  if(!editconnection.server.value.indexOf('/')==-1) {
+  if(editconnection.server.value.indexOf('/')!=-1) {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CmisRepositoryConnector.ServerNameCantContainSlash'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CmisRepositoryConnector.Server'))");
     editconnection.server.focus();
