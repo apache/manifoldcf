@@ -139,7 +139,7 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
       
       // Add in the resource bundle
       ResourceBundle rb = getResourceBundle(clazz,bundleName,locale);
-      context.put("ResourceBundle",rb);
+      context.put("ResourceBundle",new ResourceBundleWrapper(rb,bundleName,locale));
       
       if (contextObjects != null)
       {

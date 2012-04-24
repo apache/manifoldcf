@@ -174,6 +174,14 @@ public class Messages
     if (resources == null)
       return null;
     
+    return getMessage(resources,bundleName,locale,messageKey);
+  }
+  
+  /** Obtain a message given a resource bundle and message key.
+  *@return null if the message could not be found.
+  */
+  public static String getMessage(ResourceBundle resources, String bundleName, Locale locale, String messageKey)
+  {
     String message;
     try
     {
@@ -185,6 +193,14 @@ public class Messages
         e,bundleName,locale,messageKey);
       return null;
     }
+  }
+  
+  /** Obtain a string given a resource bundle and message key.
+  */
+  public static String getString(ResourceBundle resourceBundle, String bundleName,
+    Locale locale, String messageKey)
+  {
+    return getString(resourceBundle, bundleName, locale, messageKey, null);
   }
   
   /** Obtain a string given a class, bundle, locale, message key, and arguments.
@@ -211,6 +227,31 @@ public class Messages
     return formatMessage;
   }
 
+  /** Obtain a string given a resource bundle, message key, and arguments.
+  */
+  public static String getString(ResourceBundle resourceBundle, String bundleName,
+    Locale locale, String messageKey, Object[] args)
+  {
+    String message = getMessage(resourceBundle,bundleName,locale,messageKey);
+    if (message == null)
+      return messageKey;
+
+    // Format the message
+    String formatMessage;
+    if (args != null)
+    {
+      MessageFormat fm = new MessageFormat(message);
+      fm.setLocale(locale);
+      formatMessage = fm.format(args);
+    }
+    else
+    {
+      formatMessage = message;
+    }
+    return formatMessage;
+
+  }
+  
   protected static void complainMissingBundle(String errorMessage, Throwable exception, String bundleName, Locale locale)
   {
     String localeName = locale.toString();

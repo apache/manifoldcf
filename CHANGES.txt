@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-468: Wrap ResourceBundle class so that missing keys
+in a resource bundle are dealt with in a friendlier way.
+(Karl Wright)
+
 CONNECTORS-466: Fix expression error in CMIS connector javascript.
 (Karl Wright)
 
