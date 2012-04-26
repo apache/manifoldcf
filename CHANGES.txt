@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-453: Getting deadlock problems and other issues with
+Derby 10.8.1.1.
+(Karl Wright)
+
 CONNECTORS-467: Remove outdated taglib directives in web.xml
 (Erlend Garåsen)
 
