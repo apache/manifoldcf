@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-469: Hook up context listener to catch web application
+shutdown more efficiently.
+(Karl Wright)
+
 CONNECTORS-453: Getting deadlock problems and other issues with
 Derby 10.8.1.1.
 (Karl Wright)

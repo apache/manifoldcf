@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!DOCTYPE web-app
-	PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
-	"http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
+    "http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
 
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more
      contributor license agreements. See the NOTICE file distributed with
@@ -26,17 +26,21 @@
   <description>ManifoldCF General API</description>
 
   <servlet>
-	<servlet-name>APIServlet</servlet-name>
-    	<servlet-class>org.apache.manifoldcf.api.APIServlet</servlet-class>
+    <servlet-name>APIServlet</servlet-name>
+    <servlet-class>org.apache.manifoldcf.api.APIServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
-        <servlet-name>APIServlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+    <servlet-name>APIServlet</servlet-name>
+    <url-pattern>/*</url-pattern>
   </servlet-mapping>
 
   <session-config>
-	<session-timeout>5</session-timeout>
+    <session-timeout>5</session-timeout>
   </session-config>
+
+  <listener>
+    <listener-class>org.apache.manifoldcf.core.system.ServletListener</listener-class>
+  </listener>
 
 </web-app>

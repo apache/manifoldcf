@@ -77,6 +77,7 @@ public class ManifoldCF
   // Flag indicating whether system initialized or not, and synchronizer to protect that flag.
   protected static boolean isInitialized = false;
   protected static boolean alreadyClosed = false;
+  protected static boolean alreadyShutdown = false;
   protected static Integer initializeFlagLock = new Integer(0);
 
   // Local member variables
@@ -132,14 +133,13 @@ public class ManifoldCF
   /** Reset environment.
   */
   public static void resetEnvironment()
-    throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
       if (!isInitialized)
         return;
       // Clean up the system doing the same thing the shutdown thread would have if the process was killed
-      cleanUpSystem();
+      cleanUpEnvironment();
       masterDatabaseName = null;
       masterDatabaseUsername = null;
       masterDatabasePassword = null;
@@ -149,6 +149,7 @@ public class ManifoldCF
       propertyFilePath = null;
       isInitialized = false;
       alreadyClosed = false;
+      alreadyShutdown = false;
     }
   }
   
@@ -1155,27 +1156,31 @@ public class ManifoldCF
   }
   
   /** Perform system shutdown, using the registered shutdown hooks. */
-  protected static void cleanUpSystem()
+  public static void cleanUpEnvironment()
   {
     // It needs to call all registered shutdown hooks, in reverse order.
     // A failure of any one hook should cause the cleanup to continue, after a logging attempt is made.
-    synchronized (cleanupHooks)
+    if (isInitialized && !alreadyShutdown)
     {
-      int i = cleanupHooks.size();
-      while (i > 0)
+      synchronized (cleanupHooks)
       {
-	i--;
-	IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
-	try
-	{
-	  hook.doCleanup();
-	}
-	catch (ManifoldCFException e)
-	{
-	  Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
-	}
+        int i = cleanupHooks.size();
+        while (i > 0)
+        {
+          i--;
+          IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
+          try
+          {
+            hook.doCleanup();
+          }
+          catch (ManifoldCFException e)
+          {
+            Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
+          }
+        }
+        cleanupHooks.clear();
       }
-      cleanupHooks.clear();
+      alreadyShutdown = true;
     }
   }
 
@@ -1319,7 +1324,7 @@ public class ManifoldCF
     public void run()
     {
       // This thread is run at shutdown time.
-      cleanUpSystem();
+      cleanUpEnvironment();
     }
   }
 

@@ -26,17 +26,21 @@
   <description>ManifoldCF Authorities API</description>
 
   <servlet>
-	<servlet-name>UserACLServlet</servlet-name>
-    	<servlet-class>org.apache.manifoldcf.authorityservice.servlet.UserACLServlet</servlet-class>
+    <servlet-name>UserACLServlet</servlet-name>
+    <servlet-class>org.apache.manifoldcf.authorityservice.servlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
-        <servlet-name>UserACLServlet</servlet-name>
-        <url-pattern>/UserACLs</url-pattern>
+    <servlet-name>UserACLServlet</servlet-name>
+    <url-pattern>/UserACLs</url-pattern>
   </servlet-mapping>
 
   <session-config>
-	<session-timeout>5</session-timeout>
+    <session-timeout>5</session-timeout>
   </session-config>
+
+  <listener>
+    <listener-class>org.apache.manifoldcf.core.system.ServletListener</listener-class>
+  </listener>
 
 </web-app>
