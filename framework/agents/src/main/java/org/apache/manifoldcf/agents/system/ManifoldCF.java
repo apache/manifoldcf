@@ -61,7 +61,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   /** Reset the environment.
   */
   public static void resetEnvironment()
-    throws ManifoldCFException
   {
     org.apache.manifoldcf.core.system.ManifoldCF.resetEnvironment();
     synchronized (runningHash)
