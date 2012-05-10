@@ -43,7 +43,6 @@
             <include name="jasper*.jar"/>
             <include name="jetty*.jar"/>
             <include name="slf4j*.jar"/>
-            <include name="jdbcpool*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>

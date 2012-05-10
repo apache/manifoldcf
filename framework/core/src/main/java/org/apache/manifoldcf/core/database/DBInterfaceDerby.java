@@ -1388,7 +1388,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     case TRANSACTION_READCOMMITTED:
       try
       {
-        executeViaThread(connection,"SET ISOLATION READ COMMITTED",null,false,0,null,null);
+        executeViaThread((connection==null)?null:connection.getConnection(),"SET ISOLATION READ COMMITTED",null,false,0,null,null);
       }
       catch (Error e)
       {
@@ -1407,7 +1407,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     case TRANSACTION_SERIALIZED:
       try
       {
-        executeViaThread(connection,"SET ISOLATION SERIALIZABLE",null,false,0,null,null);
+        executeViaThread((connection==null)?null:connection.getConnection(),"SET ISOLATION SERIALIZABLE",null,false,0,null,null);
       }
       catch (Error e)
       {
@@ -1475,7 +1475,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     {
       try
       {
-        connection.setAutoCommit(false);
+        connection.getConnection().setAutoCommit(false);
       }
       catch (java.sql.SQLException e)
       {
@@ -1498,8 +1498,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         {
           if (connection != null)
           {
-            connection.commit();
-            connection.setAutoCommit(true);
+            connection.getConnection().commit();
+            connection.getConnection().setAutoCommit(true);
           }
         }
         catch (java.sql.SQLException e)
@@ -1526,8 +1526,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
         {
           if (connection != null)
           {
-            connection.rollback();
-            connection.setAutoCommit(true);
+            connection.getConnection().rollback();
+            connection.getConnection().setAutoCommit(true);
           }
         }
         catch (java.sql.SQLException e)

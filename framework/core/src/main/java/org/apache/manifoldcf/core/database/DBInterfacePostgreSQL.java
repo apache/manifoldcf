@@ -1148,7 +1148,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   {
     try
     {
-      executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+      executeViaThread((connection==null)?null:connection.getConnection(),"START TRANSACTION",null,false,0,null,null);
     }
     catch (ManifoldCFException e)
     {
@@ -1162,7 +1162,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   {
     try
     {
-      executeViaThread(connection,"COMMIT",null,false,0,null,null);
+      executeViaThread((connection==null)?null:connection.getConnection(),"COMMIT",null,false,0,null,null);
     }
     catch (ManifoldCFException e)
     {
@@ -1177,7 +1177,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   {
     try
     {
-      executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+      executeViaThread((connection==null)?null:connection.getConnection(),"ROLLBACK",null,false,0,null,null);
     }
     catch (ManifoldCFException e)
     {

@@ -1374,8 +1374,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     {
       try
       {
-        connection.setAutoCommit(false);
-        connection.setTransactionIsolation(desiredTransactionType);
+        connection.getConnection().setAutoCommit(false);
+        connection.getConnection().setTransactionIsolation(desiredTransactionType);
       }
       catch (java.sql.SQLException e)
       {
@@ -1398,8 +1398,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         {
           if (connection != null)
           {
-            connection.commit();
-            connection.setAutoCommit(true);
+            connection.getConnection().commit();
+            connection.getConnection().setAutoCommit(true);
           }
         }
         catch (java.sql.SQLException e)
@@ -1426,8 +1426,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
         {
           if (connection != null)
           {
-            connection.rollback();
-            connection.setAutoCommit(true);
+            connection.getConnection().rollback();
+            connection.getConnection().setAutoCommit(true);
           }
         }
         catch (java.sql.SQLException e)

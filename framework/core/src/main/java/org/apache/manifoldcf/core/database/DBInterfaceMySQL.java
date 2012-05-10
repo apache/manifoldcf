@@ -1018,7 +1018,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     try
     {
-      executeViaThread(connection,"START TRANSACTION",null,false,0,null,null);
+      executeViaThread(connection.getConnection(),"START TRANSACTION",null,false,0,null,null);
     }
     catch (ManifoldCFException e)
     {
@@ -1032,7 +1032,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     try
     {
-      executeViaThread(connection,"COMMIT",null,false,0,null,null);
+      executeViaThread(connection.getConnection(),"COMMIT",null,false,0,null,null);
     }
     catch (ManifoldCFException e)
     {
@@ -1046,7 +1046,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     try
     {
-      executeViaThread(connection,"ROLLBACK",null,false,0,null,null);
+      executeViaThread(connection.getConnection(),"ROLLBACK",null,false,0,null,null);
     }
     catch (ManifoldCFException e)
     {

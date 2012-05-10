@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.jdbc;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.jdbcpool.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
@@ -28,8 +29,6 @@ import java.sql.*;
 import javax.naming.*;
 import javax.sql.*;
 import java.util.*;
-
-import com.bitmechanic.sql.*;
 
 /** This class creates a connection
 */
@@ -65,7 +64,7 @@ public class JDBCConnectionFactory
   }
 
 
-  public static Connection getConnection(String providerName, String host, String database, String userName, String password)
+  public static WrappedConnection getConnection(String providerName, String host, String database, String userName, String password)
     throws ManifoldCFException, ServiceInterruption
   {
     if (database.length() == 0)
@@ -113,31 +112,31 @@ public class JDBCConnectionFactory
         // to be displayed.
         poolKey += "/" + userName + "/" + ManifoldCF.hash(password);
 
+        ConnectionPool cp;
         synchronized (_pool)
         {
-          ConnectionPool cp = null;
-          try
-          {
-            cp = _pool.getPool(poolKey);
-          }
-          catch (Exception e)
-          {
-          }
+          cp = _pool.getPool(poolKey);
           if (cp == null)
           {
-            _pool.addAlias(poolKey, driverClassName, dburl,
-              userName, password, 25, 300, 3600, 30, false);
-            // cp = _pool.getPool(poolKey);
+            // Register the driver here
+            Class.forName(driverClassName);
+            //System.out.println("Class name '"+driverClassName+"'; URL = '"+dburl+"'");
+            cp =_pool.addAlias(poolKey, driverClassName, dburl,
+              userName, password, 30, 300000L);
           }
         }
-        return DriverManager.getConnection(
-          ConnectionPoolManager.URL_PREFIX + poolKey, null, null);
+        return cp.getConnection();
       }
       else
         throw new ManifoldCFException("Can't get connection since pool driver did not initialize properly");
     }
+    catch (InterruptedException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+    }
     catch (java.sql.SQLException e)
     {
+      e.printStackTrace();
       // Unfortunately, the connection pool manager manages to eat all actual connection setup errors.  This makes it very hard to figure anything out
       // when something goes wrong.  So, we try again, going directly this time as a means of getting decent error feedback.
       try
@@ -173,17 +172,10 @@ public class JDBCConnectionFactory
     }
   }
 
-  public static void releaseConnection(Connection c)
+  public static void releaseConnection(WrappedConnection c)
     throws ManifoldCFException, ServiceInterruption
   {
-    try
-    {
-      c.close();
-    }
-    catch (java.sql.SQLException e)
-    {
-      throw new ManifoldCFException("Error releasing connection: "+e.getMessage(),e);
-    }
+    c.release();
   }
 
 }

@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.jdbcpool.*;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
@@ -45,7 +46,7 @@ public abstract class Database
   protected String userName;
   protected String password;
   protected TransactionHandle th = null;
-  protected Connection connection = null;
+  protected WrappedConnection connection = null;
   protected boolean doRollback = false;
   protected boolean commitDone = false;
   protected int delayedTransactionDepth = 0;
@@ -250,7 +251,7 @@ public abstract class Database
       try
       {
         // Initialize the connection (for HSQLDB)
-        initializeConnection(connection);
+        initializeConnection(connection.getConnection());
         // Start a transaction
         startATransaction();
       }
@@ -705,7 +706,7 @@ public abstract class Database
     {
       try
       {
-        return executeViaThread(connection,query,params,bResults,maxResults,spec,returnLimit);
+        return executeViaThread(connection.getConnection(),query,params,bResults,maxResults,spec,returnLimit);
       }
       catch (ManifoldCFException e)
       {
@@ -718,12 +719,12 @@ public abstract class Database
     else
     {
       // Grab a connection
-      Connection tempConnection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
+      WrappedConnection tempConnection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
       try
       {
         // Initialize the connection (for HSQLDB)
-        initializeConnection(tempConnection);
-        return executeViaThread(tempConnection,query,params,bResults,maxResults,spec,returnLimit);
+        initializeConnection(tempConnection.getConnection());
+        return executeViaThread(tempConnection.getConnection(),query,params,bResults,maxResults,spec,returnLimit);
       }
       catch (ManifoldCFException e)
       {

@@ -20,6 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.jdbc;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.database.*;
+import org.apache.manifoldcf.core.jdbcpool.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 
 import java.sql.*;
@@ -28,8 +29,6 @@ import javax.sql.*;
 
 import java.io.*;
 import java.util.*;
-
-import com.bitmechanic.sql.*;
 
 /** This object describes a connection to a particular JDBC instance.
 */
@@ -229,7 +228,7 @@ public class JDBCConnection
     {
       try
       {
-        Connection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
+        WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
         JDBCConnectionFactory.releaseConnection(tempConnection);
       }
       catch (Throwable e)
@@ -306,10 +305,10 @@ public class JDBCConnection
     {
       try
       {
-        Connection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
+        WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
         try
         {
-          execute(tempConnection,query,params,false,0);
+          execute(tempConnection.getConnection(),query,params,false,0);
         }
         finally
         {
@@ -791,7 +790,7 @@ public class JDBCConnection
 
   protected class JDBCResultSet implements IDynamicResultSet
   {
-    protected Connection connection;
+    protected WrappedConnection connection;
     protected Statement stmt;
     protected ResultSet rs;
     protected ResultSetMetaData rsmd;
@@ -907,7 +906,7 @@ public class JDBCConnection
     protected String query;
 
     protected Throwable exception = null;
-    protected Connection connection = null;
+    protected WrappedConnection connection = null;
     protected Statement stmt = null;
     protected ResultSet rs = null;
     protected ResultSetMetaData rsmd = null;
@@ -926,7 +925,7 @@ public class JDBCConnection
       {
         connection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
         // lightest statement type
-        stmt = connection.createStatement();
+        stmt = connection.getConnection().createStatement();
         stmt.execute(query);
         rs = stmt.getResultSet();
         rsmd = rs.getMetaData();
@@ -1003,7 +1002,7 @@ public class JDBCConnection
       return exception;
     }
 
-    public Connection getConnection()
+    public WrappedConnection getConnection()
     {
       return connection;
     }
@@ -1031,7 +1030,7 @@ public class JDBCConnection
 
   protected class JDBCPSResultSet implements IDynamicResultSet
   {
-    protected Connection connection;
+    protected WrappedConnection connection;
     protected PreparedStatement ps;
     protected ResultSet rs;
     protected ResultSetMetaData rsmd;
@@ -1184,7 +1183,7 @@ public class JDBCConnection
     protected ArrayList params;
     protected String query;
 
-    protected Connection connection = null;
+    protected WrappedConnection connection = null;
     protected Throwable exception = null;
     protected PreparedStatement ps = null;
     protected ResultSet rs = null;
@@ -1204,7 +1203,7 @@ public class JDBCConnection
       try
       {
         connection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
-        ps = connection.prepareStatement(query);
+        ps = connection.getConnection().prepareStatement(query);
         loadPS(ps, params);
         rs = ps.executeQuery();
         rsmd = rs.getMetaData();
@@ -1278,7 +1277,7 @@ public class JDBCConnection
       return exception;
     }
 
-    public Connection getConnection()
+    public WrappedConnection getConnection()
     {
       return connection;
     }

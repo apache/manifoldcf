@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-96: Remove jdbcpool driver, and replace with a simple
+set of pooling classes.  This gives us better control and makes failures
+on long crawls less likely.
+(Karl Wright)
+
 CONNECTORS-469: Hook up context listener to catch web application
 shutdown more efficiently.
 (Karl Wright)

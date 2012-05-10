@@ -45,7 +45,6 @@
             <include name="jasper*.jar"/>
             <include name="jetty*.jar"/>
             <include name="slf4j*.jar"/>
-            <include name="jdbcpool*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>
@@ -254,7 +253,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -290,7 +288,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -331,7 +328,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -368,7 +364,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -411,7 +406,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -456,7 +450,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
@@ -559,7 +552,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
@@ -598,7 +590,6 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="log4j*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="servlet-api*.jar"/>
@@ -750,7 +741,6 @@
                 <include name="commons-logging*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="jetty*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="jsp-api*.jar"/>
@@ -821,8 +811,7 @@
         <property name="manifest-cp-26" value="${manifest-cp-25} lib/derbytools.jar"/>
         <property name="manifest-cp-27" value="${manifest-cp-26} lib/jasper.jar"/>
         <property name="manifest-cp-28" value="${manifest-cp-27} lib/jasper-el.jar"/>
-        <property name="manifest-cp-29" value="${manifest-cp-28} lib/jdbcpool.jar"/>
-        <property name="manifest-cp-30" value="${manifest-cp-29} lib/jetty-server.jar"/>
+        <property name="manifest-cp-30" value="${manifest-cp-28} lib/jetty-server.jar"/>
         <property name="manifest-cp-31" value="${manifest-cp-30} lib/jetty-util.jar"/>
         <property name="manifest-cp-32" value="${manifest-cp-31} lib/jsp-api-2.1-glassfish.jar"/>
         <property name="manifest-cp-33" value="${manifest-cp-32} lib/json.jar"/>
@@ -877,7 +866,6 @@
                 <include name="commons-logging*.jar"/>
                 <include name="ecj*.jar"/>
                 <include name="jasper*.jar"/>
-                <include name="jdbcpool*.jar"/>
                 <include name="jetty*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="jsp-api*.jar"/>
@@ -953,8 +941,7 @@
         <property name="manifest-cp-proprietary-26" value="${manifest-cp-proprietary-25} lib/derbytools.jar"/>
         <property name="manifest-cp-proprietary-27" value="${manifest-cp-proprietary-26} lib/jasper.jar"/>
         <property name="manifest-cp-proprietary-28" value="${manifest-cp-proprietary-27} lib/jasper-el.jar"/>
-        <property name="manifest-cp-proprietary-29" value="${manifest-cp-proprietary-28} lib/jdbcpool.jar"/>
-        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-29} lib/jetty-server.jar"/>
+        <property name="manifest-cp-proprietary-30" value="${manifest-cp-proprietary-28} lib/jetty-server.jar"/>
         <property name="manifest-cp-proprietary-31" value="${manifest-cp-proprietary-30} lib/jetty-util.jar"/>
         <property name="manifest-cp-proprietary-32" value="${manifest-cp-proprietary-31} lib/jsp-api-2.1-glassfish.jar"/>
         <property name="manifest-cp-proprietary-33" value="${manifest-cp-proprietary-32} lib/json.jar"/>

@@ -1,0 +1,165 @@
+/* $Id$ */
+
+/**
+* Licensed to the Apache Software Foundation (ASF) under one or more
+* contributor license agreements. See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The ASF licenses this file to You under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+package org.apache.manifoldcf.core.jdbcpool;
+
+import java.sql.*;
+import javax.naming.*;
+import javax.sql.*;
+import java.util.*;
+import org.apache.manifoldcf.core.system.Logging;
+
+/** The class that defines a connection pool.
+*/
+public class ConnectionPool
+{
+  public static final String _rcsid = "@(#)$Id$";
+
+  protected String dbURL;
+  protected String userName;
+  protected String password;
+  protected volatile int freePointer;
+  protected volatile int activeConnections;
+  protected Connection[] freeConnections;
+  protected long[] connectionCleanupTimeouts;
+  protected long expiration;
+  
+  /** Constructor */
+  public ConnectionPool(String dbURL, String userName, String password, int maxConnections, long expiration)
+  {
+    this.dbURL = dbURL;
+    this.userName = userName;
+    this.password = password;
+    this.freeConnections = new Connection[maxConnections];
+    this.connectionCleanupTimeouts = new long[maxConnections];
+    this.freePointer = 0;
+    this.activeConnections = 0;
+    this.expiration = expiration;
+  }
+  
+  /** Obtain a connection from the pool.
+  * This will wait until a connection is free, if the pool is already completely tapped.
+  * The connection is returned by the "close" operation, executed on the connection.
+  * (This requires us to wrap the actual connection object).
+  */
+  public WrappedConnection getConnection()
+    throws SQLException, InterruptedException
+  {
+    while (true)
+    {
+      synchronized (this)
+      {
+        if (freePointer > 0)
+        {
+          Connection rval = freeConnections[--freePointer];
+          freeConnections[freePointer] = null;
+          return new WrappedConnection(this,rval);
+        }
+        if (activeConnections == freeConnections.length)
+        {
+          // Wait until kicked; we hope something will free up...
+          this.wait();
+          continue;
+        }
+        // Increment active connection counter, because we're about to mint a new connection, and break out of our loop
+        activeConnections++;
+        break;
+      }
+    }
+    
+    // Create a new connection.  If we fail at this we need to restore the number of active connections, so catch any failures
+    Connection rval2 = null;
+    try
+    {
+      if (userName != null)
+        rval2 = DriverManager.getConnection(dbURL, userName, password);
+      else
+        rval2 = DriverManager.getConnection(dbURL);
+    }
+    finally
+    {
+      if (rval2 == null)
+        activeConnections--;
+    }
+    return new WrappedConnection(this,rval2);
+  }
+  
+  /** Close down the pool.
+  */
+  public synchronized void closePool()
+  {
+    for (int i = 0 ; i < freePointer ; i++)
+    {
+      try
+      {
+        freeConnections[i].close();
+      }
+      catch (SQLException e)
+      {
+        Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
+      }
+      freeConnections[i] = null;
+    }
+    freePointer = 0;
+  }
+  
+  /** Clean up expired connections.
+  */
+  public synchronized void cleanupExpiredConnections(long currentTime)
+  {
+    int i = 0;
+    while (i < freePointer)
+    {
+      if (connectionCleanupTimeouts[i] <= currentTime)
+      {
+        try
+        {
+          freeConnections[i].close();
+        }
+        catch (SQLException e)
+        {
+          Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
+        }
+        freePointer--;
+        if (freePointer == i)
+        {
+          freeConnections[i] = null;
+        }
+        else
+        {
+          freeConnections[i] = freeConnections[freePointer];
+          connectionCleanupTimeouts[i] = connectionCleanupTimeouts[freePointer];
+          freeConnections[freePointer] = null;
+        }
+      }
+      else
+        i++;
+    }
+  }
+  
+  public synchronized void releaseConnection(Connection connection)
+  {
+    freeConnections[freePointer] = connection;
+    connectionCleanupTimeouts[freePointer] = System.currentTimeMillis() + expiration;
+    freePointer++;
+    notifyAll();
+  }
+  
+}
+
+

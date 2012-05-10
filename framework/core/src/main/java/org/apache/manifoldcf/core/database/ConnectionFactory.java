@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.database;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.jdbcpool.*;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
@@ -26,8 +27,6 @@ import java.util.*;
 import java.sql.*;
 import javax.naming.*;
 import javax.sql.*;
-
-import com.bitmechanic.sql.*;
 
 /** This class creates a connection, and may at our discretion manage
 * a connection pool someday.
@@ -48,19 +47,29 @@ public class ConnectionFactory
   {
   }
 
-  public static Connection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password)
+  public static WrappedConnection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password)
     throws ManifoldCFException
   {
+    // Make sure database driver is registered
+    try
+    {
+      Class.forName(jdbcDriver);
+    }
+    catch (Exception e)
+    {
+      throw new ManifoldCFException("Unable to load database driver: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+    }
 
-    ConnectionPoolManager _pool = poolManager.ensurePoolExists(jdbcDriver);
+    ConnectionPoolManager cpm = poolManager.createPoolManager();
+    
     try
     {
       // Hope for a connection now
-      Connection rval;
+      WrappedConnection rval;
       ConnectionPool cp = null;
       try
       {
-        cp = _pool.getPool(database);
+        cp = cpm.getPool(database);
       }
       catch (Exception e)
       {
@@ -71,57 +80,31 @@ public class ConnectionFactory
         int maxDBConnections = defaultMaxDBConnections;
         if (handleMax != null && handleMax.length() > 0)
           maxDBConnections = Integer.parseInt(handleMax);
-        String timeoutValueString = ManifoldCF.getProperty(ManifoldCF.databaseHandleTimeoutProperty);
-        int timeoutValue = defaultTimeoutValue;
-        if (timeoutValueString != null && timeoutValueString.length() > 0)
-          timeoutValue = Integer.parseInt(timeoutValueString);
+        //String timeoutValueString = ManifoldCF.getProperty(ManifoldCF.databaseHandleTimeoutProperty);
+        //int timeoutValue = defaultTimeoutValue;
+        //if (timeoutValueString != null && timeoutValueString.length() > 0)
+        //  timeoutValue = Integer.parseInt(timeoutValueString);
 
         // Logging.db.debug("adding pool alias [" + database + "]");
         // I had to up the timeout from one hour to 3 due to the webconnector keeping some connections open a very long time...
 	//System.out.println("jdbcUrl = '"+jdbcUrl+"', userName='"+userName+"', password='"+password+"'");
-        _pool.addAlias(database, jdbcDriver, jdbcUrl,
+        cpm.addAlias(database, jdbcDriver, jdbcUrl,
           userName, password,
-          maxDBConnections,
-          300,                      // Idle timeout: idle time before closing connection: 5 minutes
-          timeoutValue,         // Checkout timeout: Time a thread can have connection checked out: 24 hours
-          30,                       // Number of times you can check out a connection before it gets closed: 30
-          false);
-        cp = _pool.getPool(database);
+          maxDBConnections, 300000L);
+        cp = cpm.getPool(database);
       }
-      rval = getConnectionWithRetries(ConnectionPoolManager.URL_PREFIX + database, null, null);
-      //rval = getConnectionWithRetries(ConnectionPoolManager.URL_PREFIX + database, userName, password);
-
-      // Enter it in the pool so we can figure out whether it closed
-      // synchronized (checkedOutConnections)
-      // {
-      //      checkedOutConnections.put(rval.toString(),new ConnectionTracker(rval));
-      // }
-      //
-      // checkConnections(System.currentTimeMillis());
-
-      return rval;
+      return getConnectionWithRetries(cp);
     }
     catch (Exception e)
     {
-      throw new ManifoldCFException("Error getting connection",e,ManifoldCFException.DATABASE_ERROR);
+      throw new ManifoldCFException("Error getting connection: "+e.getMessage(),e,ManifoldCFException.DATABASE_ERROR);
     }
   }
 
-  public static void releaseConnection(Connection c)
+  public static void releaseConnection(WrappedConnection c)
     throws ManifoldCFException
   {
-    try
-    {
-      c.close();
-      // synchronized (checkedOutConnections)
-      // {
-      //      checkedOutConnections.remove(c.toString());
-      // }
-    }
-    catch (Exception e)
-    {
-      throw new ManifoldCFException("Error releasing connection",e,ManifoldCFException.DATABASE_ERROR);
-    }
+    c.release();
   }
 
   public static void releaseAll()
@@ -130,8 +113,8 @@ public class ConnectionFactory
       poolManager.releaseAll();
   }
 
-  protected static Connection getConnectionWithRetries(String dbURL, String userName, String password)
-    throws Exception
+  protected static WrappedConnection getConnectionWithRetries(ConnectionPool cp)
+    throws SQLException, ManifoldCFException
   {
     // If we have a problem, we will wait a grand total of 30 seconds
     int retryCount = 3;
@@ -139,19 +122,18 @@ public class ConnectionFactory
     {
       try
       {
-        Connection rval;
-        if (userName != null && userName.length() > 0)
-          rval = DriverManager.getConnection(dbURL,userName,password);
-        else
-          rval = DriverManager.getConnection(dbURL);
-        return rval;
+        return cp.getConnection();
       }
-      catch (Exception e)
+      catch (SQLException e)
       {
         if (retryCount == 0)
           throw e;
         // Eat the exception and try again
         retryCount--;
+      }
+      catch (InterruptedException e)
+      {
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       try
       {
@@ -196,34 +178,14 @@ public class ConnectionFactory
     {
     }
 
-    public ConnectionPoolManager ensurePoolExists(String jdbcDriver)
-      throws ManifoldCFException
+    public ConnectionPoolManager createPoolManager()
     {
       synchronized (poolExistenceLock)
       {
         if (_pool != null)
           return _pool;
-        try
-        {
-          Class.forName(jdbcDriver);
-        }
-        catch (Exception e)
-        {
-          throw new ManifoldCFException("Unable to load database driver: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-        }
-        try
-        {
-          String handleMax = ManifoldCF.getProperty(ManifoldCF.databaseHandleMaxcountProperty);
-          int maxDBConnections = defaultMaxDBConnections;
-          if (handleMax != null && handleMax.length() > 0)
-            maxDBConnections = Integer.parseInt(handleMax);
-          _pool = new ConnectionPoolManager(maxDBConnections);
-          return _pool;
-        }
-        catch (Exception e)
-        {
-          throw new ManifoldCFException("Unable to initialize database handle pool: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-        }
+        _pool = new ConnectionPoolManager(100);
+        return _pool;
       }
     }
 
@@ -235,6 +197,14 @@ public class ConnectionFactory
           return;
       }
 
+      // Cleanup strategy: Some connections are still in use because they are being
+      // used by non-worker threads that have been interrupted but haven't yet died.
+      // Cleaning these up is a challenge.  For now I won't address this.
+      
+      _pool.shutdown();
+    }
+      
+      /*
       // Cleanup strategy is to close everything that can easily be closed, but leave around connections that are so busy that they will not close within a certain amount of
       // time.  To do that, we spin up a thread for each connection, which attempts to close that connection, and then wait until either 15 seconds passes, or all the threads
       // are finished.
@@ -244,7 +214,7 @@ public class ConnectionFactory
       // This is not ideal, but is a compromise designed to permit speedy and relatively clean shutdown even under
       // difficult conditions.
 
-
+      
       Enumeration enumeration = _pool.getPools();
       ArrayList connectionShutdownThreads = new ArrayList();
       while (enumeration.hasMoreElements())
@@ -305,7 +275,7 @@ public class ConnectionFactory
 
       // Some threads may still be running - but that can't be helped.
     }
-
+    */
 
     // Protected methods and classes
 
@@ -315,6 +285,7 @@ public class ConnectionFactory
     * will be blocked from proceeding under Tomcat 5.5.  Between the two, however,
     * there's hope that the right things will take place.
     */
+    /*
     protected void finalize()
       throws Throwable
     {
@@ -328,8 +299,10 @@ public class ConnectionFactory
         super.finalize();
       }
     }
+    */
   }
 
+  /*
   protected static class ConnectionCloseThread extends Thread
   {
     protected com.bitmechanic.sql.PooledConnection connection;
@@ -361,7 +334,8 @@ public class ConnectionFactory
     }
 
   }
-
+  */
+  
   protected static class ConnectionTracker
   {
     protected Connection theConnection;
