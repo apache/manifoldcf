@@ -54,4 +54,15 @@
         </exec>
     </target>
     
+    <target name="build-via-ant">
+        <exec osfamily="windows" dir="${root-dir}" executable="cmd" failifexecutionfails="true" failonerror="true">
+            <arg value="/c"/>
+            <arg value="ant.bat"/>
+            <arg value="${target}" />
+        </exec>
+        <exec osfamily="unix" dir="${root-dir}" executable="ant" failifexecutionfails="true" failonerror="true">
+            <arg value="${target}" />
+        </exec>
+    </target>
+    
 </project>

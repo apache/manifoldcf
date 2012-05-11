@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-471: Replace broken HSQLDB 2.2.8 with a trunk build.
+(Karl Wright)
+
 CONNECTORS-96: Remove jdbcpool driver, and replace with a simple
 set of pooling classes.  This gives us better control and makes failures
 on long crawls less likely.
