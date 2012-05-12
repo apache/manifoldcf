@@ -1,6 +1,11 @@
 ManifoldCF Change Log
 $Id$
 
+======================= Release 0.5.1 =====================
+
+CONNECTORS-467: Remove outdated taglib directives in web.xml
+(Erlend Garåsen)
+
 ======================= Release 0.5 =========================
 
 CONNECTORS-457: Fix for i18n problem with unknown locale picking up
