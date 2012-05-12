@@ -1656,79 +1656,61 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public boolean abortJob(Long jobID, String errorText)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    // Get the current job status
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
+      " WHERE "+query+" FOR UPDATE",list,null,null);
+    if (set.getRowCount() == 0)
+      throw new ManifoldCFException("Job does not exist: "+jobID);
+    IResultRow row = set.getRow(0);
+    int status = stringToStatus(row.getValue(statusField).toString());
+    if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING || status == STATUS_ABORTINGSTARTINGUP)
+      return false;
+    int newStatus;
+    switch (status)
     {
-      // Get the current job status
-      ArrayList list = new ArrayList();
-      String query = buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
-        " WHERE "+query+" FOR UPDATE",list,null,null);
-      if (set.getRowCount() == 0)
-        throw new ManifoldCFException("Job does not exist: "+jobID);
-      IResultRow row = set.getRow(0);
-      int status = stringToStatus(row.getValue(statusField).toString());
-      if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING || status == STATUS_ABORTINGSTARTINGUP)
-        return false;
-      int newStatus;
-      switch (status)
-      {
-      case STATUS_STARTINGUP:
-      case STATUS_ABORTINGSTARTINGUPFORRESTART:
-        newStatus = STATUS_ABORTINGSTARTINGUP;
-        break;
-      case STATUS_READYFORSTARTUP:
-      case STATUS_ACTIVE:
-      case STATUS_ACTIVE_UNINSTALLED:
-      case STATUS_ACTIVE_NOOUTPUT:
-      case STATUS_ACTIVE_NEITHER:
-      case STATUS_ACTIVEWAIT:
-      case STATUS_PAUSING:
-      case STATUS_ACTIVEWAITING:
-      case STATUS_PAUSINGWAITING:
-      case STATUS_PAUSED:
-      case STATUS_PAUSEDWAIT:
-      case STATUS_ABORTINGFORRESTART:
-        newStatus = STATUS_ABORTING;
-        break;
-      case STATUS_ACTIVESEEDING:
-      case STATUS_ACTIVESEEDING_UNINSTALLED:
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-      case STATUS_ACTIVESEEDING_NEITHER:
-      case STATUS_ACTIVEWAITSEEDING:
-      case STATUS_PAUSINGSEEDING:
-      case STATUS_ACTIVEWAITINGSEEDING:
-      case STATUS_PAUSINGWAITINGSEEDING:
-      case STATUS_PAUSEDSEEDING:
-      case STATUS_PAUSEDWAITSEEDING:
-      case STATUS_ABORTINGFORRESTARTSEEDING:
-        newStatus = STATUS_ABORTINGSEEDING;
-        break;
-      default:
-        throw new ManifoldCFException("Job "+jobID+" is not active");
-      }
-      // Pause the job
-      HashMap map = new HashMap();
-      map.put(statusField,statusToString(newStatus));
-      map.put(errorField,errorText);
-      performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
-      return true;
+    case STATUS_STARTINGUP:
+    case STATUS_ABORTINGSTARTINGUPFORRESTART:
+      newStatus = STATUS_ABORTINGSTARTINGUP;
+      break;
+    case STATUS_READYFORSTARTUP:
+    case STATUS_ACTIVE:
+    case STATUS_ACTIVE_UNINSTALLED:
+    case STATUS_ACTIVE_NOOUTPUT:
+    case STATUS_ACTIVE_NEITHER:
+    case STATUS_ACTIVEWAIT:
+    case STATUS_PAUSING:
+    case STATUS_ACTIVEWAITING:
+    case STATUS_PAUSINGWAITING:
+    case STATUS_PAUSED:
+    case STATUS_PAUSEDWAIT:
+    case STATUS_ABORTINGFORRESTART:
+      newStatus = STATUS_ABORTING;
+      break;
+    case STATUS_ACTIVESEEDING:
+    case STATUS_ACTIVESEEDING_UNINSTALLED:
+    case STATUS_ACTIVESEEDING_NOOUTPUT:
+    case STATUS_ACTIVESEEDING_NEITHER:
+    case STATUS_ACTIVEWAITSEEDING:
+    case STATUS_PAUSINGSEEDING:
+    case STATUS_ACTIVEWAITINGSEEDING:
+    case STATUS_PAUSINGWAITINGSEEDING:
+    case STATUS_PAUSEDSEEDING:
+    case STATUS_PAUSEDWAITSEEDING:
+    case STATUS_ABORTINGFORRESTARTSEEDING:
+      newStatus = STATUS_ABORTINGSEEDING;
+      break;
+    default:
+      throw new ManifoldCFException("Job "+jobID+" is not active");
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    // Pause the job
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(newStatus));
+    map.put(errorField,errorText);
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    return true;
   }
 
   /** Restart a job.  Finish off what's currently happening, and then start the job up again.
@@ -1737,74 +1719,56 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void abortRestartJob(Long jobID)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    // Get the current job status
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
+      " WHERE "+query+" FOR UPDATE",list,null,null);
+    if (set.getRowCount() == 0)
+      throw new ManifoldCFException("Job does not exist: "+jobID);
+    IResultRow row = set.getRow(0);
+    int status = stringToStatus(row.getValue(statusField).toString());
+    if (status == STATUS_ABORTINGFORRESTART || status == STATUS_ABORTINGFORRESTARTSEEDING || status == STATUS_ABORTINGSTARTINGUPFORRESTART)
+      return;
+    int newStatus;
+    switch (status)
     {
-      // Get the current job status
-      ArrayList list = new ArrayList();
-      String query = buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
-        " WHERE "+query+" FOR UPDATE",list,null,null);
-      if (set.getRowCount() == 0)
-        throw new ManifoldCFException("Job does not exist: "+jobID);
-      IResultRow row = set.getRow(0);
-      int status = stringToStatus(row.getValue(statusField).toString());
-      if (status == STATUS_ABORTINGFORRESTART || status == STATUS_ABORTINGFORRESTARTSEEDING || status == STATUS_ABORTINGSTARTINGUPFORRESTART)
-        return;
-      int newStatus;
-      switch (status)
-      {
-      case STATUS_STARTINGUP:
-        newStatus = STATUS_ABORTINGSTARTINGUPFORRESTART;
-        break;
-      case STATUS_READYFORSTARTUP:
-      case STATUS_ACTIVE:
-      case STATUS_ACTIVE_UNINSTALLED:
-      case STATUS_ACTIVE_NOOUTPUT:
-      case STATUS_ACTIVE_NEITHER:
-      case STATUS_ACTIVEWAIT:
-      case STATUS_PAUSING:
-      case STATUS_ACTIVEWAITING:
-      case STATUS_PAUSINGWAITING:
-      case STATUS_PAUSED:
-      case STATUS_PAUSEDWAIT:
-        newStatus = STATUS_ABORTINGFORRESTART;
-        break;
-      case STATUS_ACTIVESEEDING:
-      case STATUS_ACTIVESEEDING_UNINSTALLED:
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-      case STATUS_ACTIVESEEDING_NEITHER:
-      case STATUS_ACTIVEWAITSEEDING:
-      case STATUS_PAUSINGSEEDING:
-      case STATUS_ACTIVEWAITINGSEEDING:
-      case STATUS_PAUSINGWAITINGSEEDING:
-      case STATUS_PAUSEDSEEDING:
-      case STATUS_PAUSEDWAITSEEDING:
-        newStatus = STATUS_ABORTINGFORRESTARTSEEDING;
-        break;
-      default:
-        throw new ManifoldCFException("Job "+jobID+" is not restartable");
-      }
-      // reset the job
-      HashMap map = new HashMap();
-      map.put(statusField,statusToString(newStatus));
-      performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    case STATUS_STARTINGUP:
+      newStatus = STATUS_ABORTINGSTARTINGUPFORRESTART;
+      break;
+    case STATUS_READYFORSTARTUP:
+    case STATUS_ACTIVE:
+    case STATUS_ACTIVE_UNINSTALLED:
+    case STATUS_ACTIVE_NOOUTPUT:
+    case STATUS_ACTIVE_NEITHER:
+    case STATUS_ACTIVEWAIT:
+    case STATUS_PAUSING:
+    case STATUS_ACTIVEWAITING:
+    case STATUS_PAUSINGWAITING:
+    case STATUS_PAUSED:
+    case STATUS_PAUSEDWAIT:
+      newStatus = STATUS_ABORTINGFORRESTART;
+      break;
+    case STATUS_ACTIVESEEDING:
+    case STATUS_ACTIVESEEDING_UNINSTALLED:
+    case STATUS_ACTIVESEEDING_NOOUTPUT:
+    case STATUS_ACTIVESEEDING_NEITHER:
+    case STATUS_ACTIVEWAITSEEDING:
+    case STATUS_PAUSINGSEEDING:
+    case STATUS_ACTIVEWAITINGSEEDING:
+    case STATUS_PAUSINGWAITINGSEEDING:
+    case STATUS_PAUSEDSEEDING:
+    case STATUS_PAUSEDWAITSEEDING:
+      newStatus = STATUS_ABORTINGFORRESTARTSEEDING;
+      break;
+    default:
+      throw new ManifoldCFException("Job "+jobID+" is not restartable");
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    // reset the job
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(newStatus));
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 
   /** Pause a job.
@@ -1813,68 +1777,50 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void pauseJob(Long jobID)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    // Get the current job status
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
+      " WHERE "+query+" FOR UPDATE",list,null,null);
+    if (set.getRowCount() == 0)
+      throw new ManifoldCFException("Job does not exist: "+jobID);
+    IResultRow row = set.getRow(0);
+    int status = stringToStatus(row.getValue(statusField).toString());
+    int newStatus;
+    switch (status)
     {
-      // Get the current job status
-      ArrayList list = new ArrayList();
-      String query = buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+" FROM "+getTableName()+
-        " WHERE "+query+" FOR UPDATE",list,null,null);
-      if (set.getRowCount() == 0)
-        throw new ManifoldCFException("Job does not exist: "+jobID);
-      IResultRow row = set.getRow(0);
-      int status = stringToStatus(row.getValue(statusField).toString());
-      int newStatus;
-      switch (status)
-      {
-      case STATUS_ACTIVE:
-      case STATUS_ACTIVE_UNINSTALLED:
-      case STATUS_ACTIVE_NOOUTPUT:
-      case STATUS_ACTIVE_NEITHER:
-        newStatus = STATUS_PAUSING;
-        break;
-      case STATUS_ACTIVEWAITING:
-        newStatus = STATUS_PAUSINGWAITING;
-        break;
-      case STATUS_ACTIVEWAIT:
-        newStatus = STATUS_PAUSEDWAIT;
-        break;
-      case STATUS_ACTIVESEEDING:
-      case STATUS_ACTIVESEEDING_UNINSTALLED:
-      case STATUS_ACTIVESEEDING_NOOUTPUT:
-      case STATUS_ACTIVESEEDING_NEITHER:
-        newStatus = STATUS_PAUSINGSEEDING;
-        break;
-      case STATUS_ACTIVEWAITINGSEEDING:
-        newStatus = STATUS_PAUSINGWAITINGSEEDING;
-        break;
-      case STATUS_ACTIVEWAITSEEDING:
-        newStatus = STATUS_PAUSEDWAITSEEDING;
-        break;
-      default:
-        throw new ManifoldCFException("Job "+jobID+" is not active");
-      }
-      // Pause the job
-      HashMap map = new HashMap();
-      map.put(statusField,statusToString(newStatus));
-      performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    case STATUS_ACTIVE:
+    case STATUS_ACTIVE_UNINSTALLED:
+    case STATUS_ACTIVE_NOOUTPUT:
+    case STATUS_ACTIVE_NEITHER:
+      newStatus = STATUS_PAUSING;
+      break;
+    case STATUS_ACTIVEWAITING:
+      newStatus = STATUS_PAUSINGWAITING;
+      break;
+    case STATUS_ACTIVEWAIT:
+      newStatus = STATUS_PAUSEDWAIT;
+      break;
+    case STATUS_ACTIVESEEDING:
+    case STATUS_ACTIVESEEDING_UNINSTALLED:
+    case STATUS_ACTIVESEEDING_NOOUTPUT:
+    case STATUS_ACTIVESEEDING_NEITHER:
+      newStatus = STATUS_PAUSINGSEEDING;
+      break;
+    case STATUS_ACTIVEWAITINGSEEDING:
+      newStatus = STATUS_PAUSINGWAITINGSEEDING;
+      break;
+    case STATUS_ACTIVEWAITSEEDING:
+      newStatus = STATUS_PAUSEDWAITSEEDING;
+      break;
+    default:
+      throw new ManifoldCFException("Job "+jobID+" is not active");
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    // Pause the job
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(newStatus));
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 
   /** Restart a job.
@@ -1883,58 +1829,40 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public void restartJob(Long jobID)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    // Get the current job status
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,jobID)});
+    IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+
+      " WHERE "+query+" FOR UPDATE",list,null,null);
+    if (set.getRowCount() == 0)
+      throw new ManifoldCFException("Job does not exist: "+jobID);
+    IResultRow row = set.getRow(0);
+    int status = stringToStatus(row.getValue(statusField).toString());
+    String connectionName = (String)row.getValue(connectionNameField);
+    String outputName = (String)row.getValue(outputNameField);
+    int newStatus;
+    switch (status)
     {
-      // Get the current job status
-      ArrayList list = new ArrayList();
-      String query = buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(idField,jobID)});
-      IResultSet set = performQuery("SELECT "+statusField+","+connectionNameField+","+outputNameField+" FROM "+getTableName()+
-        " WHERE "+query+" FOR UPDATE",list,null,null);
-      if (set.getRowCount() == 0)
-        throw new ManifoldCFException("Job does not exist: "+jobID);
-      IResultRow row = set.getRow(0);
-      int status = stringToStatus(row.getValue(statusField).toString());
-      String connectionName = (String)row.getValue(connectionNameField);
-      String outputName = (String)row.getValue(outputNameField);
-      int newStatus;
-      switch (status)
-      {
-      case STATUS_PAUSED:
-        newStatus = STATUS_RESUMING;
-        break;
-      case STATUS_PAUSEDWAIT:
-        newStatus = STATUS_ACTIVEWAIT;
-        break;
-      case STATUS_PAUSEDSEEDING:
-        newStatus = STATUS_RESUMINGSEEDING;
-        break;
-      case STATUS_PAUSEDWAITSEEDING:
-        newStatus = STATUS_ACTIVEWAITSEEDING;
-        break;
-      default:
-        throw new ManifoldCFException("Job "+jobID+" is not paused");
-      }
-      // Pause the job
-      HashMap map = new HashMap();
-      map.put(statusField,statusToString(newStatus));
-      performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+    case STATUS_PAUSED:
+      newStatus = STATUS_RESUMING;
+      break;
+    case STATUS_PAUSEDWAIT:
+      newStatus = STATUS_ACTIVEWAIT;
+      break;
+    case STATUS_PAUSEDSEEDING:
+      newStatus = STATUS_RESUMINGSEEDING;
+      break;
+    case STATUS_PAUSEDWAITSEEDING:
+      newStatus = STATUS_ACTIVEWAITSEEDING;
+      break;
+    default:
+      throw new ManifoldCFException("Job "+jobID+" is not paused");
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    // Pause the job
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(newStatus));
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
   }
 
   /** Update a job's status, and its reseed time.

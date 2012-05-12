@@ -9,6 +9,10 @@ CONNECTORS-471: Replace broken HSQLDB 2.2.8 with a trunk build.
 CONNECTORS-467: Remove outdated taglib directives in web.xml
 (Erlend Garåsen)
 
+CONNECTORS-453: Getting deadlock problems and other issues with
+Derby 10.8.1.1.
+(Karl Wright)
+
 ======================= Release 0.5 =========================
 
 CONNECTORS-457: Fix for i18n problem with unknown locale picking up

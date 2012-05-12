@@ -5188,7 +5188,39 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Manually aborting job "+jobID);
     }
-    jobs.abortJob(jobID,null);
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.abortJob(jobID,null);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction aborting job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
     if (Logging.jobs.isDebugEnabled())
     {
       Logging.jobs.debug("Job "+jobID+" abort signal successfully sent");
@@ -5206,7 +5238,39 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Manually restarting job "+jobID);
     }
-    jobs.abortRestartJob(jobID);
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.abortRestartJob(jobID);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction restarting job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
     if (Logging.jobs.isDebugEnabled())
     {
       Logging.jobs.debug("Job "+jobID+" restart signal successfully sent");
@@ -5227,7 +5291,40 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Aborting job "+jobID+" due to error '"+errorText+"'");
     }
-    boolean rval = jobs.abortJob(jobID,errorText);
+    boolean rval;
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        rval = jobs.abortJob(jobID,errorText);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction aborting job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
     if (rval && Logging.jobs.isDebugEnabled())
     {
       Logging.jobs.debug("Job "+jobID+" abort signal successfully sent");
@@ -5245,7 +5342,40 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Manually pausing job "+jobID);
     }
-    jobs.pauseJob(jobID);
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.pauseJob(jobID);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction pausing job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
     if (Logging.jobs.isDebugEnabled())
     {
       Logging.jobs.debug("Job "+jobID+" successfully paused");
@@ -5263,26 +5393,39 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Manually restarting paused job "+jobID);
     }
-
-    database.beginTransaction();
-    try
+    while (true)
     {
-      jobs.restartJob(jobID);
-      jobQueue.clearFailTimes(jobID);
-    }
-    catch (ManifoldCFException e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    finally
-    {
-      database.endTransaction();
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        jobs.restartJob(jobID);
+        jobQueue.clearFailTimes(jobID);
+        database.performCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction restarting pausing job: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
     }
 
     if (Logging.jobs.isDebugEnabled())
