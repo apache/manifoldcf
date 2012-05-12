@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 0.5.1 =====================
 
+CONNECTORS-471: Replace broken HSQLDB 2.2.8 with a trunk build.
+(Karl Wright)
+
 CONNECTORS-467: Remove outdated taglib directives in web.xml
 (Erlend Garåsen)
 
