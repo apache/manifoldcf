@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 0.5.1 =====================
 
+CONNECTORS-472: Make changes related to graduation.
+(Karl Wright)
+
 CONNECTORS-471: Replace broken HSQLDB 2.2.8 with a trunk build.
 (Karl Wright)
 

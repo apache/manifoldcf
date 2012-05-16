@@ -36,12 +36,6 @@
     </section>
 
     <section>
-        <title>Incubation Status</title>
-        <p>Apache ManifoldCF (formerly Apache Connectors Framework) is an effort undergoing incubation at The Apache Software Foundation (ASF), sponsored by the Lucene PMC. Incubation is required of all newly accepted projects until a further review indicates that the infrastructure, communications, and decision making process have stabilized in a manner consistent with other successful ASF projects. While incubation status is not necessarily a reflection of the completeness or stability of the code, it does indicate that the project has yet to be fully endorsed by the ASF.
-        </p>
-    </section>
-    
-    <section>
 	<title>Project status</title>
 	<p>Apache ManifoldCF 0.4-incubating is available!  Download it <a href="download.html">here</a>.</p>
     </section>
@@ -54,6 +48,10 @@
 
     <section>
         <title>News</title>
+          <section>
+              <title>16 May 2012 - ManifoldCF graduates from Apache Incubator!</title>
+                  <p>Apache Board signs off on creation of ManifoldCF as a Top Level Project.</p>
+          </section>
           <section>
              <title>02 Feb 2012 - ManifoldCF 0.4-incubating is released!</title>
                 <p>Developer community and Apache Incubator sign off on fourth release.</p>
