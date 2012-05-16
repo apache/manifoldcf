@@ -35,11 +35,6 @@
     </section>
 
     <section>
-        <title>インキュベーションプロジェクト</title>
-        <p>Apache ManifoldCF (旧Apache Connectors Framework)は、Lucene PMCに支援されているApache Software Foundation(ASF)のインキュベーション段階のプロジェクトであります。ASFが受け取ったプロジェクトすべては他の成功したASFプロジェクトと同様にプロジェクトのインフラ、コミュニケーション、意志決定プロセスが安定したと判断されるまではインキュベーションになります。インキュベーションとはソースコードの完成度及び安定度を示すものではなく、ASFによってそのプロジェクトが完全に承認されていないことを示すだけです。</p>
-    </section>
-    
-    <section>
 	<title>プロジェクトの状況</title>
 	<p>Apache ManifoldCF 0.5-incubatingは<a href="download_ja_JP.html">ここ</a>からダウンロードすることができます。</p>
     </section>
@@ -52,6 +47,10 @@
 
     <section>
         <title>ニュース</title>
+          <section>
+              <title>2012年5月16日 - ApacheのインキュベータからManifoldCF卒業生！</title>
+                  <p>Apacheの取締役会は、トップレベルプロジェクトとしてManifoldCFの作成時にオフに署名。</p>
+          </section>
           <section>
               <title>2012年04月15日 - ManifoldCF 0.5-incubatingを公開！</title>
                 <p>開発者コミュニティ及びApacheインキュベータは5版を承認</p>
