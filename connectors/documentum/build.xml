@@ -19,7 +19,7 @@
 
     <import file="../connector-build.xml"/>
 
-    <target name="calculate-condition">
+    <!-- target name="calculate-condition">
         <available file="lib-proprietary/dfc.jar" property="dfcStatus"/>
         <available file="lib-proprietary/dfcbase.jar" property="dfcbaseStatus"/>
         <available file="lib-proprietary/dctm.jar" property="dctmStatus"/>
@@ -30,18 +30,18 @@
                 <isset property="dctmStatus"/>
             </and>
         </condition>
-    </target>
+    </target -->
 
-    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+    <!-- target name="precompile-check" depends="calculate-condition" unless="canBuild">
         <echo message="Documentum Connector cannot be built without dfc.jar, dfcbase.jar, and dctm.jar"/>
-    </target>
+    </target -->
 
-    <path id="implementation-classpath">
+    <!-- path id="implementation-classpath">
         <path refid="mcf-connector-build.implementation-classpath"/>
         <fileset dir="lib-proprietary"> 
             <include name="*.jar"/> 
         </fileset> 
-    </path>
+    </path -->
 
     <target name="rmic-build-all" depends="compile-implementation,compile-interface,setup-rmic,has-RMI-check" if="hasRMI">
         <!-- The ant version I have doesn't seem to handle class specifications based on file names, so this is the best I could come up with -->
