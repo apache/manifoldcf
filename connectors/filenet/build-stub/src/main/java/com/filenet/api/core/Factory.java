@@ -18,13 +18,15 @@
 */
 package com.filenet.api.core;
 
+import com.filenet.api.exception.*;
+
 /** Stub interface to allow the connector to build fully.
 */
 public class Factory
 {
   public static class Connection
   {
-    public static Connection getConnection(String uri)
+    public static com.filenet.api.core.Connection getConnection(String uri)
       throws EngineRuntimeException
     {
       return null;
@@ -33,7 +35,7 @@ public class Factory
   
   public static class Domain
   {
-    public static Domain fetchInstance(Connection conn, String domain, String something) //???
+    public static com.filenet.api.core.Domain fetchInstance(com.filenet.api.core.Connection conn, String domain, String something) //???
       throws EngineRuntimeException
     {
       return null;
@@ -42,10 +44,25 @@ public class Factory
   
   public static class ObjectStore
   {
-    public static ObjectStore fetchInstance(Domain domain, String name, String something) //???
+    public static com.filenet.api.core.ObjectStore fetchInstance(com.filenet.api.core.Domain domain, String name, String something) //???
     {
       return null;
     }
   }
   
+  public static class ClassDefinition
+  {
+    public static com.filenet.api.admin.ClassDefinition fetchInstance(com.filenet.api.core.ObjectStore os, String rootClass, String something) //???
+    {
+      return null;
+    }
+  }
+  
+  public static class Document
+  {
+    public static com.filenet.api.core.Document fetchInstance(com.filenet.api.core.ObjectStore os, String docId, String something) //???
+    {
+      return null;
+    }
+  }
 }
