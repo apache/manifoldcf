@@ -29,7 +29,9 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
 
   /** MySQL server property */
   public static final String mysqlServerProperty = "org.apache.manifoldcf.mysql.server";
-
+  /** Source system name or IP */
+  public static final String mysqlClientProperty = "org.apache.manifoldcf.mysql.client";
+  
   private static final String _driver = "com.mysql.jdbc.Driver";
   
   protected String cacheKey;
@@ -517,6 +519,11 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
+    // Get the client property
+    String client =  ManifoldCF.getProperty(mysqlClientProperty);
+    if (client == null || client.length() == 0)
+      client = "localhost";
+
     // Connect to super database
 
     Database masterDatabase = new DBInterfaceMySQL(context,"mysql",adminUserName,adminPassword);
@@ -538,7 +545,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
         try {
           list.clear();
           list.add(userName);
-          list.add("localhost");
+          list.add(client);
           list.add(password);
           masterDatabase.executeQuery("GRANT ALL ON "+databaseName+".* TO ?@? IDENTIFIED BY ?",list,
             null,invalidateKeys,null,false,0,null,null);

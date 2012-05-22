@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-476: Allow for remote MySQL connections.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-472: Make changes related to graduation.
 (Karl Wright)
 
