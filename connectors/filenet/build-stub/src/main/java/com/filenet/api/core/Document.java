@@ -20,6 +20,6 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class Document
+public interface Document
 {
 }

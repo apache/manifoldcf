@@ -20,10 +20,7 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class ObjectStore
+public interface ObjectStore
 {
-  public Folder get_RootFolder()
-  {
-    return null;
-  }
+  public Folder get_RootFolder();
 }

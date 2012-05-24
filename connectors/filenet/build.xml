@@ -19,23 +19,23 @@
 
     <import file="../connector-build.xml"/>
 
-    <target name="calculate-condition">
+    <!--target name="calculate-condition">
         <available file="lib-proprietary/Jace.jar" property="JaceStatus"/>
         <condition property="canBuild">
             <isset property="JaceStatus"/>
         </condition>
-    </target>
+    </target -->
 
-    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+    <!-- target name="precompile-check" depends="calculate-condition" unless="canBuild">
         <echo message="FileNet Connector cannot be built without Jace.jar"/>
-    </target>
+    </target -->
 
-    <path id="implementation-classpath">
+    <!-- path id="implementation-classpath">
         <path refid="mcf-connector-build.implementation-classpath"/>
         <fileset dir="lib-proprietary"> 
             <include name="*.jar"/> 
         </fileset> 
-    </path>
+    </path -->
 
     <target name="rmic-build-all" depends="compile-implementation,compile-interface,setup-rmic,has-RMI-check" if="hasRMI">
         <!-- The ant version I have doesn't seem to handle class specifications based on file names, so this is the best I could come up with -->

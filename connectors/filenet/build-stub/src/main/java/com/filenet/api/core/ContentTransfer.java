@@ -18,12 +18,11 @@
 */
 package com.filenet.api.core;
 
-import com.filenet.api.collection.FolderSet;
+import java.io.InputStream;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Folder
+public interface ContentTransfer
 {
-  public FolderSet get_SubFolders();
-  public String get_FolderName();
+  public InputStream accessContentStream();
 }

@@ -20,7 +20,7 @@ package com.filenet.api.exception;
 
 /** Stub interface to allow the connector to build fully.
 */
-public enum ExceptionCode
+public enum ExceptionCode //???
 {
   TRANSPORT_WSI_NETWORK_ERROR,
   SECURITY_WSI_NO_LOGIN_MODULES_SUCCEEDED,

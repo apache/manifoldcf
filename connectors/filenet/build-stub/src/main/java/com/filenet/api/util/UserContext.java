@@ -18,8 +18,24 @@
 */
 package com.filenet.api.util;
 
+import com.filenet.api.core.Connection;
+
 /** Stub interface to allow the connector to build fully.
 */
 public class UserContext
 {
+  public static UserContext get()
+  {
+    return null;
+  }
+  
+  public static javax.security.auth.Subject createSubject(Connection conn, String userID, String password, String module)
+  {
+    return null;
+  }
+  
+  public void pushSubject(javax.security.auth.Subject subject)
+  {
+  }
+  
 }
