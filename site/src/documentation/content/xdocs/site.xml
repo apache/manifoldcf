@@ -70,13 +70,13 @@
     <index label="概要" href="index.html" tab="ja_JP"/>
     
     <docs label="ドキュメント">
-      <dev label="ダウンロード" href="download_ja_JP.html" />
-      <dev label="概要" href="concepts_ja_JP.html"/>
-      <dev label="コネクタ一覧" href="included-connectors_ja_JP.html"/>
-      <dev label="Ｑ＆Ａ" href="faq_ja_JP.html"/>
-      <dev label="Javadoc" href="javadoc_ja_JP.html"/>
-      <mail label="メーリングリスト"    href="mail_ja_JP.html" />   
-      <dev label="開発者リソース" href="developer-resources_ja_JP.html"/>
+      <dev label="ダウンロード" href="download.html" />
+      <dev label="概要" href="concepts.html"/>
+      <dev label="コネクタ一覧" href="included-connectors.html"/>
+      <dev label="Ｑ＆Ａ" href="faq.html"/>
+      <dev label="Javadoc" href="javadoc.html"/>
+      <mail label="メーリングリスト"    href="mail.html" />   
+      <dev label="開発者リソース" href="developer-resources.html"/>
       <dev label="エンドユーザマニュアル (HTML)" href="end-user-documentation.html"/>
       <dev label="エンドユーザマニュアル (PDF)" href="end-user-documentation.pdf"/>
     </docs>
