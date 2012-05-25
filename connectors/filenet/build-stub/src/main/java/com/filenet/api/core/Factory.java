@@ -19,6 +19,7 @@
 package com.filenet.api.core;
 
 import com.filenet.api.exception.*;
+import com.filenet.api.property.*;
 
 /** Stub interface to allow the connector to build fully.
 */
@@ -35,7 +36,7 @@ public class Factory
   
   public static class Domain
   {
-    public static com.filenet.api.core.Domain fetchInstance(com.filenet.api.core.Connection conn, String domain, String something) //???
+    public static com.filenet.api.core.Domain fetchInstance(com.filenet.api.core.Connection conn, String domain, PropertyFilter filter)
       throws EngineRuntimeException
     {
       return null;
@@ -44,7 +45,7 @@ public class Factory
   
   public static class ObjectStore
   {
-    public static com.filenet.api.core.ObjectStore fetchInstance(com.filenet.api.core.Domain domain, String name, String something) //???
+    public static com.filenet.api.core.ObjectStore fetchInstance(com.filenet.api.core.Domain domain, String name, PropertyFilter filter)
     {
       return null;
     }
@@ -52,7 +53,7 @@ public class Factory
   
   public static class ClassDefinition
   {
-    public static com.filenet.api.admin.ClassDefinition fetchInstance(com.filenet.api.core.ObjectStore os, String rootClass, String something) //???
+    public static com.filenet.api.admin.ClassDefinition fetchInstance(com.filenet.api.core.ObjectStore os, String rootClass, PropertyFilter filter)
     {
       return null;
     }
@@ -60,7 +61,15 @@ public class Factory
   
   public static class Document
   {
-    public static com.filenet.api.core.Document fetchInstance(com.filenet.api.core.ObjectStore os, String docId, String something) //???
+    public static com.filenet.api.core.Document fetchInstance(com.filenet.api.core.ObjectStore os, String docId, PropertyFilter filter)
+    {
+      return null;
+    }
+  }
+  
+  public static class User
+  {
+    public static com.filenet.api.security.User fetchInstance(com.filenet.api.core.Connection conn, String gname, PropertyFilter filter)
     {
       return null;
     }
