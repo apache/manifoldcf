@@ -18,8 +18,11 @@
 */
 package com.filenet.api.core;
 
+import com.filenet.api.collection.ContentElementList;
+
 /** Stub interface to allow the connector to build fully.
 */
 public interface Document
 {
+  public ContentElementList get_ContentElements();
 }

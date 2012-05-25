@@ -18,12 +18,12 @@
 */
 package com.filenet.api.collection;
 
-import com.filenet.api.admin.ClassDefinition;
 import java.util.*;
+import com.filenet.api.core.ContentElement;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface ClassDefinitionSet
+public interface ContentElementList
 {
-  public Iterator<ClassDefinition> iterator();
+  public Iterator<ContentElement> iterator();
 }

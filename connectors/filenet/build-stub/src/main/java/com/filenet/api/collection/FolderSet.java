@@ -23,10 +23,7 @@ import java.util.*;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class FolderSet
+public interface FolderSet
 {
-  public Iterator<Folder> iterator()
-  {
-    return null;
-  }
+  public Iterator<Folder> iterator();
 }
