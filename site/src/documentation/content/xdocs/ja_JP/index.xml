@@ -40,24 +40,24 @@
     </section>
 
     <section>
-	<title>第三者リポジトリについて</title>
-	<p>ManifoldCFにふくまれる商用ソフトウエア用のコネクタをビルドするには、第三者のライブラリ、パッケージ、そのソフトウエアが必要な場合があります。開発者はビルドする時にこれら第三者ソフトウエアを入手する必要はありますが、条件付きでコンパイルすることができるため、コネクタ自体のソースコードはApacheとして配布することができます。できる限りすべてをApacheライセンスに準拠するようにしたいと思っていますが、短期的の変化は期待していでください。</p>
-	<p>第三者ソフトウエアを含めてビルドする手順はWikiページに掲載しています。</p>
+	<title>サードパーティのリポジトリについて</title>
+	<p>ManifoldCFにふくまれる商用ソフトウェア用のコネクタをビルドするには、サードパーティのライブラリ、パッケージ、そのソフトウェアが必要な場合があります。開発者はビルドする時にこれらサードパーティのソフトウェアを入手する必要はありますが、条件付きでコンパイルすることができるため、コネクタ自体のソースコードはApacheとして配布することができます。できる限りすべてをApacheライセンスに準拠するようにしたいと思っていますが、現実的には状況はすぐには変わりません。</p>
+	<p>サードパーティのソフトウェアを含めてビルドする手順はWikiページに掲載しています。</p>
     </section>
 
     <section>
         <title>ニュース</title>
           <section>
-              <title>2012年5月22日 - ManifoldCF 0.5.1を公開！</title>
-                <p>点バグ修正リリースで、開発者コミュニティサインオフ。</p>
+              <title>2012年5月22日 - ManifoldCF 0.5.1を公開しました！</title>
+                <p>開発者コミュニティはバグ修正版リリースを承認しました</p>
           </section>
           <section>
-              <title>2012年5月16日 - ApacheのインキュベータからManifoldCF卒業生！</title>
-                  <p>Apacheの取締役会は、トップレベルプロジェクトとしてManifoldCFの作成時にオフに署名。</p>
+              <title>2012年5月16日 - ManifoldCFはApacheのインキュベータから卒業しました！</title>
+                  <p>Apacheの理事会はManifoldCFをトップレベルプロジェクトとして承認しました</p>
           </section>
           <section>
-              <title>2012年04月15日 - ManifoldCF 0.5-incubatingを公開！</title>
-                <p>開発者コミュニティ及びApacheインキュベータは5版を承認</p>
+              <title>2012年04月15日 - ManifoldCF 0.5-incubatingを公開しました！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは5版を承認しました</p>
                 <p>主な追加機能:</p>
                 <ul>
                   <li>コネクタUIテンプレートのApache Velocityサポート</li>
@@ -69,48 +69,48 @@
                 </ul>
           </section>
           <section>
-            <title>2012年02月02日 - ManifoldCF 0.4-incubatingを公開！</title>
-                <p>開発者コミュニティ及びApacheインキュベータは4版を承認</p>
+            <title>2012年02月02日 - ManifoldCF 0.4-incubatingを公開しました！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは4版を承認しました</p>
           </section>
           <section>
-             <title>2011年11月08日 - バンクーバーでManifoldCFについて講演</title>
-                <p>Apache北アメリカ2011で一般的なManifoldCFの発表, バンクーバー, ブリティッシュコロンビア, カナダ</p>
+             <title>2011年11月08日 - バンクーバーでManifoldCFについて講演しました</title>
+                <p>Apache North America 2011, バンクーバー, ブリティッシュコロンビア, カナダで、ManifoldCFの概要について発表しました</p>
           </section>
           <section>
-             <title>2011年10月19日 - バルセロナでManifoldCFについて発表</title>
-                <p>Apache Eurocon 2011, バルセロナ, カタルーニャ, スペインでManifoldCFの権限について発表</p>
+             <title>2011年10月19日 - バルセロナでManifoldCFについて発表しました</title>
+                <p>Apache Eurocon 2011, バルセロナ, カタルーニャ, スペインで、ManifoldCFの権限機能について発表しました</p>
           </section>
           <section>
-             <title>2011年09月20日 - ManifoldCF 0.3-incubatingを公開！</title>
-                <p>開発者コミュニティ及びApacheインキュベータはリリース3を承認</p>
+             <title>2011年09月20日 - ManifoldCF 0.3-incubatingを公開しました！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは3版を承認しました</p>
           </section>
 	  <section>
-	     <title>2011年05月17日 - ManifoldCF 0.2-incubatingを公開！</title>
-                <p>開発者コミュニティ及びApacheインキュベータは2版を承認</p>
+	     <title>2011年05月17日 - ManifoldCF 0.2-incubatingを公開しました！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは2版を承認しました</p>
 	  </section>
 	  <section>
-	     <title>2011年01月31日 - ManifoldCF 0.1-incubatingを公開！</title>
-                <p>開発者コミュニティ及びApacheインキュベータは初期リリースを承認</p>
+	     <title>2011年01月31日 - ManifoldCF 0.1-incubatingを公開しました！</title>
+                <p>開発者コミュニティ及びApacheインキュベータは初期リリースを承認しました</p>
 	  </section>
 	  <section>
-	     <title>2010年10月03日 - ApacheコネクタフレームワークはApache ManifoldCFに命名変更</title>
-                <p>開発者コミュニティは命名変更を承認e</p>
+	     <title>2010年10月03日 - Apacheコネクタフレームワークは正式にApache ManifoldCFに命名変更しました</title>
+                <p>開発者コミュニティは２回目の名前変更を承認しました</p>
 	  </section>
 	  <section>
-	     <title>2010年08月19日 - LuceneコネクタフレームワークはApacheコネクタフレームワークに命名変更</title>
-                <p>開発者コミュニティの名前を変更</p>
+	     <title>2010年08月19日 - LuceneコネクタフレームワークはApacheコネクタフレームワークに命名変更しました</title>
+                <p>開発者コミュニティは名前変更を承認しました</p>
 	  </section>
             <section>
-                <title>2010年07月07日 - Luceneコネクタフレームワークの初期リリースを提案</title>
-                <p>LCFの初期リリースの条件を提案</p>
+                <title>2010年07月07日 - Luceneコネクタフレームワークの初期リリースが提案されました</title>
+                <p>LCFの初期リリースの条件が提案されました</p>
             </section>
             <section>
-                <title>2010年05月21日 - Lucene Connectors Framework in Prague</title>
-                <p>Lucene/Solr Eurocon, プラハ, チェコ共和国でLCFの紹介を発表</p>
+                <title>2010年05月21日 - プラハでLuceneコネクタフレームワークについて発表しました</title>
+                <p>Lucene/Solr Eurocon, プラハ, チェコ共和国で、LCFの紹介を発表しました</p>
             </section>
             <section>
-                <title>2010年01月12日 - Luceneコネクタフレームワーク開始！</title>
-                <p>LCFが正式にApache Software Foundationインキュベーションプロジェクトになりました。</p>
+                <title>2010年01月12日 - Luceneコネクタフレームワークを開始しました！</title>
+                <p>LCFが正式にApache Software Foundationインキュベーションプロジェクトになりました</p>
             </section>
 
     </section>
