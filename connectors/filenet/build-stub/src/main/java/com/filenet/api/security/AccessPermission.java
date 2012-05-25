@@ -16,15 +16,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.core;
+package com.filenet.api.security;
 
-import com.filenet.api.collection.ContentElementList;
-import com.filenet.api.collection.AccessPermissionList;
+import com.filenet.api.constants.AccessType;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Document
+public interface AccessPermission
 {
-  public ContentElementList get_ContentElements();
-  public AccessPermissionList get_Permissions();
+  public String get_GranteeName();
+  public Integer get_AccessMask();
+  public AccessType get_AccessType();
 }

@@ -16,15 +16,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.core;
-
-import com.filenet.api.collection.ContentElementList;
-import com.filenet.api.collection.AccessPermissionList;
+package com.filenet.api.constants;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Document
+public interface AccessLevel
 {
-  public ContentElementList get_ContentElements();
-  public AccessPermissionList get_Permissions();
+  public static final int VIEW_AS_INT = 131201;
+  
+  public int getValue();
 }
