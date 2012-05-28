@@ -16,14 +16,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.opentext.api;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub classes to get connector to build.
 */
-public class EngineRuntimeException extends RuntimeException
+public class LLSecurityProviderException extends RuntimeException
 {
-  public ExceptionCode getExceptionCode()
+  public LLSecurityProviderException(String text)
   {
-    return null;
+    super(text);
   }
 }
+

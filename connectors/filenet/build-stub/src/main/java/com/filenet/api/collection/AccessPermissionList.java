@@ -18,12 +18,8 @@
 */
 package com.filenet.api.collection;
 
-import java.util.*;
-import com.filenet.api.security.AccessPermission;
-
 /** Stub interface to allow the connector to build fully.
 */
-public interface AccessPermissionList
+public interface AccessPermissionList extends DependentObjectList
 {
-  public Iterator<AccessPermission> iterator();
 }

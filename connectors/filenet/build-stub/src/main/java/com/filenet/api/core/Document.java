@@ -23,7 +23,7 @@ import com.filenet.api.collection.AccessPermissionList;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Document
+public interface Document extends Versionable, EngineObject
 {
   public ContentElementList get_ContentElements();
   public AccessPermissionList get_Permissions();

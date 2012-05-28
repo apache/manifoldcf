@@ -16,14 +16,28 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.opentext.api;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub classes to get connector to build.
 */
-public class EngineRuntimeException extends RuntimeException
+public class LAPI_USERS
 {
-  public ExceptionCode getExceptionCode()
+  public final static int USER = 0;
+  public final static int PRIV_PERM_BYPASS = 256;
+  public final static int PRIV_PERM_WORLD = 2048;
+
+  public LAPI_USERS(LLSession session)
   {
-    return null;
+  }
+  
+  public int ListRights(int user, String domainAndUser, LLValue retval)
+  {
+    return 0;
+  }
+  
+  public int GetUserInfo(String domainAndUser, LLValue retval)
+  {
+    return 0;
   }
 }
+

@@ -16,13 +16,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.filenet.api.query;
+
+import com.filenet.api.core.ObjectStore;
+import com.filenet.api.collection.RepositoryRowSet;
+import com.filenet.api.property.PropertyFilter;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class EngineRuntimeException extends RuntimeException
+public class SearchScope
 {
-  public ExceptionCode getExceptionCode()
+  public SearchScope(ObjectStore os)
+  {
+  }
+  
+  public RepositoryRowSet fetchRows(SearchSQL sql, Integer something,
+    PropertyFilter filter, Boolean somethingelse)
   {
     return null;
   }

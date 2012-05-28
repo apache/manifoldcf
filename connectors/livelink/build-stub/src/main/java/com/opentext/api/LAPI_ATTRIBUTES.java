@@ -16,14 +16,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.opentext.api;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub classes to get connector to build.
 */
-public class EngineRuntimeException extends RuntimeException
+public class LAPI_ATTRIBUTES
 {
-  public ExceptionCode getExceptionCode()
+  public final static int CATEGORY_TYPE_LIBRARY = 0;
+
+  public LAPI_ATTRIBUTES(LLSession session)
   {
-    return null;
   }
+  
+  public int AttrGetValues(LLValue catVersion, String attrName, int something, LLValue somethingelse, LLValue result)
+  {
+    return 0;
+  }
+  
+  public int AttrListNames(LLValue catVersion, LLValue something, LLValue rvalue)
+  {
+    return 0;
+  }
+  
 }
+

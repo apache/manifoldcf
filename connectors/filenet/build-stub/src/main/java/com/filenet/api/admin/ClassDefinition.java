@@ -22,20 +22,9 @@ import com.filenet.api.collection.ClassDefinitionSet;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class ClassDefinition
+public interface ClassDefinition
 {
-  public String get_SymbolicName() //??? In this class or in DocumentClassDefinition?
-  {
-    return null;
-  }
-  
-  public String get_DisplayName() //??? In this class or in DocumentClassDefinition
-  {
-    return null;
-  }
-  
-  public ClassDefinitionSet get_ImmediateSubclassDefinitions() //??? in this class or derivatives
-  {
-    return null;
-  }
+  public String get_SymbolicName();
+  public String get_DisplayName();
+  public ClassDefinitionSet get_ImmediateSubclassDefinitions();
 }

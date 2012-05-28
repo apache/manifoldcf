@@ -16,14 +16,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.filenet.api.query;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class EngineRuntimeException extends RuntimeException
+public class SearchSQL
 {
-  public ExceptionCode getExceptionCode()
+  public SearchSQL()
   {
-    return null;
+  }
+  
+  public void setQueryString(String query)
+  {
   }
 }

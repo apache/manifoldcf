@@ -16,14 +16,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.filenet.api.core;
+
+import com.filenet.api.property.Properties;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class EngineRuntimeException extends RuntimeException
+public interface EngineObject
 {
-  public ExceptionCode getExceptionCode()
-  {
-    return null;
-  }
+  public String getClassName();
+  public Properties getProperties();
 }

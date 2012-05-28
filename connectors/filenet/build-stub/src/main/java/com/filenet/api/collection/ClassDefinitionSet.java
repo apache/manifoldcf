@@ -18,12 +18,8 @@
 */
 package com.filenet.api.collection;
 
-import com.filenet.api.admin.ClassDefinition;
-import java.util.*;
-
 /** Stub interface to allow the connector to build fully.
 */
-public interface ClassDefinitionSet
+public interface ClassDefinitionSet extends IndependentObjectSet
 {
-  public Iterator<ClassDefinition> iterator();
 }

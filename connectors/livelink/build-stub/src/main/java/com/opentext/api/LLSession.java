@@ -16,14 +16,46 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.opentext.api;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub classes to get connector to build.
 */
-public class EngineRuntimeException extends RuntimeException
+public class LLSession
 {
-  public ExceptionCode getExceptionCode()
+
+  public LLSession(String server, int port, String something, String user, String password, String whoknows) //??? last arg unknown
+  {
+  }
+  
+  public String getStatusMessage()
   {
     return null;
   }
+  
+  public String getErrMsg()
+  {
+    return null;
+  }
+  
+  public String getApiError()
+  {
+    return null;
+  }
+  
+  public int getStatus()
+  {
+    return 0;
+  }
+  
+  public String getHost()
+  {
+    return null;
+  }
+  
+  public int getPort()
+  {
+    return 0;
+  }
+
 }
+

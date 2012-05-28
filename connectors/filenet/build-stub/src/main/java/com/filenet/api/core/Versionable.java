@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: Document.java 1342799 2012-05-25 20:25:51Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,14 +16,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.exception;
+package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class EngineRuntimeException extends RuntimeException
+public interface Versionable
 {
-  public ExceptionCode getExceptionCode()
-  {
-    return null;
-  }
+  public Boolean get_IsCurrentVersion();
 }

@@ -18,8 +18,18 @@
 */
 package com.filenet.api.property;
 
+import com.filenet.api.constants.FilteredPropertyType;
+
 /** Stub interface to allow the connector to build fully.
 */
-public interface PropertyFilter
+public class PropertyFilter
 {
+  public PropertyFilter()
+  {
+  }
+  
+  public void addIncludeType(int something, Long somethingElse, Boolean somethingBoolean, FilteredPropertyType fpt, Integer somethingInt)
+  {
+  }
+  
 }

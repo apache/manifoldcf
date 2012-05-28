@@ -21,6 +21,6 @@ package com.filenet.api.admin;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class DocumentClassDefinition extends ClassDefinition
+public interface DocumentClassDefinition extends VersionableClassDefinition
 {
 }

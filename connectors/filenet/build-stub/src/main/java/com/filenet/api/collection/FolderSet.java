@@ -18,12 +18,8 @@
 */
 package com.filenet.api.collection;
 
-import com.filenet.api.core.Folder;
-import java.util.*;
-
 /** Stub interface to allow the connector to build fully.
 */
-public interface FolderSet
+public interface FolderSet extends IndependentObjectSet
 {
-  public Iterator<Folder> iterator();
 }

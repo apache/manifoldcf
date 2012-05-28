@@ -74,4 +74,13 @@ public class Factory
       return null;
     }
   }
+  
+  public static class ClassDescription
+  {
+    public static com.filenet.api.meta.ClassDescription fetchInstance(com.filenet.api.core.ObjectStore os, String className, PropertyFilter filter)
+    {
+      return null;
+    }
+  }
+  
 }

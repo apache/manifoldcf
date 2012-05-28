@@ -18,13 +18,9 @@
 */
 package com.filenet.api.security;
 
-import com.filenet.api.constants.AccessType;
-
 /** Stub interface to allow the connector to build fully.
 */
-public interface AccessPermission
+public interface AccessPermission extends DiscretionaryPermission
 {
-  public String get_GranteeName();
   public Integer get_AccessMask();
-  public AccessType get_AccessType();
 }
