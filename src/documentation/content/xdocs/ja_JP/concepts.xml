@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>概要</title> 
+  </header> 
+
+  <body> 
+    <section>
+      <title>概要</title>
+      <p>ManifoldCFは次いような目的のために設計されたクローラフレームワークです。</p>
+      <p></p>
+      <ul>
+        <li>シャットダウン及ぶ再起動からの回復力に強く信頼性の高いフレームワーク</li>
+        <li>差分更新に対応。収集するコンテンツの条件はジョブに定義します。ジョブを継続的に実行してコンテンツの差分を収集することができます</li>
+        <li>同時に平行して異なるリポジトリの種類と接続してコンテンツを収集することが可能です</li>
+        <li>コンテンツセキュリティに対応しています。ユーザ毎に閲覧可能なコンテンツのみの検索結果が表示されます</li>
+        <li>高速。多くのコンテンツをそれなりの時間内に処理することができます</li>
+        <li>メモリ利用を予測することができます</li>
+      </ul>
+      <p></p>
+      <p>ManifoldCFはリレーショナルデータベースを利用することで多くのアーキテクチャの目的を達成しています。現バージョンはPostgresql、Derby、MySQLに対応しています。その他のデータベースの利用も検討しています。</p>
+      <p></p>
+      <section>
+        <title>ManifoldCFコンテンツモデル</title>
+        <p></p>
+        <p>ManifoldCFの各コンテンツはバイナリデータとそれに関連するメタデータから攻勢され、ユニークURIに関連付けられています。検索用に組み合わせて利用する検索エンジンはこのモデルに対応する必要があります。</p>
+        <p></p>
+        <p>コンテンツはアクセストークンと関連つけることができます。アクセストークンについては次の節で説明します。</p>
+        <p></p>
+      </section>
+      <section>
+        <title>ManifoldCFセキュリティモデル</title>
+        <p></p>
+        <p>ManifoldCFセキュリティモデルは、マイクロソフトActive Directoryの認証及び階層のモデルに対応しています。ファイル及びコンテンツの承認／権限にActive Directoryを利用している企業が多いからです。また、Active Directoryは多くの第三者ソフトウエアでも利用されているからです。</p>
+        <p></p>
+        <p>ManifoldCFは<em>アクセストークン</em>という概念を使っています。ManifoldCFでアクセストークンとは、コネクタに内容が依存する文字列です。ユーザにコンテンツを表示するか、表示しないかはこの文字列で制御されます。Active Directoryを利用する場合は、アクセストークンはActive Directory SID（例：S-1-23-4-1-45）です。LiveLinkでは別の意味をもつ文字列になります。</p>
+        <p></p>
+        <p>ManifoldCFセキュリティモデルでは、<em>権限コネクタ</em>が検索を実行したユーザのアクセストークン一覧を作成します。複数の異なるセキュリティで管理されたサーバを検索する場合は、権限コネクタがアクセストークンを組み合わせます。作成されたアクセストークン一覧は検索結果と共に検索エンジンに送られます。検索エンジンはこの情報を元にユーザに表示する内容を制限することができます。</p>
+        <p></p>
+        <p>コンテンツの索引を作成した後に、ManifoldCFは亜食えすトークンを検索エンジンに送ります。亜食えすトークンには「許可」と「拒否」の2種類のトークンがあります。なお、アクセストークンはActive Directoryと同様に「共有」,「フォルダ」,「ファイル」にセキュリティを設定することができます。</p>
+        <p></p>
+        <p>検索エンジンはアクセストークンの内容に基づき表示する検索結果の内容を決めます。検索エンジンにSolr 1.5を利用される場合はこの処理を標準で行えるようにするためにApache SolrプロジェクトにSearchComponentプラグインとそれを利用する説明書を提供しています（ <a href="https://issues.apache.org/jira/browse/SOLR-1895">SOLR-1895</a>）。</p>
+        <p></p>
+      </section>
+      <section>
+        <title>ManifoldCF論理エンティティ</title>
+        <p></p>
+        <section>
+          <title>コネクタ</title>
+          <p></p>
+          <p>ManifoldCFには次の３つのコネクタがあります：</p>
+          <p></p>
+          <ul>
+            <li>権限コネクタ</li>
+            <li>リポジトリコネクタ</li>
+            <li>出力コネクタ</li>
+          </ul>
+          <p></p>
+          <p>すべてのコネクタには共通した機能があります。先ず、すべてのコネクタはプールされています。ManifoldCFは設定したコネクタのインスタンスを管理します。インスタンス数の上限を設定することもできます。コネクタの実装はManifoldCFが管理するプール内で自身を管理するためのメソッドを実装しています。コネクタは設定可能です。コネクタの設定はコネクタの実装に依存したXML文で行えます。ManifoldCFでは、設定されたコネクタのインスタンスを<em>コネクション</em>と呼びます。</p>
+          <p></p>
+          <p>コネクタは次のような機能をもちます：</p>
+          <p></p>
+          <table>
+            <tr><th>コネクタタイプ</th><th>機能</th></tr>
+            <tr><td>権限コネクタ</td><td>はリポジトリに意味あるようにユーザ名とアクセストークを対応つけます。</td></tr>
+            <tr><td>リポジトリコネクタ</td><td>指定されたリポジトリ（例：SharePointやWeb）からコンテンツを収集する</td></tr>
+            <tr><td>出力コネクタ</td><td>収集したコンテンツと処理（追加や削除など）をバックエンド検索エンジン又はLuceneのようなエンティティに送信する</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>コネクション</title>
+          <p></p>
+          <p>上で説明した通りに、<em>コネクション</em>とはコネクタの実装とコネクタ固有の設定情報です。Webブラウザからこれらの設定を行うことができます。</p>
+          <p></p>
+          <p>コネクタには「何を」よりも「どのように」という情報を設定します。例えば、LiveLinkコネクションにはLiveLinkサーバと接続の仕方を設定します。どの文書ファイルを収集するかのような情報は設定しません。</p>
+          <p></p>
+          <p><em>リポジトリコネクション</em>と<em>権限コネクション</em>及び出力コネクションの設定は異なります。リポジトリコネクションには、権限コネクションを設定します。ManifoldCFが収集する<strong>すべて</strong>の文書は適切なアクセストークンが必要だからです。</p>
+          <p></p>
+        </section>
+        <section>
+          <title>ジョブ</title>
+          <p></p>
+          <p>ManifoldCFで<em>ジョブ</em>とは、指定したリポジトリコネクションと出力コネクションの同期をとるための情報です。ジョブには次の情報を含みます：</p>
+          <p></p>
+          <ul>
+            <li>詳細説明</li>
+            <li>リポジトリコネクション（暗黙的に権限コネクションを含む）</li>
+            <li>出力コネクション</li>
+            <li>リポジトリコネクションに特定したジョブが対象とするコンテンツとメタデータの説明</li>
+            <li>クロールモデル：「最後まで実行」又は「継続実行」</li>
+            <li>ジョブの実行スケジュール：指定された時間帯または即時</li>
+          </ul>
+          <p></p>
+          <p>複数のジョブで同じリポジトリコネクションを使うことができます。即ち、ManifoldCFでは複数のジョブで同じ文書を収集するように設定することを許可していますが、普通は同じ文書を異なるジョブで収集しないように設定します。</p>
+        </section>
+      </section>
+    </section>
+  </body>
+
+</document>
