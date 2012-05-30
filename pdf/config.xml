@@ -1,0 +1,175 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<fop>
+  <renderers>
+    <renderer mime="application/pdf">
+      <fonts>
+        
+        <!-- DejaVuSans -->
+        <font metrics-file="{root}/tmp/font/DejaVuSans.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans.ttf">
+          <font-triplet name="DejaVuSans" style="normal" weight="normal"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="100"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="200"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="300"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="400"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="500"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="600"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="700"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="800"/>
+          <font-triplet name="DejaVuSans" style="normal" weight="900"/>
+        </font>
+
+        <!-- DejaVuSans-Oblique -->
+        <font metrics-file="{root}/tmp/font/DejaVuSans-Oblique.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Oblique.ttf">
+          <font-triplet name="DejaVuSans" style="italic" weight="normal"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="100"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="200"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="300"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="400"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="500"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="600"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="700"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="800"/>
+          <font-triplet name="DejaVuSans" style="italic" weight="900"/>
+        </font>
+
+        <!-- DejaVuSans-Bold -->
+        <font metrics-file="{root}/tmp/font/DejaVuSans-Bold.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Bold.ttf">
+          <font-triplet name="DejaVuSans" style="bold" weight="normal"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="100"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="200"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="300"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="400"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="500"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="600"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="700"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="800"/>
+          <font-triplet name="DejaVuSans" style="bold" weight="900"/>
+        </font>
+
+        <!-- DejaVuSerif -->
+        <font metrics-file="{root}/tmp/font/DejaVuSerif.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif.ttf">
+          <font-triplet name="DejaVuSerif" style="normal" weight="normal"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="100"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="200"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="300"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="400"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="500"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="600"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="700"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="800"/>
+          <font-triplet name="DejaVuSerif" style="normal" weight="900"/>
+        </font>
+
+        <!-- DejaVuSerif-Italic -->
+        <font metrics-file="{root}/tmp/font/DejaVuSerif-Italic.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Italic.ttf">
+          <font-triplet name="DejaVuSerif" style="italic" weight="normal"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="100"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="200"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="300"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="400"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="500"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="600"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="700"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="800"/>
+          <font-triplet name="DejaVuSerif" style="italic" weight="900"/>
+        </font>
+
+        <!-- DejaVuSerif-Bold -->
+        <font metrics-file="{root}/tmp/font/DejaVuSerif-Bold.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Bold.ttf">
+          <font-triplet name="DejaVuSerif" style="bold" weight="normal"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="100"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="200"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="300"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="400"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="500"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="600"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="700"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="800"/>
+          <font-triplet name="DejaVuSerif" style="bold" weight="900"/>
+        </font>
+
+        <!-- DejaVuSansMono -->
+        <font metrics-file="{root}/tmp/font/DejaVuSansMono.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSansMono.ttf">
+          <font-triplet name="DejaVuSansMono" style="normal" weight="normal"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="100"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="200"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="300"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="400"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="500"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="600"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="700"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="800"/>
+          <font-triplet name="DejaVuSansMono" style="normal" weight="900"/>
+        </font>
+
+        <!-- IPAGothic -->
+        <font metrics-file="{root}/tmp/font/ipagothic.xml" kerning="yes" sub-font="IPAGothic" embed-url="file:///{root}/tmp/font/ipa-fonts/IPAGTTC00303/ipag.ttc">
+          <font-triplet name="IPAGothic" style="normal" weight="normal"/>
+          <font-triplet name="IPAGothic" style="normal" weight="bold"/>
+          <font-triplet name="IPAGothic" style="normal" weight="100"/>
+          <font-triplet name="IPAGothic" style="normal" weight="200"/>
+          <font-triplet name="IPAGothic" style="normal" weight="300"/>
+          <font-triplet name="IPAGothic" style="normal" weight="400"/>
+          <font-triplet name="IPAGothic" style="normal" weight="500"/>
+          <font-triplet name="IPAGothic" style="normal" weight="600"/>
+          <font-triplet name="IPAGothic" style="normal" weight="700"/>
+          <font-triplet name="IPAGothic" style="normal" weight="800"/>
+          <font-triplet name="IPAGothic" style="normal" weight="900"/>
+          <font-triplet name="IPAGothic" style="italic" weight="normal"/>
+          <font-triplet name="IPAGothic" style="italic" weight="bold"/>
+          <font-triplet name="IPAGothic" style="italic" weight="100"/>
+          <font-triplet name="IPAGothic" style="italic" weight="200"/>
+          <font-triplet name="IPAGothic" style="italic" weight="300"/>
+          <font-triplet name="IPAGothic" style="italic" weight="400"/>
+          <font-triplet name="IPAGothic" style="italic" weight="500"/>
+          <font-triplet name="IPAGothic" style="italic" weight="600"/>
+          <font-triplet name="IPAGothic" style="italic" weight="700"/>
+          <font-triplet name="IPAGothic" style="italic" weight="800"/>
+          <font-triplet name="IPAGothic" style="italic" weight="900"/>
+        </font>
+
+        <!-- IPAPGothic -->
+        <font metrics-file="{root}/tmp/font/ipapgothic.xml" kerning="yes" sub-font="IPAPGothic" embed-url="file:///{root}/tmp/font/ipa-fonts/IPAGTTC00303/ipag.ttc">
+          <font-triplet name="IPAPGothic" style="normal" weight="normal"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="bold"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="100"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="200"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="300"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="400"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="500"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="600"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="700"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="800"/>
+          <font-triplet name="IPAPGothic" style="normal" weight="900"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="normal"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="bold"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="100"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="200"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="300"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="400"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="500"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="600"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="700"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="800"/>
+          <font-triplet name="IPAPGothic" style="italic" weight="900"/>
+        </font>
+      </fonts>
+    </renderer>
+  </renderers>
+</fop>
