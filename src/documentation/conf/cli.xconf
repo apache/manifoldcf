@@ -211,7 +211,7 @@
 
    <exclude pattern="**/"/>
    <exclude pattern="**apidocs**"/>
-   <exclude pattern="api/**"/>
+   <exclude pattern="release/**"/>
 
 <!--
   This is a workaround for FOR-284 "link rewriting broken when
