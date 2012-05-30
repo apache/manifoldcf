@@ -22,6 +22,33 @@
         <delete dir="tmp"/>
     </target>
 
+    <target name="setup-release-base-url">
+        <property name="release-base-url" value="http://archive.apache.org/dist/incubator/manifoldcf"/>
+    </target>
+    
+    <target name="download-release" depends="setup-release-base-url">
+        <get src="${release-base-url}/apache-manifoldcf-${release-version}-bin.zip" dest="${target}/apache-manifoldcf-${release-version}-bin.zip"/>
+    </target>
+    
+    <target name="install-release" depends="download-release">
+    </target>
+    
+    <target name="get-old-releases-doc">
+        <mkdir dir="build/publish/release/"/>
+        <antcall target="install-release">
+            <param name="target" value="build/releases"/>
+            <param name="release-version" value="0.5.1"/>
+        </antcall>
+        <!-- unpack -->
+        <unzip src="build/releases/apache-manifoldcf-0.5.1-bin.zip" dest="build/releases/apache-manifoldcf-0.5.1-bin"/>
+        <!-- copy -->
+        <mkdir dir="build/publish/release"/>
+        <copy todir="build/publish/release/release-0.5.1">
+            <fileset src="build/releases/apache-manifoldcf-0.5.1-bin/doc"/>
+        </copy>
+        
+    </target>
+    
     <target name="setup-maven-url">
         <property name="maven-base-url" value="http://repo1.maven.org/maven2"/>
     </target>

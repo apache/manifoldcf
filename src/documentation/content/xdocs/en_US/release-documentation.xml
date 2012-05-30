@@ -31,8 +31,8 @@
       <title>ManifoldCF Release Documentation</title>
       <p></p>
       <p>The release documentation for the following ManifoldCF versions is available for your review:</p>
-      <p><a href="../release/trunk/dist/doc/en_US/index.html">Trunk (currently under development)</a></p>
-      <p><a href="../release/tags/release-0.5.1/dist/doc/en_US/index.html">Release 0.5.1</a></p>
+      <p><a href="../release/trunk/en_US/index.html">Trunk (currently under development)</a></p>
+      <p><a href="../release/release-0.5.1/en_US/index.html">Release 0.5.1</a></p>
     </section>
   </body>
 </document>
