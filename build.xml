@@ -22,6 +22,26 @@
         <delete dir="tmp"/>
     </target>
 
+    <target name="checkout-source-via-svn">
+        <mkdir dir="${root-dir}"/>
+        <exec dir="${root-dir}" executable="svn" failifexecutionfails="true" failonerror="true">
+              <arg value="checkout" />
+              <arg value="${svn-url}" />
+              <arg value="${dir-name}" />
+        </exec>
+    </target>
+
+    <target name="build-via-ant">
+        <exec osfamily="windows" dir="${root-dir}" executable="cmd" failifexecutionfails="true" failonerror="true">
+            <arg value="/c"/>
+            <arg value="ant.bat"/>
+            <arg value="${target}" />
+        </exec>
+        <exec osfamily="unix" dir="${root-dir}" executable="ant" failifexecutionfails="true" failonerror="true">
+            <arg value="${target}" />
+        </exec>
+    </target>
+
     <target name="setup-release-base-url">
         <property name="release-base-url" value="http://archive.apache.org/dist/incubator/manifoldcf"/>
     </target>
@@ -42,7 +62,41 @@
         </copy>
     </target>
     
-    <target name="get-releases-doc">
+    <target name="checkout-trunk-release">
+        <antcall target="checkout-source-via-svn">
+            <param name="root-dir" value="build/releases"/>
+            <param name="svn-url" value="http://svn.apache.org/repos/asf/incubator/lcf/trunk"/>
+            <param name="dir-name" value="trunk"/>
+        </antcall>
+    </target>
+    
+    <target name="build-trunk-release" depends="checkout-trunk-release">
+        <antcall target="build-via-ant">
+            <param name="root-dir" value="build/releases/trunk"/>
+            <param name="target" value="make-core-deps"/>
+        </antcall>
+        <antcall target="build-via-ant">
+            <param name="root-dir" value="build/releases/trunk"/>
+            <param name="target" value="make-deps"/>
+        </antcall>
+        <antcall target="build-via-ant">
+            <param name="root-dir" value="build/releases/trunk"/>
+            <param name="target" value="doc"/>
+        </antcall>
+        <antcall target="build-via-ant">
+            <param name="root-dir" value="build/releases/trunk"/>
+            <param name="target" value="javadoc"/>
+        </antcall>
+    </target>
+    
+    <target name="install-trunk-release" depends="build-trunk-release">
+        <mkdir dir="build/site/release"/>
+        <copy todir="build/site/release/trunk">
+            <fileset dir="build/releases/trunk/dist/doc"/>
+        </copy>
+    </target>
+
+    <target name="get-releases-doc" depends="install-trunk-release">
         <antcall target="install-release">
             <param name="release-version" value="0.5.1"/>
         </antcall>
