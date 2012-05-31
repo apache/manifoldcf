@@ -33,8 +33,6 @@
     </project>
     
     <docs label="Documentation">
-      <dev label="Concepts" href="concepts.html"/>
-      <dev label="Frequently Asked Questions" href="faq.html"/>
       <dev label="Release Documentation" href="release-documentation.html"/>
     </docs>
     
@@ -64,8 +62,6 @@
     
     <docs label="ドキュメント">
       <dev label="ダウンロード" href="download.html" />
-      <dev label="概要" href="concepts.html"/>
-      <dev label="Ｑ＆Ａ" href="faq.html"/>
       <dev label="リリースドキュメント" href="release-documentation.html"/>
       <mail label="メーリングリスト"    href="mail.html" />   
       <dev label="開発者リソース" href="developer-resources.html"/>

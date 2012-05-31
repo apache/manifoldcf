@@ -32,42 +32,6 @@
 	</p>
     </section>
 
-    <section id="securityarchitecturediagrams">
-          <title>Security Architecture Diagrams</title>
-          <p>For those who prefer a pictorial representation of ManifoldCF's security architecture, this might help.</p>
-          <br/><br/>
-          <figure src="images/en_US/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
-          <br/><br/>
-          <p>If you are using Apache to perform authentication, the model is slightly different.</p>
-          <br/><br/>
-          <figure src="images/en_US/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
-          <br/><br/>
-    </section>
-
-    <section id="processarchitecturediagrams">
-          <title>Process Architecture Diagrams</title>
-          <p>A pictorial representation of ManifoldCF's process architecture is below.</p>
-          <br/><br/>
-          <figure src="images/en_US/MCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
-          <br/><br/>
-    </section>
-
-    <section id="howtowriteconnectors">
-	<title>How to Write Connectors</title>
-	<p>Writing connectors for ManifoldCF is a great way to learn about the project and contribute something useful!  Read about how to do that by navigating to the links provided below.
-	</p> 
-	<ul>
-	    <li><a href="writing-output-connectors.html">How to write an output connector</a></li>
-	    <li><a href="writing-authority-connectors.html">How to write an authority connector</a></li>
-	    <li><a href="writing-repository-connectors.html">How to write a repository connector</a></li>
-	</ul>
-    </section>
-
-    <section id="performancetuning">
-      <title>Performance tuning</title>
-      <p>Getting the best performance out of ManifoldCF requires some tinkering.  Learn how to do that <a href="performance-tuning.html">here</a>.</p>
-    </section>
-    
     <section id="debugging">
 	<title>Debugging Connections</title>
 	<p>Sooner or later, you will encounter a repository that should be supported, but doesn't seem to want to connect properly to ManifoldCF.  When that happens, you will need all the help you

@@ -30,7 +30,7 @@
     <section>
 	<title>ManifoldCFとは？</title>
 	<p>ManifoldCFとは、インターネットやイントラネットの様々なサーバに保管されている文書ファイルやWebページなどコンテンツを収集し、それを検索エンジンに送るJavaプログラムです。なお、コンテンツを収集する際にActiveDirectoryなど認証基盤と連携してコンテンツ毎に権限情報も収集し、検索するときにその権限情報を利用して表示内容を制限することもできます。例えば、人事情報に関する文書は、人事部のユーザが検索した時のみに表示するようにできます。</p>
-	<p>現バージョンのManifoldCFは、FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows共有(Microsoft), SharePoint (Microsoft)のような商用商品に保存されているコンテンツと次のような汎用コネクタを使って様々なコンテンツを収集することができます：CMISコネクタ, ファイルシステムコネクタ, JDBCコネクタ, RSSフィードコネクタ, Wikiコネクタ, HTMLコネクタ。また収集したコンテンツをApache Solr, QBase(旧MetaCarta) GTS, OpenSearchServer, ElasticSearchに送ることができます。対応している製品及び規格一覧は<a href="included-connectors.html">ここ</a>にあります。</p>
+	<p>現バージョンのManifoldCFは、FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows共有(Microsoft), SharePoint (Microsoft)のような商用商品に保存されているコンテンツと次のような汎用コネクタを使って様々なコンテンツを収集することができます：CMISコネクタ, ファイルシステムコネクタ, JDBCコネクタ, RSSフィードコネクタ, Wikiコネクタ, HTMLコネクタ。また収集したコンテンツをApache Solr, QBase(旧MetaCarta) GTS, OpenSearchServer, ElasticSearchに送ることができます。対応している製品及び規格一覧は<a href="release-documentation.html">ここ</a>にあります。</p>
 	<p>Apache ManifoldCFはMetaCarta, Inc.により開発されました。5年間の年月の間に複数企業用に開発／テストが繰り返された後の2009年12月にApache Software Foundationにコードソースが寄贈されました。</p>
     </section>
 
