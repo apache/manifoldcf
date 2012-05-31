@@ -58,10 +58,17 @@ def site_merge(source_dir, target_dir):
             relative_dirname = os.path.join(relative_root, dir)
             target_dirname = os.path.join(target_dir, relative_dirname)
             source_dirname = os.path.join(root, dir)
-            svn_result = svn_command(["status",target_dirname])
-            if len(svn_result) > 0 and svn_result[0] == "?":
+            #svn_result = svn_command(["status",target_dirname])
+            #print >> sys.stderr, "Target: %s, svn result %s" % (target_dirname,svn_result)
+            #if len(svn_result) == 0 or svn_result[0] == "?":
+            succeeded = False
+            try:
+                svn_command(["mkdir",target_dirname])
+                succeeded = True
+            except:
+                pass
+            if succeeded:
                 print >> sys.stderr, "Adding directory %s" % relative_dirname
-                svn_command(["add",target_dirname])
         for file in files:
             relative_filename = os.path.join(relative_root, file)
             target_filename = os.path.join(target_dir, relative_filename)
