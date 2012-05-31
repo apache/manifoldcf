@@ -23,7 +23,7 @@
 <document> 
 
   <header> 
-    <title>Welcome to ManifoldCF!</title> 
+    <title>Welcome to ManifoldCF release documentation!</title> 
   </header> 
 
   <body> 
@@ -36,91 +36,13 @@
     </section>
 
     <section>
-	<title>Project status</title>
-	<p>Apache ManifoldCF 0.5.1 is available!  Download it <a href="download.html">here</a>.</p>
-    </section>
-
-    <section>
 	<title>A philosophical note about third-party repositories</title>
-	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in order to be built.  The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled; that is, you as a developer must supply the necessary third-party components before the connector will build.  While we have every intention of trying to reduce the number of affected connectors by means of clean-room development under the auspices of ASF, realistically the current situation will not change in any dramatic way very quickly.  The focus of this group remains primarily on providing solutions.</p>
-	<p>The required libraries, tools, and procedures for building each of these connectors are well documented in the Wiki pages for this project.</p>
-    </section>
-
-    <section>
-        <title>News</title>
-          <section>
-              <title>22 May 2012 - ManifoldCF 0.5.1 is released!</title>
-                <p>Developer community signs off on point bugfix release.</p>
-          </section>
-          <section>
-              <title>16 May 2012 - ManifoldCF graduates from Apache Incubator!</title>
-                  <p>Apache Board signs off on creation of ManifoldCF as a Top Level Project.</p>
-          </section>
-          <section>
-              <title>15 Apr 2012 - ManifoldCF 0.5-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on fifth release:</p>
-                <p>Some of the new features of this release:</p>
-                <ul>
-                  <li>Apache Velocity support for connector UI templates</li>
-                  <li>ElasticSearch Output Connector</li>
-                  <li>CMIS Connector upgraded to CMIS 0.6.0</li>
-                  <li>Support for MySQL database</li>
-                  <li>Prebuilt connector support for proprietary connectors - just add jars and go!</li>
-                  <li>Internationalized, with new Japanese localization</li>
-                </ul>
-          </section>
-          <section>
-             <title>02 Feb 2012 - ManifoldCF 0.4-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on fourth release.</p>
-          </section>      
-          <section>
-             <title>08 Nov 2011 - ManifoldCF in Vancouver</title>
-                <p>ManifoldCF general talk planned for Apache North America 2011, Vancouver, British Columbia, Canada</p>
-          </section>
-          <section>
-             <title>19 Oct 2011 - ManifoldCF in Barcelona</title>
-                <p>ManifoldCF authorization talk planned for Apache Eurocon 2011, Barcelona, Catalonia, Spain</p>
-          </section>
-          <section>
-             <title>20 Sep 2011 - ManifoldCF 0.3-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on third release</p>
-                <p>Some of the new features and improvements of this latest release:</p>
-                <ul>
-                  <li>CMIS Connector</li>
-                  <li>OpenSearchServer Connector</li>
-                  <li><a href="script.html">Scripting Language</a></li>
-                  <li><a href="http://alturl.com/j7gtq">Several bug fixes</a> over the 0.2-incubating release</li>
-                </ul>
-          </section>
-	  <section>
-	     <title>17 May 2011 - ManifoldCF 0.2-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on second release</p>
-	  </section>
-	  <section>
-	     <title>31 January 2011 - ManifoldCF 0.1-incubating is released!</title>
-                <p>Developer community and Apache Incubator sign off on first release</p>
-	  </section>
-	  <section>
-	     <title>03 October 2010 - Apache Connectors Framework officially becomes Apache ManifoldCF</title>
-                <p>Developer community approves second name change</p>
-	  </section>
-	  <section>
-	     <title>19 August 2010 - Lucene Connectors Framework officially becomes Apache Connectors Framework</title>
-                <p>Developer community approves name change</p>
-	  </section>
-            <section>
-                <title>07 July 2010 - Lucene Connectors Framework first release proposed</title>
-                <p>Criteria for LCF's first official release proposed</p>
-            </section>
-            <section>
-                <title>21 May 2010 - Lucene Connectors Framework in Prague</title>
-                <p>LCF introductory talk planned for Lucene/Solr Eurocon, Prague, Czech Republic</p>
-            </section>
-            <section>
-                <title>12 January 2010 - Lucene Connectors Framework launches!</title>
-                <p>LCF officially becomes an incubating project of the Apache Software Foundation</p>
-            </section>
-
+	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in order to be built.
+              The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled; that is, you as a developer must
+              supply the necessary third-party components before the connector will build.  While we have every intention of trying to reduce the number of
+              affected connectors by means of clean-room development under the auspices of ASF, realistically the current situation will not change in any
+              dramatic way very quickly.  The focus of this group remains primarily on providing solutions.</p>
+	<p>The required libraries, tools, and procedures for building each of the connectors are well documented in these pages.</p>
     </section>
 
   </body>

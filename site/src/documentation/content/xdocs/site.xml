@@ -23,15 +23,6 @@
   
     <news        label="Welcome"          href="index.html" tab="en_US" />    
       
-    <project label="About">
-      <who         label="Who We Are"       href="who.html" />
-      <book        label="Get the Book"      href="ext:book" />
-      <books-and-presentations label="Books and Presentations" href="books-and-presentations.html" />
-      <store       label="Buy Stuff"        href="ext:store" />    
-      <sponsor     label="Sponsor Apache"     href="ext:sponsor" />    
-      <thanks      label="Sponsors of Apache" href="ext:thanks" />    
-    </project>
-    
     <docs label="Documentation">
       <dev label="Concepts" href="concepts.html"/>
       <dev label="Compatibility Matrix" href="included-connectors.html"/>
@@ -39,44 +30,24 @@
       <dev label="API Documentation" href="programmatic-operation.html"/>
       <dev label="Javadoc" href="javadoc.html"/>
       <dev label="Building and Deploying" href="how-to-build-and-deploy.html"/>
+      <dev label="Technical Resources" href="technical-resources.html"/>
+      <dev label="Performance tuning" href="performance-tuning.html"/>
       <dev label="Scripting Language" href="script.html"/>
       <dev label="End-user Documentation (HTML)" href="end-user-documentation.html"/>
       <dev label="End-user Documentation (PDF)" href="end-user-documentation.pdf"/>
     </docs>
     
-    <resources label="Resources">
-      <dev label="Download" href="download.html" />
-      <mail        label="Mailing Lists"    href="mail.html" />    
-      <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
-      <dev label="Performance tuning" href="performance-tuning.html"/>
-    </resources>
-
-    <rel label="Related-Projects">    
-      <droids      label="Droids"           href="ext:droids" />
-      <java        label="Java"             href="ext:java" />
-      <lucene.net  label="Lucene.Net"       href="ext:lucene.net" />    
-      <lucy        label="Lucy"             href="ext:lucy" />
-      <mahout      label="Mahout"           href="ext:mahout" />
-      <nutch       label="Nutch"            href="ext:nutch" />    
-      <orp       	 label="Open Relevance"            href="ext:orp" />
-      <pylucene    label="PyLucene"         href="ext:pylucene"/>
-      <solr        label="Solr"             href="ext:solr" />
-      <tika        label="Tika"             href="ext:tika" />
-    </rel>
-
   </english>
   
   <japanese label="日本語" href="ja_JP/" tab="ja_JP">
     <index label="概要" href="index.html" tab="ja_JP"/>
     
     <docs label="ドキュメント">
-      <dev label="ダウンロード" href="download.html" />
       <dev label="概要" href="concepts.html"/>
       <dev label="コネクタ一覧" href="included-connectors.html"/>
       <dev label="Ｑ＆Ａ" href="faq.html"/>
       <dev label="Javadoc" href="javadoc.html"/>
-      <mail label="メーリングリスト"    href="mail.html" />   
-      <dev label="開発者リソース" href="developer-resources.html"/>
+      <dev label="開発者リソース" href="technical-resources.html"/>
       <dev label="エンドユーザマニュアル (HTML)" href="end-user-documentation.html"/>
       <dev label="エンドユーザマニュアル (PDF)" href="end-user-documentation.pdf"/>
     </docs>
@@ -84,20 +55,6 @@
   </japanese>
 
   <external-refs>
-    <java      href="http://lucene.apache.org/java/" />
-    <nutch     href="http://lucene.apache.org/nutch/" />
-    <lucy      href="http://lucene.apache.org/lucy/" />
-    <orp      href="http://lucene.apache.org/openrelevance/" />
-    <solr      href="http://lucene.apache.org/solr/" />
-    <lucene.net href="http://incubator.apache.org/lucene.net/" />
-    <tika      href="http://lucene.apache.org/tika/" />
-    <mahout    href="http://lucene.apache.org/mahout/" />
-    <droids    href="http://incubator.apache.org/droids/" />
-    <pylucene    href="http://lucene.apache.org/pylucene/" />
-    <book     href="http://www.manning.com/wright/" />
-    <store     href="http://www.cafepress.com/lucene/" />
-    <sponsor   href="http://www.apache.org/foundation/sponsorship.html" />
-    <thanks    href="http://www.apache.org/foundation/thanks.html" />
   </external-refs>
 
  
