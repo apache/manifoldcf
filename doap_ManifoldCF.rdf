@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl"?>
+<rdf:RDF xml:lang="en"
+         xmlns="http://usefulinc.com/ns/doap#" 
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+         xmlns:asfext="http://projects.apache.org/ns/asfext#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/">
+<!--
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+   
+         http://www.apache.org/licenses/LICENSE-2.0
+   
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+  <Project rdf:about="http://manifoldcf.apache.org">
+    <created>2012-05-17</created>
+    <license rdf:resource="http://usefulinc.com/doap/licenses/asl20" />
+    <name>Apache ManifoldCF</name>
+    <homepage rdf:resource="http://manifoldcf.apache.org" />
+    <asfext:pmc rdf:resource="http://manifoldcf.apache.org" />
+    <shortdesc>Open-source software for transferring content between repositories or search indexes</shortdesc>
+    <description>ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr , OpenSearchServer or ElasticSearch. ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</description>
+    <bug-database rdf:resource="https://issues.apache.org/jira/browse/CONNECTORS" />
+    <mailing-list rdf:resource="http://manifoldcf.apache.org/en_US/mail.html" />
+    <download-page rdf:resource="http://manifoldcf.apache.org/en_US/download.html" />
+    <programming-language>Java</programming-language>
+    <category rdf:resource="http://projects.apache.org/category/content" />
+    <release>
+      <Version>
+        <name>apache-manifoldcf</name>
+        <created>2012-05-21</created>
+        <revision>0.5.1</revision>
+      </Version>
+    </release>
+    <repository>
+      <SVNRepository>
+        <location rdf:resource="https://svn.apache.org/repos/asf/manifoldcf"/>
+        <browse rdf:resource="http://svn.apache.org/repos/asf/manifoldcf"/>
+      </SVNRepository>
+    </repository>
+    <maintainer>
+      <foaf:Person>
+        <foaf:name>Karl Wright</foaf:name>
+          <foaf:mbox rdf:resource="mailto:kwright@apache.org"/>
+      </foaf:Person>
+    </maintainer>
+  </Project>
+</rdf:RDF>
