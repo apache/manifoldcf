@@ -46,9 +46,10 @@
         <property name="release-base-url" value="http://archive.apache.org/dist/incubator/manifoldcf"/>
     </target>
     
-    <target name="transfer-htaccess">
+    <target name="transfer-root-files">
         <mkdir dir="build/site"/>
         <copy todir="build/site" file=".htaccess"/>
+        <copy todir="build/site" file="doap_ManifoldCF.rdf"/>
     </target>
     
     <target name="download-release" depends="setup-release-base-url">
@@ -400,7 +401,7 @@
         </condition>
     </target>
     
-    <target name="build" depends="setup-local-forrest,build-ipa-fonts,build-dejavu-fonts,get-releases-doc,transfer-htaccess,dependencies-check" if="dependenciesAvailable">
+    <target name="build" depends="setup-local-forrest,build-ipa-fonts,build-dejavu-fonts,get-releases-doc,transfer-root-files,dependencies-check" if="dependenciesAvailable">
         <dirname file="tmp/forrest/LICENSE.txt" property="forrest-dir"/>
         <echo message="${forrest-dir}"/>
         <exec executable="cmd.exe" dir="." searchpath="true" failonerror="true" osfamily="windows">
