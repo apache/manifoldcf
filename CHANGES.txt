@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-478: Catch event constraint-violation exception in Derby.
+This was not being interpreted as a retry situation because it is no
+longer inside a transaction.
+(Marcin Goss, Karl Wright)
+
 CONNECTORS-473: Split the ManifoldCF site into two distinct pieces.
 One is housed under "site/trunk" and contains the project site.  The other
 is housed under "trunk/site" and generates the release documentation.

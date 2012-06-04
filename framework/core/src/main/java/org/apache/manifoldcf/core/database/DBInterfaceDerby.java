@@ -804,7 +804,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
-    if (sqlState != null && sqlState.equals("23505") && inTransaction)
+    if (sqlState != null && sqlState.equals("23505"))
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
     // Deadlock also aborts.
     if (sqlState != null && sqlState.equals("40001"))
