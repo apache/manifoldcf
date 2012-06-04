@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-479: Alfresco end-to-end tests were broken due to
+missing jetty jar.
+(Karl Wright)
+
 CONNECTORS-478: Catch event constraint-violation exception in Derby.
 This was not being interpreted as a retry situation because it is no
 longer inside a transaction.
