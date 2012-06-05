@@ -46,9 +46,11 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
         WASP_STATEMENT=""
         if [[ $WASP_HOME != "" ]] ; then
             WASP_STATEMENT=-Dwasp.location="WASP_HOME"
+        fi
         LIB_STATEMENT=""
         if [[ $JAVA_LIB_PATH != "" ]] ; then
             LIB_STATEMENT=-Djava.library.path="$JAVA_LIB_PATH"
+        fi
         "$JAVA_HOME/bin/java" -Xmx512m -Xms32m $WASP_STATEMENT $LIB_STATEMENT -cp "$CLASSPATH" org.apache.manifoldcf.crawler.server.filenet.Filenet
         exit $?
         

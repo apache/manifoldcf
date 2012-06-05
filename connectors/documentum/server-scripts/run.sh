@@ -48,18 +48,19 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             LIB_STATEMENT=""
             if [[ $JAVA_LIB_PATH != "" ]] ; then
                 LIB_STATEMENT=-Djava.library.path="$JAVA_LIB_PATH"
+            fi
             "$JAVA_HOME/bin/java" -Xmx512m -Xms32m $LIB_STATEMENT -cp "$CLASSPATH" org.apache.manifoldcf.crawler.server.DCTM.DCTM
             exit $?
-        
         else
             echo "Environment variable DOCUMENTUM is not properly set." 1>&2
             exit 1
-            
+        fi      
+
     else
         echo "Environment variable MCF_HOME is not properly set." 1>&2
         exit 1
-    fi
-    
+    fi    
+
 else
     echo "Environment variable JAVA_HOME is not properly set." 1>&2
     exit 1

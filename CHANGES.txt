@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-480: Documentum and FileNet connector run.sh scripts
+broken.
+(Joe Becknell, Karl Wright)
+
 CONNECTORS-479: Alfresco end-to-end tests were broken due to
 missing jetty jar.
 (Karl Wright)
