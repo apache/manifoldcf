@@ -20,10 +20,21 @@ package com.filenet.api.exception;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class EngineRuntimeException extends RuntimeException
+public class EngineRuntimeException extends RuntimeException implements java.io.Externalizable
 {
   public ExceptionCode getExceptionCode()
   {
     return null;
   }
+  
+  public void writeExternal(java.io.ObjectOutput out)
+    throws java.io.IOException
+  {
+  }
+  
+  public void readExternal(java.io.ObjectInput in)
+    throws java.io.IOException, ClassNotFoundException
+  {
+  }
+  
 }
