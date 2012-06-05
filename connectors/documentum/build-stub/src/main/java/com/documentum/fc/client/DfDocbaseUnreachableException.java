@@ -18,10 +18,8 @@
 */
 package com.documentum.fc.client;
 
-import com.documentum.fc.common.*;
-
 /** Stub interface to allow the connector to build fully.
 */
-public class DfDocbaseUnreachableException extends DfException
+public class DfDocbaseUnreachableException extends DfIOException
 {
 }

@@ -18,8 +18,10 @@
 */
 package com.documentum.fc.client;
 
+import com.documentum.fc.common.*;
+
 /** Stub interface to allow the connector to build fully.
 */
-public class DfAuthenticationException extends DfServiceException
+public class DfServiceException extends DfException
 {
 }
