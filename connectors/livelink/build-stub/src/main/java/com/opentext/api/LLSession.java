@@ -20,42 +20,13 @@ package com.opentext.api;
 
 /** Stub classes to get connector to build.
 */
-public class LLSession
+public class LLSession extends LLConnect
 {
 
   public LLSession(String server, int port, String something, String user, String password, LLValue whoknows)
   {
+    super(server,port,null,null);
   }
   
-  public String getStatusMessage()
-  {
-    return null;
-  }
-  
-  public String getErrMsg()
-  {
-    return null;
-  }
-  
-  public String getApiError()
-  {
-    return null;
-  }
-  
-  public int getStatus()
-  {
-    return 0;
-  }
-  
-  public String getHost()
-  {
-    return null;
-  }
-  
-  public int getPort()
-  {
-    return 0;
-  }
-
 }
 

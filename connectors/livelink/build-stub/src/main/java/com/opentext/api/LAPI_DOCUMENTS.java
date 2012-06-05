@@ -34,7 +34,7 @@ public class LAPI_DOCUMENTS
   public static final int COMPOUNDDOCUMENTSUBTYPE = 136;
   public static final int FOLDERSUBTYPE = 0;
 	
-  public LAPI_DOCUMENTS(LLSession session)
+  public LAPI_DOCUMENTS(LLConnect session)
   {
   }
   

@@ -24,7 +24,7 @@ public class LAPI_ATTRIBUTES
 {
   public final static int CATEGORY_TYPE_LIBRARY = 0;
 
-  public LAPI_ATTRIBUTES(LLSession session)
+  public LAPI_ATTRIBUTES(LLConnect session)
   {
   }
   

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: LLSession.java 1346308 2012-06-05 09:24:09Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,24 +20,42 @@ package com.opentext.api;
 
 /** Stub classes to get connector to build.
 */
-public class LAPI_USERS
+public class LLConnect
 {
-  public final static int USER = 0;
-  public final static int PRIV_PERM_BYPASS = 256;
-  public final static int PRIV_PERM_WORLD = 2048;
 
-  public LAPI_USERS(LLConnect session)
+  public LLConnect(String server, int port, String something, String somethingelse)
   {
   }
   
-  public int ListRights(int user, String domainAndUser, LLValue retval)
+  public String getStatusMessage()
+  {
+    return null;
+  }
+  
+  public String getErrMsg()
+  {
+    return null;
+  }
+  
+  public String getApiError()
+  {
+    return null;
+  }
+  
+  public int getStatus()
   {
     return 0;
   }
   
-  public int GetUserInfo(String domainAndUser, LLValue retval)
+  public String getHost()
+  {
+    return null;
+  }
+  
+  public int getPort()
   {
     return 0;
   }
+
 }
 
