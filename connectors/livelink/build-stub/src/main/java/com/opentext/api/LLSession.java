@@ -23,7 +23,7 @@ package com.opentext.api;
 public class LLSession
 {
 
-  public LLSession(String server, int port, String something, String user, String password, String whoknows) //??? last arg unknown
+  public LLSession(String server, int port, String something, String user, String password, LLValue whoknows)
   {
   }
   
