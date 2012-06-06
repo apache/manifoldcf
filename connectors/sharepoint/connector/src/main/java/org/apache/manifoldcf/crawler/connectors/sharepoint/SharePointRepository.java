@@ -61,6 +61,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   public final static String ACTIVITY_FETCH = "fetch";
 
   private boolean supportsItemSecurity = false;
+  private boolean dspStsWorks = true;
   private String serverProtocol = null;
   private String serverUrl = null;
   private String fileBaseUrl = null;
@@ -117,7 +118,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       String serverVersion = params.getParameter( "serverVersion" );
       if (serverVersion == null)
         serverVersion = "2.0";
-      supportsItemSecurity = serverVersion.equals("3.0");
+      supportsItemSecurity = !serverVersion.equals("2.0");
+      dspStsWorks = !serverVersion.equals("4.0");
 
       serverProtocol = params.getParameter( "serverProtocol" );
       if (serverProtocol == null)
@@ -903,49 +905,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           String libID = proxy.getDocLibID( encodePath(site), site, libName );
           if (libID != null)
           {
-            XMLDoc docs = proxy.getDocuments( encodePath(site) , libID );
-            if (docs != null)
-            {
-              ArrayList nodeDocs = new ArrayList();
-
-              docs.processPath( nodeDocs, "*", null );
-              Object parent = nodeDocs.get(0);                // ns1:dsQueryResponse
-              nodeDocs.clear();
-              docs.processPath(nodeDocs, "*", parent);
-              Object documents = nodeDocs.get(1);
-              nodeDocs.clear();
-              docs.processPath(nodeDocs, "*", documents);
-
-              StringBuilder sb = new StringBuilder();
-              for( int j =0; j < nodeDocs.size(); j++)
-              {
-                Object node = nodeDocs.get(j);
-                Logging.connectors.debug( node.toString() );
-                String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
-
-                // This relative path is apparently from the domain on down; if there's a location offset we therefore
-                // need to get rid of it before checking the document against the site/library tuples.  The recorded
-                // document identifier should also not include it.
-
-                if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
-                {
-                  // Unexpected processing error; the path to the folder or document did not start with the location
-                  // offset, so throw up.
-                  throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-                    serverLocation+"'");
-                }
-
-                relPath = relPath.substring(serverLocation.length());
-
-                // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
-                // The way I've chosen to do this is to use a double slash at that point, as a separator.
-                String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
-
-                if ( !relPath.endsWith(".aspx") && checkInclude( relPath, spec ) )
-                  activities.addDocumentReference( modifiedPath );
-              }
-            }
-            else
+            FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
+            boolean success = proxy.getDocuments( fs, encodePath(site) , libID, dspStsWorks );
+            if (!success)
             {
               // Site/library no longer exists, so delete entry
               if (Logging.connectors.isDebugEnabled())
@@ -1347,6 +1309,34 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
+  protected class FileStream implements IFileStream
+  {
+    protected IProcessActivity activities;
+    protected int foldersFilePathIndex;
+    protected DocumentSpecification spec;
+    
+    public FileStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    {
+      this.activities = activities;
+      this.foldersFilePathIndex = foldersFilePathIndex;
+      this.spec = spec;
+    }
+    
+    public void addFile(String relPath)
+      throws ManifoldCFException
+    {
+      if ( checkInclude( relPath, spec ) )
+      {
+        // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
+        // The way I've chosen to do this is to use a double slash at that point, as a separator.
+        String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
+
+        activities.addDocumentReference( modifiedPath );
+      }
+    }
+  }
+  
+
   // UI support methods.
   //
   // These support methods come in two varieties.  The first bunch is involved in setting up connection configuration information.  The second bunch
@@ -1548,8 +1538,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerSharePointVersion") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverVersion\">\n"+
-"        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0</option>\n"+
-"        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0</option>\n"+
+"        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0 (2003)</option>\n"+
+"        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0 (2007)</option>\n"+
+"        <option value=\"4.0\" "+(serverVersion.equals("4.0")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010)</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+

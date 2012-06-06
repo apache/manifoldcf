@@ -505,7 +505,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public XMLDoc getDocuments(String site, String docLibrary)
+  public boolean getDocuments(IFileStream fileStream, String site, String docLibrary, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -565,7 +565,44 @@ public class SPSProxyHelper {
         throw new ManifoldCFException( " No results found." );
       }
 
-      return doc;
+      // Now, extract the files from the response document
+      XMLDoc docs = doc;
+      ArrayList nodeDocs = new ArrayList();
+
+      docs.processPath( nodeDocs, "*", null );
+      parent = nodeDocs.get(0);                // ns1:dsQueryResponse
+      nodeDocs.clear();
+      docs.processPath(nodeDocs, "*", parent);
+      Object documents = nodeDocs.get(1);
+      nodeDocs.clear();
+      docs.processPath(nodeDocs, "*", documents);
+
+      StringBuilder sb = new StringBuilder();
+      for( int j =0; j < nodeDocs.size(); j++)
+      {
+        Object node = nodeDocs.get(j);
+        Logging.connectors.debug( node.toString() );
+        String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
+
+        // This relative path is apparently from the domain on down; if there's a location offset we therefore
+        // need to get rid of it before checking the document against the site/library tuples.  The recorded
+        // document identifier should also not include it.
+
+        if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
+        {
+          // Unexpected processing error; the path to the folder or document did not start with the location
+          // offset, so throw up.
+          throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+            serverLocation+"'");
+        }
+
+        relPath = relPath.substring(serverLocation.length());
+
+        if ( !relPath.endsWith(".aspx") )
+          fileStream.addFile( relPath );
+      }
+
+      return true;
     }
     catch (java.net.MalformedURLException e)
     {
@@ -594,14 +631,14 @@ public class SPSProxyHelper {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
-            return null;
+            return false;
           }
           else if (httpErrorCode.equals("401"))
           {
             // User did not have permissions for this library to get the acls
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: The crawl user did not have access to list documents for "+baseUrl+site+"; skipping documents within");
-            return null;
+            return false;
           }
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
@@ -622,7 +659,7 @@ public class SPSProxyHelper {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+site+" did not exist; assuming library deleted");
-            return null;
+            return false;
           }
           else
           {
@@ -635,7 +672,7 @@ public class SPSProxyHelper {
 
               Logging.connectors.debug("SharePoint: Getting child documents for the list "+docLibrary+" in site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString+" - Skipping",e);
             }
-            return null;
+            return false;
           }
         }
         if (Logging.connectors.isDebugEnabled())
