@@ -37,7 +37,7 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
                 fi
             done
 
-            for filename in $(ls -1 "$MCF_HOME"/../documentum-server-process/lib-proprietary/*.jar) ; do
+            for filename in $(ls -1 "$MCF_HOME"/../documentum-server-process/lib-proprietary | grep "\.jar$") ; do
                 if [ -n "$CLASSPATH" ] ; then
                     CLASSPATH="$CLASSPATH""$PATHSEP""$MCF_HOME"/../documentum-server-process/lib-proprietary/"$filename"
                 else
