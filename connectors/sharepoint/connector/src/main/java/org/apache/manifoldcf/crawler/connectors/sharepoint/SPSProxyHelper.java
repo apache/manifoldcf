@@ -512,94 +512,117 @@ public class SPSProxyHelper {
     try
     {
       if ( site.equals("/") ) site = ""; // root case
+      if ( dspStsWorks )
+      {
         StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
-      StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
+        StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
-      String[] vArray = new String[1];
-      vArray[0] = "1.0";
-      VersionsHeader myVersion = new VersionsHeader();
-      myVersion.setVersion( vArray );
+        String[] vArray = new String[1];
+        vArray[0] = "1.0";
+        VersionsHeader myVersion = new VersionsHeader();
+        myVersion.setVersion( vArray );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
 
-      RequestHeader reqHeader = new RequestHeader();
-      reqHeader.setDocument( DocumentType.content );
-      reqHeader.setMethod(MethodType.query );
+        RequestHeader reqHeader = new RequestHeader();
+        reqHeader.setDocument( DocumentType.content );
+        reqHeader.setMethod(MethodType.query );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
 
-      QueryRequest myRequest = new QueryRequest();
+        QueryRequest myRequest = new QueryRequest();
 
-      DSQuery sQuery = new DSQuery();
-      sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
-      myRequest.setDsQuery( sQuery );
+        DSQuery sQuery = new DSQuery();
+        sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
+        myRequest.setDsQuery( sQuery );
 
-      StsAdapterSoap call = stub;
-      ArrayList nodeList = new ArrayList();
+        StsAdapterSoap call = stub;
+        ArrayList nodeList = new ArrayList();
 
-      QueryResponse resp = call.query( myRequest );
-      org.apache.axis.message.MessageElement[] list = resp.get_any();
-      if (Logging.connectors.isInfoEnabled())
-      {
-        Logging.connectors.info("SharePoint: list xml: '" + list[0].toString() + "'");
-      }
-
-      XMLDoc doc = new XMLDoc( list[0].toString() );
-
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
-      {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
-      }
-
-      Object parent = nodeList.get(0);
-      //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
-      if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);
-
-      if ( nodeList.size() != 2 )
-      {
-        throw new ManifoldCFException( " No results found." );
-      }
-
-      // Now, extract the files from the response document
-      XMLDoc docs = doc;
-      ArrayList nodeDocs = new ArrayList();
-
-      docs.processPath( nodeDocs, "*", null );
-      parent = nodeDocs.get(0);                // ns1:dsQueryResponse
-      nodeDocs.clear();
-      docs.processPath(nodeDocs, "*", parent);
-      Object documents = nodeDocs.get(1);
-      nodeDocs.clear();
-      docs.processPath(nodeDocs, "*", documents);
-
-      StringBuilder sb = new StringBuilder();
-      for( int j =0; j < nodeDocs.size(); j++)
-      {
-        Object node = nodeDocs.get(j);
-        Logging.connectors.debug( node.toString() );
-        String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
-
-        // This relative path is apparently from the domain on down; if there's a location offset we therefore
-        // need to get rid of it before checking the document against the site/library tuples.  The recorded
-        // document identifier should also not include it.
-
-        if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
+        QueryResponse resp = call.query( myRequest );
+        org.apache.axis.message.MessageElement[] list = resp.get_any();
+        if (Logging.connectors.isInfoEnabled())
         {
-          // Unexpected processing error; the path to the folder or document did not start with the location
-          // offset, so throw up.
-          throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-            serverLocation+"'");
+          Logging.connectors.info("SharePoint: list xml: '" + list[0].toString() + "'");
         }
 
-        relPath = relPath.substring(serverLocation.length());
+        XMLDoc doc = new XMLDoc( list[0].toString() );
 
-        if ( !relPath.endsWith(".aspx") )
-          fileStream.addFile( relPath );
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+        {
+          throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+        }
+
+        Object parent = nodeList.get(0);
+        //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
+        if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
+          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        if ( nodeList.size() != 2 )
+        {
+          throw new ManifoldCFException( " No results found." );
+        }
+
+        // Now, extract the files from the response document
+        XMLDoc docs = doc;
+        ArrayList nodeDocs = new ArrayList();
+
+        docs.processPath( nodeDocs, "*", null );
+        parent = nodeDocs.get(0);                // ns1:dsQueryResponse
+        nodeDocs.clear();
+        docs.processPath(nodeDocs, "*", parent);
+        Object documents = nodeDocs.get(1);
+        nodeDocs.clear();
+        docs.processPath(nodeDocs, "*", documents);
+
+        StringBuilder sb = new StringBuilder();
+        for( int j =0; j < nodeDocs.size(); j++)
+        {
+          Object node = nodeDocs.get(j);
+          Logging.connectors.debug( node.toString() );
+          String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
+
+          // This relative path is apparently from the domain on down; if there's a location offset we therefore
+          // need to get rid of it before checking the document against the site/library tuples.  The recorded
+          // document identifier should also not include it.
+
+          if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
+          {
+            // Unexpected processing error; the path to the folder or document did not start with the location
+            // offset, so throw up.
+            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+              serverLocation+"'");
+          }
+
+          relPath = relPath.substring(serverLocation.length());
+
+          if ( !relPath.endsWith(".aspx") )
+            fileStream.addFile( relPath );
+        }
+      }
+      else
+      {
+        // Sharepoint 2010; use Lists service instead
+        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
+        GetListItemsQuery q = new GetListItemsQuery();
+      
+        // TODO: 5000 is obviously not a reasonable limit.  What IS a reasonable limit?
+        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", null, null, "5000", null, site);
+        if (items == null)
+          return false;
+        
+        org.apache.axis.message.MessageElement[] list = items.get_any();
+        if (Logging.connectors.isInfoEnabled())
+        {
+          Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+        }
+
+        // MHL to parse the result
       }
 
       return true;
