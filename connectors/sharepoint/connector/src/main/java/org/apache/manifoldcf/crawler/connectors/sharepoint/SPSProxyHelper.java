@@ -1437,7 +1437,7 @@ public class SPSProxyHelper {
   * @param docId
   * @return set of the field values
   */
-  public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId )
+  public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -1446,123 +1446,134 @@ public class SPSProxyHelper {
       HashMap result = new HashMap();
 
       if ( site.compareTo("/") == 0 ) site = ""; // root case
+      
+      if ( dspStsWorks )
+      {
         StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
-      StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
+        StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
-      String[] vArray = new String[1];
-      vArray[0] = "1.0";
-      VersionsHeader myVersion = new VersionsHeader();
-      myVersion.setVersion( vArray );
+        String[] vArray = new String[1];
+        vArray[0] = "1.0";
+        VersionsHeader myVersion = new VersionsHeader();
+        myVersion.setVersion( vArray );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
 
-      RequestHeader reqHeader = new RequestHeader();
-      reqHeader.setDocument( DocumentType.content );
-      reqHeader.setMethod(MethodType.query );
+        RequestHeader reqHeader = new RequestHeader();
+        reqHeader.setDocument( DocumentType.content );
+        reqHeader.setMethod(MethodType.query );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
 
-      QueryRequest myRequest = new QueryRequest();
+        QueryRequest myRequest = new QueryRequest();
 
-      DSQuery sQuery = new DSQuery();
-      sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
-      sQuery.setResultContent(ResultContentType.dataOnly);
-      myRequest.setDsQuery( sQuery );
+        DSQuery sQuery = new DSQuery();
+        sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
+        sQuery.setResultContent(ResultContentType.dataOnly);
+        myRequest.setDsQuery( sQuery );
 
-      DspQuery spQuery = new DspQuery();
-      spQuery.setRowLimit( 1 );
-      // For the Requested Fields
-      if ( fieldNames.size() > 0 )
-      {
-        Fields spFields = new Fields();
-        Field[] fieldArray = new Field[0];
-        ArrayList fields = new ArrayList();
-
-        Field spField = new Field();
-        //                      spField.setName( "ID" );
-        //                      spField.setAlias( "ID" );
-        //                      fields.add( spField );
-
-        for ( int k = 0; k < fieldNames.size(); k++ )
+        DspQuery spQuery = new DspQuery();
+        spQuery.setRowLimit( 1 );
+        // For the Requested Fields
+        if ( fieldNames.size() > 0 )
         {
-          spField = new Field();
-          spField.setName( (String)fieldNames.get(k) );
-          spField.setAlias( (String)fieldNames.get(k) );
-          fields.add( spField );
+          Fields spFields = new Fields();
+          Field[] fieldArray = new Field[0];
+          ArrayList fields = new ArrayList();
+
+          Field spField = new Field();
+          //                      spField.setName( "ID" );
+          //                      spField.setAlias( "ID" );
+          //                      fields.add( spField );
+
+          for ( int k = 0; k < fieldNames.size(); k++ )
+          {
+            spField = new Field();
+            spField.setName( (String)fieldNames.get(k) );
+            spField.setAlias( (String)fieldNames.get(k) );
+            fields.add( spField );
+          }
+          spFields.setField( (Field[]) fields.toArray( fieldArray ));
+          spQuery.setFields( spFields );
         }
-        spFields.setField( (Field[]) fields.toArray( fieldArray ));
-        spQuery.setFields( spFields );
-      }
-      // Of this document
-      DspQueryWhere spWhere = new DspQueryWhere();
+        // Of this document
+        DspQueryWhere spWhere = new DspQueryWhere();
 
-      org.apache.axis.message.MessageElement criterion = new org.apache.axis.message.MessageElement( (String)null, "Contains" );
-      SOAPElement seFieldRef = criterion.addChildElement( "FieldRef" );
-      seFieldRef.addAttribute( SOAPFactory.newInstance().createName("Name") , "FileRef" );
-      SOAPElement seValue = criterion.addChildElement( "Value" );
-      seValue.addAttribute( SOAPFactory.newInstance().createName("Type") , "String" );
-      seValue.setValue( docId );
+        org.apache.axis.message.MessageElement criterion = new org.apache.axis.message.MessageElement( (String)null, "Contains" );
+        SOAPElement seFieldRef = criterion.addChildElement( "FieldRef" );
+        seFieldRef.addAttribute( SOAPFactory.newInstance().createName("Name") , "FileRef" );
+        SOAPElement seValue = criterion.addChildElement( "Value" );
+        seValue.addAttribute( SOAPFactory.newInstance().createName("Type") , "String" );
+        seValue.setValue( docId );
 
-      org.apache.axis.message.MessageElement[] criteria = { criterion };
-      spWhere.set_any( criteria );
-      spQuery.setWhere( (DspQueryWhere)spWhere );
+        org.apache.axis.message.MessageElement[] criteria = { criterion };
+        spWhere.set_any( criteria );
+        spQuery.setWhere( (DspQueryWhere)spWhere );
 
-      // Set Criteria
-      myRequest.getDsQuery().setQuery(spQuery);
+        // Set Criteria
+        myRequest.getDsQuery().setQuery(spQuery);
 
-      StsAdapterSoap call = stub;
+        StsAdapterSoap call = stub;
 
-      // Make Request
-      QueryResponse resp = call.query( myRequest );
-      org.apache.axis.message.MessageElement[] list = resp.get_any();
+        // Make Request
+        QueryResponse resp = call.query( myRequest );
+        org.apache.axis.message.MessageElement[] list = resp.get_any();
 
-      if (Logging.connectors.isDebugEnabled())
-      {
-        Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
-      }
-
-      XMLDoc doc = new XMLDoc( list[0].toString() );
-      ArrayList nodeList = new ArrayList();
-
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
-      {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
-      }
-
-      Object parent = nodeList.get(0);
-      //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
-      if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);
-
-      parent = nodeList.get( 0 ); // <Shared_X0020_Documents />
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);
-
-      // Process each result (Should only be one )
-      // Get each childs Value and add to return array
-      for ( int i= 0; i < nodeList.size(); i++ )
-      {
-        Object documentNode = nodeList.get( i );
-        ArrayList fieldList = new ArrayList();
-
-        doc.processPath( fieldList, "*", documentNode );
-        for ( int j =0; j < fieldList.size(); j++)
+        if (Logging.connectors.isDebugEnabled())
         {
-          Object field = fieldList.get( j );
-          String fieldData = doc.getData(field);
-          String fieldName = doc.getNodeName(field);
-          // Right now this really only works right for single-valued fields.  For multi-valued
-          // fields, we'd need to know in advance that they were multivalued
-          // so that we could interpret commas as value separators.
-          result.put(fieldName,fieldData);
+          Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
+        }
+
+        XMLDoc doc = new XMLDoc( list[0].toString() );
+        ArrayList nodeList = new ArrayList();
+
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+        {
+          throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+        }
+
+        Object parent = nodeList.get(0);
+        //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
+        if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
+          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        parent = nodeList.get( 0 ); // <Shared_X0020_Documents />
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        // Process each result (Should only be one )
+        // Get each childs Value and add to return array
+        for ( int i= 0; i < nodeList.size(); i++ )
+        {
+          Object documentNode = nodeList.get( i );
+          ArrayList fieldList = new ArrayList();
+
+          doc.processPath( fieldList, "*", documentNode );
+          for ( int j =0; j < fieldList.size(); j++)
+          {
+            Object field = fieldList.get( j );
+            String fieldData = doc.getData(field);
+            String fieldName = doc.getNodeName(field);
+            // Right now this really only works right for single-valued fields.  For multi-valued
+            // fields, we'd need to know in advance that they were multivalued
+            // so that we could interpret commas as value separators.
+            result.put(fieldName,fieldData);
+          }
         }
       }
-
+      else
+      {
+        // SharePoint 2010: Get field values some other way
+        
+        // MHL
+        
+      }
+      
       return result;
     }
     catch (javax.xml.soap.SOAPException e)
