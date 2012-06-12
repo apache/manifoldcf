@@ -22,7 +22,7 @@ import com.documentum.fc.common.*;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class DfQuery implements IDfQuery
+public class DfQuery extends DfObject implements IDfQuery
 {
   public DfQuery()
   {

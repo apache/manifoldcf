@@ -16,13 +16,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.documentum.fc.client;
+package com.documentum.fc.common;
 
 /** Stub interface to allow the connector to build fully.
 */
 public interface IDfTime
 {
-  public static final String DF_TIME_PATTERN44 = "???";
+  public static final String DF_TIME_PATTERN44 = "mm/dd/yyyy hh:mi:ss";
   public String asString(String pattern);
 
 }

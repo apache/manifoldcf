@@ -155,6 +155,11 @@ public class DocumentumImpl extends UnicastRemoteObject implements IDocumentum
     {
       throw new DocumentumException("Documentum error: "+e.getMessage());
     }
+    catch (Error e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
   }
 
 

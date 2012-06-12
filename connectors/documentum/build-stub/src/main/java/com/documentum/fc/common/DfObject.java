@@ -18,18 +18,11 @@
 */
 package com.documentum.fc.common;
 
-import java.util.Date;
-
 /** Stub interface to allow the connector to build fully.
 */
-public class DfTime extends DfObject implements IDfTime
+public class DfObject
 {
-  public DfTime(Date date)
+  public DfObject()
   {
-  }
-  
-  public String asString(String pattern)
-  {
-    return null;
   }
 }

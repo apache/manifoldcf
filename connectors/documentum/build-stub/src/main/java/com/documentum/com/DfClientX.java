@@ -18,27 +18,26 @@
 */
 package com.documentum.com;
 
-import com.documentum.fc.client.*;
+import com.documentum.fc.client.IDfClient;
+import com.documentum.fc.common.DfObject;
+import com.documentum.fc.common.IDfLoginInfo;
+import com.documentum.fc.common.DfException;
 
 /** Stub interface to allow the connector to build fully.
 */
-public class DfClientX implements IDfClientX
+public class DfClientX extends DfObject implements IDfClientX
 {
   public DfClientX()
   {
-  }
-  
-  public IDfSessionManager newSessionManager()
-  {
-    return null;
   }
   
   public IDfLoginInfo getLoginInfo()
   {
     return null;
   }
-
+  
   public IDfClient getLocalClient()
+    throws DfException
   {
     return null;
   }
