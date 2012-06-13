@@ -39,7 +39,7 @@
         <p>To build the ManifoldCF framework code, and the particular connectors you are interested in, you currently need to do the following:</p>
         <p></p>
         <ol>
-          <li>Check out https://svn.apache.org/repos/asf/incubator/lcf/trunk, or unpack the source or binary distribution.  (The binary distribution includes sources).</li>
+          <li>Check out https://svn.apache.org/repos/asf/manifoldcf/trunk, or unpack the source or binary distribution.  (The binary distribution includes sources).</li>
           <li>Install desired dependent LGPL and proprietary libraries, wsdls, and xsds.  See below for details.</li>
           <li>cd to "trunk".</li>
           <li>Run "ant build".</li>

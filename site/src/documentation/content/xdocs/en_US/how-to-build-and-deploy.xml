@@ -39,7 +39,7 @@
         <p>To build the ManifoldCF framework code, and the particular connectors you are interested in, you currently need to do the following:</p>
         <p></p>
         <ol>
-          <li>Check out the desired release from https://svn.apache.org/repos/asf/incubator/lcf/tags, or unpack the desired source distribution.</li>
+          <li>Check out the desired release from https://svn.apache.org/repos/asf/manifoldcf/tags, or unpack the desired source distribution.</li>
           <li>cd to the top-level directory.</li>
           <li>EITHER: overlay the lib directory from the corresponding lib distribution (preferred), OR run "ant make-core-deps" to build the code dependencies.</li>
           <li>Run "ant make-deps", to download LGPL and other open source but non-Apache compatible libraries.</li>
