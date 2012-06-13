@@ -28,7 +28,7 @@
 	<p>The source files are stored using Subversion (see <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> and <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)
 	</p>
 	<p>
-	    <code>svn checkout http://svn.apache.org/repos/asf/incubator/lcf/trunk mcf-trunk</code>
+	    <code>svn checkout http://svn.apache.org/repos/asf/manifoldcf/trunk mcf-trunk</code>
 	</p>
     </section>
 
@@ -42,7 +42,7 @@
     <section id="Changes">
 	<title>Changes List</title>
 	<p>Current changes list (as of the most recent nightly build) is available 
-	    <a href="http://svn.apache.org/repos/asf/incubator/lcf/trunk/CHANGES.txt">here</a>.
+	    <a href="http://svn.apache.org/repos/asf/manifoldcf/trunk/CHANGES.txt">here</a>.
 	</p>
     </section>
     

@@ -28,7 +28,7 @@
 	<p>ManifoldCFのソースファイルはsvnで管理されています(参照： <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> and <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)
 	</p>
 	<p>
-	    <code>svn checkout http://svn.apache.org/repos/asf/incubator/lcf/trunk mcf-trunk</code>
+	    <code>svn checkout http://svn.apache.org/repos/asf/manifoldcf/trunk mcf-trunk</code>
 	</p>
     </section>
 
@@ -40,7 +40,7 @@
     <section id="Changes">
 	<title>更新履歴</title>
 	<p>最新の変更履歴は 
-	    <a href="http://svn.apache.org/repos/asf/incubator/lcf/trunk/CHANGES.txt">ここ</a>にあります。
+	    <a href="http://svn.apache.org/repos/asf/manifoldcf/trunk/CHANGES.txt">ここ</a>にあります。
 	</p>
     </section>
     

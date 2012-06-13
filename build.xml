@@ -71,7 +71,7 @@
     <target name="checkout-trunk-release">
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build/releases"/>
-            <param name="svn-url" value="http://svn.apache.org/repos/asf/incubator/lcf/trunk"/>
+            <param name="svn-url" value="http://svn.apache.org/repos/asf/manifoldcf/trunk"/>
             <param name="dir-name" value="trunk"/>
         </antcall>
     </target>
