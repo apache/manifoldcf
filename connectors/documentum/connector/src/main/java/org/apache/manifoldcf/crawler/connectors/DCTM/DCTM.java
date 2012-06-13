@@ -269,6 +269,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -345,6 +347,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -428,6 +432,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -507,6 +513,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -652,6 +660,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -1118,6 +1128,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                   throw (DocumentumException)thr;
                 else if (thr instanceof InterruptedException)
                   throw (InterruptedException)thr;
+                else if (thr instanceof RuntimeException)
+                  throw (RuntimeException)thr;
                 else
                   throw (Error)thr;
               }
@@ -1460,6 +1472,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 throw (RemoteException)thr;
               else if (thr instanceof DocumentumException)
                 throw (DocumentumException)thr;
+              else if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
               else
                 throw (Error)thr;
             }
@@ -1778,6 +1792,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                     throw (DocumentumException)thr;
                   else if (thr instanceof ManifoldCFException)
                     throw (ManifoldCFException)thr;
+                  else if (thr instanceof RuntimeException)
+                    throw (RuntimeException)thr;
                   else
                     throw (Error)thr;
                 }
@@ -3586,6 +3602,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               throw (RemoteException)thr;
             else if (thr instanceof DocumentumException)
               throw (DocumentumException)thr;
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
             else
               throw (Error)thr;
           }
@@ -3660,6 +3678,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               throw (RemoteException)thr;
             else if (thr instanceof DocumentumException)
               throw (DocumentumException)thr;
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
             else
               throw (Error)thr;
           }
@@ -3813,6 +3833,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               throw (RemoteException)thr;
             else if (thr instanceof DocumentumException)
               throw (DocumentumException)thr;
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
             else
               throw (Error)thr;
           }
@@ -3882,6 +3904,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               throw (RemoteException)thr;
             else if (thr instanceof DocumentumException)
               throw (DocumentumException)thr;
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
             else
               throw (Error)thr;
           }
