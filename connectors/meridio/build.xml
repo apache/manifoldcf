@@ -19,7 +19,7 @@
 
     <import file="../connector-build.xml"/>
 
-    <target name="calculate-condition">
+    <!-- target name="calculate-condition">
         <available file="lib-proprietary/MeridioDMWS_axis.wsdl" property="meridioDMWS_axisStatus"/>
         <available file="lib-proprietary/MeridioRMWS_axis.wsdl" property="meridioRMWS_axisStatus"/>
         <available file="lib-proprietary/DMDataSet_castor.xsd" property="DMDataSetStatus"/>
@@ -38,15 +38,15 @@
 
     <target name="precompile-check" depends="calculate-condition" unless="canBuild">
         <echo message="Meridio Connector cannot be built without MeridioDMWS_axis.wsdl, MeridioRMWS_axis.wsdl, DMDataSet_castor.xsd, RMDataSet_castor.xsd, and RMClassificationDataSet_castor.xsd"/>
-    </target>
+    </target -->
 
     <target name="copy-wsdls" depends="precompile-check" if="canBuild">
         <mkdir dir="build/wsdls"/>
-        <copy tofile="build/wsdls/MeridioRMWS.wsdl" file="lib-proprietary/MeridioRMWS_axis.wsdl"/>
-        <copy tofile="build/wsdls/MeridioDMWS.wsdl" file="lib-proprietary/MeridioDMWS_axis.wsdl"/>
-        <copy tofile="build/wsdls/RMDataSet.xsd" file="lib-proprietary/RMDataSet_castor.xsd"/>
-        <copy tofile="build/wsdls/DMDataSet.xsd" file="lib-proprietary/DMDataSet_castor.xsd"/>
-        <copy tofile="build/wsdls/RMClassificationDataSet.xsd" file="lib-proprietary/RMClassificationDataSet_castor.xsd"/>
+        <copy tofile="build/wsdls/MeridioRMWS.wsdl" file="wsdls/MeridioRMWS_axis.wsdl"/>
+        <copy tofile="build/wsdls/MeridioDMWS.wsdl" file="wsdls/MeridioDMWS_axis.wsdl"/>
+        <copy tofile="build/wsdls/RMDataSet.xsd" file="wsdls/RMDataSet_castor.xsd"/>
+        <copy tofile="build/wsdls/DMDataSet.xsd" file="wsdls/DMDataSet_castor.xsd"/>
+        <copy tofile="build/wsdls/RMClassificationDataSet.xsd" file="wsdls/RMClassificationDataSet_castor.xsd"/>
         <copy tofile="build/wsdls/MetaCartaWS.wsdl" file="wsdls/MetaCartaWS_axis.wsdl"/>
     </target>
     
