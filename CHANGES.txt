@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-481: Documentation of API is wrong in a few spots.
+(Adrian Conlon, Karl Wright)
+
 CONNECTORS-480: Documentum and FileNet connector run.sh scripts
 broken.
 (Joe Becknell, Karl Wright)
