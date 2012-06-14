@@ -22,30 +22,32 @@ def site_merge(source_dir, target_dir):
     print >> sys.stderr, "Removing obsolete directories and files..."
     deleted_dirs = { }
     for root, dirs, files in os.walk(target_dir):
-        # Remove target_dir prefix from root
-        relative_root = root[len(target_dir):]
-        if len(relative_root) > 0 and (relative_root[0] == "/" or relative_root[0] == "\\"):
-            relative_root = relative_root[1:]
-        if not deleted_dirs.has_key(relative_root):
-            # Remove any dirs that have gone away
-            for dir in dirs:
-                relative_dirname = os.path.join(relative_root, dir)
-                target_dirname = os.path.join(root, dir)
-                source_dirname = os.path.join(source_dir, relative_dirname)
-                if os.path.exists(target_dirname):
-                    if not os.path.exists(source_dirname):
-                        print >> sys.stderr, "Deleting directory %s" % relative_dirname
-                        svn_command(["remove",target_dirname])
-                        deleted_dirs[relative_dirname] = True
-            # Process files now.
-            for file in files:
-                relative_filename = os.path.join(relative_root, file)
-                target_filename = os.path.join(root, file)
-                source_filename = os.path.join(source_dir, relative_filename)
-                if os.path.exists(target_filename):
-                    if not os.path.exists(source_filename):
-                        print >> sys.stderr, "Deleting file %s" % relative_filename
-                        svn_command(["remove",target_filename])
+        if root.find(".svn") == -1:
+            # Remove target_dir prefix from root
+            relative_root = root[len(target_dir):]
+            if len(relative_root) > 0 and (relative_root[0] == "/" or relative_root[0] == "\\"):
+                relative_root = relative_root[1:]
+            if not deleted_dirs.has_key(relative_root):
+                # Remove any dirs that have gone away
+                for dir in dirs:
+                    if dir != ".svn":
+                        relative_dirname = os.path.join(relative_root, dir)
+                        target_dirname = os.path.join(root, dir)
+                        source_dirname = os.path.join(source_dir, relative_dirname)
+                        if os.path.exists(target_dirname):
+                            if not os.path.exists(source_dirname):
+                                print >> sys.stderr, "Deleting directory %s" % relative_dirname
+                                svn_command(["remove",target_dirname])
+                                deleted_dirs[relative_dirname] = True
+                # Process files now.
+                for file in files:
+                    relative_filename = os.path.join(relative_root, file)
+                    target_filename = os.path.join(root, file)
+                    source_filename = os.path.join(source_dir, relative_filename)
+                    if os.path.exists(target_filename):
+                        if not os.path.exists(source_filename):
+                            print >> sys.stderr, "Deleting file %s" % relative_filename
+                            svn_command(["remove",target_filename])
 
     # Now, we do the same thing for the source tree.  We will add the missing directories and
     # copy and add the files.
