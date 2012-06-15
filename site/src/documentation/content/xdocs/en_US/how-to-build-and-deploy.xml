@@ -60,6 +60,7 @@
           <li>LiveLink connector, built against a LiveLink API stub</li>
           <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
+          <li>SharePoint connector, built against SharePoint API WSDLs</li>
           <li>Webcrawler connector</li>
           <li>Wiki connector</li>
         </ul>
@@ -231,18 +232,10 @@
         <section>
           <title>Building the SharePoint connector</title>
           <p></p>
-          <p>In order to build this connector, you need to download wsdls from an installed SharePoint instance.  The wsdls in question are:</p>
-          <p></p>
-          <ul>
-             <li>Permissions.wsdl</li>
-             <li>Lists.wsdl</li>
-             <li>Dspsts.wsdl</li>
-             <li>usergroup.wsdl</li>
-             <li>versions.wsdl</li>
-             <li>webs.wsdl</li>
-          </ul>
-          <p></p>
-          <p>To download a wsdl, use Microsoft's <strong>disco.exe</strong> tool, which is part of Microsoft's Visual Studio, typically under <em>c:\Program Files\Microsoft SDKs\Windows\V6.x\bin</em>.  You'd want to interrogate the following urls:</p>
+          <p>The SharePoint connector generates interface classes using checked-in wsdls originally obtained
+            from an installed Microsoft SharePoint instance using <strong>disco.exe</strong>.  The <strong>disco.exe</strong> utility is installed as part of
+            Microsoft Visual Studio, and is typically found under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".
+            If desired, you can obtain unmodified wsdls by interrogating the following SharePoint web services:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;server_name&#62;/_vti_bin/Permissions.asmx</li>
@@ -253,13 +246,8 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/lib-proprietary</em> before building.</p>
-          <p></p>
-          <p>The wsdl files download will be done automatically if you type "ant make-deps" from the root directory.</p>
-          <p></p>
           <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.  This service can be found in the directory <em>dist/sharepoint-integration</em> after ManifoldCF is built.
             To install it on your SharePoint 3.0 machine, follow the directions in the file <strong>Installation Readme.txt</strong>, found in that directory.</p>
-          <p></p>
           <p></p>
         </section>
         
