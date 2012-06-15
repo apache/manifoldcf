@@ -22,8 +22,14 @@ import com.documentum.fc.common.*;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface IDfPersistentObject extends IDfTypedObject
+public interface IDfTypedObject
 {
-  public boolean isDeleted()
+  public IDfId getObjectId()
+    throws DfException;
+  public int getValueCount(String attribute)
+    throws DfException;
+  public String getRepeatingString(String attribute, int index)
+    throws DfException;
+  public String getString(String attribute)
     throws DfException;
 }
