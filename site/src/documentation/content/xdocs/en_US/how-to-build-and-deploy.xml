@@ -58,6 +58,7 @@
           <li>Filesystem connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
           <li>LiveLink connector, built against a LiveLink API stub</li>
+          <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
           <li>Webcrawler connector</li>
           <li>Wiki connector</li>
@@ -214,38 +215,16 @@
         <section>
           <title>Building the Meridio connector</title>
           <p></p>
-          <p>The Meridio connector needs wsdls and xsds downloaded from an installed Meridio instance using <strong>disco.exe</strong>, which is installed as part of
-              Microsoft Visual Studio, typically under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".  Obtain the preliminary wsdls and xsds by interrogating the
-              following Meridio web services:</p>
+          <p>The Meridio connector generates interface classes using checked-in wsdls and xsds originally obtained
+              from an installed Meridio instance using <strong>disco.exe</strong>, and subsequently modified to work
+              around limitations in Apache Axis.  The <strong>disco.exe</strong> utility is installed as part of
+              Microsoft Visual Studio, and is typically found under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".
+              If desired, you can obtain unmodified wsdls and xsds by interrogating the following Meridio web services:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;meridio_server&#62;/DMWS/MeridioDMWS.asmx</li>
              <li>http[s]://&#60;meridio_server&#62;/RMWS/MeridioRMWS.asmx</li>
           </ul>
-          <p></p>
-          <p>You should have obtained the following files in this step:</p>
-          <p></p>
-          <ul>
-             <li>MeridioDMWS.wsdl</li>
-             <li>MeridioRMWS.wsdl</li>
-             <li>DMDataSet.xsd</li>
-             <li>RMDataSet.xsd</li>
-             <li>RMClassificationDataSet.xsd</li>
-          </ul>
-          <p></p>
-          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from
-              <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can
-              be found in <em>connectors/meridio/lib-proprietary</em>.  After the patching, rename so that you have the files:</p>
-          <p></p>
-          <ul>
-             <li>MeridioDMWS_axis.wsdl</li>
-             <li>MeridioRMWS_axis.wsdl</li>
-             <li>DMDataSet_castor.xsd</li>
-             <li>RMDataSet_castor.xsd</li>
-             <li>RMClassificationDataSet_castor.xsd</li>
-          </ul>
-          <p></p>
-          <p>Finally, copy all of these to <em>connectors/meridio/lib-proprietary</em>.</p>
           <p></p>
         </section>
         

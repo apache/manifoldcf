@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0"?>
 
 <!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
           "http://forrest.apache.org/dtd/document-v20.dtd">
@@ -39,20 +39,29 @@
         <p>To build the ManifoldCF framework code, and the particular connectors you are interested in, you currently need to do the following:</p>
         <p></p>
         <ol>
-          <li>Check out https://svn.apache.org/repos/asf/incubator/lcf/trunk, or unpack the source or binary distribution.  (The binary distribution includes sources).</li>
-          <li>Install desired dependent LGPL and proprietary libraries, wsdls, and xsds.  See below for details.</li>
-          <li>cd to "trunk".</li>
+          <li>Check out the desired release from https://svn.apache.org/repos/asf/incubator/lcf/tags, or unpack the desired source distribution.</li>
+          <li>cd to the top-level directory.</li>
+          <li><strong>EITHER:</strong> overlay the lib directory from the corresponding lib distribution (preferred), <strong>OR</strong> run "ant make-core-deps" to build the code dependencies.</li>
+          <li>Run "ant make-deps", to download LGPL and other open source but non-Apache compatible libraries.</li>
+          <li>Install proprietary build dependencies.  See below for details.</li>
           <li>Run "ant build".</li>
+          <li>Install desired dependent proprietary libraries.  See below for details.</li>
         </ol>
         <p></p>
-        <p>If you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
+        <p>If you do not run the ant "make-deps" target, and you supply <strong>NO</strong> LGPL or proprietary libraries, not all capabilities of ManifoldCF will be available.
+            The framework itself and the following repository connectors will be built:</p>
         <p></p>
         <ul>
           <li>CMIS connector</li>
+          <li>Documentum connector, built against a Documentum API stub</li>
+          <li>FileNet connector, built against a FileNet API stub</li>
           <li>Filesystem connector</li>
-          <li>JDBC connector, with just the postgresql jdbc driver</li>
+          <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
+          <li>LiveLink connector, built against a LiveLink API stub</li>
+          <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
           <li>Webcrawler connector</li>
+          <li>Wiki connector</li>
         </ul>
         <p></p>
         <p>In addition, the following authority connectors will be built:</p>
@@ -60,6 +69,8 @@
         <ul>
           <li>Active Directory authority</li>
           <li>CMIS authority</li>
+          <li>Documentum authority</li>
+          <li>LiveLink authority</li>
           <li>Null authority connector</li>
         </ul>
         <p></p>
@@ -73,103 +84,147 @@
           <li>Null output connector</li>
         </ul>
         <p></p>
-        <p>The LGPL and proprietary connector dependencies are described in separate sections below.</p>
+        <p>Each individual LGPL and proprietary connector's dependencies and build limitations are described in separate sections below.</p>
         <p></p>
-        <p>The output of the ant build is produced in the <em>dist</em> directory, which is further broken down by process.  The number of produced process directories may vary, because optional individual connectors do sometimes supply processes that must be run to support the connector.  See the table below for a description of the <em>dist</em> folder.</p>
+        <p>The output of the ant build is produced in the <em>dist</em> directory, which is further broken down by process.  (The number of produced <em>xxx-process</em> directories may vary, because optional individual connectors do sometimes supply processes that must be run to support the connector.)  See the table below for a description of the <em>dist</em> folder.</p>
         <p></p>
         <table>
-          <caption>Distribution directories</caption>
-          <tr><th><em>dist</em> directory</th><th>Meaning</th></tr>
-          <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
-          <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
-          <tr><td><em>lib</em></td><td>jars for all the connector plugins, which should be referenced by the appropriate clause in the ManifoldCF configuration file</td></tr>
-          <tr><td><em>wsdd</em></td><td>wsdd files that are needed by the included connectors in order to function</td></tr>
+          <caption>Distribution directories and files</caption>
+          <tr><th><em>dist</em> file/directory</th><th>Meaning</th></tr>
+          <tr><td><em>connectors.xml</em></td><td>an xml file describing the connectors that should be registered</td></tr>
+          <tr><td><em>connector-lib</em></td><td>jars for all the connectors, referred to by properties.xml</td></tr>
+          <tr><td><em>connector-lib-proprietary</em></td><td>proprietary jars for all the connectors, referred to by properties.xml; not included in binary release</td></tr>
           <tr><td><em>xxx-process</em></td><td>scripts, classpath jars, and -D switch values needed for a required connector-specific process</td></tr>
           <tr><td><em>script-engine</em></td><td>jars and scripts for running the ManifoldCF script interpreter</td></tr>
-          <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes)</td></tr>
+          <tr><td><em>example</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), excluding all proprietary libraries</td></tr>
+          <tr><td><em>example-proprietary</em></td><td>a jetty-based example that runs in a single process (except for any connector-specific processes), including proprietary libraries; not included in binary release</td></tr>
+          <tr><td><em>multiprocess-example</em></td><td>scripts and jars for an example that uses the multiple process model, excluding all proprietary libraries</td></tr>
+          <tr><td><em>multiprocess-example-proprietary</em></td><td>scripts and jars for an example that uses the multiple process model, including proprietary libraries; not included in binary release</td></tr>
+          <tr><td><em>web</em></td><td>app-server deployable web applications (wars), excluding all proprietary libraries</td></tr>
+          <tr><td><em>web-proprietary</em></td><td>app-server deployable web applications (wars), including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
           <tr><td><em>xxx-integration</em></td><td>pre-built integration components to deploy on target system "xxx", e.g. Solr</td></tr>
         </table>
         <p></p>
-        <p>For all of the <em>dist</em> subdirectories above (except for <em>wsdd</em>, which does not correspond to a process), any scripts resulting from the build that pertain to that process will be placed in a <em>script</em> subdirectory.  Thus, the command for executing a command under Windows for the <em>processes</em> subdirectory will be found in <em>dist/processes/script/executecommand.bat</em>.  (This script requires two variables to be set before execution: JAVA_HOME, and MCF_HOME, which should point to ManifoldCF's home execution directory, described below.)  Indeed, everything you need to run an ManifoldCF process can be found under <em>dist/processes</em> when the ant build completes: a <em>define</em> subdirectory containing -D switch description files, a <em>jar</em> subdirectory where jars are placed, and a <em>war</em> subdirectory where war files are output.  </p>
+        <p>If you downloaded the binary distribution, you may notice that the <em>connector-lib-proprietary</em> directory contains only a README.txt file.  This is because under
+            Apache licensing rules, incompatibly-licensed jars may not be redistributed.  Therefore, in order to get a connector with proprietary dependencies to work, you will need to supply the
+            missing jars in the <em>connector-lib-proprietary</em> directory, as well as enable the connector's registration by uncommenting its entry in the <em>connectors.xml</em>
+            connector registration file.</p>
         <p></p>
-        <p>The supplied scripts in the <em>script</em> directory for a process generally take care of building an appropriate classpath and set of -D switches.  (Note: none of the current connectors require special -D switches at this time.)  If you need to construct a classpath by hand, it is important to remember that "more" is not necessarily "better".  The process deployment strategy implied by the build structure has been carefully thought out to avoid jar conflicts.  Indeed, several connectors are structured using multiple processes precisely for that reason.</p>
+        <p>NOTE: The prebuilt binary distribution cannot, at this time, include support for MySQL.  Nor can the JDBC Connector access MySQL, MSSQL, SyBase, or Oracle databases in that
+            distribution.  In order to use these JDBC drivers, you must build ManifoldCF yourself.  Start by downloading the drivers and placing them in the <em>lib-proprietary</em> directory.  The command
+            <em>ant download-dependencies</em> will do most of this for you, with the exception of the Oracle JDBC driver.</p>
         <p></p>
-        <p>The <em>xxx-integration</em> directories contain components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr connector includes plug-in classes for enforcing ManifoldCF security on Solr 3.x and 4.x.  See the README file in each directory for detailed instructions on how to deploy the components.</p>
-        
+        <p>For all of the <em>dist/xxx-process</em> subdirectories above, any scripts that pertain to that process will be placed in the root level of the subdirectory.
+            The supplied scripts for a process generally take care of building an appropriate classpath and setting necessary -D switches.  (Note: none of the current connectors require special -D switches
+            at this time.)  If you need to construct a classpath by hand, it is important to remember that "more" is not necessarily "better".  The process deployment strategy implied by the build structure has
+            been carefully thought out to avoid jar conflicts.  Indeed, several connectors are structured using multiple processes precisely for that reason.</p>
+        <p>The proprietary libraries required by the secondary process <em>xxx-process</em> should be in the directory <em>xxx-process/lib-proprietary</em>.  These jars are not included in the
+            binary distribution, and you will need to supply them in order to make the process work.  A README.txt file is placed in each <em>lib-proprietary</em> directory describing what needs to
+            be provided there.</p>
+        <p></p>
+        <p>The <em>xxx-integration</em> directories contain components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr
+            connector includes plug-in classes for enforcing ManifoldCF security on Solr 3.x and 4.x.  See the README file in each directory for detailed instructions on how to deploy the components.</p>
+        <p></p>
+        <p>Inside the <em>example</em> directory, you will find everything you need to fire up ManifoldCF in a single-process model under Jetty.  Everything is included so that all you need to do is change
+            to that directory, and start it using the command <em>&lt;java&gt; -jar start.jar</em>.  This is described in more detail later, and is the recommended way for beginners to try out ManifoldCF.
+            The directory <em>example-proprietary</em> contains an equivalent example that includes proprietary connectors and jars.  This is the standard place to start if you build ManifoldCF yourself.</p>
+        <p></p>
+        <p>ManifoldCF can also be deployed in a multi-process model.  Inside the <em>multiprocess-example</em> directory, you will find everything you need to do this.  (The
+            <em>multiprocess-example-proprietary</em> directory is similar but includes proprietary material and is available only if you build ManifoldCF yourself.)  Below is a list of
+            what you will find in this directory.</p>
+        <p></p>
+        <table>
+          <caption>Multiprocess example files and directories</caption>
+          <tr><th><em>dist/multiprocess-example</em> file/directory</th><th>Meaning</th></tr>
+          <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
+          <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
+          <tr><td><em>properties.xml</em></td><td>an example ManifoldCF configuration file, in the right place for the multiprocess script to find it</td></tr>
+          <tr><td><em>logging.ini</em></td><td>an example ManifoldCF logging configuration file, in the right place for the properties.xml to find it</td></tr>
+          <tr><td><em>syncharea</em></td><td>an example ManifoldCF synchronization directory, which must be writable in order for multiprocess ManifoldCF to work</td></tr>
+          <tr><td><em>logs</em></td><td>where the ManifoldCF logs get written to</td></tr>
+          <tr><td><em>start-database[.sh|.bat]</em></td><td>script to start the HSQLDB database</td></tr>
+          <tr><td><em>initialize[.sh|.bat]</em></td><td>script to create the database instance, create all database tables, and register connectors</td></tr>
+          <tr><td><em>start-webapps[.sh|.bat]</em></td><td>script to start Jetty with the ManifoldCF web applications deployed</td></tr>
+          <tr><td><em>start-agents[.sh|.bat]</em></td><td>script to start the agents process</td></tr>
+          <tr><td><em>stop-agents[.sh|.bat]</em></td><td>script to stop a running agents process cleanly</td></tr>
+          <tr><td><em>lock-clean[.sh|.bat]</em></td><td>script to clean up dirty locks (run only when all webapps and processes are stopped)</td></tr>
+        </table>
+        <p></p>
+        <p>The basic multiprocess command scripts will be placed in the <em>processes</em> subdirectory.  The script for executing commands is <em>processes/executecommand[.sh|.bat]</em>.
+            This script requires two environment variables to be set before execution: JAVA_HOME, and MCF_HOME, which should point to ManifoldCF's home execution directory, where the <em>properties.xml</em> file is found.)</p>
+            
         <section>
-          <title>Building the Documentum connector</title>
+          <title>Building and testing the Alfresco connector</title>
           <p></p>
-          <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar, and dctm.jar into the directory "connectors/documentum/dfc".</p>
+          <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. Place this jar into the directory <em>connectors/alfresco/lib-proprietary</em> before you build.
+              This will occur automatically if you execute the ant target "make-deps" from the ManifoldCF root directory.</p>
+          <p></p>
+          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder)
+              into the <em>connectors/alfresco/test-materials-proprietary</em> folder.  Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the FileNet connector</title>
+          <title>Building and running the Documentum connector</title>
           <p></p>
-          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be build.  Install the FileNet P8 API on the build system, and copy at least "Jace.jar" from that installation into "connectors/filenet/filenet-api".</p>
-          <p></p>
-        </section>
-        
-        <section>
-          <title>Building the JDBC connector, including Oracle, SQLServer, or Sybase JDBC drivers</title>
-          <p></p>
-          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  For Oracle, download the appropriate Oracle JDBC jar from the Oracle site, and copy it into the directory "connectors/jdbc/jdbc-drivers".  For SQLServer and Sybase, download jtds.jar, and copy it into the same directory.  The jtds.jar download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
+          <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.  After building, you must install DFC on the build system, and locate the jars it installs.  Copy
+              these jars to the directory <em>dist/documentum-server-process/lib-proprietary</em>.</p>
+          <p>For a binary distribution, copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
+          <p>If you have done everything right, you should be able to start the Documentum connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the jCIFS connector</title>
+          <title>Building and running the FileNet connector</title>
           <p></p>
-          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the "connectors/jcifs/jcifs" directory.  You can also just type "ant download-dependencies" and this step will be done for you.</p>
-          <p></p>
-        </section>
-        
-        <section>
-          <title>Building the LiveLink connector</title>
-          <p></p>
-          <p>This connector needs LAPI, which is a proprietary java library that allows access to OpenText's LiveLink server.  Copy the lapi.jar into the "connectors/livelink/lapi" directory.</p>
+          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is built against a set of stub classes.  After building, install the FileNet P8 API on your system,
+              and copy "Jace.jar" and the other dependent jars from that installation into <em>dist/filenet-server-process/lib-proprietary</em>.</p>
+          <p>If you have downloaded a binary distribution, place the jar in <em>filenet-server-process/lib-proprietary</em>.</p>
+          <p>If correctly done, you will be able to start the FileNet connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the Memex connector</title>
+          <title>Building and running the JDBC connector, including Oracle, MSSQL, MySQL, SQLServer, and Sybase JDBC drivers</title>
           <p></p>
-          <p>This connector needs the Memex API jar, usually called JavaMXIELIB.jar.  Copy this jar into the "connectors/memex/mxie-java" directory.</p>
+          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  In order to support these databases, start by placing the mysql-connector-java.jar
+            and the jtds.jar in the <em>lib-proprietary</em> directory.  The ant target "make-deps" will do this for you automatically.  For Oracle, download the appropriate
+            Oracle JDBC jar from the Oracle site, and copy it into the same directory before you build ManifoldCF.</p>
+          <p></p>
+        </section>
+        
+        <section>
+          <title>Building and running the jCIFS/Windows Shares connector</title>
+          <p></p>
+          <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the <em>connectors/jcifs/lib-proprietary</em>
+              directory before building.  You can also just type "ant make-deps" from the root ManifoldCF directory and this step will be done for you.</p>
+          <p>If you have downloaded a binary distribution, place the jcifs.jar into the <em>connector-lib-proprietary</em> directory, and uncomment the Windows Shares line in the <em>connectors.xml</em> file.</p>
+          <p></p>
+        </section>
+        
+        <section>
+          <title>Building and running the LiveLink connector</title>
+          <p></p>
+          <p>This connector needs OpenText's LAPI package in order to be run, but is built against a set of stubs.  After building, copy the lapi.jar into the <em>dist/connector-lib-proprietary</em>
+              directory, and uncomment the LiveLink-related connector lines in <em>dist/connectors.xml</em>.</p>
+          <p>If you have downloaded a binary distribution, place the jar in <em>connector-lib-proprietary</em>, and modify the <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the Meridio connector</title>
           <p></p>
-          <p>The Meridio connector needs wsdls and xsds downloaded from an installed Meridio instance using <strong>disco.exe</strong>, which is installed as part of Microsoft Visual Studio, typically under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".  Obtain the preliminary wsdls and xsds by interrogating the following Meridio web services:</p>
+          <p>The Meridio connector generates interface classes using checked-in wsdls and xsds originally obtained
+              from an installed Meridio instance using <strong>disco.exe</strong>, and subsequently modified to work
+              around limitations in Apache Axis.  The <strong>disco.exe</strong> utility is installed as part of
+              Microsoft Visual Studio, and is typically found under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".
+              If desired, you can obtain unmodified wsdls and xsds by interrogating the following Meridio web services:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;meridio_server&#62;/DMWS/MeridioDMWS.asmx</li>
              <li>http[s]://&#60;meridio_server&#62;/RMWS/MeridioRMWS.asmx</li>
           </ul>
-          <p></p>
-          <p>You should have obtained the following files in this step:</p>
-          <p></p>
-          <ul>
-             <li>MeridioDMWS.wsdl</li>
-             <li>MeridioRMWS.wsdl</li>
-             <li>DMDataSet.xsd</li>
-             <li>RMDataSet.xsd</li>
-             <li>RMClassificationDataSet.xsd</li>
-          </ul>
-          <p></p>
-          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can be found in "connectors/meridio/upstream-diffs".  After the patching, rename so that you have the files:</p>
-          <p></p>
-          <ul>
-             <li>MeridioDMWS_axis.wsdl</li>
-             <li>MeridioRMWS_axis.wsdl</li>
-             <li>DMDataSet_castor.xsd</li>
-             <li>RMDataSet_castor.xsd</li>
-             <li>RMClassificationDataSet_castor.xsd</li>
-          </ul>
-          <p></p>
-          <p>Finally, copy all of these to: "connectors/meridio/wsdls".</p>
           <p></p>
         </section>
         
@@ -198,9 +253,9 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/wsdls</em> before building.</p>
+          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/lib-proprietary</em> before building.</p>
           <p></p>
-          <p>The wsdl files download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
+          <p>The wsdl files download will be done automatically if you type "ant make-deps" from the root directory.</p>
           <p></p>
           <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.  This service can be found in the directory <em>dist/sharepoint-integration</em> after ManifoldCF is built.
             To install it on your SharePoint 3.0 machine, follow the directions in the file <strong>Installation Readme.txt</strong>, found in that directory.</p>
@@ -229,16 +284,12 @@
         <section>
           <title>Preparation</title>
           <p>Before you begin, you will need to install Maven (if you haven't already) and prepare by downloading the necessary materials to support the LGPL connector builds, just as you would for the Ant
-              build described in the previous section.  We therefore strongly recommend reading about the Ant build process before proceeding.</p>
-          <p>Once the LGPL connector prerequisites are in place, you need to push various ManifoldCF-required jars into your local Maven repository, as follows:</p>
-          <source>
-mvn install:install-file -Dfile=lib/jdbcpool-0.99.jar -DgroupId=com.bitmechanic -DartifactId=jdbcpool -Dversion=0.99 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/commons-httpclient-mcf.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient-mcf -Dversion=3.1 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/xercesImpl-mcf.jar -DgroupId=xerces -DartifactId=xercesImpl-mcf -Dversion=2.9.1 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/chemistry-opencmis-server-inmemory-war.war -DgroupId=org.apache.chemistry.opencmis -DartifactId=chemistry-opencmis-server-inmemory-war -Dversion=0.5.0 -Dpackaging=war
-mvn install:install-file -Dfile=connectors/jcifs/jcifs/jcifs.jar -DgroupId=org.samba.jcifs -DartifactId=jcifs -Dversion=1.3.17 -Dpackaging=jar
-mvn install:install-file -Dfile=lib/hsqldb.jar -DgroupId=org.hsqldb -DartifactId=hsqldb -Dversion=2.2.5.6-9-2011 -Dpackaging=jar
-          </source>
+              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  The script <em>mvn-bootstrap[.sh|.bat]</em> will do this for you.
+              This script takes no arguments, but does require internet access in order to download LGPL jars that are required by the Maven build.</p>
+              <p>Notice that if you have downloaded the source code of the 0.5-incubating release, before building with Maven, you also need to execute the following command from the root folder of the project:</p>
+              <source>
+mvn install:install-file -Dfile=lib/commons-httpclient.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient-mcf -Dversion=3.1  -Dpackaging=jar
+              </source>
         </section>
         <section>
           <title>How to build</title>
@@ -280,7 +331,7 @@ cd dist/example
         <p></p>
         <p>You can stop the quick-start ManifoldCF at any time using ^C.</p>
         <p></p>
-        <p>Bear in mind that Derby is not as full-featured a database as is Postgresql.  This means that any performance testing you may do against the quick start example may not be applicable to a full installation.  Furthermore, Derby only permits one process at a time to be connected to its databases, so you <strong>cannot</strong> use any of the ManifoldCF commands (as described below) while the quick-start ManifoldCF is running.</p>
+        <p>Bear in mind that Derby is not as full-featured a database as is PostgreSQL.  This means that any performance testing you may do against the quick start example may not be applicable to a full installation.  Furthermore, Derby only permits one process at a time to be connected to its databases, so you <strong>cannot</strong> use any of the ManifoldCF commands (as described below) while the quick-start ManifoldCF is running.</p>
         <p></p>
         <p>Another caveat that you will need to be aware of with the quick-start version of ManifoldCF is that it in no way removes the need for you to run any separate processes that individual connectors require.  Specifically, the Documentum and FileNet connectors require processes to be independently started in order to function.  You will need to read about these connector-specific processes below in order to use the corresponding connectors.  However, the Quick Start build does place the necessary jars, script, and defines in a set of <em>xxx-process</em> directories right underneath the <em>dist/example</em> directory.</p>
         <p></p>
@@ -311,7 +362,7 @@ cd dist/example
         <p>The core part of ManifoldCF consists of several pieces.  These basic pieces are enumerated below:</p>
         <p></p>
         <ul>
-           <li>A database, which is where ManifoldCF keeps all of its configuration and state information, usually Postgresql</li>
+           <li>A database, which is where ManifoldCF keeps all of its configuration and state information, usually PostgreSQL</li>
            <li>A synchronization directory, which how ManifoldCF coordinates activity among its various processes</li>
            <li>An <strong>agents</strong> process, which is the process that actually crawls documents and ingests them</li>
            <li>A <strong>crawler-ui</strong> web application, which presents the UI users interact with to configure and control the crawler</li>
@@ -343,16 +394,16 @@ cd dist/example
         <p></p>
         <p>An individual connector package will typically supply an output connector, or a repository connector, or both a repository connector and an authority connector.  The ant build script under <em>trunk</em> automatically forms each individual connector's contribution to the overall system into the overall package.</p>
         <p></p>
-        <p>The basic steps required to set up and run ManifoldCF are as follows:</p>
+        <p>The basic steps required to set up and run ManifoldCF in multi-process mode are as follows:</p>
         <p></p>
         <ul>
           <li>Check out and build, using "ant build".</li>
-          <li>Install postgresql.  The postgresql JDBC driver included with ManifoldCF is known to work with version 8.4.x, so that version is the currently recommended one.  Configure postgresql for your environment; the default configuration is acceptable for testing and experimentation.</li>
+          <li>Install PostgreSQL.  The PostgreSQL JDBC driver included with ManifoldCF is known to work with version 9.1, so that version is the currently recommended one.  Configure PostgreSQL for your environment; the default configuration is acceptable for testing and experimentation.</li>
           <li>Install a Java application server, such as Tomcat.</li>
-          <li>Create a home directory for ManifoldCF.  To do this, make a copy of the contents of <em>dist</em> from the build.  In this directory, create properties.xml and logging.ini, as described above.  Note that you will also need to create a synchronization directory, also detailed above, and refer to this directory within your properties.xml.</li>
-          <li>Deploy the war files in <em>&#60;MCF_HOME&#62;/web/war</em> to your application server.</li>
-          <li>Set the starting environment variables for your app server to include the -D commands found in <em>&#60;MCF_HOME&#62;/web/define</em>.  The -D commands should be of the form, "-D&#60;file name&#62;=&#60;file contents&#62;".  You will also need a "-Dorg.apache.manifoldcf.configfile=&#60;properties file&#62;" define option, or the equivalent, in the application server's JVM startup in order for ManifoldCF to be able to locate its configuration file.</li>
-          <li>Use the <em>&#60;MCF_HOME&#62;/processes/script/executecommand.bat</em> command from execute the appropriate commands from the next section below, being sure to first set the JAVA_HOME and MCF_HOME environment variables properly.</li>
+          <li>Change directory to <em>dist/multiprocess-example</em>.</li>
+          <li>Deploy the war files from <em>web/war</em> to your application server.</li>
+          <li>Set the starting environment variables for your app server to include any -D commands found in <em>web/define</em>.  The -D commands should be of the form, "-D&#60;file name&#62;=&#60;file contents&#62;".  You will also need a "-Dorg.apache.manifoldcf.configfile=&#60;properties file&#62;" define option, or the equivalent, in the application server's JVM startup in order for ManifoldCF to be able to locate its configuration file.</li>
+          <li>Use the <em>processes/executecommand[.bat|.sh]</em> command from execute the appropriate commands from the next section below, being sure to first set the JAVA_HOME and MCF_HOME environment variables properly.</li>
           <li>Start any supporting processes that result from your build.  (Some connectors such as Documentum and FileNet have auxiliary processes you need to run to make these connectors functional.)</li>
           <li>Start your application server.</li>
           <li>Start the ManifoldCF agents process.</li>
@@ -363,25 +414,25 @@ cd dist/example
         <p></p>
         <p></p>
         <section>
-          <title>Configuring the Postgresql database</title>
+          <title>Configuring the PostgreSQL database</title>
           <p></p>
-          <p>Despite having an internal architecture that cleanly abstracts from specific database details, ManifoldCF is currently fairly specific to Postgresql at this time.  There are a number of reasons for this.</p>
+          <p>Despite having an internal architecture that cleanly abstracts from specific database details, ManifoldCF is currently fairly specific to PostgreSQL at this time.  There are a number of reasons for this.</p>
           <p></p>
           <ul>
              <li>ManifoldCF uses the database for its document queue, which places a significant load on it.  The back-end database is thus a significant factor in ManifoldCF's performance.  But, in exchange, ManifoldCF benefits enormously from the underlying ACID properties of the database.</li>
-             <li>The strategy for getting optimal query plans from the database is not abstracted.  For example, Postgresql 8.3+ is very sensitive to certain statistics about a database table, and will not generate a performant plan if the statistics are inaccurate by even a little, in some cases.  So, for Postgresql, the database table must be analyzed very frequently, to avoid catastrophically bad plans.  But luckily, Postgresql is pretty good at doing analysis quickly.  Oracle, on the other hand, takes a very long time to perform analysis, but its plans are much less sensitive.</li>
-             <li>Postgresql always does a sequential scan in order to count the number of rows in a table, while other databases return this efficiently.  This has affected the design of the ManifoldCF UI.</li>
-             <li>The choice of query form influences the query plan.  Ideally, this is not true, but for both Postgresql and for (say) Oracle, it is.</li>
-             <li>Postgresql has a high degree of parallelism and lack of internal single-threadedness.</li>
+             <li>The strategy for getting optimal query plans from the database is not abstracted.  For example, PostgreSQL 8.3+ is very sensitive to certain statistics about a database table, and will not generate a performant plan if the statistics are inaccurate by even a little, in some cases.  So, for PostgreSQL, the database table must be analyzed very frequently, to avoid catastrophically bad plans.  But luckily, PostgreSQL is pretty good at doing analysis quickly.  Oracle, on the other hand, takes a very long time to perform analysis, but its plans are much less sensitive.</li>
+             <li>PostgreSQL always does a sequential scan in order to count the number of rows in a table, while other databases return this efficiently.  This has affected the design of the ManifoldCF UI.</li>
+             <li>The choice of query form influences the query plan.  Ideally, this is not true, but for both PostgreSQL and for (say) Oracle, it is.</li>
+             <li>PostgreSQL has a high degree of parallelism and lack of internal single-threadedness.</li>
           </ul>
           <p></p>
-          <p>ManifoldCF has been tested against PostgreSQL 8.3.7 and PostgreSQL 8.4.5.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
+          <p>ManifoldCF has been tested against version 8.3.7, 8.4.5 and 9.1 of PostgreSQL.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
           <p></p>
           <ul>
              <li>A default database encoding of UTF-8</li>
              <li><em>postgresql.conf</em> settings as described in the table below</li>
              <li><em>pg_hba.conf</em> settings to allow password access for TCP/IP connections from ManifoldCF</li>
-             <li>A maintenance strategy involving cronjob-style vacuuming, rather than Postgresql autovacuum</li>
+             <li>A maintenance strategy involving cronjob-style vacuuming, rather than PostgreSQL autovacuum</li>
           </ul>
           <p></p>
           <table>
@@ -403,11 +454,11 @@ cd dist/example
         <section>
           <title>A note about maintenance</title>
           <p></p>
-          <p>Postgresql's architecture causes it to accumulate dead tuples in its data files, which do not interfere with its performance but do bloat the database over time.  The usage pattern of ManifoldCF is such that it can cause significant bloat to occur to the underlying Postgresql database in only a few days, under sufficient load.  Postgresql has a feature to address this bloat, called <strong>vacuuming</strong>.  This comes in three varieties: autovacuum, manual vacuum, and manual full vacuum.</p>
+          <p>PostgreSQL's architecture causes it to accumulate dead tuples in its data files, which do not interfere with its performance but do bloat the database over time.  The usage pattern of ManifoldCF is such that it can cause significant bloat to occur to the underlying PostgreSQL database in only a few days, under sufficient load.  PostgreSQL has a feature to address this bloat, called <strong>vacuuming</strong>.  This comes in three varieties: autovacuum, manual vacuum, and manual full vacuum.</p>
           <p></p>
-          <p>We have found that Postgresql's autovacuum feature is inadequate under such conditions, because it not only fights for database resources pretty much all the time, but it falls further and further behind as well.  Postgresql's in-place manual vacuum functionality is a bit better, but is still much, much slower than actually making a new copy of the database files, which is what happens when a manual full vacuum is performed.</p>
+          <p>We have found that PostgreSQL's autovacuum feature is inadequate under such conditions, because it not only fights for database resources pretty much all the time, but it falls further and further behind as well.  PostgreSQL's in-place manual vacuum functionality is a bit better, but is still much, much slower than actually making a new copy of the database files, which is what happens when a manual full vacuum is performed.</p>
           <p></p>
-          <p>Dead-tuple bloat also occurs in indexes in Postgresql, so tables that have had a lot of activity may benefit from being reindexed at the time of maintenance.   </p>
+          <p>Dead-tuple bloat also occurs in indexes in PostgreSQL, so tables that have had a lot of activity may benefit from being reindexed at the time of maintenance.   </p>
           <p>We therefore recommend periodic, scheduled maintenance operations instead, consisting of the following:</p>
           <p></p>
           <ul>
@@ -415,7 +466,7 @@ cd dist/example
            <li>REINDEX DATABASE &#60;the_db_name&#62;;</li>
           </ul>
           <p> </p>
-          <p>During maintenance, Postgresql locks tables one at a time.  Nevertheless, the crawler ui may become unresponsive for some operations, such as when counting outstanding documents on the job status page.  ManifoldCF thus has the ability to check for the existence of a file prior to such sensitive operations, and will display a useful "maintenance in progress" message if that file is found.  This allows a user to set up a maintenance system that provides adequate feedback for an ManifoldCF user of the overall status of the system.</p>
+          <p>During maintenance, PostgreSQL locks tables one at a time.  Nevertheless, the crawler ui may become unresponsive for some operations, such as when counting outstanding documents on the job status page.  ManifoldCF thus has the ability to check for the existence of a file prior to such sensitive operations, and will display a useful "maintenance in progress" message if that file is found.  This allows a user to set up a maintenance system that provides adequate feedback for an ManifoldCF user of the overall status of the system.</p>
           <p></p>
         </section>
         <section>
@@ -449,6 +500,11 @@ cd dist/example
           <table>
             <caption>Property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
+            <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
+            <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
+            <tr><td>org.apache.manifoldcf.usejettyparentclassloader</td><td>Yes, for Jetty</td><td>true for single-process example, false for multiprocess example.</td></tr>
+            <tr><td>org.apache.manifoldcf.jettyport</td><td>No</td><td>Port that Jetty will use; defaults to 8345.</td></tr>
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
@@ -457,8 +513,13 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
             <tr><td>org.apache.manifoldcf.derbydatabasepath</td><td>No</td><td>Absolute or relative path to Derby database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseprotocol</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB JDBC protocol; choices are 'hsql', 'http', or 'https'. Default is blank (which means an embedded instance)</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseserver</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB remote server name.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseport</td><td>No</td><td>The HSQLDB remote server port.</td></tr>
+            <tr><td>org.apache.manifoldcf.hsqldbdatabaseinstance</td><td>No</td><td>The HSQLDB remote database instance name.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL server name.  Defaults to 'localhost'.</td></tr>
             <tr><td>org.apache.manifoldcf.lockmanagerclass</td><td>No</td><td>Specifies the class to use to implement synchronization.  Default is a built-in file-based synchronization class.</td></tr>
-            <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in Postgresql implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby, org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
+            <tr><td>org.apache.manifoldcf.databaseimplementationclass</td><td>No</td><td>Specifies the class to use to implement database access.  Default is a built-in PostgreSQL implementation.  Supported choices are: org.apache.manifoldcf.core.database.DBInterfaceDerby, org.apache.manifoldcf.core.database.DBInterfacePostgreSQL, org.apache.manifoldcf.core.database.DBInterfaceHSQLDB</td></tr>
             <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
             <tr><td>org.apache.manifoldcf.database.maxhandles</td><td>No</td><td>Specifies the maximum number of database connection handles that will by pooled.  Recommended value is 200.</td></tr>
             <tr><td>org.apache.manifoldcf.database.handletimeout</td><td>No</td><td>Specifies the maximum time a handle is to live before it is presumed dead.  Recommend a value of 604800, which is the maximum allowable.</td></tr>
@@ -483,8 +544,6 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.scheduling</td><td>No</td><td>Log document scheduling activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityconnectors</td><td>No</td><td>Log authority connector activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservice</td><td>No</td><td>Log authority service activity.  Legal values are INFO, WARN, or DEBUG.</td></tr>
-            <tr><td>org.apache.manifoldcf.sharepoint.wsddpath</td><td>Yes, for SharePoint Connector</td><td>Path to the SharePoint Connector wsdd file.</td></tr>
-            <tr><td>org.apache.manifoldcf.meridio.wsddpath</td><td>Yes, for Meridio Connector</td><td>Path to the Meridio Connector wsdd file.</td></tr>
           </table>
           <p></p>
         </section>
@@ -496,40 +555,6 @@ cd dist/example
           <p>&#60;libdir path="<em>path</em>"/&#62;</p>
           <p></p>
           <p>Note that the path can be relative.  For the purposes of path resolution, "." means the directory in which the properties.xml file is located.</p>
-          <p></p>
-        </section>
-        <section>
-          <title>Examples</title>
-          <p></p>
-          <p>An example properties file might be:</p>
-          <p></p>
-          <source>
-&#60;?xml version="1.0" encoding="UTF-8" ?&#62;
-&#60;configuration&#62;
-  &#60;property name="org.apache.manifoldcf.synchdirectory" value="c:/mysynchdir"/&#62;
-  &#60;property name="org.apache.manifoldcf.logconfigfile" value="c:/conf/logging.ini"/&#62;
-  &#60;libdir path="./lib"/&#62;
-&#60;/configuration&#62;
-          </source>
-          <p></p>
-          <p>An example simple logging configuration file might be:</p>
-          <p></p>
-          <source>
-# Set the default log level and parameters
-# This gets inherited by all child loggers
-log4j.rootLogger=WARN, MAIN
-
-log4j.additivity.org.apache=false
-
-log4j.appender.MAIN=org.apache.log4j.RollingFileAppender
-log4j.appender.MAIN.File=c:/dataarea/manifoldcf.log
-log4j.appender.MAIN.MaxFileSize=50MB
-log4j.appender.MAIN.MaxBackupIndex=10
-log4j.appender.MAIN.layout=org.apache.log4j.PatternLayout
-log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
-          </source>
-          <p></p>
-          <p></p>
           <p></p>
         </section>
         <section>
@@ -578,58 +603,28 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
             <tr><td>org.apache.manifoldcf.authorities.SynchronizeAuthorities</td><td>None</td><td>Un-register all registered authority connector classes that can't be found</td></tr>
           </table>
           <p></p>
-          <p>Remember that you need to include all the jars under <em>dist/processes/jar</em> in the classpath whenever you run one of these commands!  You also must include the corresponding -D switches if present, as described earlier.  But, luckily, there are scripts which do all of this available.  These can be found in <em>dist/processes/script/executecommand[.sh,.bat]</em>.
-              The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be found at <em>MCF_HOME/properties.xml</em>.</p>
+          <p>Remember that you need to include all the jars under <em>dist/multiprocess-example/processes/lib</em> in the classpath whenever you run one of these commands!
+              But, luckily, there are scripts which do this for you.  These can be found in <em>dist/multiprocess-example/processes/executecommand[.sh,.bat]</em>.
+              The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be
+              found at <em>MCF_HOME/properties.xml</em>.</p>
           <p></p>
         </section>
         <section>
           <title>Initializing the database</title>
           <p></p>
-          <p>These are some of the commands you will need to use to create the database instance, initialize the schema, and register all of the appropriate components:</p>
-          <p></p>
-          <table>
-            <tr><th>Command</th><th>Arguments</th></tr>
-            <tr><td>org.apache.manifoldcf.core.DBCreate</td><td>postgres postgres</td></tr>
-            <tr><td>org.apache.manifoldcf.agents.Install</td><td></td></tr>
-            <tr><td>org.apache.manifoldcf.agents.Register</td><td>org.apache.manifoldcf.crawler.system.CrawlerAgent</td></tr>
-            <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.gts.GTSConnector "GTS Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.solr.SolrConnector "SOLR Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.opensearchserver.OpenSearchServerConnector "OpenSearchServer Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnector "ElasticSearch Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.agents.RegisterOutput</td><td>org.apache.manifoldcf.agents.output.nullconnector.NullConnector "Null Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority "Active Directory Authority"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector "CMIS"</td></tr>
-            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.connectors.cmis.CmisAuthorityConnector "CMIS"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.DCTM.DCTM "Documentum Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector "Documentum Authority"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector "FileNet Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector "Filesystem Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector "Database Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveConnector "Windows Share Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector "LiveLink Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.connectors.livelink.LivelinkAuthority "LiveLink Authority"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.memex.MemexConnector "Memex Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.connectors.memex.MemexAuthority "Memex Authority"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.meridio.MeridioConnector "Meridio Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td>org.apache.manifoldcf.crawler.connectors.meridio.MemexAuthority "Meridio Authority"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.rss.RSSConnector "RSS Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository "SharePoint Connector"</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.Register</td><td>org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConnector "Web Connector"</td></tr>
-          </table>
+          <p>If you run the multiprocess model, you will need to initialize the database before you start the agents process or use the crawler UI.  To do this, all you need to do is
+              run the <em>initialize[.sh|.bat]</em> script.  Be sure you have started your database instance first!</p>
           <p></p>
         </section>
         <section>
           <title>Deploying the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications</title>
           <p></p>
-          <p>If you built ManifoldCF using ant under the <em>trunk</em> directory, then the ant build will have constructed three war files for you under <em>dist/web</em>.  Take these war
-              files and deploy them as web applications under one or more instances of your application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web
+          <p>If you built ManifoldCF using ant, then the ant build will have constructed three war files for you under <em>dist/multiprocess-example/web</em>.  If you intend to run
+              ManifoldCF in multiprocess mode, you will need to deploy these web applications on you application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web
               applications be deployed on the same instance of the application server.  With the current architecture of ManifoldCF, they must be deployed on the same physical server, however.</p>
           <p></p>
           <p>For each of the application servers involved with ManifoldCF, you must set the following define, so that the ManifoldCF web applications can locate the configuration file:</p>
           <p>-Dorg.apache.manifoldcf.configfile=&#60;configuration file path&#62;</p>
-          <p>Under <em>dist/web/define</em>, if it exists at all, you may also see files that are not war files.  These files are meant to be used as command-line -D switches for the application server process.
-                The switches may or may not be identical for the two web applications, but they will never conflict.  You may need to alter environment variables or your application server startup scripts in order to
-                provide these switches.  Luckily, no existing connectors require these at this time.</p>
           <p></p>
         </section>
         <section>
@@ -644,14 +639,21 @@ log4j.appender.MAIN.layout.ConversionPattern=[%d]%-5p %m%n
         <p>Connector-specific processes require the classpath for their invocation to include all the jars that are in the corresponding <em>dist/&#60;process_name&#62;-process</em> directory.  The Documentum and FileNet connectors are the only two connectors that currently require additional processes.  Start these processes using the commands listed below, and stop them with SIGTERM (or ^C, if they are running in a shell).</p>
           <p></p>
           <table>
-            <tr><th>Connector</th><th>Process</th><th>Main class</th><th>Script name (relative to MCF_HOME)</th></tr>
-            <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>documentum-server-process/script/run[.sh|.bat]</td></tr>
-            <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>documentum-registry-process/script/run[.sh|.bat]</td></tr>
-            <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>filenet-server-process/script/run[.sh|.bat]</td></tr>
-            <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>filenet-registry-process/script/run[.sh|.bat]</td></tr>
+            <tr><th>Connector</th><th>Process</th><th>Main class</th><th>Script name (relative to <em>dist</em>)</th></tr>
+            <tr><td>Documentum</td><td>documentum-server-process</td><td>org.apache.manifoldcf.crawler.server.DCTM.DCTM</td><td>documentum-server-process/run[.sh|.bat]</td></tr>
+            <tr><td>Documentum</td><td>documentum-registry-process</td><td>org.apache.manifoldcf.crawler.registry.DCTM.DCTM</td><td>documentum-registry-process/run[.sh|.bat]</td></tr>
+            <tr><td>FileNet</td><td>filenet-server-process</td><td>org.apache.manifoldcf.crawler.server.filenet.Filenet</td><td>filenet-server-process/run[.sh|.bat]</td></tr>
+            <tr><td>FileNet</td><td>filenet-registry-process</td><td>org.apache.manifoldcf.crawler.registry.filenet.Filenet</td><td>filenet-registry-process/run[.sh|.bat]</td></tr>
           </table>
-          <p>The registry process in all cases must be started before the corresponding server process, or the server process will report an error.  (It will, however, retry after some period of time.)  The scripts all require an MCF_HOME environment variable pointing to the place where properties.xml is found, as well as a JAVA_HOME environment variable pointing the JDK.  The server scripts also require other environment variables as well, consistent with the needs of the DFC or the FileNet API respectively.  For example, DFC requires the DOCUMENTUM environment variable to be set, while the FileNet server script requires the WASP_HOME environment variable.</p>
-          <p>It is important to understand that the scripts work by building a classpath out of all jars that get copied into the <em>jar</em> directory underneath each process during the ant build.  These jars come in part from the <em>dfc</em> or <em>filenet-api</em> directories underneath the documentum or filenet connector directories.  For the server startup scripts to work properly, therefore, these directories should have <strong>all</strong> of the jars needed to allow the api code to function, and the ant build scripts will take care of the rest.</p>
+          <p>The registry process in all cases must be started before the corresponding server process, or the server process will report an error.  (It will, however, retry after some period of time.)
+              The scripts all require an MCF_HOME environment variable pointing to the place where properties.xml is found, as well as a JAVA_HOME environment variable pointing the JDK.
+              The server scripts also require other environment variables as well, consistent with the needs of the DFC or the FileNet API respectively.  For example, DFC requires the
+              DOCUMENTUM environment variable to be set, while the FileNet server script requires the WASP_HOME environment variable.</p>
+          <p>It is important to understand that the scripts work by building a classpath out of all jars that get copied into the <em>lib</em> and <em>lib-proprietary</em> directory underneath
+              each process during the ant build.  The <em>lib-proprietary</em> jars cannot be distributed in the binary version of ManifoldCF, so if you use this option you will still need to
+              copy them there yourself for the processes to run.  If you build ManifoldCF yourself, these jars are copied from the <em>lib-proprietary</em> directories underneath the documentum
+              or filenet connector directories.  For the server startup scripts to work properly, the <em>lib-proprietary</em> directories should have <strong>all</strong> of the jars needed to
+              allow the api code to function.</p>
           <p></p>
         </section>
       </section>

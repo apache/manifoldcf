@@ -180,3 +180,8 @@ The Meridio Connector portion of this software includes application
 interface descriptions generated in part from proprietary libraries licensed
 by Meridio, Inc., a division of Autonomy, Inc., a subsidiary of Hewlett
 Packard, Inc.
+
+The SharePoint Connector portion of this software includes application
+interface descriptions generated in part from proprietary libraries licensed
+by Microsoft, Inc.
+
