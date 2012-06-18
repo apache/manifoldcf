@@ -64,7 +64,8 @@ public interface IThrottledConnection
   */
   public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
     int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
-    LoginCookies loginCookies)
+    LoginCookies loginCookies,
+    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Get the http response code.

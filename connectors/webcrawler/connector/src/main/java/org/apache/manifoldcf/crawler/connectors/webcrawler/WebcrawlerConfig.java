@@ -46,6 +46,16 @@ public class WebcrawlerConfig
   public static final String PARAMETER_ROBOTSUSAGE = "Robots usage";
   /** Email (a parameter) */
   public static final String PARAMETER_EMAIL = "Email address";
+  /** Proxy host name (parameter) */
+  public static final String PARAMETER_PROXYHOST = "Proxy host";
+  /** Proxy port (parameter) */
+  public static final String PARAMETER_PROXYPORT = "Proxy port";
+  /** Proxy auth domain (parameter) */
+  public static final String PARAMETER_PROXYAUTHDOMAIN = "Proxy authentication domain";
+  /** Proxy auth username (parameter) */
+  public static final String PARAMETER_PROXYAUTHUSERNAME = "Proxy authentication user name";
+  /** Proxy auth password (parameter) */
+  public static final String PARAMETER_PROXYAUTHPASSWORD = "Proxy authentication password";
   /** The bin description node */
   public static final String NODE_BINDESC = "bindesc";
   /** The bin regular expression */

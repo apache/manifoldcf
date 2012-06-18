@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-483: Add NTLM proxy support for Web Connector.
+(Karl Wright)
+
 CONNECTORS-482: Need to include at least a portion of the HTTP
 body in history message whenever a non-200 HTTP code comes back.
 (Karl Wright)

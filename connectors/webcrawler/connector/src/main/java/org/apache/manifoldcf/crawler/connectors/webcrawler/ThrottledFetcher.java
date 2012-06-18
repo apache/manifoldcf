@@ -63,6 +63,23 @@ public class ThrottledFetcher
   * can get pulled out of all the right pools and wind up in only the hands of one thread. */
   protected static Integer poolLock = new Integer(0);
 
+  /** Current host name */
+  private static String currentHost = null;
+  static
+  {
+    // Find the current host name
+    try
+    {
+      java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+
+      // Get hostname
+      currentHost = addr.getHostName();
+    }
+    catch (java.net.UnknownHostException e)
+    {
+    }
+  }
+
   /** The read chunk length */
   protected static final int READ_CHUNK_LENGTH = 4096;
 
@@ -1278,7 +1295,8 @@ public class ThrottledFetcher
     */
     public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
       int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
-      LoginCookies loginCookies)
+      LoginCookies loginCookies,
+      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
       throws ManifoldCFException, ServiceInterruption
     {
       StringBuilder sb = new StringBuilder(protocol);
@@ -1342,6 +1360,22 @@ public class ThrottledFetcher
         // Set up protocol to use
         clientConf.setParams(new HostParams());
         clientConf.setHost(server,port,myFactory.getProtocol(protocol));
+        // If there's a proxy, set that too.
+        if (proxyHost != null && proxyHost.length() > 0)
+        {
+          clientConf.setProxy(proxyHost,proxyPort);
+          if (proxyAuthUsername != null && proxyAuthUsername.length() > 0)
+          {
+            if (proxyAuthPassword == null)
+              proxyAuthPassword = "";
+            if (proxyAuthDomain == null)
+              proxyAuthDomain = "";
+            // Set up NTLM credentials for this fetch too.
+            client.getState().setProxyCredentials(AuthScope.ANY,
+              new NTCredentials(proxyAuthUsername,proxyAuthPassword,currentHost,proxyAuthDomain));
+          }
+        }
+
 
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Got an HttpClient object after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");

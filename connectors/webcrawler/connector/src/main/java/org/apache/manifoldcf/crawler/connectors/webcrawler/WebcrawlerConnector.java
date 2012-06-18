@@ -187,6 +187,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** This is where we keep data around between the getVersions() phase and the processDocuments() phase. */
   protected static DataCache cache = new DataCache();
 
+  /** Proxy host */
+  protected String proxyHost = null;
+  
+  /** Proxy port */
+  protected int proxyPort = -1;
+  
+  /** Proxy auth domain */
+  protected String proxyAuthDomain = null;
+  
+  /** Proxy auth user name */
+  protected String proxyAuthUsername = null;
+  
+  /** Proxy auth password */
+  protected String proxyAuthPassword = null;
+  
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
@@ -362,6 +377,25 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       credentialsDescription = new CredentialsDescription(params);
       trustsDescription = new TrustsDescription(params);
 
+      proxyHost = params.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
+      String proxyPortString = params.getParameter(WebcrawlerConfig.PARAMETER_PROXYPORT);
+      proxyAuthDomain = params.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN);
+      proxyAuthUsername = params.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME);
+      proxyAuthPassword = params.getObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD);
+
+      proxyPort = -1;
+      if (proxyPortString != null && proxyPortString.length() > 0)
+      {
+        try
+        {
+          proxyPort = Integer.parseInt(proxyPortString);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
+      }
+
       isInitialized = true;
     }
   }
@@ -400,6 +434,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     trustsDescription = null;
     userAgent = null;
     from = null;
+    proxyHost = null;
+    proxyPort = -1;
+    proxyAuthDomain = null;
+    proxyAuthUsername = null;
+    proxyAuthPassword = null;
+
     isInitialized = false;
 
     super.disconnect();
@@ -655,7 +695,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                 // Check robots, if enabled, and if we're fetching the primary document identifier.  See comment above.
                 int robotsStatus = RESULTSTATUS_TRUE;
                 if (!documentIdentifier.equals(currentURI) || robotsUsage < ROBOTS_DATA || (robotsStatus = checkFetchAllowed(documentIdentifier,protocol,ipAddress,port,credential,trustStore,hostName,binNames,currentTime,
-                  url.getFile(),activities,connectionLimit)) == RESULTSTATUS_TRUE)
+                  url.getFile(),activities,connectionLimit,proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword)) == RESULTSTATUS_TRUE)
                 {
                   // Passed the robots check!
 
@@ -679,7 +719,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
                       // Execute the fetch!
                       connection.executeFetch(url.getFile(),userAgent,from,connectionTimeoutMilliseconds,
-                        socketTimeoutMilliseconds,false,hostName,formData,lc);
+                        socketTimeoutMilliseconds,false,hostName,formData,lc,
+                        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
                       int response = connection.getResponseCode();
 
                       if (response == 200 || response == 302 || response == 301)
@@ -1430,6 +1471,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Bandwidth"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.AccessCredentials"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Certificates"));
+    tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Proxy"));
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1759,12 +1802,67 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     throws ManifoldCFException, IOException
   {
     
-    String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
+    String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
     if (email == null)
       email = "";
-    String robotsUsage = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+    String robotsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
     if (robotsUsage == null)
       robotsUsage = "all";
+    String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    String proxyPort = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    String proxyAuthDomain = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN);
+    if (proxyAuthDomain == null)
+      proxyAuthDomain = "";
+    String proxyAuthUsername = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME);
+    if (proxyAuthUsername == null)
+      proxyAuthUsername = "";
+    String proxyAuthPassword = parameters.getObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD);
+    if (proxyAuthPassword == null)
+      proxyAuthPassword = "";
+
+    // Proxy tab
+    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Proxy")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationPasswordColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"proxyhost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyPort)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
+      );
+    }
 
     // Email tab
     if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Email")))
@@ -2681,10 +2779,25 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     String email = variableContext.getParameter("email");
     if (email != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL,email);
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_EMAIL,email);
     String robotsUsage = variableContext.getParameter("robotsusage");
     if (robotsUsage != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
+    String proxyHost = variableContext.getParameter("proxyhost");
+    if (proxyHost != null)
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_PROXYHOST,proxyHost);
+    String proxyPort = variableContext.getParameter("proxyport");
+    if (proxyPort != null)
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_PROXYPORT,proxyPort);
+    String proxyAuthDomain = variableContext.getParameter("proxyauthdomain");
+    if (proxyAuthDomain != null)
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN,proxyAuthDomain);
+    String proxyAuthUsername = variableContext.getParameter("proxyauthusername");
+    if (proxyAuthUsername != null)
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME,proxyAuthUsername);
+    String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
+    if (proxyAuthPassword != null)
+      parameters.setObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
 
     String x = variableContext.getParameter("bandwidth_count");
     if (x != null && x.length() > 0)
@@ -3056,14 +3169,27 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_EMAIL);
-    String robots = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+    String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
+    String robots = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
     if (robots.equals("none"))
       robots = "Ignore robots.txt";
     else if (robots.equals("data"))
       robots = "Obey robots.txt for data fetches only";
     else if (robots.equals("all"))
       robots = "Obey robots.txt for all fetches";
+    String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    String proxyPort = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    String proxyAuthDomain = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN);
+    if (proxyAuthDomain == null)
+      proxyAuthDomain = "";
+    String proxyAuthUsername = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME);
+    if (proxyAuthUsername == null)
+      proxyAuthUsername = "";
+
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
@@ -3071,6 +3197,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "    <td class=\"value\" colspan=\"1\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(email)+"</td>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.RobotsUsage")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(robots)+"</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyHost)+"</td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyPort)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyAuthDomain)+"</td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(proxyAuthUsername)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.BandwidthThrottling")+"</nobr></td>\n"+
@@ -4883,7 +5021,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@return appropriate resultstatus code.
   */
   protected int checkFetchAllowed(String documentIdentifier, String protocol, String hostIPAddress, int port, PageCredentials credential,
-    IKeystoreManager trustStore, String hostName, String[] binNames, long currentTime, String pathString, IVersionActivity versionActivities, int connectionLimit)
+    IKeystoreManager trustStore, String hostName, String[] binNames, long currentTime, String pathString, IVersionActivity versionActivities, int connectionLimit,
+    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException, ServiceInterruption
   {
     // hostNameAndPort is the key for looking up the robots file in the database
@@ -4917,7 +5056,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           connection.beginFetch(FETCH_ROBOTS);
           try
           {
-            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null);
+            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null,
+              proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
             long expirationTime = currentTime+1000*60*60*24;
             int code = connection.getResponseCode();
             if (code == 200)
