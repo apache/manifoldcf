@@ -751,7 +751,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         {
                           contextMessage = "it had the wrong content type";
                           resultSignal = RESULT_NO_DOCUMENT;
-                          activityResultCode = "-13";//null;
+                          activityResultCode = null;
                         }
                       }
                       else
@@ -784,7 +784,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         }
                         contextMessage = "it failed to fetch (status="+Integer.toString(response)+", message="+decodedResponse+")";
                         resultSignal = RESULT_NO_VERSION;
-                        activityResultCode = Integer.toString(response);//null;
+                        activityResultCode = null;
                       }
                     }
                     catch (ManifoldCFException e)
