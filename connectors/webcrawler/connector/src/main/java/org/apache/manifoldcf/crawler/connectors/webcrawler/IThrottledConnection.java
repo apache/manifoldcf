@@ -98,6 +98,11 @@ public interface IThrottledConnection
   public InputStream getResponseBodyStream()
     throws ManifoldCFException, ServiceInterruption;
 
+  /** Get limited response as a string.
+  */
+  public String getLimitedResponseBody(int maxSize, String encoding)
+    throws ManifoldCFException, ServiceInterruption;
+
   /** Note that the connection fetch was interrupted by something.
   */
   public void noteInterrupted(Throwable e);

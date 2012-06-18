@@ -1726,6 +1726,53 @@ public class ThrottledFetcher
       }
     }
 
+    /** Get limited response as a string.
+    */
+    public String getLimitedResponseBody(int maxSize, String encoding)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      try
+      {
+        InputStream is = getResponseBodyStream();
+        try
+        {
+          Reader r = new InputStreamReader(is,encoding);
+          char[] buffer = new char[maxSize];
+          int amt = r.read(buffer);
+          return new String(buffer,0,amt);
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      catch (java.net.SocketTimeoutException e)
+      {
+        Logging.connectors.debug("Web: Socket timeout exception reading response stream for '"+myUrl+"', retrying");
+        throw new ServiceInterruption("Socket timeout exception reading response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
+      }
+      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      {
+        Logging.connectors.debug("Web: Connect timeout exception reading response stream for '"+myUrl+"', retrying");
+        throw new ServiceInterruption("Connect timeout exception reading response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
+      }
+      catch (InterruptedIOException e)
+      {
+        //Logging.connectors.warn("IO interruption seen: "+e.getMessage(),e);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (IOException e)
+      {
+        Logging.connectors.debug("Web: IO exception reading response stream for '"+myUrl+"', retrying");
+        throw new ServiceInterruption("IO exception reading response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
+      }
+      catch (IllegalStateException e)
+      {
+        Logging.connectors.debug("Web: State error reading response body for '"+myUrl+"', retrying");
+        throw new ServiceInterruption("State error reading response body: "+e.getMessage(),e,TIME_5MIN,-1L,2,false);
+      }
+    }
+
     /** Note that the connection fetch was interrupted by something.
     */
     public void noteInterrupted(Throwable e)

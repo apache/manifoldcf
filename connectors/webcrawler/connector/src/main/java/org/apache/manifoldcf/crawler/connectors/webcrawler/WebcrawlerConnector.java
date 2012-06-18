@@ -696,16 +696,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         // Basically, we want to get rid of everything that we (a) don't know what
                         // to do with in the ingestion system, and (b) we can't get useful links from.
 
-                        String contentType = connection.getResponseHeader("Content-Type");
-                        // Some sites have multiple content types.  We just look at the LAST one in that case.
-                        if (contentType != null)
-                        {
-                          String[] contentTypes = contentType.split(",");
-                          if (contentTypes.length > 0)
-                            contentType = contentTypes[contentTypes.length-1].trim();
-                          else
-                            contentType = null;
-                        }
+                        String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
 
                         if (isContentInteresting(activities,currentURI,response,contentType))
                         {
@@ -719,7 +710,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         {
                           contextMessage = "it had the wrong content type";
                           resultSignal = RESULT_NO_DOCUMENT;
-                          activityResultCode = null;
+                          activityResultCode = "-13";//null;
                         }
                       }
                       else
@@ -728,9 +719,31 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         // We don't want to remove it from the queue entirely, because that would cause us to lose track of the item, and therefore lose
                         // control of all scheduling around it.  Instead, we leave it on the queue and give it an empty version string; that will lead it to be
                         // reprocessed without fail on the next scheduled check.
-                        contextMessage = "it failed to fetch (status="+Integer.toString(response)+")";
+                        // Decode response body to the extent we can
+                        String contentType = extractContentType(connection.getResponseHeader("Content-Type"));
+                        String encoding = extractEncoding(contentType);
+                        if (encoding == null)
+                          encoding = "utf-8";
+                        String decodedResponse = "undecodable";
+                        try
+                        {
+                          decodedResponse = "'"+connection.getLimitedResponseBody(1024,encoding)+"'";
+                        }
+                        catch (ManifoldCFException e)
+                        {
+                          // Eat this exception unless it is an interrupt
+                          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                            throw e;
+                          connection.noteInterrupted(e);
+                        }
+                        catch (ServiceInterruption e)
+                        {
+                          // Eat this exception too
+                          connection.noteInterrupted(e);
+                        }
+                        contextMessage = "it failed to fetch (status="+Integer.toString(response)+", message="+decodedResponse+")";
                         resultSignal = RESULT_NO_VERSION;
-                        activityResultCode = null;
+                        activityResultCode = Integer.toString(response);//null;
                       }
                     }
                     catch (ManifoldCFException e)
@@ -1145,6 +1158,45 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     return rval;
   }
 
+  protected static String extractContentType(String contentType)
+  {
+    // Some sites have multiple content types.  We just look at the LAST one in that case.
+    if (contentType != null)
+    {
+      String[] contentTypes = contentType.split(",");
+      if (contentTypes.length > 0)
+        contentType = contentTypes[contentTypes.length-1].trim();
+      else
+        contentType = null;
+    }
+    return contentType;
+  }
+
+  protected static String extractEncoding(String contentType)
+  {
+    if (contentType == null)
+      return null;
+    int semiIndex = contentType.indexOf(";");
+    if (semiIndex == -1)
+      return null;
+    String suffix = contentType.substring(semiIndex+1);
+    suffix = suffix.trim();
+    if (suffix.startsWith("charset="))
+      return suffix.substring("charset=".length());
+    return null;
+  }
+  
+  protected static String extractMimeType(String contentType)
+  {
+    if (contentType == null)
+      return null;
+    int semiIndex = contentType.indexOf(";");
+    if (semiIndex != -1)
+      contentType = contentType.substring(0,semiIndex);
+    contentType = contentType.trim();
+    return contentType;
+  }
+  
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
@@ -6065,37 +6117,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         return;
 
       // We ONLY look for XML if the content type *says* it is XML.
-      String contentType = cache.getContentType(documentURI);
-      // Some sites have multiple content types.  We just look at the LAST one in that case.
-      if (contentType != null)
-      {
-        String[] contentTypes = contentType.split(",");
-        if (contentTypes.length > 0)
-          contentType = contentTypes[contentTypes.length-1].trim();
-        else
-          contentType = null;
-      }
-      if (contentType == null)
-        return;
-
-      int semiIndex = contentType.indexOf(";");
-      String suffix = null;
-      if (semiIndex != -1)
-      {
-        suffix = contentType.substring(semiIndex+1);
-        contentType = contentType.substring(0,semiIndex);
-      }
-      contentType = contentType.trim();
+      String contentType = extractContentType(cache.getContentType(documentURI));
+      String mimeType = extractMimeType(contentType);
       boolean isXML =
-        contentType.equals("text/xml") ||
-        contentType.equals("application/rss+xml") ||
-        contentType.equals("application/xml") ||
-        contentType.equals("application/atom+xml") ||
-        contentType.equals("application/xhtml+xml") ||
-        contentType.equals("text/XML") ||
-        contentType.equals("application/rdf+xml") ||
-        contentType.equals("text/application") ||
-        contentType.equals("XML");
+        mimeType.equals("text/xml") ||
+        mimeType.equals("application/rss+xml") ||
+        mimeType.equals("application/xml") ||
+        mimeType.equals("application/atom+xml") ||
+        mimeType.equals("application/xhtml+xml") ||
+        mimeType.equals("text/XML") ||
+        mimeType.equals("application/rdf+xml") ||
+        mimeType.equals("text/application") ||
+        mimeType.equals("XML");
 
       if (!isXML)
         return;
@@ -6103,13 +6136,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       // OK, it's XML.  Now what?  Well, we get the encoding, and we verify that it is text, then we try to get links
       // from it presuming it is an RSS feed.
 
-      String encoding = "utf-8";
-      if (suffix != null)
-      {
-        suffix = suffix.trim();
-        if (suffix.startsWith("charset="))
-          encoding = suffix.substring("charset=".length());
-      }
+      String encoding = extractEncoding(contentType);
+      if (encoding == null)
+        encoding = "utf-8";
 
       InputStream is = cache.getData(documentURI);
       if (is == null)
@@ -6835,31 +6864,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         return;
       }
       // Grab the content-type so we know how to decode.
-      String encoding = "utf-8";
-      String contentType = cache.getContentType(documentURI);
-      // Some sites have multiple content types.  We just look at the LAST one in that case.
-      if (contentType != null)
-      {
-        String[] contentTypes = contentType.split(",");
-        if (contentTypes.length > 0)
-          contentType = contentTypes[contentTypes.length-1].trim();
-        else
-          contentType = null;
-      }
-
-      if (contentType != null)
-      {
-        int pos = contentType.indexOf(";");
-        if (pos != -1)
-        {
-          contentType = contentType.substring(pos+1).trim();
-          if (contentType.startsWith("charset="))
-          {
-            encoding = contentType.substring("charset=".length());
-          }
-        }
-      }
-
+      String contentType = extractContentType(cache.getContentType(documentURI));
+      String encoding = extractEncoding(contentType);
+      if (encoding == null)
+        encoding = "utf-8";
+      
       // Search for A HREF tags in the document stream.  This is brain-dead link location
       InputStream is = cache.getData(documentURI);
       if (is == null)
