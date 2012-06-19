@@ -22,40 +22,39 @@
         <title>ManifoldCF - Mailing Lists</title>
     </header>
     <body>
-	<section id="ACF Mailing Lists"><title>ManifoldCF Mailing Lists</title>
+	<section id="ManifoldCF Mailing Lists"><title>ManifoldCF Mailing Lists</title>
 		<p>The ManifoldCF project supports several mailing lists.</p>
 	</section>
 	<section id="user"><title>ManifoldCF User Mailing List</title>
 		<p>User questions on how to use ManifoldCF.</p>
 		<ul>
-			<li><a href="mailto:connectors-user-subscribe@incubator.apache.org">Subscribe</a></li>
-			<li><a href="mailto:connectors-user-unsubscribe@incubator.apache.org">Unsubscribe</a></li>
-			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-user/">Archive</a></li>
+			<li><a href="mailto:user-subscribe@manifoldcf.apache.org">Subscribe</a></li>
+			<li><a href="mailto:user-unsubscribe@manifoldcf.apache.org">Unsubscribe</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-user/">Archive</a></li>
 		</ul>
 	</section>
 	<section id="dev"><title>ManifoldCF Development Mailing List</title>
 		<p>Discussion on the development of the internals of ManifoldCF.</p>
 		<ul>
-			<li><a href="mailto:connectors-dev-subscribe@incubator.apache.org">Subscribe</a></li>
-			<li><a href="mailto:connectors-dev-unsubscribe@incubator.apache.org">Unsubscribe</a></li>
-			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-dev/">Archive</a></li>
+			<li><a href="mailto:dev-subscribe@manifoldcf.apache.org">Subscribe</a></li>
+			<li><a href="mailto:dev-unsubscribe@manifoldcf.apache.org">Unsubscribe</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-dev/">Archive</a></li>
 		</ul>
 	</section>
 	<section id="commits"><title>ManifoldCF Commits Mailing List</title>
 		<p>Commit messages</p>
 		<ul>
-			<li><a href="mailto:connectors-commits-subscribe@incubator.apache.org">Subscribe</a></li>
-			<li><a href="mailto:connectors-commits-unsubscribe@incubator.apache.org">Unsubscribe</a></li>
-			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-commits/">Archive</a></li>
+			<li><a href="mailto:commits-subscribe@manifoldcf.apache.org">Subscribe</a></li>
+			<li><a href="mailto:commits-unsubscribe@manifoldcf.apache.org">Unsubscribe</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-commits/">Archive</a></li>
 		</ul>
 	</section>
 		
 	<section id="archives"><title>ManifoldCF Email Archives</title>
 		<p>Emails sent to the group distributions are archived and accessible via the links below.</p>
 		<ul>
-			<li><a href="http://www.mail-archive.com/general@incubator.apache.org/index.html">general@incubator.apache.org</a></li>
-			<li><a href="http://www.mail-archive.com/connectors-dev@incubator.apache.org/index.html">connectors-dev@incubator.apache.org</a></li>
-			<li><a href="http://www.mail-archive.com/connectors-user@incubator.apache.org/index.html">connectors-user@incubator.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/dev@manifoldcf.apache.org/index.html">dev@incubator.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/user@manifoldcf.apache.org/index.html">user@incubator.apache.org</a></li>
 		</ul>
 	</section>
 

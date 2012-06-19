@@ -22,40 +22,39 @@
         <title>ManifoldCF - メーリングリスト</title>
     </header>
     <body>
-	<section id="ACF Mailing Lists"><title>ManifoldCFメーリングリスト</title>
+	<section id="ManifoldCF Mailing Lists"><title>ManifoldCFメーリングリスト</title>
 		<p>ManifoldCFプロジェクトには以下のメーリングリストがあります：</p>
 	</section>
 	<section id="user"><title>ユーザメーリングリスト</title>
 		<p>ManifoldCFの使い方</p>
 		<ul>
-			<li><a href="mailto:connectors-user-subscribe@incubator.apache.org">参加</a></li>
-			<li><a href="mailto:connectors-user-unsubscribe@incubator.apache.org">脱退</a></li>
-			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-user/">過去のメッセージ</a></li>
+			<li><a href="mailto:user-subscribe@manifoldcf.apache.org">参加</a></li>
+			<li><a href="mailto:user-unsubscribe@manifoldcf.apache.org">脱退</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-user/">過去のメッセージ</a></li>
 		</ul>
 	</section>
 	<section id="dev"><title>開発者メーリングリスト</title>
 		<p>ManifoldCFの開発について</p>
 		<ul>
-			<li><a href="mailto:connectors-dev-subscribe@incubator.apache.org">参加</a></li>
-			<li><a href="mailto:connectors-dev-unsubscribe@incubator.apache.org">脱退</a></li>
-			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-dev/">過去のメッセージ</a></li>
+			<li><a href="mailto:dev-subscribe@manifoldcf.apache.org">参加</a></li>
+			<li><a href="mailto:dev-unsubscribe@manifoldcf.apache.org">脱退</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-dev/">過去のメッセージ</a></li>
 		</ul>
 	</section>
 	<section id="commits"><title>コミットメーリングリスト</title>
 		<p>コミットメッセージ</p>
 		<ul>
-			<li><a href="mailto:connectors-commits-subscribe@incubator.apache.org">参加</a></li>
-			<li><a href="mailto:connectors-commits-unsubscribe@incubator.apache.org">脱退</a></li>
-			<li><a href="http://mail-archives.apache.org/mod_mbox/incubator-connectors-commits/">過去のメッセージ</a></li>
+			<li><a href="mailto:commits-subscribe@manifoldcf.apache.org">参加</a></li>
+			<li><a href="mailto:commits-unsubscribe@manifoldcf.apache.org">脱退</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-commits/">過去のメッセージ</a></li>
 		</ul>
 	</section>
 		
 	<section id="archives"><title>過去のメッセージ</title>
 		<p>過去のメッセージは以下のリンクから参照することができます：</p>
 		<ul>
-			<li><a href="http://www.mail-archive.com/general@incubator.apache.org/index.html">general@incubator.apache.org</a></li>
-			<li><a href="http://www.mail-archive.com/connectors-dev@incubator.apache.org/index.html">connectors-dev@incubator.apache.org</a></li>
-			<li><a href="http://www.mail-archive.com/connectors-user@incubator.apache.org/index.html">connectors-user@incubator.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/dev@manifoldcf.apache.org/index.html">dev@manifoldcf.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/user@manifoldcf.apache.org/index.html">user@manifoldcf.apache.org</a></li>
 		</ul>
 	</section>
 
