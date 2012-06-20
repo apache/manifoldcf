@@ -77,7 +77,7 @@ public class Factory
   
   public static class ClassDescription
   {
-    public static com.filenet.api.meta.ClassDescription fetchInstance(com.filenet.api.core.ObjectStore os, String className, PropertyFilter filter)
+    public static com.filenet.api.meta.ClassDescription fetchInstance(com.filenet.api.core.Scope scope, String className, PropertyFilter filter)
     {
       return null;
     }

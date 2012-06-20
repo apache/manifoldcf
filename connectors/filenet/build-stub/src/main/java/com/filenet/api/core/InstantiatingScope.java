@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: Folder.java 1342461 2012-05-24 22:02:53Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -20,7 +20,6 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface ObjectStore extends InstantiatingScope
+public interface InstantiatingScope extends Scope
 {
-  public Folder get_RootFolder();
 }
