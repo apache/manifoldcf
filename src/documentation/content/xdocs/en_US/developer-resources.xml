@@ -25,10 +25,13 @@
 
     <section id="source">
 	<title>Source Code</title>
-	<p>The source files are stored using Subversion (see <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> and <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)
-	</p>
+	<p>The source files are stored using Subversion (see <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> and <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)</p>
 	<p>
 	    <code>svn checkout http://svn.apache.org/repos/asf/manifoldcf/trunk mcf-trunk</code>
+	</p>
+	<p>A read-only Git hub is also available for those who use Git.   The URL for Git is:</p>
+	<p>
+	    <code>git://git.apache.org/manifoldcf.git</code>
 	</p>
     </section>
 
