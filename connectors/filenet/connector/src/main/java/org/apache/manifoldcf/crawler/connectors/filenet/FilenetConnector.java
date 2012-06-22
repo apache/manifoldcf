@@ -2046,9 +2046,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           int j = 0;
           while (j < childList.length)
           {
-            String folder = org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList[j]);
+            String attrFolder = org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList[j]);
+            String bodyFolder = org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList[j]);
             out.print(
-"              <option value=\""+folder+"\">"+folder+"</option>\n"
+"              <option value=\""+attrFolder+"\">"+bodyFolder+"</option>\n"
             );
             j++;
           }
