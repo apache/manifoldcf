@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-484: The FileNet connector UI has been broken since
+the i18n work was done on it.
+(Joe Becknell, Karl Wright)
+
 CONNECTORS-472: Make changes related to graduation.
 (Karl Wright)
 

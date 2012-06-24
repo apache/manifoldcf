@@ -1884,7 +1884,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (editjob.pathaddon.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFolderFirst") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFolderFirst") + "\");\n"+
 "    editjob.pathaddon.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -1895,13 +1895,13 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (eval(\"editjob.matchfield_\"+docclass+\".value\") == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFieldFirst") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAFieldFirst") + "\");\n"+
 "    eval(\"editjob.matchfield_\"+docclass+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
 "  if (eval(\"editjob.matchtype_\"+docclass+\".value\") == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAMatchType") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.SelectAMatchType") + "\");\n"+
 "    eval(\"editjob.matchtype_\"+docclass+\".focus()\");\n"+
 "    return;\n"+
 "  }\n"+
@@ -1913,7 +1913,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "{\n"+
 "  if (editjob.spectoken.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"FilenetConnector.NullTokensNotAllowed") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"FilenetConnector.NullTokensNotAllowed") + "\");\n"+
 "    editjob.spectoken.focus();\n"+
 "    return;\n"+
 "  }\n"+
@@ -2035,7 +2035,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
 "          <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FilenetConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.AddPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Add\",\"path_"+Integer.toString(k+1)+"\")'/>\n"+
 "          &nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"
         );
-        if (pathSoFar.length() > 0)
+        if (pathSoFar.length() > 0 && !pathSoFar.equals("/"))
         {
           out.print(
 "          <input type=\"button\" value=\"-\" alt=\"" + Messages.getAttributeString(locale,"FilenetConnector.RemoveFromPath") + "\" onClick='Javascript:SpecOp(\"pathop\",\"Up\",\"path_"+Integer.toString(k)+"\")'/>\n"
