@@ -7,6 +7,10 @@ CONNECTORS-484: The FileNet connector UI has been broken since
 the i18n work was done on it.
 (Joe Becknell, Karl Wright)
 
+CONNECTORS-461: Mime types and document length restrictions and
+commit option for Solr output connector need documentation
+(Erlend Garåsen)
+
 CONNECTORS-483: Add NTLM proxy support for Web Connector.
 (Karl Wright)
 

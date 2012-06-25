@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <!--
  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -324,7 +324,7 @@
                 <title>Solr出力コネクション</title>
                 <p>Solr出力コネクションタイプは、Solr HTTP APIを介してSolrにコンテンツを送ります。コネクションはSolrのデフォルト値にデフォルトで設定されます。Solrコネクションは索引可否に関係なく、すべてのコンテンツを処理します。設定されたパイプラインがコンテンツを利用するか判断するはずです。</p>
                 <p>ただし、すべてのコンテンツが送られるため映像のような大きなファイルもフィルタを設定しないと送られてしまい、システムに大きな負荷を掛けてしまいます。不足／間違っている設定を発見してこのような問題を回避するために、Solrコネクションのすべてのクロール結果をレビューすることを推奨します。</p>
-                <p>Solr出力コネクションを選択すると、3つのタブが表示されます。「サーバ」タブからHTTPターゲットを指定することができます：</p>
+                <p>Solr出力コネクションを選択すると、5つのタブが表示されます。「サーバ」タブからHTTPターゲットを指定することができます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/solr-configure-server_ja_JP.PNG" alt="Solr Configuration, Server tab" width="80%"/>
                 <br/><br/>
@@ -333,11 +333,17 @@
                 <br/><br/>
                 <figure src="images/ja_JP/solr-configure-schema_ja_JP.PNG" alt="Solr Configuration, Schema tab" width="80%"/>
                 <br/><br/>
-                <p>「引数」タブからはSolrに送る任意の引数を指定することができます。Solrの更新リクエストに利用できる任意の引数を利用することができます。例えば、<a href="http://wiki.apache.org/solr/CommitWithin">commitWithin=60000</a>はコンテンツを最大遅延60000msで自動的にコミットするように指定します。<a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a>はSolrでコンテンツを処理するパイプライン／チェインを指定します。その他に指定可能な引数に付いてはSolrのマニュアルを参照にしてください。タブは以下のように表示されます：</p>
+                <p>「引数」タブからはSolrに送る任意の引数を指定することができます。Solrの更新リクエストに利用できる任意の引数を利用することができます。あなたは、たとえば、Solrのドキュメントを処理するために使用する文書処理パイプライン/チェーンを選択するupdate.chain= myChainを追加することができます。その他に指定可能な引数に付いてはSolrのマニュアルを参照にしてください。タブは以下のように表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/solr-configure-arguments_ja_JP.PNG" alt="Solr Configuration, Arguments tab" width="80%"/>
                 <br/><br/>
                 <p>引数名と値を入力して、「追加」ボタンを押下してください。名前が既に存在する場合は、既存の値は新しく指定した値で置き換わります。引数を削除する場合は、削除する引数の左に表示されている「削除」ボタンを押下してください。</p>
+                <p>4番目のタブは、ドキュメントのサイズやMIMEタイプに基づいてフィルタリングを行うことができます"ドキュメント"タブです。バイト単位の最大ドキュメントの長さを指定することによって、あなたはそのサイズ（10 MBと同等です例えば10485760）を超えてドキュメントをフィルタリングすることができます。あなたが特定のMIMEタイプを使用してドキュメントを追加したい場合は、（すべての文書が、HTMLをフィルタリングするために必要な、例えば "text / htmlの"）"が含まれてMIMEタイプ"フィールドにそれらを入力することができます。 "MIMEタイプの除外"フィールドは、特定のMIMEタイプ（JPEG画像をフィルタリングする例： "image / jpeg"に）を使って文書を除くためのものです。タブは以下のように表示されます：</p>
+                <figure src="images/ja_JP/solr-configure-documents_ja_JP.PNG" alt="Solr Configuration, Documents tab" width="80%"/>
+                <br/><br/>
+                <p>5番目のタブでは、コミットの戦略を制御することができます"コミット"タブです。同様にすべてのジョブの終了時にドキュメントをコミットするように、デフォルトで有効になっているオプションは、また、ミリ秒単位で一定時間（10秒以内にコミット例えば"10000"）内の各ドキュメントをコミットすることができます。戦略にコミットではなくManifoldCFのSolrに責任を残します。あなたはSolrの出力接続を作成するときに、5つのコンフィギュレーションタブが表示されます。</p>
+                <figure src="images/ja_JP/solr-configure-commits_ja_JP.PNG" alt="Solr Configuration, Documents tab" width="80%"/>
+                <br/><br/>
                 <p>設定の入力を完了した場合は、「保存」ボタンを押下してください。次のような入力した設定一覧が表示します：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/solr-status_ja_JP.PNG" alt="Solr Status" width="80%"/>

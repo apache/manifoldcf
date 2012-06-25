@@ -438,7 +438,7 @@
                 <p>Unfortunately, this lack of specificity comes at a cost.  Unless you take care to filter documents properly in each job, large movie files or other opaque
                        content may well be picked up and sent to Solr for indexing, which will greatly increase the dead load on the overall system.  It is therefore a good idea to review
                        all crawls done through a Solr connection while they are underway, to be sure there isn't a misconfiguration of this kind.</p>
-                <p>When you create a Solr output connection, three configuration tabs appear.  The "Server" tab allows you to configure the HTTP target of the connection:</p>
+                <p>When you create a Solr output connection, five configuration tabs appear.  The "Server" tab allows you to configure the HTTP target of the connection:</p>
                 <br/><br/>
                 <figure src="images/en_US/solr-configure-server.PNG" alt="Solr Configuration, Server tab" width="80%"/>
                 <br/><br/>
@@ -450,14 +450,19 @@
                 <figure src="images/en_US/solr-configure-schema.PNG" alt="Solr Configuration, Schema tab" width="80%"/>
                 <br/><br/>
                 <p>The third tab is the "Arguments" tab, which allows you to specify arbitrary arguments to be sent to Solr. All valid Solr update request parameters
-                       can be specified here. A popular example is <a href="http://wiki.apache.org/solr/CommitWithin">commitWithin=60000</a>, which tells Solr to automatically commit documents behind the scenes, ensuring
-                       an indexing latency of maximum 60000ms (1m). Another example is <a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a> to select the document processing pipeline/chain to use for
+                       can be specified here. You can for instance add <a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a> to select the document processing pipeline/chain to use for
                        processing documents in Solr. See the Solr documentation for more valid arguments. The tab looks like:</p>
                 <br/><br/>
                 <figure src="images/en_US/solr-configure-arguments.PNG" alt="Solr Configuration, Arguments tab" width="80%"/>
                 <br/><br/>
                 <p>Fill in the argument name and value, and click the "Add" button.  Bear in mind that if you add an argument with the same name as an existing one, it will replace the
                        existing one with the new specified value.  You can delete existing arguments by clicking the "Delete" button next to the argument you want to delete.</p>
+                <p>The fourth tab is the "Documents" tab, which allows you to do document filtering based on size and mime types. By specifying a maximum document length in bytes, you can filter out documents which exceed that size (e.g. 10485760 which is equivalent to 10 MB). If you only want to add documents with specific mime types, you can enter them into the "included mime types" field (e.g. "text/html" for filtering out all documents but HTML). The "excluded mime types" field is for excluding documents with specific mime types (e.g. "image/jpeg" for filtering out JPEG images). The tab looks like:</p>
+                <figure src="images/en_US/solr-configure-documents.PNG" alt="Solr Configuration, Documents tab" width="80%"/>
+                <br/><br/>
+                <p>The fifth tab is the "Commits" tab, which allows you to control the commit strategies. As well as committing documents at the end of every job, an option which is enabled by default, you may also commit each document within a certain time in milliseconds (e.g. "10000" for committing within 10 seconds). The <a href="http://wiki.apache.org/solr/CommitWithin">commit within</a> strategy will leave the responsibility to Solr instead of ManifoldCF. The tab looks like:</p>
+                <figure src="images/en_US/solr-configure-commits.PNG" alt="Solr Configuration, Documents tab" width="80%"/>
+                <br/><br/>
                 <p>When you are done, don't forget to click the "Save" button to save your changes!  When you do, a connection summary and status screen will be presented, which
                        may look something like this:</p>
                 <br/><br/>
