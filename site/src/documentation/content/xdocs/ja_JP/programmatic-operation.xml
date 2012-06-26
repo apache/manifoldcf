@@ -35,56 +35,87 @@
       <section>
         <title>Control by Servlet API</title>
         <p></p>
-        <p>ManifoldCF provides a servlet-based JSON API that gives you the complete ability to define connections and jobs, and control job execution.  You can read about JSON <a href="http://www.json.org">here</a>.  The API is designed to be RESTful in character.  Thus, it makes full use of the HTTP verbs GET, PUT, POST, and DELETE, and represents objects as URLs.  The basic format of the JSON servlet resource URLs is as follows:</p>
-        <p></p>
-        <p>http[s]://<em>&lt;server_and_port&gt;</em>/mcf-api-service/json/<em>&lt;resource&gt;</em></p>
-        <p></p>
-        <p>The servlet ignores request data, except when the PUT or POST verb is used.  In that case, the request data is presumed to be a JSON object.  The servlet responds either with an error response code (either 400 or 500) with an appropriate explanatory message, or with a 200 (OK), 201 (CREATED), or 404 (NOT FOUND) response code along with a response JSON object.</p>
-        <p></p>
-        <p>The actual available resources and commands are as follows:</p>
-        <p></p>
-        <p></p>
-        <p></p>
-        <table>
-          <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format</th><th>Output format</th></tr>
-          <tr><td>outputconnectors</td><td>GET</td><td>List all registered output connectors</td><td>N/A</td><td>{"outputconnector":[<em>&lt;list_of_output_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>authorityconnectors</td><td>GET</td><td>List all registered authority connectors</td><td>N/A</td><td>{"authorityconnector":[<em>&lt;list_of_authority_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>repositoryconnectors</td><td>GET</td><td>List all registered repository connectors</td><td>N/A</td><td>{"repositoryconnector":[<em>&lt;list_of_repository_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>outputconnections</td><td>GET</td><td>List all output connections</td><td>N/A</td><td>{"outputconnection":[<em>&lt;list_of_output_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific output connection</td><td>N/A</td><td>{"outputconnection":<em>&lt;output_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create an output connection</td><td>{"outputconnection":<em>&lt;output_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete an output connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>status/outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of an output connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>info/outputconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>reset/outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Forget previous indexing state</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>authorityconnections</td><td>GET</td><td>List all authority connections</td><td>N/A</td><td>{"authorityconnection":[<em>&lt;list_of_authority_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific authority connection</td><td>N/A</td><td>{"authorityconnection":<em>&lt;authority_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create an authority connection</td><td>{"authorityconnection":<em>&lt;authority_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete an authority connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>status/authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of an authority connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>repositoryconnections</td><td>GET</td><td>List all repository connections</td><td>N/A</td><td>{"repositoryconnection":[<em>&lt;list_of_repository_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific repository connection</td><td>N/A</td><td>{"repositoryconnection":<em>&lt;repository_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create a repository connection</td><td>{"repositoryconnection":<em>&lt;repository_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete a repository connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>status/repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of a repository connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>info/repositoryconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobs</td><td>GET</td><td>List all job definitions</td><td>N/A</td><td>{"job":[<em>&lt;list_of_job_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobs</td><td>POST</td><td>Create a job</td><td>{"job":<em>&lt;job_object&gt;</em>}</td><td>{"job_id":<em>&lt;job_identifier&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobs/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job definition</td><td>N/A</td><td>{"job":<em>&lt;job_object_&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobs/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Save a job definition</td><td>{"job":<em>&lt;job_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobs/<em>&lt;job_id&gt;</em></td><td>DELETE</td><td>Delete a job definition</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobstatuses</td><td>GET</td><td>List all jobs and their status</td><td>N/A</td><td>{"jobstatus":[<em>&lt;list_of_job_status_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>jobstatuses/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job's status</td><td>N/A</td><td>{"jobstatus":<em>&lt;job_status_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} </td></tr>
-          <tr><td>jobstatusesnocounts/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job's status, returning '0' for all counts</td><td>N/A</td><td>{"jobstatus":<em>&lt;job_status_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} </td></tr>
-          <tr><td>start/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Start a specified job manually</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>abort/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Abort a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>restart/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Stop and start a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>pause/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Pause a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-          <tr><td>resume/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Resume a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
-        </table>
-        <p></p>
-        <p>Other resources having to do with reports have been planned, but not yet been implemented.</p>
-        <p></p>
+        <p>ManifoldCF provides a servlet-based JSON API that gives you the complete ability to define connections and jobs, and control job execution.  You can read
+          about JSON <a href="http://www.json.org">here</a>.  The API is designed to be RESTful in character.  Thus, it makes full use of the HTTP verbs
+          GET, PUT, POST, and DELETE, and represents objects as URLs.</p>
+        <section>
+          <title>URL format</title>
+          <p></p>
+          <p>The basic format of the JSON servlet resource URLs is as follows:</p>
+          <p></p>
+          <p>http[s]://<em>&lt;server_and_port&gt;</em>/mcf-api-service/json/<em>&lt;resource&gt;</em></p>
+          <p></p>
+          <p>The servlet ignores request data, except when the PUT or POST verb is used.  In that case, the request data is presumed to be a JSON object.  The servlet
+            responds either with an error response code (either 400 or 500) with an appropriate explanatory message, or with a 200 (OK), 201 (CREATED), or 404 (NOT FOUND)
+            response code along with a response JSON object.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>JSON equivalents for ManifoldCF</title>
+          <p></p>
+          <p>ManifoldCF treats certain JSON forms as equivalent, for the purposes of readability.  For example, the array form <strong>"foo" : [ { ... } ]</strong> is treated equivalently to
+            <strong>"foo" : { }</strong>, whenever there is only one array element.  This gives a coder some flexibility as to how s/he encodes JSON in requests.  Please also be aware that
+            similar compressions will occur in the JSON responses from the API servlet, and your code must be able to deal with this possibility.  The following table
+            describes some of the equivalences:</p>
+          <p></p>
+          <p></p>
+          <p></p>
+          <table>
+            <tr><th>Form</th><th>Equivalent</th></tr>
+            <tr><td>[ { ... } ]</td><td>{ ... }</td></tr>
+            <tr><td>"foo" : { "_value_" : "bar" }</td><td>"foo" : "bar"</td></tr>
+            <tr><td>"_children_" : [ "foo":{ ... }, "foo":{ ... } ]</td><td>"foo" : [ { ... }, { ... } ]</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>Resources and commands</title>
+          <p></p>
+          <p>The actual available resources and commands are as follows:</p>
+          <p></p>
+          <p></p>
+          <p></p>
+          <table>
+            <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format</th><th>Output format</th></tr>
+            <tr><td>outputconnectors</td><td>GET</td><td>List all registered output connectors</td><td>N/A</td><td>{"outputconnector":[<em>&lt;list_of_output_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authorityconnectors</td><td>GET</td><td>List all registered authority connectors</td><td>N/A</td><td>{"authorityconnector":[<em>&lt;list_of_authority_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnectors</td><td>GET</td><td>List all registered repository connectors</td><td>N/A</td><td>{"repositoryconnector":[<em>&lt;list_of_repository_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>outputconnections</td><td>GET</td><td>List all output connections</td><td>N/A</td><td>{"outputconnection":[<em>&lt;list_of_output_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific output connection</td><td>N/A</td><td>{"outputconnection":<em>&lt;output_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create an output connection</td><td>{"outputconnection":<em>&lt;output_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete an output connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>status/outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of an output connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>info/outputconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>reset/outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Forget previous indexing state</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authorityconnections</td><td>GET</td><td>List all authority connections</td><td>N/A</td><td>{"authorityconnection":[<em>&lt;list_of_authority_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific authority connection</td><td>N/A</td><td>{"authorityconnection":<em>&lt;authority_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create an authority connection</td><td>{"authorityconnection":<em>&lt;authority_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete an authority connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>status/authorityconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of an authority connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnections</td><td>GET</td><td>List all repository connections</td><td>N/A</td><td>{"repositoryconnection":[<em>&lt;list_of_repository_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific repository connection</td><td>N/A</td><td>{"repositoryconnection":<em>&lt;repository_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create a repository connection</td><td>{"repositoryconnection":<em>&lt;repository_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete a repository connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>status/repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of a repository connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>info/repositoryconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobs</td><td>GET</td><td>List all job definitions</td><td>N/A</td><td>{"job":[<em>&lt;list_of_job_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobs</td><td>POST</td><td>Create a job</td><td>{"job":<em>&lt;job_object&gt;</em>}</td><td>{"job_id":<em>&lt;job_identifier&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobs/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job definition</td><td>N/A</td><td>{"job":<em>&lt;job_object_&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobs/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Save a job definition</td><td>{"job":<em>&lt;job_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobs/<em>&lt;job_id&gt;</em></td><td>DELETE</td><td>Delete a job definition</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobstatuses</td><td>GET</td><td>List all jobs and their status</td><td>N/A</td><td>{"jobstatus":[<em>&lt;list_of_job_status_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>jobstatuses/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job's status</td><td>N/A</td><td>{"jobstatus":<em>&lt;job_status_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} </td></tr>
+            <tr><td>jobstatusesnocounts/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job's status, returning '0' for all counts</td><td>N/A</td><td>{"jobstatus":<em>&lt;job_status_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} </td></tr>
+            <tr><td>start/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Start a specified job manually</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>abort/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Abort a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>restart/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Stop and start a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>pause/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Pause a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>resume/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Resume a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+          </table>
+          <p></p>
+          <p>Other resources having to do with reports have been planned, but not yet been implemented.</p>
+          <p></p>
+        </section>
         <section>
           <title>Output connector objects</title>
           <p></p>

@@ -3,12 +3,17 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-99: Improve documentation for JSON in REST services so
+that syntactic simplifications made by ManifoldCF are spelled out.
+(Karl Wright)
+
 CONNECTORS-474: Make it possible to build a complete release candidate
 and site javadoc without requiring any proprietary libraries or interface
 code installed.  This is accomplished by: (a) including stub non-proprietary
 classes that can be compiled against, and (b) including WSDLs and XSDs
 generated from proprietary .NET libraries, but which are not proprietary
 themselves (according to LEGAL-137).
+(Karl Wright)
 
 CONNECTORS-484: The FileNet connector UI has been broken since
 the i18n work was done on it.
