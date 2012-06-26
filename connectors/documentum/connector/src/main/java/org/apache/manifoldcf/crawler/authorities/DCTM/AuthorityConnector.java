@@ -183,6 +183,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -299,6 +301,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -425,6 +429,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -678,6 +684,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
               throw (RemoteException)thr;
             else if (thr instanceof DocumentumException)
               throw (DocumentumException)thr;
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
             else
               throw (Error)thr;
           }
@@ -747,6 +755,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
               throw (RemoteException)thr;
             else if (thr instanceof DocumentumException)
               throw (DocumentumException)thr;
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException)thr;
             else
               throw (Error)thr;
           }
@@ -922,6 +932,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
             throw (RemoteException)thr;
           else if (thr instanceof DocumentumException)
             throw (DocumentumException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }

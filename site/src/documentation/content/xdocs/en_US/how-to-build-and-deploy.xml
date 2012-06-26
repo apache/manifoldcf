@@ -41,19 +41,26 @@
         <ol>
           <li>Check out the desired release from https://svn.apache.org/repos/asf/manifoldcf/tags, or unpack the desired source distribution.</li>
           <li>cd to the top-level directory.</li>
-          <li>EITHER: overlay the lib directory from the corresponding lib distribution (preferred), OR run "ant make-core-deps" to build the code dependencies.</li>
+          <li><strong>EITHER:</strong> overlay the lib directory from the corresponding lib distribution (preferred), <strong>OR</strong> run "ant make-core-deps" to build the code dependencies.</li>
           <li>Run "ant make-deps", to download LGPL and other open source but non-Apache compatible libraries.</li>
-          <li>Install desired dependent proprietary libraries, wsdls, and xsds.  See below for details.</li>
+          <li>Install proprietary build dependencies.  See below for details.</li>
           <li>Run "ant build".</li>
+          <li>Install desired dependent proprietary libraries.  See below for details.</li>
         </ol>
         <p></p>
-        <p>If you do not run the ant "make-deps" target, and you supply <strong>no</strong> LGPL or proprietary libraries, the framework itself and only the following repository connectors will be built:</p>
+        <p>If you do not run the ant "make-deps" target, and you supply <strong>NO</strong> LGPL or proprietary libraries, not all capabilities of ManifoldCF will be available.
+            The framework itself and the following repository connectors will be built:</p>
         <p></p>
         <ul>
           <li>CMIS connector</li>
+          <li>Documentum connector, built against a Documentum API stub</li>
+          <li>FileNet connector, built against a FileNet API stub</li>
           <li>Filesystem connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
+          <li>LiveLink connector, built against a LiveLink API stub</li>
+          <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
+          <li>SharePoint connector, built against SharePoint API WSDLs</li>
           <li>Webcrawler connector</li>
           <li>Wiki connector</li>
         </ul>
@@ -63,6 +70,8 @@
         <ul>
           <li>Active Directory authority</li>
           <li>CMIS authority</li>
+          <li>Documentum authority</li>
+          <li>LiveLink authority</li>
           <li>Null authority connector</li>
         </ul>
         <p></p>
@@ -76,7 +85,7 @@
           <li>Null output connector</li>
         </ul>
         <p></p>
-        <p>The LGPL and proprietary connector dependencies are described in separate sections below.</p>
+        <p>Each individual LGPL and proprietary connector's dependencies and build limitations are described in separate sections below.</p>
         <p></p>
         <p>The output of the ant build is produced in the <em>dist</em> directory, which is further broken down by process.  (The number of produced <em>xxx-process</em> directories may vary, because optional individual connectors do sometimes supply processes that must be run to support the connector.)  See the table below for a description of the <em>dist</em> folder.</p>
         <p></p>
@@ -145,11 +154,12 @@
         <p></p>
         <p>The basic multiprocess command scripts will be placed in the <em>processes</em> subdirectory.  The script for executing commands is <em>processes/executecommand[.sh|.bat]</em>.
             This script requires two environment variables to be set before execution: JAVA_HOME, and MCF_HOME, which should point to ManifoldCF's home execution directory, where the <em>properties.xml</em> file is found.)</p>
+            
         <section>
           <title>Building and testing the Alfresco connector</title>
           <p></p>
           <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. Place this jar into the directory <em>connectors/alfresco/lib-proprietary</em> before you build.
-              This will occur automatically if you execute the ant target "download-dependencies" from the ManifoldCF root directory.</p>
+              This will occur automatically if you execute the ant target "make-deps" from the ManifoldCF root directory.</p>
           <p></p>
           <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder)
               into the <em>connectors/alfresco/test-materials-proprietary</em> folder.  Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
@@ -157,106 +167,75 @@
         </section>
         
         <section>
-          <title>Building the Documentum connector</title>
+          <title>Building and running the Documentum connector</title>
           <p></p>
-          <p>The Documentum connector requires EMC's DFC product in order to be built.  Install DFC on the build system, and locate the jars it installs.  You will need to copy at least dfc.jar, dfcbase.jar,
-              and dctm.jar into the directory <em>connectors/documentum/lib-proprietary</em>.</p>
-          <p></p>
-        </section>
-        
-        <section>
-          <title>Building the FileNet connector</title>
-          <p></p>
-          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be build.  Install the FileNet P8 API on the build system, and copy at least "Jace.jar" from that installation
-              into <em>connectors/filenet/lib-proprietary</em>.</p>
+          <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.  After building, you must install DFC on the build system, and locate the jars it installs.  Copy
+              these jars to the directory <em>dist/documentum-server-process/lib-proprietary</em>.</p>
+          <p>For a binary distribution, copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
+          <p>If you have done everything right, you should be able to start the Documentum connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the JDBC connector, including Oracle, MSSQL, MySQL, SQLServer, and Sybase JDBC drivers</title>
+          <title>Building and running the FileNet connector</title>
           <p></p>
-          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  In order to support these databases, start by placing the mysql-connector-java.jar,
-            the jtds.jar, and the ojdbc.jar in the <em>lib-proprietary</em> directory.  The ant target "download-dependencies" will do this for you automatically.  For Oracle, download the appropriate
+          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is built against a set of stub classes.  After building, install the FileNet P8 API on your system,
+              and copy "Jace.jar" and the other dependent jars from that installation into <em>dist/filenet-server-process/lib-proprietary</em>.</p>
+          <p>If you have downloaded a binary distribution, place the jar in <em>filenet-server-process/lib-proprietary</em>.</p>
+          <p>If correctly done, you will be able to start the FileNet connector's registry and server processes, as per the instructions.</p>
+          <p></p>
+        </section>
+        
+        <section>
+          <title>Building and running the JDBC connector, including Oracle, MSSQL, MySQL, SQLServer, and Sybase JDBC drivers</title>
+          <p></p>
+          <p>The JDBC connector also knows how to work with Oracle, SQLServer, and Sybase JDBC drivers.  In order to support these databases, start by placing the mysql-connector-java.jar
+            and the jtds.jar in the <em>lib-proprietary</em> directory.  The ant target "make-deps" will do this for you automatically.  For Oracle, download the appropriate
             Oracle JDBC jar from the Oracle site, and copy it into the same directory before you build ManifoldCF.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the jCIFS connector</title>
+          <title>Building and running the jCIFS/Windows Shares connector</title>
           <p></p>
           <p>To build this connector, you need to download jcifs.jar from <a href="http://jcifs.samba.org">http://jcifs.samba.org</a>, and copy it into the <em>connectors/jcifs/lib-proprietary</em>
-              directory.  You can also just type "ant download-dependencies" from the root ManifoldCF directory and this step will be done for you.</p>
+              directory before building.  You can also just type "ant make-deps" from the root ManifoldCF directory and this step will be done for you.</p>
+          <p>If you have downloaded a binary distribution, place the jcifs.jar into the <em>connector-lib-proprietary</em> directory, and uncomment the Windows Shares line in the <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
         
         <section>
-          <title>Building the LiveLink connector</title>
+          <title>Building and running the LiveLink connector</title>
           <p></p>
-          <p>This connector needs LAPI, which is a proprietary java library that allows access to OpenText's LiveLink server.  Copy the lapi.jar into the <em>connectors/livelink/lib-proprietary</em>
-              directory.</p>
-          <p></p>
-        </section>
-        
-        <section>
-          <title>Building the Memex connector</title>
-          <p></p>
-          <p>This connector needs the Memex API jar, usually called JavaMXIELIB.jar.  Copy this jar into the <em>connectors/memex/lib-proprietary</em> directory.</p>
+          <p>This connector needs OpenText's LAPI package in order to be run, but is built against a set of stubs.  After building, copy the lapi.jar into the <em>dist/connector-lib-proprietary</em>
+              directory, and uncomment the LiveLink-related connector lines in <em>dist/connectors.xml</em>.</p>
+          <p>If you have downloaded a binary distribution, place the jar in <em>connector-lib-proprietary</em>, and modify the <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
         
         <section>
           <title>Building the Meridio connector</title>
           <p></p>
-          <p>The Meridio connector needs wsdls and xsds downloaded from an installed Meridio instance using <strong>disco.exe</strong>, which is installed as part of
-              Microsoft Visual Studio, typically under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".  Obtain the preliminary wsdls and xsds by interrogating the
-              following Meridio web services:</p>
+          <p>The Meridio connector generates interface classes using checked-in wsdls and xsds originally obtained
+              from an installed Meridio instance using <strong>disco.exe</strong>, and subsequently modified to work
+              around limitations in Apache Axis.  The <strong>disco.exe</strong> utility is installed as part of
+              Microsoft Visual Studio, and is typically found under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".
+              If desired, you can obtain unmodified wsdls and xsds by interrogating the following Meridio web services:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;meridio_server&#62;/DMWS/MeridioDMWS.asmx</li>
              <li>http[s]://&#60;meridio_server&#62;/RMWS/MeridioRMWS.asmx</li>
           </ul>
           <p></p>
-          <p>You should have obtained the following files in this step:</p>
-          <p></p>
-          <ul>
-             <li>MeridioDMWS.wsdl</li>
-             <li>MeridioRMWS.wsdl</li>
-             <li>DMDataSet.xsd</li>
-             <li>RMDataSet.xsd</li>
-             <li>RMClassificationDataSet.xsd</li>
-          </ul>
-          <p></p>
-          <p>Next, patch these using Microsoft's <strong>xmldiffpatch</strong> utility suite, downloadable for Windows from
-              <a href="http://msdn.microsoft.com/en-us/library/aa302294.aspx">http://msdn.microsoft.com/en-us/library/aa302294.aspx</a>.  The appropriate diff files to apply as patches can
-              be found in <em>connectors/meridio/lib-proprietary</em>.  After the patching, rename so that you have the files:</p>
-          <p></p>
-          <ul>
-             <li>MeridioDMWS_axis.wsdl</li>
-             <li>MeridioRMWS_axis.wsdl</li>
-             <li>DMDataSet_castor.xsd</li>
-             <li>RMDataSet_castor.xsd</li>
-             <li>RMClassificationDataSet_castor.xsd</li>
-          </ul>
-          <p></p>
-          <p>Finally, copy all of these to <em>connectors/meridio/lib-proprietary</em>.</p>
-          <p></p>
         </section>
         
         <section>
           <title>Building the SharePoint connector</title>
           <p></p>
-          <p>In order to build this connector, you need to download wsdls from an installed SharePoint instance.  The wsdls in question are:</p>
-          <p></p>
-          <ul>
-             <li>Permissions.wsdl</li>
-             <li>Lists.wsdl</li>
-             <li>Dspsts.wsdl</li>
-             <li>usergroup.wsdl</li>
-             <li>versions.wsdl</li>
-             <li>webs.wsdl</li>
-          </ul>
-          <p></p>
-          <p>To download a wsdl, use Microsoft's <strong>disco.exe</strong> tool, which is part of Microsoft's Visual Studio, typically under <em>c:\Program Files\Microsoft SDKs\Windows\V6.x\bin</em>.  You'd want to interrogate the following urls:</p>
+          <p>The SharePoint connector generates interface classes using checked-in wsdls originally obtained
+            from an installed Microsoft SharePoint instance using <strong>disco.exe</strong>.  The <strong>disco.exe</strong> utility is installed as part of
+            Microsoft Visual Studio, and is typically found under "c:\Program Files\Microsoft SDKs\Windows\V6.x\bin".
+            If desired, you can obtain unmodified wsdls by interrogating the following SharePoint web services:</p>
           <p></p>
           <ul>
              <li>http[s]://&#60;server_name&#62;/_vti_bin/Permissions.asmx</li>
@@ -267,13 +246,8 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>When the wsdl files have been downloaded, copy them to the directory <em>connectors/sharepoint/lib-proprietary</em> before building.</p>
-          <p></p>
-          <p>The wsdl files download will be done automatically if you type "ant download-dependencies" from the root directory.</p>
-          <p></p>
           <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.  This service can be found in the directory <em>dist/sharepoint-integration</em> after ManifoldCF is built.
             To install it on your SharePoint 3.0 machine, follow the directions in the file <strong>Installation Readme.txt</strong>, found in that directory.</p>
-          <p></p>
           <p></p>
         </section>
         

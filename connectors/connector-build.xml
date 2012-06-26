@@ -70,6 +70,7 @@
             <include name="commons-discovery*.jar"/>
         </fileset>
         <fileset dir="../../framework/build/jar"/>
+        <pathelement location="build/stubclasses"/>
         <pathelement location="build/wsdlclasses"/>
         <pathelement location="build/xsdclasses"/>
         <pathelement location="build/interface/classes"/>
@@ -104,6 +105,7 @@
 
     <path id="implementation-classpath">
         <path refid="mcf-connector-build.implementation-classpath"/>
+        <pathelement location="build/stubclasses"/>
     </path>
 
     <path id="mcf-connector-build.interface-classpath">
@@ -124,6 +126,18 @@
     <target name="precompile-check" depends="calculate-condition" unless="canBuild"/>
 
     <target name="pretest-check" depends="calculate-testcode-condition" unless="canTest"/>
+
+    <target name="has-stubs-check" depends="precompile-check" if="canBuild">
+        <available file="build-stub/src/main/java" property="hasStubs"/>
+    </target>
+    
+    <target name="compile-stubs" depends="has-stubs-check" if="hasStubs">
+        <mkdir dir="build/stubclasses"/>
+        <javac srcdir="build-stub/src/main/java" destdir="build/stubclasses" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+            </classpath>
+        </javac>
+    </target>
 
     <target name="has-tests-check" depends="precompile-check" if="canBuild">
         <available file="connector/src/test/java" property="hasTests"/>
@@ -328,7 +342,7 @@
         </javac>
     </target>
 
-    <target name="compile-connector" depends="compile-connector-native2ascii,compile-connector-resources,compile-wsdls,compile-xsds,compile-interface,compile-rmic,precompile-check" if="canBuild">
+    <target name="compile-connector" depends="compile-stubs,compile-connector-native2ascii,compile-connector-resources,compile-wsdls,compile-xsds,compile-interface,compile-rmic,precompile-check" if="canBuild">
         <mkdir dir="build/connector/classes"/>
         <javac srcdir="connector/src/main/java" destdir="build/connector/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
@@ -337,7 +351,7 @@
         </javac>
     </target>
 
-    <target name="compile-implementation" depends="compile-interface,has-RMI-check" if="hasRMI">
+    <target name="compile-implementation" depends="compile-stubs,compile-interface,has-RMI-check" if="hasRMI">
         <mkdir dir="build/implementation/classes"/>
         <javac srcdir="implementation/src/main/java" destdir="build/implementation/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>

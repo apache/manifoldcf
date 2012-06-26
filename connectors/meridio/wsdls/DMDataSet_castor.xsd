@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<xs:schema xmlns:mstns="http://www.meridio.com/DMDataSet.xsd"
+           xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+           xmlns="http://www.meridio.com/DMDataSet.xsd"
+           attributeFormDefault="qualified"
+           elementFormDefault="qualified"
+           targetNamespace="http://www.meridio.com/DMDataSet.xsd"
+          id="DMDataSet"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+
+  <xs:element name="DMDataSet">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ACCESSCONTROL" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="ACTIVITIES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CATEGORIES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CATEGORIES_EXTRA" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINERS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_CASCADEFAILURES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_CHILDCONTAINERS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_CONTAINERREFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_CUSTOMPROPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_DOCUMENTREFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_KEYWORDS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTAINER_STOREDSEARCHREFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTENT_OPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="CONTENT_TERMS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="DOCUMENTS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="DOCUMENT_CASCADEFAILURES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="DOCUMENT_CUSTOMPROPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="DOCUMENT_KEYWORDS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="DOCUMENT_POLICIES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="DOCUMENT_REFERENCEPATHS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="GROUPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="GROUP_CUSTOMPROPS" maxOccurs="unbounded" minOccurs="0"/>
+	<xs:element ref="HITHIGHLIGHTINFO" maxOccurs="unbounded" minOccurs="0"/>
+	<xs:element ref="HITHIGHLIGHTTABLES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="INDEXACTION" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="KEYWORDS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="LOCKS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="LOCK_CUSTOMPROPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="LOOKUPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="LOOKUP_VALUES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="POLICIES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="PROPERTYDEFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="PROPERTY_OPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="PROPERTY_TERMS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="RELATIONSHIPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="RELATIONSHIPS_EXTRA" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="RENDITIONDEFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="RENDITIONS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="RENDITIONS_EXTRA" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="RESULTDEFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCH_CONTAINERS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCH_GROUPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCH_KEYWORDS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCH_RENDITIONDEFS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCHRESULTS_CONTAINERS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCHRESULTS_DOCUMENTS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCHRESULTS_GROUPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="SEARCHRESULTS_USERS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="STOREDSEARCHES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="USERS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="USER_CUSTOMPROPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="VERSIONS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="VERSION_CUSTOMPROPS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="STOREDSEARCHES_EXTRA" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="VERSIONS_EXTRA" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="VERSIONS_SIGNATURES" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="KOTHERSYSTEM" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="KREPLICATETOSLAVE" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="KUNRESOLVEDGROUPACCOUNTS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="KUNRESOLVEDUSERACCOUNTS" maxOccurs="unbounded" minOccurs="0"/>
+        <xs:element ref="KEDCCONFIG" maxOccurs="unbounded" minOccurs="0"/>
+	<xs:element ref="RELATIONSHIP_CLASSES" maxOccurs="unbounded" minOccurs="0"/>
+	<xs:element ref="SYSTEMINFO" maxOccurs="1" minOccurs="0"/>
+
+     </xs:sequence>
+    </xs:complexType>
+   </xs:element>
+
+
+
+       <xs:element name="ACCESSCONTROL">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="permission" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="groupId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="userId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ACTIVITIES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="objectId2" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="objectId3" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="objectId4" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="objectId5" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="objectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="activity" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="cando" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CATEGORIES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_objectType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_creationDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_title" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_W_defaultWorkflowProcess" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_W_enforceDefaultProcess" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_W_workflowInvocationMode" type="xs:long" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CATEGORIES_EXTRA">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="enforceDefaultAccess" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINERS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_W_title" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_creationDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_isShared" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_containerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_ownerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_ownerName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_folderType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_W_inherit" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_W_cascadeBehaviour" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_homeSystemId" type="xs:int" />
+              <xs:element minOccurs="0" name="PROP_homeSystemName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_globalId" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_lastSynchTime" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="newOwnerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="cascadeType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="keywordCascadeType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="customPropertyCascadeType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_fullPath" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_CASCADEFAILURES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="path" type="xs:string" />
+              <xs:element minOccurs="0" name="errorCode" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="errorDesc" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_CHILDCONTAINERS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="containerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="childId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_CONTAINERREFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="ContainerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="ContainerRefId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_CUSTOMPROPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="valueColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textValue" type="xs:string" />
+              <xs:element minOccurs="0" name="numValue" type="xs:long" />
+              <xs:element minOccurs="0" name="dateValue" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_DOCUMENTREFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="ContainerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="DocumentRefId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_KEYWORDS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="containerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="keywordId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTAINER_STOREDSEARCHREFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="ContainerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="StoredSearchRefId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTENT_OPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="parentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="operator" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="CONTENT_TERMS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="parentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="word_text" type="xs:string" />
+              <xs:element minOccurs="0" name="expression_text" type="xs:string" />
+              <xs:element minOccurs="0" name="phrase_text" type="xs:string" />
+              <xs:element minOccurs="0" name="phrase_type" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="phrase_proximity" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="xword_TV_Tag" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_TV_Value" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_TWV_Tag" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_TWV_Root" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_AV_Tag" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_AV_Attribute" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_AV_Value" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_AWV_Tag" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_AWV_Attribute" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_AWV_Root" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_PV_Tag" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_PV_Path" type="xs:string" />
+              <xs:element minOccurs="0" name="xword_PV_Value" type="xs:string" />
+              <xs:element minOccurs="0" name="termType" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DOCUMENTS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_documentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_addedByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_dateAdded" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_title" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_onlineVersionsSize" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_onlineViewsSize" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_markedForDelete" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_originalFileName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_defaultLockFileName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_latestVersionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_isLocked" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_onlineVersionsCount" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_W_indexingType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_categoryName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_ownerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_ownerName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_recordType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_lastModifiedDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_lastModifiedByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_lastModifiedByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_Author" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_workflowProcess" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_documentPolicyId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_W_cascadeBehaviour" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_W_documentDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_A_homeSystemId" type="xs:int" />
+              <xs:element minOccurs="0" name="PROP_homeSystemName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_globalId" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_lastSynchTime" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="newDocCategoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="newOwnerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_relationshipCount" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_latestVersionFingerprint" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_isCollaborativeCopy" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DOCUMENT_CASCADEFAILURES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="path" type="xs:string" />
+              <xs:element minOccurs="0" name="errorCode" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="errorDesc" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DOCUMENT_CUSTOMPROPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="valueColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textValue" type="xs:string" />
+              <xs:element minOccurs="0" name="numValue" type="xs:long" />
+              <xs:element minOccurs="0" name="dateValue" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DOCUMENT_KEYWORDS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="keywordId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DOCUMENT_POLICIES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="documentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="policyId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="DOCUMENT_REFERENCEPATHS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="containerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="replicationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="path" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="GROUPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_groupName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_groupId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_directoryName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_objectClass" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_active" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_groupGUID" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="GROUP_CUSTOMPROPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="valueColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textValue" type="xs:string" />
+              <xs:element minOccurs="0" name="numValue" type="xs:long" />
+              <xs:element minOccurs="0" name="dateValue" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="HITHIGHLIGHTINFO">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="startPos" type="xs:unsignedInt" />
+              <xs:element name="endPos" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="HITHIGHLIGHTTABLES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="translationTable" type="xs:base64Binary" />
+              <xs:element minOccurs="0" name="vccTable" type="xs:base64Binary" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="INDEXACTION">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="versionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="renditionDefId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="indexAction" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="immediate" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="KEYWORDS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="title" type="xs:string" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="keywordId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="parentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="hierarchyName" type="xs:string" />
+              <xs:element minOccurs="0" name="keywordPath" type="xs:string" />
+              <xs:element minOccurs="0" name="hasChildren" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="LOCKS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_userName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_dateLocked" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_filePath" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_clientWorkstationName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_userId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="LOCK_CUSTOMPROPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="valueColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textValue" type="xs:string" />
+              <xs:element minOccurs="0" name="numValue" type="xs:long" />
+              <xs:element minOccurs="0" name="dateValue" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="LOOKUPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_title" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_creationDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_lookupId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="LOOKUP_VALUES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="lookupId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="POLICIES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_maxOnlineVersions" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_numCompressedVersions" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_description" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_offlineDecision" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_name" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_policyId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_policyType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_duration" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_durationType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_W_deleteDocuments" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_W_offlineMinorVersions" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PROPERTYDEFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="type" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="displayName" type="xs:string" />
+              <xs:element minOccurs="0" name="lookupId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="isReadOnly" type="xs:boolean" />
+              <xs:element minOccurs="0" name="isRequired" type="xs:boolean" />
+              <xs:element minOccurs="0" name="tableName" type="xs:string" />
+              <xs:element minOccurs="0" name="columnName" type="xs:string" />
+              <xs:element minOccurs="0" name="lupTable" type="xs:string" />
+              <xs:element minOccurs="0" name="lupTextColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="lupKeyColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textDefault" type="xs:string" />
+              <xs:element minOccurs="0" name="textMaxLength" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="numDefault" type="xs:long" />
+              <xs:element minOccurs="0" name="numMin" type="xs:long" />
+              <xs:element minOccurs="0" name="numMax" type="xs:long" />
+              <xs:element minOccurs="0" name="dateDefault" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="dateMin" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="dateMax" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="keyColumn1" type="xs:string" />
+              <xs:element minOccurs="0" name="keyColumn2" type="xs:string" />
+              <xs:element minOccurs="0" name="keyColumn3" type="xs:string" />
+              <xs:element minOccurs="0" name="keyColumn4" type="xs:string" />
+              <xs:element minOccurs="0" name="keyColumn5" type="xs:string" />
+              <xs:element minOccurs="0" name="numKeys" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PROPERTY_OPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="parentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="operator" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PROPERTY_TERMS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="parentId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="termType" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="str_value" type="xs:string" />
+              <xs:element minOccurs="0" name="str_relation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="num_value" type="xs:long" />
+              <xs:element minOccurs="0" name="num_relation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="date_value" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="date_interval" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="date_relation" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="isVersionProperty" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RELATIONSHIPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_A_description" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_A_strength" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_A_contains" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_A_class" type="xs:long" />
+              <xs:element minOccurs="0" name="sourceDocId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="sourceVersionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="destDocId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="destVersionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_className" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_classChildName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RELATIONSHIPS_EXTRA">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="sourceDocId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="sourceVersionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="destDocId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="destVersionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="isCurrent" type="xs:boolean" />
+              <xs:element minOccurs="0" name="order" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="firstApplicableVersion" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="currentVersionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="type" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RENDITIONDEFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_description" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_name" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_type" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RENDITIONS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="versionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="renditionDefId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_creationDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_formatId" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_originalFileSize" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_storedFileSize" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_W_applicationString" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_mimeType" type="xs:string" />
+              <xs:element minOccurs="0" name="newRenditionFileName" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RENDITIONS_EXTRA">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="versionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="renditionDefId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="indexState" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RESULTDEFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="sortAscending" type="xs:boolean" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="isVersionProperty" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCH_CONTAINERS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="storedSearchId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="containerId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCH_GROUPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="storedSearchId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="groupId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCH_KEYWORDS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="storedSearchId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="keywordId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCH_RENDITIONDEFS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="storedSearchId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="renditionDefId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCHRESULTS_CONTAINERS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="containerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="str_value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCHRESULTS_DOCUMENTS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="versionId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="renditionDefId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="str_value" type="xs:string" />
+              <xs:element minOccurs="0" name="type" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="rank" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCHRESULTS_GROUPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="groupId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="str_value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SEARCHRESULTS_USERS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="userId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="str_value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="STOREDSEARCHES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_title" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_W_isSearchAgent" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_W_searchAgentPriority" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_lastExecuteDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_ownerId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_ownerName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="SYSTEMINFO">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="systemName" type="xs:string" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+              <xs:element minOccurs="0" name="isLockedDown" type="xs:boolean" />
+              <xs:element minOccurs="0" name="usesReplication" type="xs:boolean" />
+              <xs:element minOccurs="0" name="webTransferProtocol" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="defaultWebServer" type="xs:string" />
+              <xs:element minOccurs="0" name="URLTemplate" type="xs:string" />
+              <xs:element minOccurs="0" name="URLType" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="defaultPolicy" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="webClientURL" type="xs:string" />
+              <xs:element minOccurs="0" name="sharePointURL" type="xs:unsignedInt" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="USERS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_loginName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_enabled" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_languageId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_emailAddress" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_passwordExpire" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_realName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_createdByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_directoryName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_objectClass" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_userPrincipalName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_privateCertificateStore" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_homeSystem" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_defaultPolicy" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_userGUID" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="USER_CUSTOMPROPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="valueColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textValue" type="xs:string" />
+              <xs:element minOccurs="0" name="numValue" type="xs:long" />
+              <xs:element minOccurs="0" name="dateValue" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="VERSIONS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="PROP_versionNumber" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_checkedInByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_checkedInDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_comment" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_formatId" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_lastAccessDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_lastAccessedByUser" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_originalFileSize" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_storedFileSize" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_fileAvailability" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="PROP_W_reclaimPending" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_reclaimedDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="PROP_W_keepOnline" type="xs:boolean" />
+              <xs:element minOccurs="0" name="PROP_W_versionMark" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_referenceCount" type="xs:long" />
+              <xs:element minOccurs="0" name="PROP_checkedInByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_lastAccessedByUserId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_W_applicationString" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_W_mimeType" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_MajorVersionNumber" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="PROP_MinorVersionNumber" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="newVersionFileName" type="xs:string" />
+              <xs:element minOccurs="0" name="PROP_A_fingerprint" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="VERSION_CUSTOMPROPS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="objectId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="objectId2" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="propertyName" type="xs:string" />
+              <xs:element minOccurs="0" name="categoryId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="valueColumn" type="xs:string" />
+              <xs:element minOccurs="0" name="textValue" type="xs:string" />
+              <xs:element minOccurs="0" name="numValue" type="xs:long" />
+              <xs:element minOccurs="0" name="dateValue" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="STOREDSEARCHES_EXTRA">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="keywordOperatorIsAND" type="xs:boolean" />
+              <xs:element minOccurs="0" name="searchSubKeywords" type="xs:boolean" />
+              <xs:element minOccurs="0" name="type" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="permission" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="searchAll" type="xs:boolean" />
+              <xs:element minOccurs="0" name="scope" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="searchChildren" type="xs:boolean" />
+              <xs:element minOccurs="0" name="useThesaurus" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="VERSIONS_EXTRA">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="versionNumber" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="indexState" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="VERSIONS_SIGNATURES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="docId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="versionNumber" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="sigId" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="Signer" type="xs:string" />
+              <xs:element minOccurs="0" name="Issuer" type="xs:string" />
+              <xs:element minOccurs="0" name="CertStartDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="CertEndDate" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="SignatureLength" type="xs:unsignedInt" />
+              <xs:element minOccurs="0" name="SigData" type="xs:base64Binary" />
+              <xs:element minOccurs="0" name="DateSigned" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="VerStatus" type="xs:boolean" />
+              <xs:element minOccurs="0" name="LastVerDate" type="xs:dateTime" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="KOTHERSYSTEM">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element msdata:DataType="System.Guid, mscorlib, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" name="systemGUID" type="xs:string" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="isSlave" type="xs:short" />
+              <xs:element minOccurs="0" name="unregister" type="xs:short" />
+              <xs:element minOccurs="0" name="webServicesUrl" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="KREPLICATETOSLAVE">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element name="slaveID" type="xs:int" />
+              <xs:element name="objectID" type="xs:int" />
+              <xs:element name="objectType" type="xs:short" />
+              <xs:element minOccurs="0" name="priority" type="xs:short" />
+              <xs:element minOccurs="0" name="createdByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="createdByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="dateCreated" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="allContainer" type="xs:short" />
+              <xs:element minOccurs="0" name="allDocument" type="xs:short" />
+              <xs:element minOccurs="0" name="doIndex" type="xs:short" />
+              <xs:element minOccurs="0" name="state" type="xs:short" />
+              <xs:element minOccurs="0" name="stateTimeStamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="taskID" type="xs:int" />
+              <xs:element minOccurs="0" name="lastDateModified" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastModifiedByUserName" type="xs:string" />
+              <xs:element minOccurs="0" name="lastModifiedByUserId" type="xs:int" />
+              <xs:element minOccurs="0" name="toBeDeleted" type="xs:short" />
+              <xs:element minOccurs="0" name="sendDocuments" type="xs:short" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="KUNRESOLVEDGROUPACCOUNTS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:DataType="System.Guid, mscorlib, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" name="groupGUID" type="xs:string" />
+              <xs:element name="groupName" type="xs:string" />
+              <xs:element name="objectType" type="xs:short" />
+              <xs:element name="localKey" type="xs:int" />
+              <xs:element name="usedBy" type="xs:short" />
+              <xs:element minOccurs="0" name="permission" type="xs:short" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="KUNRESOLVEDUSERACCOUNTS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:ReadOnly="true" msdata:AutoIncrement="true" name="id" type="xs:int" />
+              <xs:element msdata:DataType="System.Guid, mscorlib, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" name="userGUID" type="xs:string" />
+              <xs:element name="userName" type="xs:string" />
+              <xs:element name="objectType" type="xs:short" />
+              <xs:element name="localKeyPart1" type="xs:int" />
+              <xs:element minOccurs="0" name="localKeyPart2" type="xs:int" />
+              <xs:element minOccurs="0" name="localKeyPart3" type="xs:int" />
+              <xs:element name="usedBy" type="xs:short" />
+              <xs:element minOccurs="0" name="permission" type="xs:short" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="KEDCCONFIG">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element msdata:ReadOnly="true" msdata:AutoIncrement="true" name="id" type="xs:int" />
+              <xs:element name="type" type="xs:unsignedInt" />
+              <xs:element name="name" type="xs:string" />
+              <xs:element name="value" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="RELATIONSHIP_CLASSES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="id" type="xs:int" />
+              <xs:element minOccurs="0" name="name" type="xs:string" />
+              <xs:element minOccurs="0" name="childName" type="xs:string" />
+              <xs:element minOccurs="0" name="strength" type="xs:unsignedByte" />
+              <xs:element minOccurs="0" name="type" type="xs:unsignedByte" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+</xs:schema>

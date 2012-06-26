@@ -199,6 +199,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -300,6 +302,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -489,6 +493,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3267,6 +3273,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3349,6 +3357,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3433,6 +3443,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3519,6 +3531,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3604,6 +3618,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3688,6 +3704,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3776,6 +3794,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
@@ -3859,6 +3879,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             throw (RemoteException)thr;
           else if (thr instanceof FilenetException)
             throw (FilenetException)thr;
+          else if (thr instanceof RuntimeException)
+            throw (RuntimeException)thr;
           else
             throw (Error)thr;
         }
