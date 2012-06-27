@@ -61,11 +61,6 @@
       <version>${log4j.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.bitmechanic</groupId>
-      <artifactId>jdbcpool</artifactId>
-      <version>${jdbcpool.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>${json.version}</version>
