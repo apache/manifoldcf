@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-485: Upgrade to manifoldcf solr plugin versions 0.2.
+(Karl Wright)
+
 CONNECTORS-99: Improve documentation for JSON in REST services so
 that syntactic simplifications made by ManifoldCF are spelled out.
 (Karl Wright)
