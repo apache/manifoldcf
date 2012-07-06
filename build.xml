@@ -3391,12 +3391,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-solr-plugins">
         <mkdir dir="lib"/>
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.2-incubating-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.2-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
         <copy todir="lib">
             <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-0.2/dist"/>
         </copy>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.2-incubating-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.2-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
         <copy todir="lib">
             <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-0.2/dist"/>
