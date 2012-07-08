@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 0.6-dev =====================
+======================= Release 0.6 =====================
 
 CONNECTORS-489: Fix user-agent string in web and rss connectors
 so that ISA proxies don't refuse to proxy the requests.
