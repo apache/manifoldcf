@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-487: Upgrade to HSQLDB 2.2.9.
+(Karl Wright)
+
 CONNECTORS-485: Upgrade to manifoldcf solr plugin versions 0.2.
 (Karl Wright)
 
@@ -16,7 +19,7 @@ code installed.  This is accomplished by: (a) including stub non-proprietary
 classes that can be compiled against, and (b) including WSDLs and XSDs
 generated from proprietary .NET libraries, but which are not proprietary
 themselves (according to LEGAL-137).
-(Karl Wright)
+(Joe Becknell, Sam Ruby, Karl Wright)
 
 CONNECTORS-484: The FileNet connector UI has been broken since
 the i18n work was done on it.

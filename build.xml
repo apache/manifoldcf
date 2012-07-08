@@ -2736,19 +2736,19 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-hsqldb">
         <mkdir dir="lib"/>
-        <mkdir dir="build/download"/>
+        <!--mkdir dir="build/download"/>
         <delete dir="build/download/hsqldb"/>
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build/download"/>
             <param name="svn-url" value="https://hsqldb.svn.sourceforge.net/svnroot/hsqldb/base/trunk"/>
             <param name="dir-name" value="hsqldb"/>
-        </antcall>
+        </antcall -->
         <!-- Build it -->
-        <antcall target="build-via-ant">
+        <!--antcall target="build-via-ant">
             <param name="root-dir" value="build/download/hsqldb/build"/>
             <param name="target" value="hsqldb"/>
         </antcall>
-        <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/>
+        <copy todir="lib" file="build/download/hsqldb/lib/hsqldb.jar"/ -->
         <!-- antcall target="download-via-mvn">
             <param name="project-path" value="org/hsqldb"/>
             <param name="artifact-version" value="2.2.9-snapshot"/>
@@ -2756,6 +2756,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="hsqldb"/>
             <param name="artifact-type" value="jar"/>
         </antcall -->
+        <get src="http://hsqldb.org/repos/org/hsqldb/hsqldb/SNAPSHOT/hsqldb-20120702.121433-10.jar" dest="lib/hsqldb.jar"/>
     </target>
     
     <target name="download-postgresql">
