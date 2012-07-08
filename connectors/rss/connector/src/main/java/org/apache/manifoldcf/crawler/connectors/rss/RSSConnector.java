@@ -172,7 +172,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       String emailAddress = params.getParameter(emailParameter);
       if (emailAddress == null)
         throw new ManifoldCFException("Missing email address");
-      userAgent = "ApacheManifoldCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
+      userAgent = "Mozilla/5.0 (ApacheManifoldCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
       from = emailAddress;
 
       String robotsUsageString = params.getParameter(robotsUsageParameter);

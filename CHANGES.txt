@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.6-dev =====================
 
+CONNECTORS-489: Fix user-agent string in web and rss connectors
+so that ISA proxies don't refuse to proxy the requests.
+(Jan van Haarst)
+
 CONNECTORS-487: Upgrade to HSQLDB 2.2.9.
 (Karl Wright)
 

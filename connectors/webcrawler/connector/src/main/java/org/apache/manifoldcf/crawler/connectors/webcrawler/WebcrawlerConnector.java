@@ -361,7 +361,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String emailAddress = params.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
       if (emailAddress == null)
         throw new ManifoldCFException("Missing email address");
-      userAgent = "ApacheManifoldCFWebCrawler; "+emailAddress+")";
+      userAgent = "Mozilla/5.0 (ApacheManifoldCFWebCrawler; "+emailAddress+")";
       from = emailAddress;
 
       x = params.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
