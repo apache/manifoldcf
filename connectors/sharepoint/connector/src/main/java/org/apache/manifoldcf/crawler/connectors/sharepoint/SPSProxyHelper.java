@@ -610,19 +610,91 @@ public class SPSProxyHelper {
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         GetListItemsQuery q = new GetListItemsQuery();
-      
+
         // TODO: 5000 is obviously not a reasonable limit.  What IS a reasonable limit?
         GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", null, null, "5000", null, site);
         if (items == null)
           return false;
-        
+
         org.apache.axis.message.MessageElement[] list = items.get_any();
-        if (Logging.connectors.isInfoEnabled())
-        {
+
+        if (Logging.connectors.isInfoEnabled()){
           Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
         }
 
-        // MHL to parse the result
+        ArrayList nodeList = new ArrayList();
+        XMLDoc doc = new XMLDoc(list[0].toString());
+
+
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1) {
+              throw new ManifoldCFException("Bad xml - missing outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
+        }
+
+        Object parent = nodeList.get(0);
+        if (!"ns1:listitems".equals(doc.getNodeName(parent)))
+            throw new ManifoldCFException("Bad xml - outer node is not 'ns1:listitems'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        //   System.out.println(nodeList.size());
+
+        if (nodeList.size() != 1) {
+              throw new ManifoldCFException("No results found.");
+        }
+
+        Object rsData = nodeList.get(0);
+
+        int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
+        // System.out.println("ItemCount = " + itemCount);
+
+        // Now, extract the files from the response document
+        XMLDoc docs = doc;
+        ArrayList nodeDocs = new ArrayList();
+
+        docs.processPath(nodeDocs, "*", rsData);
+
+        if (nodeDocs.size() != itemCount) {
+              throw new ManifoldCFException("itemCount does not match with nodeDocs.size().");
+        }
+
+        for (int j = 0; j < nodeDocs.size(); j++)
+        {
+
+          Object node = nodeDocs.get(j);
+
+          String relPath = doc.getValue(node, "ows_FileRef");
+          String ows_ProgId = doc.getValue(node, "ows_ProgId");
+
+          // This relative path is apparently from the domain on down; if there's a location offset we therefore
+          // need to get rid of it before checking the document against the site/library tuples.  The recorded
+          // document identifier should also not include it.
+
+          // KDW: Removed the case changes; URL characters should remain case-sensitive
+          if (!relPath.startsWith(serverLocation))
+          {
+            // Unexpected processing error; the path to the folder or document did not start with the location
+            // offset, so throw up.
+            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+              serverLocation+"'");
+          }
+
+          relPath = relPath.substring(serverLocation.length());
+
+          /**
+             *  ows_FileRef starts with ows_ProgId.
+             *  Replace ows_ProgId with "/".
+             *  E.g. ows_FileRef="1;#Documents/ik_docs"  ows_ProgId="1;#" => relPah="/Documents/ik_docs"
+             */
+          if (relPath.startsWith(ows_ProgId)) {
+            relPath = "/" + relPath.substring(ows_ProgId.length());
+          }
+
+          if (!relPath.endsWith(".aspx")) {
+            fileStream.addFile( relPath );
+          }
+        }
       }
 
       return true;
@@ -1096,7 +1168,7 @@ public class SPSProxyHelper {
   /**
   *
   * @param userCall
-  * @param roleName
+  * @param groupName
   * @return
   * @throws Exception
   */
@@ -1446,7 +1518,7 @@ public class SPSProxyHelper {
       HashMap result = new HashMap();
 
       if ( site.compareTo("/") == 0 ) site = ""; // root case
-      
+
       if ( dspStsWorks )
       {
         StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
@@ -1569,11 +1641,47 @@ public class SPSProxyHelper {
       else
       {
         // SharePoint 2010: Get field values some other way
+        // Sharepoint 2010; use Lists service instead
+        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
+        GetListItemsQuery q = new GetListItemsQuery();
+
+        // MHL - we need to specify the actual document ID in the query somehow.
+        // The docId variable contains the document ID, which is of the exact same form as was returned as the last segment in the relpath,
+        // so in theory we can iterate through the contents of the library each time looking for the info.  But this is horrendously expensive.
         
+        // Alternatively, we can change the flow through the entire connector to instead encode the metadata information in the version string,
+        // since the metadata values are all available then.  Right now, only the metadata names are placed in the version string; the values would
+        // have to be added.  This will work, but means a version string format change.
+        
+        // We could also decide what to put in the version string based on whether there's a working dspsts service or not.  But I'm a bit
+        // unhappy with this answer because the connector's data is incompatible across changes in the configuration info.
+        
+        // To get this working as currently spec'd, see http://msdn.microsoft.com/en-us/library/lists.lists.getlistitems%28v=office.12%29.aspx.
+        // It looks like you can specify the ID of the document as search criteria, and even page through the results.  The query is in XML form.
+        
+        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", null, null, "1", null, site);
+        if (items == null)
+          return result;
+
+        org.apache.axis.message.MessageElement[] list = items.get_any();
+
+        if (Logging.connectors.isInfoEnabled())
+        {
+          Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+        }
+
+        // MHL to parse the result
+
+        ArrayList nodeList = new ArrayList();
+
+        XMLDoc doc = new XMLDoc(list[0].toString());
+
+
         // MHL
-        
+
       }
-      
+
       return result;
     }
     catch (javax.xml.soap.SOAPException e)
@@ -2207,7 +2315,7 @@ public class SPSProxyHelper {
     /**
      * Constructor setting the resource name.
      */
-    public ResourceProvider(Class resourceClass, String resourceName) 
+    public ResourceProvider(Class resourceClass, String resourceName)
     {
       this.resourceClass = resourceClass;
       this.resourceName = resourceName;
@@ -2284,7 +2392,7 @@ public class SPSProxyHelper {
 
     /**
      * Get a service which has been mapped to a particular namespace
-     * 
+     *
      * @param namespace a namespace URI
      * @return an instance of the appropriate Service, or null
      */
@@ -2333,7 +2441,7 @@ public class SPSProxyHelper {
     public Hashtable getGlobalOptions() throws ConfigurationException
     {
       WSDDGlobalConfiguration globalConfig = deployment.getGlobalConfiguration();
-            
+
       if (globalConfig != null)
         return globalConfig.getParametersTable();
 
@@ -2359,5 +2467,5 @@ public class SPSProxyHelper {
       return deployment.getRoles();
     }
   }
-  
+
 }
