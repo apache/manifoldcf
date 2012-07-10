@@ -2015,6 +2015,52 @@ public class SPSProxyHelper {
     }
   }
 
+  /** Build viewFields XML for the ListItems call.
+  */
+  protected static String buildViewFields(ArrayList fieldNames)
+    throws ManifoldCFException
+  {
+    XMLDoc doc = new XMLDoc();
+    Object viewFieldsNode = doc.createElement(null,"viewFields");
+    for (String x : (List<String>)fieldNames)
+    {
+      Object child = doc.createElement(viewFieldsNode,"FieldRef");
+      doc.setAttribute(child,"Name",x);
+    }
+    return doc.getXML();
+  }
+  
+  /** Build a query XML object that matches a specified field and value pair.
+  */
+  protected static String buildMatchQuery(String fieldName, String type, String value)
+    throws ManifoldCFException
+  {
+    XMLDoc doc = new XMLDoc();
+    Object queryNode = doc.createElement(null,"Query");
+    Object whereClause = doc.createElement(queryNode,"Where");
+    Object equalsClause = doc.createElement(whereClause,"Eq");
+    Object fieldRefClause = doc.createElement(equalsClause,"FieldRef");
+    doc.setAttribute(fieldRefClause,"Name",fieldName);
+    Object valueClause = doc.createElement(equalsClause,"Value");
+    doc.setAttribute(valueClause,"Type",type);
+    doc.createText(valueClause,value);
+    return doc.getXML();
+  }
+  
+  // MHL to build list query, which has a sort order based on an indexed column such as ID
+  
+  /** Build queryOptions XML object that specifies a paging value.
+  */
+  protected static String buildPagingQueryOptions(int startRow)
+    throws ManifoldCFException
+  {
+    XMLDoc doc = new XMLDoc();
+    Object optionsNode = doc.createElement(null,"QueryOptions");
+    Object pagingNode = doc.createElement(optionsNode,"Paging");
+    doc.setAttribute(pagingNode,"ListItemCollectionPositionNext",Integer.toString(startRow));
+    return doc.getXML();
+  }
+  
   /**
   * SharePoint Permissions Service Wrapper Class
   */
