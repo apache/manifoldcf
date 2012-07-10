@@ -43,6 +43,7 @@ import org.apache.axis.EngineConfiguration;
 
 import javax.xml.namespace.QName;
 
+import org.apache.axis.message.MessageElement;
 import org.apache.axis.AxisEngine;
 import org.apache.axis.ConfigurationException;
 import org.apache.axis.Handler;
@@ -609,94 +610,112 @@ public class SPSProxyHelper {
         // Sharepoint 2010; use Lists service instead
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
-        GetListItemsQuery q = new GetListItemsQuery();
 
-        // TODO: 5000 is obviously not a reasonable limit.  What IS a reasonable limit?
-        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", null, null, "5000", null, site);
-        if (items == null)
-          return false;
+        // This string is the paging chunk description.  It gets updated on every chunk we do,
+        // so that the next call finds new data.
+        String nextChunkDescription = "";
+        // Order by some column we know is indexed.
+        GetListItemsQuery orderByQuery = buildOrderedQuery("ID");
+        // Set up fields we want
+        ArrayList fieldList = new ArrayList();
+        fieldList.add("FileRef");
+        fieldList.add("ProgId");
+        GetListItemsViewFields viewFields = buildViewFields(fieldList);
+        // Pick a request size we know will not exceed the limit as set by the administrator.
+        int requestSize = 2000;
+          
+        while (true)
+        {
+          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), site);
+          if (items == null)
+            return false;
 
-        org.apache.axis.message.MessageElement[] list = items.get_any();
+          org.apache.axis.message.MessageElement[] list = items.get_any();
 
-        if (Logging.connectors.isInfoEnabled()){
-          Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
-        }
+          if (Logging.connectors.isInfoEnabled()){
+            Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+          }
 
-        ArrayList nodeList = new ArrayList();
-        XMLDoc doc = new XMLDoc(list[0].toString());
+          ArrayList nodeList = new ArrayList();
+          XMLDoc doc = new XMLDoc(list[0].toString());
 
+          doc.processPath(nodeList, "*", null);
+          if (nodeList.size() != 1) {
+            throw new ManifoldCFException("Bad xml - expecting one outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
+          }
 
-        doc.processPath(nodeList, "*", null);
-        if (nodeList.size() != 1) {
-              throw new ManifoldCFException("Bad xml - missing outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
-        }
-
-        Object parent = nodeList.get(0);
-        if (!"ns1:listitems".equals(doc.getNodeName(parent)))
+          Object parent = nodeList.get(0);
+          if (!"ns1:listitems".equals(doc.getNodeName(parent)))
             throw new ManifoldCFException("Bad xml - outer node is not 'ns1:listitems'");
 
-        nodeList.clear();
-        doc.processPath(nodeList, "*", parent);
 
-        //   System.out.println(nodeList.size());
+          nodeList.clear();
+          doc.processPath(nodeList, "*", parent);
 
-        if (nodeList.size() != 1) {
-              throw new ManifoldCFException("No results found.");
-        }
+          if (nodeList.size() != 1)
+            throw new ManifoldCFException("Expected rsdata result but no results found.");
 
-        Object rsData = nodeList.get(0);
+          Object rsData = nodeList.get(0);
 
-        int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
-        // System.out.println("ItemCount = " + itemCount);
+          // Get the chunk description
+          nextChunkDescription = doc.getValue(rsData, "ListItemCollectionPositionNext");
+          if (nextChunkDescription == null)
+            throw new ManifoldCFException("Expected rsdata to have attribute 'ListItemCollectionPositionNext'");
 
-        // Now, extract the files from the response document
-        XMLDoc docs = doc;
-        ArrayList nodeDocs = new ArrayList();
+          int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
 
-        docs.processPath(nodeDocs, "*", rsData);
+          // Now, extract the files from the response document
+          XMLDoc docs = doc;
+          ArrayList nodeDocs = new ArrayList();
 
-        if (nodeDocs.size() != itemCount) {
-              throw new ManifoldCFException("itemCount does not match with nodeDocs.size().");
-        }
+          docs.processPath(nodeDocs, "*", rsData);
 
-        for (int j = 0; j < nodeDocs.size(); j++)
-        {
+          if (nodeDocs.size() != itemCount) {
+            throw new ManifoldCFException("itemCount does not match with nodeDocs.size().");
+          }
 
-          Object node = nodeDocs.get(j);
-
-          String relPath = doc.getValue(node, "ows_FileRef");
-          String ows_ProgId = doc.getValue(node, "ows_ProgId");
-
-          // This relative path is apparently from the domain on down; if there's a location offset we therefore
-          // need to get rid of it before checking the document against the site/library tuples.  The recorded
-          // document identifier should also not include it.
-
-          // KDW: Removed the case changes; URL characters should remain case-sensitive
-          if (!relPath.startsWith(serverLocation))
+          for (int j = 0; j < nodeDocs.size(); j++)
           {
-            // Unexpected processing error; the path to the folder or document did not start with the location
-            // offset, so throw up.
-            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-              serverLocation+"'");
-          }
 
-          relPath = relPath.substring(serverLocation.length());
+            Object node = nodeDocs.get(j);
 
-          /**
-             *  ows_FileRef starts with ows_ProgId.
-             *  Replace ows_ProgId with "/".
-             *  E.g. ows_FileRef="1;#Documents/ik_docs"  ows_ProgId="1;#" => relPah="/Documents/ik_docs"
-             */
-          if (relPath.startsWith(ows_ProgId)) {
-            relPath = "/" + relPath.substring(ows_ProgId.length());
-          }
+            String relPath = doc.getValue(node, "ows_FileRef");
+            String ows_ProgId = doc.getValue(node, "ows_ProgId");
 
-          if (!relPath.endsWith(".aspx")) {
-            fileStream.addFile( relPath );
+            // This relative path is apparently from the domain on down; if there's a location offset we therefore
+            // need to get rid of it before checking the document against the site/library tuples.  The recorded
+            // document identifier should also not include it.
+
+            // KDW: Removed the case changes; URL characters should remain case-sensitive
+            if (!relPath.startsWith(serverLocation))
+            {
+              // Unexpected processing error; the path to the folder or document did not start with the location
+              // offset, so throw up.
+              throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+                serverLocation+"'");
+            }
+
+            relPath = relPath.substring(serverLocation.length());
+
+            /**
+               *  ows_FileRef starts with ows_ProgId.
+               *  Replace ows_ProgId with "/".
+               *  E.g. ows_FileRef="1;#Documents/ik_docs"  ows_ProgId="1;#" => relPah="/Documents/ik_docs"
+               */
+            if (relPath.startsWith(ows_ProgId)) {
+              relPath = "/" + relPath.substring(ows_ProgId.length());
+            }
+
+            if (!relPath.endsWith(".aspx")) {
+              fileStream.addFile( relPath );
+            }
           }
+          
+          if (requestSize > nodeDocs.size())
+            break;
         }
       }
-
+      
       return true;
     }
     catch (java.net.MalformedURLException e)
@@ -2017,63 +2036,102 @@ public class SPSProxyHelper {
 
   /** Build viewFields XML for the ListItems call.
   */
-  protected static String buildViewFields(ArrayList fieldNames)
+  protected static GetListItemsViewFields buildViewFields(ArrayList fieldNames)
     throws ManifoldCFException
   {
-    XMLDoc doc = new XMLDoc();
-    Object viewFieldsNode = doc.createElement(null,"viewFields");
-    for (Object x : fieldNames)
+    try
     {
-      Object child = doc.createElement(viewFieldsNode,"FieldRef");
-      doc.setAttribute(child,"Name",(String)x);
+      GetListItemsViewFields rval = new GetListItemsViewFields();
+      MessageElement viewFieldsNode = new MessageElement((String)null,"ViewFields");
+      rval.set_any(new MessageElement[]{viewFieldsNode});
+      for (Object x : fieldNames)
+      {
+        MessageElement child = new MessageElement((String)null,"FieldRef");
+        viewFieldsNode.addChild(child);
+        child.addAttribute(null,"Name",(String)x);
+      }
+      return rval;
     }
-    return doc.getXMLNoEntityPreamble();
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   /** Build a query XML object that matches a specified field and value pair.
   */
-  protected static String buildMatchQuery(String fieldName, String type, String value)
+  protected static GetListItemsQuery buildMatchQuery(String fieldName, String type, String value)
     throws ManifoldCFException
   {
-    XMLDoc doc = new XMLDoc();
-    Object queryNode = doc.createElement(null,"Query");
-    Object whereClause = doc.createElement(queryNode,"Where");
-    Object equalsClause = doc.createElement(whereClause,"Eq");
-    Object fieldRefClause = doc.createElement(equalsClause,"FieldRef");
-    doc.setAttribute(fieldRefClause,"Name",fieldName);
-    Object valueClause = doc.createElement(equalsClause,"Value");
-    doc.setAttribute(valueClause,"Type",type);
-    doc.createText(valueClause,value);
-    return doc.getXMLNoEntityPreamble();
+    try
+    {
+      GetListItemsQuery rval = new GetListItemsQuery();
+      MessageElement queryNode = new MessageElement((String)null,"Query");
+      rval.set_any(new MessageElement[]{queryNode});
+      MessageElement whereNode = new MessageElement((String)null,"Where");
+      queryNode.addChild(whereNode);
+      MessageElement eqNode = new MessageElement((String)null,"Eq");
+      whereNode.addChild(eqNode);
+      MessageElement fieldRefNode = new MessageElement((String)null,"FieldRef");
+      eqNode.addChild(fieldRefNode);
+      fieldRefNode.addAttribute(null,"Name",fieldName);
+      MessageElement valueNode = new MessageElement((String)null,"Value");
+      eqNode.addChild(valueNode);
+      valueNode.addAttribute(null,"Type",type);
+      valueNode.addTextNode(value);
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   /** Build a query XML object that orders by an indexed column, for paging.
   */
-  protected static String buildOrderedQuery(String indexedColumn)
+  protected static GetListItemsQuery buildOrderedQuery(String indexedColumn)
     throws ManifoldCFException
   {
-    XMLDoc doc = new XMLDoc();
-    Object queryNode = doc.createElement(null,"Query");
-    Object orderByNode = doc.createElement(queryNode,"OrderBy");
-    doc.setAttribute(orderByNode,"Override","TRUE");
-    doc.setAttribute(orderByNode,"UseIndexForOrderBy","TRUE");
-    Object fieldRefNode = doc.createElement(orderByNode,"FieldRef");
-    doc.setAttribute(fieldRefNode,"Ascending","TRUE");
-    doc.setAttribute(fieldRefNode,"Name",indexedColumn);
-    return doc.getXMLNoEntityPreamble();
+    try
+    {
+      GetListItemsQuery rval = new GetListItemsQuery();
+      MessageElement queryNode = new MessageElement((String)null,"Query");
+      rval.set_any(new MessageElement[]{queryNode});
+      MessageElement orderByNode = new MessageElement((String)null,"OrderBy");
+      queryNode.addChild(orderByNode);
+      orderByNode.addAttribute(null,"Override","TRUE");
+      orderByNode.addAttribute(null,"UseIndexForOrderBy","TRUE");
+      MessageElement fieldRefNode = new MessageElement((String)null,"FieldRef");
+      orderByNode.addChild(fieldRefNode);
+      fieldRefNode.addAttribute(null,"Ascending","TRUE");
+      fieldRefNode.addAttribute(null,"Name",indexedColumn);
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   /** Build queryOptions XML object that specifies a paging value.
   */
-  protected static String buildPagingQueryOptions(String pageNextString)
+  protected static GetListItemsQueryOptions buildPagingQueryOptions(String pageNextString)
     throws ManifoldCFException
   {
-    XMLDoc doc = new XMLDoc();
-    Object optionsNode = doc.createElement(null,"QueryOptions");
-    Object pagingNode = doc.createElement(optionsNode,"Paging");
-    doc.setAttribute(pagingNode,"ListItemCollectionPositionNext",
-      pageNextString);
-    return doc.getXMLNoEntityPreamble();
+    try
+    {
+      GetListItemsQueryOptions rval = new GetListItemsQueryOptions();
+      MessageElement queryOptionsNode = new MessageElement((String)null,"QueryOptions");
+      rval.set_any(new MessageElement[]{queryOptionsNode});
+      MessageElement pagingNode = new MessageElement((String)null,"Paging");
+      queryOptionsNode.addChild(pagingNode);
+      pagingNode.addAttribute(null,"ListItemCollectionPositionNext",pageNextString);
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   /**

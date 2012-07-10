@@ -30,7 +30,7 @@ public class XMLGenTest
   public void buildOrderedQueryTest()
     throws Exception
   {
-    String orderedQuery = SPSProxyHelper.buildOrderedQuery("ID");
+    String orderedQuery = SPSProxyHelper.buildOrderedQuery("ID").get_any()[0].toString();
     assertEquals("<Query><OrderBy Override=\"TRUE\" UseIndexForOrderBy=\"TRUE\"><FieldRef Ascending=\"TRUE\" Name=\"ID\"/></OrderBy></Query>",orderedQuery);
   }
   
@@ -38,7 +38,7 @@ public class XMLGenTest
   public void buildPagingQueryOptionsTest()
     throws Exception
   {
-    String pagingXML = SPSProxyHelper.buildPagingQueryOptions("some next string");
+    String pagingXML = SPSProxyHelper.buildPagingQueryOptions("some next string").get_any()[0].toString();
     assertEquals("<QueryOptions><Paging ListItemCollectionPositionNext=\"some next string\"/></QueryOptions>",pagingXML);
   }
   
@@ -49,15 +49,15 @@ public class XMLGenTest
     ArrayList list = new ArrayList();
     list.add("foo");
     list.add("bar");
-    String viewFieldsXML = SPSProxyHelper.buildViewFields(list);
-    assertEquals("<viewFields><FieldRef Name=\"foo\"/><FieldRef Name=\"bar\"/></viewFields>",viewFieldsXML);
+    String viewFieldsXML = SPSProxyHelper.buildViewFields(list).get_any()[0].toString();
+    assertEquals("<ViewFields><FieldRef Name=\"foo\"/><FieldRef Name=\"bar\"/></ViewFields>",viewFieldsXML);
   }
   
   @Test
   public void buildMatchQueryTest()
     throws Exception
   {
-    String matchQuery = SPSProxyHelper.buildMatchQuery("foo","Text","bar");
+    String matchQuery = SPSProxyHelper.buildMatchQuery("foo","Text","bar").get_any()[0].toString();
     assertEquals("<Query><Where><Eq><FieldRef Name=\"foo\"/><Value Type=\"Text\">bar</Value></Eq></Where></Query>",matchQuery);
   }
 
