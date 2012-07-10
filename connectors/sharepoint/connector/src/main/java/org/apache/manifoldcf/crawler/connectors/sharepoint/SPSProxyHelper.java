@@ -542,9 +542,9 @@ public class SPSProxyHelper {
 
         QueryResponse resp = call.query( myRequest );
         org.apache.axis.message.MessageElement[] list = resp.get_any();
-        if (Logging.connectors.isInfoEnabled())
+        if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.info("SharePoint: list xml: '" + list[0].toString() + "'");
+          Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
         }
 
         XMLDoc doc = new XMLDoc( list[0].toString() );
@@ -632,8 +632,8 @@ public class SPSProxyHelper {
 
           org.apache.axis.message.MessageElement[] list = items.get_any();
 
-          if (Logging.connectors.isInfoEnabled()){
-            Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+          if (Logging.connectors.isDebugEnabled()){
+            Logging.connectors.debug("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
           }
 
           ArrayList nodeList = new ArrayList();
@@ -659,8 +659,6 @@ public class SPSProxyHelper {
 
           // Get the chunk description
           nextChunkDescription = doc.getValue(rsData, "ListItemCollectionPositionNext");
-          if (nextChunkDescription == null)
-            throw new ManifoldCFException("Expected rsdata to have attribute 'ListItemCollectionPositionNext'");
 
           int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
 
@@ -702,9 +700,7 @@ public class SPSProxyHelper {
                *  Replace ows_ProgId with "/".
                *  E.g. ows_FileRef="1;#Documents/ik_docs"  ows_ProgId="1;#" => relPah="/Documents/ik_docs"
                */
-            if (relPath.startsWith(ows_ProgId)) {
-              relPath = "/" + relPath.substring(ows_ProgId.length());
-            }
+            relPath = "/" + progIDSubstitute(ows_ProgId,relPath);
 
             if (!relPath.endsWith(".aspx")) {
               fileStream.addFile( relPath );
@@ -1665,7 +1661,10 @@ public class SPSProxyHelper {
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
         GetListItemsQuery q = buildMatchQuery("FileRef","Text",docId);
-        GetListItemsViewFields viewFields = buildViewFields(fieldNames);
+        ArrayList newFieldNames = new ArrayList();
+        newFieldNames.addAll(fieldNames);
+        newFieldNames.add("ProgId");
+        GetListItemsViewFields viewFields = buildViewFields(newFieldNames);
 
         GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, site);
         if (items == null)
@@ -1673,8 +1672,8 @@ public class SPSProxyHelper {
 
         MessageElement[] list = items.get_any();
 
-        if (Logging.connectors.isInfoEnabled()){
-          Logging.connectors.info("SharePoint: getListItems for '"+docId+"' xml response: '" + list[0].toString() + "'");
+        if (Logging.connectors.isDebugEnabled()){
+          Logging.connectors.debug("SharePoint: getListItems for '"+docId+"' xml response: '" + list[0].toString() + "'");
         }
 
         ArrayList nodeList = new ArrayList();
@@ -1714,11 +1713,17 @@ public class SPSProxyHelper {
         Object o = nodeDocs.get(0);
         
         // Look for all the specified attributes in the record
+        String progID = doc.getValue(o,"ows_ProgId");
+        if (progID == null || progID.length() == 0)
+          throw new ManifoldCFException("Expecting ProgId attribute, not found");
+        
         for (Object attrName : fieldNames)
         {
           String attrValue = doc.getValue(o,"ows_"+(String)attrName);
           if (attrValue != null)
-            result.put(attrName,attrValue);
+          {
+            result.put(attrName,progIDSubstitute(progID,attrValue));
+          }
         }
       }
 
@@ -2055,6 +2060,14 @@ public class SPSProxyHelper {
     }
   }
 
+  /** Substitute progid where found */
+  protected static String progIDSubstitute(String progID, String value)
+  {
+    if (value.startsWith(progID))
+      return value.substring(progID.length());
+    return value;
+  }
+  
   /** Build viewFields XML for the ListItems call.
   */
   protected static GetListItemsViewFields buildViewFields(ArrayList fieldNames)
