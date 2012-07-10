@@ -27,7 +27,15 @@ public class XMLGenTest
 {
 
   @Test
-  public void buildPagingQueryOptions()
+  public void buildOrderedQueryTest()
+    throws Exception
+  {
+    String orderedQuery = SPSProxyHelper.buildOrderedQuery("ID");
+    assertEquals("<Query><OrderBy Override=\"TRUE\" UseIndexForOrderBy=\"TRUE\"><FieldRef Ascending=\"TRUE\" Name=\"ID\"/></OrderBy></Query>",orderedQuery);
+  }
+  
+  @Test
+  public void buildPagingQueryOptionsTest()
     throws Exception
   {
     String pagingXML = SPSProxyHelper.buildPagingQueryOptions("some next string");

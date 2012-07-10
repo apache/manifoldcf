@@ -2047,7 +2047,21 @@ public class SPSProxyHelper {
     return doc.getXMLNoEntityPreamble();
   }
   
-  // MHL to build list query, which has a sort order based on an indexed column such as ID
+  /** Build a query XML object that orders by an indexed column, for paging.
+  */
+  protected static String buildOrderedQuery(String indexedColumn)
+    throws ManifoldCFException
+  {
+    XMLDoc doc = new XMLDoc();
+    Object queryNode = doc.createElement(null,"Query");
+    Object orderByNode = doc.createElement(queryNode,"OrderBy");
+    doc.setAttribute(orderByNode,"Override","TRUE");
+    doc.setAttribute(orderByNode,"UseIndexForOrderBy","TRUE");
+    Object fieldRefNode = doc.createElement(orderByNode,"FieldRef");
+    doc.setAttribute(fieldRefNode,"Ascending","TRUE");
+    doc.setAttribute(fieldRefNode,"Name",indexedColumn);
+    return doc.getXMLNoEntityPreamble();
+  }
   
   /** Build queryOptions XML object that specifies a paging value.
   */
