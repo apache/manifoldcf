@@ -1663,42 +1663,63 @@ public class SPSProxyHelper {
         // Sharepoint 2010; use Lists service instead
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
-        GetListItemsQuery q = new GetListItemsQuery();
+        
+        GetListItemsQuery q = buildMatchQuery("FileRef","Text",docId);
+        GetListItemsViewFields viewFields = buildViewFields(fieldNames);
 
-        // MHL - we need to specify the actual document ID in the query somehow.
-        // The docId variable contains the document ID, which is of the exact same form as was returned as the last segment in the relpath,
-        // so in theory we can iterate through the contents of the library each time looking for the info.  But this is horrendously expensive.
-        
-        // Alternatively, we can change the flow through the entire connector to instead encode the metadata information in the version string,
-        // since the metadata values are all available then.  Right now, only the metadata names are placed in the version string; the values would
-        // have to be added.  This will work, but means a version string format change.
-        
-        // We could also decide what to put in the version string based on whether there's a working dspsts service or not.  But I'm a bit
-        // unhappy with this answer because the connector's data is incompatible across changes in the configuration info.
-        
-        // To get this working as currently spec'd, see http://msdn.microsoft.com/en-us/library/lists.lists.getlistitems%28v=office.12%29.aspx.
-        // It looks like you can specify the ID of the document as search criteria, and even page through the results.  The query is in XML form.
-        
-        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", null, null, "1", null, site);
+        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, site);
         if (items == null)
           return result;
 
-        org.apache.axis.message.MessageElement[] list = items.get_any();
+        MessageElement[] list = items.get_any();
 
-        if (Logging.connectors.isInfoEnabled())
-        {
-          Logging.connectors.info("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+        if (Logging.connectors.isInfoEnabled()){
+          Logging.connectors.info("SharePoint: getListItems for '"+docId+"' xml response: '" + list[0].toString() + "'");
         }
 
-        // MHL to parse the result
-
         ArrayList nodeList = new ArrayList();
-
         XMLDoc doc = new XMLDoc(list[0].toString());
 
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+          throw new ManifoldCFException("Bad xml - expecting one outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
 
-        // MHL
+        Object parent = nodeList.get(0);
+        if (!"ns1:listitems".equals(doc.getNodeName(parent)))
+          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:listitems'");
 
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        if (nodeList.size() != 1)
+          throw new ManifoldCFException("Expected rsdata result but no results found.");
+
+        Object rsData = nodeList.get(0);
+
+        int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
+        if (itemCount == 0)
+          return result;
+          
+        // Now, extract the files from the response document
+        ArrayList nodeDocs = new ArrayList();
+
+        doc.processPath(nodeDocs, "*", rsData);
+
+        if (nodeDocs.size() != itemCount)
+          throw new ManifoldCFException("itemCount does not match with nodeDocs.size()");
+
+        if (itemCount != 1)
+          throw new ManifoldCFException("Expecting only one item, instead saw '"+itemCount+"'");
+        
+        Object o = nodeDocs.get(0);
+        
+        // Look for all the specified attributes in the record
+        for (Object attrName : fieldNames)
+        {
+          String attrValue = doc.getValue(o,"ows_"+(String)attrName);
+          if (attrValue != null)
+            result.put(attrName,attrValue);
+        }
       }
 
       return result;
