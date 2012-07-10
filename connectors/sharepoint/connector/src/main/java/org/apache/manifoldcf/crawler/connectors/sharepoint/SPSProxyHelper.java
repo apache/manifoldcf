@@ -2022,12 +2022,12 @@ public class SPSProxyHelper {
   {
     XMLDoc doc = new XMLDoc();
     Object viewFieldsNode = doc.createElement(null,"viewFields");
-    for (String x : (List<String>)fieldNames)
+    for (Object x : fieldNames)
     {
       Object child = doc.createElement(viewFieldsNode,"FieldRef");
-      doc.setAttribute(child,"Name",x);
+      doc.setAttribute(child,"Name",(String)x);
     }
-    return doc.getXML();
+    return doc.getXMLNoEntityPreamble();
   }
   
   /** Build a query XML object that matches a specified field and value pair.
@@ -2044,21 +2044,22 @@ public class SPSProxyHelper {
     Object valueClause = doc.createElement(equalsClause,"Value");
     doc.setAttribute(valueClause,"Type",type);
     doc.createText(valueClause,value);
-    return doc.getXML();
+    return doc.getXMLNoEntityPreamble();
   }
   
   // MHL to build list query, which has a sort order based on an indexed column such as ID
   
   /** Build queryOptions XML object that specifies a paging value.
   */
-  protected static String buildPagingQueryOptions(int startRow)
+  protected static String buildPagingQueryOptions(String pageNextString)
     throws ManifoldCFException
   {
     XMLDoc doc = new XMLDoc();
     Object optionsNode = doc.createElement(null,"QueryOptions");
     Object pagingNode = doc.createElement(optionsNode,"Paging");
-    doc.setAttribute(pagingNode,"ListItemCollectionPositionNext",Integer.toString(startRow));
-    return doc.getXML();
+    doc.setAttribute(pagingNode,"ListItemCollectionPositionNext",
+      pageNextString);
+    return doc.getXMLNoEntityPreamble();
   }
   
   /**
