@@ -626,7 +626,7 @@ public class SPSProxyHelper {
           
         while (true)
         {
-          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), site);
+          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), null);
           if (items == null)
             return false;
 
@@ -1666,7 +1666,7 @@ public class SPSProxyHelper {
         newFieldNames.add("ProgId");
         GetListItemsViewFields viewFields = buildViewFields(newFieldNames);
 
-        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, site);
+        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, null);
         if (items == null)
           return result;
 
