@@ -620,7 +620,6 @@ public class SPSProxyHelper {
         // Set up fields we want
         ArrayList fieldList = new ArrayList();
         fieldList.add("FileRef");
-        fieldList.add("ProgId");
         GetListItemsViewFields viewFields = buildViewFields(fieldList);
         // Pick a request size we know will not exceed the limit as set by the administrator.
         int requestSize = 2000;
@@ -679,7 +678,6 @@ public class SPSProxyHelper {
             Object node = nodeDocs.get(j);
 
             String relPath = doc.getValue(node, "ows_FileRef");
-            String ows_ProgId = doc.getValue(node, "ows_ProgId");
 
             // This relative path is apparently from the domain on down; if there's a location offset we therefore
             // need to get rid of it before checking the document against the site/library tuples.  The recorded
@@ -693,15 +691,9 @@ public class SPSProxyHelper {
               throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
                 serverLocation+"'");
             }
-
             relPath = relPath.substring(serverLocation.length());
 
-            /**
-               *  ows_FileRef starts with ows_ProgId.
-               *  Replace ows_ProgId with "/".
-               *  E.g. ows_FileRef="1;#Documents/ik_docs"  ows_ProgId="1;#" => relPah="/Documents/ik_docs"
-               */
-            relPath = "/" + progIDSubstitute(ows_ProgId,relPath);
+            relPath = "/" + valueMunge(relPath);
 
             if (!relPath.endsWith(".aspx")) {
               fileStream.addFile( relPath );
@@ -1662,10 +1654,7 @@ public class SPSProxyHelper {
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
         GetListItemsQuery q = buildMatchQuery("FileRef","Text",docId);
-        ArrayList newFieldNames = new ArrayList();
-        newFieldNames.addAll(fieldNames);
-        newFieldNames.add("ProgId");
-        GetListItemsViewFields viewFields = buildViewFields(newFieldNames);
+        GetListItemsViewFields viewFields = buildViewFields(fieldNames);
 
         GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, null);
         if (items == null)
@@ -1714,16 +1703,12 @@ public class SPSProxyHelper {
         Object o = nodeDocs.get(0);
         
         // Look for all the specified attributes in the record
-        String progID = doc.getValue(o,"ows_ProgId");
-        if (progID == null || progID.length() == 0)
-          throw new ManifoldCFException("Expecting ProgId attribute, not found");
-        
         for (Object attrName : fieldNames)
         {
           String attrValue = doc.getValue(o,"ows_"+(String)attrName);
           if (attrValue != null)
           {
-            result.put(attrName,progIDSubstitute(progID,attrValue));
+            result.put(attrName,valueMunge(attrValue));
           }
         }
       }
@@ -2077,7 +2062,7 @@ public class SPSProxyHelper {
   }
   
   /** Substitute progid where found */
-  protected static String progIDSubstitute(String progID, String value)
+  protected static String valueMunge(String value)
   {
     Matcher matcher = subsPattern.matcher(value);
     if (matcher.matches())
