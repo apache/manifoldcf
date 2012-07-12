@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.*;
 
 import java.io.InputStream;
 
@@ -2060,11 +2061,27 @@ public class SPSProxyHelper {
     }
   }
 
+  // Regexp pattern to match 12345;#
+  protected static Pattern subsPattern;
+  static
+  {
+    try
+    {
+      subsPattern = Pattern.compile("[0-9]*;#.*");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(-100);
+    }
+  }
+  
   /** Substitute progid where found */
   protected static String progIDSubstitute(String progID, String value)
   {
-    if (value.startsWith(progID))
-      return value.substring(progID.length());
+    Matcher matcher = subsPattern.matcher(value);
+    if (matcher.matches())
+      return value.substring(value.indexOf("#") + 1);
     return value;
   }
   
