@@ -43,7 +43,7 @@
     </target>
 
     <target name="setup-release-base-url">
-        <property name="release-base-url" value="http://archive.apache.org/dist/incubator/manifoldcf"/>
+        <property name="release-base-url" value="http://www.apache.org/dist/manifoldcf"/>
     </target>
     
     <target name="transfer-root-files">
@@ -104,7 +104,7 @@
 
     <target name="get-releases-doc" depends="install-trunk-release">
         <antcall target="install-release">
-            <param name="release-version" value="0.5.1"/>
+            <param name="release-version" value="0.6"/>
         </antcall>
     </target>
     

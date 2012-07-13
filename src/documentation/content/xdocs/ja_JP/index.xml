@@ -36,7 +36,7 @@
 
     <section>
 	<title>プロジェクトの状況</title>
-	<p>Apache ManifoldCF 0.5.1は<a href="download.html">ここ</a>からダウンロードすることができます。</p>
+	<p>Apache ManifoldCF 0.6は<a href="download.html">ここ</a>からダウンロードすることができます。</p>
     </section>
 
     <section>
@@ -47,6 +47,10 @@
 
     <section>
         <title>ニュース</title>
+          <section>
+              <title>2012年7月13日 - ManifoldCF 0.6を公開しました！</title>
+                <p>第六リリースのオフ開発者コミュニティの標識</p>
+          </section>
           <section>
               <title>2012年5月22日 - ManifoldCF 0.5.1を公開しました！</title>
                 <p>開発者コミュニティはバグ修正版リリースを承認しました</p>
