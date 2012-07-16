@@ -241,6 +241,15 @@ public class XMLDoc
     }
   }
 
+  /** Get XML with no entity preamble */
+  public String getXMLNoEntityPreamble()
+    throws ManifoldCFException
+  {
+    String initial = getXML();
+    int index = initial.indexOf(">");
+    return initial.substring(index+1);
+  }
+  
   /** Convert the response for transmit
   * @return xml in byte array
   */

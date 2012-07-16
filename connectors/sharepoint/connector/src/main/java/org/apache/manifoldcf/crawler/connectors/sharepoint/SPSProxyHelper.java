@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.*;
 
 import java.io.InputStream;
 
@@ -43,6 +44,7 @@ import org.apache.axis.EngineConfiguration;
 
 import javax.xml.namespace.QName;
 
+import org.apache.axis.message.MessageElement;
 import org.apache.axis.AxisEngine;
 import org.apache.axis.ConfigurationException;
 import org.apache.axis.Handler;
@@ -505,67 +507,205 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public XMLDoc getDocuments(String site, String docLibrary)
+  public boolean getDocuments(IFileStream fileStream, String site, String docLibrary, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
       if ( site.equals("/") ) site = ""; // root case
+      if ( dspStsWorks )
+      {
         StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
-      StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
+        StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
-      String[] vArray = new String[1];
-      vArray[0] = "1.0";
-      VersionsHeader myVersion = new VersionsHeader();
-      myVersion.setVersion( vArray );
+        String[] vArray = new String[1];
+        vArray[0] = "1.0";
+        VersionsHeader myVersion = new VersionsHeader();
+        myVersion.setVersion( vArray );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
 
-      RequestHeader reqHeader = new RequestHeader();
-      reqHeader.setDocument( DocumentType.content );
-      reqHeader.setMethod(MethodType.query );
+        RequestHeader reqHeader = new RequestHeader();
+        reqHeader.setDocument( DocumentType.content );
+        reqHeader.setMethod(MethodType.query );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
 
-      QueryRequest myRequest = new QueryRequest();
+        QueryRequest myRequest = new QueryRequest();
 
-      DSQuery sQuery = new DSQuery();
-      sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
-      myRequest.setDsQuery( sQuery );
+        DSQuery sQuery = new DSQuery();
+        sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
+        myRequest.setDsQuery( sQuery );
 
-      StsAdapterSoap call = stub;
-      ArrayList nodeList = new ArrayList();
+        StsAdapterSoap call = stub;
+        ArrayList nodeList = new ArrayList();
 
-      QueryResponse resp = call.query( myRequest );
-      org.apache.axis.message.MessageElement[] list = resp.get_any();
-      if (Logging.connectors.isInfoEnabled())
-      {
-        Logging.connectors.info("SharePoint: list xml: '" + list[0].toString() + "'");
+        QueryResponse resp = call.query( myRequest );
+        org.apache.axis.message.MessageElement[] list = resp.get_any();
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
+        }
+
+        XMLDoc doc = new XMLDoc( list[0].toString() );
+
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+        {
+          throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+        }
+
+        Object parent = nodeList.get(0);
+        //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
+        if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
+          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        if ( nodeList.size() != 2 )
+        {
+          throw new ManifoldCFException( " No results found." );
+        }
+
+        // Now, extract the files from the response document
+        XMLDoc docs = doc;
+        ArrayList nodeDocs = new ArrayList();
+
+        docs.processPath( nodeDocs, "*", null );
+        parent = nodeDocs.get(0);                // ns1:dsQueryResponse
+        nodeDocs.clear();
+        docs.processPath(nodeDocs, "*", parent);
+        Object documents = nodeDocs.get(1);
+        nodeDocs.clear();
+        docs.processPath(nodeDocs, "*", documents);
+
+        StringBuilder sb = new StringBuilder();
+        for( int j =0; j < nodeDocs.size(); j++)
+        {
+          Object node = nodeDocs.get(j);
+          Logging.connectors.debug( node.toString() );
+          String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
+
+          // This relative path is apparently from the domain on down; if there's a location offset we therefore
+          // need to get rid of it before checking the document against the site/library tuples.  The recorded
+          // document identifier should also not include it.
+
+          if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
+          {
+            // Unexpected processing error; the path to the folder or document did not start with the location
+            // offset, so throw up.
+            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+              serverLocation+"'");
+          }
+
+          relPath = relPath.substring(serverLocation.length());
+
+          if ( !relPath.endsWith(".aspx") )
+            fileStream.addFile( relPath );
+        }
       }
-
-      XMLDoc doc = new XMLDoc( list[0].toString() );
-
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
+      else
       {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+        // Sharepoint 2010; use Lists service instead
+        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
+
+        // This string is the paging chunk description.  It gets updated on every chunk we do,
+        // so that the next call finds new data.
+        String nextChunkDescription = "";
+        // Order by some column we know is indexed.
+        GetListItemsQuery orderByQuery = buildOrderedQuery("ID");
+        // Set up fields we want
+        ArrayList fieldList = new ArrayList();
+        fieldList.add("FileRef");
+        GetListItemsViewFields viewFields = buildViewFields(fieldList);
+        // Pick a request size we know will not exceed the limit as set by the administrator.
+        int requestSize = 2000;
+          
+        while (true)
+        {
+          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), null);
+          if (items == null)
+            return false;
+
+          org.apache.axis.message.MessageElement[] list = items.get_any();
+
+          if (Logging.connectors.isDebugEnabled()){
+            Logging.connectors.debug("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+          }
+
+          ArrayList nodeList = new ArrayList();
+          XMLDoc doc = new XMLDoc(list[0].toString());
+
+          doc.processPath(nodeList, "*", null);
+          if (nodeList.size() != 1) {
+            throw new ManifoldCFException("Bad xml - expecting one outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
+          }
+
+          Object parent = nodeList.get(0);
+          if (!"ns1:listitems".equals(doc.getNodeName(parent)))
+            throw new ManifoldCFException("Bad xml - outer node is not 'ns1:listitems'");
+
+
+          nodeList.clear();
+          doc.processPath(nodeList, "*", parent);
+
+          if (nodeList.size() != 1)
+            throw new ManifoldCFException("Expected rsdata result but no results found.");
+
+          Object rsData = nodeList.get(0);
+
+          // Get the chunk description
+          nextChunkDescription = doc.getValue(rsData, "ListItemCollectionPositionNext");
+
+          int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
+
+          // Now, extract the files from the response document
+          XMLDoc docs = doc;
+          ArrayList nodeDocs = new ArrayList();
+
+          docs.processPath(nodeDocs, "*", rsData);
+
+          if (nodeDocs.size() != itemCount) {
+            throw new ManifoldCFException("itemCount does not match with nodeDocs.size().");
+          }
+
+          for (int j = 0; j < nodeDocs.size(); j++)
+          {
+
+            Object node = nodeDocs.get(j);
+
+            String relPath = doc.getValue(node, "ows_FileRef");
+
+            // This relative path is apparently from the domain on down; if there's a location offset we therefore
+            // need to get rid of it before checking the document against the site/library tuples.  The recorded
+            // document identifier should also not include it.
+
+            // KDW: Removed the case changes; URL characters should remain case-sensitive
+            if (!relPath.startsWith(serverLocation))
+            {
+              // Unexpected processing error; the path to the folder or document did not start with the location
+              // offset, so throw up.
+              throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+                serverLocation+"'");
+            }
+            relPath = relPath.substring(serverLocation.length());
+
+            relPath = "/" + valueMunge(relPath);
+
+            if (!relPath.endsWith(".aspx")) {
+              fileStream.addFile( relPath );
+            }
+          }
+          
+          if (requestSize > nodeDocs.size())
+            break;
+        }
       }
-
-      Object parent = nodeList.get(0);
-      //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
-      if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);
-
-      if ( nodeList.size() != 2 )
-      {
-        throw new ManifoldCFException( " No results found." );
-      }
-
-      return doc;
+      
+      return true;
     }
     catch (java.net.MalformedURLException e)
     {
@@ -594,14 +734,14 @@ public class SPSProxyHelper {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
-            return null;
+            return false;
           }
           else if (httpErrorCode.equals("401"))
           {
             // User did not have permissions for this library to get the acls
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: The crawl user did not have access to list documents for "+baseUrl+site+"; skipping documents within");
-            return null;
+            return false;
           }
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
@@ -622,7 +762,7 @@ public class SPSProxyHelper {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+site+" did not exist; assuming library deleted");
-            return null;
+            return false;
           }
           else
           {
@@ -635,7 +775,7 @@ public class SPSProxyHelper {
 
               Logging.connectors.debug("SharePoint: Getting child documents for the list "+docLibrary+" in site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString+" - Skipping",e);
             }
-            return null;
+            return false;
           }
         }
         if (Logging.connectors.isDebugEnabled())
@@ -1036,7 +1176,7 @@ public class SPSProxyHelper {
   /**
   *
   * @param userCall
-  * @param roleName
+  * @param groupName
   * @return
   * @throws Exception
   */
@@ -1377,7 +1517,7 @@ public class SPSProxyHelper {
   * @param docId
   * @return set of the field values
   */
-  public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId )
+  public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -1386,120 +1526,190 @@ public class SPSProxyHelper {
       HashMap result = new HashMap();
 
       if ( site.compareTo("/") == 0 ) site = ""; // root case
+
+      if ( dspStsWorks )
+      {
         StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
-      StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
+        StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
-      String[] vArray = new String[1];
-      vArray[0] = "1.0";
-      VersionsHeader myVersion = new VersionsHeader();
-      myVersion.setVersion( vArray );
+        String[] vArray = new String[1];
+        vArray[0] = "1.0";
+        VersionsHeader myVersion = new VersionsHeader();
+        myVersion.setVersion( vArray );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "versions", myVersion );
 
-      RequestHeader reqHeader = new RequestHeader();
-      reqHeader.setDocument( DocumentType.content );
-      reqHeader.setMethod(MethodType.query );
+        RequestHeader reqHeader = new RequestHeader();
+        reqHeader.setDocument( DocumentType.content );
+        reqHeader.setMethod(MethodType.query );
 
-      stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
+        stub.setHeader( "http://schemas.microsoft.com/sharepoint/dsp", "request", reqHeader );
 
-      QueryRequest myRequest = new QueryRequest();
+        QueryRequest myRequest = new QueryRequest();
 
-      DSQuery sQuery = new DSQuery();
-      sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
-      sQuery.setResultContent(ResultContentType.dataOnly);
-      myRequest.setDsQuery( sQuery );
+        DSQuery sQuery = new DSQuery();
+        sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
+        sQuery.setResultContent(ResultContentType.dataOnly);
+        myRequest.setDsQuery( sQuery );
 
-      DspQuery spQuery = new DspQuery();
-      spQuery.setRowLimit( 1 );
-      // For the Requested Fields
-      if ( fieldNames.size() > 0 )
-      {
-        Fields spFields = new Fields();
-        Field[] fieldArray = new Field[0];
-        ArrayList fields = new ArrayList();
-
-        Field spField = new Field();
-        //                      spField.setName( "ID" );
-        //                      spField.setAlias( "ID" );
-        //                      fields.add( spField );
-
-        for ( int k = 0; k < fieldNames.size(); k++ )
+        DspQuery spQuery = new DspQuery();
+        spQuery.setRowLimit( 1 );
+        // For the Requested Fields
+        if ( fieldNames.size() > 0 )
         {
-          spField = new Field();
-          spField.setName( (String)fieldNames.get(k) );
-          spField.setAlias( (String)fieldNames.get(k) );
-          fields.add( spField );
+          Fields spFields = new Fields();
+          Field[] fieldArray = new Field[0];
+          ArrayList fields = new ArrayList();
+
+          Field spField = new Field();
+          //                      spField.setName( "ID" );
+          //                      spField.setAlias( "ID" );
+          //                      fields.add( spField );
+
+          for ( int k = 0; k < fieldNames.size(); k++ )
+          {
+            spField = new Field();
+            spField.setName( (String)fieldNames.get(k) );
+            spField.setAlias( (String)fieldNames.get(k) );
+            fields.add( spField );
+          }
+          spFields.setField( (Field[]) fields.toArray( fieldArray ));
+          spQuery.setFields( spFields );
         }
-        spFields.setField( (Field[]) fields.toArray( fieldArray ));
-        spQuery.setFields( spFields );
-      }
-      // Of this document
-      DspQueryWhere spWhere = new DspQueryWhere();
+        // Of this document
+        DspQueryWhere spWhere = new DspQueryWhere();
 
-      org.apache.axis.message.MessageElement criterion = new org.apache.axis.message.MessageElement( (String)null, "Contains" );
-      SOAPElement seFieldRef = criterion.addChildElement( "FieldRef" );
-      seFieldRef.addAttribute( SOAPFactory.newInstance().createName("Name") , "FileRef" );
-      SOAPElement seValue = criterion.addChildElement( "Value" );
-      seValue.addAttribute( SOAPFactory.newInstance().createName("Type") , "String" );
-      seValue.setValue( docId );
+        org.apache.axis.message.MessageElement criterion = new org.apache.axis.message.MessageElement( (String)null, "Contains" );
+        SOAPElement seFieldRef = criterion.addChildElement( "FieldRef" );
+        seFieldRef.addAttribute( SOAPFactory.newInstance().createName("Name") , "FileRef" );
+        SOAPElement seValue = criterion.addChildElement( "Value" );
+        seValue.addAttribute( SOAPFactory.newInstance().createName("Type") , "String" );
+        seValue.setValue( docId );
 
-      org.apache.axis.message.MessageElement[] criteria = { criterion };
-      spWhere.set_any( criteria );
-      spQuery.setWhere( (DspQueryWhere)spWhere );
+        org.apache.axis.message.MessageElement[] criteria = { criterion };
+        spWhere.set_any( criteria );
+        spQuery.setWhere( (DspQueryWhere)spWhere );
 
-      // Set Criteria
-      myRequest.getDsQuery().setQuery(spQuery);
+        // Set Criteria
+        myRequest.getDsQuery().setQuery(spQuery);
 
-      StsAdapterSoap call = stub;
+        StsAdapterSoap call = stub;
 
-      // Make Request
-      QueryResponse resp = call.query( myRequest );
-      org.apache.axis.message.MessageElement[] list = resp.get_any();
+        // Make Request
+        QueryResponse resp = call.query( myRequest );
+        org.apache.axis.message.MessageElement[] list = resp.get_any();
 
-      if (Logging.connectors.isDebugEnabled())
-      {
-        Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
-      }
-
-      XMLDoc doc = new XMLDoc( list[0].toString() );
-      ArrayList nodeList = new ArrayList();
-
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
-      {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
-      }
-
-      Object parent = nodeList.get(0);
-      //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
-      if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);
-
-      parent = nodeList.get( 0 ); // <Shared_X0020_Documents />
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);
-
-      // Process each result (Should only be one )
-      // Get each childs Value and add to return array
-      for ( int i= 0; i < nodeList.size(); i++ )
-      {
-        Object documentNode = nodeList.get( i );
-        ArrayList fieldList = new ArrayList();
-
-        doc.processPath( fieldList, "*", documentNode );
-        for ( int j =0; j < fieldList.size(); j++)
+        if (Logging.connectors.isDebugEnabled())
         {
-          Object field = fieldList.get( j );
-          String fieldData = doc.getData(field);
-          String fieldName = doc.getNodeName(field);
-          // Right now this really only works right for single-valued fields.  For multi-valued
-          // fields, we'd need to know in advance that they were multivalued
-          // so that we could interpret commas as value separators.
-          result.put(fieldName,fieldData);
+          Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
+        }
+
+        XMLDoc doc = new XMLDoc( list[0].toString() );
+        ArrayList nodeList = new ArrayList();
+
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+        {
+          throw new ManifoldCFException("Bad xml - missing outer 'ns1:dsQueryResponse' node - there are "+Integer.toString(nodeList.size())+" nodes");
+        }
+
+        Object parent = nodeList.get(0);
+        //System.out.println( "Outer NodeName = " + doc.getNodeName(parent) );
+        if (!doc.getNodeName(parent).equals("ns1:dsQueryResponse"))
+          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:dsQueryResponse'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        parent = nodeList.get( 0 ); // <Shared_X0020_Documents />
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        // Process each result (Should only be one )
+        // Get each childs Value and add to return array
+        for ( int i= 0; i < nodeList.size(); i++ )
+        {
+          Object documentNode = nodeList.get( i );
+          ArrayList fieldList = new ArrayList();
+
+          doc.processPath( fieldList, "*", documentNode );
+          for ( int j =0; j < fieldList.size(); j++)
+          {
+            Object field = fieldList.get( j );
+            String fieldData = doc.getData(field);
+            String fieldName = doc.getNodeName(field);
+            // Right now this really only works right for single-valued fields.  For multi-valued
+            // fields, we'd need to know in advance that they were multivalued
+            // so that we could interpret commas as value separators.
+            result.put(fieldName,fieldData);
+          }
+        }
+      }
+      else
+      {
+        // SharePoint 2010: Get field values some other way
+        // Sharepoint 2010; use Lists service instead
+        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
+        
+        GetListItemsQuery q = buildMatchQuery("FileRef","Text",docId);
+        GetListItemsViewFields viewFields = buildViewFields(fieldNames);
+
+        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, null);
+        if (items == null)
+          return result;
+
+        MessageElement[] list = items.get_any();
+
+        if (Logging.connectors.isDebugEnabled()){
+          Logging.connectors.debug("SharePoint: getListItems for '"+docId+"' xml response: '" + list[0].toString() + "'");
+        }
+
+        ArrayList nodeList = new ArrayList();
+        XMLDoc doc = new XMLDoc(list[0].toString());
+
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+          throw new ManifoldCFException("Bad xml - expecting one outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
+
+        Object parent = nodeList.get(0);
+        if (!"ns1:listitems".equals(doc.getNodeName(parent)))
+          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:listitems'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);
+
+        if (nodeList.size() != 1)
+          throw new ManifoldCFException("Expected rsdata result but no results found.");
+
+        Object rsData = nodeList.get(0);
+
+        int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
+        if (itemCount == 0)
+          return result;
+          
+        // Now, extract the files from the response document
+        ArrayList nodeDocs = new ArrayList();
+
+        doc.processPath(nodeDocs, "*", rsData);
+
+        if (nodeDocs.size() != itemCount)
+          throw new ManifoldCFException("itemCount does not match with nodeDocs.size()");
+
+        if (itemCount != 1)
+          throw new ManifoldCFException("Expecting only one item, instead saw '"+itemCount+"'");
+        
+        Object o = nodeDocs.get(0);
+        
+        // Look for all the specified attributes in the record
+        for (Object attrName : fieldNames)
+        {
+          String attrValue = doc.getValue(o,"ows_"+(String)attrName);
+          if (attrValue != null)
+          {
+            result.put(attrName,valueMunge(attrValue));
+          }
         }
       }
 
@@ -1836,6 +2046,130 @@ public class SPSProxyHelper {
     }
   }
 
+  // Regexp pattern to match 12345;#
+  protected static Pattern subsPattern;
+  static
+  {
+    try
+    {
+      subsPattern = Pattern.compile("[0-9]*;#.*");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(-100);
+    }
+  }
+  
+  /** Substitute progid where found */
+  protected static String valueMunge(String value)
+  {
+    Matcher matcher = subsPattern.matcher(value);
+    if (matcher.matches())
+      return value.substring(value.indexOf("#") + 1);
+    return value;
+  }
+  
+  /** Build viewFields XML for the ListItems call.
+  */
+  protected static GetListItemsViewFields buildViewFields(ArrayList fieldNames)
+    throws ManifoldCFException
+  {
+    try
+    {
+      GetListItemsViewFields rval = new GetListItemsViewFields();
+      MessageElement viewFieldsNode = new MessageElement((String)null,"ViewFields");
+      rval.set_any(new MessageElement[]{viewFieldsNode});
+      for (Object x : fieldNames)
+      {
+        MessageElement child = new MessageElement((String)null,"FieldRef");
+        viewFieldsNode.addChild(child);
+        child.addAttribute(null,"Name",(String)x);
+      }
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Build a query XML object that matches a specified field and value pair.
+  */
+  protected static GetListItemsQuery buildMatchQuery(String fieldName, String type, String value)
+    throws ManifoldCFException
+  {
+    try
+    {
+      GetListItemsQuery rval = new GetListItemsQuery();
+      MessageElement queryNode = new MessageElement((String)null,"Query");
+      rval.set_any(new MessageElement[]{queryNode});
+      MessageElement whereNode = new MessageElement((String)null,"Where");
+      queryNode.addChild(whereNode);
+      MessageElement eqNode = new MessageElement((String)null,"Eq");
+      whereNode.addChild(eqNode);
+      MessageElement fieldRefNode = new MessageElement((String)null,"FieldRef");
+      eqNode.addChild(fieldRefNode);
+      fieldRefNode.addAttribute(null,"Name",fieldName);
+      MessageElement valueNode = new MessageElement((String)null,"Value");
+      eqNode.addChild(valueNode);
+      valueNode.addAttribute(null,"Type",type);
+      valueNode.addTextNode(value);
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Build a query XML object that orders by an indexed column, for paging.
+  */
+  protected static GetListItemsQuery buildOrderedQuery(String indexedColumn)
+    throws ManifoldCFException
+  {
+    try
+    {
+      GetListItemsQuery rval = new GetListItemsQuery();
+      MessageElement queryNode = new MessageElement((String)null,"Query");
+      rval.set_any(new MessageElement[]{queryNode});
+      MessageElement orderByNode = new MessageElement((String)null,"OrderBy");
+      queryNode.addChild(orderByNode);
+      orderByNode.addAttribute(null,"Override","TRUE");
+      orderByNode.addAttribute(null,"UseIndexForOrderBy","TRUE");
+      MessageElement fieldRefNode = new MessageElement((String)null,"FieldRef");
+      orderByNode.addChild(fieldRefNode);
+      fieldRefNode.addAttribute(null,"Ascending","TRUE");
+      fieldRefNode.addAttribute(null,"Name",indexedColumn);
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
+  /** Build queryOptions XML object that specifies a paging value.
+  */
+  protected static GetListItemsQueryOptions buildPagingQueryOptions(String pageNextString)
+    throws ManifoldCFException
+  {
+    try
+    {
+      GetListItemsQueryOptions rval = new GetListItemsQueryOptions();
+      MessageElement queryOptionsNode = new MessageElement((String)null,"QueryOptions");
+      rval.set_any(new MessageElement[]{queryOptionsNode});
+      MessageElement pagingNode = new MessageElement((String)null,"Paging");
+      queryOptionsNode.addChild(pagingNode);
+      pagingNode.addAttribute(null,"ListItemCollectionPositionNext",pageNextString);
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+  
   /**
   * SharePoint Permissions Service Wrapper Class
   */
@@ -2136,7 +2470,7 @@ public class SPSProxyHelper {
     /**
      * Constructor setting the resource name.
      */
-    public ResourceProvider(Class resourceClass, String resourceName) 
+    public ResourceProvider(Class resourceClass, String resourceName)
     {
       this.resourceClass = resourceClass;
       this.resourceName = resourceName;
@@ -2213,7 +2547,7 @@ public class SPSProxyHelper {
 
     /**
      * Get a service which has been mapped to a particular namespace
-     * 
+     *
      * @param namespace a namespace URI
      * @return an instance of the appropriate Service, or null
      */
@@ -2262,7 +2596,7 @@ public class SPSProxyHelper {
     public Hashtable getGlobalOptions() throws ConfigurationException
     {
       WSDDGlobalConfiguration globalConfig = deployment.getGlobalConfiguration();
-            
+
       if (globalConfig != null)
         return globalConfig.getParametersTable();
 
@@ -2288,5 +2622,5 @@ public class SPSProxyHelper {
       return deployment.getRoles();
     }
   }
-  
+
 }
