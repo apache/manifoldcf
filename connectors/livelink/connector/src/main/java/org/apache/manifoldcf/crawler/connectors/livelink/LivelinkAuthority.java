@@ -61,6 +61,12 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   private LAPI_USERS LLUsers = null;
   private LLSERVER llServer = null;
 
+  // Cache variables
+  private String cacheLifetime = null;
+  private String cacheLRUsize = null;
+  private long responseLifetime = 60000L;
+  private int LRUsize = 1000;
+
   // Match map for username
   private MatchMap matchMap = null;
 
@@ -141,6 +147,12 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     else
       serverPort = new Integer(serverPortString).intValue();
 
+    cacheLifetime = configParams.getParameter(LiveLinkParameters.cacheLifetime);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    cacheLRUsize = configParams.getParameter(LiveLinkParameters.cacheLRUSize);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
 
   }
@@ -148,6 +160,16 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   protected void attemptToConnect()
     throws ManifoldCFException, ServiceInterruption
   {
+    try
+    {
+      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+      LRUsize = Integer.parseInt(this.cacheLRUsize);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+    }
+
     if (LLUsers == null)
     {
 
@@ -239,6 +261,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     serverPort = -1;
     serverUsername = null;
     serverPassword = null;
+    
+    cacheLifetime = null;
+    cacheLRUsize = null;
+
     super.disconnect();
   }
 
@@ -253,7 +279,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   {
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,serverName,serverPort,
-      serverUsername,serverPassword);
+      serverUsername,serverPassword,responseLifetime,LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -801,8 +827,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
   }
 
-  protected static long responseLifetime = 60000L;
-  protected static int LRUsize = 1000;
   protected static StringSet emptyStringSet = new StringSet();
   
   /** This is the cache object descriptor for cached access tokens from
@@ -819,12 +843,14 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     protected String serverUsername;
     protected String serverPassword;
 
+    protected long responseLifetime;
+    
     /** The expiration time */
     protected long expirationTime = -1;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String serverName, int serverPort,
-      String serverUsername, String serverPassword)
+      String serverUsername, String serverPassword, long responseLifetime, int LRUsize)
     {
       super("LiveLinkAuthority",LRUsize);
       this.userName = userName;
@@ -832,6 +858,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       this.serverPort = serverPort;
       this.serverUsername = serverUsername;
       this.serverPassword = serverPassword;
+      this.responseLifetime = responseLifetime;
     }
 
     /** Return the invalidation keys for this object. */
