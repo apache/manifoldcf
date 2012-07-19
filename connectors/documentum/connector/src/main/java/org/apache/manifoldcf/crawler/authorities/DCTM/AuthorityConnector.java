@@ -40,7 +40,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public static final String CONFIG_PARAM_DOMAIN = "domain";
   public static final String CONFIG_PARAM_CASEINSENSITIVE = "usernamecaseinsensitive";
   public static final String CONFIG_PARAM_USESYSTEMACLS = "usesystemacls";
-
+  public static final String CONFIG_PARAM_CACHELIFETIME = "cachelifetimesecs";
+  public static final String CONFIG_PARAM_CACHELRUSIZE = "cachelrusize";
+  
   protected String docbaseName = null;
   protected String userName = null;
   protected String password = null;
@@ -65,6 +67,11 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected long lastSessionFetch = -1L;
 
   protected static final long timeToRelease = 300000L;
+
+  private String cacheLifetime = null;
+  private String cacheLRUsize = null;
+  private long responseLifetime = 60000L;
+  private int LRUsize = 1000;
 
   public AuthorityConnector()
   {
@@ -127,6 +134,16 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected void getSession()
     throws ManifoldCFException
   {
+    try
+    {
+      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+      LRUsize = Integer.parseInt(this.cacheLRUsize);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+    }
+
     if (session == null)
     {
       // This is the stuff that used to be in connect()
@@ -614,7 +631,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
-      domain,caseInsensitive,useSystemAcls);
+      domain,caseInsensitive,useSystemAcls,responseLifetime,LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -909,6 +926,13 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     }
     else
       useSystemAcls = false;
+
+    cacheLifetime = configParams.getParameter(CONFIG_PARAM_CACHELIFETIME);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    cacheLRUsize = configParams.getParameter(CONFIG_PARAM_CACHELRUSIZE);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
   }
 
@@ -1269,8 +1293,6 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     );
   }
 
-  protected static long responseLifetime = 60000L;
-  protected static int LRUsize = 1000;
   protected static StringSet emptyStringSet = new StringSet();
 
   /** This is the cache object descriptor for cached access tokens from
@@ -1288,10 +1310,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     protected boolean useSystemACLs;
     /** The expiration time */
     protected long expirationTime = -1;
+    /** The response lifetime */
+    protected long responseLifetime;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String docbaseName,
-      String adminUserName, String adminPassword, String domain, boolean caseInsensitive, boolean useSystemACLs)
+      String adminUserName, String adminPassword, String domain,
+      boolean caseInsensitive, boolean useSystemACLs,
+      long responseLifetime, int LRUsize)
     {
       super("DocumentumDirectoryAuthority",LRUsize);
       this.userName = userName;
@@ -1301,6 +1327,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       this.domain = domain;
       this.caseInsensitive = caseInsensitive;
       this.useSystemACLs = useSystemACLs;
+      this.responseLifetime = responseLifetime;
     }
 
     /** Return the invalidation keys for this object. */
