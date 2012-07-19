@@ -40,7 +40,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public static final String CONFIG_PARAM_DOMAIN = "domain";
   public static final String CONFIG_PARAM_CASEINSENSITIVE = "usernamecaseinsensitive";
   public static final String CONFIG_PARAM_USESYSTEMACLS = "usesystemacls";
-  public static final String CONFIG_PARAM_CACHELIFETIME = "cachelifetimesecs";
+  public static final String CONFIG_PARAM_CACHELIFETIME = "cachelifetimemins";
   public static final String CONFIG_PARAM_CACHELRUSIZE = "cachelrusize";
   
   protected String docbaseName = null;
@@ -996,6 +996,10 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     userName = null;
     password = null;
     domain = null;
+    
+    cacheLifetime = null;
+    cacheLRUsize = null;
+
   }
 
   /** This method is periodically called for all connectors that are connected but not
