@@ -703,6 +703,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     tabsArray.add(Messages.getString(locale,"MeridioConnector.RecordsServer"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.UserServiceServer"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.Credentials"));
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.Cache"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -805,6 +806,34 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.TheConnectionRequiresAValidMeridioUserNameOfTheForm") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Credentials") + "\");\n"+
 "    editconnection.userName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLifetimeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLifetimeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLRUSizeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLRUSizeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "\n"+
@@ -925,6 +954,14 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       localKeystore = KeystoreManagerFactory.make("");
     else
       localKeystore = KeystoreManagerFactory.make("",meridioKeystore);
+
+    String cacheLifetime = parameters.getParameter("CacheLifetimeMins");
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    
+    String cacheLRUsize = parameters.getParameter("CacheLRUSize");
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
     out.print(
 "<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
@@ -1129,6 +1166,33 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
       );
     }
+    
+    // "Cache" tab
+    if(tabName.equals(Messages.getString(locale,"MeridioConnector.Cache")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.CacheLifetime") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/> " + Messages.getBodyString(locale,"MeridioConnector.minutes") + "</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.CacheLRUSize") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "Cache" tab
+      out.print(
+"<input type=\"hidden\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/>\n"+
+"<input type=\"hidden\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/>\n"
+      );
+    }
+
   }
   
   /** Process a configuration post.
@@ -1284,6 +1348,15 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
         parameters.setParameter("MeridioKeystore",mgr.getString());
       }
     }
+    
+    String cacheLifetime = variableContext.getParameter("cachelifetime");
+    if (cacheLifetime != null)
+      parameters.setParameter("CacheLifetimeMins",cacheLifetime);
+
+    String cacheLRUsize = variableContext.getParameter("cachelrusize");
+    if (cacheLRUsize != null)
+      parameters.setParameter("CacheLRUSize",cacheLRUsize);
+
     return null;
   }
   

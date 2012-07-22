@@ -1033,6 +1033,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     tabsArray.add(Messages.getString(locale,"DCTM.Docbase"));
     tabsArray.add(Messages.getString(locale,"DCTM.UserMapping"));
     tabsArray.add(Messages.getString(locale,"DCTM.SystemACLs"));
+    tabsArray.add(Messages.getString(locale,"DCTM.Cache"));
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1057,6 +1059,34 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.TheConnectionRequiresTheDocumentumUsersPassword") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbasepassword.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLifetimeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLifetimeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLRUSizeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLRUSizeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -1104,6 +1134,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     String useSystemAcls = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS);
     if (useSystemAcls == null)
       useSystemAcls = "true";
+
+    String cacheLifetime = parameters.getParameter(CONFIG_PARAM_CACHELIFETIME);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    
+    String cacheLRUsize = parameters.getParameter(CONFIG_PARAM_CACHELRUSIZE);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
     // "Docbase" tab
     if (tabName.equals(Messages.getString(locale,"DCTM.Docbase")))
@@ -1204,6 +1242,32 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "<input type=\"hidden\" name=\"usesystemacls\" value=\""+useSystemAcls+"\"/>\n"
       );
     }
+    
+    // "Cache" tab
+    if(tabName.equals(Messages.getString(locale,"DCTM.Cache")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.CacheLifetime") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/> " + Messages.getBodyString(locale,"DCTM.minutes") + "</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.CacheLRUSize") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "Cache" tab
+      out.print(
+"<input type=\"hidden\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/>\n"+
+"<input type=\"hidden\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/>\n"
+      );
+    }
   }
   
   /** Process a configuration post.
@@ -1244,6 +1308,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     if (useSystemAcls != null)
       parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
     
+    String cacheLifetime = variableContext.getParameter("cachelifetime");
+    if (cacheLifetime != null)
+      parameters.setParameter(CONFIG_PARAM_CACHELIFETIME,cacheLifetime);
+
+    String cacheLRUsize = variableContext.getParameter("cachelrusize");
+    if (cacheLRUsize != null)
+      parameters.setParameter(CONFIG_PARAM_CACHELRUSIZE,cacheLRUsize);
+
     return null;
   }
   
