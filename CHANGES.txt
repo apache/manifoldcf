@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-488: Add Cache tab for all authority connectors that
+support caching, so that the cache parameters can be varied.
+(Karl Wright)
+
 CONNECTORS-470: Extend SharePoint connector to work with
 SharePoint 2010.
 (Ahmet Arslan, Fatih Samet Cetin, Joe Becknell, Karl Wright)

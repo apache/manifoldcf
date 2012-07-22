@@ -61,6 +61,12 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   private LAPI_USERS LLUsers = null;
   private LLSERVER llServer = null;
 
+  // Cache variables
+  private String cacheLifetime = null;
+  private String cacheLRUsize = null;
+  private long responseLifetime = 60000L;
+  private int LRUsize = 1000;
+
   // Match map for username
   private MatchMap matchMap = null;
 
@@ -141,6 +147,12 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     else
       serverPort = new Integer(serverPortString).intValue();
 
+    cacheLifetime = configParams.getParameter(LiveLinkParameters.cacheLifetime);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    cacheLRUsize = configParams.getParameter(LiveLinkParameters.cacheLRUSize);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
 
   }
@@ -148,6 +160,16 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   protected void attemptToConnect()
     throws ManifoldCFException, ServiceInterruption
   {
+    try
+    {
+      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+      LRUsize = Integer.parseInt(this.cacheLRUsize);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+    }
+
     if (LLUsers == null)
     {
 
@@ -239,6 +261,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     serverPort = -1;
     serverUsername = null;
     serverPassword = null;
+    
+    cacheLifetime = null;
+    cacheLRUsize = null;
+
     super.disconnect();
   }
 
@@ -253,7 +279,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   {
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,serverName,serverPort,
-      serverUsername,serverPassword);
+      serverUsername,serverPassword,responseLifetime,LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -463,6 +489,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   {
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.UserMapping"));
+    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Cache"));
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -506,6 +534,34 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    editconnection.usernameregexp.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.cachelifetime.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLifetimeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLifetimeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLRUSizeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLRUSizeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -531,15 +587,27 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
+    
     String serverPort = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
+    
     String serverUserName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername);
     if (serverUserName == null)
       serverUserName = "";
+    
     String serverPassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
+    
+    String cacheLifetime = parameters.getParameter(LiveLinkParameters.cacheLifetime);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    
+    String cacheLRUsize = parameters.getParameter(LiveLinkParameters.cacheLRUSize);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
+
     org.apache.manifoldcf.crawler.connectors.livelink.MatchMap matchMap = null;
     String usernameRegexp = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp);
     String livelinkUserExpr = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec);
@@ -622,6 +690,33 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "<input type=\"hidden\" name=\"livelinkuserexpr\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/>\n"
       );
     }
+    
+    // "Cache" tab
+    if(tabName.equals(Messages.getString(locale,"LivelinkConnector.Cache")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.CacheLifetime") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/> " + Messages.getBodyString(locale,"LivelinkConnector.minutes") + "</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.CacheLRUSize") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "Cache" tab
+      out.print(
+"<input type=\"hidden\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/>\n"+
+"<input type=\"hidden\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/>\n"
+      );
+    }
+
   }
   
   /** Process a configuration post.
@@ -661,6 +756,15 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       matchMap.appendMatchPair(usernameRegexp,livelinkUserExpr);
       parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping,matchMap.toString());
     }
+
+    String cacheLifetime = variableContext.getParameter("cachelifetime");
+    if (cacheLifetime != null)
+      parameters.setParameter(LiveLinkParameters.cacheLifetime,cacheLifetime);
+
+    String cacheLRUsize = variableContext.getParameter("cachelrusize");
+    if (cacheLRUsize != null)
+      parameters.setParameter(LiveLinkParameters.cacheLRUSize,cacheLRUsize);
+
     return null;
   }
   
@@ -801,8 +905,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
   }
 
-  protected static long responseLifetime = 60000L;
-  protected static int LRUsize = 1000;
   protected static StringSet emptyStringSet = new StringSet();
   
   /** This is the cache object descriptor for cached access tokens from
@@ -819,12 +921,14 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     protected String serverUsername;
     protected String serverPassword;
 
+    protected long responseLifetime;
+    
     /** The expiration time */
     protected long expirationTime = -1;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String serverName, int serverPort,
-      String serverUsername, String serverPassword)
+      String serverUsername, String serverPassword, long responseLifetime, int LRUsize)
     {
       super("LiveLinkAuthority",LRUsize);
       this.userName = userName;
@@ -832,6 +936,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       this.serverPort = serverPort;
       this.serverUsername = serverUsername;
       this.serverPassword = serverPassword;
+      this.responseLifetime = responseLifetime;
     }
 
     /** Return the invalidation keys for this object. */

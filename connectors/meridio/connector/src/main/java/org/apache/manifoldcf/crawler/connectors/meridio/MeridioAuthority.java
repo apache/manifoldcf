@@ -67,6 +67,11 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   private String UserName = null;
   private String Password = null;
 
+  private String cacheLifetime = null;
+  private String cacheLRUsize = null;
+  private long responseLifetime = 60000L;
+  private int LRUsize = 1000;
+
   /** Cache manager. */
   protected ICacheManager cacheManager = null;
   
@@ -125,12 +130,29 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     UserName = configParams.getParameter("UserName");
     Password = configParams.getObfuscatedParameter("Password");
 
+    cacheLifetime = configParams.getParameter("CacheLifetimeMins");
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    cacheLRUsize = configParams.getParameter("CacheLRUSize");
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
+
   }
 
   /** Set up connection before attempting to use it */
   protected void attemptToConnect()
     throws ManifoldCFException
   {
+    try
+    {
+      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+      LRUsize = Integer.parseInt(this.cacheLRUsize);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+    }
+
     if (meridio_ == null)
     {
 
@@ -437,6 +459,8 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       MetaCartaWSProxyPort = null;
       UserName = null;
       Password = null;
+      cacheLifetime = null;
+      cacheLRUsize = null;
     }
     Logging.authorityConnectors.debug("Meridio: Exiting 'disconnect' method");
   }
@@ -455,7 +479,8 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
       DmwsURL.toString(),RmwsURL.toString(),MetaCartawsURL.toString(),
       DMWSProxyHost,DMWSProxyPort,RMWSProxyHost,RMWSProxyPort,
-      MetaCartaWSProxyHost,MetaCartaWSProxyPort,this.UserName,this.Password);
+      MetaCartaWSProxyHost,MetaCartaWSProxyPort,this.UserName,this.Password,
+      responseLifetime,LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -678,6 +703,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     tabsArray.add(Messages.getString(locale,"MeridioConnector.RecordsServer"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.UserServiceServer"));
     tabsArray.add(Messages.getString(locale,"MeridioConnector.Credentials"));
+    tabsArray.add(Messages.getString(locale,"MeridioConnector.Cache"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -780,6 +806,34 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.TheConnectionRequiresAValidMeridioUserNameOfTheForm") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Credentials") + "\");\n"+
 "    editconnection.userName.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLifetimeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLifetimeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLRUSizeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.CacheLRUSizeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"MeridioConnector.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "\n"+
@@ -900,6 +954,14 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       localKeystore = KeystoreManagerFactory.make("");
     else
       localKeystore = KeystoreManagerFactory.make("",meridioKeystore);
+
+    String cacheLifetime = parameters.getParameter("CacheLifetimeMins");
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    
+    String cacheLRUsize = parameters.getParameter("CacheLRUSize");
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
     out.print(
 "<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
@@ -1104,6 +1166,33 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 "<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
       );
     }
+    
+    // "Cache" tab
+    if(tabName.equals(Messages.getString(locale,"MeridioConnector.Cache")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.CacheLifetime") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/> " + Messages.getBodyString(locale,"MeridioConnector.minutes") + "</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"MeridioConnector.CacheLRUSize") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "Cache" tab
+      out.print(
+"<input type=\"hidden\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/>\n"+
+"<input type=\"hidden\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/>\n"
+      );
+    }
+
   }
   
   /** Process a configuration post.
@@ -1259,6 +1348,15 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
         parameters.setParameter("MeridioKeystore",mgr.getString());
       }
     }
+    
+    String cacheLifetime = variableContext.getParameter("cachelifetime");
+    if (cacheLifetime != null)
+      parameters.setParameter("CacheLifetimeMins",cacheLifetime);
+
+    String cacheLRUsize = variableContext.getParameter("cachelrusize");
+    if (cacheLRUsize != null)
+      parameters.setParameter("CacheLRUSize",cacheLRUsize);
+
     return null;
   }
   
@@ -1312,8 +1410,6 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     );
   }
 
-  protected static long responseLifetime = 60000L;
-  protected static int LRUsize = 1000;
   protected static StringSet emptyStringSet = new StringSet();
   
   /** This is the cache object descriptor for cached access tokens from
@@ -1337,13 +1433,16 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     protected String adminUserName;
     protected String adminPassword;
 
+    protected long responseLifetime;
+    
     /** The expiration time */
     protected long expirationTime = -1;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String DmwsURL, String RmwsURL, String wsURL,
       String DMWSProxyHost, String DMWSProxyPort, String RMWSProxyHost, String RMWSProxyPort,
-      String wsProxyHost, String wsProxyPort, String adminUserName, String adminPassword)
+      String wsProxyHost, String wsProxyPort, String adminUserName, String adminPassword,
+      long responseLifetime, int LRUsize)
     {
       super("MeridioAuthority",LRUsize);
       this.userName = userName;
@@ -1358,6 +1457,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       this.wsProxyPort = wsProxyPort;
       this.adminUserName = adminUserName;
       this.adminPassword = adminPassword;
+      this.responseLifetime = responseLifetime;
     }
 
     /** Return the invalidation keys for this object. */

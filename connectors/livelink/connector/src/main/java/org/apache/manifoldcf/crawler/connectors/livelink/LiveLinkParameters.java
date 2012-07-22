@@ -58,7 +58,11 @@ public class LiveLinkParameters
   public final static String livelinkKeystore = "Livelink SSL keystore";
   /** User name mapping description.  This replaces username regexp and username spec below. */
   public final static String userNameMapping = "Livelink user name map";
-
+  /** Cache time in seconds */
+  public final static String cacheLifetime = "Cache lifetime minutes";
+  /** Max LRU size */
+  public final static String cacheLRUSize = "Max cache LRU size";
+  
   // These two are deprecated
   /** Username regexp */
   public final static String userNameRegexp = "User name regexp";

@@ -40,7 +40,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public static final String CONFIG_PARAM_DOMAIN = "domain";
   public static final String CONFIG_PARAM_CASEINSENSITIVE = "usernamecaseinsensitive";
   public static final String CONFIG_PARAM_USESYSTEMACLS = "usesystemacls";
-
+  public static final String CONFIG_PARAM_CACHELIFETIME = "cachelifetimemins";
+  public static final String CONFIG_PARAM_CACHELRUSIZE = "cachelrusize";
+  
   protected String docbaseName = null;
   protected String userName = null;
   protected String password = null;
@@ -65,6 +67,11 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected long lastSessionFetch = -1L;
 
   protected static final long timeToRelease = 300000L;
+
+  private String cacheLifetime = null;
+  private String cacheLRUsize = null;
+  private long responseLifetime = 60000L;
+  private int LRUsize = 1000;
 
   public AuthorityConnector()
   {
@@ -127,6 +134,16 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected void getSession()
     throws ManifoldCFException
   {
+    try
+    {
+      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+      LRUsize = Integer.parseInt(this.cacheLRUsize);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+    }
+
     if (session == null)
     {
       // This is the stuff that used to be in connect()
@@ -614,7 +631,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
-      domain,caseInsensitive,useSystemAcls);
+      domain,caseInsensitive,useSystemAcls,responseLifetime,LRUsize);
     
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
@@ -910,6 +927,13 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     else
       useSystemAcls = false;
 
+    cacheLifetime = configParams.getParameter(CONFIG_PARAM_CACHELIFETIME);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    cacheLRUsize = configParams.getParameter(CONFIG_PARAM_CACHELRUSIZE);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
+
   }
 
   /** Disconnect from Documentum.
@@ -972,6 +996,10 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     userName = null;
     password = null;
     domain = null;
+    
+    cacheLifetime = null;
+    cacheLRUsize = null;
+
   }
 
   /** This method is periodically called for all connectors that are connected but not
@@ -1005,6 +1033,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     tabsArray.add(Messages.getString(locale,"DCTM.Docbase"));
     tabsArray.add(Messages.getString(locale,"DCTM.UserMapping"));
     tabsArray.add(Messages.getString(locale,"DCTM.SystemACLs"));
+    tabsArray.add(Messages.getString(locale,"DCTM.Cache"));
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1029,6 +1059,34 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.TheConnectionRequiresTheDocumentumUsersPassword") + "\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbasepassword.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLifetimeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLifetimeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelifetime.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLRUSizeCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.CacheLRUSizeMustBeAnInteger") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Cache") + "\");\n"+
+"    editconnection.cachelrusize.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -1076,6 +1134,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     String useSystemAcls = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS);
     if (useSystemAcls == null)
       useSystemAcls = "true";
+
+    String cacheLifetime = parameters.getParameter(CONFIG_PARAM_CACHELIFETIME);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    
+    String cacheLRUsize = parameters.getParameter(CONFIG_PARAM_CACHELRUSIZE);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";    
 
     // "Docbase" tab
     if (tabName.equals(Messages.getString(locale,"DCTM.Docbase")))
@@ -1176,6 +1242,32 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 "<input type=\"hidden\" name=\"usesystemacls\" value=\""+useSystemAcls+"\"/>\n"
       );
     }
+    
+    // "Cache" tab
+    if(tabName.equals(Messages.getString(locale,"DCTM.Cache")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.CacheLifetime") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/> " + Messages.getBodyString(locale,"DCTM.minutes") + "</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.CacheLRUSize") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "Cache" tab
+      out.print(
+"<input type=\"hidden\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/>\n"+
+"<input type=\"hidden\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/>\n"
+      );
+    }
   }
   
   /** Process a configuration post.
@@ -1216,6 +1308,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     if (useSystemAcls != null)
       parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
     
+    String cacheLifetime = variableContext.getParameter("cachelifetime");
+    if (cacheLifetime != null)
+      parameters.setParameter(CONFIG_PARAM_CACHELIFETIME,cacheLifetime);
+
+    String cacheLRUsize = variableContext.getParameter("cachelrusize");
+    if (cacheLRUsize != null)
+      parameters.setParameter(CONFIG_PARAM_CACHELRUSIZE,cacheLRUsize);
+
     return null;
   }
   
@@ -1269,8 +1369,6 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     );
   }
 
-  protected static long responseLifetime = 60000L;
-  protected static int LRUsize = 1000;
   protected static StringSet emptyStringSet = new StringSet();
 
   /** This is the cache object descriptor for cached access tokens from
@@ -1288,10 +1386,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     protected boolean useSystemACLs;
     /** The expiration time */
     protected long expirationTime = -1;
+    /** The response lifetime */
+    protected long responseLifetime;
     
     /** Constructor. */
     public AuthorizationResponseDescription(String userName, String docbaseName,
-      String adminUserName, String adminPassword, String domain, boolean caseInsensitive, boolean useSystemACLs)
+      String adminUserName, String adminPassword, String domain,
+      boolean caseInsensitive, boolean useSystemACLs,
+      long responseLifetime, int LRUsize)
     {
       super("DocumentumDirectoryAuthority",LRUsize);
       this.userName = userName;
@@ -1301,6 +1403,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       this.domain = domain;
       this.caseInsensitive = caseInsensitive;
       this.useSystemACLs = useSystemACLs;
+      this.responseLifetime = responseLifetime;
     }
 
     /** Return the invalidation keys for this object. */
