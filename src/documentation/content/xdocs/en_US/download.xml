@@ -295,30 +295,30 @@
       </section>
       
       <section>
-        <title>SharePoint 3.0 Plug-in</title>
+        <title>SharePoint 2007 Plug-in</title>
         <section>
-          <title>Latest release (Apache ManifoldCF SharePoint 3.0 Plug-in 0.1-incubating, 2012 Feb 2)</title>
+          <title>Latest release (Apache ManifoldCF SharePoint 2007 Plug-in 0.2, 2012 Jul 23)</title>
           <p>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating.KEYS">KEYS</a><br/>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2.KEYS">KEYS</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2.CHANGES.txt">CHANGES.txt</a><br/>
           </p>
 
           <p>Sources only:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-src.zip.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-src.tar.gz">apache-manifoldcf-sharepoint-2007-plugin-0.2-src.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-src.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-src.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-src.zip">apache-manifoldcf-sharepoint-2007-plugin-0.2-src.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-src.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-src.zip.md5">MD5</a>]<br/>
           </p>
 
           <p>Binary:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip">apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-3.0-plugin-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.tar.gz">apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.tar.gz.md5">MD5</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.zip">apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.2-bin.zip.md5">MD5</a>]<br/>
           </p>
         </section>
 
