@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-494: Fix the build to conditionally include registration
+commands for connectors that are built with stubs.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-488: Add Cache tab for all authority connectors that
 support caching, so that the cache parameters can be varied.
 (Karl Wright)
