@@ -19,27 +19,25 @@
 
     <import file="../connector-build.xml"/>
 
-    <!-- target name="calculate-condition">
+    <target name="calculate-run-condition">
         <available file="lib-proprietary/lapi.jar" property="lapiStatus"/>
-        <condition property="canBuild">
+        <condition property="libs-present">
             <isset property="lapiStatus"/>
         </condition>
     </target>
-
-    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
-        <echo message="LiveLink Connector cannot be built without lapi.jar"/>
+    
+    <target name="prerun-warn" depends="calculate-run-condition" unless="libs-present">
+        <echo message="LiveLink connector requires lapi.jar to be runnable"/>
     </target>
-
-    <path id="connector-classpath">
-        <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="lib-proprietary" includes="*.jar"/>
-    </path -->
-
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib-proprietary"/>
-        <copy todir="dist/lib-proprietary">
-	    <fileset dir="lib-proprietary" includes="*.jar"/>
+    
+    <target name="copy-proprietary-libs" depends="prerun-check" if="canRun">
+        <mkdir dir="dist/lib-proprietary-only"/>
+        <copy todir="dist/lib-proprietary-only">
+            <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
+    </target>
+    
+    <target name="lib" depends="mcf-connector-build.lib,copy-proprietary-libs,precompile-check" if="canBuild">
     </target>
 
 </project>

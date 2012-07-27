@@ -21,12 +21,12 @@
 
     <target name="calculate-condition">
         <available file="lib-proprietary/jcifs.jar" property="jcifsStatus"/>
-        <condition property="canBuild">
+        <condition property="build-present">
             <isset property="jcifsStatus"/>
         </condition>
     </target>
 
-    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+    <target name="precompile-warn" depends="calculate-condition" unless="build-present">
         <echo message="JCifs Connector cannot be built without jcifs.jar"/>
     </target>
 
@@ -36,8 +36,8 @@
     </path>
 
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib-proprietary"/>
-        <copy todir="dist/lib-proprietary">
+        <mkdir dir="dist/lib-proprietary-only"/>
+        <copy todir="dist/lib-proprietary-only">
             <fileset dir="lib-proprietary" includes="*.jar"/>
         </copy>
     </target>

@@ -22,23 +22,23 @@
   
     <target name="calculate-condition">
         <available file="lib-proprietary/alfresco-web-service-client-3.4.e.jar" property="alfrescoStatus"/>
-        <condition property="canBuild">
+        <condition property="build-present">
             <isset property="alfrescoStatus"/>
         </condition>
     </target>
 
-    <target name="calculate-testcode-condition" depends="calculate-condition" if="canBuild">
+    <target name="calculate-testcode-condition">
         <available file="test-materials-proprietary/alfresco.war" property="alfrescoTestcodeStatus"/>
-        <condition property="canTest">
+        <condition property="tests-present">
             <isset property="alfrescoTestcodeStatus"/>
         </condition>
     </target>
 
-    <target name="precompile-check" depends="calculate-condition" unless="canBuild">
+    <target name="precompile-warn" depends="calculate-condition" unless="build-present">
         <echo message="Alfresco Connector cannot be built without alfresco-web-service-client-3.4.e.jar"/>
     </target>
 
-    <target name="pretest-check" depends="calculate-testcode-condition" unless="canTest">
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
         <echo message="Alfresco Connector integration tests cannot be be performed without alfresco.war"/>
     </target>
 
@@ -82,8 +82,8 @@
                 <include name="xmlsec*.jar"/>
             </fileset>
         </copy>
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib-proprietary">
+        <mkdir dir="dist/lib-proprietary-only"/>
+        <copy todir="dist/lib-proprietary-only">
             <fileset dir="lib-proprietary">
                 <include name="alfresco-web-service-client*.jar"/>
             </fileset>
