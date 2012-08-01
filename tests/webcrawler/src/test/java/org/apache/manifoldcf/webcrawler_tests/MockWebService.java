@@ -40,7 +40,7 @@ public class MockWebService
   public MockWebService(int docsPerLevel)
   {
     server = new Server(8191);
-    server.setThreadPool(new QueuedThreadPool(35));
+    server.setThreadPool(new QueuedThreadPool(100));
     servlet = new WebServlet(docsPerLevel);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/web");
@@ -72,6 +72,7 @@ public class MockWebService
     public void service(HttpServletRequest req, HttpServletResponse res)
       throws IOException
     {
+      try {
       String resourceName = null;
       
       String site = req.getParameter("site");     // Site ID
@@ -108,10 +109,14 @@ public class MockWebService
 
       // Formulate the response.
       // First, calculate the number of docs on the current level
-      int maxDocsThisLevel = docsPerLevel ^ theLevel;
+      int maxDocsThisLevel = 1;
+      for (int i = 0 ; i < theLevel ; i++)
+      {
+        maxDocsThisLevel *= docsPerLevel;
+      }
       if (theItem >= maxDocsThisLevel)
         // Not legal
-        throw new IOException("Level number too big: "+level);
+        throw new IOException("Doc number too big: "+theItem+" ; level "+theLevel+" ; docsPerLevel "+docsPerLevel);
 
       // Generate the page
       res.setStatus(HttpServletResponse.SC_OK);
@@ -127,7 +132,7 @@ public class MockWebService
       while (parentLevel > 0)
       {
         parentLevel--;
-        parentItem = parentItem/docsPerLevel;
+        parentItem /= docsPerLevel;
 	generateLink(res,site,parentLevel,parentItem);
       }
       
@@ -139,7 +144,7 @@ public class MockWebService
       }
       
       // Generate some cross-links to other items' children
-      for (int i = 0; i < docsPerLevel; i++)
+      for (int i = 0; i < maxDocsThisLevel; i++)
       {
         int docNumber = theItem + i * docsPerLevel;
         generateLink(res,site,theLevel+1,docNumber);
@@ -148,7 +153,12 @@ public class MockWebService
       res.getWriter().printf("  </body>\n");
       res.getWriter().printf("</html>\n");
       res.getWriter().flush();
-
+      }
+      catch (IOException e)
+      {
+        e.printStackTrace();
+        throw e;
+      }
     }
     
     protected void generateLink(HttpServletResponse res, String site, int level, int item)
