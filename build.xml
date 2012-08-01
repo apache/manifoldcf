@@ -2195,6 +2195,14 @@
         <ant dir="tests/rss" target="run-load-HSQLDB"/>
     </target>
 
+    <target name="run-webcrawler-loadtests-postgresql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <ant dir="tests/webcrawler" target="run-load-postgresql"/>
+    </target>
+
+    <target name="run-webcrawler-loadtests-mysql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <ant dir="tests/webcrawler" target="run-load-mysql"/>
+    </target>
+
     <target name="run-webcrawler-UI-tests-derby" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
         <ant dir="tests/webcrawler" target="run-UI-derby"/>
     </target>
