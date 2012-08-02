@@ -324,7 +324,7 @@ public class SPSProxyHelper {
       MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
       com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
-      com.microsoft.sharepoint.webpartpages.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( encodedRelativePath, "item" );
+      com.microsoft.sharepoint.webpartpages.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( encodedRelativePath, "Item" );
       org.apache.axis.message.MessageElement[] aclList = aclResult.get_any();
 
       if (Logging.connectors.isDebugEnabled())
