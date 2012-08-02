@@ -694,9 +694,7 @@ public class SPSProxyHelper {
 
             relPath = "/" + valueMunge(relPath);
 
-            if (!relPath.endsWith(".aspx")) {
-              fileStream.addFile( relPath );
-            }
+            fileStream.addFile( relPath );
           }
           
           if (requestSize > nodeDocs.size())
