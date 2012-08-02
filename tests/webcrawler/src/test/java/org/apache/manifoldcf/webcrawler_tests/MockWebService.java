@@ -143,11 +143,10 @@ public class MockWebService
         generateLink(res,site,theLevel+1,docNumber);
       }
       
-      // Generate some cross-links to other items' children
-      for (int i = 0; i < maxDocsThisLevel; i++)
+      // Generate some limited cross-links to other items at this level
+      for (int i = theItem; i < maxDocsThisLevel && i < theItem + docsPerLevel; i++)
       {
-        int docNumber = theItem + i * docsPerLevel;
-        generateLink(res,site,theLevel+1,docNumber);
+        generateLink(res,site,theLevel,i);
       }
       
       res.getWriter().printf("  </body>\n");
