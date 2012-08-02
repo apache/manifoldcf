@@ -602,8 +602,7 @@ public class SPSProxyHelper {
 
           relPath = relPath.substring(serverLocation.length());
 
-          if ( !relPath.endsWith(".aspx") )
-            fileStream.addFile( relPath );
+          fileStream.addFile( relPath );
         }
       }
       else
