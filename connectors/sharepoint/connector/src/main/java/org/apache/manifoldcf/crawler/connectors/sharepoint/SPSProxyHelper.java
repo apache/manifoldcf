@@ -807,7 +807,7 @@ public class SPSProxyHelper {
   /**
   *
   * @param parentSite
-  * @param docLibrary
+  * @param docLibrary or list name
   * @return document library ID
   * @throws ManifoldCFException
   * @throws ServiceInterruption
@@ -859,26 +859,62 @@ public class SPSProxyHelper {
         Object o = nodeList.get( i++ );
 
         String baseType = doc.getValue( o, "BaseType");
-        if ( baseType.compareTo( "1" ) == 0 )
+        if ( baseType.equals("1") )
         {
           // We think it's a library
 
           // This is how we display it, so this has the right path extension
           String urlPath = doc.getValue( o, "DefaultViewUrl" );
 
-          // It's a library.  If it has no view url, we don't have any idea what to do with it
+          // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
             if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("View url is not in the expected form: '"+urlPath+"'");
+              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
             urlPath = urlPath.substring(chuckIndex);
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("View url without site is not in the expected form: '"+urlPath+"'");
+              throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
             // We're at the library name.  Figure out where the end of it is.
             int index = urlPath.indexOf("/",1);
             if (index == -1)
-              throw new ManifoldCFException("Bad view url without site: '"+urlPath+"'");
+              throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
             String pathpart = urlPath.substring(1,index);
+
+            if ( pathpart.equals(docLibrary) )
+            {
+              // We found it!
+              // Return its ID
+              return doc.getValue( o, "ID" );
+            }
+          }
+        }
+        else if ( baseType.equals("0") )
+        {
+          // We think it's a list
+
+          // This is how we display it, so this has the right path extension
+          String urlPath = doc.getValue( o, "DefaultViewUrl" );
+
+          // If it has no view url, we don't have any idea what to do with it
+          if (urlPath != null && urlPath.length() > 0)
+          {
+            if (urlPath.length() < chuckIndex)
+              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
+            urlPath = urlPath.substring(chuckIndex);
+            if (!urlPath.startsWith("/"))
+              throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
+            // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
+            int index = urlPath.indexOf("/",1);
+            if (index == -1)
+              throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+            String pathpart = urlPath.substring(1,index);
+            if("Lists".equals(pathpart))
+            {
+              int k = urlPath.indexOf("/",index+1);
+              if (k == -1)
+                throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+              pathpart = urlPath.substring(index+1,k);
+            }
 
             if ( pathpart.equals(docLibrary) )
             {
@@ -900,7 +936,7 @@ public class SPSProxyHelper {
     catch (javax.xml.rpc.ServiceException e)
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got a service exception getting the library ID for site "+parentSite+" library "+docLibrary+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got a service exception getting the library ID for site "+parentSite+" list/library "+docLibrary+" - retrying",e);
       currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 12 * 60 * 60000L,-1,true);
@@ -1902,7 +1938,7 @@ public class SPSProxyHelper {
   /**
   * Gets a list of document libraries given a parent site
   * @param parentSite the site to search for document libraries, empty string for root
-  * @return lists of NameValue objects, representing document libraries
+  * @return lists of NameValue objects, representing document libraries or lists
   */
   public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
@@ -1951,7 +1987,7 @@ public class SPSProxyHelper {
         Object o = nodeList.get( i++ );
 
         String baseType = doc.getValue( o, "BaseType");
-        if ( baseType.compareTo( "1" ) == 0 )
+        if ( baseType.equals( "1" ) )
         {
           // We think it's a library
 
@@ -1968,14 +2004,14 @@ public class SPSProxyHelper {
           if (urlPath != null && urlPath.length() > 0)
           {
             if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("View url is not in the expected form: '"+urlPath+"'");
+              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
             urlPath = urlPath.substring(chuckIndex);
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("View url without site is not in the expected form: '"+urlPath+"'");
+              throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
             // We're at the library name.  Figure out where the end of it is.
             int index = urlPath.indexOf("/",1);
             if (index == -1)
-              throw new ManifoldCFException("Bad view url without site: '"+urlPath+"'");
+              throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
             String pathpart = urlPath.substring(1,index);
 
             if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
@@ -1986,6 +2022,50 @@ public class SPSProxyHelper {
             }
           }
         }
+        else if ( baseType.equals( "0" ) )
+        {
+          // We think it's a list
+
+          // This is how we display it, so this has the right path extension
+          String urlPath = doc.getValue( o, "DefaultViewUrl" );
+          // This is the pretty name
+          String title = doc.getValue( o, "Title" );
+
+          // Leave this in for the moment
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("SharePoint: List: '"+urlPath+"', '"+title+"'");
+
+          // If it has no view url, we don't have any idea what to do with it
+          if (urlPath != null && urlPath.length() > 0)
+          {
+            if (urlPath.length() < chuckIndex)
+              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
+            urlPath = urlPath.substring(chuckIndex);
+            if (!urlPath.startsWith("/"))
+              throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
+            // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
+            int index = urlPath.indexOf("/",1);
+            if (index == -1)
+              throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+            String pathpart = urlPath.substring(1,index);
+
+            if("Lists".equals(pathpart))
+            {
+              int k = urlPath.indexOf("/",index+1);
+              if (k == -1)
+                throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+              pathpart = urlPath.substring(index+1,k);
+            }
+
+            if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+            {
+              if (title == null || title.length() == 0)
+                title = pathpart;
+              result.add( new NameValue(pathpart, title) );
+            }
+          }
+        }
+
       }
 
       return result;
@@ -1997,7 +2077,7 @@ public class SPSProxyHelper {
     catch (javax.xml.rpc.ServiceException e)
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got a service exception getting document libraries for site "+parentSite+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got a service exception getting document libraries and lists for site "+parentSite+" - retrying",e);
       currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 12 * 60 * 60000L,-1,true);
