@@ -45,10 +45,12 @@ import org.apache.commons.httpclient.protocol.*;
 * Document identifiers for this connector come in three forms:
 * (1) An "S" followed by the encoded subsite/library path, which represents the encoded relative path from the root site to a library. [deprecated and no longer supported];
 * (2) A "D" followed by a subsite/library/folder/file path, which represents the relative path from the root site to a file. [deprecated and no longer supported]
-* (3) Three different kinds of unencoded path, each of which starts with a "/" at the beginning, where the "/" represents the root site of the connection, as follows:
+* (3) Five different kinds of unencoded path, each of which starts with a "/" at the beginning, where the "/" represents the root site of the connection, as follows:
 *   /sitepath/ - the relative path to a site.  The path MUST both begin and end with a single "/".
 *   /sitepath/libraryname// - the relative path to a library.  The path MUST begin with a single "/" and end with "//".
 *   /sitepath/libraryname//folderfilepath - the relative path to a file.  The path MUST begin with a single "/" and MUST include a "//" after the library, and must NOT end with a "/".
+*   /sitepath/listname/// - the relative path to a list.  The path MUST begin with a single "/" and end with "///".
+*   /sitepath/listname///rowid - the relative path to a list item.  The path MUST begin with a single "/" and MUST include a "///" after the list name, and must NOT end in a "/".
 */
 public class SharePointRepository extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
@@ -560,10 +562,238 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       else if (documentIdentifier.startsWith("/"))
       {
         // New-style document identifier.  A double-slash marks the separation between the library and folder/file levels.
-        int dSlashIndex = documentIdentifier.indexOf("//");
-        if (dSlashIndex == -1)
+        // A triple-slash marks the separation between a list name and list row ID.
+        int dListSeparatorIndex = documentIdentifier.indexOf("///");
+        int dLibSeparatorIndex = documentIdentifier.indexOf("//");
+        if (dListSeparatorIndex != -1)
         {
-          // Site path!
+          // === List-style identifier ===
+          // MHL
+        }
+        else if (dLibSeparatorIndex != -1)
+        {
+          // === Library-style identifier ===
+          if (dLibSeparatorIndex == documentIdentifier.length() - 2)
+          {
+            // Library path!
+            if (checkIncludeLibrary(documentIdentifier.substring(0,documentIdentifier.length()-2),spec))
+              // This is the path for the library: No versioning
+              rval[i] = "";
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Library specification no longer includes library '"+documentIdentifier+"' - removing");
+              rval[i] = null;
+            }
+          }
+          else
+          {
+            // Document path!
+            // Convert the modified document path to an unmodified one, plus a library path.
+            String decodedLibPath = documentIdentifier.substring(0,dLibSeparatorIndex);
+            String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dLibSeparatorIndex+1);
+            if (checkIncludeFile(decodedDocumentPath,spec))
+            {
+              // This file is included, so calculate a version string.  This will include metadata info, so get that first.
+              MetadataInformation metadataInfo = getMetadataSpecification(decodedDocumentPath,spec);
+
+              int lastIndex = decodedLibPath.lastIndexOf("/");
+              String sitePath = decodedLibPath.substring(0,lastIndex);
+              String lib = decodedLibPath.substring(lastIndex+1);
+
+              String encodedSitePath = encodePath(sitePath);
+
+              // Need to get the library id.  Cache it if we need to calculate it.
+              String libID = (String)libIDMap.get(decodedLibPath);
+              if (libID == null)
+              {
+                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
+                if (libID != null)
+                  libIDMap.put(decodedLibPath,libID);
+              }
+
+              if (libID != null)
+              {
+                HashMap metadataFields = null;
+
+                // Figure out the actual metadata fields we will request
+                if (metadataInfo.getAllMetadata())
+                {
+                  // Fetch the fields
+                  Map fieldNames = (Map)fieldListMap.get(decodedLibPath);
+                  if (fieldNames == null)
+                  {
+                    fieldNames = proxy.getFieldList( encodedSitePath, libID );
+                    if (fieldNames != null)
+                      fieldListMap.put(decodedLibPath,fieldNames);
+                  }
+
+                  if (fieldNames != null)
+                  {
+                    metadataFields = new HashMap();
+                    for (Iterator e = fieldNames.keySet().iterator(); e.hasNext();)
+                    {
+                      String key = (String)e.next();
+                      metadataFields.put( key, key );
+                    }
+                  }
+                }
+                else
+                {
+                  metadataFields = new HashMap();
+                  String[] fields = metadataInfo.getMetadataFields();
+                  int q = 0;
+                  while (q < fields.length)
+                  {
+                    String field = fields[q++];
+                    metadataFields.put(field,field);
+                  }
+                }
+
+                if (metadataFields != null)
+                {
+                  // Convert the hashtable to an array and sort it.
+                  String[] sortedMetadataFields = new String[metadataFields.size()];
+                  int z = 0;
+                  Iterator iter = metadataFields.keySet().iterator();
+                  while (iter.hasNext())
+                  {
+                    sortedMetadataFields[z++] = (String)iter.next();
+                  }
+                  java.util.Arrays.sort(sortedMetadataFields);
+
+                  // Next, get the actual timestamp field for the file.
+                  ArrayList metadataDescription = new ArrayList();
+                  metadataDescription.add("Last_x0020_Modified");
+                  // The document path includes the library, with no leading slash, and is decoded.
+                  int cutoff = decodedLibPath.lastIndexOf("/");
+                  String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
+                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+                  String modifyDate = (String)values.get("Last_x0020_Modified");
+                  if (modifyDate != null)
+                  {
+                    // Build version string
+                    String versionToken = modifyDate;
+                    // Revamped version string on 11/8/2006 to make parseability better
+
+                    StringBuilder sb = new StringBuilder();
+
+                    packList(sb,sortedMetadataFields,'+');
+
+                    // Do the acls.
+                    boolean foundAcls = true;
+                    if (acls != null)
+                    {
+                      String[] accessTokens;
+                      sb.append('+');
+
+                      // If there are forced acls, use those in the version string instead.
+                      if (acls.length == 0)
+                      {
+                        if (supportsItemSecurity)
+                        {
+                          // For documents, just fetch
+                          accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
+                          if (accessTokens != null)
+                          {
+                            java.util.Arrays.sort(accessTokens);
+                            if (Logging.connectors.isDebugEnabled())
+                              Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedDocumentPath+"'");
+                          }
+                          else
+                          {
+                            foundAcls = false;
+                          }
+                        }
+                        else
+                        {
+                          // The goal here is simply to record what should get ingested with the document, so that
+                          // we can compare against future values.
+                          // Grab the acls for this combo, if we haven't already
+                          accessTokens = (String[])ACLmap.get(decodedLibPath);
+                          if (accessTokens == null)
+                          {
+                            if (Logging.connectors.isDebugEnabled())
+                              Logging.connectors.debug( "SharePoint: Compiling acl list for '"+decodedLibPath+"'... ");
+                            accessTokens = proxy.getACLs( encodedSitePath, libID );
+                            if (accessTokens != null)
+                            {
+                              java.util.Arrays.sort(accessTokens);
+                              // no point in sorting, because we sort at the end anyhow
+                              if (Logging.connectors.isDebugEnabled())
+                                Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedLibPath+"'");
+                              ACLmap.put(decodedLibPath,accessTokens);
+                            }
+                            else
+                            {
+                              foundAcls = false;
+                            }
+                          }
+                        }
+                      }
+                      else
+                        accessTokens = acls;
+                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
+                      if (foundAcls)
+                      {
+                        packList(sb,accessTokens,'+');
+                        // Added 4/21/2008 to handle case when AD authority is down
+                        pack(sb,defaultAuthorityDenyToken,'+');
+                      }
+                    }
+                    else
+                      sb.append('-');
+                    if (foundAcls)
+                    {
+                      // The rest of this is unparseable
+                      sb.append(versionToken);
+                      sb.append(pathNameAttributeVersion);
+                      // Added 9/7/07
+                      sb.append("_").append(fileBaseUrl);
+                      //
+                      rval[i] = sb.toString();
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
+                    }
+                    else
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for library '"+decodedLibPath+"'; removing document '"+documentIdentifier+"'");
+                      rval[i] = null;
+                    }
+                  }
+                  else
+                  {
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+                    rval[i] = null;
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' doesn't respond to metadata requests - removing");
+                  rval[i] = null;
+                }
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' does not exist - removing");
+                rval[i] = null;
+              }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' is no longer included - removing");
+              rval[i] = null;
+            }
+          }
+        }
+        else
+        {
+          // === Site-style identifier ===
           String sitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
           if (sitePath.length() == 0)
             sitePath = "/";
@@ -574,222 +804,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("SharePoint: Site specification no longer includes site '"+documentIdentifier+"' - removing");
-            rval[i] = null;
-          }
-        }
-        else if (dSlashIndex == documentIdentifier.length() - 2)
-        {
-          // Library path!
-          if (checkIncludeLibrary(documentIdentifier.substring(0,documentIdentifier.length()-2),spec))
-            // This is the path for the library: No versioning
-            rval[i] = "";
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: Library specification no longer includes library '"+documentIdentifier+"' - removing");
-            rval[i] = null;
-          }
-        }
-        else
-        {
-          // Convert the modified document path to an unmodified one, plus a library path.
-          String decodedLibPath = documentIdentifier.substring(0,dSlashIndex);
-          String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dSlashIndex+1);
-          if (checkInclude(decodedDocumentPath,spec))
-          {
-            // This file is included, so calculate a version string.  This will include metadata info, so get that first.
-            MetadataInformation metadataInfo = getMetadataSpecification(decodedDocumentPath,spec);
-
-            int lastIndex = decodedLibPath.lastIndexOf("/");
-            String sitePath = decodedLibPath.substring(0,lastIndex);
-            String lib = decodedLibPath.substring(lastIndex+1);
-
-            String encodedSitePath = encodePath(sitePath);
-
-            // Need to get the library id.  Cache it if we need to calculate it.
-            String libID = (String)libIDMap.get(decodedLibPath);
-            if (libID == null)
-            {
-              libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
-              if (libID != null)
-                libIDMap.put(decodedLibPath,libID);
-            }
-
-            if (libID != null)
-            {
-              HashMap metadataFields = null;
-
-              // Figure out the actual metadata fields we will request
-              if (metadataInfo.getAllMetadata())
-              {
-                // Fetch the fields
-                Map fieldNames = (Map)fieldListMap.get(decodedLibPath);
-                if (fieldNames == null)
-                {
-                  fieldNames = proxy.getFieldList( encodedSitePath, libID );
-                  if (fieldNames != null)
-                    fieldListMap.put(decodedLibPath,fieldNames);
-                }
-
-                if (fieldNames != null)
-                {
-                  metadataFields = new HashMap();
-                  for (Iterator e = fieldNames.keySet().iterator(); e.hasNext();)
-                  {
-                    String key = (String)e.next();
-                    metadataFields.put( key, key );
-                  }
-                }
-              }
-              else
-              {
-                metadataFields = new HashMap();
-                String[] fields = metadataInfo.getMetadataFields();
-                int q = 0;
-                while (q < fields.length)
-                {
-                  String field = fields[q++];
-                  metadataFields.put(field,field);
-                }
-              }
-
-              if (metadataFields != null)
-              {
-                // Convert the hashtable to an array and sort it.
-                String[] sortedMetadataFields = new String[metadataFields.size()];
-                int z = 0;
-                Iterator iter = metadataFields.keySet().iterator();
-                while (iter.hasNext())
-                {
-                  sortedMetadataFields[z++] = (String)iter.next();
-                }
-                java.util.Arrays.sort(sortedMetadataFields);
-
-                // Next, get the actual timestamp field for the file.
-                ArrayList metadataDescription = new ArrayList();
-                metadataDescription.add("Last_x0020_Modified");
-                // The document path includes the library, with no leading slash, and is decoded.
-                int cutoff = decodedLibPath.lastIndexOf("/");
-                String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
-                Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
-                String modifyDate = (String)values.get("Last_x0020_Modified");
-                if (modifyDate != null)
-                {
-                  // Build version string
-                  String versionToken = modifyDate;
-                  // Revamped version string on 11/8/2006 to make parseability better
-
-                  StringBuilder sb = new StringBuilder();
-
-                  packList(sb,sortedMetadataFields,'+');
-
-                  // Do the acls.
-                  boolean foundAcls = true;
-                  if (acls != null)
-                  {
-                    String[] accessTokens;
-                    sb.append('+');
-
-                    // If there are forced acls, use those in the version string instead.
-                    if (acls.length == 0)
-                    {
-                      if (supportsItemSecurity)
-                      {
-                        // For documents, just fetch
-                        accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
-                        if (accessTokens != null)
-                        {
-                          java.util.Arrays.sort(accessTokens);
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedDocumentPath+"'");
-                        }
-                        else
-                        {
-                          foundAcls = false;
-                        }
-                      }
-                      else
-                      {
-                        // The goal here is simply to record what should get ingested with the document, so that
-                        // we can compare against future values.
-                        // Grab the acls for this combo, if we haven't already
-                        accessTokens = (String[])ACLmap.get(decodedLibPath);
-                        if (accessTokens == null)
-                        {
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug( "SharePoint: Compiling acl list for '"+decodedLibPath+"'... ");
-                          accessTokens = proxy.getACLs( encodedSitePath, libID );
-                          if (accessTokens != null)
-                          {
-                            java.util.Arrays.sort(accessTokens);
-                            // no point in sorting, because we sort at the end anyhow
-                            if (Logging.connectors.isDebugEnabled())
-                              Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedLibPath+"'");
-                            ACLmap.put(decodedLibPath,accessTokens);
-                          }
-                          else
-                          {
-                            foundAcls = false;
-                          }
-                        }
-                      }
-                    }
-                    else
-                      accessTokens = acls;
-                    // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
-                    if (foundAcls)
-                    {
-                      packList(sb,accessTokens,'+');
-                      // Added 4/21/2008 to handle case when AD authority is down
-                      pack(sb,defaultAuthorityDenyToken,'+');
-                    }
-                  }
-                  else
-                    sb.append('-');
-                  if (foundAcls)
-                  {
-                    // The rest of this is unparseable
-                    sb.append(versionToken);
-                    sb.append(pathNameAttributeVersion);
-                    // Added 9/7/07
-                    sb.append("_").append(fileBaseUrl);
-                    //
-                    rval[i] = sb.toString();
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                  }
-                  else
-                  {
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Couldn't get access tokens for library '"+decodedLibPath+"'; removing document '"+documentIdentifier+"'");
-                    rval[i] = null;
-                  }
-                }
-                else
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
-                  rval[i] = null;
-                }
-              }
-              else
-              {
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' doesn't respond to metadata requests - removing");
-                rval[i] = null;
-              }
-            }
-            else
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' does not exist - removing");
-              rval[i] = null;
-            }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' is no longer included - removing");
             rval[i] = null;
           }
         }
@@ -836,10 +850,434 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         Logging.connectors.debug( "SharePoint: Processing: '" + documentIdentifier + "'");
       if ( documentIdentifier.startsWith("/") )
       {
-        int dSlashIndex = documentIdentifier.indexOf("//");
-        if (dSlashIndex == -1)
+        // New document identifier format.
+        int dListSeparatorIndex = documentIdentifier.indexOf("///");
+        int dLibSeparatorIndex = documentIdentifier.indexOf("//");
+        if (dListSeparatorIndex != -1)
         {
-          // It's a site.  Strip off the trailing "/" to get the site name.
+          // === List style identifier ===
+          // MHL
+        }
+        else if (dLibSeparatorIndex != -1)
+        {
+          // === Library style identifier ===
+          if (dLibSeparatorIndex == documentIdentifier.length() - 2)
+          {
+            // It's a library.
+            String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
+            int libCutoff = siteLibPath.lastIndexOf( "/" );
+            String site = siteLibPath.substring(0,libCutoff);
+            String libName = siteLibPath.substring( libCutoff + 1 );
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
+
+            // Calculate the start of the path part that would contain the folders/file
+            int foldersFilePathIndex = site.length() + 1 + libName.length();
+
+            String libID = proxy.getDocLibID( encodePath(site), site, libName );
+            if (libID != null)
+            {
+              FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
+              boolean success = proxy.getDocuments( fs, encodePath(site) , libID, dspStsWorks );
+              if (!success)
+              {
+                // Site/library no longer exists, so delete entry
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+                activities.deleteDocument(documentIdentifier,version);
+              }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier,version);
+            }
+          }
+          else
+          {
+            // File/folder identifier
+            if ( !scanOnly[ i ] )
+            {
+              // Convert the modified document path to an unmodified one, plus a library path.
+              String decodedLibPath = documentIdentifier.substring(0,dLibSeparatorIndex);
+              String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dLibSeparatorIndex+1);
+              String encodedDocumentPath = encodePath(decodedDocumentPath);
+
+              int libCutoff = decodedLibPath.lastIndexOf( "/" );
+              String site = decodedLibPath.substring(0,libCutoff);
+              String libName = decodedLibPath.substring( libCutoff + 1 );
+
+              // Parse what we need out of version string.
+
+              // Placeholder for metadata specification
+              ArrayList metadataDescription = new ArrayList();
+              int startPosition = unpackList(metadataDescription,version,0,'+');
+
+              // Acls
+              ArrayList acls = null;
+              String denyAcl = null;
+              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
+              {
+                acls = new ArrayList();
+                startPosition = unpackList(acls,version,startPosition,'+');
+                if (startPosition < version.length())
+                {
+                  StringBuilder denyAclBuffer = new StringBuilder();
+                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
+                  denyAcl = denyAclBuffer.toString();
+                }
+              }
+
+
+              // Generate the URL we are going to use
+              String fileUrl = fileBaseUrl + encodedDocumentPath;
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
+
+              // Set stuff up for fetch activity logging
+              long startFetchTime = System.currentTimeMillis();
+              try
+              {
+                // Read the document into a local temporary file, so I get a reliable length.
+                File tempFile = File.createTempFile("__shp__",".tmp");
+                try
+                {
+                  // Open the output stream
+                  OutputStream os = new FileOutputStream(tempFile);
+                  try
+                  {
+                    // Read the document.
+                    try
+                    {
+                      HttpClient httpClient = new HttpClient(connectionManager);
+                      HostConfiguration clientConf = new HostConfiguration();
+                      clientConf.setParams(new HostParams());
+                      clientConf.setHost(serverName,serverPort,myFactory.getProtocol(serverProtocol));
+
+                      Credentials credentials;
+                      if (strippedUserName != null)
+                        credentials =  new NTCredentials(strippedUserName, password, currentHost, ntlmDomain);
+                      else
+                        credentials = null;
+
+                      if (credentials != null)
+                        httpClient.getState().setCredentials(new AuthScope(serverName,serverPort,null),
+                          credentials);
+
+                      HttpMethodBase method = new GetMethod( encodedServerLocation + encodedDocumentPath );
+                      try
+                      {
+                        // Set up SSL using our keystore
+                        method.getParams().setParameter("http.socket.timeout", new Integer(60000));
+
+                        int returnCode;
+                        ExecuteMethodThread t = new ExecuteMethodThread(httpClient,clientConf,method);
+                        try
+                        {
+                          t.start();
+                          t.join();
+                          Throwable thr = t.getException();
+                          if (thr != null)
+                          {
+                            if (thr instanceof IOException)
+                              throw (IOException)thr;
+                            if (thr instanceof RuntimeException)
+                              throw (RuntimeException)thr;
+                            else
+                              throw (Error)thr;
+                          }
+                          returnCode = t.getResponse();
+                        }
+                        catch (InterruptedException e)
+                        {
+                          t.interrupt();
+                          // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
+                          method = null;
+                          throw e;
+                        }
+                        if (returnCode == HttpStatus.SC_NOT_FOUND || returnCode == HttpStatus.SC_UNAUTHORIZED || returnCode == HttpStatus.SC_BAD_REQUEST)
+                        {
+                          // Well, sharepoint thought the document was there, but it really isn't, so delete it.
+                          if (Logging.connectors.isDebugEnabled())
+                            Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
+                          activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                            null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
+                          activities.deleteDocument(documentIdentifier,version);
+                          i++;
+                          continue;
+                        }
+                        if (returnCode != HttpStatus.SC_OK)
+                        {
+                          activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                            null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
+                          throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+                        }
+
+                        // int contentSize = (int)method.getResponseContentLength();
+                        InputStream is = method.getResponseBodyAsStream();
+                        try
+                        {
+                          byte[] transferBuffer = new byte[65536];
+                          while (true)
+                          {
+                            int amt = is.read(transferBuffer);
+                            if (amt == -1)
+                              break;
+                            os.write(transferBuffer,0,amt);
+                          }
+                        }
+                        finally
+                        {
+                          try
+                          {
+                            is.close();
+                          }
+                          catch (java.net.SocketTimeoutException e)
+                          {
+                            Logging.connectors.warn("SharePoint: Socket timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
+                          }
+                          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                          {
+                            Logging.connectors.warn("SharePoint: Connect timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
+                          }
+                          catch (InterruptedIOException e)
+                          {
+                            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                          }
+                          catch (IOException e)
+                          {
+                            Logging.connectors.warn("SharePoint: Error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
+                          }
+                        }
+                      }
+                      finally
+                      {
+                        if (method != null)
+                          method.releaseConnection();
+                      }
+
+                      // Log the normal fetch activity
+                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+                    }
+                    catch (InterruptedException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (java.net.SocketTimeoutException e)
+                    {
+                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                      Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
+                      long currentTime = System.currentTimeMillis();
+                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                        currentTime + 12 * 60 * 60000L,-1,true);
+                    }
+                    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                    {
+                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                      Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
+                      long currentTime = System.currentTimeMillis();
+                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                        currentTime + 12 * 60 * 60000L,-1,true);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IllegalArgumentException e)
+                    {
+                      Logging.connectors.error("SharePoint: Illegal argument", e);
+                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                      throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
+                    }
+                    catch (HttpException e)
+                    {
+                      Logging.connectors.warn("SharePoint: HttpException thrown",e);
+                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                      long currentTime = System.currentTimeMillis();
+                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                        currentTime + 12 * 60 * 60000L,-1,true);
+                    }
+                    catch (IOException e)
+                    {
+                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                      Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
+                      long currentTime = System.currentTimeMillis();
+                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                        currentTime + 12 * 60 * 60000L,-1,true);
+                    }
+                  }
+                  finally
+                  {
+                    os.close();
+                  }
+                  
+                  long documentLength = tempFile.length();
+                  if (activities.checkLengthIndexable(documentLength))
+                  {
+                    InputStream is = new FileInputStream(tempFile);
+                    try
+                    {
+                      RepositoryDocument data = new RepositoryDocument();
+                      data.setBinary( is, documentLength );
+
+                      if (acls != null)
+                      {
+                        String[] actualAcls = new String[acls.size()];
+                        int j = 0;
+                        while (j < actualAcls.length)
+                        {
+                          actualAcls[j] = (String)acls.get(j);
+                          j++;
+                        }
+
+                        if (Logging.connectors.isDebugEnabled())
+                        {
+                          j = 0;
+                          StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
+                          while (j < actualAcls.length)
+                          {
+                            sb.append(actualAcls[j++]).append(" ");
+                          }
+                          sb.append("]");
+                          Logging.connectors.debug( sb.toString() );
+                        }
+
+                        data.setACL( actualAcls );
+                      }
+
+                      if (denyAcl != null)
+                      {
+                        String[] actualDenyAcls = new String[]{denyAcl};
+                        data.setDenyACL(actualDenyAcls);
+                      }
+
+                      // Add the path metadata item into the mix, if enabled
+                      String pathAttributeName = sDesc.getPathAttributeName();
+                      if (pathAttributeName != null && pathAttributeName.length() > 0)
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("SharePoint: Path attribute name is '"+pathAttributeName+"'");
+                        String pathString = sDesc.getPathAttributeValue(documentIdentifier);
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("SharePoint: Path attribute value is '"+pathString+"'");
+                        data.addField(pathAttributeName,pathString);
+                      }
+                      else
+                        Logging.connectors.debug("SharePoint: Path attribute name is null");
+
+                      // Retrieve field values from SharePoint
+                      if (metadataDescription.size() > 0)
+                      {
+                        String documentLibID = (String)docLibIDMap.get(decodedLibPath);
+                        if (documentLibID == null)
+                        {
+                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
+                          if (documentLibID == null)
+                            documentLibID = "";
+                          docLibIDMap.put(decodedLibPath,documentLibID);
+                        }
+
+                        if (documentLibID.length() == 0)
+                        {
+                          if (Logging.connectors.isDebugEnabled())
+                            Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
+                          activities.deleteDocument(documentIdentifier,version);
+                          i++;
+                          continue;
+                        }
+
+                        int cutoff = decodedLibPath.lastIndexOf("/");
+                        Map values = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
+                        if (values != null)
+                        {
+                          Iterator iter = values.keySet().iterator();
+                          while (iter.hasNext())
+                          {
+                            String fieldName = (String)iter.next();
+                            String fieldData = (String)values.get(fieldName);
+                            data.addField(fieldName,fieldData);
+                          }
+                        }
+                        else
+                        {
+                          // Document has vanished
+                          if (Logging.connectors.isDebugEnabled())
+                            Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
+                          activities.deleteDocument(documentIdentifier,version);
+                          i++;
+                          continue;
+                        }
+                      }
+
+                      activities.ingestDocument( documentIdentifier, version, fileUrl , data );
+                    }
+                    finally
+                    {
+                      try
+                      {
+                        is.close();
+                      }
+                      catch (java.net.SocketTimeoutException e)
+                      {
+                        // This is not fatal
+                        Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                      }
+                      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                      {
+                        // This is not fatal
+                        Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                      }
+                      catch (InterruptedIOException e)
+                      {
+                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      }
+                      catch (IOException e)
+                      {
+                        // This is not fatal
+                        Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                      }
+                    }
+                  }
+                  else
+                    // Document too long
+                    activities.deleteDocument( documentIdentifier, version );
+                }
+                finally
+                {
+                  tempFile.delete();
+                }
+              }
+              catch (java.net.SocketTimeoutException e)
+              {
+                throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              }
+              catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+              {
+                throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              }
+              catch (InterruptedIOException e)
+              {
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+              }
+              catch (IOException e)
+              {
+                throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+              }
+            }
+          }
+        }
+        else
+        {
+          // === Site-style identifier ===
+          // Strip off the trailing "/" to get the site name.
           String decodedSitePath = documentIdentifier.substring(0,documentIdentifier.length()-1);
 
           if (Logging.connectors.isDebugEnabled())
@@ -887,419 +1325,27 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               Logging.connectors.debug("SharePoint: No permissions to access libraries of '"+decodedSitePath+"' - skipping");
           }
 
-        }
-        else if (dSlashIndex == documentIdentifier.length() - 2)
-        {
-          // It's a library.
-          String siteLibPath = documentIdentifier.substring(0,documentIdentifier.length()-2);
-          int libCutoff = siteLibPath.lastIndexOf( "/" );
-          String site = siteLibPath.substring(0,libCutoff);
-          String libName = siteLibPath.substring( libCutoff + 1 );
-
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
-
-          // Calculate the start of the path part that would contain the folders/file
-          int foldersFilePathIndex = site.length() + 1 + libName.length();
-
-          String libID = proxy.getDocLibID( encodePath(site), site, libName );
-          if (libID != null)
+          // Look at lists
+          ArrayList lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
+          if (lists != null)
           {
-            FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
-            boolean success = proxy.getDocuments( fs, encodePath(site) , libID, dspStsWorks );
-            if (!success)
+            int j = 0;
+            while (j < lists.size())
             {
-              // Site/library no longer exists, so delete entry
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
-              activities.deleteDocument(documentIdentifier,version);
+              NameValue list = (NameValue)lists.get(j++);
+              String newPath = decodedSitePath + "/" + list.getValue();
+
+              if (checkIncludeList(newPath,spec))
+                activities.addDocumentReference(newPath + "///");
+
             }
           }
           else
           {
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: GUID lookup failed for library '"+siteLibPath+"' - deleting");
-            activities.deleteDocument(documentIdentifier,version);
+              Logging.connectors.debug("SharePoint: No permissions to access lists of '"+decodedSitePath+"' - skipping");
           }
-        }
-        else
-        {
-          // File/folder identifier
-          if ( !scanOnly[ i ] )
-          {
-            // New-style document identifier.  A double-slash marks the separation between the library and folder/file levels.
-            // Convert the modified document path to an unmodified one, plus a library path.
-            String decodedLibPath = documentIdentifier.substring(0,dSlashIndex);
-            String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dSlashIndex+1);
-            String encodedDocumentPath = encodePath(decodedDocumentPath);
 
-            int libCutoff = decodedLibPath.lastIndexOf( "/" );
-            String site = decodedLibPath.substring(0,libCutoff);
-            String libName = decodedLibPath.substring( libCutoff + 1 );
-
-            // Parse what we need out of version string.
-
-            // Placeholder for metadata specification
-            ArrayList metadataDescription = new ArrayList();
-            int startPosition = unpackList(metadataDescription,version,0,'+');
-
-            // Acls
-            ArrayList acls = null;
-            String denyAcl = null;
-            if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-            {
-              acls = new ArrayList();
-              startPosition = unpackList(acls,version,startPosition,'+');
-              if (startPosition < version.length())
-              {
-                StringBuilder denyAclBuffer = new StringBuilder();
-                startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                denyAcl = denyAclBuffer.toString();
-              }
-            }
-
-
-            // Generate the URL we are going to use
-            String fileUrl = fileBaseUrl + encodedDocumentPath;
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
-
-            // Set stuff up for fetch activity logging
-            long startFetchTime = System.currentTimeMillis();
-            try
-            {
-              // Read the document into a local temporary file, so I get a reliable length.
-              File tempFile = File.createTempFile("__shp__",".tmp");
-              try
-              {
-                // Open the output stream
-                OutputStream os = new FileOutputStream(tempFile);
-                try
-                {
-                  // Read the document.
-                  try
-                  {
-                    HttpClient httpClient = new HttpClient(connectionManager);
-                    HostConfiguration clientConf = new HostConfiguration();
-                    clientConf.setParams(new HostParams());
-                    clientConf.setHost(serverName,serverPort,myFactory.getProtocol(serverProtocol));
-
-                    Credentials credentials;
-                    if (strippedUserName != null)
-                      credentials =  new NTCredentials(strippedUserName, password, currentHost, ntlmDomain);
-                    else
-                      credentials = null;
-
-                    if (credentials != null)
-                      httpClient.getState().setCredentials(new AuthScope(serverName,serverPort,null),
-                        credentials);
-
-                    HttpMethodBase method = new GetMethod( encodedServerLocation + encodedDocumentPath );
-                    try
-                    {
-                      // Set up SSL using our keystore
-                      method.getParams().setParameter("http.socket.timeout", new Integer(60000));
-
-                      int returnCode;
-                      ExecuteMethodThread t = new ExecuteMethodThread(httpClient,clientConf,method);
-                      try
-                      {
-                        t.start();
-                        t.join();
-                        Throwable thr = t.getException();
-                        if (thr != null)
-                        {
-                          if (thr instanceof IOException)
-                            throw (IOException)thr;
-                          if (thr instanceof RuntimeException)
-                            throw (RuntimeException)thr;
-                          else
-                            throw (Error)thr;
-                        }
-                        returnCode = t.getResponse();
-                      }
-                      catch (InterruptedException e)
-                      {
-                        t.interrupt();
-                        // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-                        method = null;
-                        throw e;
-                      }
-                      if (returnCode == HttpStatus.SC_NOT_FOUND || returnCode == HttpStatus.SC_UNAUTHORIZED || returnCode == HttpStatus.SC_BAD_REQUEST)
-                      {
-                        // Well, sharepoint thought the document was there, but it really isn't, so delete it.
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
-                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                          null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
-                        activities.deleteDocument(documentIdentifier,version);
-                        i++;
-                        continue;
-                      }
-                      if (returnCode != HttpStatus.SC_OK)
-                      {
-                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                          null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-                        throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
-                      }
-
-                      // int contentSize = (int)method.getResponseContentLength();
-                      InputStream is = method.getResponseBodyAsStream();
-                      try
-                      {
-                        byte[] transferBuffer = new byte[65536];
-                        while (true)
-                        {
-                          int amt = is.read(transferBuffer);
-                          if (amt == -1)
-                            break;
-                          os.write(transferBuffer,0,amt);
-                        }
-                      }
-                      finally
-                      {
-                        try
-                        {
-                          is.close();
-                        }
-                        catch (java.net.SocketTimeoutException e)
-                        {
-                          Logging.connectors.warn("SharePoint: Socket timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                        }
-                        catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                        {
-                          Logging.connectors.warn("SharePoint: Connect timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                        }
-                        catch (InterruptedIOException e)
-                        {
-                          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                        }
-                        catch (IOException e)
-                        {
-                          Logging.connectors.warn("SharePoint: Error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                        }
-                      }
-                    }
-                    finally
-                    {
-                      if (method != null)
-                        method.releaseConnection();
-                    }
-
-                    // Log the normal fetch activity
-                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                      new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-                  }
-                  catch (InterruptedException e)
-                  {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (java.net.SocketTimeoutException e)
-                  {
-                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                      new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
-                    long currentTime = System.currentTimeMillis();
-                    throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                      currentTime + 12 * 60 * 60000L,-1,true);
-                  }
-                  catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                  {
-                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                      new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
-                    long currentTime = System.currentTimeMillis();
-                    throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                      currentTime + 12 * 60 * 60000L,-1,true);
-                  }
-                  catch (InterruptedIOException e)
-                  {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IllegalArgumentException e)
-                  {
-                    Logging.connectors.error("SharePoint: Illegal argument", e);
-                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                      new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
-                  }
-                  catch (HttpException e)
-                  {
-                    Logging.connectors.warn("SharePoint: HttpException thrown",e);
-                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                      new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    long currentTime = System.currentTimeMillis();
-                    throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                      currentTime + 12 * 60 * 60000L,-1,true);
-                  }
-                  catch (IOException e)
-                  {
-                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                      new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                    Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
-                    long currentTime = System.currentTimeMillis();
-                    throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                      currentTime + 12 * 60 * 60000L,-1,true);
-                  }
-                }
-                finally
-                {
-                  os.close();
-                }
-                
-                long documentLength = tempFile.length();
-                if (activities.checkLengthIndexable(documentLength))
-                {
-                  InputStream is = new FileInputStream(tempFile);
-                  try
-                  {
-                    RepositoryDocument data = new RepositoryDocument();
-                    data.setBinary( is, documentLength );
-
-                    if (acls != null)
-                    {
-                      String[] actualAcls = new String[acls.size()];
-                      int j = 0;
-                      while (j < actualAcls.length)
-                      {
-                        actualAcls[j] = (String)acls.get(j);
-                        j++;
-                      }
-
-                      if (Logging.connectors.isDebugEnabled())
-                      {
-                        j = 0;
-                        StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
-                        while (j < actualAcls.length)
-                        {
-                          sb.append(actualAcls[j++]).append(" ");
-                        }
-                        sb.append("]");
-                        Logging.connectors.debug( sb.toString() );
-                      }
-
-                      data.setACL( actualAcls );
-                    }
-
-                    if (denyAcl != null)
-                    {
-                      String[] actualDenyAcls = new String[]{denyAcl};
-                      data.setDenyACL(actualDenyAcls);
-                    }
-
-                    // Add the path metadata item into the mix, if enabled
-                    String pathAttributeName = sDesc.getPathAttributeName();
-                    if (pathAttributeName != null && pathAttributeName.length() > 0)
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Path attribute name is '"+pathAttributeName+"'");
-                      String pathString = sDesc.getPathAttributeValue(documentIdentifier);
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Path attribute value is '"+pathString+"'");
-                      data.addField(pathAttributeName,pathString);
-                    }
-                    else
-                      Logging.connectors.debug("SharePoint: Path attribute name is null");
-
-                    // Retrieve field values from SharePoint
-                    if (metadataDescription.size() > 0)
-                    {
-                      String documentLibID = (String)docLibIDMap.get(decodedLibPath);
-                      if (documentLibID == null)
-                      {
-                        documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
-                        if (documentLibID == null)
-                          documentLibID = "";
-                        docLibIDMap.put(decodedLibPath,documentLibID);
-                      }
-
-                      if (documentLibID.length() == 0)
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                        activities.deleteDocument(documentIdentifier,version);
-                        i++;
-                        continue;
-                      }
-
-                      int cutoff = decodedLibPath.lastIndexOf("/");
-                      Map values = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
-                      if (values != null)
-                      {
-                        Iterator iter = values.keySet().iterator();
-                        while (iter.hasNext())
-                        {
-                          String fieldName = (String)iter.next();
-                          String fieldData = (String)values.get(fieldName);
-                          data.addField(fieldName,fieldData);
-                        }
-                      }
-                      else
-                      {
-                        // Document has vanished
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                        activities.deleteDocument(documentIdentifier,version);
-                        i++;
-                        continue;
-                      }
-                    }
-
-                    activities.ingestDocument( documentIdentifier, version, fileUrl , data );
-                  }
-                  finally
-                  {
-                    try
-                    {
-                      is.close();
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      // This is not fatal
-                      Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                    }
-                    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                    {
-                      // This is not fatal
-                      Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      // This is not fatal
-                      Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                    }
-                  }
-                }
-                else
-                  // Document too long
-                  activities.deleteDocument( documentIdentifier, version );
-              }
-              finally
-              {
-                tempFile.delete();
-              }
-            }
-            catch (java.net.SocketTimeoutException e)
-            {
-              throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-            }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-            {
-              throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-            }
-            catch (InterruptedIOException e)
-            {
-              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-            }
-            catch (IOException e)
-            {
-              throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-            }
-          }
         }
       }
       else
@@ -1325,7 +1371,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     public void addFile(String relPath)
       throws ManifoldCFException
     {
-      if ( checkInclude( relPath, spec ) )
+      if ( checkIncludeFile( relPath, spec ) )
       {
         // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
         // The way I've chosen to do this is to use a double slash at that point, as a separator.
@@ -1334,6 +1380,34 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         activities.addDocumentReference( modifiedPath );
       }
     }
+  }
+  
+  protected class ListItemStream implements IFileStream
+  {
+    protected IProcessActivity activities;
+    protected int foldersFilePathIndex;
+    protected DocumentSpecification spec;
+    
+    public ListItemStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    {
+      this.activities = activities;
+      this.foldersFilePathIndex = foldersFilePathIndex;
+      this.spec = spec;
+    }
+    
+    public void addFile(String relPath)
+      throws ManifoldCFException
+    {
+      if ( checkIncludeListItem( relPath, spec ) )
+      {
+        // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between list and item levels.
+        // The way I've chosen to do this is to use a triple slash at that point, as a separator.
+        String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "//" + relPath.substring(foldersFilePathIndex);
+
+        activities.addDocumentReference( modifiedPath );
+      }
+    }
+
   }
   
 
@@ -4332,6 +4406,56 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return false;
   }
 
+  /** Check if a list should be included, given a document specification.
+  *@param listPath is the unencoded canonical list name (including site path from root site), without any starting slash.
+  *@param documentSpecification is the specification.
+  *@return true if it should be included.
+  */
+  protected boolean checkIncludeList( String listPath, DocumentSpecification documentSpecification )
+  {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug( "SharePoint: Checking whether to include list '" + listPath + "'" );
+
+    // Scan the specification, looking for new-style "pathrule" matches.
+    int i = 0;
+    while (i < documentSpecification.getChildCount())
+    {
+      SpecificationNode sn = documentSpecification.getChild(i++);
+      if (sn.getType().equals("pathrule"))
+      {
+        // New-style rule.
+        // Here's the trick: We do what the first matching rule tells us to do.
+        String pathMatch = sn.getAttributeValue("match");
+        String action = sn.getAttributeValue("action");
+        String ruleType = sn.getAttributeValue("type");
+
+        // First, find out if we match EXACTLY.
+        if (checkMatch(listPath,0,pathMatch))
+        {
+          // If this is true, the type also has to match if the rule is to apply.
+          if (ruleType.equals("list"))
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: List '"+listPath+"' exactly matched rule path '"+pathMatch+"'");
+            if (action.equals("include"))
+            {
+              // For include rules, partial match is good enough to proceed.
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Including list '"+listPath+"'");
+              return true;
+            }
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: Excluding list '"+listPath+"'");
+            return false;
+          }
+        }
+      }
+    }
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: Not including list '"+listPath+"' because no matching rule");
+    return false;
+  }
+
   /** Check if a site should be included, given a document specification.
   *@param sitePath is the unencoded canonical site path name from the root site level, without any starting slash.
   *@param documentSpecification is the specification.
@@ -4401,6 +4525,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("SharePoint: Site '"+sitePath+"' partially matched library rule path '"+pathMatch+"' - including");
+          return true;
+        }
+        else if (ruleType.equals("list") && checkPartialPathMatch(sitePath,0,pathMatch,1) && action.equals("include"))
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("SharePoint: Site '"+sitePath+"' partially matched list rule path '"+pathMatch+"' - including");
           return true;
         }
         else if (ruleType.equals("site") && checkPartialPathMatch(sitePath,0,pathMatch,0) && action.equals("include"))
@@ -4517,7 +4647,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return true if file should be included.
   */
-  protected boolean checkInclude( String filePath, DocumentSpecification documentSpecification )
+  protected boolean checkIncludeFile( String filePath, DocumentSpecification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug( "SharePoint: Checking whether to include document '" + filePath + "'" );
@@ -4627,6 +4757,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       Logging.connectors.debug("SharePoint: File path '"+filePath+"' does not match any rules - excluding");
 
     return false;
+  }
+
+  /** Check if a list item should be included.
+  *@param itemPath is the path to the item, including sites and list name, beneath the root site.
+  *@param documentSpecification is the document specification.
+  *@return true if file should be included.
+  */
+  protected boolean checkIncludeListItem( String itemPath, DocumentSpecification documentSpecification )
+  {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug( "SharePoint: Checking whether to include list item '" + itemPath + "'" );
+
+    // There are no item rules, so they are always included
+    return true;
   }
 
   /** Match a sub-path.  The sub-path must match the complete starting part of the full path, in a path
