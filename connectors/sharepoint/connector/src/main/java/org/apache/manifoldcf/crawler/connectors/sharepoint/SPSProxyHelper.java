@@ -1653,7 +1653,7 @@ public class SPSProxyHelper {
         GetListItemsQuery q = buildMatchQuery("FileRef","Text",docId);
         GetListItemsViewFields viewFields = buildViewFields(fieldNames);
 
-        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", null, null);
+        GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", buildNonPagingQueryOptions(), null);
         if (items == null)
           return result;
 
@@ -2159,6 +2159,32 @@ public class SPSProxyHelper {
       MessageElement pagingNode = new MessageElement((String)null,"Paging");
       queryOptionsNode.addChild(pagingNode);
       pagingNode.addAttribute(null,"ListItemCollectionPositionNext",pageNextString);
+      MessageElement viewAttributesNode = new MessageElement((String)null,"ViewAttributes");
+      queryOptionsNode.addChild(viewAttributesNode);
+      viewAttributesNode.addAttribute(null,"Scope","Recursive");
+
+      return rval;
+    }
+    catch (javax.xml.soap.SOAPException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+  }
+
+  /** Build queryOptions XML object that specifies no paging value.
+  */
+  protected static GetListItemsQueryOptions buildNonPagingQueryOptions()
+    throws ManifoldCFException
+  {
+    try
+    {
+      GetListItemsQueryOptions rval = new GetListItemsQueryOptions();
+      MessageElement queryOptionsNode = new MessageElement((String)null,"QueryOptions");
+      rval.set_any(new MessageElement[]{queryOptionsNode});
+      MessageElement viewAttributesNode = new MessageElement((String)null,"ViewAttributes");
+      queryOptionsNode.addChild(viewAttributesNode);
+      viewAttributesNode.addAttribute(null,"Scope","Recursive");
+
       return rval;
     }
     catch (javax.xml.soap.SOAPException e)
