@@ -114,7 +114,7 @@ public class BigCrawlTester
     // Now, start the job, and wait until it completes.
     long startTime = System.currentTimeMillis();
     jobManager.manualStart(job.getID());
-    instance.waitJobInactiveNative(jobManager,job.getID(),22000000L);
+    instance.waitJobInactiveNative(jobManager,job.getID(),220000000L);
     System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
     // Check to be sure we actually processed the right number of documents.
