@@ -390,7 +390,54 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           sitePath = remainder.substring(index+1);
         }
         
-        Map fieldSet = getFieldList(sitePath,library);
+        Map fieldSet = getLibFieldList(sitePath,library);
+        Iterator iter = fieldSet.keySet().iterator();
+        while (iter.hasNext())
+        {
+          String fieldName = (String)iter.next();
+          String displayName = (String)fieldSet.get(fieldName);
+          ConfigurationNode node = new ConfigurationNode("field");
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(fieldName);
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(displayName);
+          node.addChild(node.getChildCount(),child);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        ManifoldCF.createServiceInterruptionNode(output,e);
+      }
+      catch (ManifoldCFException e)
+      {
+        ManifoldCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.startsWith("listfields/"))
+    {
+      String listName;
+      String sitePath;
+      
+      String remainder = command.substring("listfields/".length());
+      
+      try
+      {
+        int index = remainder.indexOf("/");
+        if (index == -1)
+        {
+          listName = remainder;
+          sitePath = "";
+        }
+        else
+        {
+          listName = remainder.substring(0,index);
+          sitePath = remainder.substring(index+1);
+        }
+        
+        Map fieldSet = getListFieldList(sitePath,listName);
         Iterator iter = fieldSet.keySet().iterator();
         while (iter.hasNext())
         {
@@ -3384,11 +3431,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         int index = metaPathLibrary.lastIndexOf("/");
         String site = metaPathLibrary.substring(0,index);
         String libOrList = metaPathLibrary.substring(index+1);
-        System.out.println("libOrList is '"+libOrList+"'");
         Map metaFieldList = null;
         try
         {
-          metaFieldList = getFieldList(site,libOrList);
+          if (metaPathState.equals("library"))
+            metaFieldList = getLibFieldList(site,libOrList);
+          else if (metaPathState.equals("list"))
+            metaFieldList = getListFieldList(site,libOrList);
+          else
+            throw new ManifoldCFException("Unknown state; please contact ManifoldCF developer group");
         }
         catch (ManifoldCFException e)
         {
@@ -4151,7 +4202,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
         else if (pathop.equals("AppendList"))
         {
-          System.out.println("In AppendList");
           String path = variableContext.getParameter("metapath");
           String addon = variableContext.getParameter("metalist");
           if (addon != null && addon.length() > 0)
@@ -4162,10 +4212,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               path = path + "/" + addon;
             currentContext.save("metapathstate","list");
             currentContext.save("metapathlibrary",path);
-            System.out.println("metapathlibrary set to '"+path+"'");
           }
-          else
-            System.out.println("metalist was null");
           currentContext.save("metapath",path);
         }
         else if (pathop.equals("AppendText"))
@@ -4804,14 +4851,27 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   /**
   * Gets a list of field names of the given document library or list.
   * @param parentSite - parent site path
-  * @param docLibraryOrList
+  * @param docLibrary name
   * @return list of the fields
   */
-  public Map getFieldList( String parentSite, String docLibraryOrList )
+  public Map getLibFieldList( String parentSite, String docLibrary )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibraryOrList) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary) );
+  }
+
+  /**
+  * Gets a list of field names of the given document library or list.
+  * @param parentSite - parent site path
+  * @param docLibrary name
+  * @return list of the fields
+  */
+  public Map getListFieldList( String parentSite, String listName )
+    throws ServiceInterruption, ManifoldCFException
+  {
+    getSession();
+    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName) );
   }
 
   /**
