@@ -1829,9 +1829,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     public void addFile(String relPath)
       throws ManifoldCFException
     {
+      // First, strip "Lists" from relPath
+      if (!relPath.startsWith("/Lists/"))
+        throw new ManifoldCFException("Expected path to start with /Lists/");
+      relPath = relPath.substring("/Lists".length());
       if ( checkIncludeListItem( relPath, spec ) )
       {
-        // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between list and item levels.
+        // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
         // The way I've chosen to do this is to use a triple slash at that point, as a separator.
         String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "//" + relPath.substring(foldersFilePathIndex);
 
