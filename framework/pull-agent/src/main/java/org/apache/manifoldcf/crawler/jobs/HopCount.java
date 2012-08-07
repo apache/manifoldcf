@@ -364,20 +364,20 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Record a reference from source to target.  This reference will be marked as "new" or "existing".
   */
-  public void recordReference(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String targetDocumentIDHash, String linkType,
+  public boolean recordReference(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String targetDocumentIDHash, String linkType,
     int hopcountMethod)
     throws ManifoldCFException
   {
-    doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,new String[]{targetDocumentIDHash},linkType,hopcountMethod);
+    return doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,new String[]{targetDocumentIDHash},linkType,hopcountMethod)[0];
   }
 
   /** Record a set of references from source to target.  This reference will be marked as "new" or "existing".
   */
-  public void recordReferences(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
+  public boolean[] recordReferences(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
     int hopcountMethod)
     throws ManifoldCFException
   {
-    doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,targetDocumentIDHashes,linkType,hopcountMethod);
+    return doRecord(jobID,legalLinkTypes,sourceDocumentIDHash,targetDocumentIDHashes,linkType,hopcountMethod);
   }
 
   /** Complete a recalculation pass for a set of source documents.  All child links that are not marked as "new"
@@ -390,13 +390,19 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Do the work of recording source-target references. */
-  protected void doRecord(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
+  protected boolean[] doRecord(Long jobID, String[] legalLinkTypes, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType,
     int hopcountMethod)
     throws ManifoldCFException
   {
 
     // We have to both add the reference, AND invalidate appropriate cached hopcounts (if it is a NEW
     // link.)
+    boolean[] rval = new boolean[targetDocumentIDHashes.length];
+    for (int i = 0; i < rval.length; i++)
+    {
+      rval[i] = false;
+    }
+    
     beginTransaction();
     try
     {
@@ -404,6 +410,18 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       if (newReferences.length > 0)
       {
         // There are added links.
+        
+        // First, note them in return value
+        Set<String> newSet = new HashSet<String>();
+        for (int i = 0; i < newReferences.length; i++)
+        {
+          newSet.add(newReferences[i]);
+        }
+        for (int i = 0; i < rval.length; i++)
+        {
+          if (newSet.contains(targetDocumentIDHashes[i]))
+            rval[i] = true;
+        }
 
         // The add causes hopcount records to be queued for processing (and created if they don't exist).
         // ALL the hopcount records for the target document ids must be queued, for all the link types
@@ -495,6 +513,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         if (Logging.hopcount.isDebugEnabled())
           Logging.hopcount.debug("Done queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
       }
+      return rval;
     }
     catch (ManifoldCFException e)
     {

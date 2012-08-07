@@ -3891,6 +3891,10 @@ public class JobManager implements IJobManager
         // Update all the carrydown data at once, for greatest efficiency.
         boolean[] carrydownChangesSeen = carryDown.recordCarrydownDataMultiple(jobID,parentIdentifierHash,reorderedDocIDHashes,dataNames,dataHashValues,dataValues);
 
+        boolean[] hopcountChangesSeen = null;
+        if (parentIdentifierHash != null && relationshipType != null)
+          hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod);
+
         // Loop through the document id's again, and perform updates where needed
         boolean[] reorderedRval = new boolean[reorderedDocIDHashes.length];
 
@@ -3905,12 +3909,11 @@ public class JobManager implements IJobManager
           else
             // It was an existing row; do the update logic
             reorderedRval[z] = jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
-            0L,currentTime,carrydownChangesSeen[z],reorderedDocumentPriorities[z],reorderedDocumentPrerequisites[z]);
+              0L,currentTime,carrydownChangesSeen[z] || (hopcountChangesSeen!=null && hopcountChangesSeen[z]),
+              reorderedDocumentPriorities[z],reorderedDocumentPrerequisites[z]);
           z++;
         }
 
-        if (parentIdentifierHash != null && relationshipType != null)
-          hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod);
 
         database.performCommit();
         
