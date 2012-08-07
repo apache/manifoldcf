@@ -3,6 +3,13 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-500: Tests were hanging or otherwise doing strange
+things on exit.  This was because the connection pool was being
+closed when the web application(s) were being unloaded, meaning
+that cleanup of the database took place with the pool in an
+inconsistent state.
+(Karl Wright)
+
 CONNECTORS-494: Fix the build to conditionally include registration
 commands for connectors that are built with stubs.
 (Shinichiro Abe, Karl Wright)

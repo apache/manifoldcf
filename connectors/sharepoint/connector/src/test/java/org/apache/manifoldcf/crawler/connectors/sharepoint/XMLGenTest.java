@@ -39,7 +39,7 @@ public class XMLGenTest
     throws Exception
   {
     String pagingXML = SPSProxyHelper.buildPagingQueryOptions("some next string").get_any()[0].toString();
-    assertEquals("<QueryOptions><Paging ListItemCollectionPositionNext=\"some next string\"/></QueryOptions>",pagingXML);
+    assertEquals("<QueryOptions><Paging ListItemCollectionPositionNext=\"some next string\"/><ViewAttributes Scope=\"Recursive\"/></QueryOptions>",pagingXML);
   }
   
   @Test

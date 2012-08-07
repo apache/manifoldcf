@@ -548,15 +548,21 @@ public class ManifoldCFInstance
         currentException = e;
     }
       
+    if (currentException != null)
+      throw currentException;
+  }
+  
+  public void unload()
+    throws Exception
+  {
     if (server != null)
     {
+      // Unfortunately, this causes the shutdown hooks to be called, which causes
+      // no end of trouble unless it is done last.
       server.stop();
       server.join();
       server = null;
     }
-      
-    if (currentException != null)
-      throw currentException;
   }
   
   protected static class DaemonThread extends Thread

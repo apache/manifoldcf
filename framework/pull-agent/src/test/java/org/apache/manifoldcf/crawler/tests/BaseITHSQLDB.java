@@ -212,6 +212,17 @@ public class BaseITHSQLDB extends ConnectorBaseHSQLDB
         if (currentException == null)
           currentException = e;
       }
+      // Last, shut down the web applications.
+      // If this is done too soon it closes the database before the rest of the cleanup happens.
+      try
+      {
+        mcfInstance.unload();
+      }
+      catch (Exception e)
+      {
+        if (currentException == null)
+          currentException = e;
+      }
       if (currentException != null)
         throw currentException;
     }

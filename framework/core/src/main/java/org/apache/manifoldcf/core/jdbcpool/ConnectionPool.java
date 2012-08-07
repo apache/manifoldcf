@@ -35,6 +35,7 @@ public class ConnectionPool
   protected String password;
   protected volatile int freePointer;
   protected volatile int activeConnections;
+  protected volatile boolean closed;
   protected Connection[] freeConnections;
   protected long[] connectionCleanupTimeouts;
   protected long expiration;
@@ -49,6 +50,7 @@ public class ConnectionPool
     this.connectionCleanupTimeouts = new long[maxConnections];
     this.freePointer = 0;
     this.activeConnections = 0;
+    this.closed = false;
     this.expiration = expiration;
   }
   
@@ -66,6 +68,8 @@ public class ConnectionPool
       {
         if (freePointer > 0)
         {
+          if (closed)
+            throw new InterruptedException("Pool already closed");
           Connection rval = freeConnections[--freePointer];
           freeConnections[freePointer] = null;
           return new WrappedConnection(this,rval);
@@ -116,6 +120,8 @@ public class ConnectionPool
       freeConnections[i] = null;
     }
     freePointer = 0;
+    closed = true;
+    notifyAll();
   }
   
   /** Clean up expired connections.

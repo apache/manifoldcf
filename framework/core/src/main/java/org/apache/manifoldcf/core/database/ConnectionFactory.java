@@ -191,17 +191,20 @@ public class ConnectionFactory
 
     public void releaseAll()
     {
+      ConnectionPoolManager thisPool;
       synchronized (poolExistenceLock)
       {
         if (_pool == null)
           return;
+        thisPool = _pool;
+        _pool = null;
       }
 
       // Cleanup strategy: Some connections are still in use because they are being
       // used by non-worker threads that have been interrupted but haven't yet died.
       // Cleaning these up is a challenge.  For now I won't address this.
       
-      _pool.shutdown();
+      thisPool.shutdown();
     }
       
       /*
