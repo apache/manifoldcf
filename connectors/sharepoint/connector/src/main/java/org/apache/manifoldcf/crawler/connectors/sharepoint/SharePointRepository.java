@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Locale;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.net.*;
 
 import org.apache.commons.httpclient.*;
@@ -62,6 +64,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   // Activities we log
   public final static String ACTIVITY_FETCH = "fetch";
 
+  protected final static long sessionExpirationInterval = 300000L;
+  
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
   private String serverProtocol = null;
@@ -78,6 +82,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
   private SPSProxyHelper proxy = null;
 
+  private long sessionTimeout;
+  
   // SSL support
   private String keystoreData = null;
   private IKeystoreManager keystoreManager = null;
@@ -199,9 +205,37 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
         myFactory, getClass(), "sharepoint-client-config.wsdd",
         connectionManager );
+      
     }
+    sessionTimeout = System.currentTimeMillis() + sessionExpirationInterval;
   }
 
+  protected void expireSession()
+    throws ManifoldCFException
+  {
+    serverUrl = null;
+    fileBaseUrl = null;
+    userName = null;
+    strippedUserName = null;
+    password = null;
+    ntlmDomain = null;
+    serverName = null;
+    serverLocation = null;
+    encodedServerLocation = null;
+    serverPort = -1;
+
+    keystoreData = null;
+    keystoreManager = null;
+    secureSocketFactory = null;
+    myFactory = null;
+
+    proxy = null;
+    if (connectionManager != null)
+      connectionManager.shutdown();
+    connectionManager = null;
+
+  }
+  
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
@@ -318,6 +352,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   public void poll()
     throws ManifoldCFException
   {
+    if (proxy != null && System.currentTimeMillis() >= sessionTimeout)
+      expireSession();
     if (connectionManager != null)
       connectionManager.closeIdleConnections(60000L);
   }
@@ -415,6 +451,30 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           String lib = (String)libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("library");
+          node.setValue(lib);
+          output.addChild(output.getChildCount(),node);
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        ManifoldCF.createServiceInterruptionNode(output,e);
+      }
+      catch (ManifoldCFException e)
+      {
+        ManifoldCF.createErrorNode(output,e);
+      }
+    }
+    else if (command.startsWith("lists/"))
+    {
+      try
+      {
+        String sitePath = command.substring("lists/".length());
+        ArrayList libs = getListsBySite(sitePath);
+        int i = 0;
+        while (i < libs.size())
+        {
+          String lib = (String)libs.get(i++);
+          ConfigurationNode node = new ConfigurationNode("list");
           node.setValue(lib);
           output.addChild(output.getChildCount(),node);
         }
@@ -528,10 +588,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
 
     // This is the cached map of sitelibstring to library identifier
-    HashMap libIDMap = new HashMap();
-    // This is the cached map of sitelibstring to field list (stored as a Map)
-    HashMap fieldListMap = new HashMap();
-
+    Map<String,String> libIDMap = new HashMap<String,String>();
+    // This is the cached map of siteliststring to list identifier
+    Map<String,String> listIDMap = new HashMap<String,String>();
+    
+    // This is the cached map if guid to field list
+    Map<String,Map<String,String>> fieldListMap = new HashMap<String,Map<String,String>>();
+    
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
     StringBuilder pathNameAttributeVersion = new StringBuilder();
@@ -539,10 +602,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
 
     String[] rval = new String[documentIdentifiers.length];
-    // Build a cache of the acls for a given site, lib.
-    // The key is site + "/" + lib, and the value is a String[]
-    HashMap ACLmap = new HashMap();
-
+    
+    // Build a cache of the acls for a given site, guid.
+    // The key is the guid, and the value is a String[]
+    Map<String,String[]> ACLmap = new HashMap<String,String[]>();
+    
     i = 0;
     while (i < rval.length)
     {
@@ -568,7 +632,147 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (dListSeparatorIndex != -1)
         {
           // === List-style identifier ===
-          // MHL
+          if (dListSeparatorIndex == documentIdentifier.length() - 3)
+          {
+            // List path!
+            if (checkIncludeList(documentIdentifier.substring(0,documentIdentifier.length()-3),spec))
+              // This is the path for the list: No versioning
+              rval[i] = "";
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: List specification no longer includes list '"+documentIdentifier+"' - removing");
+              rval[i] = null;
+            }
+          }
+          else
+          {
+            // List item path!
+            // Convert the modified document path to an unmodified one, plus a library path.
+            String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
+            String decodedItemPath = decodedListPath + documentIdentifier.substring(dListSeparatorIndex+2);
+            if (checkIncludeListItem(decodedItemPath,spec))
+            {
+              // This file is included, so calculate a version string.  This will include metadata info, so get that first.
+              MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
+
+              int lastIndex = decodedListPath.lastIndexOf("/");
+              String sitePath = decodedListPath.substring(0,lastIndex);
+              String list = decodedListPath.substring(lastIndex+1);
+
+              String encodedSitePath = encodePath(sitePath);
+
+              // Need to get the library id.  Cache it if we need to calculate it.
+              String listID = listIDMap.get(decodedListPath);
+              if (listID == null)
+              {
+                listID = proxy.getListID(encodedSitePath, sitePath, list);
+                if (listID != null)
+                  listIDMap.put(decodedListPath,listID);
+              }
+
+              if (listID != null)
+              {
+                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,listID,fieldListMap);
+                
+                if (sortedMetadataFields != null)
+                {
+                  // Next, get the actual timestamp field for the file.
+                  ArrayList metadataDescription = new ArrayList();
+                  metadataDescription.add("Last_x0020_Modified");
+                  // The document path includes the library, with no leading slash, and is decoded.
+                  int cutoff = decodedListPath.lastIndexOf("/");
+                  String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
+                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, decodedItemPathWithoutSite, dspStsWorks );
+                  String modifyDate = (String)values.get("Last_x0020_Modified");
+                  if (modifyDate != null)
+                  {
+                    // Build version string
+                    String versionToken = modifyDate;
+                    // Revamped version string on 11/8/2006 to make parseability better
+
+                    StringBuilder sb = new StringBuilder();
+
+                    packList(sb,sortedMetadataFields,'+');
+
+                    // Do the acls.
+                    boolean foundAcls = true;
+                    if (acls != null)
+                    {
+                      sb.append('+');
+
+                      // If there are forced acls, use those in the version string instead.
+                      String[] accessTokens;
+                      if (acls.length == 0)
+                      {
+                        // The goal here is simply to record what should get ingested with the document, so that
+                        // we can compare against future values.
+                        // Grab the acls for this combo, if we haven't already
+                        accessTokens = lookupAccessTokensSorted(encodedSitePath,listID,ACLmap);
+                          
+                        if (accessTokens == null)
+                          foundAcls = false;
+                        
+                      }
+                      else
+                        accessTokens = acls;
+                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
+                      if (foundAcls)
+                      {
+                        packList(sb,accessTokens,'+');
+                        // Added 4/21/2008 to handle case when AD authority is down
+                        pack(sb,defaultAuthorityDenyToken,'+');
+                      }
+                    }
+                    else
+                      sb.append('-');
+                    if (foundAcls)
+                    {
+                      // The rest of this is unparseable
+                      sb.append(versionToken);
+                      sb.append(pathNameAttributeVersion);
+                      // Added 9/7/07
+                      sb.append("_").append(fileBaseUrl);
+                      //
+                      rval[i] = sb.toString();
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
+                    }
+                    else
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for list '"+decodedListPath+"'; removing list item '"+documentIdentifier+"'");
+                      rval[i] = null;
+                    }
+                  }
+                  else
+                  {
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+                    rval[i] = null;
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' doesn't respond to metadata requests - removing");
+                  rval[i] = null;
+                }
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' does not exist - removing");
+                rval[i] = null;
+              }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: List item '"+documentIdentifier+"' is no longer included - removing");
+              rval[i] = null;
+            }
+          }
         }
         else if (dLibSeparatorIndex != -1)
         {
@@ -604,7 +808,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String encodedSitePath = encodePath(sitePath);
 
               // Need to get the library id.  Cache it if we need to calculate it.
-              String libID = (String)libIDMap.get(decodedLibPath);
+              String libID = libIDMap.get(decodedLibPath);
               if (libID == null)
               {
                 libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
@@ -614,54 +818,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
               if (libID != null)
               {
-                HashMap metadataFields = null;
-
-                // Figure out the actual metadata fields we will request
-                if (metadataInfo.getAllMetadata())
+                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,libID,fieldListMap);
+                
+                if (sortedMetadataFields != null)
                 {
-                  // Fetch the fields
-                  Map fieldNames = (Map)fieldListMap.get(decodedLibPath);
-                  if (fieldNames == null)
-                  {
-                    fieldNames = proxy.getFieldList( encodedSitePath, libID );
-                    if (fieldNames != null)
-                      fieldListMap.put(decodedLibPath,fieldNames);
-                  }
-
-                  if (fieldNames != null)
-                  {
-                    metadataFields = new HashMap();
-                    for (Iterator e = fieldNames.keySet().iterator(); e.hasNext();)
-                    {
-                      String key = (String)e.next();
-                      metadataFields.put( key, key );
-                    }
-                  }
-                }
-                else
-                {
-                  metadataFields = new HashMap();
-                  String[] fields = metadataInfo.getMetadataFields();
-                  int q = 0;
-                  while (q < fields.length)
-                  {
-                    String field = fields[q++];
-                    metadataFields.put(field,field);
-                  }
-                }
-
-                if (metadataFields != null)
-                {
-                  // Convert the hashtable to an array and sort it.
-                  String[] sortedMetadataFields = new String[metadataFields.size()];
-                  int z = 0;
-                  Iterator iter = metadataFields.keySet().iterator();
-                  while (iter.hasNext())
-                  {
-                    sortedMetadataFields[z++] = (String)iter.next();
-                  }
-                  java.util.Arrays.sort(sortedMetadataFields);
-
                   // Next, get the actual timestamp field for the file.
                   ArrayList metadataDescription = new ArrayList();
                   metadataDescription.add("Last_x0020_Modified");
@@ -684,10 +844,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     boolean foundAcls = true;
                     if (acls != null)
                     {
-                      String[] accessTokens;
                       sb.append('+');
 
                       // If there are forced acls, use those in the version string instead.
+                      String[] accessTokens;
                       if (acls.length == 0)
                       {
                         if (supportsItemSecurity)
@@ -710,25 +870,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                           // The goal here is simply to record what should get ingested with the document, so that
                           // we can compare against future values.
                           // Grab the acls for this combo, if we haven't already
-                          accessTokens = (String[])ACLmap.get(decodedLibPath);
+                          accessTokens = lookupAccessTokensSorted(encodedSitePath,libID,ACLmap);
+                          
                           if (accessTokens == null)
-                          {
-                            if (Logging.connectors.isDebugEnabled())
-                              Logging.connectors.debug( "SharePoint: Compiling acl list for '"+decodedLibPath+"'... ");
-                            accessTokens = proxy.getACLs( encodedSitePath, libID );
-                            if (accessTokens != null)
-                            {
-                              java.util.Arrays.sort(accessTokens);
-                              // no point in sorting, because we sort at the end anyhow
-                              if (Logging.connectors.isDebugEnabled())
-                                Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedLibPath+"'");
-                              ACLmap.put(decodedLibPath,accessTokens);
-                            }
-                            else
-                            {
-                              foundAcls = false;
-                            }
-                          }
+                            foundAcls = false;
+
                         }
                       }
                       else
@@ -815,7 +961,82 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return rval;
   }
 
-    /** Process a set of documents.
+  protected String[] lookupAccessTokensSorted(String encodedSitePath, String guid, Map<String,String[]> ACLmap)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    String[] accessTokens = ACLmap.get(guid);
+    if (accessTokens == null)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug( "SharePoint: Compiling acl list for guid "+guid+"... ");
+      accessTokens = proxy.getACLs( encodedSitePath, guid );
+      if (accessTokens != null)
+      {
+        java.util.Arrays.sort(accessTokens);
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for  guid " +guid);
+        ACLmap.put(guid,accessTokens);
+      }
+    }
+    return accessTokens;
+  }
+
+  protected String[] getInterestingFieldSetSorted(MetadataInformation metadataInfo,
+    String encodedSitePath, String guid, Map<String,Map<String,String>> fieldListMap)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Set<String> metadataFields = null;
+
+    // Figure out the actual metadata fields we will request
+    if (metadataInfo.getAllMetadata())
+    {
+      // Fetch the fields
+      Map<String,String> fieldNames = fieldListMap.get(guid);
+      if (fieldNames == null)
+      {
+        fieldNames = proxy.getFieldList( encodedSitePath, guid );
+        if (fieldNames != null)
+          fieldListMap.put(guid,fieldNames);
+      }
+
+      if (fieldNames != null)
+      {
+        metadataFields = new HashSet<String>();
+        for (Iterator<String> e = fieldNames.keySet().iterator(); e.hasNext();)
+        {
+          String key = e.next();
+          metadataFields.add(key);
+        }
+      }
+    }
+    else
+    {
+      metadataFields = new HashSet<String>();
+      String[] fields = metadataInfo.getMetadataFields();
+      int q = 0;
+      while (q < fields.length)
+      {
+        String field = fields[q++];
+        metadataFields.add(field);
+      }
+    }
+    if (metadataFields == null)
+      return null;
+    
+    // Convert the hashtable to an array and sort it.
+    String[] sortedMetadataFields = new String[metadataFields.size()];
+    int z = 0;
+    Iterator<String> iter = metadataFields.iterator();
+    while (iter.hasNext())
+    {
+      sortedMetadataFields[z++] = iter.next();
+    }
+    java.util.Arrays.sort(sortedMetadataFields);
+
+    return sortedMetadataFields;
+  }
+
+  /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
   * The document specification allows this class to filter what is done based on the job.
@@ -835,7 +1056,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     // Decode the system metadata part of the specification
     SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
 
-    HashMap docLibIDMap = new HashMap();
+    Map<String,String> docLibIDMap = new HashMap<String,String>();
+    Map<String,String> listIDMap = new HashMap<String,String>();
 
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -856,7 +1078,158 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (dListSeparatorIndex != -1)
         {
           // === List style identifier ===
-          // MHL
+          if (dListSeparatorIndex == documentIdentifier.length() - 3)
+          {
+            String siteListPath = documentIdentifier.substring(0,documentIdentifier.length()-3);
+            int listCutoff = siteListPath.lastIndexOf( "/" );
+            String site = siteListPath.substring(0,listCutoff);
+            String listName = siteListPath.substring( listCutoff + 1 );
+
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
+
+            // Calculate the start of the path part that would contain the list item name
+            int listItemPathIndex = site.length() + 1 + listName.length();
+
+            String listID = proxy.getListID( encodePath(site), site, listName );
+            if (listID != null)
+            {
+              ListItemStream fs = new ListItemStream( activities, listItemPathIndex, spec );
+              boolean success = proxy.getChildren( fs, encodePath(site) , listID, dspStsWorks );
+              if (!success)
+              {
+                // Site/list no longer exists, so delete entry
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+                activities.deleteDocument(documentIdentifier,version);
+              }
+            }
+            else
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: GUID lookup failed for list '"+siteListPath+"' - deleting");
+              activities.deleteDocument(documentIdentifier,version);
+            }
+          }
+          else
+          {
+            // List item identifier
+            if ( !scanOnly[ i ] )
+            {
+              // Convert the modified document path to an unmodified one, plus a library path.
+              String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
+              String decodedItemPath = decodedListPath + documentIdentifier.substring(dListSeparatorIndex+2);
+              String encodedItemPath = encodePath(decodedItemPath);
+
+              int listCutoff = decodedListPath.lastIndexOf( "/" );
+              String site = decodedListPath.substring(0,listCutoff);
+              String listName = decodedListPath.substring( listCutoff + 1 );
+
+              // Parse what we need out of version string.
+
+              // Placeholder for metadata specification
+              ArrayList metadataDescription = new ArrayList();
+              int startPosition = unpackList(metadataDescription,version,0,'+');
+
+              // Acls
+              ArrayList acls = null;
+              String denyAcl = null;
+              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
+              {
+                acls = new ArrayList();
+                startPosition = unpackList(acls,version,startPosition,'+');
+                if (startPosition < version.length())
+                {
+                  StringBuilder denyAclBuffer = new StringBuilder();
+                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
+                  denyAcl = denyAclBuffer.toString();
+                }
+              }
+
+              // Generate the URL we are going to use
+              String itemUrl = fileBaseUrl + encodedItemPath;
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug( "SharePoint: Processing item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
+
+              if (activities.checkLengthIndexable(0L))
+              {
+                InputStream is = new ByteArrayInputStream(new byte[0]);
+                try
+                {
+                  RepositoryDocument data = new RepositoryDocument();
+                  data.setBinary( is, 0L );
+
+                  setDataACLs(data,acls,denyAcl);
+                  
+                  setPathAttribute(data,sDesc,documentIdentifier);
+
+                  // Retrieve field values from SharePoint
+                  if (metadataDescription.size() > 0)
+                  {
+                    String listID = listIDMap.get(decodedListPath);
+                    if (listID == null)
+                    {
+                      listID = proxy.getListID( encodePath(site), site, listName);
+                      if (listID == null)
+                        listID = "";
+                      listIDMap.put(decodedListPath,listID);
+                    }
+
+                    if (listID.length() == 0)
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
+                      activities.deleteDocument(documentIdentifier,version);
+                      i++;
+                      continue;
+                    }
+
+                    int cutoff = decodedListPath.lastIndexOf("/");
+                    Map values = proxy.getFieldValues( metadataDescription, encodePath(site), listID, decodedListPath.substring(cutoff+1), dspStsWorks );
+                    if (values != null)
+                    {
+                      Iterator iter = values.keySet().iterator();
+                      while (iter.hasNext())
+                      {
+                        String fieldName = (String)iter.next();
+                        String fieldData = (String)values.get(fieldName);
+                        data.addField(fieldName,fieldData);
+                      }
+                    }
+                    else
+                    {
+                      // Item has vanished
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
+                      activities.deleteDocument(documentIdentifier,version);
+                      i++;
+                      continue;
+                    }
+                  }
+
+                  activities.ingestDocument( documentIdentifier, version, itemUrl , data );
+                }
+                finally
+                {
+                  try
+                  {
+                    is.close();
+                  }
+                  catch (InterruptedIOException e)
+                  {
+                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                  }
+                  catch (IOException e)
+                  {
+                    // This should never happen; we're closing a bytearrayinputstream
+                  }
+                }
+              }
+              else
+                // Document too long (should never happen; length is 0)
+                activities.deleteDocument( documentIdentifier, version );
+            }
+          }
         }
         else if (dLibSeparatorIndex != -1)
         {
@@ -879,7 +1252,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (libID != null)
             {
               FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
-              boolean success = proxy.getDocuments( fs, encodePath(site) , libID, dspStsWorks );
+              boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
               if (!success)
               {
                 // Site/library no longer exists, so delete entry
@@ -1128,55 +1501,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       RepositoryDocument data = new RepositoryDocument();
                       data.setBinary( is, documentLength );
 
-                      if (acls != null)
-                      {
-                        String[] actualAcls = new String[acls.size()];
-                        int j = 0;
-                        while (j < actualAcls.length)
-                        {
-                          actualAcls[j] = (String)acls.get(j);
-                          j++;
-                        }
+                      setDataACLs(data,acls,denyAcl);
 
-                        if (Logging.connectors.isDebugEnabled())
-                        {
-                          j = 0;
-                          StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
-                          while (j < actualAcls.length)
-                          {
-                            sb.append(actualAcls[j++]).append(" ");
-                          }
-                          sb.append("]");
-                          Logging.connectors.debug( sb.toString() );
-                        }
-
-                        data.setACL( actualAcls );
-                      }
-
-                      if (denyAcl != null)
-                      {
-                        String[] actualDenyAcls = new String[]{denyAcl};
-                        data.setDenyACL(actualDenyAcls);
-                      }
-
-                      // Add the path metadata item into the mix, if enabled
-                      String pathAttributeName = sDesc.getPathAttributeName();
-                      if (pathAttributeName != null && pathAttributeName.length() > 0)
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Path attribute name is '"+pathAttributeName+"'");
-                        String pathString = sDesc.getPathAttributeValue(documentIdentifier);
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Path attribute value is '"+pathString+"'");
-                        data.addField(pathAttributeName,pathString);
-                      }
-                      else
-                        Logging.connectors.debug("SharePoint: Path attribute name is null");
-
+                      setPathAttribute(data,sDesc,documentIdentifier);
+                      
                       // Retrieve field values from SharePoint
                       if (metadataDescription.size() > 0)
                       {
-                        String documentLibID = (String)docLibIDMap.get(decodedLibPath);
+                        String documentLibID = docLibIDMap.get(decodedLibPath);
                         if (documentLibID == null)
                         {
                           documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
@@ -1353,6 +1685,58 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       i++;
     }
+  }
+
+  protected static void setDataACLs(RepositoryDocument data, ArrayList acls, String denyAcl)
+  {
+    if (acls != null)
+    {
+      String[] actualAcls = new String[acls.size()];
+      int j = 0;
+      while (j < actualAcls.length)
+      {
+        actualAcls[j] = (String)acls.get(j);
+        j++;
+      }
+
+      if (Logging.connectors.isDebugEnabled())
+      {
+        j = 0;
+        StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
+        while (j < actualAcls.length)
+        {
+          sb.append(actualAcls[j++]).append(" ");
+        }
+        sb.append("]");
+        Logging.connectors.debug( sb.toString() );
+      }
+
+      data.setACL( actualAcls );
+    }
+
+    if (denyAcl != null)
+    {
+      String[] actualDenyAcls = new String[]{denyAcl};
+      data.setDenyACL(actualDenyAcls);
+    }
+  }
+
+  protected static void setPathAttribute(RepositoryDocument data, SystemMetadataDescription sDesc, String documentIdentifier)
+    throws ManifoldCFException
+  {
+    // Add the path metadata item into the mix, if enabled
+    String pathAttributeName = sDesc.getPathAttributeName();
+    if (pathAttributeName != null && pathAttributeName.length() > 0)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Path attribute name is '"+pathAttributeName+"'");
+      String pathString = sDesc.getPathAttributeValue(documentIdentifier);
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Path attribute value is '"+pathString+"'");
+      data.addField(pathAttributeName,pathString);
+    }
+    else
+      Logging.connectors.debug("SharePoint: Path attribute name is null");
   }
 
   protected class FileStream implements IFileStream
@@ -1928,6 +2312,17 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "    SpecOp(\"specpathop\",\"AppendLibrary\",anchorvalue);\n"+
 "}\n"+
 "\n"+
+"function SpecPathAppendList(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.speclist.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAListFirst")+"\");\n"+
+"    editjob.speclist.focus();\n"+
+"  }\n"+
+"  else\n"+
+"    SpecOp(\"specpathop\",\"AppendList\",anchorvalue);\n"+
+"}\n"+
+"\n"+
 "function SpecPathAppendText(anchorvalue)\n"+
 "{\n"+
 "  if (editjob.specmatch.value == \"\")\n"+
@@ -1980,6 +2375,17 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "  }\n"+
 "  else\n"+
 "    SpecOp(\"metapathop\",\"AppendLibrary\",anchorvalue);\n"+
+"}\n"+
+"\n"+
+"function MetaPathAppendList(anchorvalue)\n"+
+"{\n"+
+"  if (editjob.metalist.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAListFirst")+"\");\n"+
+"    editjob.metalist.focus();\n"+
+"  }\n"+
+"  else\n"+
+"    SpecOp(\"metapathop\",\"AppendList\",anchorvalue);\n"+
 "}\n"+
 "\n"+
 "function MetaPathAppendText(anchorvalue)\n"+
@@ -2274,7 +2680,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       // The following variables may be in the thread context because postspec.jsp put them there:
       // (1) "specpath", which contains the rule path as it currently stands;
-      // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
+      // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library", "list".
       // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
       // specsitepath may be in the thread context, put there by postspec.jsp 
       String pathSoFar = (String)currentContext.get("specpath");
@@ -2295,6 +2701,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       // Grab next site list and lib list
       ArrayList childSiteList = null;
       ArrayList childLibList = null;
+      ArrayList childListList = null;
       String message = null;
       if (pathState.equals("site"))
       {
@@ -2312,6 +2719,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           childLibList = getDocLibsBySite(queryPath);
           if (childLibList == null)
+          {
+            // Illegal path - state becomes "unknown"
+            pathState = "unknown";
+            pathLibrary = null;
+          }
+          childListList = getListsBySite(queryPath);
+          if (childListList == null)
           {
             // Illegal path - state becomes "unknown"
             pathState = "unknown";
@@ -2354,9 +2768,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         if (pathLibrary == null)
         {
           out.print(
-"              <select name=\"spectype\" size=\"3\">\n"+
+"              <select name=\"spectype\" size=\"4\">\n"+
 "                <option value=\"file\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.File") + "</option>\n"+
 "                <option value=\"library\">" + Messages.getBodyString(locale,"SharePointRepository.Library") + "</option>\n"+
+"                <option value=\"list\">" + Messages.getBodyString(locale,"SharePointRepository.List") + "</option>\n"+
 "                <option value=\"site\">" + Messages.getBodyString(locale,"SharePointRepository.Site") + "</option>\n"+
 "              </select>\n"
           );
@@ -2402,7 +2817,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       else
       {
         // What we display depends on the determined state of the path.  If the path is a library or is unknown, all we can do is allow a type-in to append
-        // to it, or allow a reset.  If the path is a site, then we can optionally display libraries, sites, OR allow a type-in.
+        // to it, or allow a reset.  If the path is a site, then we can optionally display libraries, sites, lists, OR allow a type-in.
         // The path buttons are on the left; they consist of "Reset" (to reset the path), "+" (to add to the path), and "-" (to remove from the path).
         out.print(
 "          <td class=\"formcolumncell\">\n"+
@@ -2410,7 +2825,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "              <a name=\"pathwidget\"/>\n"+
 "              <input type=\"button\" value=\"Reset Path\" onClick='Javascript:SpecPathReset(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.ResetRulePath")+"\"/>\n"
         );
-        if (pathSoFar.length() > 1 && (pathState.equals("site") || pathState.equals("library")))
+        if (pathSoFar.length() > 1 && (pathState.equals("site") || pathState.equals("library") || pathState.equals("list")))
         {
           out.print(
 "              <input type=\"button\" value=\"-\" onClick='Javascript:SpecPathRemove(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.RemoveFromRulePath")+"\"/>\n"
@@ -2461,9 +2876,37 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "              </select>\n"
           );
         }
-        out.print(
+
+        if (pathState.equals("site") && childListList != null && childListList.size() > 0)
+        {
+          out.print(
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddList") + "\" onClick='Javascript:SpecPathAppendList(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddListToRulePath")+"\"/>\n"+
+"              <select name=\"speclist\" size=\"5\">\n"+
+"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectList") + " --</option>\n"
+          );
+          int q = 0;
+          while (q < childListList.size())
+          {
+            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
+            out.print(
+"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
+            );
+          }
+          out.print(
+"              </select>\n"
+          );
+        }
+        
+        // If it's a list name, we're done; no text allowed
+        if (!pathState.equals("list"))
+        {
+          out.print(
 "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:SpecPathAppendText(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToRulePath")+"\"/>\n"+
-"              <input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/>\n"+
+"              <input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/>\n"
+          );
+        }
+        
+        out.print(
 "            </nobr>\n"+
 "          </td>\n"
         );
@@ -2920,7 +3363,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       // The following variables may be in the thread context because postspec.jsp put them there:
       // (1) "metapath", which contains the rule path as it currently stands;
       // (2) "metapathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
-      // (3) "metapathlibrary" is the library path (if this is known yet).
+      // (3) "metapathlibrary" is the library or list path (if this is known yet).
       // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
       String metaPathSoFar = (String)currentContext.get("metapath");
       String metaPathState = (String)currentContext.get("metapathstate");
@@ -2971,6 +3414,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       // Grab next site list and lib list
       ArrayList childSiteList = null;
       ArrayList childLibList = null;
+      ArrayList childListList = null;
 
       if (message == null && metaPathState.equals("site"))
       {
@@ -2984,12 +3428,21 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           {
             // Illegal path - state becomes "unknown".
             metaPathState = "unknown";
+            metaPathLibrary = null;
           }
           childLibList = getDocLibsBySite(queryPath);
           if (childLibList == null)
           {
             // Illegal path - state becomes "unknown"
             metaPathState = "unknown";
+            metaPathLibrary = null;
+          }
+          childListList = getListsBySite(queryPath);
+          if (childListList == null)
+          {
+            // Illegal path - state becomes "unknown"
+            metaPathState = "unknown";
+            metaPathLibrary = null;
           }
         }
         catch (ManifoldCFException e)
@@ -3128,9 +3581,36 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "              </select>\n"
           );
         }
+        
+        if (metaPathState.equals("site") && childListList != null && childListList.size() > 0)
+        {
+          out.print(
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddList") + "\" onClick='Javascript:MetaPathAppendList(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddListToMetadataRulePath")+"\"/>\n"+
+"              <select name=\"metalist\" size=\"5\">\n"+
+"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectList")+"</option>\n"
+          );
+          int q = 0;
+          while (q < childListList.size())
+          {
+            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
+            out.print(
+"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
+            );
+          }
+          out.print(
+"              </select>\n"
+          );
+        }
+
+        if (!metaPathState.equals("list"))
+        {
+          out.print(
+  "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:MetaPathAppendText(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToMetadataRulePath")+"\"/>\n"+
+  "              <input type=\"text\" name=\"metamatch\" size=\"32\" value=\"\"/>\n"
+          );
+        }
+        
         out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:MetaPathAppendText(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToMetadataRulePath")+"\"/>\n"+
-"              <input type=\"text\" name=\"metamatch\" size=\"32\" value=\"\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"
         );
@@ -3456,6 +3936,21 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           currentContext.save("specpath",path);
         }
+        else if (pathop.equals("AppendList"))
+        {
+          String path = variableContext.getParameter("specpath");
+          String addon = variableContext.getParameter("speclist");
+          if (addon != null && addon.length() > 0)
+          {
+            if (path.equals("/"))
+              path = path + addon;
+            else
+              path = path + "/" + addon;
+            currentContext.save("specpathstate","list");
+            currentContext.save("specpathlibrary",path);
+          }
+          currentContext.save("specpath",path);
+        }
         else if (pathop.equals("AppendText"))
         {
           String path = variableContext.getParameter("specpath");
@@ -3483,7 +3978,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           currentContext.save("specpath",path);
           // Now, adjust state.
           String pathState = variableContext.getParameter("specpathstate");
-          if (pathState.equals("library"))
+          if (pathState.equals("library") || pathState.equals("list"))
             pathState = "site";
           currentContext.save("specpathstate",pathState);
         }
@@ -3653,6 +4148,21 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           currentContext.save("metapath",path);
         }
+        else if (pathop.equals("AppendList"))
+        {
+          String path = variableContext.getParameter("metapath");
+          String addon = variableContext.getParameter("metalist");
+          if (addon != null && addon.length() > 0)
+          {
+            if (path.equals("/"))
+              path = path + addon;
+            else
+              path = path + "/" + addon;
+            currentContext.save("metapathstate","list");
+            currentContext.save("metapathlibrary",path);
+          }
+          currentContext.save("metapath",path);
+        }
         else if (pathop.equals("AppendText"))
         {
           String path = variableContext.getParameter("metapath");
@@ -3680,7 +4190,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           currentContext.save("metapath",path);
           // Now, adjust state.
           String pathState = variableContext.getParameter("metapathstate");
-          if (pathState.equals("library"))
+          if (pathState.equals("library") || pathState.equals("list"))
           {
             pathState = "site";
           }
@@ -4323,6 +4833,17 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return proxy.getDocumentLibraries( encodePath(parentSite), parentSite );
   }
 
+  /**
+  * Gets a list of lists of the given parent site
+  * @param parentSite the unencoded parent site to search for lists, empty for root.
+  * @return list of the lists
+  */
+  public ArrayList getListsBySite( String parentSite )
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSession();
+    return proxy.getLists( encodePath(parentSite), parentSite );
+  }
 
   // Protected static methods
 
@@ -4559,15 +5080,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return false;
   }
 
-  /** Get a file's metadata specification, given a path and a document specification.
-  *@param filePath is the unencoded path to a file, including sites and library, beneath the root site.
+  /** Get a file or item's metadata specification, given a path and a document specification.
+  *@param filePath is the unencoded path to a file or item, including sites and library/list, beneath the root site.
   *@param documentSpecification is the document specification.
   *@return the metadata description appropriate to the file.
   */
   protected MetadataInformation getMetadataSpecification( String filePath, DocumentSpecification documentSpecification )
   {
     if (Logging.connectors.isDebugEnabled())
-      Logging.connectors.debug( "SharePoint: Finding metadata to include for document '" + filePath + "'." );
+      Logging.connectors.debug( "SharePoint: Finding metadata to include for document/item '" + filePath + "'." );
 
     MetadataInformation rval = new MetadataInformation();
 

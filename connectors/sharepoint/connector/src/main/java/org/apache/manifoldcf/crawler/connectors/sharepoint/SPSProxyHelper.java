@@ -107,11 +107,11 @@ public class SPSProxyHelper {
   /**
   * Get the acls for a document library.
   * @param site
-  * @param docLib is the library GUID
+  * @param guid is the list/library GUID
   * @return array of sids
   * @throws Exception
   */
-  public String[] getACLs(String site, String docLib )
+  public String[] getACLs(String site, String guid )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -124,7 +124,7 @@ public class SPSProxyHelper {
       PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
       com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
-      com.microsoft.schemas.sharepoint.soap.directory.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( docLib, "List" );
+      com.microsoft.schemas.sharepoint.soap.directory.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( guid, "List" );
       org.apache.axis.message.MessageElement[] aclList = aclResult.get_any();
 
       XMLDoc doc = new XMLDoc( aclList[0].toString() );
@@ -201,7 +201,7 @@ public class SPSProxyHelper {
     catch (javax.xml.rpc.ServiceException e)
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got a service exception getting the acls for site "+site+" library "+docLib+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got a service exception getting the acls for site "+site+" guid "+guid+" - retrying",e);
       currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 12 * 60 * 60000L,-1,true);
@@ -220,7 +220,7 @@ public class SPSProxyHelper {
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming list/library deleted");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -248,7 +248,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+docLib+" in site "+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist; assuming list/library deleted");
             return null;
           }
           else
@@ -260,13 +260,13 @@ public class SPSProxyHelper {
               if (elem != null)
                 errorString = elem2.getFirstChild().getNodeValue().trim();
 
-              Logging.connectors.debug("SharePoint: Getting permissions for the list "+docLib+" in site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString+" - Skipping",e);
+              Logging.connectors.debug("SharePoint: Getting permissions for the list "+guid+" in site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString+" - Skipping",e);
             }
             return null;
           }
         }
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("SharePoint: Unknown SharePoint server error getting the acls for site "+site+" library "+docLib+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
+          Logging.connectors.debug("SharePoint: Unknown SharePoint server error getting the acls for site "+site+" guid "+guid+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
 
         throw new ServiceInterruption("Unknown SharePoint server error: "+e.getMessage()+" - retrying", e, currentTime + 300000L,
           currentTime + 3 * 60 * 60000L,-1,false);
@@ -280,7 +280,7 @@ public class SPSProxyHelper {
       }
 
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got an unknown remote exception getting the acls for site "+site+" library "+docLib+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got an unknown remote exception getting the acls for site "+site+" guid "+guid+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
       throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
     }
@@ -289,7 +289,7 @@ public class SPSProxyHelper {
       // We expect the axis exception to be thrown, not this generic one!
       // So, fail hard if we see it.
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting the acls for site "+site+" library "+docLib,e);
+        Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting the acls for site "+site+" guid "+guid,e);
       throw new ManifoldCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
     }
   }
@@ -311,8 +311,8 @@ public class SPSProxyHelper {
     {
       if ( site.compareTo("/") == 0 ) site = ""; // root case
 
-        // Calculate the full server-relative path of the file
-        String encodedRelativePath = serverLocation + file;
+      // Calculate the full server-relative path of the file
+      String encodedRelativePath = serverLocation + file;
       if (encodedRelativePath.startsWith("/"))
         encodedRelativePath = encodedRelativePath.substring(1);
 
@@ -507,7 +507,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public boolean getDocuments(IFileStream fileStream, String site, String docLibrary, boolean dspStsWorks )
+  public boolean getChildren(IFileStream fileStream, String site, String guid, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -535,7 +535,7 @@ public class SPSProxyHelper {
         QueryRequest myRequest = new QueryRequest();
 
         DSQuery sQuery = new DSQuery();
-        sQuery.setSelect( "/list[@id='" + docLibrary + "']" );
+        sQuery.setSelect( "/list[@id='" + guid + "']" );
         myRequest.setDsQuery( sQuery );
 
         StsAdapterSoap call = stub;
@@ -625,7 +625,7 @@ public class SPSProxyHelper {
           
         while (true)
         {
-          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), null);
+          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(guid, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), null);
           if (items == null)
             return false;
 
@@ -711,7 +711,7 @@ public class SPSProxyHelper {
     catch (javax.xml.rpc.ServiceException e)
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got a service exception getting documents for site "+site+" doclibrary "+docLibrary+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got a service exception getting documents for site "+site+" guid "+guid+" - retrying",e);
       currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 12 * 60 * 60000L,-1,true);
@@ -758,7 +758,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist; assuming library deleted");
             return false;
           }
           else
@@ -770,13 +770,13 @@ public class SPSProxyHelper {
               if (elem != null)
                 errorString = elem2.getFirstChild().getNodeValue().trim();
 
-              Logging.connectors.debug("SharePoint: Getting child documents for the list "+docLibrary+" in site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString+" - Skipping",e);
+              Logging.connectors.debug("SharePoint: Getting child documents for the list "+guid+" in site "+site+" failed with unexpected SharePoint error code "+sharepointErrorCode+": "+errorString+" - Skipping",e);
             }
             return false;
           }
         }
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("SharePoint: Unknown SharePoint server error getting child documents for site "+site+" library "+docLibrary+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
+          Logging.connectors.debug("SharePoint: Unknown SharePoint server error getting child documents for site "+site+" guid "+guid+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
 
         throw new ServiceInterruption("Unknown SharePoint server error: "+e.getMessage()+" - retrying",  e, currentTime + 300000L,
           currentTime + 3 * 60 * 60000L,-1,false);
@@ -790,7 +790,7 @@ public class SPSProxyHelper {
       }
 
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got an unknown remote exception getting child documents for site "+site+" library "+docLibrary+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got an unknown remote exception getting child documents for site "+site+" guid "+guid+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString()+" - retrying",e);
       throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(),  e, currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
     }
@@ -799,7 +799,7 @@ public class SPSProxyHelper {
       // We expect the axis exception to be thrown, not this generic one!
       // So, fail hard if we see it.
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting child documents for site "+site+" library "+docLibrary,e);
+        Logging.connectors.debug("SharePoint: Got an unexpected remote exception getting child documents for site "+site+" guid "+guid,e);
       throw new ManifoldCFException("Unexpected remote procedure exception: "+e.getMessage(), e);
     }
   }
@@ -1578,19 +1578,19 @@ public class SPSProxyHelper {
   /**
   * Gets a list of field names of the given document library
   * @param site
-  * @param docLibrary
+  * @param list/library name
   * @return list of the fields
   */
-  public Map getFieldList( String site, String docLibrary )
+  public Map<String,String> getFieldList( String site, String listName )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      HashMap result = new HashMap();
+      Map<String,String> result = new HashMap<String,String>();
 
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: In getFieldList; site='"+site+"', docLibrary='"+docLibrary+"'");
+        Logging.connectors.debug("SharePoint: In getFieldList; site='"+site+"', listName='"+listName+"'");
 
       // The docLibrary must be a GUID, because we don't have  title.
 
@@ -1598,7 +1598,7 @@ public class SPSProxyHelper {
         ListsWS listService = new ListsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
       ListsSoap listCall = listService.getListsSoapHandler();
 
-      GetListResponseGetListResult listResponse = listCall.getList( docLibrary );
+      GetListResponseGetListResult listResponse = listCall.getList( listName );
       org.apache.axis.message.MessageElement[] List = listResponse.get_any();
 
       XMLDoc doc = new XMLDoc( List[0].toString() );
@@ -1651,7 +1651,7 @@ public class SPSProxyHelper {
     catch (javax.xml.rpc.ServiceException e)
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got a service exception getting field list for site "+site+" library "+docLibrary+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got a service exception getting field list for site "+site+" listName "+listName+" - retrying",e);
       currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 12 * 60 * 60000L,-1,true);
@@ -1672,7 +1672,7 @@ public class SPSProxyHelper {
           else if (httpErrorCode.equals("401"))
           {
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get field list for site "+site+" library "+docLibrary+" - skipping",e);
+              Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get field list for site "+site+" listName "+listName+" - skipping",e);
             return null;
           }
           throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
@@ -1692,7 +1692,7 @@ public class SPSProxyHelper {
         return null;
 
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Got a remote exception getting field list for site "+site+" library "+docLibrary+" - retrying",e);
+        Logging.connectors.debug("SharePoint: Got a remote exception getting field list for site "+site+" listName "+listName+" - retrying",e);
       currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
