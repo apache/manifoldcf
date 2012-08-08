@@ -730,7 +730,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // The document path includes the library, with no leading slash, and is decoded.
                   int cutoff = decodedListPath.lastIndexOf("/");
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
-                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, decodedItemPathWithoutSite, dspStsWorks );
+                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
                   String modifyDate = (String)values.get("Modified");
                   if (modifyDate != null)
                   {
@@ -1232,7 +1232,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     }
 
                     int cutoff = decodedListPath.lastIndexOf("/");
-                    Map values = proxy.getFieldValues( metadataDescription, encodePath(site), listID, decodedListPath.substring(cutoff+1), dspStsWorks );
+                    Map values = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(cutoff+1), dspStsWorks );
                     if (values != null)
                     {
                       Iterator iter = values.keySet().iterator();
