@@ -126,7 +126,8 @@ public class BigCrawlTester
       while (true)
       {
         if (1 < 0)
-          Thread.sleep(10000L);
+          break;
+        Thread.sleep(10000L);
       }
       throw new ManifoldCFException("Wrong number of documents processed - expected 1110, saw "+new Long(status.getDocumentsProcessed()).toString());
     }
