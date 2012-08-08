@@ -726,12 +726,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   // Next, get the actual timestamp field for the file.
                   ArrayList metadataDescription = new ArrayList();
-                  metadataDescription.add("Last_x0020_Modified");
+                  metadataDescription.add("Modified");
                   // The document path includes the library, with no leading slash, and is decoded.
                   int cutoff = decodedListPath.lastIndexOf("/");
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
                   Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, decodedItemPathWithoutSite, dspStsWorks );
-                  String modifyDate = (String)values.get("Last_x0020_Modified");
+                  String modifyDate = (String)values.get("Modified");
                   if (modifyDate != null)
                   {
                     // Build version string
