@@ -80,7 +80,7 @@ public class BigCrawlTester
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
     job.setHopcountMode(job.HOPCOUNT_ACCURATE);
-    job.addHopCountFilter("link",new Long(3));
+    job.addHopCountFilter("link",new Long(2));
     job.addHopCountFilter("redirect",new Long(2));
 
     // Now, set up the document specification.
@@ -120,9 +120,17 @@ public class BigCrawlTester
     // Check to be sure we actually processed the right number of documents.
     JobStatus status = jobManager.getStatus(job.getID());
     // Four levels deep from 10 site seeds: Each site seed has 1 + 10 + 100 + 1000 = 1111 documents, so 10 has 11110.
-    if (status.getDocumentsProcessed() != 11110)
-      throw new ManifoldCFException("Wrong number of documents processed - expected 11110, saw "+new Long(status.getDocumentsProcessed()).toString());
-      
+    if (status.getDocumentsProcessed() != 1110)
+    {
+      System.err.println("Sleeping for database inspection");
+      while (true)
+      {
+        if (1 < 0)
+          Thread.sleep(10000L);
+      }
+      throw new ManifoldCFException("Wrong number of documents processed - expected 1110, saw "+new Long(status.getDocumentsProcessed()).toString());
+    }
+    
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
     instance.waitJobDeletedNative(jobManager,job.getID(),18000000L);
