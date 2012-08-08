@@ -224,6 +224,7 @@ public class WorkerThread extends Thread
                     if (results[z] == false)
                     {
                       // Chuck it
+                      System.out.println("Hopcount exceeded: Getting rid of doc hash ID "+currentDocIDHashArray[z]+" id "+currentDocIDArray[z]);
                       currentVersions[idHashIndexMap.get(currentDocIDHashArray[z]).intValue()] = null;
                     }
                     else
