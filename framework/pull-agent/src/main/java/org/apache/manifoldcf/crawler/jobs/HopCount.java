@@ -419,7 +419,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         }
         for (int i = 0; i < rval.length; i++)
         {
-          if (newSet.contains(targetDocumentIDHashes[i]))
+          if (newSet.contains(targetDocumentIDHashes[i]) &&
+            (sourceDocumentIDHash==null || !sourceDocumentIDHash.equals(targetDocumentIDHashes[i])))
             rval[i] = true;
         }
 
