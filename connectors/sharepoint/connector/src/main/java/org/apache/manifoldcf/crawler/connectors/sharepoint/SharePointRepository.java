@@ -722,6 +722,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               {
                 String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,listID,fieldListMap);
                 
+                System.out.println("sorted metadata fields seen in getDocumentVersions:");
+                for (int j = 0; j < sortedMetadataFields.length; j++)
+                {
+                  System.out.println(" "+sortedMetadataFields[j]);
+                }
+                
                 if (sortedMetadataFields != null)
                 {
                   // Next, get the actual timestamp field for the file.
@@ -1181,6 +1187,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               ArrayList metadataDescription = new ArrayList();
               int startPosition = unpackList(metadataDescription,version,0,'+');
 
+              System.out.println("In process documents, metadata names we will get are:");
+              for (int j = 0; j < metadataDescription.size(); j++)
+              {
+                System.out.println(" "+(String)metadataDescription.get(j));
+              }
+              
               // Acls
               ArrayList acls = null;
               String denyAcl = null;
