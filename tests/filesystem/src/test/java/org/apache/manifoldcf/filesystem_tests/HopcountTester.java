@@ -134,7 +134,7 @@ public class HopcountTester
     // But the max hopcount is 2, so one file will be left behind, so the count should be 6, not 7.
     if (status.getDocumentsProcessed() != 6)
       throw new ManifoldCFException("Wrong number of documents processed - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
-
+      
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
     instance.waitJobDeletedNative(jobManager,job.getID(), 120000L);

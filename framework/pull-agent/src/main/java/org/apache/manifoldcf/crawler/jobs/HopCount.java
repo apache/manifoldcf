@@ -591,13 +591,11 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       //
       // ... and then, re-evaluate all hopcount records and their dependencies that are marked for delete.
       //
-      // But, the trick is that both source and target links must go away!!  So deleting a document is very different than
-      // updating a link...
+
 
       // This also removes the links themselves...
       if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
         doDeleteDocuments(jobID,documentHashes);
-      
 
     }
     catch (ManifoldCFException e)
@@ -1084,7 +1082,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
   }
 
-  /** Invalidate links that start with or end in a specific set of documents, described by
+  /** Invalidate links that start with a specific set of documents, described by
   * a table join.
   */
   protected void doDeleteDocuments(Long jobID,
@@ -1141,39 +1139,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,sb.toString(),list,null);
     noteModifications(0,1,0);
       
-      
-    sb = new StringBuilder("WHERE ");
-    list = new ArrayList();
-        
-    sb.append(idField).append(" IN(SELECT t0.").append(deleteDepsManager.ownerIDField).append(" FROM ")
-      .append(deleteDepsManager.getTableName()).append(" t0,").append(joinTableName).append(",")
-      .append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ");
-
-    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID)})).append(" AND ");
-
-    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause("t1."+intrinsicLinkManager.jobIDField,jobID),
-      new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
-      new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
-      new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)})).append(" AND ");
-
-    sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(joinTableJobColumn,jobID),
-      new JoinClause(joinTableIDColumn,"t0."+deleteDepsManager.parentIDHashField)})).append(" AND ");
-          
-    sb.append(joinTableCriteria);
-    list.addAll(joinTableParams);
-
-    sb.append(")");
-
-    map = new HashMap();
-    // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
-    map.put(distanceField,new Long(-1L));
-    map.put(markForDeathField,markToString(MARK_DELETING));
-    performUpdate(map,sb.toString(),list,null);
-    noteModifications(0,1,0);
-
+    // We do NOT do the parentID because otherwise we have the potential to delete links that we need later.  See CONNECTORS-501.
 
     if (Logging.hopcount.isDebugEnabled())
       Logging.hopcount.debug("Done setting hopcount rows for job "+jobID+" to initial distances");
@@ -1206,7 +1172,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
   }
   
-  /** Invalidate links that start with or end in a specific set of documents.
+  /** Invalidate links that start with a specific set of documents.
   */
   protected void doDeleteDocuments(Long jobID,
     String[] documentHashes)
@@ -1327,28 +1293,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     map.put(markForDeathField,markToString(MARK_DELETING));
     performUpdate(map,sb.toString(),thisList,null);
 
-    sb = new StringBuilder("WHERE ");
-    thisList = new ArrayList();
-
-    sb.append(idField).append(" IN(SELECT ").append(deleteDepsManager.ownerIDField).append(" FROM ").append(deleteDepsManager.getTableName()).append(" t0 WHERE ")
-      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
-        new UnitaryClause("t0."+deleteDepsManager.jobIDField,jobID),
-        new MultiClause("t0."+deleteDepsManager.parentIDHashField,list)})).append(" AND ");
-        
-    sb.append("EXISTS(SELECT 'x' FROM ").append(intrinsicLinkManager.getTableName()).append(" t1 WHERE ")
-      .append(buildConjunctionClause(thisList,new ClauseDescription[]{
-        new JoinClause("t1."+intrinsicLinkManager.jobIDField,"t0."+deleteDepsManager.jobIDField),
-        new JoinClause("t1."+intrinsicLinkManager.linkTypeField,"t0."+deleteDepsManager.linkTypeField),
-        new JoinClause("t1."+intrinsicLinkManager.parentIDHashField,"t0."+deleteDepsManager.parentIDHashField),
-        new JoinClause("t1."+intrinsicLinkManager.childIDHashField,"t0."+deleteDepsManager.childIDHashField)}));
-
-    sb.append("))");
-        
-    map = new HashMap();
-    // These are whacked back to "infinity" to avoid infinite looping in a cut-off graph.
-    map.put(distanceField,new Long(-1L));
-    map.put(markForDeathField,markToString(MARK_DELETING));
-    performUpdate(map,sb.toString(),thisList,null);
+    // We do NOT do the parentID because we need to leave intrinsic links around that could be used again.
+    // See CONNECTORS-501.
   }
 
   /** Invalidate links meeting a simple criteria which have a given set of source documents.  This also runs a queue
