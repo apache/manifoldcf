@@ -2518,9 +2518,6 @@ public class JobManager implements IJobManager
     {
       long sleepAmt = 0L;
       database.beginTransaction(database.TRANSACTION_SERIALIZED);
-
-      // Start the transaction now
-      database.beginTransaction();
       try
       {
         // Do one row at a time, to avoid deadlocking things
@@ -2539,7 +2536,7 @@ public class JobManager implements IJobManager
           String query = database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobQueue.idField,dd.getID())});
           IResultSet set = database.performQuery("SELECT "+jobQueue.statusField+" FROM "+jobQueue.getTableName()+" WHERE "+
-            query+" FOR UPDATE",list,null,null);
+            query /*+" FOR UPDATE"*/,list,null,null);
           if (set.getRowCount() > 0)
           {
             IResultRow row = set.getRow(0);
