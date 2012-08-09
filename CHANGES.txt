@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-497: Add Lists support to the SharePoint connector.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-500: Tests were hanging or otherwise doing strange
 things on exit.  This was because the connection pool was being
 closed when the web application(s) were being unloaded, meaning
