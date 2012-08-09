@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-497: Add Lists support to the SharePoint connector.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-494: Fix the build to conditionally include registration
 commands for connectors that are built with stubs.
 (Shinichiro Abe, Karl Wright)
