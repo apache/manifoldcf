@@ -296,7 +296,7 @@ public class SPSProxyHelper {
 
   /**
   * Get the acls for a document.
-  * NOTE that this function only works for SharePoint 3.0 with the MCPermissions web service installed.
+  * NOTE that this function only works for SharePoint 2007+ with the MCPermissions web service installed.
   * @param site is the encoded subsite path
   * @param file is the encoded file url (not including protocol or server or location, but including encoded subsite, library and folder/file path)
   * @return array of document SIDs
@@ -607,6 +607,20 @@ public class SPSProxyHelper {
       }
       else
       {
+        // New code
+        
+        MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        com.microsoft.sharepoint.webpartpages.PermissionsSoap itemCall = itemService.getPermissionsSoapHandler( );
+
+        com.microsoft.sharepoint.webpartpages.GetListItemsResponseGetListItemsResult itemsResult = itemCall.getListItems(guid,"0","100");
+        org.apache.axis.message.MessageElement[] itemsList = itemsResult.get_any();
+
+        System.out.println("GetListItems response: '"+itemsList[0].toString() + "'");
+        
+        throw new ManifoldCFException("Feature not yet implemented");
+        // Old code
+        
+        /*
         // Sharepoint 2010; use Lists service instead
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
@@ -700,6 +714,7 @@ public class SPSProxyHelper {
           if (requestSize > nodeDocs.size())
             break;
         }
+        */
       }
       
       return true;
