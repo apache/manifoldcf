@@ -456,10 +456,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
         if (sourceDocumentIDHash == null || sourceDocumentIDHash.length() == 0)
         {
-          int i = 0;
-          while (i < estimates.length)
+          for (int i = 0; i < estimates.length; i++)
           {
-            estimates[i++] = new Answer(0);
+            estimates[i] = new Answer(0);
           }
         }
         else
@@ -478,19 +477,16 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
             new MultiClause(linkTypeField,legalLinkTypes)}));
 
           IResultSet set = performQuery(sb.toString(),list,null,null);
-          HashMap answerMap = new HashMap();
-          int i = 0;
-          while (i < estimates.length)
+          Map<String,Answer> answerMap = new HashMap<String,Answer>();
+          for (int i = 0; i < estimates.length; i++)
           {
             estimates[i] = new Answer(ANSWER_INFINITY);
             answerMap.put(legalLinkTypes[i],estimates[i]);
-            i++;
           }
 
-          i = 0;
-          while (i < set.getRowCount())
+          for (int i = 0; i < set.getRowCount(); i++)
           {
-            IResultRow row = set.getRow(i++);
+            IResultRow row = set.getRow(i);
             Long id = (Long)row.getValue(idField);
             DeleteDependency[] dds;
             if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
@@ -499,7 +495,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
               dds = new DeleteDependency[0];
             Long distance = (Long)row.getValue(distanceField);
             String recordedLinkType = (String)row.getValue(linkTypeField);
-            Answer a = (Answer)answerMap.get(recordedLinkType);
+            Answer a = answerMap.get(recordedLinkType);
             int recordedDistance = (int)distance.longValue();
             if (recordedDistance != -1)
             {
@@ -751,7 +747,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   
   /** Limited find for missing records.
   */
-  protected void performFindMissingRecords(Long jobID, String[] affectedLinkTypes, ArrayList list, Map matchMap)
+  protected void performFindMissingRecords(Long jobID, String[] affectedLinkTypes, ArrayList list, Map<Question,Long> matchMap)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -814,19 +810,16 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     if (Logging.hopcount.isDebugEnabled())
     {
       Logging.hopcount.debug("Adding "+Integer.toString(documentIDHashes.length)+" documents to processing queue");
-      int z = 0;
-      while (z < documentIDHashes.length)
+      for (int z = 0; z < documentIDHashes.length; z++)
       {
-        Logging.hopcount.debug("  Adding '"+documentIDHashes[z++]+"' to processing queue");
+        Logging.hopcount.debug("  Adding '"+documentIDHashes[z]+"' to processing queue");
       }
       Logging.hopcount.debug("The source id is '"+sourceDocumentIDHash+"' and linktype is '"+linkType+"', and there are "+
         Integer.toString(affectedLinkTypes.length)+" affected link types, as below:");
-      z = 0;
-      while (z < affectedLinkTypes.length)
+      for (int z = 0; z < affectedLinkTypes.length; z++)
       {
         Logging.hopcount.debug("  Linktype '"+affectedLinkTypes[z]+"', current distance "+Integer.toString(startingAnswers[z].getAnswer())+" with "+
           Integer.toString(startingAnswers[z].countDeleteDependencies())+" delete dependencies.");
-        z++;
       }
     }
 
@@ -835,15 +828,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     // so we can make sure they are added to the queue properly.
 
     // Make a map of the combinations of link type and document id we want to have present
-    HashMap matchMap = new HashMap();
+    Map<Question,Long> matchMap = new HashMap();
 
     // Make a map from the link type to the corresponding Answer object
-    HashMap answerMap = new HashMap();
-    int u = 0;
-    while (u < affectedLinkTypes.length)
+    Map<String,Answer> answerMap = new HashMap<String,Answer>();
+    for (int u = 0; u < affectedLinkTypes.length; u++)
     {
       answerMap.put(affectedLinkTypes[u],startingAnswers[u]);
-      u++;
     }
 
     // Do this in a transaction
@@ -856,9 +847,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       int maxClause = maxClausePerformFindMissingRecords(jobID,affectedLinkTypes);
       ArrayList list = new ArrayList();
       
-      int i = 0;
       int k = 0;
-      while (i < documentIDHashes.length)
+      for (int i = 0; i < documentIDHashes.length; i++)
       {
         String documentIDHash = documentIDHashes[i];
         
@@ -871,7 +861,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         
         list.add(documentIDHash);
         k++;
-        i++;
       }
       if (k > 0)
         performFindMissingRecords(jobID,affectedLinkTypes,list,matchMap);
@@ -882,12 +871,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // for queuing.
 
       HashMap map = new HashMap();
-      i = 0;
-      while (i < documentIDHashes.length)
+      for (int i = 0; i < documentIDHashes.length; i++)
       {
         String documentIDHash = documentIDHashes[i];
-        int j = 0;
-        while (j < affectedLinkTypes.length)
+        for (int j = 0; j < affectedLinkTypes.length; j++)
         {
           String affectedLinkType = affectedLinkTypes[j];
           Question q = new Question(documentIDHash,affectedLinkType);
@@ -945,9 +932,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
               matchMap.remove(q);
             }
           }
-          j++;
         }
-        i++;
       }
 
       // For all the records still in the matchmap, queue them.
@@ -961,26 +946,24 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       StringBuilder sb = new StringBuilder();
       list = new ArrayList();
       k = 0;
-      i = 0;
-      while (k < documentIDHashes.length)
+      for (int i = 0; i < documentIDHashes.length; i++)
       {
-        String documentIDHash = documentIDHashes[k];
-        int j = 0;
-        while (j < affectedLinkTypes.length)
+        String documentIDHash = documentIDHashes[i];
+        for (int j = 0; j < affectedLinkTypes.length; j++)
         {
           String affectedLinkType = affectedLinkTypes[j];
 
           Question q = new Question(documentIDHash,affectedLinkType);
           if (matchMap.get(q) != null)
           {
-            if (i == maxClause)
+            if (k == maxClause)
             {
               performMarkAddDeps(sb.toString(),list);
-              i = 0;
+              k = 0;
               sb.setLength(0);
               list.clear();
             }
-            if (i > 0)
+            if (k > 0)
               sb.append(" OR ");
 
             // We only want to queue up hopcount records that correspond to the affected link types.
@@ -993,17 +976,17 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
             
             sb.append(buildConjunctionClause(list,new ClauseDescription[]{
               new UnitaryClause(jobIDField,jobID),
-              new UnitaryClause(markForDeathField,markToString(MARK_QUEUED)),
+              new MultiClause(markForDeathField,new Object[]{
+                markToString(MARK_NORMAL),
+                markToString(MARK_DELETING)}),
               new UnitaryClause(parentIDHashField,documentIDHash),
               new UnitaryClause(linkTypeField,affectedLinkType)}));
               
-            i++;
+            k++;
           }
-          j++;
         }
-        k++;
       }
-      if (i > 0)
+      if (k > 0)
         performMarkAddDeps(sb.toString(),list);
 
       // Leave the dependency records for the queued rows.  This will save lots of work if we decide not to
