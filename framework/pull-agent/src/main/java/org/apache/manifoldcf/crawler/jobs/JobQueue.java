@@ -759,6 +759,54 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     return false;
   }
 
+  /** Either mark a record as hopcountremoved, or set status to "rescan", depending on the
+  * record's state.
+  */
+  public boolean updateOrHopcountRemoveRecord(Long recID, int currentStatus)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    
+    int newStatus;
+    String actionFieldValue;
+    Long checkTimeValue;
+    
+    boolean rval;
+    
+    switch (currentStatus)
+    {
+    case STATUS_ACTIVE:
+    case STATUS_ACTIVEPURGATORY:
+      // Mark as hopcountremove
+      newStatus = STATUS_HOPCOUNTREMOVED;
+      actionFieldValue = actionToString(ACTION_RESCAN);
+      checkTimeValue = new Long(0L);
+      rval = true;
+      break;
+    case STATUS_ACTIVENEEDRESCAN:
+    case STATUS_ACTIVENEEDRESCANPURGATORY:
+      newStatus = STATUS_PENDINGPURGATORY;
+      actionFieldValue = actionToString(ACTION_RESCAN);
+      checkTimeValue = new Long(0L);
+      rval = false;
+      // Leave doc priority unchanged.
+      break;
+    default:
+      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
+    }
+
+    map.put(statusField,statusToString(newStatus));
+    map.put(checkTimeField,checkTimeValue);
+    map.put(checkActionField,actionFieldValue);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,recID)});
+    performUpdate(map,"WHERE "+query,list,null);
+    return rval;
+  }
+
   /** Set the status to active on a record, leaving alone priority or check time.
   *@param id is the job queue id.
   *@param currentStatus is the current status

@@ -2613,6 +2613,144 @@ public class JobManager implements IJobManager
     return markDocumentDeletedMultiple(jobID,legalLinkTypes,new DocumentDescription[]{documentDescription},hopcountMethod);
   }
 
+  /** Mark hopcount removal from queue as a result of processing of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  The RESCAN variants are interpreted
+  * as meaning that the document should not be marked as removed, but should instead be popped back on the queue for
+  * a repeat processing attempt.
+  *@param documentDescriptions are the set of description objects for the documents that were processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentHopcountRemovalMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
+    int hopcountMethod)
+    throws ManifoldCFException
+  {
+    // For each record, we're going to have to choose between marking it as "hopcount removed", and marking
+    // it for rescan.  So the basic flow will involve changing a document's status,.
+    
+    // Before we can change a document status, we need to know the *current* status.  Therefore, a SELECT xxx FOR UPDATE/UPDATE
+    // transaction is needed in order to complete these documents correctly.
+    //
+    // Since we are therefore setting row locks on thejobqueue table, we need to work to avoid unnecessary deadlocking.  To do that, we have to
+    // lock rows in document id hash order!!  Luckily, the DocumentDescription objects have a document identifier buried within, which we can use to
+    // order the "select for update" operations appropriately.
+    //
+
+    HashMap indexMap = new HashMap();
+    String[] docIDHashes = new String[documentDescriptions.length];
+
+    int i = 0;
+    while (i < documentDescriptions.length)
+    {
+      String documentIDHash = documentDescriptions[i].getDocumentIdentifierHash() + ":" + documentDescriptions[i].getJobID();
+      docIDHashes[i] = documentIDHash;
+      indexMap.put(documentIDHash,new Integer(i));
+      i++;
+    }
+
+    java.util.Arrays.sort(docIDHashes);
+
+    // Retry loop - in case we get a deadlock despite our best efforts
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction(database.TRANSACTION_SERIALIZED);
+      try
+      {
+        // Do one row at a time, to avoid deadlocking things
+        List<String> deleteList = new ArrayList<String>();
+        
+        i = 0;
+        while (i < docIDHashes.length)
+        {
+          String docIDHash = docIDHashes[i];
+
+          // Get the DocumentDescription object
+          DocumentDescription dd = documentDescriptions[((Integer)indexMap.get(docIDHash)).intValue()];
+
+          // Query for the status
+          ArrayList list = new ArrayList();
+          String query = database.buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobQueue.idField,dd.getID())});
+          IResultSet set = database.performQuery("SELECT "+jobQueue.statusField+" FROM "+jobQueue.getTableName()+" WHERE "+
+            query+" FOR UPDATE",list,null,null);
+          if (set.getRowCount() > 0)
+          {
+            IResultRow row = set.getRow(0);
+            // Grab the status
+            int status = jobQueue.stringToStatus((String)row.getValue(jobQueue.statusField));
+            // Update the jobqueue table
+            boolean didDelete = jobQueue.updateOrHopcountRemoveRecord(dd.getID(),status);
+            if (didDelete)
+            {
+              deleteList.add(dd.getDocumentIdentifierHash());
+            }
+          }
+          i++;
+        }
+        
+        String[] docIDSimpleHashes = new String[deleteList.size()];
+        for (int j = 0; j < docIDSimpleHashes.length; j++)
+        {
+          docIDSimpleHashes[j] = deleteList.get(j);
+        }
+        
+        // Next, find the documents that are affected by carrydown deletion.
+        DocumentDescription[] rval = calculateAffectedDeleteCarrydownChildren(jobID,docIDSimpleHashes);
+
+        // Finally, delete the carrydown records in question.
+        carryDown.deleteRecords(jobID,docIDSimpleHashes);
+        if (legalLinkTypes.length > 0)
+          hopCount.deleteDocumentIdentifiers(jobID,legalLinkTypes,docIDSimpleHashes,hopcountMethod);
+
+        database.performCommit();
+        return rval;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction marking completed "+Integer.toString(docIDHashes.length)+
+            " docs: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+  }
+
+  /** Mark hopcount removal from queue as a result of processing of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  The RESCAN variants are interpreted
+  * as meaning that the document should not be marked as removed, but should instead be popped back on the queue for
+  * a repeat processing attempt.
+  *@param documentDescription is the description object for the document that was processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentHopcountRemoval(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
+    int hopcountMethod)
+    throws ManifoldCFException
+  {
+    return markDocumentHopcountRemovalMultiple(jobID,legalLinkTypes,new DocumentDescription[]{documentDescription},hopcountMethod);
+  }
+
   /** Delete from queue as a result of expiration of an active document.
   * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
   * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  Since the document expired,

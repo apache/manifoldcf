@@ -138,7 +138,7 @@ public class MockWebService
       
       // Temporary: Prevent links to children deeper than a certain level; this is to help
       // the debug process
-      if (theLevel < 2)
+      if (theLevel < 9)
       {
         // Generate links to direct children
         for (int i = 0; i < docsPerLevel; i++)
