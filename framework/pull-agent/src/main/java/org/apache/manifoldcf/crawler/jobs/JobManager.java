@@ -1469,6 +1469,7 @@ public class JobManager implements IJobManager
       .append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new MultiClause(jobQueue.statusField,new Object[]{
+          JobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED),
           JobQueue.statusToString(jobQueue.STATUS_PENDING),
           JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)}),
         new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))})).append(" AND ")
@@ -2700,11 +2701,9 @@ public class JobManager implements IJobManager
         // Next, find the documents that are affected by carrydown deletion.
         DocumentDescription[] rval = calculateAffectedDeleteCarrydownChildren(jobID,docIDSimpleHashes);
 
-        // Finally, delete the carrydown records in question.
-        carryDown.deleteRecords(jobID,docIDSimpleHashes);
-        if (legalLinkTypes.length > 0)
-          hopCount.deleteDocumentIdentifiers(jobID,legalLinkTypes,docIDSimpleHashes,hopcountMethod);
-
+        // Since hopcount inheritance and prerequisites came from the addDocument() method,
+        // we don't delete them here.
+        
         database.performCommit();
         return rval;
       }
@@ -4173,8 +4172,7 @@ public class JobManager implements IJobManager
         // Go through document id's one at a time, in order - mainly to prevent deadlock as much as possible.  Search for any existing row in jobqueue first (for update)
         HashMap existingRows = new HashMap();
 
-        int z = 0;
-        while (z < reorderedDocIDHashes.length)
+        for (int z = 0; z < reorderedDocIDHashes.length; z++)
         {
           String docIDHash = reorderedDocIDHashes[z];
 
@@ -4213,12 +4211,12 @@ public class JobManager implements IJobManager
             jobQueue.insertNewRecord(jobID,docIDHash,reorderedDocumentIdentifiers[z],reorderedDocumentPriorities[z],0L,currentTime,reorderedDocumentPrerequisites[z]);
           }
 
-          z++;
         }
 
         // Update all the carrydown data at once, for greatest efficiency.
         boolean[] carrydownChangesSeen = carryDown.recordCarrydownDataMultiple(jobID,parentIdentifierHash,reorderedDocIDHashes,dataNames,dataHashValues,dataValues);
 
+        // Same with hopcount.
         boolean[] hopcountChangesSeen = null;
         if (parentIdentifierHash != null && relationshipType != null)
           hopcountChangesSeen = hopCount.recordReferences(jobID,legalLinkTypes,parentIdentifierHash,reorderedDocIDHashes,relationshipType,hopcountMethod);
@@ -4226,8 +4224,9 @@ public class JobManager implements IJobManager
         // Loop through the document id's again, and perform updates where needed
         boolean[] reorderedRval = new boolean[reorderedDocIDHashes.length];
 
-        z = 0;
-        while (z < reorderedDocIDHashes.length)
+        boolean reactivateRemovedHopcountRecords = false;
+        
+        for (int z = 0; z < reorderedDocIDHashes.length; z++)
         {
           String docIDHash = reorderedDocIDHashes[z];
           JobqueueRecord jr = (JobqueueRecord)existingRows.get(docIDHash);
@@ -4243,12 +4242,14 @@ public class JobManager implements IJobManager
             reorderedRval[z] = jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
               0L,currentTime,carrydownChangesSeen[z] || (hopcountChangesSeen!=null && hopcountChangesSeen[z]),
               reorderedDocumentPriorities[z],reorderedDocumentPrerequisites[z]);
-            // Perform the flip
-            jobQueue.reactivateHopcountRemovedRecords(jobID);
+            // Signal if we need to perform the flip
+            if (hopcountChangesSeen != null && hopcountChangesSeen[z])
+              reactivateRemovedHopcountRecords = true;
           }
-          z++;
         }
 
+        if (reactivateRemovedHopcountRecords)
+          jobQueue.reactivateHopcountRemovedRecords(jobID);
 
         database.performCommit();
         
@@ -5467,9 +5468,10 @@ public class JobManager implements IJobManager
         {
           ArrayList list = new ArrayList();
           list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
+          list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED));
           hopCount.deleteMatchingDocuments(jobID,legalLinkTypes,jobQueue.getTableName()+" t99",
             "t99."+jobQueue.docHashField,"t99."+jobQueue.jobIDField,
-            "t99."+jobQueue.statusField+"=?",list,
+            "t99."+jobQueue.statusField+" IN (?,?)",list,
             hopcountMethod);
         }
 
@@ -6895,8 +6897,6 @@ public class JobManager implements IJobManager
         IJobDescription jobDesc = jobs.load(jobID,true);
         resetJobs.add(jobDesc);
             
-        // Label the job "finished"
-        jobQueue.deleteHopcountRemovedRecords(jobID);
         jobs.finishJob(jobID,currentTime);
         if (Logging.jobs.isDebugEnabled())
         {
@@ -6906,7 +6906,7 @@ public class JobManager implements IJobManager
     }
   }
 
-
+  
   // Status reports
 
   /** Get the status of a job.
