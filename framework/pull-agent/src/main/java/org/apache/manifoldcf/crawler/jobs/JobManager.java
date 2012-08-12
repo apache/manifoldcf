@@ -5467,11 +5467,13 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
         {
           ArrayList list = new ArrayList();
-          list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
-          list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED));
+          String query = database.buildConjunctionClause(list,new ClauseDescription[]{
+            new MultiClause("t99."+jobQueue.statusField,new Object[]{
+              jobQueue.statusToString(jobQueue.STATUS_PENDING),
+              jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED)})});
           hopCount.deleteMatchingDocuments(jobID,legalLinkTypes,jobQueue.getTableName()+" t99",
             "t99."+jobQueue.docHashField,"t99."+jobQueue.jobIDField,
-            "t99."+jobQueue.statusField+" IN (?,?)",list,
+            query,list,
             hopcountMethod);
         }
 

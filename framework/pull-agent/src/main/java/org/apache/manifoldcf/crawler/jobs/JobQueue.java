@@ -481,14 +481,19 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     // Delete PENDING entries
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(statusToString(STATUS_PENDING));
-    // Clean out prereqevents table first
-    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
-    list.clear();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t0."+jobIDField,jobID),
+      new MultiClause("t0."+statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
+    // Clean out prereqevents table first
+    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,query,list);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_PENDING))});
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
     performDelete("WHERE "+query,list,null);
 
     // Turn PENDINGPURGATORY, PURGATORY, COMPLETED into ELIGIBLEFORDELETE.
