@@ -4097,10 +4097,17 @@ public class JobManager implements IJobManager
             // It was an insert
             reorderedRval[z] = true;
           else
+          {
             // It was an existing row; do the update logic
+            // The hopcountChangesSeen array describes whether each reference is a new one.  This
+            // helps us determine whether we're going to need to "flip" HOPCOUNTREMOVED documents
+            // to the PENDING state.  If the new link ended in an existing record, THEN we need to flip them all!
             reorderedRval[z] = jobQueue.updateExistingRecord(jr.getRecordID(),jr.getStatus(),jr.getCheckTimeValue(),
               0L,currentTime,carrydownChangesSeen[z] || (hopcountChangesSeen!=null && hopcountChangesSeen[z]),
               reorderedDocumentPriorities[z],reorderedDocumentPrerequisites[z]);
+            // Perform the flip
+            jobQueue.reactivateHopcountRemovedRecords(jobID);
+          }
           z++;
         }
 
@@ -6751,6 +6758,7 @@ public class JobManager implements IJobManager
         resetJobs.add(jobDesc);
             
         // Label the job "finished"
+        jobQueue.deleteHopcountRemovedRecords(jobID);
         jobs.finishJob(jobID,currentTime);
         if (Logging.jobs.isDebugEnabled())
         {

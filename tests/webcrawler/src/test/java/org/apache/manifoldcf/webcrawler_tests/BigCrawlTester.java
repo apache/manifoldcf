@@ -81,7 +81,7 @@ public class BigCrawlTester
     job.setStartMethod(job.START_DISABLE);
     job.setHopcountMode(job.HOPCOUNT_ACCURATE);
     job.addHopCountFilter("link",new Long(2));
-    job.addHopCountFilter("redirect",new Long(2));
+    //job.addHopCountFilter("redirect",new Long(2));
 
     // Now, set up the document specification.
     DocumentSpecification ds = job.getSpecification();

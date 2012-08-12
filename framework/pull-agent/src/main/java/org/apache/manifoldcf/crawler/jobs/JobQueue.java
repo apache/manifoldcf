@@ -68,7 +68,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 8;
   public final static int STATUS_BEINGCLEANED = 9;
   public final static int STATUS_ELIGIBLEFORDELETE = 10;
-
+  public final static int STATUS_HOPCOUNTREMOVED = 11;
   // Action values
   public final static int ACTION_RESCAN = 0;
   public final static int ACTION_REMOVE = 1;
@@ -126,6 +126,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("a",new Integer(STATUS_ACTIVENEEDRESCAN));
     statusMap.put("f",new Integer(STATUS_ACTIVENEEDRESCANPURGATORY));
     statusMap.put("d",new Integer(STATUS_BEINGCLEANED));
+    statusMap.put("H",new Integer(STATUS_HOPCOUNTREMOVED));
   }
 
   protected static Map seedstatusMap;
@@ -362,6 +363,35 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
     unconditionallyAnalyzeTables();
+  }
+
+  /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.
+  * NOTE: We need to actually schedule these!!!  so the following can't really work.  ???
+  */
+  public void reactivateHopcountRemovedRecords(Long jobID)
+    throws ManifoldCFException
+  {
+    Map map = new HashMap();
+    // Map HOPCOUNTREMOVED to PENDING
+    map.put(statusField,statusToString(STATUS_PENDING));
+    map.put(checkTimeField,new Long(0L));
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
+    performUpdate(map,"WHERE "+query,list,null);
+  }
+
+  /** Delete all records for a job that have status HOPCOUNTREMOVED.
+  */
+  public void deleteHopcountRemovedRecords(Long jobID)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
+    performDelete("WHERE "+query,list,null);
   }
 
   /** Clear the failtimes for all documents associated with a job.
@@ -1201,10 +1231,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Update an existing record (as the result of a reference add).
   * The record is presumed to exist and have been locked, via "FOR UPDATE".
+  *@return true if the document priority slot has been retained, false if freed.
   */
   public boolean updateExistingRecord(Long recordID, int currentStatus, Long checkTimeValue,
-    long desiredExecuteTime, long currentTime, boolean otherChangesSeen, double desiredPriority,
-    String[] prereqEvents)
+    long desiredExecuteTime, long currentTime, boolean otherChangesSeen,
+    double desiredPriority, String[] prereqEvents)
     throws ManifoldCFException
   {
     boolean rval = false;
@@ -1456,6 +1487,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "f";
     case STATUS_BEINGCLEANED:
       return "d";
+    case STATUS_HOPCOUNTREMOVED:
+      return "H";
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));
     }
