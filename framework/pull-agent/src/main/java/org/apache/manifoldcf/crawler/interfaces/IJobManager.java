@@ -274,9 +274,13 @@ public interface IJobManager
   public void markDocumentCompleted(DocumentDescription documentDescription)
     throws ManifoldCFException;
 
-  /** Note deletion as result of document processing by a job thread of a document.
+  /** Delete from queue as a result of processing of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  The RESCAN variants are interpreted
+  * as meaning that the document should not be deleted, but should instead be popped back on the queue for
+  * a repeat processing attempt.
   *@param documentDescriptions are the set of description objects for the documents that were processed.
-  *@param hopcountMethod is one of complete, partial, or nevercomplete.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
   *  to be requeued as a result of the change.
   */
@@ -284,13 +288,95 @@ public interface IJobManager
     int hopcountMethod)
     throws ManifoldCFException;
 
-  /** Note deletion as result of document processing by a job thread of a document.
+  /** Delete from queue as a result of processing of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  The RESCAN variants are interpreted
+  * as meaning that the document should not be deleted, but should instead be popped back on the queue for
+  * a repeat processing attempt.
   *@param documentDescription is the description object for the document that was processed.
-  *@param hopcountMethod is one of complete, partial, or nevercomplete.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
   *  to be requeued as a result of the change.
   */
   public DocumentDescription[] markDocumentDeleted(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
+    int hopcountMethod)
+    throws ManifoldCFException;
+
+  /** Mark hopcount removal from queue as a result of processing of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  The RESCAN variants are interpreted
+  * as meaning that the document should not be marked as removed, but should instead be popped back on the queue for
+  * a repeat processing attempt.
+  *@param documentDescriptions are the set of description objects for the documents that were processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentHopcountRemovalMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
+    int hopcountMethod)
+    throws ManifoldCFException;
+
+  /** Mark hopcount removal from queue as a result of processing of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  The RESCAN variants are interpreted
+  * as meaning that the document should not be marked as removed, but should instead be popped back on the queue for
+  * a repeat processing attempt.
+  *@param documentDescription is the description object for the document that was processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentHopcountRemoval(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
+    int hopcountMethod)
+    throws ManifoldCFException;
+
+  /** Delete from queue as a result of expiration of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  Since the document expired,
+  * no special activity takes place as a result of the document being in a RESCAN state.
+  *@param documentDescriptions are the set of description objects for the documents that were processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentExpiredMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
+    int hopcountMethod)
+    throws ManifoldCFException;
+  
+  /** Delete from queue as a result of expiration of an active document.
+  * The document is expected to be in one of the active states: ACTIVE, ACTIVESEEDING,
+  * ACTIVENEEDSRESCAN, ACTIVESEEDINGNEEDSRESCAN.  Since the document expired,
+  * no special activity takes place as a result of the document being in a RESCAN state.
+  *@param documentDescription is the description object for the document that was processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentExpired(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
+    int hopcountMethod)
+    throws ManifoldCFException;
+
+  /** Delete from queue as a result of cleaning up an unreachable document.
+  * The document is expected to be in the PURGATORY state.  There is never any need to reprocess the
+  * document.
+  *@param documentDescriptions are the set of description objects for the documents that were processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentCleanedUpMultiple(Long jobID, String[] legalLinkTypes, DocumentDescription[] documentDescriptions,
+    int hopcountMethod)
+    throws ManifoldCFException;
+
+  /** Delete from queue as a result of cleaning up an unreachable document.
+  * The document is expected to be in the PURGATORY state.  There is never any need to reprocess the
+  * document.
+  *@param documentDescription is the description object for the document that was processed.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@return the set of documents for which carrydown data was changed by this operation.  These documents are likely
+  *  to be requeued as a result of the change.
+  */
+  public DocumentDescription[] markDocumentCleanedUp(Long jobID, String[] legalLinkTypes, DocumentDescription documentDescription,
     int hopcountMethod)
     throws ManifoldCFException;
 

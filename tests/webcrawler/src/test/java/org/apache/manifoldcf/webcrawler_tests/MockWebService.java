@@ -136,11 +136,16 @@ public class MockWebService
 	generateLink(res,site,parentLevel,parentItem);
       }
       
-      // Generate links to direct children
-      for (int i = 0; i < docsPerLevel; i++)
+      // Temporary: Prevent links to children deeper than a certain level; this is to help
+      // the debug process
+      if (theLevel < 9)
       {
-        int docNumber = i + theItem * docsPerLevel;
-        generateLink(res,site,theLevel+1,docNumber);
+        // Generate links to direct children
+        for (int i = 0; i < docsPerLevel; i++)
+        {
+          int docNumber = i + theItem * docsPerLevel;
+          generateLink(res,site,theLevel+1,docNumber);
+        }
       }
       
       // Generate some limited cross-links to other items at this level

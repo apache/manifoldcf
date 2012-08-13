@@ -68,7 +68,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 8;
   public final static int STATUS_BEINGCLEANED = 9;
   public final static int STATUS_ELIGIBLEFORDELETE = 10;
-
+  public final static int STATUS_HOPCOUNTREMOVED = 11;
   // Action values
   public final static int ACTION_RESCAN = 0;
   public final static int ACTION_REMOVE = 1;
@@ -126,6 +126,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("a",new Integer(STATUS_ACTIVENEEDRESCAN));
     statusMap.put("f",new Integer(STATUS_ACTIVENEEDRESCANPURGATORY));
     statusMap.put("d",new Integer(STATUS_BEINGCLEANED));
+    statusMap.put("H",new Integer(STATUS_HOPCOUNTREMOVED));
   }
 
   protected static Map seedstatusMap;
@@ -364,6 +365,35 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     unconditionallyAnalyzeTables();
   }
 
+  /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.
+  * NOTE: We need to actually schedule these!!!  so the following can't really work.  ???
+  */
+  public void reactivateHopcountRemovedRecords(Long jobID)
+    throws ManifoldCFException
+  {
+    Map map = new HashMap();
+    // Map HOPCOUNTREMOVED to PENDING
+    map.put(statusField,statusToString(STATUS_PENDING));
+    map.put(checkTimeField,new Long(0L));
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
+    performUpdate(map,"WHERE "+query,list,null);
+  }
+
+  /** Delete all records for a job that have status HOPCOUNTREMOVED.
+  */
+  public void deleteHopcountRemovedRecords(Long jobID)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
+    performDelete("WHERE "+query,list,null);
+  }
+
   /** Clear the failtimes for all documents associated with a job.
   * This method is called when the system detects that a significant delaying event has occurred,
   * and therefore the "failure clock" needs to be reset.
@@ -451,14 +481,19 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     // Delete PENDING entries
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(statusToString(STATUS_PENDING));
-    // Clean out prereqevents table first
-    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
-    list.clear();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t0."+jobIDField,jobID),
+      new MultiClause("t0."+statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
+    // Clean out prereqevents table first
+    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,query,list);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_PENDING))});
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
     performDelete("WHERE "+query,list,null);
 
     // Turn PENDINGPURGATORY, PURGATORY, COMPLETED into ELIGIBLEFORDELETE.
@@ -685,6 +720,96 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
+  }
+
+  /** Either delete a record, or set status to "rescan", depending on the
+  * record's state.
+  */
+  public boolean updateOrDeleteRecord(Long recID, int currentStatus)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    
+    int newStatus;
+    String actionFieldValue;
+    Long checkTimeValue;
+    
+    switch (currentStatus)
+    {
+    case STATUS_ACTIVE:
+    case STATUS_ACTIVEPURGATORY:
+      // Delete it
+      deleteRecord(recID);
+      return true;
+    case STATUS_ACTIVENEEDRESCAN:
+    case STATUS_ACTIVENEEDRESCANPURGATORY:
+      newStatus = STATUS_PENDINGPURGATORY;
+      actionFieldValue = actionToString(ACTION_RESCAN);
+      checkTimeValue = new Long(0L);
+      // Leave doc priority unchanged.
+      break;
+    default:
+      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
+    }
+
+    map.put(statusField,statusToString(newStatus));
+    map.put(checkTimeField,checkTimeValue);
+    map.put(checkActionField,actionFieldValue);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,recID)});
+    performUpdate(map,"WHERE "+query,list,null);
+    return false;
+  }
+
+  /** Either mark a record as hopcountremoved, or set status to "rescan", depending on the
+  * record's state.
+  */
+  public boolean updateOrHopcountRemoveRecord(Long recID, int currentStatus)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    
+    int newStatus;
+    String actionFieldValue;
+    Long checkTimeValue;
+    
+    boolean rval;
+    
+    switch (currentStatus)
+    {
+    case STATUS_ACTIVE:
+    case STATUS_ACTIVEPURGATORY:
+      // Mark as hopcountremove
+      newStatus = STATUS_HOPCOUNTREMOVED;
+      actionFieldValue = actionToString(ACTION_RESCAN);
+      checkTimeValue = new Long(0L);
+      rval = true;
+      break;
+    case STATUS_ACTIVENEEDRESCAN:
+    case STATUS_ACTIVENEEDRESCANPURGATORY:
+      newStatus = STATUS_PENDINGPURGATORY;
+      actionFieldValue = actionToString(ACTION_RESCAN);
+      checkTimeValue = new Long(0L);
+      rval = false;
+      // Leave doc priority unchanged.
+      break;
+    default:
+      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
+    }
+
+    map.put(statusField,statusToString(newStatus));
+    map.put(checkTimeField,checkTimeValue);
+    map.put(checkActionField,actionFieldValue);
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,recID)});
+    performUpdate(map,"WHERE "+query,list,null);
+    return rval;
   }
 
   /** Set the status to active on a record, leaving alone priority or check time.
@@ -1159,10 +1284,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Update an existing record (as the result of a reference add).
   * The record is presumed to exist and have been locked, via "FOR UPDATE".
+  *@return true if the document priority slot has been retained, false if freed.
   */
   public boolean updateExistingRecord(Long recordID, int currentStatus, Long checkTimeValue,
-    long desiredExecuteTime, long currentTime, boolean otherChangesSeen, double desiredPriority,
-    String[] prereqEvents)
+    long desiredExecuteTime, long currentTime, boolean otherChangesSeen,
+    double desiredPriority, String[] prereqEvents)
     throws ManifoldCFException
   {
     boolean rval = false;
@@ -1414,6 +1540,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "f";
     case STATUS_BEINGCLEANED:
       return "d";
+    case STATUS_HOPCOUNTREMOVED:
+      return "H";
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));
     }

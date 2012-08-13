@@ -235,7 +235,7 @@ public class ExpireThread extends Thread
                   Long jobID = ddd.getJobID();
                   int hopcountMethod = ((Integer)hopcountMethods.get(k)).intValue();
                   String[] legalLinkTypes = (String[])arrayRelationshipTypes.get(k);
-                  DocumentDescription[] requeueCandidates = jobManager.markDocumentDeleted(jobID,legalLinkTypes,ddd,hopcountMethod);
+                  DocumentDescription[] requeueCandidates = jobManager.markDocumentExpired(jobID,legalLinkTypes,ddd,hopcountMethod);
                   // Use the common method for doing the requeuing
                   ManifoldCF.requeueDocumentsDueToCarrydown(jobManager,requeueCandidates,
                     connector,connection,queueTracker,currentTime);

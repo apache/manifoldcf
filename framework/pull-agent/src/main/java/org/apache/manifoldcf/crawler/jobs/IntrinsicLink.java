@@ -354,24 +354,9 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
               
       performDelete(sb.toString(),list,null);
       noteModifications(0,0,1);
-          
-      // Delete matches for parentIDHashField
-      sb = new StringBuilder("WHERE ");
-      list = new ArrayList();
-          
-      sb.append("EXISTS(SELECT 'x' FROM ").append(joinTableName).append(" WHERE ")
-        .append(buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause(joinTableJobColumn,jobID),
-          new JoinClause(joinTableIDColumn,getTableName()+"."+parentIDHashField)})).append(" AND ");
-
-      sb.append(joinTableCriteria);
-      list.addAll(joinTableParams);
-              
-      sb.append(")");
-              
-      performDelete(sb.toString(),list,null);
-      noteModifications(0,0,1);
-
+      
+      // DON'T delete ParentID matches; we need to leave those around for bookkeeping to
+      // be correct.  See CONNECTORS-501.
     }
     catch (ManifoldCFException e)
     {
@@ -451,14 +436,8 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(childIDHashField,list)}));
     performDelete(sb.toString(),thisList,null);
-      
-    sb = new StringBuilder("WHERE ");
-    thisList = new ArrayList();
-
-    sb.append(buildConjunctionClause(thisList,new ClauseDescription[]{
-      new UnitaryClause(jobIDField,jobID),
-      new MultiClause(parentIDHashField,list)}));
-    performDelete(sb.toString(),thisList,null);
+    
+    // DON'T do parentID matches; we need to leave those around.  See CONNECTORS-501.
   }
 
   /** Remove all target links of the specified source documents that are not marked as "new" or "existing", and

@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-501: Fix hopcount logic to return a deterministic
+number of documents.  A number of race conditions were discovered
+and corrected.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-497: Add Lists support to the SharePoint connector.
 (Ahmet Arslan, Karl Wright)
 
