@@ -411,18 +411,6 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       {
         // There are added links.
         
-        // First, note them in return value
-        Set<String> newSet = new HashSet<String>();
-        for (int i = 0; i < newReferences.length; i++)
-        {
-          newSet.add(newReferences[i]);
-        }
-        for (int i = 0; i < rval.length; i++)
-        {
-          if (newSet.contains(targetDocumentIDHashes[i]) &&
-            (sourceDocumentIDHash==null || !sourceDocumentIDHash.equals(targetDocumentIDHashes[i])))
-            rval[i] = true;
-        }
 
         // The add causes hopcount records to be queued for processing (and created if they don't exist).
         // ALL the hopcount records for the target document ids must be queued, for all the link types
@@ -505,7 +493,19 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         }
 
         // Now add these documents to the processing queue
-        addToProcessingQueue(jobID,legalLinkTypes,newReferences,estimates,sourceDocumentIDHash,linkType,hopcountMethod);
+        boolean[] hasChanged = addToProcessingQueue(jobID,legalLinkTypes,newReferences,estimates,sourceDocumentIDHash,linkType,hopcountMethod);
+
+        // First, note them in return value
+        Map<String,Boolean> changeMap = new HashMap<String,Boolean>();
+        for (int i = 0; i < newReferences.length; i++)
+        {
+          changeMap.put(newReferences[i],new Boolean(hasChanged[i]));
+        }
+        for (int i = 0; i < rval.length; i++)
+        {
+          if (changeMap.get(targetDocumentIDHashes[i]).booleanValue())
+            rval[i] = true;
+        }
 
         if (Logging.hopcount.isDebugEnabled())
           Logging.hopcount.debug("Done queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
@@ -790,8 +790,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   *@param sourceDocumentIDHash is the source document identifier for the links from source to target documents.
   *@param linkType is the link type for this queue addition.
   *@param hopcountMethod is the desired method of managing hopcounts.
+  *@return a boolean array which is the subset of documentIDHashes whose distances may have changed.
   */
-  protected void addToProcessingQueue(Long jobID, String[] affectedLinkTypes, String[] documentIDHashes,
+  protected boolean[] addToProcessingQueue(Long jobID, String[] affectedLinkTypes, String[] documentIDHashes,
     Answer[] startingAnswers, String sourceDocumentIDHash, String linkType, int hopcountMethod)
     throws ManifoldCFException
   {
@@ -835,6 +836,12 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     for (int u = 0; u < affectedLinkTypes.length; u++)
     {
       answerMap.put(affectedLinkTypes[u],startingAnswers[u]);
+    }
+
+    boolean[] rval = new boolean[documentIDHashes.length];
+    for (int i = 0; i < rval.length; i++)
+    {
+      rval[i] = false;
     }
 
     // Do this in a transaction
@@ -931,6 +938,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
                 " than new distance "+Integer.toString(newAnswerValue)+", so not queuing for job "+jobID);
               matchMap.remove(q);
             }
+            else
+              rval[i] = true;
           }
         }
       }
@@ -1009,6 +1018,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       endTransaction();
     }
     noteModifications(0,documentIDHashes.length,0);
+    return rval;
   }
 
   /** Do the work of marking add-dep-dependent links in the hopcount table. */
