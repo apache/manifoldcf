@@ -110,7 +110,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     // Get agent manager
     IAgentManager manager = AgentManagerFactory.make(threadContext);
-    String[] classes = manager.getAllAgents();
     ManifoldCFException problem = null;
     synchronized (runningHash)
     {
@@ -118,6 +117,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       // (If it has, it means that the JVM is trying to shut down.)
       if (stopAgentsRun)
         return;
+      String[] classes = manager.getAllAgents();
       int i = 0;
       while (i < classes.length)
       {

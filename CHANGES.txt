@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-504: Stop agents process from talking to database after 
+the stop signal has been sent.
+(Karl Wright)
+
 CONNECTORS-503: Add support in status reports for hopcount exceeded
 status.
 (Karl Wright)
