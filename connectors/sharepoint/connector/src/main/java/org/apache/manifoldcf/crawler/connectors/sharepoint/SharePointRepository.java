@@ -3444,8 +3444,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             metaFieldList = getLibFieldList(site,libOrList);
           else if (metaPathState.equals("list"))
             metaFieldList = getListFieldList(site,libOrList);
-          else
-            throw new ManifoldCFException("Unknown state; please contact ManifoldCF developer group");
         }
         catch (ManifoldCFException e)
         {

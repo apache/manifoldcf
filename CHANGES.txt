@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-505: Fix for "unknown state" issue with SharePoint
+UI.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-504: Stop agents process from talking to database after 
 the stop signal has been sent.
 (Karl Wright)
