@@ -38,6 +38,7 @@ public interface IDBInterface
   public static int TRANSACTION_ENCLOSING = 0;
   public static int TRANSACTION_READCOMMITTED = 1;
   public static int TRANSACTION_SERIALIZED = 2;
+  public static int TRANSACTION_REPEATABLEREAD = 3;
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
   * database communication.

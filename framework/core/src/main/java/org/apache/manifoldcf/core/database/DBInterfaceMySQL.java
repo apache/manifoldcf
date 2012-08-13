@@ -33,7 +33,10 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public static final String mysqlClientProperty = "org.apache.manifoldcf.mysql.client";
   
   private static final String _driver = "com.mysql.jdbc.Driver";
-  
+
+  // Once we enter the serializable realm, STOP any additional transactions from doing anything at all.
+  protected int serializableDepth = 0;
+
   protected String cacheKey;
 
   public DBInterfaceMySQL(IThreadContext tc, String databaseName, String userName, String password)
@@ -1001,9 +1004,16 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public void beginTransaction()
     throws ManifoldCFException
   {
-    super.beginTransaction(TRANSACTION_READCOMMITTED);
+    beginTransaction(TRANSACTION_ENCLOSING);
   }
 
+  protected int getActualTransactionType()
+  {
+    if (th == null)
+      return -1;
+    return th.getTransactionType();
+  }
+  
   /** Begin a database transaction.  This method call MUST be paired with an endTransaction() call,
   * or database handles will be lost.  If the transaction should be rolled back, then signalRollback() should
   * be called before the transaction is ended.
@@ -1016,7 +1026,40 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public void beginTransaction(int transactionType)
     throws ManifoldCFException
   {
-    super.beginTransaction(TRANSACTION_READCOMMITTED);
+    if (getCurrentTransactionType() == TRANSACTION_SERIALIZED)
+    {
+      serializableDepth++;
+      return;
+    }
+
+    if (transactionType == TRANSACTION_ENCLOSING)
+    {
+      transactionType = getCurrentTransactionType();
+    }
+
+    switch (transactionType)
+    {
+    case TRANSACTION_REPEATABLEREAD:
+      if (transactionType != getActualTransactionType())
+        // Must precede actual transaction start
+        performModification("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ",null,null);
+      super.beginTransaction(transactionType);
+      break;
+    case TRANSACTION_READCOMMITTED:
+      if (transactionType != getActualTransactionType())
+        // Must precede actual transaction start
+        performModification("SET TRANSACTION ISOLATION LEVEL READ COMMITTED",null,null);
+      super.beginTransaction(transactionType);
+      break;
+    case TRANSACTION_SERIALIZED:
+      if (transactionType != getActualTransactionType())
+        // Must precede actual transaction start
+        performModification("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE",null,null);
+      super.beginTransaction(TRANSACTION_SERIALIZED);
+      break;
+    default:
+      throw new ManifoldCFException("Bad transaction type: "+Integer.toString(transactionType));
+    }
   }
 
   /** Abstract method to start a transaction */
@@ -1046,7 +1089,29 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       throw reinterpretException(e);
     }
   }
-  
+
+  /** Signal that a rollback should occur on the next endTransaction().
+  */
+  public void signalRollback()
+  {
+    if (serializableDepth == 0)
+      super.signalRollback();
+  }
+
+  /** End a database transaction, either performing a commit or a rollback (depending on whether
+  * signalRollback() was called within the transaction).
+  */
+  public void endTransaction()
+    throws ManifoldCFException
+  {
+    if (serializableDepth > 0)
+    {
+      serializableDepth--;
+      return;
+    }
+    super.endTransaction();
+  }
+
   /** Abstract method to roll back a transaction */
   protected void rollbackCurrentTransaction()
     throws ManifoldCFException

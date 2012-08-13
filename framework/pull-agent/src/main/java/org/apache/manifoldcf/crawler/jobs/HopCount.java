@@ -503,7 +503,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         }
         for (int i = 0; i < rval.length; i++)
         {
-          if (changeMap.get(targetDocumentIDHashes[i]).booleanValue())
+          Boolean x = changeMap.get(targetDocumentIDHashes[i]);
+          if (x != null && x.booleanValue())
             rval[i] = true;
         }
 
