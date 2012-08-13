@@ -39,6 +39,7 @@ public interface IJobManager
   // Document states, for status reports.
   public static final int DOCSTATE_NEVERPROCESSED = 0;
   public static final int DOCSTATE_PREVIOUSLYPROCESSED = 1;
+  public static final int DOCSTATE_OUTOFSCOPE = 2;
 
   // Document statuses, for status reports.
   public static final int DOCSTATUS_INACTIVE = 0;
@@ -50,6 +51,7 @@ public interface IJobManager
   public static final int DOCSTATUS_WAITINGFORPROCESSING = 6;
   public static final int DOCSTATUS_WAITINGFOREXPIRATION = 7;
   public static final int DOCSTATUS_WAITINGFOREVER = 8;
+  public static final int DOCSTATUS_HOPCOUNTEXCEEDED = 9;
 
   /** Install the job manager's tables.
   */

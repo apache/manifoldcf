@@ -249,7 +249,7 @@ if (maintenanceUnderway == false)
 	int[] matchingStates;
 	if (documentStateTypes == null)
 	{
-		matchingStates = new int[]{IJobManager.DOCSTATE_NEVERPROCESSED,IJobManager.DOCSTATE_PREVIOUSLYPROCESSED};
+		matchingStates = new int[]{IJobManager.DOCSTATE_NEVERPROCESSED,IJobManager.DOCSTATE_PREVIOUSLYPROCESSED,IJobManager.DOCSTATE_OUTOFSCOPE};
 	}
 	else
 	{
@@ -275,7 +275,8 @@ if (maintenanceUnderway == false)
 	{
 		matchingStatuses = new int[]{IJobManager.DOCSTATUS_INACTIVE,IJobManager.DOCSTATUS_PROCESSING,IJobManager.DOCSTATUS_EXPIRING,
 			IJobManager.DOCSTATUS_DELETING,IJobManager.DOCSTATUS_READYFORPROCESSING,IJobManager.DOCSTATUS_READYFOREXPIRATION,
-			IJobManager.DOCSTATUS_WAITINGFORPROCESSING,IJobManager.DOCSTATUS_WAITINGFOREXPIRATION,IJobManager.DOCSTATUS_WAITINGFOREVER};
+			IJobManager.DOCSTATUS_WAITINGFORPROCESSING,IJobManager.DOCSTATUS_WAITINGFOREXPIRATION,IJobManager.DOCSTATUS_WAITINGFOREVER,
+			IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED};
 	}
 	else
 	{
@@ -370,6 +371,7 @@ if (maintenanceUnderway == false)
 					<select name="statusdocumentstates" multiple="true" size="3">
 						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_NEVERPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_NEVERPROCESSED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsThatHaveNeverBeenProcessed")%></option>
 						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsProcessedAtLeastOnce")%></option>
+						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_OUTOFSCOPE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_OUTOFSCOPE)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsOutOfScope")%></option>
 					</select>
 				</td>
 			</tr>
@@ -387,6 +389,7 @@ if (maintenanceUnderway == false)
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFORPROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFORPROCESSING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsNotYetProcessable")%></option>
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsNotYetExpirable")%></option>
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREVER))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREVER)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsWaitingForever")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsHopcountExceeded")%></option>
 					</select>
 				</td>
 			</tr>
@@ -492,6 +495,7 @@ if (maintenanceUnderway == false)
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("processwaiting");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForProcessing")%></nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("expirewaiting");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForExpiration")%></nobr></a></td>
 			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("waitingforever");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForever")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("hopcountexceeded");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"queuestatus.HopcountExceeded")%></nobr></a></td>
 		    </tr>
 <%
 		zz = 0;
@@ -532,6 +536,7 @@ if (maintenanceUnderway == false)
 			<td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processwaiting").toString())%></td>
 			<td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expirewaiting").toString())%></td>
 			<td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("waitingforever").toString())%></td>
+			<td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("hopcountexceeded").toString())%></td>
 		    </tr>
 <%
 			zz++;

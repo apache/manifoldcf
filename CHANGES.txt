@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-503: Add support in status reports for hopcount exceeded
+status.
+(Karl Wright)
+
 CONNECTORS-501: Fix hopcount logic to return a deterministic
 number of documents.  A number of race conditions were discovered
 and corrected.

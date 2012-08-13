@@ -210,7 +210,8 @@ if (maintenanceUnderway == false)
 	int[] matchingStates;
 	if (documentStateTypes == null)
 	{
-		matchingStates = new int[]{IJobManager.DOCSTATE_NEVERPROCESSED,IJobManager.DOCSTATE_PREVIOUSLYPROCESSED};
+		matchingStates = new int[]{IJobManager.DOCSTATE_NEVERPROCESSED,IJobManager.DOCSTATE_PREVIOUSLYPROCESSED,
+			IJobManager.DOCSTATE_OUTOFSCOPE};
 	}
 	else
 	{
@@ -236,7 +237,8 @@ if (maintenanceUnderway == false)
 	{
 		matchingStatuses = new int[]{IJobManager.DOCSTATUS_INACTIVE,IJobManager.DOCSTATUS_PROCESSING,IJobManager.DOCSTATUS_EXPIRING,
 			IJobManager.DOCSTATUS_DELETING,IJobManager.DOCSTATUS_READYFORPROCESSING,IJobManager.DOCSTATUS_READYFOREXPIRATION,
-			IJobManager.DOCSTATUS_WAITINGFORPROCESSING,IJobManager.DOCSTATUS_WAITINGFOREXPIRATION,IJobManager.DOCSTATUS_WAITINGFOREVER};
+			IJobManager.DOCSTATUS_WAITINGFORPROCESSING,IJobManager.DOCSTATUS_WAITINGFOREXPIRATION,IJobManager.DOCSTATUS_WAITINGFOREVER,
+			IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED};
 	}
 	else
 	{
@@ -331,6 +333,7 @@ if (maintenanceUnderway == false)
 					<select name="statusdocumentstates" multiple="true" size="3">
 						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_NEVERPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_NEVERPROCESSED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsThatHaveNeverBeenProcessed")%></option>
 						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsProcessedAtLeastOnce")%></option>
+						<option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_OUTOFSCOPE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_OUTOFSCOPE)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsOutOfScope")%></option>
 					</select>
 				</td>
 			</tr>
@@ -348,6 +351,7 @@ if (maintenanceUnderway == false)
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFORPROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFORPROCESSING)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsNotYetProcessable")%></option>
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsNotYetExpirable")%></option>
 						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_WAITINGFOREVER))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_WAITINGFOREVER)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsWaitingForever")%></option>
+						<option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"documentstatus.DocumentsHopcountExceeded")%></option>
 					</select>
 				</td>
 			</tr>
