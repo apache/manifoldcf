@@ -3440,7 +3440,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         Map metaFieldList = null;
         try
         {
-          if (metaPathState.equals("library"))
+          if (metaPathState.equals("library") || metaPathState.equals("file"))
             metaFieldList = getLibFieldList(site,libOrList);
           else if (metaPathState.equals("list"))
             metaFieldList = getListFieldList(site,libOrList);
@@ -4232,28 +4232,44 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               path = path + addon;
             else
               path = path + "/" + addon;
-            currentContext.save("metapathstate","unknown");
+            if (library != null)
+              currentContext.save("metapathstate","file");
+            else
+              currentContext.save("metapathstate","unknown");
           }
           currentContext.save("metapath",path);
           currentContext.save("metapathlibrary",library);
         }
         else if (pathop.equals("Remove"))
         {
-          // Strip off end
-          String path = variableContext.getParameter("metapath");
-          int index = path.lastIndexOf("/");
-          path = path.substring(0,index);
-          if (path.length() == 0)
-            path = "/";
-          currentContext.save("metapath",path);
-          // Now, adjust state.
           String pathState = variableContext.getParameter("metapathstate");
-          if (pathState.equals("library") || pathState.equals("list"))
+          String path;
+          if (pathState.equals("file"))
+          {
+            pathState = "library";
+            path = variableContext.getParameter("metapathlibrary");
+          }
+          else if (pathState.equals("list") || pathState.equals("library"))
           {
             pathState = "site";
+            path = variableContext.getParameter("metapathlibrary");
+            int index = path.lastIndexOf("/");
+            path = path.substring(0,index);
+            if (path.length() == 0)
+              path = "/";
+            currentContext.save("metapathlibrary",null);
           }
-          currentContext.save("metapathlibrary",null);
+          else
+          {
+            path = variableContext.getParameter("metapath");
+            int index = path.lastIndexOf("/");
+            path = path.substring(0,index);
+            if (path.length() == 0)
+              path = "/";
+          }
+
           currentContext.save("metapathstate",pathState);
+          currentContext.save("metapath",path);
         }
       }
 
