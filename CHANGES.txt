@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-502: Fix MySQL transaction handling.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-505: Fix for "unknown state" issue with SharePoint
 UI.
 (Ahmet Arslan, Karl Wright)
