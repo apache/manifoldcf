@@ -335,6 +335,9 @@ public class WorkerThread extends Thread
                         job.getID()+" connection '"+job.getConnectionName()+"': "+
                         e.getMessage());
 
+                      if (e.isAbortOnFail())
+                        abortOnFail = new ManifoldCFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+                        
                       // Mark the current documents to be recrawled at the
                       // time specified, with the proper error handling.
                       List<QueuedDocument> newActiveList = new ArrayList<QueuedDocument>(activeDocuments.size());
@@ -351,7 +354,6 @@ public class WorkerThread extends Thread
                           // Treat this as a hard failure.
                           if (e.isAbortOnFail())
                           {
-                            abortOnFail = new ManifoldCFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                             rescanList.add(qd);
                           }
                           // We want this particular document to be not included in the
@@ -517,7 +519,7 @@ public class WorkerThread extends Thread
                         try
                         {
 
-                          // Fetchlist contains what we need to process.
+                          // Finishlist and Fetchlist are parallel.  Fetchlist contains what we need to process.
                           if (fetchList.size() > 0)
                           {
                             // Build a list of id's and flags
@@ -579,34 +581,52 @@ public class WorkerThread extends Thread
                               deleteList.clear();
                               ArrayList requeueList = new ArrayList();
 
+                              if (e.isAbortOnFail())
+                                abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
+
+                              Set<String> fetchDocuments = new HashSet<String>();
+                              for (int i = 0; i < fetchList.size(); i++)
+                              {
+                                fetchDocuments.add(fetchList.get(i).getDocument().getDocumentDescription().getDocumentIdentifierHash());
+                              }
+                              List<QueuedDocument> newFinishList = new ArrayList<QueuedDocument>();
                               for (int i = 0; i < finishList.size(); i++)
                               {
                                 QueuedDocument qd = finishList.get(i);
-                                DocumentDescription dd = qd.getDocumentDescription();
-                                if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
-                                  dd.getFailRetryCount() == 0)
+                                if (fetchDocuments.contains(qd.getDocumentDescription().getDocumentIdentifierHash()))
                                 {
-                                  // Treat this as a hard failure.
-                                  if (e.isAbortOnFail())
+                                  DocumentDescription dd = qd.getDocumentDescription();
+                                  if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                                    dd.getFailRetryCount() == 0)
                                   {
-                                    abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
-                                    rescanList.add(qd);
+                                    // Treat this as a hard failure.
+                                    if (e.isAbortOnFail())
+                                    {
+                                      rescanList.add(qd);
+                                    }
+                                    else
+                                    {
+                                      // We want this particular document to be not included in the
+                                      // reprocessing.  Therefore, we do the same thing as we would
+                                      // if we got back a null version.
+                                      deleteList.add(qd);
+                                    }
                                   }
-                                  // We want this particular document to be not included in the
-                                  // reprocessing.  Therefore, we do the same thing as we would
-                                  // if we got back a null version.
-                                  deleteList.add(qd);
+                                  else
+                                  {
+                                    requeueList.add(qd);
+                                  }
                                 }
                                 else
-                                {
-                                  requeueList.add(qd);
-                                }
+                                  newFinishList.add(qd);
                               }
 
                               // Requeue the documents we've identified
                               requeueDocuments(jobManager,requeueList,e.getRetryTime(),e.getFailTime(),
                                 e.getFailRetryCount());
 
+                              // We've disposed of all the documents, so finishlist is now clear
+                              finishList = newFinishList;
                             }
                           } // End of fetching
 
