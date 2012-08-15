@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-506: Missing quotes in start-database.sh cause HSQLDB
+to start with the wrong parameters.
+(Fred Toussi, Karl Wright)
+
 CONNECTORS-502: Fix MySQL transaction handling.
 (Shigeki Kobayashi, Karl Wright)
 
