@@ -25,4 +25,6 @@ cmd /c mvn install:install-file -Dfile=connectors/jcifs/lib-proprietary/jcifs.ja
 cmd /c mvn install:install-file -Dfile=lib/opensaml.jar -DgroupId=org.opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
 cmd /c mvn install:install-file -Dfile=lib/xmlsec.jar -DgroupId=xml-security -DartifactId=xmlsec -Dversion=1.4.1 -Dpackaging=jar
 
+cmd /c mvn install:install-file -Dfile=lib/hsqldb.jar -DgroupId=org.hsqldb -DartifactId=hsqldb -Dversion=2.2.9 -Dpackaging=jar
+
 echo Dependencies installed
