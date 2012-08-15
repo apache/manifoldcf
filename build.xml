@@ -2804,7 +2804,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="hsqldb"/>
             <param name="artifact-type" value="jar"/>
         </antcall -->
-        <get src="http://hsqldb.org/repos/org/hsqldb/hsqldb/SNAPSHOT/hsqldb-20120806.103833-15.jar" dest="lib/hsqldb.jar"/>
+        <get src="http://www.hsqldb.org/repos/org/hsqldb/hsqldb/2.2.9/hsqldb-2.2.9.jar" dest="lib/hsqldb.jar"/>
     </target>
     
     <target name="download-postgresql">
