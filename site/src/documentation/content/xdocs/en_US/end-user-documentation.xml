@@ -1323,6 +1323,9 @@
                 <p>The mappings specified here are similar in all respects to the path attribute mapping setup described above.  If no mappings are present, the file path is converted
                        to a canonical file IRI.  If mappings are present, the conversion is presumed to produce a valid URL, which can be used to access the document via some
                        variety of Windows Share http server.</p>
+                <p>Accessing some servers may result in "Couldn't connect to server: Logon failure: unknown user name or bad password" Connection Status, because the default version of NTLM used for
+                       authentication is incompatible.  If this is the case, the Windows Share repository connector can be configured to use NTLMv1, rather than the NTLMv2 default. This is done by
+                       setting the property "org.apache.manifoldcf.crawler.connectors.jcifs.usentlmv1" to "true" in properties.xml file.</p>
 
             </section>
 

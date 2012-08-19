@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-507: Improve JCIFs Connector documentation.
+(Swapna Vuppala)
+
 CONNECTORS-508: Improve SharePoint connector documentation.
 (Ahmet Arslan)
 
