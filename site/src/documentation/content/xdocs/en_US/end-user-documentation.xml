@@ -1450,8 +1450,15 @@
                 <br/>
                 <p>When you create a job based on a general database connection, the job's queries are initially populated with examples.  These examples should give you a good idea of
                         what columns your queries should return - in most cases, the only columns you need to return are the ones that appear in the example queries.  However,
-                        for the file data query, you may also return columns that are not specified in the example.  When you do this, the extra return column values will be passed
-                        to the index as metadata for the document.  The metadata name used will be the corresponding column name of the resultset.</p>
+                        for the file data query, you may also return columns that are not specified in the example.  <strong>When you do this, the extra return column values will be passed
+                        to the index as metadata for the document.  The metadata name used will be the corresponding resultlist column name of the resultset.</strong></p>
+                <p>For example, the following file data query (written for PostgreSQL) will return documents with the metadata fields "metadata_a" and "metadata_b", in addition to the required primary
+                        document body and URL:</p>
+                <br/>
+                <p><code>SELECT id AS $(IDCOLUMN), characterdata AS $(DATACOLUMN), 'http://mydynamicserver.com?id=' || id AS $(URLCOLUMN), 
+                  publisher AS metadata_a, distributor AS metadata_b FROM mytable WHERE id IN $(IDLIST)</code></p>
+                <br/>
+                <p>There is currently no support in the JDBC connection type for natively handling multi-valued metadata.</p>
                 <p>The "Security" tab simply allows you to add specific access tokens to all documents indexed with a general database job.  In order for you to know what tokens
                        to add, you must decide with what authority connection these documents will be secured, and understand the form of the access tokens used by that authority connection
                        type.  This is what the "Security" tab looks like:</p>

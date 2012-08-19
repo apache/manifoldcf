@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-493: Improve JDBC connector documentation as it
+pertains to metadata handling.
+(Karl Wright)
+
 CONNECTORS-506: Missing quotes in start-database.sh cause HSQLDB
 to start with the wrong parameters.
 (Fred Toussi, Karl Wright)
