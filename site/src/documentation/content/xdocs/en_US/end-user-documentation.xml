@@ -1728,7 +1728,7 @@
                 <p></p>
                 <p>When you configure a job to use a repository connection of the generic database type, several additional tabs are presented.  These are, in order, "Paths", "Security", and "Metadata".</p>
                 <p>The "Paths" tab allows you to build a list of rules describing the SharePoint content that you want to include in your job.  When the SharePoint connection type encounters a subsite,
-                    library, or file, it looks through this list of rules to determine whether to include the subsite, library, or file.  The first matching rule will determine what will be done.</p>
+                    library, list, or file, it looks through this list of rules to determine whether to include the subsite, library, list, or file.  The first matching rule will determine what will be done.</p>
                 <p>Each rule consists of a path, a rule type, and an action.  The actions are "Include" and "Exclude".  The rule type tells the connection what kind of SharePoint entity it is allowed to exactly match.  For
                     example, a "File" rule will only exactly match SharePoint paths that represent files - it cannot exactly match sites or libraries.  The path itself is just a sequence of characters, where the "*" character
                     has the special meaning of being able to match any number of any kind of characters, and the "?" character matches exactly one character of any kind.</p>
@@ -1742,7 +1742,7 @@
                 <br/><br/>
                 <figure src="images/en_US/sharepoint-job-paths.PNG" alt="SharePoint Job, Paths tab" width="80%"/>
                 <br/><br/>
-                <p>To build a rule, first build the rule's matching path.  Make an appropriate selection or enter desired text, then click either the "Add Site", "Add Library", or "Add Text" button, depending on your choice.
+                <p>To build a rule, first build the rule's matching path.  Make an appropriate selection or enter desired text, then click either the "Add Site", "Add Library", "Add List", or "Add Text" button, depending on your choice.
                     Repeat this process until the path is what you want it to be.  At this point, if the SharePoint connection does not know what kind of entity your path describes, you will need to select the
                     SharePoint entity type that you want the rule to match also.  Select whether this is an include or exclude rule.  Then, click the "Add New Rule" button, to add your newly-constructed rule
                     at the end of the list.</p>
@@ -1757,10 +1757,10 @@
                 <br/><br/>
                 <figure src="images/en_US/sharepoint-job-metadata.PNG" alt="SharePoint Job, Security tab" width="80%"/>
                 <br/><br/>
-                <p>The main difference is that instead of rules that include or exclude individual sites, libraries, or documents, the rules describe inclusion and exclusion of document metadata.  Since metadata is associated
-                    with files, all of the metadata rules are applied only to file paths, and there are no such things as "site" or "library" metadata path rules.</p>
+                <p>The main difference is that instead of rules that include or exclude individual sites, libraries, lists, or documents, the rules describe inclusion and exclusion of document or list item metadata.  Since metadata is associated
+                    with files and list items, all of the metadata rules are applied only to file paths and list item paths, and there are no such things as "site" or "library" metadata path rules.</p>
                 <p>If an exclusion rule matches a file's path, it means that <b>no</b> metadata from that file will be included at all.  There is no way to individually exclude a single field using an exclusion rule.</p>
-                <p>To build a rule, first build the rule's matching path.  Make an appropriate selection or enter desired text, then click either the "Add Site", "Add Library", or "Add Text" button, depending on your choice.
+                <p>To build a rule, first build the rule's matching path.  Make an appropriate selection or enter desired text, then click either the "Add Site", "Add Library", "Add List", or "Add Text" button, depending on your choice.
                     Repeat this process until the path is what you want it to be.  Select whether this is an include or exclude rule.  Either check the box for "Include all metadata", or select the metadata you want to include
                     from the pulldown.  (The choices of metadata fields you are presented with are determined by which SharePoint library is selected.  If your rule path does not uniquely specify a library, you cannot select individual
                     fields to include.  You can only select "All metadata".)  Then, click the "Add New Rule" button, to put your newly-constructed rule
@@ -1773,8 +1773,61 @@
                 <p>For example, suppose you had a rule which had ".*/(.*)/(.*)/.*" as a match expression, and "$(1) $(2)" as the replace string.  If presented with the path
                     <code>Project/Folder_1/Folder_2/Filename</code>, it would output the string <code>Folder_1 Folder_2</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
+                <br/>
+                <p><b>Example: How to index a SharePoint 2010 Document Library</b></p>
+                <p></p>
+                <p>Let's say we want to index a Document Library named Documents. The following URL displays contents of the library : http://iknow/Documents/Forms/AllItems.aspx</p>
+                <figure src="images/en_US/documents-library-contents.png" alt="Documents Library Contents"/>
+                <p>Note that there exists eight folders and one file in our library. Some folders have sub-folders. And leaf folders contain files. The following <b>single</b> Path Rule is sufficient to index <b>all</b> files in Documents library.</p>
+                <figure src="images/en_US/documents-library-path-rule.png" alt="Documents Library Path Rule"/>
+                <p>If we click Library Tools > Library > Modify View, we will see complete list of all available metadata.</p>
+                <figure src="images/en_US/documents-library-all-metadata.png" alt="Documents Library All Metadata"/>
+                <p>ManifoldCF's UI also displays all available Document Libraries and their associated metadata too. Using this pulldown, you can select which fields you want to index.</p>
+                <figure src="images/en_US/documents-library-metadata.png" alt="Documents Library Selected Metadata"/>
+                <p>To create the metadata rule below, click Metadata tab in Job settings. Select Documents from --Select library-- and "Add Library" button. As soon as you have done this, all available metadata will be listed. 
+                     Enter * in the textbox which is right of the Add Text button. And click Add Text button. When you have done this Path Match becomes /Documents/*. After this you can multi select list of metadata. 
+                     This action will populate Fields with CheckoutUser, Created, etc. Click Add New Rule button. This action will add this new rule to your Metadata rules.</p>
+                <figure src="images/en_US/documents-library-metadata-rule.png" alt="Documents Library Metadata Rule"/>
+                <p>Finally click the "Save" button at the bottom of the page. You will see a page looking something like this:</p>
+                <figure src="images/en_US/documents-library-summary.png" alt="Documents Library Summary Page"/>
+                <br/>
+                <p><b>Some Final Notes</b></p>
+                <ul>
+                    <li>If you don't add * to Patch match rule, your selected fields won't be used. In other words Path match rule <b>/Documents</b> won't match the document <i>/Documents/ik_docs/diger/sorular.docx</i> </li>
+                    <li>We can include all metadata using the checkbox. (without selecting from the pulldown list)</li>
+                    <li>If we were to index only docx files, our Patch match rule would be <b>/Documents/*.docx</b></li>
+                </ul>
+                <br/>
+                
+                <p><b>Example: How to index SharePoint 2010 Lists</b></p>
+                <p></p>
+                <p>Lists are a key part of the architecture of Windows SharePoint Services. A document library is another form of a list, and while it has many similar properties to a standard list, it also includes additional 
+                     functions to enable document uploads, retrieval, and other functions to support document management and collaboration. <a href="http://msdn.microsoft.com/en-us/library/dd490727%28v=office.12%29.aspx">[1]</a> </p>
+            	<p>An item added to a document library (and other libraries) must be a file. You can't have a library without a file. A list on the other hand doesn't have a file, it is just a piece of data, just like SQL Table.</p>
+                <p>Let's say we want to index a List named IKGeneralFAQ. The following URL displays contents of the list : http://iknow/Lists/IKGeneralFAQ/AllItems.aspx</p>
+                <figure src="images/en_US/faq-list-contents.png" alt="IKGeneralFAQ List Contents"/>
+                <p>Note that the Lists do not have files. It looks like an Excel spreadsheet. In ManifoldCF Job Settings, Path tab displays all available Lists. It lets you to select the name of the list you want to index.</p>
+                <figure src="images/en_US/add-list.png" alt="Add List"/>
+                <p>After we select IKGeneralFAQ, hit Add List button and Save button, we have the following Path Rule:</p>
+                <figure src="images/en_US/faq-list-path-rule.png" alt="IKGeneralFAQ List Path Rule"/>
+                <p>The above <b>single</b> Path Rule is sufficient to index content of IKGeneralFAQ List. Note that unlike the document libraries, we don't need * here.</p> 
+                <p>If we click List Tools > List > Modify View we will see complete list of all available metadata.</p>
+                <figure src="images/en_US/faq-list-all-metadata.png" alt="IKGeneralFAQ List All Metadata"/>
+                <p>ManifoldCF's Metadata UI also displays all available Lists and their associated metadata too. Using this pulldown, you can select which fields you want to index.</p>
+                <figure src="images/en_US/faq-list-metadata.png" alt="IKGeneralFAQ List Selected Metadata"/>
+                <p>To create the metadata rule below, click Metadata tab in Job settings. Select IKGeneralFAQ from --Select list-- and "Add List" button. As soon as you have done this, all available metadata will be listed. 
+                     After this you can multi select list of metadata. This action will populate Fields with ID, IKFAQAnswer, IKFAQPage, IKFAQPageID, etc. Click Add New Rule button. This action will add this new rule to your Metadata rules.</p>
+                <figure src="images/en_US/faq-list-metadata-rule.png" alt="IKGeneralFAQ List Metadata Rule"/>
+                <p>Finally click the "Save" button at the bottom of the page. You will see a page looking something like this:</p>
+                <figure src="images/en_US/faq-list-summary.png" alt="IKGeneralFAQ List Summary Page"/>
+                <br/>
+                <p><b>Some Final Notes</b></p>
+                <ul>
+                    <li>Note that, when specifying Metadata rules, UI automatically adds * to Path match rule for Lists. This is not the case with Document Libraries.</li>
+                    <li>We can include all metadata using the checkbox. (without selecting from the pulldown list)</li>                    
+                </ul>
             </section>
-            
+                        
             <section id="cmisrepository">
               <title>CMIS Repository Connection</title>
               <p>The CMIS Repository Connection type allows you to index content from any CMIS-compliant repository.</p>

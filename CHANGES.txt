@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-508: Improve SharePoint connector documentation.
+(Ahmet Arslan)
+
 CONNECTORS-493: Improve JDBC connector documentation as it
 pertains to metadata handling.
 (Karl Wright)
