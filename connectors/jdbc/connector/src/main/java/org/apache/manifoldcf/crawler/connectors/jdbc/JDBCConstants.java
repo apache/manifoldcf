@@ -26,6 +26,8 @@ public class JDBCConstants
 
   /** The jdbc provider parameter */
   public static String providerParameter = "JDBC Provider";
+  /** The column interrogation method name parameter */
+  public static String methodParameter = "JDBC column access method";
   /** The host machine config parameter */
   public static String hostParameter = "Host";
   /** The database name config parameter */

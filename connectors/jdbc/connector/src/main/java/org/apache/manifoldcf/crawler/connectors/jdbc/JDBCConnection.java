@@ -37,6 +37,7 @@ public class JDBCConnection
   public static final String _rcsid = "@(#)$Id: JDBCConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
   protected String jdbcProvider = null;
+  protected boolean useName;
   protected String host = null;
   protected String databaseName = null;
   protected String userName = null;
@@ -44,9 +45,10 @@ public class JDBCConnection
 
   /** Constructor.
   */
-  public JDBCConnection(String jdbcProvider, String host, String databaseName, String userName, String password)
+  public JDBCConnection(String jdbcProvider, boolean useName, String host, String databaseName, String userName, String password)
   {
     this.jdbcProvider = jdbcProvider;
+    this.useName = useName;
     this.host = host;
     this.databaseName = databaseName;
     this.userName = userName;
@@ -308,7 +310,7 @@ public class JDBCConnection
         WrappedConnection tempConnection = JDBCConnectionFactory.getConnection(jdbcProvider,host,databaseName,userName,password);
         try
         {
-          execute(tempConnection.getConnection(),query,params,false,0);
+          execute(tempConnection.getConnection(),query,params,false,0,useName);
         }
         finally
         {
@@ -332,7 +334,7 @@ public class JDBCConnection
   * @param maxResults is the maximum number of results to load: -1 if all
   * @param params ArrayList if params !=null, use preparedStatement
   */
-  protected static IResultSet execute(Connection connection, String query, ArrayList params, boolean bResults, int maxResults)
+  protected static IResultSet execute(Connection connection, String query, ArrayList params, boolean bResults, int maxResults, boolean useName)
     throws ManifoldCFException, ServiceInterruption
   {
 
@@ -353,7 +355,7 @@ public class JDBCConnection
           {
             // Suck data from resultset
             if (bResults)
-              return getData(rs,maxResults);
+              return getData(rs,maxResults,useName);
             return null;
           }
           finally
@@ -380,7 +382,7 @@ public class JDBCConnection
             try
             {
               // Suck data from resultset
-              return getData(rs,maxResults);
+              return getData(rs,maxResults,useName);
             }
             finally
             {
@@ -471,7 +473,7 @@ public class JDBCConnection
     }
   }
 
-  protected static String[] readColumnNames(ResultSetMetaData rsmd)
+  protected static String[] readColumnNames(ResultSetMetaData rsmd, boolean useName)
     throws ManifoldCFException, ServiceInterruption
   {
     try
@@ -483,7 +485,12 @@ public class JDBCConnection
         resultCols = new String[colcount];
         for (int i = 0; i < colcount; i++)
         {
-          resultCols[i] = rsmd.getColumnName(i+1);
+          String name;
+          if (useName)
+            name = rsmd.getColumnName(i+1);
+          else
+            name = rsmd.getColumnLabel(i+1);
+          resultCols[i] = name;
         }
       }
       else
@@ -497,7 +504,7 @@ public class JDBCConnection
   }
 
   // Read data from a resultset
-  protected static IResultSet getData(ResultSet rs, int maxResults)
+  protected static IResultSet getData(ResultSet rs, int maxResults, boolean useName)
     throws ManifoldCFException, ServiceInterruption
   {
     try
@@ -510,7 +517,7 @@ public class JDBCConnection
         // out of the db and return it in a
         // readonly structure
         ResultSetMetaData rsmd = rs.getMetaData();
-        String[] resultCols = readColumnNames(rsmd);
+        String[] resultCols = readColumnNames(rsmd, useName);
         if (resultCols.length == 0)
         {
           // This is an error situation; if a result with no columns is
@@ -929,7 +936,7 @@ public class JDBCConnection
         stmt.execute(query);
         rs = stmt.getResultSet();
         rsmd = rs.getMetaData();
-        resultCols = readColumnNames(rsmd);
+        resultCols = readColumnNames(rsmd,useName);
       }
       catch (Throwable e)
       {
@@ -1207,7 +1214,7 @@ public class JDBCConnection
         loadPS(ps, params);
         rs = ps.executeQuery();
         rsmd = rs.getMetaData();
-        resultCols = readColumnNames(rsmd);
+        resultCols = readColumnNames(rsmd,useName);
       }
       catch (Throwable e)
       {

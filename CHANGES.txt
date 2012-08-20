@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-509: Allow JDBC Connector to choose which column
+access method to use.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-507: Improve JCIFs Connector documentation.
 (Swapna Vuppala)
 

@@ -77,6 +77,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   protected JDBCConnection connection = null;
   protected String jdbcProvider = null;
+  protected String accessMethod = null;
   protected String host = null;
   protected String databaseName = null;
   protected String userName = null;
@@ -99,7 +100,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (host == null || host.length() == 0)
         throw new ManifoldCFException("Missing parameter '"+JDBCConstants.hostParameter+"'");
 
-      connection = new JDBCConnection(jdbcProvider,host,databaseName,userName,password);
+      connection = new JDBCConnection(jdbcProvider,(accessMethod==null || accessMethod.equals("name")),host,databaseName,userName,password);
     }
   }
 
@@ -131,6 +132,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     super.connect(configParams);
 
     jdbcProvider = configParams.getParameter(JDBCConstants.providerParameter);
+    accessMethod = configParams.getParameter(JDBCConstants.methodParameter);
     host = configParams.getParameter(JDBCConstants.hostParameter);
     databaseName = configParams.getParameter(JDBCConstants.databaseNameParameter);
     userName= configParams.getParameter(JDBCConstants.databaseUserName);
@@ -710,6 +712,9 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String jdbcProvider = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
     if (jdbcProvider == null)
       jdbcProvider = "oracle:thin:@";
+    String accessMethod = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.methodParameter);
+    if (accessMethod == null)
+      accessMethod = "name";
     String host = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter);
     if (host == null)
       host = "localhost";
@@ -740,13 +745,23 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessMethod") + "</nobr></td><td class=\"value\">\n"+
+"      <select multiple=\"false\" name=\"accessmethod\" size=\"2\">\n"+
+"        <option value=\"name\" "+(accessMethod.equals("name")?"selected=\"selected\"":"")+">by name</option>\n"+
+"        <option value=\"label\" "+(accessMethod.equals("label")?"selected=\"selected\"":"")+">by label</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"databasetype\" value=\""+jdbcProvider+"\"/>\n"
+"<input type=\"hidden\" name=\"databasetype\" value=\""+jdbcProvider+"\"/>\n"+
+"<input type=\"hidden\" name=\"accessmethod\" value=\""+accessMethod+"\"/>\n"
       );
     }
 
@@ -814,6 +829,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String type = variableContext.getParameter("databasetype");
     if (type != null)
       parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter,type);
+
+    String accessMethod = variableContext.getParameter("accessmethod");
+    if (accessMethod != null)
+      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.methodParameter,accessMethod);
 
     String host = variableContext.getParameter("databasehost");
     if (host != null)
