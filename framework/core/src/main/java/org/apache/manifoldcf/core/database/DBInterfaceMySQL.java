@@ -579,7 +579,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     if (getTransactionID() == null)
-      performModification("ANALYZE "+tableName,null,null);
+      performModification("ANALYZE TABLE "+tableName,null,null);
     else
       tablesToAnalyze.add(tableName);
   }
