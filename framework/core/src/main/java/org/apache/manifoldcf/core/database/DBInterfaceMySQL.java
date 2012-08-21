@@ -34,8 +34,28 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   
   private static final String _driver = "com.mysql.jdbc.Driver";
 
+  /** A lock manager handle. */
+  protected ILockManager lockManager;
+
   // Once we enter the serializable realm, STOP any additional transactions from doing anything at all.
   protected int serializableDepth = 0;
+
+  // This is where we keep track of tables that we need to analyze on transaction exit
+  protected List<String> tablesToAnalyze = new ArrayList<String>();
+
+  // This is where we keep temporary table statistics, which accumulate until they reach a threshold, and then are added into shared memory.
+  
+  /** Accumulated analyze statistics.  This map is keyed by the table name, and contains TableStatistics values. */
+  protected static Map<String,TableStatistics> currentAnalyzeStatistics = new HashMap<String,TableStatistics>();
+  /** Table analyze thresholds, as read from configuration information.  Keyed by table name, contains Integer values. */
+  protected static Map<String,Integer> analyzeThresholds = new HashMap<String,Integer>();
+  
+  /** The number of inserts, deletes, etc. before we update the shared area. */
+  protected static final int commitThreshold = 100;
+
+  // Lock and shared datum name prefixes (to be combined with table names)
+  protected static final String statslockAnalyzePrefix = "statslock-analyze-";
+  protected static final String statsAnalyzePrefix = "stats-analyze-";
 
   protected String cacheKey;
 
@@ -44,6 +64,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     super(tc,getJdbcUrl(databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
+    lockManager = LockManagerFactory.make(tc);
   }
 
   private static String getJdbcUrl(String theDatabaseName)
@@ -486,13 +507,63 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     performModification("DROP INDEX "+indexName+" ON "+tableName,null,null);
   }
 
+  /** Read a datum, presuming zero if the datum does not exist.
+  */
+  protected int readDatum(String datumName)
+    throws ManifoldCFException
+  {
+    byte[] bytes = lockManager.readData(datumName);
+    if (bytes == null)
+      return 0;
+    return (((int)bytes[0]) & 0xff) + ((((int)bytes[1]) & 0xff) << 8) + ((((int)bytes[2]) & 0xff) << 16) + ((((int)bytes[3]) & 0xff) << 24);
+  }
+
+  /** Write a datum, presuming zero if the datum does not exist.
+  */
+  protected void writeDatum(String datumName, int value)
+    throws ManifoldCFException
+  {
+    byte[] bytes = new byte[4];
+    bytes[0] = (byte)(value & 0xff);
+    bytes[1] = (byte)((value >> 8) & 0xff);
+    bytes[2] = (byte)((value >> 16) & 0xff);
+    bytes[3] = (byte)((value >> 24) & 0xff);
+    
+    lockManager.writeData(datumName,bytes);
+  }
+
   /** Analyze a table.
   *@param tableName is the name of the table to analyze/calculate statistics for.
   */
   public void analyzeTable(String tableName)
     throws ManifoldCFException
   {
-    // Does nothing
+    String tableStatisticsLock = statslockAnalyzePrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      TableStatistics ts = currentAnalyzeStatistics.get(tableName);
+      // Lock this table's statistics files
+      lockManager.enterWriteLock(tableStatisticsLock);
+      try
+      {
+        String eventDatum = statsAnalyzePrefix+tableName;
+        // Time to reindex this table!
+        analyzeTableInternal(tableName);
+        // Now, clear out the data
+        writeDatum(eventDatum,0);
+        if (ts != null)
+          ts.reset();
+      }
+      finally
+      {
+        lockManager.leaveWriteLock(tableStatisticsLock);
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
   }
 
   /** Reindex a table.
@@ -502,6 +573,15 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     // Does nothing
+  }
+
+  protected void analyzeTableInternal(String tableName)
+    throws ManifoldCFException
+  {
+    if (getTransactionID() == null)
+      performModification("ANALYZE "+tableName,null,null);
+    else
+      tablesToAnalyze.add(tableName);
   }
 
   /** Perform a table drop operation.
@@ -1110,6 +1190,14 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       return;
     }
     super.endTransaction();
+    if (getTransactionID() == null)
+    {
+      for (int i = 0; i < tablesToAnalyze.size(); i++)
+      {
+        analyzeTableInternal(tablesToAnalyze.get(i));
+      }
+      tablesToAnalyze.clear();
+    }
   }
 
   /** Abstract method to roll back a transaction */
@@ -1125,6 +1213,104 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       throw reinterpretException(e);
     }
 
+  }
+
+  /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
+  *@param tableName is the name of the table being modified.
+  *@param insertCount is the number of inserts.
+  *@param modifyCount is the number of updates.
+  *@param deleteCount is the number of deletions.
+  */
+  @Override
+  protected void noteModificationsNoTransactions(String tableName, int insertCount, int modifyCount, int deleteCount)
+    throws ManifoldCFException
+  {
+    String tableStatisticsLock;
+    int eventCount;
+    
+    // Analysis.
+    // Here we count tuple addition.
+    eventCount = modifyCount + insertCount;
+    tableStatisticsLock = statslockAnalyzePrefix+tableName;
+    lockManager.enterWriteCriticalSection(tableStatisticsLock);
+    try
+    {
+      Integer threshold = analyzeThresholds.get(tableName);
+      int analyzeThreshold;
+      if (threshold == null)
+      {
+        // Look for this parameter; if we don't find it, use a default value.
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.mysql.analyze."+tableName,10000);
+        analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
+      }
+      else
+        analyzeThreshold = threshold.intValue();
+      
+      TableStatistics ts = currentAnalyzeStatistics.get(tableName);
+      if (ts == null)
+      {
+        ts = new TableStatistics();
+        currentAnalyzeStatistics.put(tableName,ts);
+      }
+      ts.add(eventCount);
+      // Check if we have passed threshold yet for this table, for committing the data to the shared area
+      if (ts.getEventCount() >= commitThreshold)
+      {
+        // Lock this table's statistics files
+        lockManager.enterWriteLock(tableStatisticsLock);
+        try
+        {
+          String eventDatum = statsAnalyzePrefix+tableName;
+          int oldEventCount = readDatum(eventDatum);
+          oldEventCount += ts.getEventCount();
+          if (oldEventCount >= analyzeThreshold)
+          {
+            // Time to reindex this table!
+            analyzeTableInternal(tableName);
+            // Now, clear out the data
+            writeDatum(eventDatum,0);
+          }
+          else
+            writeDatum(eventDatum,oldEventCount);
+          ts.reset();
+        }
+        finally
+        {
+          lockManager.leaveWriteLock(tableStatisticsLock);
+        }
+      }
+    }
+    finally
+    {
+      lockManager.leaveWriteCriticalSection(tableStatisticsLock);
+    }
+
+  }
+
+  /** Table accumulation records.
+  */
+  protected static class TableStatistics
+  {
+    protected int eventCount = 0;
+    
+    public TableStatistics()
+    {
+    }
+    
+    public void reset()
+    {
+      eventCount = 0;
+    }
+    
+    public void add(int eventCount)
+    {
+      this.eventCount += eventCount;
+    }
+    
+    public int getEventCount()
+    {
+      return eventCount;
+    }
   }
 
 }

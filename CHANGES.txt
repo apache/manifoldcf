@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-510: MySQL now periodically runs ANALYZE on tables
+to be sure the plan(s) are reasonable.
+(Karl Wright)
+
 CONNECTORS-509: Allow JDBC Connector to choose which column
 access method to use.
 (Shigeki Kobayashi, Karl Wright)
