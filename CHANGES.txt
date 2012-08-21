@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-512: Revise documentation to include new access-
+method pulldown and corresponding screen shot.
+(Karl Wright)
+
 CONNECTORS-510: MySQL now periodically runs ANALYZE on tables
 to be sure the plan(s) are reasonable.
 (Karl Wright)

@@ -1351,9 +1351,10 @@
                     <li>SQL Server (via the JTDS JDBC driver)</li>
                     <li>Oracle (via the Oracle JDBC driver)</li>
                     <li>Sybase (via the JTDS JDBC driver)</li>
+                    <li>MySQL (via the MySQL JDBC driver)</li>
                 </ul>
                 <br/>
-                <p>This connection type <b>cannot</b> be configured to work with other databases without software changes.  Depending on your particular installation,
+                <p>This connection type <b>cannot</b> be configured to work with other databases than the ones listed above without software changes.  Depending on your particular installation,
                        some of the above options may not be available.</p>
                 <p>The generic database connection type currently has no per-document notion of security.  It is possible to set document security for all documents specified by a
                        given job.  Since this form of security requires you to know what the actual access tokens are, you must have detailed knowledge of the authority connection you
@@ -1364,6 +1365,11 @@
                 <figure src="images/en_US/jdbc-configure-database-type.PNG" alt="Generic Database Connection, Database Type tab" width="80%"/>
                 <br/><br/>
                 <p>Select the kind of database you want to connect to, from the pulldown.</p>
+                <p>Also, select the JDBC access method you want from the access method pulldown.  The access method is provided because the JDBC specification has been
+                    recently clarified, and not all JDBC drivers work the same way as far as resultset column name discovery is concerned.  The "by name" option currently works
+                    with all JDBC drivers in the list except for the MySQL driver.  The "by label" works for the current MySQL driver, and may work for some of the others as well.  If
+                    the queries you supply for your generic database jobs do not work correctly, and you see an error message about not being able to find required columns in the
+                    result, you can change your selection on this pulldown and it may correct the problem.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/jdbc-configure-server.PNG" alt="Generic Database Connection, Server tab" width="80%"/>

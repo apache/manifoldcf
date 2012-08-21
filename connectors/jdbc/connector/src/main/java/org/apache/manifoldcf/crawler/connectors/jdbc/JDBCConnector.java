@@ -749,8 +749,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessMethod") + "</nobr></td><td class=\"value\">\n"+
 "      <select multiple=\"false\" name=\"accessmethod\" size=\"2\">\n"+
-"        <option value=\"name\" "+(accessMethod.equals("name")?"selected=\"selected\"":"")+">by name</option>\n"+
-"        <option value=\"label\" "+(accessMethod.equals("label")?"selected=\"selected\"":"")+">by label</option>\n"+
+"        <option value=\"name\" "+(accessMethod.equals("name")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCConnector.ByName")+"</option>\n"+
+"        <option value=\"label\" "+(accessMethod.equals("label")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCConnector.ByLabel")+"</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
