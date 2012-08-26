@@ -5771,7 +5771,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("WEB: Saw form element of type '"+inputAttributes.get("type")+"' name '"+inputAttributes.get("name")+"'");
+      {
+        String type = (String)inputAttributes.get("type");
+        if (type == null)
+          type = "text";
+        String name = (String)inputAttributes.get("name");
+        if (name == null)
+          name = "(null)";
+        Logging.connectors.debug("WEB: Saw form element of type '"+type+"' name '"+name+"'");
+      }
       if (currentFormData != null)
         currentFormData.addElement(inputAttributes);
     }

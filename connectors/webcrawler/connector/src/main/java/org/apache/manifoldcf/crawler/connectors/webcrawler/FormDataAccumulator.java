@@ -50,67 +50,66 @@ public class FormDataAccumulator implements FormData
   {
     // Interpret the input tag, and make a list of the potential elements we'll want to submit
     String type = (String)attributes.get("type");
-    if (type != null)
+    if (type == null)
+      type = "text";
+    String name = (String)attributes.get("name");
+    if (name != null)
     {
-      String name = (String)attributes.get("name");
-      if (name != null)
+      String lowerType = type.toLowerCase();
+      if (lowerType.equals("submit"))
       {
-        String lowerType = type.toLowerCase();
-        if (lowerType.equals("submit"))
-        {
-          String value = (String)attributes.get("value");
-          if (value == null)
-            value = "Submit Form";
-          elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FREEFORM,true));
-        }
-        else if (lowerType.equals("hidden") || lowerType.equals("text") || lowerType.equals("password"))
-        {
-          String value = (String)attributes.get("value");
-          if (value == null)
-            value = "";
-          elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FREEFORM,true));
-        }
-        else if (lowerType.equals("select"))
-        {
-          String value = (String)attributes.get("value");
-          if (value == null)
-            value = "";
-          String selected = (String)attributes.get("selected");
-          boolean isSelected = false;
-          if (selected != null)
-            isSelected = true;
-          String multiple = (String)attributes.get("multiple");
-          boolean isMultiple = false;
-          if (multiple != null)
-            isMultiple = true;
-          elementList.add(new FormItem(name,value,isMultiple?ELEMENTCATEGORY_FIXEDINCLUSIVE:ELEMENTCATEGORY_FIXEDEXCLUSIVE,isSelected));
-        }
-        else if (lowerType.equals("radio"))
-        {
-          String value = (String)attributes.get("value");
-          if (value == null)
-            value = "";
-          String selected = (String)attributes.get("checked");
-          boolean isSelected = false;
-          if (selected != null)
-            isSelected = true;
-          elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FIXEDEXCLUSIVE,isSelected));
-        }
-        else if (lowerType.equals("checkbox"))
-        {
-          String value = (String)attributes.get("value");
-          if (value == null)
-            value = "";
-          String selected = (String)attributes.get("checked");
-          boolean isSelected = false;
-          if (selected != null)
-            isSelected = true;
-          elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FIXEDINCLUSIVE,isSelected));
-        }
-        else if (lowerType.equals("textarea"))
-        {
-          elementList.add(new FormItem(name,"",ELEMENTCATEGORY_FREEFORM,true));
-        }
+        String value = (String)attributes.get("value");
+        if (value == null)
+          value = "Submit Form";
+        elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FREEFORM,true));
+      }
+      else if (lowerType.equals("hidden") || lowerType.equals("text") || lowerType.equals("password"))
+      {
+        String value = (String)attributes.get("value");
+        if (value == null)
+          value = "";
+        elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FREEFORM,true));
+      }
+      else if (lowerType.equals("select"))
+      {
+        String value = (String)attributes.get("value");
+        if (value == null)
+          value = "";
+        String selected = (String)attributes.get("selected");
+        boolean isSelected = false;
+        if (selected != null)
+          isSelected = true;
+        String multiple = (String)attributes.get("multiple");
+        boolean isMultiple = false;
+        if (multiple != null)
+          isMultiple = true;
+        elementList.add(new FormItem(name,value,isMultiple?ELEMENTCATEGORY_FIXEDINCLUSIVE:ELEMENTCATEGORY_FIXEDEXCLUSIVE,isSelected));
+      }
+      else if (lowerType.equals("radio"))
+      {
+        String value = (String)attributes.get("value");
+        if (value == null)
+          value = "";
+        String selected = (String)attributes.get("checked");
+        boolean isSelected = false;
+        if (selected != null)
+          isSelected = true;
+        elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FIXEDEXCLUSIVE,isSelected));
+      }
+      else if (lowerType.equals("checkbox"))
+      {
+        String value = (String)attributes.get("value");
+        if (value == null)
+          value = "";
+        String selected = (String)attributes.get("checked");
+        boolean isSelected = false;
+        if (selected != null)
+          isSelected = true;
+        elementList.add(new FormItem(name,value,ELEMENTCATEGORY_FIXEDINCLUSIVE,isSelected));
+      }
+      else if (lowerType.equals("textarea"))
+      {
+        elementList.add(new FormItem(name,"",ELEMENTCATEGORY_FREEFORM,true));
       }
     }
   }
