@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-514: Revamp ManifoldCF.initializeEnvironment and
+ManifoldCF.cleanUpEnvironment to use reference counting so that more
+than one user of these methods can coexist in the same VM.
+(Karl Wright)
+
 CONNECTORS-512: Revise documentation to include new access-
 method pulldown and corresponding screen shot.
 (Karl Wright)

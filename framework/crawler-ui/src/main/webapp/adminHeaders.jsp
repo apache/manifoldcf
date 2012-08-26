@@ -36,10 +36,6 @@ response.setContentType("text/html;charset=utf-8");
 <%@ page import="org.apache.manifoldcf.authorities.interfaces.*" %>
 <%@ page import="java.util.*" %>
 
-<%
-	org.apache.manifoldcf.crawler.system.ManifoldCF.initializeEnvironment();
-%>
-
 <jsp:useBean id="thread" class="org.apache.manifoldcf.ui.beans.ThreadContext" scope="request"/>
 <jsp:useBean id="adminprofile" class="org.apache.manifoldcf.ui.beans.AdminProfile" scope="session"/>
 

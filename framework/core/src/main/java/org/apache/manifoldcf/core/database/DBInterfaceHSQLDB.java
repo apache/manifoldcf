@@ -134,20 +134,6 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public void openDatabase()
     throws ManifoldCFException
   {
-    if (!isRemote)
-    {
-      try
-      {
-        // Force a load of the appropriate JDBC driver
-        Class.forName(_driver).newInstance();
-        DriverManager.getConnection(_localUrl+databaseName,userName,password).close();
-      }
-      catch (Exception e)
-      {
-        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-      }
-      performModification("SET DATABASE TRANSACTION CONTROL MVCC",null,null);
-    }
   }
   
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
@@ -610,7 +596,20 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       }
     }
     else
+    {
+      try
+      {
+        // Force a load of the appropriate JDBC driver
+        Class.forName(_driver).newInstance();
+        DriverManager.getConnection(_localUrl+databaseName,userName,password).close();
+      }
+      catch (Exception e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+      }
+      performModification("SET DATABASE TRANSACTION CONTROL MVCC",null,null);
       performModification("SET FILES SCALE 512",null,null);
+    }
   }
 
   private static String quoteString(String password)

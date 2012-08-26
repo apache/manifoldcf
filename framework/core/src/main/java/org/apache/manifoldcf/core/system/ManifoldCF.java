@@ -75,7 +75,7 @@ public class ManifoldCF
   }
   
   // Flag indicating whether system initialized or not, and synchronizer to protect that flag.
-  protected static boolean isInitialized = false;
+  protected static int initializeLevel = 0;
   protected static boolean alreadyClosed = false;
   protected static boolean alreadyShutdown = false;
   protected static Integer initializeFlagLock = new Integer(0);
@@ -136,20 +136,21 @@ public class ManifoldCF
   {
     synchronized (initializeFlagLock)
     {
-      if (!isInitialized)
-        return;
-      // Clean up the system doing the same thing the shutdown thread would have if the process was killed
-      cleanUpEnvironment();
-      masterDatabaseName = null;
-      masterDatabaseUsername = null;
-      masterDatabasePassword = null;
-      localConfiguration = null;
-      localProperties = null;
-      propertyFilelastMod = -1L;
-      propertyFilePath = null;
-      isInitialized = false;
-      alreadyClosed = false;
-      alreadyShutdown = false;
+      if (initializeLevel > 0)
+      {
+        // Clean up the system doing the same thing the shutdown thread would have if the process was killed
+        cleanUpEnvironment();
+        masterDatabaseName = null;
+        masterDatabaseUsername = null;
+        masterDatabasePassword = null;
+        localConfiguration = null;
+        localProperties = null;
+        propertyFilelastMod = -1L;
+        propertyFilePath = null;
+        alreadyClosed = false;
+        alreadyShutdown = false;
+        initializeLevel = 0;
+      }
     }
   }
   
@@ -160,77 +161,77 @@ public class ManifoldCF
   {
     synchronized (initializeFlagLock)
     {
-      if (isInitialized)
-        return;
-
-      try
+      if (initializeLevel == 0)
       {
-        
-        // Get system properties
-        java.util.Properties props = System.getProperties();
-        // First, look for a define that might indicate where to look
-      
-        propertyFilePath = (String)props.get(lcfConfigFileProperty);
-        if (propertyFilePath == null)
+        try
         {
-          System.err.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
-          String configPath = (String)props.get("user.home") + "/"+applicationName;
-          configPath = configPath.replace('\\', '/');
-          propertyFilePath = new File(configPath,"properties.xml").toString();
-        }
-
-        // Initialize working directory.  We cannot use the actual system cwd, because different ManifoldCF processes will have different ones.
-        // So, instead, we use the location of the property file itself, and call that the "working directory".
-        workingDirectory = new File(propertyFilePath).getAbsoluteFile().getParentFile();
-
-        // Initialize resource loader.
-        resourceLoader = new ManifoldCFResourceLoader(Thread.currentThread().getContextClassLoader());
+          
+          // Get system properties
+          java.util.Properties props = System.getProperties();
+          // First, look for a define that might indicate where to look
         
-        // Read configuration!
-        localConfiguration = new ManifoldCFConfiguration();
-        localProperties = new HashMap();
-        checkProperties();
+          propertyFilePath = (String)props.get(lcfConfigFileProperty);
+          if (propertyFilePath == null)
+          {
+            System.err.println("Couldn't find "+lcfConfigFileProperty+" property; using default");
+            String configPath = (String)props.get("user.home") + "/"+applicationName;
+            configPath = configPath.replace('\\', '/');
+            propertyFilePath = new File(configPath,"properties.xml").toString();
+          }
 
-        File logConfigFile = getFileProperty(logConfigFileProperty);
-        if (logConfigFile == null)
-        {
-          System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
-          String configPath = (String)props.get("user.home") + "/"+applicationName;
-          configPath = configPath.replace('\\', '/');
-          logConfigFile = new File(configPath,"logging.ini");
+          // Initialize working directory.  We cannot use the actual system cwd, because different ManifoldCF processes will have different ones.
+          // So, instead, we use the location of the property file itself, and call that the "working directory".
+          workingDirectory = new File(propertyFilePath).getAbsoluteFile().getParentFile();
+
+          // Initialize resource loader.
+          resourceLoader = new ManifoldCFResourceLoader(Thread.currentThread().getContextClassLoader());
+          
+          // Read configuration!
+          localConfiguration = new ManifoldCFConfiguration();
+          localProperties = new HashMap();
+          checkProperties();
+
+          File logConfigFile = getFileProperty(logConfigFileProperty);
+          if (logConfigFile == null)
+          {
+            System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
+            String configPath = (String)props.get("user.home") + "/"+applicationName;
+            configPath = configPath.replace('\\', '/');
+            logConfigFile = new File(configPath,"logging.ini");
+          }
+
+          Logging.initializeLoggingSystem(logConfigFile);
+
+          // Set up local loggers
+          Logging.initializeLoggers();
+          Logging.setLogLevels();
+
+          masterDatabaseName = getProperty(masterDatabaseNameProperty);
+          if (masterDatabaseName == null)
+            masterDatabaseName = "dbname";
+          masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
+          if (masterDatabaseUsername == null)
+            masterDatabaseUsername = "manifoldcf";
+          masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
+          if (masterDatabasePassword == null)
+            masterDatabasePassword = "local_pg_passwd";
+
+          // Register the file tracker for cleanup on shutdown
+          tracker = new FileTrack();
+          addShutdownHook(tracker);
+          // Register the database cleanup hook
+          addShutdownHook(new DatabaseShutdown());
+
+          // Open the database.  Done once per JVM.
+          IThreadContext threadcontext = ThreadContextFactory.make();
+          DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
         }
-
-        Logging.initializeLoggingSystem(logConfigFile);
-
-        // Set up local loggers
-        Logging.initializeLoggers();
-        Logging.setLogLevels();
-
-        masterDatabaseName = getProperty(masterDatabaseNameProperty);
-        if (masterDatabaseName == null)
-          masterDatabaseName = "dbname";
-        masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
-        if (masterDatabaseUsername == null)
-          masterDatabaseUsername = "manifoldcf";
-        masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
-        if (masterDatabasePassword == null)
-          masterDatabasePassword = "local_pg_passwd";
-
-        // Register the file tracker for cleanup on shutdown
-	tracker = new FileTrack();
-        addShutdownHook(tracker);
-        // Register the database cleanup hook
-        addShutdownHook(new DatabaseShutdown());
-
-        // Open the database.  Done once per JVM.
-        IThreadContext threadcontext = ThreadContextFactory.make();
-        DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
-        isInitialized = true;
+        catch (ManifoldCFException e)
+        {
+          throw new ManifoldCFException("Initialization failed: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+        }
       }
-      catch (ManifoldCFException e)
-      {
-        throw new ManifoldCFException("Initialization failed: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-      }
+      initializeLevel++;
     }
 
   }
@@ -1158,29 +1159,33 @@ public class ManifoldCF
   /** Perform system shutdown, using the registered shutdown hooks. */
   public static void cleanUpEnvironment()
   {
-    // It needs to call all registered shutdown hooks, in reverse order.
-    // A failure of any one hook should cause the cleanup to continue, after a logging attempt is made.
-    if (isInitialized && !alreadyShutdown)
+    synchronized (initializeFlagLock)
     {
-      synchronized (cleanupHooks)
+      initializeLevel--;
+      // It needs to call all registered shutdown hooks, in reverse order.
+      // A failure of any one hook should cause the cleanup to continue, after a logging attempt is made.
+      if (initializeLevel == 0 && !alreadyShutdown)
       {
-        int i = cleanupHooks.size();
-        while (i > 0)
+        synchronized (cleanupHooks)
         {
-          i--;
-          IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
-          try
+          int i = cleanupHooks.size();
+          while (i > 0)
           {
-            hook.doCleanup();
+            i--;
+            IShutdownHook hook = (IShutdownHook)cleanupHooks.get(i);
+            try
+            {
+              hook.doCleanup();
+            }
+            catch (ManifoldCFException e)
+            {
+              Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
+            }
           }
-          catch (ManifoldCFException e)
-          {
-            Logging.root.warn("Error during system shutdown: "+e.getMessage(),e);
-          }
+          cleanupHooks.clear();
         }
-        cleanupHooks.clear();
+        alreadyShutdown = true;
       }
-      alreadyShutdown = true;
     }
   }
 
@@ -1278,7 +1283,7 @@ public class ManifoldCF
     {
       synchronized (initializeFlagLock)
       {
-        if (isInitialized && !alreadyClosed)
+        if (initializeLevel == 0 && !alreadyClosed)
         {
           IThreadContext threadcontext = ThreadContextFactory.make();
           

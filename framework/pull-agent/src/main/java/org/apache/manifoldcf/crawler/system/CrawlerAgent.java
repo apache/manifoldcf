@@ -45,7 +45,6 @@ public class CrawlerAgent implements IAgent
     throws ManifoldCFException
   {
     // Install the system tables for the crawler.
-    ManifoldCF.initializeEnvironment();
     ManifoldCF.installSystemTables(threadContext);
   }
 
@@ -54,7 +53,6 @@ public class CrawlerAgent implements IAgent
   public void deinstall()
     throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
     ManifoldCF.deinstallSystemTables(threadContext);
   }
 
@@ -64,7 +62,6 @@ public class CrawlerAgent implements IAgent
   public void startAgent()
     throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
     ManifoldCF.startSystem(threadContext);
   }
 

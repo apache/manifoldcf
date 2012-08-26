@@ -181,7 +181,24 @@ public class BaseITHSQLDB extends ConnectorBaseHSQLDB
   public void setUp()
     throws Exception
   {
-    super.setUp();
+    initializeSystem();
+    try
+    {
+      localReset();
+    }
+    catch (Exception e)
+    {
+      System.out.println("Warning: Preclean failed: "+e.getMessage());
+    }
+    try
+    {
+      localSetUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
     mcfInstance.start();
   }
   
@@ -189,43 +206,39 @@ public class BaseITHSQLDB extends ConnectorBaseHSQLDB
   public void cleanUp()
     throws Exception
   {
-    initialize();
-    if (isInitialized())
+    Exception currentException = null;
+    try
     {
-      Exception currentException = null;
-      try
-      {
-        mcfInstance.stop();
-      }
-      catch (Exception e)
-      {
-        if (currentException == null)
-          currentException = e;
-      }
-      // Clean up everything else
-      try
-      {
-        super.cleanUp();
-      }
-      catch (Exception e)
-      {
-        if (currentException == null)
-          currentException = e;
-      }
-      // Last, shut down the web applications.
-      // If this is done too soon it closes the database before the rest of the cleanup happens.
-      try
-      {
-        mcfInstance.unload();
-      }
-      catch (Exception e)
-      {
-        if (currentException == null)
-          currentException = e;
-      }
-      if (currentException != null)
-        throw currentException;
+      mcfInstance.stop();
     }
+    catch (Exception e)
+    {
+      if (currentException == null)
+        currentException = e;
+    }
+    // Last, shut down the web applications.
+    // If this is done too soon it closes the database before the rest of the cleanup happens.
+    try
+    {
+      mcfInstance.unload();
+    }
+    catch (Exception e)
+    {
+      if (currentException == null)
+        currentException = e;
+    }
+    try
+    {
+      localCleanUp();
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      throw e;
+    }
+    if (currentException != null)
+      throw currentException;
+    cleanupSystem();
   }
   
 }

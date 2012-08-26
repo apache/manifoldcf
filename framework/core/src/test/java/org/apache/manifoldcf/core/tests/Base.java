@@ -60,9 +60,10 @@ public class Base
   public void setUp()
     throws Exception
   {
+    initializeSystem();
     try
     {
-      localCleanUp();
+      localReset();
     }
     catch (Exception e)
     {
@@ -138,7 +139,7 @@ public class Base
     return "";
   }
 
-  protected void localSetUp()
+  protected void initializeSystem()
     throws Exception
   {
     initialize();
@@ -152,11 +153,14 @@ public class Base
     writeFile(configFile,propertiesXMLContents.toString());
 
     ManifoldCF.initializeEnvironment();
+  }
+  
+  protected void localSetUp()
+    throws Exception
+  {
     IThreadContext tc = ThreadContextFactory.make();
-    
     // Create the database
     ManifoldCF.createSystemDatabase(tc,getDatabaseSuperuserName(),getDatabaseSuperuserPassword());
-
   }
   
   @After
@@ -172,27 +176,38 @@ public class Base
       e.printStackTrace();
       throw e;
     }
+    cleanupSystem();
   }
 
-  protected void localCleanUp()
+  protected void cleanupSystem()
     throws Exception
   {
     initialize();
     if (isInitialized())
     {
-      ManifoldCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      
-      // Remove the database
-      ManifoldCF.dropSystemDatabase(tc,getDatabaseSuperuserName(),getDatabaseSuperuserPassword());
-      
       // Get rid of the property and logging files.
       logOutputFile.delete();
       configFile.delete();
       loggingFile.delete();
       
+      ManifoldCF.cleanUpEnvironment();
+      // Just in case we're not synchronized...
       ManifoldCF.resetEnvironment();
     }
+  }
+  
+  protected void localReset()
+    throws Exception
+  {
+    IThreadContext tc = ThreadContextFactory.make();
+    // Remove the database
+    ManifoldCF.dropSystemDatabase(tc,getDatabaseSuperuserName(),getDatabaseSuperuserPassword());
+  }
+  
+  protected void localCleanUp()
+    throws Exception
+  {
+    localReset();
   }
 
   protected static void writeFile(File f, String fileContents)

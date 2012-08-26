@@ -43,6 +43,7 @@ public class APIServlet extends HttpServlet
     throws ServletException
   {
     super.init(config);
+/*
     try
     {
       // Set up the environment
@@ -54,13 +55,14 @@ public class APIServlet extends HttpServlet
       Logging.misc.error("Error starting API service: "+e.getMessage(),e);
       throw new ServletException("Error starting API service: "+e.getMessage(),e);
     }
-
+*/
   }
 
   /** The destroy method.
   */
   public void destroy()
   {
+/*
     try
     {
       // Set up the environment
@@ -71,6 +73,7 @@ public class APIServlet extends HttpServlet
     {
       Logging.misc.error("Error shutting down API service: "+e.getMessage(),e);
     }
+*/
     super.destroy();
   }
 
@@ -82,7 +85,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -116,7 +119,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -159,7 +162,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
@@ -202,7 +205,7 @@ public class APIServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
 
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();

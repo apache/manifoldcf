@@ -96,18 +96,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.authorities.system.ManifoldCF.initializeEnvironment();
+      org.apache.manifoldcf.agents.system.ManifoldCF.initializeEnvironment();
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
+      org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize();
+    }
+  }
+
+  public static void cleanUpEnvironment()
+  {
+    synchronized (initializeFlagLock)
+    {
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
+      org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup();
+      org.apache.manifoldcf.agents.system.ManifoldCF.cleanUpEnvironment();
+    }
+  }
+  
+  public static void localInitialize()
+    throws ManifoldCFException
+  {
+    synchronized (initializeFlagLock)
+    {
       
       if (crawlerInitialized)
         return;
       
-      org.apache.manifoldcf.agents.system.ManifoldCF.initializeEnvironment();
       Logging.initializeLoggers();
       Logging.setLogLevels();
       crawlerInitialized = true;
     }
   }
-
+  
+  public static void localCleanup()
+  {
+  }
+  
   /** Create system database using superuser properties from properties.xml.
   */
   public static void createSystemDatabase(IThreadContext threadContext)

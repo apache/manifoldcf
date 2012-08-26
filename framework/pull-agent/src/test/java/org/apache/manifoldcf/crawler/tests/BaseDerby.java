@@ -35,9 +35,10 @@ public class BaseDerby extends org.apache.manifoldcf.agents.tests.BaseDerby
   public void setUp()
     throws Exception
   {
+    initializeSystem();
     try
     {
-      localCleanUp();
+      localReset();
     }
     catch (Exception e)
     {
@@ -59,9 +60,6 @@ public class BaseDerby extends org.apache.manifoldcf.agents.tests.BaseDerby
   {
     super.localSetUp();
     
-    // Install the agents tables
-    initialize();
-    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     IAgentManager mgr = AgentManagerFactory.make(tc);
     mgr.registerAgent("org.apache.manifoldcf.crawler.system.CrawlerAgent");
@@ -80,41 +78,54 @@ public class BaseDerby extends org.apache.manifoldcf.agents.tests.BaseDerby
       e.printStackTrace();
       throw e;
     }
+    cleanupSystem();
   }
 
   protected void localCleanUp()
     throws Exception
   {
-    initialize();
-    if (isInitialized())
-    {
-      // Test the uninstall
-      ManifoldCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
+    // Test the uninstall
+    //ManifoldCF.initializeEnvironment();
+    IThreadContext tc = ThreadContextFactory.make();
       
-      Exception currentException = null;
-      try
-      {
-        IAgentManager mgr = AgentManagerFactory.make(tc);
-        mgr.unregisterAgent("org.apache.manifoldcf.crawler.system.CrawlerAgent");
-      }
-      catch (Exception e)
-      {
-        if (currentException != null)
-          currentException = e;
-      }
-      try
-      {
-        super.localCleanUp();
-      }
-      catch (Exception e)
-      {
-        if (currentException != null)
-          currentException = e;
-      }
-      if (currentException != null)
-        throw currentException;
+    Exception currentException = null;
+    try
+    {
+      IAgentManager mgr = AgentManagerFactory.make(tc);
+      mgr.unregisterAgent("org.apache.manifoldcf.crawler.system.CrawlerAgent");
     }
+    catch (Exception e)
+    {
+      if (currentException != null)
+        currentException = e;
+    }
+    try
+    {
+      super.localCleanUp();
+    }
+    catch (Exception e)
+    {
+      if (currentException != null)
+        currentException = e;
+    }
+    if (currentException != null)
+      throw currentException;
+  }
+
+  protected void initializeSystem()
+    throws Exception
+  {
+    super.initializeSystem();
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize();
+  }
+  
+  protected void cleanupSystem()
+    throws Exception
+  {
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup();
+    super.cleanupSystem();
   }
 
 }

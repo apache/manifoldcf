@@ -34,9 +34,10 @@ public class BaseHSQLDBext extends org.apache.manifoldcf.core.tests.BaseHSQLDBex
   public void setUp()
     throws Exception
   {
+    initializeSystem();
     try
     {
-      localCleanUp();
+      localReset();
     }
     catch (Exception e)
     {
@@ -60,7 +61,7 @@ public class BaseHSQLDBext extends org.apache.manifoldcf.core.tests.BaseHSQLDBex
     
     // Install the agents tables
     initialize();
-    ManifoldCF.initializeEnvironment();
+    //ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
     ManifoldCF.installTables(tc);
   }
@@ -78,41 +79,49 @@ public class BaseHSQLDBext extends org.apache.manifoldcf.core.tests.BaseHSQLDBex
       e.printStackTrace();
       throw e;
     }
+    cleanupSystem();
   }
 
   protected void localCleanUp()
     throws Exception
   {
-    initialize();
-    if (isInitialized())
-    {
-      // Test the uninstall
-      ManifoldCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
+    IThreadContext tc = ThreadContextFactory.make();
       
-      Exception currentException = null;
-      try
-      {
-        ManifoldCF.deinstallTables(tc);
-      }
-      catch (Exception e)
-      {
-        if (currentException != null)
-          currentException = e;
-      }
-      try
-      {
-        super.localCleanUp();
-        ManifoldCF.resetEnvironment();
-      }
-      catch (Exception e)
-      {
-        if (currentException != null)
-          currentException = e;
-      }
-      if (currentException != null)
-        throw currentException;
+    Exception currentException = null;
+    try
+    {
+      ManifoldCF.deinstallTables(tc);
     }
+    catch (Exception e)
+    {
+      if (currentException != null)
+        currentException = e;
+    }
+    try
+    {
+      super.localCleanUp();
+    }
+    catch (Exception e)
+    {
+      if (currentException != null)
+        currentException = e;
+    }
+    if (currentException != null)
+      throw currentException;
+  }
+  
+  protected void initializeSystem()
+    throws Exception
+  {
+    super.initializeSystem();
+    org.apache.manifoldcf.agents.system.ManifoldCF.localInitialize();
+  }
+  
+  protected void cleanupSystem()
+    throws Exception
+  {
+    org.apache.manifoldcf.agents.system.ManifoldCF.localCleanup();
+    super.cleanupSystem();
   }
   
 }

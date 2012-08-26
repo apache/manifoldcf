@@ -31,6 +31,14 @@ public class ServletListener implements ServletContextListener
 
   public void contextInitialized(ServletContextEvent sce)
   {
+    try
+    {
+      ManifoldCF.initializeEnvironment();
+    }
+    catch (ManifoldCFException e)
+    {
+      throw new RuntimeException("Could not initialize servlet; "+e.getMessage(),e);
+    }
   }
   
   public void contextDestroyed(ServletContextEvent sce)

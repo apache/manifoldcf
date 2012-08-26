@@ -47,17 +47,38 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     synchronized (initializeFlagLock)
     {
+      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
+    }
+  }
+
+  public static void cleanUpEnvironment()
+  {
+    synchronized (initializeFlagLock)
+    {
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
+      org.apache.manifoldcf.core.system.ManifoldCF.cleanUpEnvironment();
+    }
+  }
+
+  public static void localInitialize()
+    throws ManifoldCFException
+  {
+    synchronized (initializeFlagLock)
+    {
       if (authoritiesInitialized)
         return;
 
-      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
       Logging.initializeLoggers();
       Logging.setLogLevels();
       authoritiesInitialized = true;
     }
   }
-
-
+  
+  public static void localCleanup()
+  {
+  }
+  
   /** Install all the authority manager system tables.
   *@param threadcontext is the thread context.
   */

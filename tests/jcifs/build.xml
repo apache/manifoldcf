@@ -21,7 +21,7 @@
 
     <path id="test-classpath">
         <path refid="mcf-ino-test-build.test-classpath"/>
-        <fileset dir="../../connectors/jcifs/dist/lib-proprietary">
+        <fileset dir="../../connectors/jcifs/dist/lib-proprietary-only">
             <include name="*.jar"/>
         </fileset>
     </path>

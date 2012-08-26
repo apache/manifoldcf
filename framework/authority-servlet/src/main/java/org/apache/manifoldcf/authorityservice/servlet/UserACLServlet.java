@@ -63,7 +63,7 @@ public class UserACLServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
       IThreadContext itc = ThreadContextFactory.make();
       ManifoldCF.startSystem(itc);
     }
@@ -82,7 +82,7 @@ public class UserACLServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
       IThreadContext itc = ThreadContextFactory.make();
       ManifoldCF.stopSystem(itc);
     }
@@ -101,7 +101,7 @@ public class UserACLServlet extends HttpServlet
     try
     {
       // Set up the environment
-      ManifoldCF.initializeEnvironment();
+      //ManifoldCF.initializeEnvironment();
 
       Logging.authorityService.debug("Received request");
 

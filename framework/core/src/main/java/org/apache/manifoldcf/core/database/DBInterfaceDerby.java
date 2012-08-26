@@ -124,16 +124,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   public void openDatabase()
     throws ManifoldCFException
   {
-    try
-    {
-      // Force a load of the appropriate JDBC driver
-      Class.forName(_driver).newInstance();
-      DriverManager.getConnection(_url+databaseName+";create=true;user="+userName+";password="+password,userName,password).close();
-    }
-    catch (Exception e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-    }
+    // Does nothing
   }
   
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
@@ -706,6 +697,17 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
+    try
+    {
+      // Force a load of the appropriate JDBC driver
+      Class.forName(_driver).newInstance();
+      DriverManager.getConnection(_url+databaseName+";create=true;user="+userName+";password="+password,userName,password).close();
+    }
+    catch (Exception e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+    }
+
     Database rootDatabase = new DBInterfaceDerby(context,databaseName);
     IResultSet set = rootDatabase.executeQuery("VALUES SYSCS_UTIL.SYSCS_GET_DATABASE_PROPERTY('derby.user."+userName+"')",null,null,null,null,true,-1,null,null);
     if (set.getRowCount() == 0)

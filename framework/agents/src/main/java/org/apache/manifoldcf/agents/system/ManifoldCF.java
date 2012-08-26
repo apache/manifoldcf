@@ -42,12 +42,32 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   {
     synchronized (initializeFlagLock)
     {
+      // Do core initialization
+      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
+      // Local initialization
+      org.apache.manifoldcf.agents.system.ManifoldCF.localInitialize();
+    }
+  }
+
+  /** Clean up environment.
+  */
+  public static void cleanUpEnvironment()
+  {
+    synchronized (initializeFlagLock)
+    {
+      org.apache.manifoldcf.agents.system.ManifoldCF.localCleanup();
+      org.apache.manifoldcf.core.system.ManifoldCF.cleanUpEnvironment();
+    }
+  }
+  
+  public static void localInitialize()
+    throws ManifoldCFException
+  {
+    synchronized (initializeFlagLock)
+    {
       if (agentsInitialized)
         return;
 
-      // Do core initialization
-      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
-      
       // Create the shutdown hook for agents.  All activity will be keyed off of runningHash, so it is safe to do this under all conditions.
       org.apache.manifoldcf.core.system.ManifoldCF.addShutdownHook(new AgentsShutdownHook());
       
@@ -58,14 +78,21 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     }
   }
 
+  public static void localCleanup()
+  {
+  }
+  
   /** Reset the environment.
   */
   public static void resetEnvironment()
   {
-    org.apache.manifoldcf.core.system.ManifoldCF.resetEnvironment();
-    synchronized (runningHash)
+    synchronized (initializeFlagLock)
     {
-      stopAgentsRun = false;
+      org.apache.manifoldcf.core.system.ManifoldCF.resetEnvironment();
+      synchronized (runningHash)
+      {
+        stopAgentsRun = false;
+      }
     }
   }
 
