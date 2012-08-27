@@ -29,12 +29,15 @@ public class FormParseState extends LinkParseState
   protected final static int FORMPARSESTATE_IN_FORM = 1;
   protected final static int FORMPARSESTATE_IN_SELECT = 2;
   protected final static int FORMPARSESTATE_IN_TEXTAREA = 3;
-
+  protected final static int FORMPARSESTATE_IN_OPTION = 4;
   
   protected int formParseState = FORMPARSESTATE_NORMAL;
   protected String selectName = null;
   protected String selectMultiple = null;
-
+  protected String optionValue = null;
+  protected String optionSelected = null;
+  protected StringBuilder optionValueText = null;
+  
   public FormParseState(IHTMLHandler handler)
   {
     super(handler);
@@ -42,6 +45,7 @@ public class FormParseState extends LinkParseState
 
   // Override methods having to do with notification of tag discovery
 
+  @Override
   protected void noteNonscriptTag(String tagName, Map attributes)
     throws ManifoldCFException
   {
@@ -96,16 +100,25 @@ public class FormParseState extends LinkParseState
     case FORMPARSESTATE_IN_SELECT:
       if (tagName.equals("option"))
       {
-        String optionValue = (String)attributes.get("value");
-        String optionSelected = (String)attributes.get("selected");
-        Map optionMap = new HashMap();
-        optionMap.put("type","select");
-        optionMap.put("name",selectName);
-        optionMap.put("multiple",selectMultiple);
-        optionMap.put("value",optionValue);
-        optionMap.put("selected",optionSelected);
-        handler.noteFormInput(optionMap);
+        optionValue = (String)attributes.get("value");
+        optionSelected = (String)attributes.get("selected");
+        formParseState = FORMPARSESTATE_IN_OPTION;
+        // In case there's no end tag, if we have everything we need, do it now.
+        if (optionValue != null)
+        {
+          Map optionMap = new HashMap();
+          optionMap.put("type","select");
+          optionMap.put("name",selectName);
+          optionMap.put("multiple",selectMultiple);
+          optionMap.put("value",optionValue);
+          optionMap.put("selected",optionSelected);
+          handler.noteFormInput(optionMap);
+        }
+        else
+          optionValueText = new StringBuilder();
       }
+      break;
+    case FORMPARSESTATE_IN_OPTION:
       break;
     case FORMPARSESTATE_IN_TEXTAREA:
       break;
@@ -114,6 +127,7 @@ public class FormParseState extends LinkParseState
     }
   }
 
+  @Override
   protected void noteNonscriptEndTag(String tagName)
     throws ManifoldCFException
   {
@@ -134,11 +148,44 @@ public class FormParseState extends LinkParseState
       selectName = null;
       selectMultiple = null;
       break;
+    case FORMPARSESTATE_IN_OPTION:
+      if (tagName.equals("option"))
+      {
+        // If we haven't already emitted the option, emit it now.
+        if (optionValueText != null)
+        {
+          Map optionMap = new HashMap();
+          optionMap.put("type","select");
+          optionMap.put("name",selectName);
+          optionMap.put("multiple",selectMultiple);
+          optionMap.put("value",htmlBodyDecode(optionValueText.toString()));
+          optionMap.put("selected",optionSelected);
+          handler.noteFormInput(optionMap);
+        }
+        formParseState = FORMPARSESTATE_IN_SELECT;
+        optionSelected = null;
+        optionValue = null;
+        optionValueText = null;
+      }
+      break;
     case FORMPARSESTATE_IN_TEXTAREA:
-      formParseState = FORMPARSESTATE_IN_FORM;
+      if (tagName.equals("textarea"))
+        formParseState = FORMPARSESTATE_IN_FORM;
       break;
     default:
       throw new ManifoldCFException("Unknown form parse state: "+Integer.toString(formParseState));
+    }
+  }
+
+  @Override
+  protected void noteNormalCharacter(char thisChar)
+    throws ManifoldCFException
+  {
+    super.noteNormalCharacter(thisChar);
+    if (formParseState == FORMPARSESTATE_IN_OPTION)
+    {
+      if (optionValueText != null)
+        optionValueText.append(thisChar);
     }
   }
 

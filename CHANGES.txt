@@ -3,6 +3,11 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-513: Fix HTML parsing in WebConnector so that we
+recognize a default input type to be "text", and deal with missing
+"value" attributes in "option" tags.
+(Karl Wright)
+
 CONNECTORS-514: Revamp ManifoldCF.initializeEnvironment and
 ManifoldCF.cleanUpEnvironment to use reference counting so that more
 than one user of these methods can coexist in the same VM.

@@ -77,6 +77,8 @@ public class BasicParseState
     case BASICPARSESTATE_NORMAL:
       if (thisChar == '<')
         currentState = BASICPARSESTATE_SAWLEFTBRACKET;
+      else
+        noteNormalCharacter(thisChar);
       break;
     case BASICPARSESTATE_SAWLEFTBRACKET:
       if (thisChar == '!')
@@ -372,12 +374,23 @@ public class BasicParseState
     Logging.connectors.debug(" Saw end tag '"+tagName+"'");
   }
 
+  protected void noteNormalCharacter(char thisChar)
+    throws ManifoldCFException
+  {
+  }
+  
   public void finishUp()
     throws ManifoldCFException
   {
     // Does nothing
   }
 
+  /** Decode html body text */
+  protected static String htmlBodyDecode(String input)
+  {
+    return htmlAttributeDecode(input);
+  }
+  
   /** Decode an html attribute */
   protected static String htmlAttributeDecode(String input)
   {
