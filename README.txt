@@ -2,7 +2,7 @@ This directory contains the ManifoldCF web site.  To update the site, do the fol
 
     1. Modify the site sources in ./src
 
-    2. Run "ant build" to generate the site in ./build/site.  You will need
+    2. Run "ant make-core-deps" and "ant build" to generate the site in ./build/site.  You will need
         internet access (for downloading dependencies and older MCF releases), and svn 1.7+ installed.
 
     3. Review the site by opening ./build/site/index.html.
