@@ -16,10 +16,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.system;
+package org.apache.manifoldcf.authorityservice;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import javax.servlet.*;
 
 /** This class furnishes a servlet shutdown hook for ManifoldCF.  It should be referenced in the

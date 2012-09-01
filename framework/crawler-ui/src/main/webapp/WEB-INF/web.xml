@@ -57,7 +57,7 @@
   </context-param>
 
   <listener>
-    <listener-class>org.apache.manifoldcf.core.system.ServletListener</listener-class>
+    <listener-class>org.apache.manifoldcf.crawlerui.ServletListener</listener-class>
   </listener>
 
 </web-app>

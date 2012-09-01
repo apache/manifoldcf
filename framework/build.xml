@@ -174,6 +174,17 @@
     </target>
 
     <target name="compile-crawler-ui" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
+        <mkdir dir="build/crawler-ui/classes"/>
+        <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+            </classpath>
+        </javac>
+
         <!-- Define the jsp compilation task using tomcat libraries -->
         <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
             <classpath id="jspc.classpath"> 
@@ -434,6 +445,7 @@
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
+        <jar destfile="build/webapp/crawler-ui/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
   
       <target name="webapp-crawler-ui-proprietary" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
@@ -485,6 +497,7 @@
         <copy todir="build/webapp/crawler-ui-proprietary">
             <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
         </copy>
+        <jar destfile="build/webapp/crawler-ui-proprietary/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
 
     <target name="war-authority-service" depends="webapp-authority-service">

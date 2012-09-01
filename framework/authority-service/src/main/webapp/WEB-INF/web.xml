@@ -40,7 +40,7 @@
   </session-config>
 
   <listener>
-    <listener-class>org.apache.manifoldcf.core.system.ServletListener</listener-class>
+    <listener-class>org.apache.manifoldcf.authorityservice.ServletListener</listener-class>
   </listener>
 
 </web-app>
