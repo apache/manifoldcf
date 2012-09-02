@@ -34,4 +34,8 @@ public class SharedDriveParameters
 
   /* password for the above server */
   public final static String password = "Password";
+  
+  /* SIDs handling */
+  public final static String resolveSIDs = "Resolve SIDs";
+
 }
