@@ -219,7 +219,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     strippedUserName = null;
     password = null;
     ntlmDomain = null;
-    serverName = null;
     serverLocation = null;
     encodedServerLocation = null;
     serverPort = -1;
