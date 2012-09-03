@@ -3070,7 +3070,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Security2") + "</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\">\n"+
 "      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Enabled")+"\n"+
+"        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Enabled")+"&nbsp;\n"+
 "        <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Disabled")+"\n"+
 "      </nobr>\n"+
 "    </td>\n"+
