@@ -612,109 +612,65 @@ public class SPSProxyHelper {
         MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap itemCall = itemService.getPermissionsSoapHandler( );
 
-        com.microsoft.sharepoint.webpartpages.GetListItemsResponseGetListItemsResult itemsResult = itemCall.getListItems(guid,"0","100");
-        org.apache.axis.message.MessageElement[] itemsList = itemsResult.get_any();
-
-        System.out.println("GetListItems response: '"+itemsList[0].toString() + "'");
-        
-        throw new ManifoldCFException("Feature not yet implemented");
-        // Old code
-        
-        /*
-        // Sharepoint 2010; use Lists service instead
-        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
-        ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
-
-        // This string is the paging chunk description.  It gets updated on every chunk we do,
-        // so that the next call finds new data.
-        String nextChunkDescription = "";
-        // Order by some column we know is indexed.
-        GetListItemsQuery orderByQuery = buildOrderedQuery("ID");
-        // Set up fields we want
-        ArrayList fieldList = new ArrayList();
-        fieldList.add("FileRef");
-        GetListItemsViewFields viewFields = buildViewFields(fieldList);
-        // Pick a request size we know will not exceed the limit as set by the administrator.
-        int requestSize = 2000;
-          
+        int startingIndex = 0;
+        int amtToRequest = 1000;
         while (true)
         {
-          GetListItemsResponseGetListItemsResult items =  stub1.getListItems(guid, "", orderByQuery, viewFields, Integer.toString(requestSize), buildPagingQueryOptions(nextChunkDescription), null);
-          if (items == null)
-            return false;
-
-          org.apache.axis.message.MessageElement[] list = items.get_any();
+          com.microsoft.sharepoint.webpartpages.GetListItemsResponseGetListItemsResult itemsResult =
+            itemCall.getListItems(guid,Integer.toString(startingIndex),Integer.toString(amtToRequest));
+          
+          MessageElement[] itemsList = itemsResult.get_any();
 
           if (Logging.connectors.isDebugEnabled()){
-            Logging.connectors.debug("SharePoint: getListItems xml response: '" + list[0].toString() + "'");
+            Logging.connectors.debug("SharePoint: getListItems xml response: '" + itemsList[0].toString() + "'");
           }
 
-          ArrayList nodeList = new ArrayList();
-          XMLDoc doc = new XMLDoc(list[0].toString());
-
-          doc.processPath(nodeList, "*", null);
-          if (nodeList.size() != 1) {
-            throw new ManifoldCFException("Bad xml - expecting one outer 'ns1:listitems' node - there are " + Integer.toString(nodeList.size()) + " nodes");
-          }
-
-          Object parent = nodeList.get(0);
-          if (!"ns1:listitems".equals(doc.getNodeName(parent)))
-            throw new ManifoldCFException("Bad xml - outer node is not 'ns1:listitems'");
-
-
-          nodeList.clear();
-          doc.processPath(nodeList, "*", parent);
-
-          if (nodeList.size() != 1)
-            throw new ManifoldCFException("Expected rsdata result but no results found.");
-
-          Object rsData = nodeList.get(0);
-
-          // Get the chunk description
-          nextChunkDescription = doc.getValue(rsData, "ListItemCollectionPositionNext");
-
-          int itemCount = Integer.parseInt(doc.getValue(rsData, "ItemCount"));
-
-          // Now, extract the files from the response document
-          XMLDoc docs = doc;
-          ArrayList nodeDocs = new ArrayList();
-
-          docs.processPath(nodeDocs, "*", rsData);
-
-          if (nodeDocs.size() != itemCount) {
-            throw new ManifoldCFException("itemCount does not match with nodeDocs.size().");
-          }
-
-          for (int j = 0; j < nodeDocs.size(); j++)
+          if (itemsList.length != 1)
+            throw new ManifoldCFException("Bad response - expecting one outer 'GetListItems' node, saw "+Integer.toString(itemsList.length));
+          
+          MessageElement items = itemsList[0];
+          if (!items.getElementName().getLocalName().equals("GetListItems"))
+            throw new ManifoldCFException("Bad response - outer node should have been 'GetListItems' node");
+          
+          int resultCount = 0;
+          Iterator iter = items.getChildElements();
+          while (iter.hasNext())
           {
-
-            Object node = nodeDocs.get(j);
-
-            String relPath = doc.getValue(node, "ows_FileRef");
-
-            // This relative path is apparently from the domain on down; if there's a location offset we therefore
-            // need to get rid of it before checking the document against the site/library tuples.  The recorded
-            // document identifier should also not include it.
-
-            // KDW: Removed the case changes; URL characters should remain case-sensitive
-            if (!relPath.startsWith(serverLocation))
+            MessageElement child = (MessageElement)iter.next();
+            if (child.getElementName().getLocalName().equals("GetListItemsResponse"))
             {
-              // Unexpected processing error; the path to the folder or document did not start with the location
-              // offset, so throw up.
-              throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-                serverLocation+"'");
+              Iterator resultIter = child.getChildElements();
+              while (resultIter.hasNext())
+              {
+                MessageElement result = (MessageElement)resultIter.next();
+                if (result.getElementName().getLocalName().equals("GetListItemsResult"))
+                {
+                  resultCount++;
+                  String relPath = result.getAttribute("FileRef");
+                  // This includes the document library, so munge the path accordingly
+                  if (!relPath.startsWith(serverLocation))
+                  {
+                    // Unexpected processing error; the path to the folder or document did not start with the location
+                    // offset, so throw up.
+                    throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
+                      serverLocation+"'");
+                  }
+                  relPath = relPath.substring(serverLocation.length());
+
+                  relPath = "/" + relPath;
+
+                  fileStream.addFile( relPath );
+                }
+              }
+              
             }
-            relPath = relPath.substring(serverLocation.length());
-
-            relPath = "/" + valueMunge(relPath);
-
-            fileStream.addFile( relPath );
           }
           
-          if (requestSize > nodeDocs.size())
+          if (resultCount < amtToRequest)
             break;
+          
+          startingIndex += resultCount;
         }
-        */
       }
       
       return true;
