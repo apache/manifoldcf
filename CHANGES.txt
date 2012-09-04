@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-522: Wiki connector namespace tab was non-functional.
+(Maciej Lizewski, Karl Wright)
+
 CONNECTORS-517: Internationalization bug; leftover "&nbsp;" in the
 English translations file.
 (Piergiorgio Lucidi, Karl Wright)

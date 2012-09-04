@@ -559,7 +559,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "\n"+
 "function NsDelete(k)\n"+
 "{\n"+
-"  SpecOp(\"nsop\"+k, \"Delete\", \"ns_\"+k);\n"+
+"  SpecOp(\"nsop_\"+k, \"Delete\", \"ns_\"+k);\n"+
 "}\n"+
 "\n"+
 "function NsAdd(k)\n"+
@@ -786,7 +786,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         String nsTitlePrefix = "nstitleprefix_"+i;
         
         String nsOp = variableContext.getParameter(nsOpName);
-        if (nsOp != null && !nsOp.equals("Delete"))
+        if (nsOp == null || !nsOp.equals("Delete"))
         {
           String namespaceName = variableContext.getParameter(nsNsName);
           if (namespaceName != null && namespaceName.length() == 0)
