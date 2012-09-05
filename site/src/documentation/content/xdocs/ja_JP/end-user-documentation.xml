@@ -950,6 +950,7 @@
                     <li>SQL Server (JTDS JDBCドライバ)</li>
                     <li>Oracle (Oracle JDBCドライバ)</li>
                     <li>Sybase (JTDS JDBCドライバ)</li>
+                    <li>MySQL (MySQL JDBCドライバ)</li>
                 </ul>
                 <br/>
                 <p>その他のデータベースを利用する場合はソフトウエアを<b>修正する必要</b>があります。データベースのセットアップによっては、利用できないデータベースもあります。</p>
@@ -959,7 +960,8 @@
                 <figure src="images/ja_JP/jdbc-configure-database-type_ja_JP.PNG" alt="Generic Database Connection, Database Type tab" width="80%"/>
                 <br/><br/>
                 <p>プルダウンメニューから索引を作成するデータベースの種類を選択してください。</p>
-                <p>「サーバ」タブを選択すると次いのようなページが表示します：</p>
+                <p>また、JDBCアクセス方式をプルダウンから選択します。このアクセス方式は、JDBC仕様で最近明らかにされたのですが、カラム名の取得に関してすべてのJDBCドライバが同じ方法で動作するとは限らない、ということに基づいて提供されました。"by name"オプションは現在のところ、MySQLドライバを除いて、リスト内のすべてのJDBCドライバで動作します。"by label"は現在のMySQLドライバで動作します。他のドライバでも動作するかもしれません。汎用データベースのジョブで定義したクエリが正常動作しない場合や、カラムを見つけることができないというようなエラーメッセージが表示された場合は、このプルダウンを変更することによって解決するかもしれません。</p>
+                <p>「サーバ」タブを選択すると次のようなページが表示します：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/jdbc-configure-server_ja_JP.PNG" alt="Generic Database Connection, Server tab" width="80%"/>
                 <br/><br/>
