@@ -215,15 +215,15 @@ footer, searchbar, css etc.  As input, it takes XML of the form:
                     </form>
                   </xsl:when>
                   <xsl:otherwise>
-                    <form class="roundtopsmall" method="get" action="http://www.lucidimagination.com/search/">
+                    <form class="roundtopsmall" method="get" action="http://find.searchhub.org/p:manifoldcf">
                       <input type="text" id="query" name="q" size="25" onFocus="getBlank (this, '{$search-prompt}');">
                         <xsl:attribute name="value">
                           <xsl:value-of select="$search-prompt"/>
                         </xsl:attribute>
                       </input>&#160; 
-                    <input type="submit" value="Search" name="Search" i18n:attr="value"/>
+                    <input type="submit" value="Search" i18n:attr="value"/>
                     </form>
-		    <div style="position: relative; top: -5px; left: -10px">Powered by <a style="color: #033268" href="http://www.lucidimagination.com">Lucid Imagination</a></div>
+		    <div style="position: relative; top: -5px; left: -10px">Powered by <a style="color: #033268" href="http://www.lucidworks.com">LucidWorks</a></div>
                   </xsl:otherwise>
                 </xsl:choose>
 <!--div id="roundbottomsmall">
@@ -472,13 +472,13 @@ document.write("]]><i18n:text >Last Published:</i18n:text><![CDATA[ " + document
               </form>
             </xsl:when>
             <xsl:otherwise>
-	            <form class="roundtopsmall" method="get" action="http://www.lucidimagination.com/search/">
+	            <form class="roundtopsmall" method="get" action="http://find.searchhub.org/p:manifoldcf">
                   <input type="text" id="query" name="q" size="25" onFocus="getBlank (this, '{$search-prompt}');">
                     <xsl:attribute name="value">
                       <xsl:value-of select="$search-prompt"/>
                     </xsl:attribute>
                   </input>&#160; 
-                <input type="submit" value="Search" name="Search" i18n:attr="value"/>
+                <input type="submit" value="Search" i18n:attr="value"/>
                 </form>
             </xsl:otherwise>
           </xsl:choose>
