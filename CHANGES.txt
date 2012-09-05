@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-520 : Add pom.xml to SharePoint connector module
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-519: maven build of mcf-test-materials/mcf-alfresco-war-test fails
 (Ahmet Arslan, Piergiorgio Lucidi)
 
