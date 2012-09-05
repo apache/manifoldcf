@@ -2,6 +2,10 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 0.7-dev =====================
+
+CONNECTORS-519: maven build of mcf-test-materials/mcf-alfresco-war-test fails
+(Ahmet Arslan, Piergiorgio Lucidi)
+
 CONNECTORS-521: Fix project site's broken search
 (Ahmet Arslan)
 

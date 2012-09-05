@@ -38,24 +38,34 @@
 
   <repositories>
     <repository>
-      <id>alfresco-public</id>
-      <url>http://maven.alfresco.com/nexus/content/groups/public</url>
+      <id>alfresco-release</id>
+      <url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
     </repository>
     <repository>
-            <id>alfresco-public-snapshots</id>
-            <url>http://maven.alfresco.com/nexus/content/groups/public-snapshots</url>
+            <id>alfresco-snapshots</id>
+            <url>https://artifacts.alfresco.com/nexus/content/repositories/snapshots</url>
            <snapshots>
                 <enabled>true</enabled>
            </snapshots>
     </repository>
-        <repository>
-            <id>alfresco-maven-repo</id>
-            <url>http://maven.alfresco.com/nexus/content/groups/enterprise-snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
+    <repository>
+        <id>alfresco-sites</id>
+        <url>https://artifacts.alfresco.com/nexus/content/repositories/alfresco-docs</url>
+    </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>alfresco-release</id>
+      <url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>alfresco-snapshots</id>
+      <url>https://artifacts.alfresco.com/nexus/content/repositories/snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 
   <build>
     <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
