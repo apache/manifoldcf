@@ -2122,7 +2122,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       out.print(
 "      </table>\n"+
 "      <input type=\"button\" onclick='Javascript:ShpAddCertificate()' alt=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddCert") + "\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\"/>&nbsp;\n"+
-"      "+Messages.getBodyString(locale,"SharePointRepository.Certificate")+"<input name=\"shpcertificate\" size=\"50\" type=\"file\"/>\n"+
+"      "+Messages.getBodyString(locale,"SharePointRepository.Certificate")+"&nbsp;<input name=\"shpcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
