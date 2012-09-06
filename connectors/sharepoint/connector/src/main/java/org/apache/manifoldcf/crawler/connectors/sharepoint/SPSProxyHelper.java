@@ -647,15 +647,6 @@ public class SPSProxyHelper {
                 {
                   resultCount++;
                   String relPath = result.getAttribute("FileRef");
-                  // This includes the document library, so munge the path accordingly
-                  if (!relPath.startsWith(serverLocation))
-                  {
-                    // Unexpected processing error; the path to the folder or document did not start with the location
-                    // offset, so throw up.
-                    throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-                      serverLocation+"'");
-                  }
-                  relPath = relPath.substring(serverLocation.length());
 
                   relPath = "/" + relPath;
 
