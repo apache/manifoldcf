@@ -613,7 +613,7 @@ public class SPSProxyHelper {
         com.microsoft.sharepoint.webpartpages.PermissionsSoap itemCall = itemService.getPermissionsSoapHandler( );
 
         int startingIndex = 0;
-        int amtToRequest = 1000;
+        int amtToRequest = 10000;
         while (true)
         {
           com.microsoft.sharepoint.webpartpages.GetListItemsResponseGetListItemsResult itemsResult =
