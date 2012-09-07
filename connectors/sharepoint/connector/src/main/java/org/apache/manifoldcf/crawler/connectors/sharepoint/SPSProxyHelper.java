@@ -1808,7 +1808,11 @@ public class SPSProxyHelper {
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
-        GetListItemsQuery q = buildMatchQuery("FileRef","Text",site + docId);
+        String sitePlusDocId = site + docId;
+        if (sitePlusDocId.startsWith("/"))
+          sitePlusDocId = sitePlusDocId.substring(1);
+        
+        GetListItemsQuery q = buildMatchQuery("FileRef","Text",sitePlusDocId);
         GetListItemsViewFields viewFields = buildViewFields(fieldNames);
 
         GetListItemsResponseGetListItemsResult items =  stub1.getListItems(docLibrary, "", q, viewFields, "1", buildNonPagingQueryOptions(), null);
@@ -1818,7 +1822,7 @@ public class SPSProxyHelper {
         MessageElement[] list = items.get_any();
 
         if (Logging.connectors.isDebugEnabled()){
-          Logging.connectors.debug("SharePoint: getListItems for '"+site+docId+"' xml response: '" + list[0].toString() + "'");
+          Logging.connectors.debug("SharePoint: getListItems for '"+docId+"' using FileRef value '"+sitePlusDocId+"' xml response: '" + list[0].toString() + "'");
         }
 
         ArrayList nodeList = new ArrayList();
