@@ -36,6 +36,10 @@ public class WikiConfig
   /** Path */
   public static final String PARAM_PATH = "Server path";
 	
+  public static final String PARAM_LOGIN = "serverlogin";
+  public static final String PARAM_PASSWORD = "serverpass";
+  public static final String PARAM_DOMAIN = "serverdomain";
+
   // Document specification
 
   /** Namespace and title prefix */
@@ -44,5 +48,4 @@ public class WikiConfig
   public static final String ATTR_NAMESPACE = "namespace";
   /** Title prefix attribute */
   public static final String ATTR_TITLEPREFIX = "titleprefix";
-  
 }
