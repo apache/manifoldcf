@@ -50,6 +50,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  /**
+   * Deny access token for default authority
+   */
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+
   // Activities that we know about
   
   /** Fetch activity */
@@ -592,7 +597,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         String url = urls.get(documentIdentifiers[i]);
         if (url != null)
-          getDocInfo(documentIdentifiers[i], versions[i], url, activities);
+          getDocInfo(documentIdentifiers[i], versions[i], url, activities, acls);
       }
     }
   }
@@ -3174,7 +3179,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Get document info and index the document.
   */
-  protected void getDocInfo(String documentIdentifier, String documentVersion, String fullURL, IProcessActivity activities)
+  protected void getDocInfo(String documentIdentifier, String documentVersion, String fullURL, IProcessActivity activities, String[] allowACL)
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -3242,6 +3247,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 rd.addField("title",title);
               if (lastModified != null)
                 rd.addField("last-modified",lastModified);
+
+              if (allowACL != null && allowACL.length > 0) {
+                String[] denyACL = new String[]{
+                  defaultAuthorityDenyToken
+                };
+                rd.setDenyACL(denyACL);
+
+                rd.setACL(allowACL);
+              }
+
               activities.ingestDocument(documentIdentifier,documentVersion,fullURL,rd);
             }
             finally
