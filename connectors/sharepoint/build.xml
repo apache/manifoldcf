@@ -67,13 +67,9 @@
     </target>
 
     <target name="integration">
-        <mkdir dir="dist/integration"/>
-        <copy todir="dist/integration">
-          <fileset dir="../../lib">
-              <include name="*.bat"/>
-              <include name="*.wsp"/>
-              <include name="Installation Readme.txt"/>
-          </fileset>
+        <mkdir dir="dist/integration/sharepoint-2007"/>
+        <copy todir="dist/integration/sharepoint-2007">
+          <fileset dir="../../lib/sharepoint-2007"/>
         </copy>
     </target>
 

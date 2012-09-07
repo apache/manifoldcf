@@ -26,7 +26,10 @@
               <include name="README-3.x.txt"/>
               <include name="README-4.x.txt"/>
           </fileset>
-          <fileset dir="../../lib">
+          <fileset dir="../../lib/solr-3.x">
+              <include name="apache-solr-mcf-*.jar"/>
+          </fileset>
+          <fileset dir="../../lib/solr-4.x">
               <include name="apache-solr-mcf-*.jar"/>
           </fileset>
         </copy>
