@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-524: Do not deregister connectors in single-process
+code unless they are being removed or changed.
+(Karl Wright)
+
 CONNECTORS-520 : Add pom.xml to SharePoint connector module
 (Ahmet Arslan, Karl Wright)
 

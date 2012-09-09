@@ -163,11 +163,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Read connectors configuration file (to figure out what we need to register)
     File connectorConfigFile = getFileProperty(connectorsConfigurationFileProperty);
     Connectors c = readConnectorDeclarations(connectorConfigFile);
-      
-    // Unregister all connectors.
-    unregisterAllConnectors(tc);
+    
+    // Unregister all the connectors we don't want.
+    unregisterAllConnectors(tc,c);
 
-    // Register connections specified by connectors.xml
+    // Register (or update) all connectors specified by connectors.xml
     registerConnectors(tc,c);
   }
   
@@ -209,6 +209,53 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static void unregisterAllConnectors(IThreadContext tc)
     throws ManifoldCFException
   {
+    unregisterAllConnectors(tc,null);
+  }
+
+  // Connectors configuration file
+  protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
+  protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
+  protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
+  protected static final String ATTRIBUTE_NAME = "name";
+  protected static final String ATTRIBUTE_CLASS = "class";
+  
+  /** Unregister all connectors which don't match a specified connector list.
+  */
+  public static void unregisterAllConnectors(IThreadContext tc, Connectors c)
+    throws ManifoldCFException
+  {
+    // Create a map of class name and description, so we can compare what we can find
+    // against what we want.
+    Map<String,String> desiredOutputConnectors = new HashMap<String,String>();
+    Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
+    Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
+
+    if (c != null)
+    {
+      for (int i = 0; i < c.getChildCount(); i++)
+      {
+        ConfigurationNode cn = c.findChild(i);
+        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredOutputConnectors.put(className,name);
+        }
+        else if (cn.getType().equals(NODE_AUTHORITYCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredAuthorityConnectors.put(className,name);
+        }
+        else if (cn.getType().equals(NODE_REPOSITORYCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredRepositoryConnectors.put(className,name);
+        }
+      }
+    }
+
     // Grab a database handle, so we can use transactions later.
     IDBInterface database = DBInterfaceFactory.make(tc,
       ManifoldCF.getMasterDatabaseName(),
@@ -225,30 +272,34 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         IResultRow row = classNames.getRow(i++);
         String className = (String)row.getValue("classname");
-        // Deregistration should be done in a transaction
-        database.beginTransaction();
-        try
+        String description = (String)row.getValue("description");
+        if (desiredOutputConnectors.get(className) == null || !desiredOutputConnectors.get(className).equals(description))
         {
-          // Find the connection names that come with this class
-          String[] connectionNames = connManager.findConnectionsForConnector(className);
-          // For all connection names, notify all agents of the deregistration
-          AgentManagerFactory.noteOutputConnectorDeregistration(tc,connectionNames);
-          // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
-          mgr.unregisterConnector(className);
-        }
-        catch (ManifoldCFException e)
-        {
-          database.signalRollback();
-          throw e;
-        }
-        catch (Error e)
-        {
-          database.signalRollback();
-          throw e;
-        }
-        finally
-        {
-          database.endTransaction();
+          // Deregistration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For all connection names, notify all agents of the deregistration
+            AgentManagerFactory.noteOutputConnectorDeregistration(tc,connectionNames);
+            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+            mgr.unregisterConnector(className);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
         }
       }
       System.err.println("Successfully unregistered all output connectors");
@@ -262,7 +313,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       while (i < classNames.getRowCount())
       {
         IResultRow row = classNames.getRow(i++);
-        mgr.unregisterConnector((String)row.getValue("classname"));
+        String className = (String)row.getValue("classname");
+        String description = (String)row.getValue("description");
+        if (desiredAuthorityConnectors.get(className) == null || !desiredAuthorityConnectors.get(className).equals(description))
+        {
+          mgr.unregisterConnector(className);
+        }
       }
       System.err.println("Successfully unregistered all authority connectors");
     }
@@ -278,42 +334,40 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         IResultRow row = classNames.getRow(i++);
         String className = (String)row.getValue("classname");
-        // Deregistration should be done in a transaction
-        database.beginTransaction();
-        try
+        String description = (String)row.getValue("description");
+        if (desiredRepositoryConnectors.get(className) == null || !desiredRepositoryConnectors.get(className).equals(description))
         {
-          // Find the connection names that come with this class
-          String[] connectionNames = connManager.findConnectionsForConnector(className);
-          // For each connection name, modify the jobs to note that the connector is no longer installed
-          jobManager.noteConnectorDeregistration(connectionNames);
-          // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
-          mgr.unregisterConnector(className);
-        }
-        catch (ManifoldCFException e)
-        {
-          database.signalRollback();
-          throw e;
-        }
-        catch (Error e)
-        {
-          database.signalRollback();
-          throw e;
-        }
-        finally
-        {
-          database.endTransaction();
+          // Deregistration should be done in a transaction
+          database.beginTransaction();
+          try
+          {
+            // Find the connection names that come with this class
+            String[] connectionNames = connManager.findConnectionsForConnector(className);
+            // For each connection name, modify the jobs to note that the connector is no longer installed
+            jobManager.noteConnectorDeregistration(connectionNames);
+            // Now that all jobs have been placed into an appropriate state, actually do the deregistration itself.
+            mgr.unregisterConnector(className);
+          }
+          catch (ManifoldCFException e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          catch (Error e)
+          {
+            database.signalRollback();
+            throw e;
+          }
+          finally
+          {
+            database.endTransaction();
+          }
         }
       }
       System.err.println("Successfully unregistered all repository connectors");
     }
   }
 
-  // Connectors configuration file
-  protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
-  protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
-  protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
-  protected static final String ATTRIBUTE_NAME = "name";
-  protected static final String ATTRIBUTE_CLASS = "class";
 
   /** Register all connectors as specified by a Connectors structure, usually read from the connectors.xml file.
   */
