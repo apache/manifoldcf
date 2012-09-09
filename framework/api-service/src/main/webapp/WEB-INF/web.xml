@@ -21,13 +21,13 @@
 -->
 
 <web-app>
-  <display-name>ManifoldCF General API</display-name>
+  <display-name>ManifoldCF General API Webapp</display-name>
 
-  <description>ManifoldCF General API</description>
+  <description>ManifoldCF General API Webapp</description>
 
   <servlet>
     <servlet-name>APIServlet</servlet-name>
-    <servlet-class>org.apache.manifoldcf.api.APIServlet</servlet-class>
+    <servlet-class>org.apache.manifoldcf.apiservlet.APIServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
@@ -40,7 +40,7 @@
   </session-config>
 
   <listener>
-    <listener-class>org.apache.manifoldcf.api.ServletListener</listener-class>
+    <listener-class>org.apache.manifoldcf.apiservice.ServletListener</listener-class>
   </listener>
 
 </web-app>

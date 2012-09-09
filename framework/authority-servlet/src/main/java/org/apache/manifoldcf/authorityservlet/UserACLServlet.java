@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.authorityservice.servlet;
+package org.apache.manifoldcf.authorityservlet;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
