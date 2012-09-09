@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-523: Build a combined war that can be deployed alone
+on Tomcat and bring all of ManifoldCF's functionality with it.
+(Maciej Lizewski, Karl Wright)
+
 CONNECTORS-524: Do not deregister connectors in single-process
 code unless they are being removed or changed.
 (Karl Wright)
