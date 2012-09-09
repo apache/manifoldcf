@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.api;
+package org.apache.manifoldcf.combinedservice;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
@@ -29,11 +29,23 @@ public class ServletListener implements ServletContextListener
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  public static final String agentShutdownSignal = org.apache.manifoldcf.agents.AgentRun.agentShutdownSignal;
+  private Thread jobsThread = null;
+
   public void contextInitialized(ServletContextEvent sce)
   {
     try
     {
       ManifoldCF.initializeEnvironment();
+
+      IThreadContext tc = ThreadContextFactory.make();
+
+      ManifoldCF.createSystemDatabase(tc);
+      ManifoldCF.installTables(tc);
+      ManifoldCF.registerThisAgent(tc);
+      ManifoldCF.reregisterAllConnectors(tc);
+
+      ManifoldCF.startAgents(tc);
     }
     catch (ManifoldCFException e)
     {
@@ -43,6 +55,15 @@ public class ServletListener implements ServletContextListener
   
   public void contextDestroyed(ServletContextEvent sce)
   {
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.stopAgents(tc);
+    }
+    catch (ManifoldCFException e)
+    {
+      throw new RuntimeException("Cannot shutdown servlet cleanly; "+e.getMessage(),e);
+    }
     ManifoldCF.cleanUpEnvironment();
   }
 

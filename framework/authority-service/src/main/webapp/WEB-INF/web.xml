@@ -21,13 +21,13 @@
 -->
 
 <web-app>
-  <display-name>ManifoldCF Authorities API</display-name>
+  <display-name>ManifoldCF Authorities API Webapp</display-name>
 
-  <description>ManifoldCF Authorities API</description>
+  <description>ManifoldCF Authorities API Webapp</description>
 
   <servlet>
     <servlet-name>UserACLServlet</servlet-name>
-    <servlet-class>org.apache.manifoldcf.authorityservice.servlet.UserACLServlet</servlet-class>
+    <servlet-class>org.apache.manifoldcf.authorityservlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>

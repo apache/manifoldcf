@@ -160,6 +160,19 @@
         </javac>
     </target>
 
+    <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent,compile-authority-servlet">
+        <mkdir dir="build/authority-service/classes"/>
+        <javac srcdir="authority-service/src/main/java" destdir="build/authority-service/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
     <target name="compile-api-servlet" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/api-servlet/classes"/>
         <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
@@ -169,6 +182,35 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-api-service" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-api-servlet">
+        <mkdir dir="build/api-service/classes"/>
+        <javac srcdir="api-service/src/main/java" destdir="build/api-service/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="compile-combined-service" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-api-servlet,compile-authority-servlet">
+        <mkdir dir="build/combined-service/classes"/>
+        <javac srcdir="combined-service/src/main/java" destdir="build/combined-service/classes" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/ui-core/classes"/>
+                <pathelement location="build/agents/classes"/>
+                <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/api-servlet/classes"/>
+                <pathelement location="build/authority-servlet/classes"/>
             </classpath>
         </javac>
     </target>
@@ -251,7 +293,17 @@
         <jar destfile="build/jar/mcf-script-engine.jar" basedir="build/script-engine/classes"/>
     </target>
 
-    <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
+    <target name="jar-authority-servlet" depends="compile-authority-servlet">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
+    </target>
+
+    <target name="jar-api-servlet" depends="compile-api-servlet">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/mcf-api-servlet.jar" basedir="build/api-servlet/classes"/>
+    </target>
+
+    <target name="webapp-authority-service" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
@@ -281,12 +333,13 @@
                 <include name="mcf-core.jar"/>
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-authority-servlet.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/authority-service/WEB-INF/lib/mcf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
+        <jar destfile="build/webapp/authority-service/WEB-INF/lib/mcf-authority-service.jar" basedir="build/authority-service/classes"/>
     </target>
 
-    <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,compile-authority-servlet">
+    <target name="webapp-authority-service-proprietary" depends="jar-core,jar-agents,jar-pull-agent,jar-authority-servlet,compile-authority-service">
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
@@ -321,12 +374,13 @@
                 <include name="mcf-core.jar"/>
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-authority-servlet.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/authority-service-proprietary/WEB-INF/lib/mcf-authority-servlet.jar" basedir="build/authority-servlet/classes"/>
+        <jar destfile="build/webapp/authority-service-proprietary/WEB-INF/lib/mcf-authority-service.jar" basedir="build/authority-service/classes"/>
     </target>
 
-    <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
+    <target name="webapp-api-service" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,compile-api-service">
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
@@ -357,12 +411,13 @@
                 <include name="mcf-ui-core.jar"/>
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-api-servlet.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/api-service/WEB-INF/lib/mcf-api-servlet.jar" basedir="build/api-servlet/classes"/>
+        <jar destfile="build/webapp/api-service/WEB-INF/lib/mcf-api-service.jar" basedir="build/api-service/classes"/>
     </target>
 
-    <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,compile-api-servlet">
+    <target name="webapp-api-service-proprietary" depends="jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,compile-api-service">
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
@@ -400,7 +455,7 @@
                 <include name="mcf-pull-agent.jar"/>
             </fileset>
         </copy>
-        <jar destfile="build/webapp/api-service-proprietary/WEB-INF/lib/mcf-api-servlet.jar" basedir="build/api-servlet/classes"/>
+        <jar destfile="build/webapp/api-service-proprietary/WEB-INF/lib/mcf-api-service.jar" basedir="build/api-service/classes"/>
     </target>
 
     <target name="webapp-crawler-ui" depends="compile-crawler-ui,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
@@ -500,6 +555,103 @@
         <jar destfile="build/webapp/crawler-ui-proprietary/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
 
+    <target name="webapp-combined-service" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
+        <mkdir dir="build/webapp/combined-service/WEB-INF/lib"/>
+        <copy todir="build/webapp/combined-service/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="jstl*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient*.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-ui-core.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="build/webapp/combined-service/WEB-INF/jsp"/>
+        <copy todir="build/webapp/combined-service/WEB-INF/jsp">
+            <fileset dir="crawler-ui/src/main/webapp/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/combined-service">
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+        <jar destfile="build/webapp/combined-service/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
+    </target>
+  
+      <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
+        <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/lib"/>
+        <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
+            <fileset dir="../lib">
+                <include name="jstl*.jar"/>
+                <include name="json*.jar"/>
+                <include name="commons-codec*.jar"/>
+                <include name="commons-collections*.jar"/>
+                <include name="commons-el*.jar"/>
+                <include name="commons-fileupload*.jar"/>
+                <include name="commons-httpclient*.jar"/>
+                <include name="commons-io*.jar"/>
+                <include name="commons-lang*.jar"/>
+                <include name="commons-logging*.jar"/>
+                <include name="log4j*.jar"/>
+                <include name="serializer*.jar"/>
+                <include name="xalan*.jar"/>
+                <include name="xercesImpl*.jar"/>
+                <include name="xml-apis*.jar"/>
+                <include name="velocity*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="postgresql*.jar"/>
+                <include name="derby*.jar"/>
+                <include name="hsqldb*.jar"/>
+            </fileset>
+            <fileset dir="../lib-proprietary">
+                <include name="mysql*.jar"/>
+                <include name="ojdbc*.jar"/>
+                <include name="jtds*.jar"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
+            <fileset dir="build/jar">
+                <include name="mcf-core.jar"/>
+                <include name="mcf-agents.jar"/>
+                <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-ui-core.jar"/>
+            </fileset>
+        </copy>
+        <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/jsp"/>
+        <copy todir="build/webapp/combined-service-proprietary/WEB-INF/jsp">
+            <fileset dir="crawler-ui/src/main/webapp/WEB-INF/jsp">
+                <include name="*.tld"/>
+            </fileset>
+        </copy>
+        <copy todir="build/webapp/combined-service-proprietary">
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        </copy>
+        <jar destfile="build/webapp/combined-service-proprietary/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
+    </target>
+
     <target name="war-authority-service" depends="webapp-authority-service">
         <mkdir dir="build/war"/>
         <war destfile="build/war/mcf-authority-service.war" webxml="authority-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/authority-service"/>
@@ -530,14 +682,24 @@
         <war destfile="build/war-proprietary/mcf-crawler-ui.war" webxml="crawler-ui/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/crawler-ui-proprietary"/>
     </target>
 
-    <target name="wars" depends="war-authority-service,war-api-service,war-crawler-ui">
+    <target name="war-combined-service" depends="webapp-combined-service">
+        <mkdir dir="build/war"/>
+        <war destfile="build/war/mcf-combined-service.war" webxml="combined-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/combined-service"/>
+    </target>
+
+    <target name="war-combined-service-proprietary" depends="webapp-combined-service-proprietary">
+        <mkdir dir="build/war-proprietary"/>
+        <war destfile="build/war-proprietary/mcf-combined-service.war" webxml="combined-service/src/main/webapp/WEB-INF/web.xml" basedir="build/webapp/combined-service-proprietary"/>
+    </target>
+
+    <target name="wars" depends="war-authority-service,war-api-service,war-crawler-ui,war-combined-service">
         <mkdir dir="dist/web/war"/>
         <copy todir="dist/web/war">
             <fileset dir="build/war"/>
         </copy>
     </target>
 
-    <target name="wars-proprietary" depends="war-authority-service-proprietary,war-api-service-proprietary,war-crawler-ui-proprietary">
+    <target name="wars-proprietary" depends="war-authority-service-proprietary,war-api-service-proprietary,war-crawler-ui-proprietary,war-combined-service-proprietary">
         <mkdir dir="dist/web-proprietary/war"/>
         <copy todir="dist/web-proprietary/war">
             <fileset dir="build/war-proprietary"/>
