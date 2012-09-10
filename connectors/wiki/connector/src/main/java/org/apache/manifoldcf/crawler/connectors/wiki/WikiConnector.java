@@ -367,8 +367,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (qName.equals("login")) {
         String loginResult = atts.getValue("result");
         if ("NeedToken".equals(loginResult)) {
+          String token = atts.getValue("token");
           try {
-            String token = atts.getValue("token");
             loginParams.put("lgtoken", token);
             PostMethod method = new PostMethod(baseUrl);
             for (String key : loginParams.keySet()) {
@@ -405,8 +405,29 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               }
             }
             method.releaseConnection();
-          } catch (IOException ex) {
-            Logger.getLogger(WikiConnector.class.getName()).log(Level.SEVERE, null, ex);
+          }
+          catch (java.net.SocketTimeoutException e)
+          {
+            long currentTime = System.currentTimeMillis();
+            throw new ServiceInterruption("Login timed out reading from the Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
+          }
+          catch (java.net.SocketException e)
+          {
+            long currentTime = System.currentTimeMillis();
+            throw new ServiceInterruption("Login received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
+          }
+          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+          {
+            long currentTime = System.currentTimeMillis();
+            throw new ServiceInterruption("Login connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
+          }
+          catch (InterruptedIOException e)
+          {
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (IOException e)
+          {
+            throw new ManifoldCFException("Login had an IO failure: "+e.getMessage(),e);
           }
         } else if ("Success".equals(loginResult)) {
           result.result = true;
@@ -1562,6 +1583,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpClient client;
     protected HttpMethodBase executeMethod;
     protected Throwable exception = null;
+    protected boolean loginNeeded = false;
 
     public ExecuteCheckThread(HttpClient client, HttpMethodBase executeMethod)
     {
@@ -1583,7 +1605,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         InputStream is = executeMethod.getResponseBodyAsStream();
         try
         {
-          parseCheckResponse(is);
+          loginNeeded = parseCheckResponse(is);
         }
         finally
         {
@@ -1608,6 +1630,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return exception;
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
   }
 
   /** Parse check response, e.g.:
@@ -1622,7 +1648,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query-continue>
   * </api>
   */
-  protected static void parseCheckResponse(InputStream is)
+  protected static boolean parseCheckResponse(InputStream is)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -1634,8 +1660,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         x.parse(is);
+        if (c.isLoginRequired())
+          return true;
         if (!c.hasResponse())
           throw new ManifoldCFException("Valid API response not detected");
+        return false;
       }
       catch (IOException e)
       {
@@ -1653,6 +1682,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiCheckAPIContext extends SingleLevelContext
   {
     boolean responseSeen = false;
+    boolean needLogin = false;
     
     public WikiCheckAPIContext(XMLStream theStream)
     {
@@ -1668,6 +1698,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throws ManifoldCFException
     {
       responseSeen |= ((WikiCheckQueryContext)child).hasResponse();
+      needLogin |= ((WikiCheckQueryContext)child).isLoginRequired();
     }
     
     public boolean hasResponse()
@@ -1675,10 +1706,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return responseSeen;
     }
 
+    public boolean isLoginRequired()
+    {
+      return needLogin;
+    }
+    
   }
 
   /** Class representing the "api/query" context of a "check" response */
-  protected static class WikiCheckQueryContext extends SingleLevelContext
+  protected static class WikiCheckQueryContext extends SingleLevelErrorContext
   {
     protected boolean responseSeen = false;
     
@@ -1909,6 +1945,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected PageBuffer pageBuffer;
     protected String lastPageTitle = null;
     protected String startPageTitle;
+    protected boolean loginNeeded = false;
 
     public ExecuteListPagesThread(HttpClient client, HttpMethodBase executeMethod, PageBuffer pageBuffer, String startPageTitle)
     {
@@ -1932,7 +1969,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         InputStream is = executeMethod.getResponseBodyAsStream();
         try
         {
-          lastPageTitle = parseListPagesResponse(is,pageBuffer,startPageTitle);
+          StringBuilder lastPageTitleBuffer = new StringBuilder();
+          loginNeeded = parseListPagesResponse(is,pageBuffer,startPageTitle,lastPageTitleBuffer);
+          lastPageTitle = lastPageTitleBuffer.toString();
         }
         finally
         {
@@ -1965,6 +2004,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return lastPageTitle;
     }
+    
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
   }
 
   /** Parse list output, e.g.:
@@ -1983,7 +2027,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query-continue>
   * </api>
   */
-  protected static String parseListPagesResponse(InputStream is, PageBuffer buffer, String startPageTitle)
+  protected static boolean parseListPagesResponse(InputStream is, PageBuffer buffer, String startPageTitle, StringBuilder lastTitle)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -1995,7 +2039,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         x.parse(is);
-        return c.getLastTitle();
+        String lastTitleString = c.getLastTitle();
+        if (lastTitleString != null)
+          lastTitle.append(lastTitleString);
+        return c.isLoginRequired();
       }
       catch (IOException e)
       {
@@ -2015,6 +2062,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String lastTitle = null;
     protected PageBuffer buffer;
     protected String startPageTitle;
+    protected boolean loginNeeded = false;
     
     public WikiListPagesAPIContext(XMLStream theStream, PageBuffer buffer, String startPageTitle)
     {
@@ -2032,6 +2080,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throws ManifoldCFException
     {
       lastTitle = ((WikiListPagesQueryContext)child).getLastTitle();
+      loginNeeded |= ((WikiListPagesQueryContext)child).isLoginRequired();
     }
     
     public String getLastTitle()
@@ -2039,10 +2088,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return lastTitle;
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
+
   }
 
   /** Class representing the "api/query" context of a "list all pages" response */
-  protected static class WikiListPagesQueryContext extends SingleLevelContext
+  protected static class WikiListPagesQueryContext extends SingleLevelErrorContext
   {
     protected String lastTitle = null;
     protected PageBuffer buffer;
@@ -2284,6 +2338,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpMethodBase executeMethod;
     protected Throwable exception = null;
     protected Map<String,String> urls;
+    protected boolean loginNeeded = false;
 
     public ExecuteGetDocURLsThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> urls)
     {
@@ -2306,7 +2361,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         InputStream is = executeMethod.getResponseBodyAsStream();
         try
         {
-          parseGetDocURLsResponse(is,urls);
+          loginNeeded = parseGetDocURLsResponse(is,urls);
         }
         finally
         {
@@ -2331,6 +2386,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return exception;
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
   }
 
   /** This method parses a response like the following:
@@ -2342,7 +2401,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query>
   * </api>
   */
-  protected static void parseGetDocURLsResponse(InputStream is, Map<String,String> urls)
+  protected static boolean parseGetDocURLsResponse(InputStream is, Map<String,String> urls)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -2354,6 +2413,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         x.parse(is);
+        return c.isLoginRequired();
       }
       catch (IOException e)
       {
@@ -2371,6 +2431,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiGetDocURLsAPIContext extends SingleLevelContext
   {
     protected Map<String,String> urls;
+    protected boolean loginNeeded = false;
     
     public WikiGetDocURLsAPIContext(XMLStream theStream, Map<String,String> urls)
     {
@@ -2386,12 +2447,18 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
+      loginNeeded |= ((WikiGetDocURLsQueryContext)child).isLoginRequired();
+    }
+
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
     }
 
   }
 
   /** Class representing the "api/query" context of a "get timestamp" response */
-  protected static class WikiGetDocURLsQueryContext extends SingleLevelContext
+  protected static class WikiGetDocURLsQueryContext extends SingleLevelErrorContext
   {
     protected Map<String,String> urls;
     
@@ -2595,6 +2662,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpMethodBase executeMethod;
     protected Throwable exception = null;
     protected Map<String,String> versions;
+    protected boolean loginNeeded = false;
 
     public ExecuteGetTimestampThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> versions)
     {
@@ -2617,7 +2685,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         InputStream is = executeMethod.getResponseBodyAsStream();
         try
         {
-          parseGetTimestampResponse(is,versions);
+          loginNeeded = parseGetTimestampResponse(is,versions);
         }
         finally
         {
@@ -2642,6 +2710,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return exception;
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
   }
 
   /** This method parses a response like the following:
@@ -2657,7 +2729,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query>
   * </api>
   */
-  protected static void parseGetTimestampResponse(InputStream is, Map<String,String> versions)
+  protected static boolean parseGetTimestampResponse(InputStream is, Map<String,String> versions)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -2669,6 +2741,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         x.parse(is);
+        return c.isLoginRequired();
       }
       catch (IOException e)
       {
@@ -2686,6 +2759,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiGetTimestampAPIContext extends SingleLevelContext
   {
     protected Map<String,String> versions;
+    protected boolean loginNeeded = false;
     
     public WikiGetTimestampAPIContext(XMLStream theStream, Map<String,String> versions)
     {
@@ -2701,12 +2775,17 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
+      loginNeeded |= ((WikiGetTimestampQueryContext)child).isLoginRequired();
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
   }
 
   /** Class representing the "api/query" context of a "get timestamp" response */
-  protected static class WikiGetTimestampQueryContext extends SingleLevelContext
+  protected static class WikiGetTimestampQueryContext extends SingleLevelErrorContext
   {
     protected Map<String,String> versions;
     
@@ -2959,6 +3038,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpMethodBase executeMethod;
     protected Throwable exception = null;
     protected Map<String,String> namespaces;
+    protected boolean loginNeeded = false;
 
     public ExecuteGetNamespacesThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> namespaces)
     {
@@ -3006,6 +3086,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             try
             {
               x.parse(is);
+              loginNeeded = c.isLoginRequired();
             }
             catch (IOException e)
             {
@@ -3041,6 +3122,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return exception;
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
   }
 
   /** Create a URL to obtain the namespaces.
@@ -3055,6 +3140,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiGetNamespacesAPIContext extends SingleLevelContext
   {
     protected Map<String,String> namespaces;
+    protected boolean loginNeeded = false;
     
     public WikiGetNamespacesAPIContext(XMLStream theStream, Map<String,String> namespaces)
     {
@@ -3071,12 +3157,18 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
+      loginNeeded |= ((WikiGetNamespacesQueryContext)child).isLoginRequired();
+    }
+
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
     }
 
   }
 
   /** Class representing the "api/query" context of a "get namespaces" response */
-  protected static class WikiGetNamespacesQueryContext extends SingleLevelContext
+  protected static class WikiGetNamespacesQueryContext extends SingleLevelErrorContext
   {
     protected Map<String,String> namespaces;
     
@@ -3362,6 +3454,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
     protected String statusCode = null;
     protected String errorMessage = null;
+    protected boolean loginNeeded = false;
 
     public ExecuteGetDocInfoThread(HttpClient client, HttpMethodBase executeMethod, String documentIdentifier)
     {
@@ -3414,6 +3507,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               comment = c.getComment();
               lastModified = c.getLastModified();
               statusCode = "OK";
+              loginNeeded = c.isLoginRequired();
             }
             catch (IOException e)
             {
@@ -3488,6 +3582,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return lastModified;
     }
     
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
+    
     public void cleanup()
     {
       if (contentFile != null)
@@ -3521,6 +3620,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String comment = null;
     /** Last modified */
     protected String lastModified = null;
+    protected boolean loginNeeded = false;
     
     public WikiGetDocInfoAPIContext(XMLStream theStream)
     {
@@ -3542,6 +3642,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       author = pc.getAuthor();
       comment = pc.getComment();
       lastModified = pc.getLastModified();
+      loginNeeded |= pc.isLoginRequired();
     }
     
     protected void tagCleanup()
@@ -3582,10 +3683,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return comment;
     }
 
+    public boolean isLoginRequired()
+    {
+      return loginNeeded;
+    }
+
   }
 
   /** Class representing the "api/query" context of a "get doc info" response */
-  protected static class WikiGetDocInfoQueryContext extends SingleLevelContext
+  protected static class WikiGetDocInfoQueryContext extends SingleLevelErrorContext
   {
     /** Title */
     protected String title = null;
