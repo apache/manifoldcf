@@ -1808,7 +1808,7 @@ public class SPSProxyHelper {
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
-        String sitePlusDocId = serverLocation + "/" + docId;
+        String sitePlusDocId = serverLocation + site + "/" + docId;
         if (sitePlusDocId.startsWith("/"))
           sitePlusDocId = sitePlusDocId.substring(1);
         
