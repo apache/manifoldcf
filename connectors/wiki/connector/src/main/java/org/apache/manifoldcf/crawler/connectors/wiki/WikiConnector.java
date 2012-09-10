@@ -137,7 +137,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Set up connection manager
       connectionManager = new MultiThreadedHttpConnectionManager();
-      connectionManager.getParams().setMaxTotalConnections(20);
+      connectionManager.getParams().setMaxTotalConnections(1);
 
       httpClient = new HttpClient(connectionManager);
 
@@ -155,24 +155,26 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected void loginToAPI()
     throws ManifoldCFException, ServiceInterruption
   {
+    // Grab the httpclient, and use the same one throughout.
     HttpClient client = getInitializedClient();
+    
+    // First step in login process: get the token
+    Map<String, String> loginParams = new HashMap<String, String>();
+
+    String token = null;
+    
     String loginURL = baseURL + "action=login";
-    HashMap<String, String> loginParams = new HashMap<String, String>();
     loginParams.put("action", "login");
     loginParams.put("lgname", serverLogin);
     loginParams.put("lgpassword", serverPass);
     if (serverDomain != null && !"".equals(serverDomain)) {
       loginParams.put("lgdomain", serverDomain);
     }
-    PostMethod method = new PostMethod(loginURL);
-    for (String key : loginParams.keySet()) {
-      method.setParameter(key, loginParams.get(key));
-    }
-    method.getParams().setParameter("http.socket.timeout", new Integer(300000));
+    
+    HttpMethodBase method = getInitializedPostMethod(loginURL,loginParams);
 
     try {
-      APILoginResult result = new APILoginResult();
-      ExecuteAPILoginThread t = new ExecuteAPILoginThread(client, method, loginURL, loginParams, result);
+      ExecuteAPILoginThread t = new ExecuteAPILoginThread(client, method);
       try {
         t.start();
         t.join();
@@ -208,9 +210,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
         throw e;
       }
-      if (!result.result) {
-        throw new ManifoldCFException("WIKI API login error: " + result.reason, null, ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
-      }
+      
+      // Grab the token from the first call
+      token = t.getToken();
+      
     } catch (InterruptedException e) {
       // Drop the connection on the floor
       method = null;
@@ -223,33 +226,111 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throw e;
     } catch (java.net.SocketTimeoutException e) {
       long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Get namespaces timed out reading from the Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
+      throw new ServiceInterruption("Login timed out reading from the Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
     } catch (java.net.SocketException e) {
       long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Get namespaces received a socket error reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
+      throw new ServiceInterruption("Login received a socket error reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
     } catch (org.apache.commons.httpclient.ConnectTimeoutException e) {
       long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Get namespaces connection timed out reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
+      throw new ServiceInterruption("Login connection timed out reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
     } catch (InterruptedIOException e) {
       method = null;
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     } catch (IOException e) {
-      throw new ManifoldCFException("Get namespaces had an IO failure: " + e.getMessage(), e);
+      throw new ManifoldCFException("Login had an IO failure: " + e.getMessage(), e);
     } finally {
       if (method != null) {
         method.releaseConnection();
       }
     }
-  }
 
-  protected class APILoginResult {
+    if (token == null) {
+      throw new ManifoldCFException("WIKI API login returned a null token!");
+    }
+      
+    // First request is finished.  Fire off the second one.
+    
+    APILoginResult result = new APILoginResult();
+    
+    loginParams.put("lgtoken", token);
+    
+    method = getInitializedPostMethod(loginURL,loginParams);
+    try {
+      ExecuteTokenAPILoginThread t = new ExecuteTokenAPILoginThread(client, method, result);
+      try {
+        t.start();
+        t.join();
 
-    public boolean result = false;
-    public String reason = "";
+        Throwable thr = t.getException();
+        if (thr != null) {
+          if (thr instanceof ManifoldCFException) {
+            if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
+              throw new InterruptedException(thr.getMessage());
+            }
+            throw (ManifoldCFException) thr;
+          } else if (thr instanceof ServiceInterruption) {
+            throw (ServiceInterruption) thr;
+          } else if (thr instanceof IOException) {
+            throw (IOException) thr;
+          } else if (thr instanceof RuntimeException) {
+            throw (RuntimeException) thr;
+          } else {
+            throw (Error) thr;
+          }
+        }
+      } catch (ManifoldCFException e) {
+        t.interrupt();
+        throw e;
+      } catch (ServiceInterruption e) {
+        t.interrupt();
+        throw e;
+      } catch (IOException e) {
+        t.interrupt();
+        throw e;
+      } catch (InterruptedException e) {
+        t.interrupt();
+        // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
+        throw e;
+      }
+
+      // Fall through
+    } catch (InterruptedException e) {
+      // Drop the connection on the floor
+      method = null;
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    } catch (ManifoldCFException e) {
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) // Drop the connection on the floor
+      {
+        method = null;
+      }
+      throw e;
+    } catch (java.net.SocketTimeoutException e) {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Login timed out reading from the Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
+    } catch (java.net.SocketException e) {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Login received a socket error reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
+    } catch (org.apache.commons.httpclient.ConnectTimeoutException e) {
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Login connection timed out reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
+    } catch (InterruptedIOException e) {
+      method = null;
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    } catch (IOException e) {
+      throw new ManifoldCFException("Login had an IO failure: " + e.getMessage(), e);
+    } finally {
+      if (method != null) {
+        method.releaseConnection();
+      }
+    }
+    
+    // Check result
+    if (!result.result)
+      throw new ManifoldCFException("WIKI API login error: " + result.reason, null, ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
   }
 
   /**
-   * Thread to execute a "get namespaces" operation. This thread both executes
+   * Thread to execute a "login" operation. This thread both executes
    * the operation and parses the result.
    */
   protected class ExecuteAPILoginThread extends Thread {
@@ -257,18 +338,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpClient client;
     protected HttpMethodBase executeMethod;
     protected Throwable exception = null;
-    protected String baseUrl;
-    protected HashMap<String, String> loginParams;
-    protected APILoginResult result;
+    protected String token = null;
 
-    public ExecuteAPILoginThread(HttpClient client, HttpMethodBase executeMethod, String baseUrl, HashMap<String, String> loginParams, APILoginResult result) {
+    public ExecuteAPILoginThread(HttpClient client, HttpMethodBase executeMethod) {
       super();
       setDaemon(true);
       this.client = client;
       this.executeMethod = executeMethod;
-      this.baseUrl = baseUrl;
-      this.result = result;
-      this.loginParams = loginParams;
     }
 
     public void run() {
@@ -292,14 +368,154 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           //  />
           //</api>
           XMLStream x = new XMLStream();
-          WikiLoginAPIContext c = new WikiLoginAPIContext(x, client, baseUrl, loginParams, result);
+          WikiLoginAPIContext c = new WikiLoginAPIContext(x);
           x.setContext(c);
           try {
             try {
               x.parse(is);
-            } catch (IOException e) {
+              token = c.getToken();
+            }
+            catch (IOException e)
+            {
               long time = System.currentTimeMillis();
-              throw new ServiceInterruption(e.getMessage(), e, time + 300000L, time + 12L * 60000L, -1, false);
+              throw new ServiceInterruption(e.getMessage(),e,time + 300000L,time + 12L * 60000L,-1,false);
+            }
+          } finally {
+            x.cleanup();
+          }
+        } finally {
+          try {
+            is.close();
+          } catch (IllegalStateException e) {
+            // Ignore this error
+          }
+        }
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException() {
+      return exception;
+    }
+    
+    public String getToken()
+    {
+      return token;
+    }
+  }
+
+  /**
+   * Class representing the "api" context of a "login" response
+   */
+  protected class WikiLoginAPIContext extends SingleLevelContext {
+
+    protected String token = null;
+    
+    public WikiLoginAPIContext(XMLStream theStream) {
+      super(theStream, "api");
+    }
+
+    protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts) {
+      return new WikiLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts);
+    }
+
+    protected void finishChild(BaseProcessingContext child)
+      throws ManifoldCFException {
+      token = ((WikiLoginAPIResultAPIContext)child).getToken();
+    }
+    
+    public String getToken()
+    {
+      return token;
+    }
+  }
+
+  /**
+   * Class representing the "api/result" context of a "login"
+   * response
+   */
+  protected class WikiLoginAPIResultAPIContext extends BaseProcessingContext {
+
+    protected String token = null;
+    
+    public WikiLoginAPIResultAPIContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts) {
+      super(theStream, namespaceURI, localName, qName, atts);
+    }
+
+    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
+      throws ManifoldCFException, ServiceInterruption {
+      if (qName.equals("login")) {
+        String loginResult = atts.getValue("result");
+        if ("NeedToken".equals(loginResult)) {
+          token = atts.getValue("token");
+        }
+      }
+      return super.beginTag(namespaceURI, localName, qName, atts);
+    }
+  
+    public String getToken()
+    {
+      return token;
+    }
+  }
+
+  protected class APILoginResult {
+
+    public boolean result = false;
+    public String reason = "";
+  }
+
+  /**
+   * Thread to finish a "login" operation. This thread both executes
+   * the operation and parses the result.
+   */
+  protected class ExecuteTokenAPILoginThread extends Thread {
+
+    protected HttpClient client;
+    protected HttpMethodBase executeMethod;
+    protected Throwable exception = null;
+    protected APILoginResult result;
+
+    public ExecuteTokenAPILoginThread(HttpClient client, HttpMethodBase executeMethod, APILoginResult result) {
+      super();
+      setDaemon(true);
+      this.client = client;
+      this.executeMethod = executeMethod;
+      this.result = result;
+    }
+
+    public void run() {
+      try {
+        // Call the execute method appropriately
+        int rval = client.executeMethod(executeMethod);
+        if (rval != 200) {
+          throw new ManifoldCFException("Unexpected response code " + rval + ": " + executeMethod.getResponseBodyAsString());
+        }
+
+        // Read response and make sure it's valid
+        InputStream is = executeMethod.getResponseBodyAsStream();
+        try {
+          // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
+          //<api>
+          //  <login
+          //    result="NeedToken"
+          //    token="b5780b6e2f27e20b450921d9461010b4"
+          //    cookieprefix="enwiki"
+          //    sessionid="17ab96bd8ffbe8ca58a78657a918558e"
+          //  />
+          //</api>
+          XMLStream x = new XMLStream();
+          WikiTokenLoginAPIContext c = new WikiTokenLoginAPIContext(x,result);
+          x.setContext(c);
+          try {
+            try {
+              x.parse(is);
+            }
+            catch (IOException e)
+            {
+              long time = System.currentTimeMillis();
+              throw new ServiceInterruption(e.getMessage(),e,time + 300000L,time + 12L * 60000L,-1,false);
             }
           } finally {
             x.cleanup();
@@ -322,119 +538,45 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /**
-   * Class representing the "api" context of a "get namespaces" response
+   * Class representing the "api" context of a "login" response
    */
-  protected class WikiLoginAPIContext extends SingleLevelContext {
+  protected class WikiTokenLoginAPIContext extends SingleLevelContext {
 
-    protected HttpClient client;
-    protected String baseUrl;
     protected APILoginResult result;
-    protected HashMap<String, String> loginParams;
-
-    public WikiLoginAPIContext(XMLStream theStream, HttpClient client, String baseUrl, HashMap<String, String> loginParams, APILoginResult result) {
+    
+    public WikiTokenLoginAPIContext(XMLStream theStream, APILoginResult result) {
       super(theStream, "api");
-      this.client = client;
-      this.baseUrl = baseUrl;
       this.result = result;
-      this.loginParams = loginParams;
     }
 
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts) {
-      return new WikiLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts, client, baseUrl, loginParams, result);
+      return new WikiTokenLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts, result);
     }
 
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException {
     }
+    
   }
 
   /**
-   * Class representing the "api/query/pages/page" context of a "get doc info"
+   * Class representing the "api/result" context of a "login"
    * response
    */
-  protected class WikiLoginAPIResultAPIContext extends BaseProcessingContext {
+  protected class WikiTokenLoginAPIResultAPIContext extends BaseProcessingContext {
 
-    protected HttpClient client;
-    protected String baseUrl;
     protected APILoginResult result;
-    protected HashMap<String, String> loginParams;
-
-    public WikiLoginAPIResultAPIContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, HttpClient client, String baseUrl, HashMap<String, String> loginParams, APILoginResult result) {
+    
+    public WikiTokenLoginAPIResultAPIContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, APILoginResult result) {
       super(theStream, namespaceURI, localName, qName, atts);
-      this.client = client;
-      this.baseUrl = baseUrl;
       this.result = result;
-      this.loginParams = loginParams;
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
       throws ManifoldCFException, ServiceInterruption {
       if (qName.equals("login")) {
         String loginResult = atts.getValue("result");
-        if ("NeedToken".equals(loginResult)) {
-          String token = atts.getValue("token");
-          try {
-            loginParams.put("lgtoken", token);
-            PostMethod method = new PostMethod(baseUrl);
-            for (String key : loginParams.keySet()) {
-              method.setParameter(key, loginParams.get(key));
-            }
-            method.getParams().setParameter("http.socket.timeout", new Integer(300000));
-
-            int rval = client.executeMethod(method);
-            if (rval != 200) {
-              throw new ManifoldCFException("Unexpected response code " + rval + ": " + method.getResponseBodyAsString());
-            }
-
-            // Read response and make sure it's valid
-            InputStream is = method.getResponseBodyAsStream();
-            try {
-              XMLStream x = new XMLStream();
-              WikiLoginAPIContext c = new WikiLoginAPIContext(x, client, baseUrl, loginParams, result);
-              x.setContext(c);
-              try {
-                try {
-                  x.parse(is);
-                } catch (IOException e) {
-                  long time = System.currentTimeMillis();
-                  throw new ServiceInterruption(e.getMessage(), e, time + 300000L, time + 12L * 60000L, -1, false);
-                }
-              } finally {
-                x.cleanup();
-              }
-            } finally {
-              try {
-                is.close();
-              } catch (IllegalStateException e) {
-                // Ignore this error
-              }
-            }
-            method.releaseConnection();
-          }
-          catch (java.net.SocketTimeoutException e)
-          {
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Login timed out reading from the Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
-          }
-          catch (java.net.SocketException e)
-          {
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Login received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
-          }
-          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-          {
-            long currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Login connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
-          }
-          catch (InterruptedIOException e)
-          {
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (IOException e)
-          {
-            throw new ManifoldCFException("Login had an IO failure: "+e.getMessage(),e);
-          }
-        } else if ("Success".equals(loginResult)) {
+        if ("Success".equals(loginResult)) {
           result.result = true;
         } else {
           result.reason = loginResult;
@@ -443,7 +585,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return super.beginTag(namespaceURI, localName, qName, atts);
     }
   }
-  
+
   /** Check status of connection.
   */
   @Override
@@ -1472,6 +1614,17 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     return method;
   }
 
+  /** Create an initialize a post method */
+  protected HttpMethodBase getInitializedPostMethod(String URL, Map<String,String> params)
+  {
+    PostMethod method = new PostMethod(URL);
+    for (String key : params.keySet()) {
+      method.setParameter(key, params.get(key));
+    }
+    method.getParams().setParameter("http.socket.timeout", new Integer(300000));
+    return method;
+  }
+  
   // -- Methods and classes to perform a "check" operation. --
 
   /** Do the check operation.  This throws an exception if anything is wrong.
