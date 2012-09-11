@@ -141,20 +141,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       httpClient = new HttpClient(connectionManager);
 
-      if (serverLogin != null && !"".equals(serverLogin)) {
-        loginToAPI();
-      }
-
+      loginToAPI();
+      
       hasBeenSetup = true;
     }
   }
 
   /** Log in via the Wiki API.
   * Call this method whenever login is apparently needed.
+  *@return true if the login was successful, false otherwise.
   */
-  protected void loginToAPI()
+  protected boolean loginToAPI()
     throws ManifoldCFException, ServiceInterruption
   {
+    if (serverLogin == null || serverLogin.length() == 0)
+      return false;
+
     // Grab the httpclient, and use the same one throughout.
     HttpClient client = getInitializedClient();
     
@@ -326,7 +328,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
     // Check result
     if (!result.result)
+    {
+      Logging.connectors.debug("WIKI API login error: '" + result.reason + "'");
       throw new ManifoldCFException("WIKI API login error: " + result.reason, null, ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
+    }
+    return true;
   }
 
   /**
@@ -1633,6 +1639,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
+    boolean loginAttempted = false;
     while (true)
     {
       HttpClient client = getInitializedClient();
@@ -1662,7 +1669,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             else
               throw (Error)thr;
           }
-          if (!t.isLoginRequired())
+          if (loginAttempted || !t.isLoginRequired())
             return;
         }
         catch (ManifoldCFException e)
@@ -1730,7 +1737,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           executeMethod.releaseConnection();
       }
       
-      loginToAPI();
+      if (!loginToAPI())
+        break;
+      loginAttempted = true;
       // Back around...
     }
   }
@@ -1970,6 +1979,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String executeListPagesViaThread(String startPageTitle, String namespace, String prefix, ISeedingActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    boolean loginAttempted = false;
     while (true)
     {
       HttpClient client = getInitializedClient();
@@ -2012,7 +2022,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             else
               throw (Error)thr;
           }
-          if (!t.isLoginRequired())
+          if (loginAttempted || !t.isLoginRequired())
             return t.getLastPageTitle();
         }
         catch (ManifoldCFException e)
@@ -2085,10 +2095,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           executeMethod.releaseConnection();
       }
       
-      loginToAPI();
+      if (!loginToAPI())
+        break;
+      loginAttempted = true;
       // Back around...
 
     }
+    return null;
   }
 
   /** Create a URL to obtain the next 500 pages.
@@ -2389,6 +2402,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
+    boolean loginAttempted = false;
     while (true)
     {
       HttpClient client = getInitializedClient();
@@ -2418,7 +2432,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             else
               throw (Error)thr;
           }
-          if (!t.isLoginRequired())
+          if (loginAttempted || !t.isLoginRequired())
             return;
         }
         catch (ManifoldCFException e)
@@ -2486,7 +2500,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           executeMethod.releaseConnection();
       }
       
-      loginToAPI();
+      if (!loginToAPI())
+        break;
+      loginAttempted = true;
     }
   }
   
@@ -2720,6 +2736,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
+    boolean loginAttempted = false;
     while (true)
     {
       HttpClient client = getInitializedClient();
@@ -2749,7 +2766,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             else
               throw (Error)thr;
           }
-          if (!t.isLoginRequired())
+          if (loginAttempted || !t.isLoginRequired())
             return;
         }
         catch (ManifoldCFException e)
@@ -2817,7 +2834,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           executeMethod.releaseConnection();
       }
       
-      loginToAPI();
+      if (!loginToAPI())
+        break;
+      loginAttempted = true;
     }
   }
 
@@ -3122,6 +3141,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
+    boolean loginAttempted = false;
     while (true)
     {
       HttpClient client = getInitializedClient();
@@ -3153,7 +3173,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             else
               throw (Error)thr;
           }
-          if (!t.isLoginRequired())
+          if (loginAttempted || !t.isLoginRequired())
             return;
         }
         catch (ManifoldCFException e)
@@ -3221,7 +3241,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           executeMethod.releaseConnection();
       }
       
-      loginToAPI();
+      if (!loginToAPI())
+        break;
+      loginAttempted = true;
     }
   }
   
@@ -3469,6 +3491,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
+    boolean loginAttempted = false;
     while (true)
     {
       HttpClient client = getInitializedClient();
@@ -3558,7 +3581,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
             }
           }
           
-          if (!t.isLoginRequired())
+          if (loginAttempted || !t.isLoginRequired())
             return;
         }
         catch (ManifoldCFException e)
@@ -3637,7 +3660,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,new Long(dataSize),documentIdentifier,statusCode,errorMessage,null);
       }
       
-      loginToAPI();
+      if (!loginToAPI())
+        break;
+      loginAttempted = true;
     }
   }
   
