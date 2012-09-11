@@ -50,9 +50,9 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     private static final String globalDenyToken = "DEAD_AUTHORITY";
     private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-            AuthorizationResponse.RESPONSE_UNREACHABLE);
+      AuthorizationResponse.RESPONSE_UNREACHABLE);
     private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-            AuthorizationResponse.RESPONSE_USERNOTFOUND);
+      AuthorizationResponse.RESPONSE_USERNOTFOUND);
 
 
     private String serverURL;
@@ -69,55 +69,38 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     }
 
     /**
-     * Set thread context.
-     */
-    @Override
-    public void setThreadContext(IThreadContext tc)
-            throws ManifoldCFException {
-        super.setThreadContext(tc);
-    }
-
-    /**
-     * Clear thread context.
-     */
-    @Override
-    public void clearThreadContext() {
-        super.clearThreadContext();
-    }
-
-    /**
      * Connect. The configuration parameters are included.
      *
      * @param configParams are the configuration parameters for this connection.
      */
     @Override
     public void connect(ConfigParams configParams) {
-        super.connect(configParams);
+      super.connect(configParams);
 
-        serverURL = getParam( configParams, "ldapServerUrl", "ldap://ldap.office.com:389/dc=office,dc=com");
-        userBase = getParam( configParams, "ldapUserBase", "ou=People" );
-        userSearch = getParam( configParams, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))" );
-        groupBase = getParam( configParams, "ldapGroupBase", "ou=Groups" );
-        groupSearch = getParam( configParams, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
-        groupNameAttr = getParam( configParams, "ldapGroupNameAttr", "cn" );
+      serverURL = getParam( configParams, "ldapServerUrl", "ldap://ldap.office.com:389/dc=office,dc=com");
+      userBase = getParam( configParams, "ldapUserBase", "ou=People" );
+      userSearch = getParam( configParams, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))" );
+      groupBase = getParam( configParams, "ldapGroupBase", "ou=Groups" );
+      groupSearch = getParam( configParams, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
+      groupNameAttr = getParam( configParams, "ldapGroupNameAttr", "cn" );
 
-        Hashtable env = new Hashtable();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.PROVIDER_URL, serverURL);
+      Hashtable env = new Hashtable();
+      env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+      env.put(Context.PROVIDER_URL, serverURL);
 
-        String em = "";
-        try {
-            if (session == null) {
-                session = new InitialLdapContext(env, null);
-            } else {
-                session.reconnect(null);
-            }
-        } catch (AuthenticationException e) {
-        } catch (CommunicationException e) {
-        } catch (NamingException e) {
-            em = e.toString();
+      String em = "";
+      try {
+        if (session == null) {
+          session = new InitialLdapContext(env, null);
+        } else {
+          session.reconnect(null);
         }
-        em = em + "";
+      } catch (AuthenticationException e) {
+      } catch (CommunicationException e) {
+      } catch (NamingException e) {
+        em = e.toString();
+      }
+      em = em + "";
     }
 
     // All methods below this line will ONLY be called if a connect() call succeeded
@@ -127,8 +110,9 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public String check()
-            throws ManifoldCFException {
-        return super.check();
+      throws ManifoldCFException {
+      // MHL for a real check
+      return super.check();
     }
 
     /**
@@ -136,8 +120,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public void poll()
-            throws ManifoldCFException {
-        super.poll();
+      throws ManifoldCFException {
+      super.poll();
     }
 
     /**
@@ -146,16 +130,16 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public void disconnect()
-            throws ManifoldCFException {
-        if (session != null) {
-            try {
-                session.close();
-            } catch (NamingException e) {
-                // Eat this error
-            }
-            session = null;
+      throws ManifoldCFException {
+      if (session != null) {
+        try {
+          session.close();
+        } catch (NamingException e) {
+          // Eat this error
         }
-        super.disconnect();
+        session = null;
+      }
+      super.disconnect();
     }
 
     /**
@@ -168,50 +152,50 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public AuthorizationResponse getAuthorizationResponse(String userName)
-            throws ManifoldCFException {
-        try {
-            //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
-            String usrDN = getDistinguishedName(session, userName);
-            if (usrDN == null) {
-                return userNotFoundResponse;
-            }
-
-            //specify the LDAP search filter
-            String searchFilter = groupSearch.replaceAll( "\\{0\\}", ldapEscape(usrDN));
-            SearchControls searchCtls = new SearchControls();
-            searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-            String returnedAtts[] = {groupNameAttr};
-            searchCtls.setReturningAttributes(returnedAtts);
-
-            //Search for tokens.  Since every user *must* have a SID, the "no user" detection should be safe.
-            NamingEnumeration answer = session.search(groupBase, searchFilter, searchCtls);
-
-            ArrayList theGroups = new ArrayList();
-
-            while (answer.hasMoreElements()) {
-                SearchResult sr = (SearchResult) answer.next();
-                Attributes attrs = sr.getAttributes();
-                if (attrs != null) {
-                    theGroups.add(attrs.get(groupNameAttr).get().toString());
-                }
-            }
-
-            String[] tokens = new String[theGroups.size()];
-            int k = 0;
-            while (k < tokens.length) {
-                tokens[k] = (String) theGroups.get(k);
-                k++;
-            }
-
-            return new AuthorizationResponse(tokens, AuthorizationResponse.RESPONSE_OK);
-
-        } catch (NameNotFoundException e) {
-            // This means that the user doesn't exist
-            return userNotFoundResponse;
-        } catch (NamingException e) {
-            // Unreachable
-            return unreachableResponse;
+      throws ManifoldCFException {
+      try {
+        //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
+        String usrDN = getDistinguishedName(session, userName);
+        if (usrDN == null) {
+          return userNotFoundResponse;
         }
+
+        //specify the LDAP search filter
+        String searchFilter = groupSearch.replaceAll( "\\{0\\}", ldapEscape(usrDN));
+        SearchControls searchCtls = new SearchControls();
+        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        String returnedAtts[] = {groupNameAttr};
+        searchCtls.setReturningAttributes(returnedAtts);
+
+        //Search for tokens.  Since every user *must* have a SID, the "no user" detection should be safe.
+        NamingEnumeration answer = session.search(groupBase, searchFilter, searchCtls);
+
+        ArrayList theGroups = new ArrayList();
+        
+        while (answer.hasMoreElements()) {
+          SearchResult sr = (SearchResult) answer.next();
+          Attributes attrs = sr.getAttributes();
+          if (attrs != null) {
+            theGroups.add(attrs.get(groupNameAttr).get().toString());
+          }
+        }
+
+        String[] tokens = new String[theGroups.size()];
+        int k = 0;
+        while (k < tokens.length) {
+          tokens[k] = (String) theGroups.get(k);
+          k++;
+        }
+
+        return new AuthorizationResponse(tokens, AuthorizationResponse.RESPONSE_OK);
+
+      } catch (NameNotFoundException e) {
+        // This means that the user doesn't exist
+        return userNotFoundResponse;
+      } catch (NamingException e) {
+        // Unreachable
+        return unreachableResponse;
+      }
     }
 
     /**
@@ -223,8 +207,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public AuthorizationResponse getDefaultAuthorizationResponse(String userName) {
-        // The default response if the getConnection method fails
-        return unreachableResponse;
+      // The default response if the getConnection method fails
+      return unreachableResponse;
     }
 
     // UI support methods.
@@ -246,9 +230,10 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
-            throws ManifoldCFException, IOException {
-        tabsArray.add("LDAP");
-/*        out.print( "<script type=\"text/javascript\">\n"+
+      throws ManifoldCFException, IOException {
+      tabsArray.add(Messages.getString(locale,"LDAP.LDAP"));
+      out.print(
+"<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "function checkConfig() {\n"+
 " return true;\n"+ 
@@ -259,7 +244,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 "}\n"+ 
 "//-->\n"+
 "</script>\n"
-);*/
+      );
     }
 
     /**
@@ -278,75 +263,72 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
-            throws ManifoldCFException, IOException {
-        String serverURL = getParam( parameters, "ldapServerUrl", "ldap://ldap.office.com:389/dc=office,dc=com");
-        String userBase = getParam( parameters, "ldapUserBase", "ou=People" );
-        String userSearch = getParam( parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))" );
-        String groupBase = getParam( parameters, "ldapGroupBase", "ou=Groups" );
-        String groupSearch = getParam( parameters, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
-        String groupNameAttr = getParam( parameters, "ldapGroupNameAttr", "cn" );
+      throws ManifoldCFException, IOException {
+      String serverURL = getParam( parameters, "ldapServerUrl", "ldap://ldap.office.com:389/dc=office,dc=com");
+      String userBase = getParam( parameters, "ldapUserBase", "ou=People" );
+      String userSearch = getParam( parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))" );
+      String groupBase = getParam( parameters, "ldapGroupBase", "ou=Groups" );
+      String groupSearch = getParam( parameters, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
+      String groupNameAttr = getParam( parameters, "ldapGroupNameAttr", "cn" );
         
-        if (tabName.equals("LDAP")) {
-            out.print(
-                "<table class=\"displaytable\">\n"+
-                " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+      if (tabName.equals(Messages.getString(locale,"LDAP.LDAP"))) {
+        out.print(
+"<table class=\"displaytable\">\n"+
+" <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
                     
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>LDAP server URL:</nobr></td>\n"+
-                "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapServerUrl\" value=\""+Encoder.attributeEscape(serverURL)+"\"/></td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.LDAPServerURLColon")+"</nobr></td>\n"+
+"  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapServerUrl\" value=\""+Encoder.attributeEscape(serverURL)+"\"/></td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>User search base:</nobr></td>\n"+
-                "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserBase\" value=\""+Encoder.attributeEscape(userBase)+"\"/></td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.UserSearchBaseColon")+"</nobr></td>\n"+
+"  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserBase\" value=\""+Encoder.attributeEscape(userBase)+"\"/></td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>User search filter:</nobr></td>\n"+
-                "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserSearch\" value=\""+Encoder.attributeEscape(userSearch)+"\"/></td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.UserSearchFilterColon")+"</nobr></td>\n"+
+"  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserSearch\" value=\""+Encoder.attributeEscape(userSearch)+"\"/></td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>Group search base:</nobr></td>\n"+
-                "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupBase\" value=\""+Encoder.attributeEscape(groupBase)+"\"/></td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.GroupSearchBaseColon")+"</nobr></td>\n"+
+"  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupBase\" value=\""+Encoder.attributeEscape(groupBase)+"\"/></td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>Group search filter:</nobr></td>\n"+
-                "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupSearch\" value=\""+Encoder.attributeEscape(groupSearch)+"\"/></td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.GroupSearchFilterColon")+"</nobr></td>\n"+
+"  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupSearch\" value=\""+Encoder.attributeEscape(groupSearch)+"\"/></td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>Group name attribute:</nobr></td>\n"+
-                "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupNameAttr\" value=\""+Encoder.attributeEscape(groupNameAttr)+"\"/></td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.GroupNameAttributeColon")+"</nobr></td>\n"+
+"  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupNameAttr\" value=\""+Encoder.attributeEscape(groupNameAttr)+"\"/></td>\n"+
+" </tr>\n"+
 
-                "</table>\n"
-            );
-        } else {
-            out.print( "<input type=\"hidden\" name=\"ldapServerUrl\" value=\""+Encoder.attributeEscape(serverURL)+"\"/>\n");
-            out.print( "<input type=\"hidden\" name=\"ldapUserBase\" value=\""+Encoder.attributeEscape(userBase)+"\"/>\n");
-            out.print( "<input type=\"hidden\" name=\"ldapUserSearch\" value=\""+Encoder.attributeEscape(userSearch)+"\"/>\n");
-            out.print( "<input type=\"hidden\" name=\"ldapGroupBase\" value=\""+Encoder.attributeEscape(groupBase)+"\"/>\n");
-            out.print( "<input type=\"hidden\" name=\"ldapGroupSearch\" value=\""+Encoder.attributeEscape(groupSearch)+"\"/>\n");
-            out.print( "<input type=\"hidden\" name=\"ldapGroupNameAttr\" value=\""+Encoder.attributeEscape(groupNameAttr)+"\"/>\n");
-        }
+"</table>\n"
+        );
+      } else {
+        out.print( "<input type=\"hidden\" name=\"ldapServerUrl\" value=\""+Encoder.attributeEscape(serverURL)+"\"/>\n");
+        out.print( "<input type=\"hidden\" name=\"ldapUserBase\" value=\""+Encoder.attributeEscape(userBase)+"\"/>\n");
+        out.print( "<input type=\"hidden\" name=\"ldapUserSearch\" value=\""+Encoder.attributeEscape(userSearch)+"\"/>\n");
+        out.print( "<input type=\"hidden\" name=\"ldapGroupBase\" value=\""+Encoder.attributeEscape(groupBase)+"\"/>\n");
+        out.print( "<input type=\"hidden\" name=\"ldapGroupSearch\" value=\""+Encoder.attributeEscape(groupSearch)+"\"/>\n");
+        out.print( "<input type=\"hidden\" name=\"ldapGroupNameAttr\" value=\""+Encoder.attributeEscape(groupNameAttr)+"\"/>\n");
+      }
     }
 
     private String getParam( ConfigParams parameters, String name, String def) {
-        return parameters.getParameter(name) != null ? parameters.getParameter(name) : def;
+      return parameters.getParameter(name) != null ? parameters.getParameter(name) : def;
     }
 
     private boolean copyParam( IPostParameters variableContext, ConfigParams parameters, String name) {
-        String val = variableContext.getParameter( name );
-        if( val == null ){
-            return false;
-        }
-        if( val.isEmpty() ) {
-            return false;
-        }
-        parameters.setParameter( name, val );
-        return true;
+      String val = variableContext.getParameter( name );
+      if( val == null ){
+        return false;
+      }
+      parameters.setParameter( name, val );
+      return true;
     }
 
     /**
@@ -367,19 +349,14 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale, ConfigParams parameters)
-            throws ManifoldCFException {
-        boolean ok = true;
-
-        ok = ok & copyParam(variableContext, parameters, "ldapServerUrl" );
-        ok = ok & copyParam(variableContext, parameters, "ldapUserBase" );
-        ok = ok & copyParam(variableContext, parameters, "ldapUserSearch" );
-        ok = ok & copyParam(variableContext, parameters, "ldapGroupBase" );
-        ok = ok & copyParam(variableContext, parameters, "ldapGroupSearch" );
-        ok = ok & copyParam(variableContext, parameters, "ldapGroupNameAttr" );
-        /*if( !ok ) {
-            return "All LDAP parameters are required!";
-        }*/
-        return null;
+      throws ManifoldCFException {
+      copyParam(variableContext, parameters, "ldapServerUrl" );
+      copyParam(variableContext, parameters, "ldapUserBase" );
+      copyParam(variableContext, parameters, "ldapUserSearch" );
+      copyParam(variableContext, parameters, "ldapGroupBase" );
+      copyParam(variableContext, parameters, "ldapGroupSearch" );
+      copyParam(variableContext, parameters, "ldapGroupNameAttr" );
+      return null;
     }
 
     /**
@@ -396,49 +373,49 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      */
     @Override
     public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
-            throws ManifoldCFException, IOException {
-        String serverURL = getParam( parameters, "ldapServerUrl", "ldap://ldap.office.com:389/dc=office,dc=com");
-        String userBase = getParam( parameters, "ldapUserBase", "ou=People" );
-        String userSearch = getParam( parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))" );
-        String groupBase = getParam( parameters, "ldapGroupBase", "ou=Groups" );
-        String groupSearch = getParam( parameters, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
-        String groupNameAttr = getParam( parameters, "ldapGroupNameAttr", "cn" );
-            out.print(
-                "<table class=\"displaytable\">\n"+
-                " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+      throws ManifoldCFException, IOException {
+      String serverURL = getParam( parameters, "ldapServerUrl", "ldap://ldap.office.com:389/dc=office,dc=com");
+      String userBase = getParam( parameters, "ldapUserBase", "ou=People" );
+      String userSearch = getParam( parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))" );
+      String groupBase = getParam( parameters, "ldapGroupBase", "ou=Groups" );
+      String groupSearch = getParam( parameters, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
+      String groupNameAttr = getParam( parameters, "ldapGroupNameAttr", "cn" );
+      out.print(
+"<table class=\"displaytable\">\n"+
+" <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
                     
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>LDAP server URL:</nobr></td>\n"+
-                "  <td class=\"value\">"+Encoder.attributeEscape(serverURL)+"</td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.LDAPServerURLColon")+"</nobr></td>\n"+
+"  <td class=\"value\">"+Encoder.bodyEscape(serverURL)+"</td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>User search base:</nobr></td>\n"+
-                "  <td class=\"value\">"+Encoder.attributeEscape(userBase)+"</td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.UserSearchBaseColon")+"</nobr></td>\n"+
+"  <td class=\"value\">"+Encoder.bodyEscape(userBase)+"</td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>User search filter:</nobr></td>\n"+
-                "  <td class=\"value\">"+Encoder.attributeEscape(userSearch)+"</td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.UserSearchFilterColon")+"</nobr></td>\n"+
+"  <td class=\"value\">"+Encoder.bodyEscape(userSearch)+"</td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>Group search base:</nobr></td>\n"+
-                "  <td class=\"value\">"+Encoder.attributeEscape(groupBase)+"</td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.GroupSearchBaseColon")+"</nobr></td>\n"+
+"  <td class=\"value\">"+Encoder.bodyEscape(groupBase)+"</td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>Group search filter:</nobr></td>\n"+
-                "  <td class=\"value\">"+Encoder.attributeEscape(groupSearch)+"</td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.GroupSearchFilterColon")+"</nobr></td>\n"+
+"  <td class=\"value\">"+Encoder.bodyEscape(groupSearch)+"</td>\n"+
+" </tr>\n"+
 
-                " <tr>\n"+
-                "  <td class=\"description\"><nobr>Group name attribute:</nobr></td>\n"+
-                "  <td class=\"value\">"+Encoder.attributeEscape(groupNameAttr)+"</td>\n"+
-                " </tr>\n"+
+" <tr>\n"+
+"  <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LDAP.GroupNameAttributeColon")+"</nobr></td>\n"+
+"  <td class=\"value\">"+Encoder.bodyEscape(groupNameAttr)+"</td>\n"+
+" </tr>\n"+
 
-                "</table>\n"
-            );
+"</table>\n"
+      );
     }
 
     // Protected methods
@@ -453,42 +430,42 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      * throws an exception if user is not found.)
      */
     protected String getDistinguishedName(LdapContext ctx, String userName)
-            throws ManifoldCFException {
-        String returnedAtts[] = {"dn"};
-        String searchFilter = userSearch.replaceAll( "\\{0\\}", ldapEscape(userName));
-        SearchControls searchCtls = new SearchControls();
-        searchCtls.setReturningAttributes(returnedAtts);
-        searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+      throws ManifoldCFException {
+      String returnedAtts[] = {"dn"};
+      String searchFilter = userSearch.replaceAll( "\\{0\\}", ldapEscape(userName));
+      SearchControls searchCtls = new SearchControls();
+      searchCtls.setReturningAttributes(returnedAtts);
+      searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
-        try {
-            NamingEnumeration answer = ctx.search(userBase, searchFilter, searchCtls);
-            while (answer.hasMoreElements()) {
-                SearchResult sr = (SearchResult) answer.next();
-                return sr.getNameInNamespace();
-            }
-            return null;
-        } catch (Exception e) {
-            throw new ManifoldCFException(e.getMessage(), e);
+      try {
+        NamingEnumeration answer = ctx.search(userBase, searchFilter, searchCtls);
+        while (answer.hasMoreElements()) {
+          SearchResult sr = (SearchResult) answer.next();
+          return sr.getNameInNamespace();
         }
+        return null;
+      } catch (Exception e) {
+        throw new ManifoldCFException(e.getMessage(), e);
+      }
     }
 
     /**
      * LDAP escape a string.
      */
     protected static String ldapEscape(String input) {
-        //Add escape sequence to all commas
-        StringBuilder sb = new StringBuilder();
-        int index = 0;
-        while (true) {
-            int oldIndex = index;
-            index = input.indexOf(",", oldIndex);
-            if (index == -1) {
-                sb.append(input.substring(oldIndex));
-                break;
-            }
-            sb.append(input.substring(oldIndex, index)).append("\\,");
-            index++;
+      //Add escape sequence to all commas
+      StringBuilder sb = new StringBuilder();
+      int index = 0;
+      while (true) {
+        int oldIndex = index;
+        index = input.indexOf(",", oldIndex);
+        if (index == -1) {
+          sb.append(input.substring(oldIndex));
+          break;
         }
-        return sb.toString();
+        sb.append(input.substring(oldIndex, index)).append("\\,");
+        index++;
+      }
+      return sb.toString();
     }
 }
