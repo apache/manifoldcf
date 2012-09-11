@@ -22,8 +22,29 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
+import org.apache.tools.ant.taskdefs.Zip;
+
 import java.io.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.*;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 {
@@ -85,6 +106,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String connectorsConfigurationFileProperty = "org.apache.manifoldcf.connectorsconfigurationfile";
   protected static final String databaseSuperuserNameProperty = "org.apache.manifoldcf.dbsuperusername";
   protected static final String databaseSuperuserPasswordProperty = "org.apache.manifoldcf.dbsuperuserpassword";
+  protected static final String salt = "org.apache.manifoldcf.salt";
 
   /** This object is used to make sure the initialization sequence is atomic.  Shutdown cannot occur until the system is in a known state. */
   protected static Integer startupLock = new Integer(0);
@@ -1034,9 +1056,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     Logging.root.info("Pull-agent successfully shut down");
   }
+  
 
   /** Atomically export the crawler configuration */
-  public static void exportConfiguration(IThreadContext threadContext, String exportFilename)
+  public static void exportConfiguration(IThreadContext threadContext, String exportFilename, String passCode)
     throws ManifoldCFException
   {
     // The basic idea here is that we open a zip stream, into which we dump all the pertinent information in a transactionally-consistent manner.
@@ -1056,10 +1079,42 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Create a zip output stream, which is what we will use as a mechanism for handling the output data
     try
     {
+      
       OutputStream os = new FileOutputStream(outputFile);
+      
       try
       {
-        java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(os);
+        
+        java.util.zip.ZipOutputStream zos = null;
+        CipherOutputStream cos = null;
+        
+        // Check whether we need to encrypt the file content:
+        if (passCode != null && passCode.length() > 0)
+        {
+          
+          // Write IV as a prefix:
+          SecureRandom random = new SecureRandom();
+          byte[] iv = new byte[IV_LENGTH];
+          random.nextBytes(iv);
+          os.write(iv);
+          os.flush();
+          
+          Cipher cipher = null; 
+          try
+          {
+            cipher = getCipher(Cipher.ENCRYPT_MODE, passCode, iv);
+          }
+          catch (GeneralSecurityException gse)
+          {
+            throw new ManifoldCFException("Could not encrypt configuratiom file: " + gse.getMessage());
+          }
+          
+          cos = new CipherOutputStream(os, cipher);
+          zos = new java.util.zip.ZipOutputStream(cos);
+        }
+        else
+          zos = new java.util.zip.ZipOutputStream(os);
+ 
         try
         {
           // Now, work within a transaction.
@@ -1112,6 +1167,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         finally
         {
           zos.close();
+          if (cos != null) {
+            cos.close();
+          }
         }
       }
       finally
@@ -1127,9 +1185,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       throw new ManifoldCFException("Error creating configuration file: "+e.getMessage(),e);
     }
   }
+  
 
   /** Atomically import a crawler configuration */
-  public static void importConfiguration(IThreadContext threadContext, String importFilename)
+  public static void importConfiguration(IThreadContext threadContext, String importFilename, String passCode)
     throws ManifoldCFException
   {
     // First, we need a database handle...
@@ -1151,7 +1210,31 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       InputStream is = new FileInputStream(inputFile);
       try
       {
-        java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(is);
+        java.util.zip.ZipInputStream zis = null;
+        CipherInputStream cis = null;
+        
+        // Check whether we need to decrypt the file content:
+        if (passCode != null && passCode.length() > 0)
+        {
+          
+          byte[] iv = new byte[IV_LENGTH];
+          is.read(iv);
+
+          Cipher cipher = null; 
+          try
+          {
+            cipher = getCipher(Cipher.DECRYPT_MODE, passCode, iv);
+          }
+          catch (GeneralSecurityException gse)
+          {
+            throw new ManifoldCFException("Could not decrypt configuratiom file: " + gse.getMessage());
+          }
+          cis = new CipherInputStream(is, cipher);
+          zis = new java.util.zip.ZipInputStream(cis);
+        }
+        else
+          zis = new java.util.zip.ZipInputStream(is);
+
         try
         {
           // Now, work within a transaction.
@@ -1159,12 +1242,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           try
           {
             // Process the entries in the order in which they were recorded.
+            int entries = 0;
             while (true)
             {
               java.util.zip.ZipEntry z = zis.getNextEntry();
               // Stop if there are no more entries
               if (z == null)
                 break;
+              entries++;
               // Get the name of the entry
               String name = z.getName();
               if (name.equals("outputs"))
@@ -1180,6 +1265,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               zis.closeEntry();
 
             }
+            if (entries == 0 && passCode != null && passCode.length() > 0)
+              throw new ManifoldCFException("Cannot read configuration file. Please check your passcode and/or SALT value.");
             // All done!!
           }
           catch (ManifoldCFException e)
@@ -1200,6 +1287,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         finally
         {
           zis.close();
+          if (cis != null) {
+            cis.close();
+          }
         }
       }
       finally
@@ -3531,8 +3621,28 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     
   }
 
+  private static final int IV_LENGTH = 16;
+  
+  private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
+    ManifoldCFException
+  {
+    final String saltValue = getProperty(salt);
+
+    if (saltValue == null || saltValue.length() == 0)
+      throw new ManifoldCFException("Missing required SALT value");
+    
+    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+    KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+    SecretKey secretKey = factory.generateSecret(keySpec);
+
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
+    IvParameterSpec parameterSpec = new IvParameterSpec(iv);
+    cipher.init(mode, key, parameterSpec);
+    return cipher;
+  }
+  
   // End of connection API code
-  
-  
+
 }
 

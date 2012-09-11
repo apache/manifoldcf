@@ -29,31 +29,34 @@ public class ExportConfiguration extends BaseCrawlerInitializationCommand
   public static final String _rcsid = "@(#)$Id: ExportConfiguration.java 988245 2010-08-23 18:39:35Z kwright $";
 
   private final String exportFilename;
+  private final String passCode;
 
-  public ExportConfiguration(String exportFilename)
+  public ExportConfiguration(String exportFilename, String passCode)
   {
     this.exportFilename = exportFilename;
+    this.passCode = passCode;
   }
 
   protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ManifoldCF.exportConfiguration(tc,exportFilename);
+    ManifoldCF.exportConfiguration(tc,exportFilename, passCode);
     Logging.root.info("Configuration exported");
   }
 
   public static void main(String[] args)
   {
-    if (args.length != 1)
+    if (args.length != 1 && args.length != 2)
     {
-      System.err.println("Usage: ExportConfiguration <filename>");
+      System.err.println("Usage: ExportConfiguration <filename> [<passcode>]");
       System.exit(1);
     }
 
     String exportFilename = args[0];
+    String passCode = (args.length == 2) ? args[1] : null;
 
     try
     {
-      ExportConfiguration exportConfiguration = new ExportConfiguration(exportFilename);
+      ExportConfiguration exportConfiguration = new ExportConfiguration(exportFilename, passCode);
       exportConfiguration.execute();
       System.err.println("Configuration exported");
     }

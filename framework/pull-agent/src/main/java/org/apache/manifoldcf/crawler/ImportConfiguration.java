@@ -29,31 +29,34 @@ public class ImportConfiguration extends BaseCrawlerInitializationCommand
   public static final String _rcsid = "@(#)$Id: ImportConfiguration.java 988245 2010-08-23 18:39:35Z kwright $";
 
   private final String importFilename;
+  private final String passCode;
 
-  public ImportConfiguration(String importFilename)
+  public ImportConfiguration(String importFilename, String passCode)
   {
     this.importFilename = importFilename;
+    this.passCode = passCode;
   }
 
   protected void doExecute(IThreadContext tc) throws ManifoldCFException
   {
-    ManifoldCF.importConfiguration(tc,importFilename);
+    ManifoldCF.importConfiguration(tc,importFilename, passCode);
     Logging.root.info("Configuration imported");
   }
 
   public static void main(String[] args)
   {
-    if (args.length != 1)
+    if (args.length != 1 && args.length != 2)
     {
-      System.err.println("Usage: ImportConfiguration <filename>");
+      System.err.println("Usage: ImportConfiguration <filename> [<passcode>]");
       System.exit(1);
     }
 
     String importFilename = args[0];
+    String passCode = (args.length == 2) ? args[1] : null;
 
     try
     {
-      ImportConfiguration importConfiguration = new ImportConfiguration(importFilename);
+      ImportConfiguration importConfiguration = new ImportConfiguration(importFilename, passCode);
       importConfiguration.execute();
       System.err.println("Configuration imported");
     }

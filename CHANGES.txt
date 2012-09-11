@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-486: Optionally encrypt the file which the crawler configuration
+is exported to.
+(Erlend Garåsen)
+
 CONNECTORS-523: Build a combined war that can be deployed alone
 on Tomcat and bring all of ManifoldCF's functionality with it.
 (Maciej Lizewski, Karl Wright)
