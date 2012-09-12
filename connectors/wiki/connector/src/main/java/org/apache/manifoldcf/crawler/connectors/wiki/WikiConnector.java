@@ -481,7 +481,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
-  protected class APILoginResult {
+  protected static class APILoginResult {
 
     public boolean result = false;
     public String reason = "";
@@ -2138,6 +2138,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
+  protected static class ReturnString
+  {
+    public String returnValue = null;
+  }
+  
   /** Thread to execute a list pages operation */
   protected static class ExecuteListPagesThread extends Thread
   {
@@ -2171,9 +2176,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         InputStream is = executeMethod.getResponseBodyAsStream();
         try
         {
-          StringBuilder lastPageTitleBuffer = new StringBuilder();
-          loginNeeded = parseListPagesResponse(is,pageBuffer,startPageTitle,lastPageTitleBuffer);
-          lastPageTitle = lastPageTitleBuffer.toString();
+          ReturnString returnString = new ReturnString();
+          loginNeeded = parseListPagesResponse(is,pageBuffer,startPageTitle,returnString);
+          lastPageTitle = returnString.returnValue;
         }
         finally
         {
@@ -2229,7 +2234,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query-continue>
   * </api>
   */
-  protected static boolean parseListPagesResponse(InputStream is, PageBuffer buffer, String startPageTitle, StringBuilder lastTitle)
+  protected static boolean parseListPagesResponse(InputStream is, PageBuffer buffer, String startPageTitle, ReturnString lastTitle)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -2242,8 +2247,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         x.parse(is);
         String lastTitleString = c.getLastTitle();
-        if (lastTitleString != null)
-          lastTitle.append(lastTitleString);
+        lastTitle.returnValue = lastTitleString;
         return c.isLoginRequired();
       }
       catch (IOException e)
