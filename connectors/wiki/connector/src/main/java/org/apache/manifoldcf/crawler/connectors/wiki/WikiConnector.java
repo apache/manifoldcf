@@ -3436,6 +3436,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected Map<String,String> namespaces;
     protected String canonical = null;
+	protected String nsid = null;
     
     public WikiGetNamespacesNsContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
       Map<String,String> namespaces)
@@ -3449,8 +3450,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       if (qName.equals("ns"))
       {
+        nsid = atts.getValue("id");
         canonical = atts.getValue("canonical");
-        if (canonical != null)
+        if (canonical != null && nsid != null)
           return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
       return super.beginTag(namespaceURI,localName,qName,atts);
@@ -3463,11 +3465,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       String theTag = theContext.getQname();
       if (theTag.equals("ns"))
       {
-        if (canonical != null)
+        if (canonical != null && nsid != null)
         {
           // Pull down the data
           XMLStringContext sc = (XMLStringContext)theContext;
-          namespaces.put(sc.getValue(),canonical);
+          namespaces.put(sc.getValue(),nsid);
         }
         else
           super.endTag();
