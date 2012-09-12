@@ -3,6 +3,10 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-518: Add Wiki protected content access support to the
+Wiki Connector.  Thanks to Maciej Lizewski for this contribution.
+(Maciej Lizewski, Karl Wright)
+
 CONNECTORS-486: Optionally encrypt the file which the crawler configuration
 is exported to.
 (Erlend Garåsen)
