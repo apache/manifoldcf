@@ -172,11 +172,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (serverDomain != null && !"".equals(serverDomain)) {
       loginParams.put("lgdomain", serverDomain);
     }
-    
+
+    APILoginResult result = new APILoginResult();
+        
     HttpMethodBase method = getInitializedPostMethod(loginURL,loginParams);
 
     try {
-      ExecuteAPILoginThread t = new ExecuteAPILoginThread(client, method);
+      ExecuteAPILoginThread t = new ExecuteAPILoginThread(client, method, result);
       try {
         t.start();
         t.join();
@@ -213,8 +215,17 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         throw e;
       }
       
+      if (result.result)
+        return true;
+      
       // Grab the token from the first call
       token = t.getToken();
+      if (token == null)
+      {
+        // We don't need a token, we just couldn't log in
+        Logging.connectors.debug("WIKI API login error: '" + result.reason + "'");
+        throw new ManifoldCFException("WIKI API login error: " + result.reason, null, ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
+      }
       
     } catch (InterruptedException e) {
       // Drop the connection on the floor
@@ -246,13 +257,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    if (token == null) {
-      throw new ManifoldCFException("WIKI API login returned a null token!");
-    }
-      
     // First request is finished.  Fire off the second one.
-    
-    APILoginResult result = new APILoginResult();
     
     loginParams.put("lgtoken", token);
     
@@ -343,14 +348,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     protected HttpClient client;
     protected HttpMethodBase executeMethod;
+    protected APILoginResult result;
     protected Throwable exception = null;
     protected String token = null;
 
-    public ExecuteAPILoginThread(HttpClient client, HttpMethodBase executeMethod) {
+    public ExecuteAPILoginThread(HttpClient client, HttpMethodBase executeMethod, APILoginResult result) {
       super();
       setDaemon(true);
       this.client = client;
       this.executeMethod = executeMethod;
+      this.result = result;
     }
 
     public void run() {
@@ -374,7 +381,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           //  />
           //</api>
           XMLStream x = new XMLStream();
-          WikiLoginAPIContext c = new WikiLoginAPIContext(x);
+          WikiLoginAPIContext c = new WikiLoginAPIContext(x,result);
           x.setContext(c);
           try {
             try {
@@ -416,14 +423,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
    */
   protected class WikiLoginAPIContext extends SingleLevelContext {
 
+    protected APILoginResult result;
     protected String token = null;
     
-    public WikiLoginAPIContext(XMLStream theStream) {
+    public WikiLoginAPIContext(XMLStream theStream, APILoginResult result) {
       super(theStream, "api");
+      this.result = result;
     }
 
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts) {
-      return new WikiLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts);
+      return new WikiLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts, result);
     }
 
     protected void finishChild(BaseProcessingContext child)
@@ -443,10 +452,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
    */
   protected class WikiLoginAPIResultAPIContext extends BaseProcessingContext {
 
+    protected APILoginResult result;
     protected String token = null;
     
-    public WikiLoginAPIResultAPIContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts) {
+    public WikiLoginAPIResultAPIContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, APILoginResult result) {
       super(theStream, namespaceURI, localName, qName, atts);
+      this.result = result;
     }
 
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
@@ -455,6 +466,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         String loginResult = atts.getValue("result");
         if ("NeedToken".equals(loginResult)) {
           token = atts.getValue("token");
+        } else if ("Success".equals(loginResult)) {
+          result.result = true;
+        } else {
+          result.reason = loginResult;
         }
       }
       return super.beginTag(namespaceURI, localName, qName, atts);
