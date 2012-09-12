@@ -44,6 +44,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      * Session information for all DC's we talk with.
      */
     private LdapContext session = null;
+    private long sessionExpirationTime = -1L;
+  
     /**
      * This is the active directory global deny token. This should be ingested
      * with all documents.
@@ -84,33 +86,51 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       groupSearch = getParam( configParams, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))" );
       groupNameAttr = getParam( configParams, "ldapGroupNameAttr", "cn" );
 
+    }
+
+    // All methods below this line will ONLY be called if a connect() call succeeded
+    // on this instance!
+
+    /** Session setup.  Anything that might need to throw an exception should go
+    * here.
+    */
+    protected void getSession()
+      throws ManifoldCFException
+    {
       Hashtable env = new Hashtable();
       env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
       env.put(Context.PROVIDER_URL, serverURL);
 
-      String em = "";
       try {
         if (session == null) {
           session = new InitialLdapContext(env, null);
         } else {
           session.reconnect(null);
         }
+        sessionExpirationTime = System.currentTimeMillis() + 300000L;
       } catch (AuthenticationException e) {
+        session = null;
+        sessionExpirationTime = -1L;
+        throw new ManifoldCFException("Authentication error: "+e.getMessage(),e);
       } catch (CommunicationException e) {
+        session = null;
+        sessionExpirationTime = -1L;
+        throw new ManifoldCFException("Communication error: "+e.getMessage(),e);
       } catch (NamingException e) {
-        em = e.toString();
+        session = null;
+        sessionExpirationTime = -1L;
+        throw new ManifoldCFException("Naming error: "+e.getMessage(),e);
       }
-      em = em + "";
-    }
 
-    // All methods below this line will ONLY be called if a connect() call succeeded
-    // on this instance!
+    }
+    
     /**
      * Check connection for sanity.
      */
     @Override
     public String check()
       throws ManifoldCFException {
+      getSession();
       // MHL for a real check
       return super.check();
     }
@@ -121,16 +141,15 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     @Override
     public void poll()
       throws ManifoldCFException {
+      if (session != null && System.currentTimeMillis() > sessionExpirationTime)
+        disconnectSession();
       super.poll();
     }
 
-    /**
-     * Close the connection. Call this before discarding the repository
-     * connector.
-     */
-    @Override
-    public void disconnect()
-      throws ManifoldCFException {
+    /** Disconnect a session.
+    */
+    protected void disconnectSession()
+    {
       if (session != null) {
         try {
           session.close();
@@ -138,7 +157,18 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
           // Eat this error
         }
         session = null;
+        sessionExpirationTime = -1L;
       }
+    }
+    
+    /**
+     * Close the connection. Call this before discarding the repository
+     * connector.
+     */
+    @Override
+    public void disconnect()
+      throws ManifoldCFException {
+      disconnectSession();
       super.disconnect();
     }
 
@@ -153,6 +183,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     @Override
     public AuthorizationResponse getAuthorizationResponse(String userName)
       throws ManifoldCFException {
+      getSession();
       try {
         //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
         String usrDN = getDistinguishedName(session, userName);
