@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-527: Error during CMIS ingestion of nodes without binary content
+(Piergiorgio Lucidi)
+
 CONNECTORS-518: Add Wiki protected content access support to the
 Wiki Connector.  Thanks to Maciej Lizewski for this contribution.
 (Maciej Lizewski, Karl Wright)

@@ -28,7 +28,6 @@ import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1066,14 +1065,16 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
         Document document = (Document) cmisObject;
         long fileLength = document.getContentStreamLength();
-
-        InputStream is = document.getContentStream().getStream();
-
+        InputStream is = null;
+        
         try {
           RepositoryDocument rd = new RepositoryDocument();
           
           //binary
-          rd.setBinary(is, fileLength);
+          if(fileLength>0 && document.getContentStream()!=null){
+            is = document.getContentStream().getStream();
+            rd.setBinary(is, fileLength);
+          }
 
           //properties
           List<Property<?>> properties = document.getProperties();
@@ -1175,7 +1176,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
         } finally {
           try {
-            is.close();
+            if(is!=null){
+              is.close();
+            }
           } catch (InterruptedIOException e) {
             errorCode = "Interrupted error";
             errorDesc = e.getMessage();
