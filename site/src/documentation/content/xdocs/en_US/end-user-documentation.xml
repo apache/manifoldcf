@@ -1276,6 +1276,9 @@
                        considered indexable or not by the output connection.  The rule also describes the action to take should the rule be matched: include or exclude.  The file specification
                        character "*" is a wildcard which matches zero or more characters, while the character "?" matches exactly one character.  All other characters must match 
                        exactly.</p>
+                <p>Remember that your specification must match <strong>all</strong> characters included in the file's path.  That includes all path separator characters ("/").
+                      The path you must match always begins with an initial path separator.  Thus, if you want to exclude the file "foo.txt" at the root level, your exclude rule must
+                      match "/foo.txt".</p>
                 <p>To add a rule for a starting path, select the desired values of all the pulldowns, type in the desired file criteria, and click the "Add" button.  You may also insert
                        a new rule above any existing rule, by using one of the "Insert" buttons.</p>
                 <p>The "Security" tab looks like this:</p>

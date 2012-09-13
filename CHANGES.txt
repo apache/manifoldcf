@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-526: Clarify JCIFS connector documentation.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-525: Upgrade to OpenCMIS 0.7.0
 (Piergiorgio Lucidi)
 
