@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 0.7-dev =====================
+======================= 1.0-dev =====================
 
 CONNECTORS-526: Clarify JCIFS connector documentation.
 (Shigeki Kobayashi, Karl Wright)
