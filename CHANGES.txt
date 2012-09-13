@@ -3,6 +3,9 @@ $Id$
 
 ======================= 0.7-dev =====================
 
+CONNECTORS-525: Upgrade to OpenCMIS 0.7.0
+(Piergiorgio Lucidi)
+
 CONNECTORS-527: Error during CMIS ingestion of nodes without binary content
 (Piergiorgio Lucidi)
 

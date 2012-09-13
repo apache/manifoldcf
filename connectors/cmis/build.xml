@@ -32,8 +32,6 @@
             <include name="mimepull*.jar"/>
             <include name="resolver*.jar"/>
             <include name="org.osgi.core*.jar"/>
-            <include name="jsr181-api*.jar"/>
-            <include name="jsr250-api*.jar"/>
             <include name="activation*.jar"/>
             <include name="commons-lang*.jar"/>
         </fileset>
@@ -53,8 +51,6 @@
                 <include name="mimepull*.jar"/>
                 <include name="resolver*.jar"/>
                 <include name="org.osgi.core*.jar"/>
-                <include name="jsr181-api*.jar"/>
-                <include name="jsr250-api*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
         </copy>

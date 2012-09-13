@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.QueryResult;
@@ -36,7 +37,6 @@ import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.commons.spi.ObjectService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.Configuration;
@@ -123,14 +123,12 @@ public class APISanityIT extends BaseDerby
     for (QueryResult result : results) {
       objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
     }
-    String repositoryId = session.getRepositoryInfo().getId();
-    Holder<String> objectIdHolder = new Holder<String>(objectId);
-    Boolean overwriteFlag = true;
+
     byte[] newContentByteArray = newContent.getBytes();
     InputStream stream = new ByteArrayInputStream(newContentByteArray);
     ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(newContentByteArray), "text/plain", stream);
-    ObjectService objectService = session.getBinding().getObjectService();
-    objectService.setContentStream(repositoryId, objectIdHolder, overwriteFlag, null, contentStream, null);
+    Document documentToUpdate = (Document) session.getObject(objectId);
+    documentToUpdate.setContentStream(contentStream, true);
   }
   
   public void removeDocument(Session session, String name){
