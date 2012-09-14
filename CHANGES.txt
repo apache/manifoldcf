@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.0-dev =====================
 
+CONNECTORS-515: Add LDAP connector, and modify JCIFS connector
+to allow account names to be used instead of SIDs.
+(Maciej Lizewsky, Karl Wright)
+
 CONNECTORS-526: Clarify JCIFS connector documentation.
 (Shigeki Kobayashi, Karl Wright)
 
