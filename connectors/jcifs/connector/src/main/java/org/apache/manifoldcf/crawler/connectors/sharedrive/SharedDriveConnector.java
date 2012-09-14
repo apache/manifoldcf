@@ -114,6 +114,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private String domain = null;
   private String username = null;
   private String password = null;
+  private boolean useSIDs = true;
 
   private NtlmPasswordAuthentication pa;
 
@@ -213,6 +214,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     password = configParameters.getObfuscatedParameter(SharedDriveParameters.password);
     if (password == null)
       password = "";
+    String useSIDsString = configParameters.getParameter(SharedDriveParameters.useSIDs);
+    if (useSIDsString == null)
+      useSIDsString = "true";
+    useSIDs = "true".equals(useSIDsString);
 
     // Rejigger the username/domain to be sure we PASS in a domain and we do not include the domain attached to the user!
     // (This became essential at jcifs 1.3.0)
@@ -1002,7 +1007,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
 
         // Grab the share permissions.
-        aces = getFileShareSecurity(file);
+        aces = getFileShareSecurity(file, useSIDs);
 
         if (aces == null)
         {
@@ -1047,9 +1052,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
             {
               if (ace.isAllow())
-                shareAllowAcls[allowCount++] = ace.getSID().toString();
+                shareAllowAcls[allowCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
               else
-                shareDenyAcls[denyCount++] = ace.getSID().toString();
+                shareDenyAcls[denyCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
             }
           }
         }
@@ -1077,7 +1082,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
       if (forcedacls.length==0)
       {
-        aces = getFileSecurity(file);
+        aces = getFileSecurity(file, useSIDs);
         if (aces == null)
         {
           if (Logging.connectors.isDebugEnabled())
@@ -1121,9 +1126,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             if ((ace.getAccessMask() & ACE.FILE_READ_DATA) != 0)
             {
               if (ace.isAllow())
-                allowAcls[allowCount++] = ace.getSID().toString();
+                allowAcls[allowCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
               else
-                denyAcls[denyCount++] = ace.getSID().toString();
+                denyAcls[denyCount++] = useSIDs ? ace.getSID().toString() : ace.getSID().getAccountName();
             }
           }
         }
@@ -2298,7 +2303,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Get file security */
-  protected static ACE[] getFileSecurity(SmbFile file)
+  protected static ACE[] getFileSecurity(SmbFile file, boolean useSIDs)
     throws IOException
   {
     int totalTries = 0;
@@ -2310,7 +2315,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       totalTries++;
       try
       {
-        return file.getSecurity(false);
+        return file.getSecurity(!useSIDs);
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -2336,7 +2341,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Get share security */
-  protected static ACE[] getFileShareSecurity(SmbFile file)
+  protected static ACE[] getFileShareSecurity(SmbFile file, boolean useSIDs)
     throws IOException
   {
     int totalTries = 0;
@@ -2348,7 +2353,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       totalTries++;
       try
       {
-        return file.getShareSecurity(false);
+        return file.getShareSecurity(!useSIDs);
       }
       catch (java.net.SocketTimeoutException e)
       {
@@ -2601,6 +2606,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (username==null) username = "";
     String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password);
     if (password==null) password = "";
+    String resolvesids = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.useSIDs);
+    if (resolvesids==null) resolvesids = "true";
 
     // "Server" tab
     if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Server")))
@@ -2624,6 +2631,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.Password") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.UseSIDSForSecurity") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"hidden\" name=\"resolvesidspresent\" value=\"true\"/><input type=\"checkbox\" value=\"true\" name=\"resolvesids\" "+("true".equals(resolvesids)?"checked=\"true\"":"")+"/></td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -2633,7 +2645,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "<input type=\"hidden\" name=\"server\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(server)+"\"/>\n"+
 "<input type=\"hidden\" name=\"domain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(username)+"\"/>\n"+
-"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
+"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
+"<input type=\"hidden\" name=\"resolvesidspresent\" value=\"true\"/>\n"+
+"<input type=\"hidden\" name=\"resolvesids\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resolvesids)+"\"/>\n"
       );
     }
   }
@@ -2667,6 +2681,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     String password = variableContext.getParameter("password");
     if (password != null)
       parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
+    
+    String resolvesidspresent = variableContext.getParameter("resolvesidspresent");
+    if (resolvesidspresent != null)
+    {
+      parameters.setParameter(SharedDriveParameters.useSIDs,"false");
+      String resolvesids = variableContext.getParameter("resolvesids");
+      if (resolvesids != null)
+        parameters.setParameter(SharedDriveParameters.useSIDs, resolvesids);
+    }
     return null;
   }
   
