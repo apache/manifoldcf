@@ -585,7 +585,31 @@
                 <br/><br/>
                 <p>Note that in this example, the Active Directory connection is not responding, which is leading to an error status message instead of "Connection working".</p>
             </section>
-            
+
+            <section id="ldapauthority">
+                <title>LDAP Authority Connection</title>
+                <p>An LDAP authority connection can be used to provide document security in situations where there is no native document security
+                      model in place.  Examples include Samba shares, Wiki pages,  RSS feeds, etc.</p>
+                <p>The LDAP authority works by providing user or group names from an LDAP server as access tokens.  These access tokens can
+                      be used by any repository connection type that provides for access tokens entered on a per-job basis, or by the JCIFs connection type,
+                      which has explicit user/group name support built in, meant for Samba shares.</p>
+                <p>This connection type needs to be provided with information about how to log into an appropriate LDAP server, as well as search
+                      expressions needed to look up user and group records.  An active directory authority connection type has a single special tab in the
+                      authority connection editing screen: the "LDAP" tab:</p>
+                <br/><br/>
+                <figure src="images/en_US/ldap-configure-ldap.PNG" alt="LDAP Configuration, LDAP tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the requested values.  Note that the "Server base" field contains the LDAP domain specification you want to search.  For
+                      example, if you have an LDAP domain for "people.myorg.com", the server based might be "dc=com,dc=myorg,dc=people".</p>
+                <p>When you are done, click the "Save" button.  When you do, a connection
+                       summary and status screen will be presented, which
+                       may look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/ldap-status.PNG" alt="LDAP Status" width="80%"/>
+                <br/><br/>
+                <p>Note that in this example, the LDAP connection is not responding, which is leading to an error status message instead of "Connection working".</p>
+            </section>
+
             <section id="livelinkauthority">
                 <title>OpenText LiveLink Authority Connection</title>
                 <p>A LiveLink authority connection is needed to enforce security for documents retrieved from LiveLink repositories.</p>
