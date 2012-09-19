@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.0-dev =====================
 
+CONNECTORS-530: Add documentation for the Use SIDs checkbox in
+the JCIFS connector Server tab.
+(Karl Wright)
+
 CONNECTORS-528: Add documentation for LDAP authority.
 (Karl Wright)
 

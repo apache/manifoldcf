@@ -1275,6 +1275,9 @@
                        form, and provide a fully-qualified domain name in the "Domain name" field.  The user name also should usually be unqualified, e.g. "Administrator" rather than
                        "Administrator@mydomain.com".  Sometimes it may work to leave the "Domain name" field blank, and instead supply a fully-qualified machine name in the "Server"
                        field.  It never works to supply both a domain name <b>and</b> a fully-qualified server name.</p>
+                <p>The "Use SIDs" checkbox allows you to control whether the connection uses SIDs as access tokens (which is appropriate for Windows servers and NAS servers
+                      that are secured by Active Directory), or user/group names (which is appropriate for Samba servers, and other CIFS servers that use LDAP for security, in conjunction
+                      with the LDAP Authority connection type).  Check the box to use SIDs.</p>
                 <p>Please note that you should probably set the "Maximum number of connections per JVM" field, on the "Throttling" tab, to a number smaller than the default value of
                        10, because Windows is not especially good at handling multithreaded file requests.  A number less than 5 is likely to perform as well with less chance of causing
                        server-side problems.</p>
