@@ -532,6 +532,7 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.scheduling</td><td>No</td><td>Log document scheduling activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityconnectors</td><td>No</td><td>Log authority connector activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservice</td><td>No</td><td>Log authority service activity.  Legal values are INFO, WARN, or DEBUG.</td></tr>
+            <tr><td>org.apache.manifoldcf.seed</td><td>Yes, if file encryption is used</td><td>Specify the seed value to be used for encrypting the file to which the crawler configuration is exported.</td></tr>
           </table>
           <p></p>
         </section>
@@ -579,8 +580,8 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.crawler.UnRegister</td><td><em>classname</em></td><td>Un-register a repository connector class</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.UnRegisterAll</td><td>None</td><td>Un-register all repository connector classes</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.SynchronizeConnectors</td><td>None</td><td>Un-register all registered repository connector classes that can't be found</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.ExportConfiguration</td><td><em>filename</em></td><td>Export crawler configuration to a file</td></tr>
-            <tr><td>org.apache.manifoldcf.crawler.ImportConfiguration</td><td><em>filename</em></td><td>Import crawler configuration from a file</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.ExportConfiguration</td><td><em>filename</em> [<em>passcode</em>]</td><td>Export crawler configuration to a file</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.ImportConfiguration</td><td><em>filename</em> [<em>passcode</em>]</td><td>Import crawler configuration from a file</td></tr>
           </table>
           <p></p>
           <table>
@@ -595,6 +596,12 @@ cd dist/example
               But, luckily, there are scripts which do this for you.  These can be found in <em>dist/multiprocess-example/processes/executecommand[.sh,.bat]</em>.
               The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be
               found at <em>MCF_HOME/properties.xml</em>.</p>
+          <p></p>
+        </section>
+        <section>
+          <title>Encrypting crawler configuration data</title>
+          <p></p>
+          <p>By adding a passcode as a second argument to the ExportConfiguration command class, the file will be encrypted by using the AES algorithm. This can be useful to prevent repository passwords to be stored in clear text. In order to use this functionality, you must enter a seed value to your configuration file. The same passcode along with the seed value are used to decrypt the file with the ImportConfiguration command class. See the documentation for the commands and properties above to find the correct arguments and settings.</p>
           <p></p>
         </section>
         <section>
