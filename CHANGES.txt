@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.0-dev =====================
+======================= 1.0 =====================
 
 CONNECTORS-531: Add Japanese translation for LDAP connector
 documentation.
