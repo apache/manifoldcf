@@ -443,6 +443,22 @@
                 <p>画面ではアクティブディレクトリと接続できないため、エラーメッセージが表示されています。</p>
             </section>
             
+            <section id="ldapauthority">
+                <title>LDAP権限コネクション</title>
+                <p>LDAP権限コネクションは、ネイティブなドキュメントセキュリティモデルがない状況でドキュメントセキュリティを提供するために使うことができます。例としては、Samba共有やWikiページやRSSフィード等が含まれます。</p>
+                <p>LDAP権限はLDAPサーバーからユーザーまたはグループ名をアクセストークンとして供給することで動作します。これらのアクセストークンは、ジョブごとに入力されたアクセストークンを供給するリポジトリコネクション、またはSamba共有用の、明示的なユーザ/グループ名をサポートしているJCIFSコネクションタイプで使うことができます。</p>
+                <p>このコネクションタイプは適切なLDAPサーバーにログインするための情報を入力する必要があります。サーチ表現もまたユーザやグループのレコードを検索するために必要です。この権限コネクションタイプはひとつの特殊なタブがあります。LDAPタブです:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/ldap-configure-ldap.PNG" alt="LDAP Configuration, LDAP tab" width="80%"/>
+                <br/><br/>
+                <p>求められる値を入力してください。サーバーベースフィールドは検索したいLDAPドメインを含むことに注意してください。たとえばドメインがpeople.myorg.comならば、サーバーベースはdc=com,dc=myorg,dc=peopleとなります。</p>
+                <p>終わったらセーブボタンをクリックします。コネクションのサマリとステータスが表示されます。それは次のようなものになります:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/ldap-status.PNG" alt="LDAP Status" width="80%"/>
+                <br/><br/>
+                <p>注意点ですが、このサンプルではLDAPコネクションは応答していません。"Connection working"の代わりにエラーステータスのメッセージを表示しています。</p>
+            </section>
+
             <section id="livelinkauthority">
                 <title>OpenText LiveLink権限コネクション</title>
                 <p>LiveLink権限コネクションは、LiveLinkリポジトリからコンテンツを取得する場合のセキュリティを指定する場合に利用します。</p>

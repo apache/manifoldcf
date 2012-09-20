@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.0-dev =====================
 
+CONNECTORS-531: Add Japanese translation for LDAP connector
+documentation.
+(Shinichiro Abe)
+
 CONNECTORS-530: Add documentation for the Use SIDs checkbox in
 the JCIFS connector Server tab.
 (Karl Wright)
