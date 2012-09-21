@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.0 =====================
 
+CONNECTORS-533: Do not forgo xxx-README files in connector-lib-proprietary.
+(Karl Wright)
+
 CONNECTORS-532: Update 'incubator' and redirected URLs in various places.
 (Ahmet Arslan)
 

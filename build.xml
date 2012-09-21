@@ -1155,10 +1155,10 @@
     </target>
 
     <target name="general-connector-proprietary-runnable-check">
-        <available file="connectors/${connector-name}/dist/lib-proprietary-only/${connector-name}-README.txt" property="${connector-name}.has-readme"/>
+        <available file="connectors/${connector-name}/dist/lib-proprietary-only/${connector-name}-PLACEHOLDER.txt" property="${connector-name}.has-placeholder"/>
         <condition property="${connector-name}.is-proprietary-runnable">
             <not>
-                <isset property="${connector-name}.has-readme"/>
+                <isset property="${connector-name}.has-placeholder"/>
             </not>
         </condition>
     </target>
@@ -2609,6 +2609,8 @@
       <zip destfile="apache-manifoldcf-${release-version}-bin.zip" update="false">
         <zipfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
           <exclude name="/multiprocess-example-proprietary/"/>
@@ -2621,6 +2623,8 @@
       <tar destfile="apache-manifoldcf-${release-version}-bin.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="dist" prefix="apache-manifoldcf-${release-version}">
           <exclude name="connector-lib-proprietary/*.jar"/>
+          <exclude name="**/lib-proprietary/*.jar"/>
+          <exclude name="connector-lib-proprietary/*-PLACEHOLDER.txt"/>
           <exclude name="connectors-proprietary.xml"/>
           <exclude name="/example-proprietary/"/>
           <exclude name="/multiprocess-example-proprietary/"/>
