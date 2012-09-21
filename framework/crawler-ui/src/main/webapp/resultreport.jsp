@@ -378,7 +378,7 @@ if (maintenanceUnderway == false)
 			String[] outputActivityList = OutputConnectionManagerFactory.getAllOutputActivities(threadContext);
 			String[] connectorActivityList = RepositoryConnectorFactory.getActivitiesList(threadContext,thisConnection.getClassName());
 			String[] globalActivityList = IRepositoryConnectionManager.activitySet;
-			activityList = new String[outputActivityList.length + connectorActivityList.length + globalActivityList.length];
+			activityList = new String[outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
 			int k2 = 0;
 			int j;
 			if (outputActivityList != null)

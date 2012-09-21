@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.0 =====================
 
+CONNECTORS-537: NPE when trying to display a history report when
+the corresponding connector is unregistered.
+(Erlend Garason, Karl Wright)
+
 CONNECTORS-533: Do not forgo xxx-README files in connector-lib-proprietary.
 (Karl Wright)
 
