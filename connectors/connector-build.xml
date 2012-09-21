@@ -120,13 +120,15 @@
         more proprietary libraries to build and run.  We expect to find a README.txt file in
         the directory, which describes what is needed at build time, and that if the required
         libraries are not present, the connector's build.xml file will override "calculate-condition"
-        and "precompile-check" appropriately.
-    (3) If there's a build-stub directory, we presume that the connector requires one or
+        and "precompile-check" appropriately.  If there's a "proprietary-library-instructions.txt" file,
+	it will be copied to the connector-lib directory with the name {connector}-README.txt.
+        If the required libraries are not present, the same file will also be copied to {connector}-PLACEHOLDER.txt.
+    (2) If there's a build-stub directory, we presume that the connector requires one or
         more proprietary libraries to run, but can be built without proprietary libraries through
         the use of stubs.  In this case the connector MAY also have a
         "proprietary-library-instructions.txt" file, if proprietary libraries are required at
         runtime.  This file will be copied to the
-        connector-lib directory with the name {connector}-README.txt
+        connector-lib directory with the name {connector}-README.txt and to {connector}-PLACEHOLDER.txt,
         as a placeholder for the required proprietary libraries.
 
     A connector can have both a build-stub and a lib-proprietary directory.  In this case,
@@ -182,6 +184,10 @@
         <available file="build-stub/src/main/java" property="hasStubs"/>
     </target>
 
+    <target name="include-README-lib-proprietary-check" depends="precompile-check" if="canBuild">
+        <available file="proprietary-library-instructions.txt" property="includeREADMELibProprietary"/>
+    </target>
+    
     <target name="include-proprietary-instructions-lib-proprietary-check" depends="prerun-check" unless="canRun">
         <available file="proprietary-library-instructions.txt" property="includeProprietaryInstructionsLibProprietary"/>
     </target>
@@ -521,9 +527,14 @@
         <copy todir="dist/lib" file="build/jar/mcf-${ant.project.name}-connector.jar"/>
     </target>
 
-    <target name="lib-proprietary-instructions" depends="include-proprietary-instructions-lib-proprietary-check" if="includeProprietaryInstructionsLibProprietary">
+    <target name="lib-proprietary-README" depends="include-README-lib-proprietary-check" if="includeREADMELibProprietary">
         <mkdir dir="dist/lib-proprietary-only"/>
         <copy tofile="dist/lib-proprietary-only/${ant.project.name}-README.txt" file="proprietary-library-instructions.txt"/>
+    </target>
+    
+    <target name="lib-proprietary-instructions" depends="include-proprietary-instructions-lib-proprietary-check" if="includeProprietaryInstructionsLibProprietary">
+        <mkdir dir="dist/lib-proprietary-only"/>
+        <copy tofile="dist/lib-proprietary-only/${ant.project.name}-PLACEHOLDER.txt" file="proprietary-library-instructions.txt"/>
     </target>
     
     <target name="server-process" depends="jar-interface,jar-implementation,jar-rmiskel,jar-server,has-RMI-check" if="hasRMI">
@@ -562,7 +573,7 @@
 
     <target name="integration"/>
 
-    <target name="build" depends="lib,lib-proprietary-instructions,server-process,registry-process,integration"/>
+    <target name="build" depends="lib,lib-proprietary-instructions,lib-proprietary-README,server-process,registry-process,integration"/>
     
     <target name="build-tests" depends="build,jar-tests"/>
 
