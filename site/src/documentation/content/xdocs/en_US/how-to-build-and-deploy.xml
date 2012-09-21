@@ -532,7 +532,7 @@ cd dist/example
             <tr><td>org.apache.manifoldcf.scheduling</td><td>No</td><td>Log document scheduling activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityconnectors</td><td>No</td><td>Log authority connector activity.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservice</td><td>No</td><td>Log authority service activity.  Legal values are INFO, WARN, or DEBUG.</td></tr>
-            <tr><td>org.apache.manifoldcf.seed</td><td>Yes, if file encryption is used</td><td>Specify the seed value to be used for encrypting the file to which the crawler configuration is exported.</td></tr>
+            <tr><td>org.apache.manifoldcf.salt</td><td>Yes, if file encryption is used</td><td>Specify the salt value to be used for encrypting the file to which the crawler configuration is exported.</td></tr>
           </table>
           <p></p>
         </section>
@@ -601,7 +601,7 @@ cd dist/example
         <section>
           <title>Encrypting crawler configuration data</title>
           <p></p>
-          <p>By adding a passcode as a second argument to the ExportConfiguration command class, the file will be encrypted by using the AES algorithm. This can be useful to prevent repository passwords to be stored in clear text. In order to use this functionality, you must enter a seed value to your configuration file. The same passcode along with the seed value are used to decrypt the file with the ImportConfiguration command class. See the documentation for the commands and properties above to find the correct arguments and settings.</p>
+          <p>By adding a passcode as a second argument to the ExportConfiguration command class, the file will be encrypted by using the AES algorithm. This can be useful to prevent repository passwords to be stored in clear text. In order to use this functionality, you must enter a salt value to your configuration file. The same passcode along with the salt value are used to decrypt the file with the ImportConfiguration command class. See the documentation for the commands and properties above to find the correct arguments and settings.</p>
           <p></p>
         </section>
         <section>
