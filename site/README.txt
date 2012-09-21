@@ -9,8 +9,8 @@ To update the site, do the following:
     
     4. Commit the changes
     
-    5. For externally-viewable site publishing, copy build/site to https://svn.apache.org/repos/asf/incubator/lcf/site/publish, and commit
+    5. For externally-viewable site publishing, copy build/site to https://svn.apache.org/repos/asf/manifoldcf/site/publish, and commit
 
-    6. Run "umask 002; svn up /www/incubator.apache.org/lcf"
-       on people.apache.org (you'll need incubator karma for this)
+    6. Run "umask 002; svn up /www/manifoldcf.apache.org"
+       on people.apache.org (you'll need karma for this)
 

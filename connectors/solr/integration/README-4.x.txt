@@ -18,8 +18,9 @@ Getting Started
 ---------------
 
 There are two ways to hook up security to Solr in this package.  The first is using a Query Parser plugin.
-The second is using a Search Component.  In both cases, the first step is to have ManifoldCF installed and running.  See:
-http://incubator.apache.org/incubator/connectors/how-to-build-and-deploy.html
+The second is using a Search Component.  In both cases, the first step is to have ManifoldCF installed and running.  
+Further information can be found on the "how-to-build-and-deploy.html" documentation page.
+
 
 Then, you will need to add fields to your Solr schema.xml file that can be used to contain document
 authorization information.  There will need to be four of these fields, an 'allow' field for both

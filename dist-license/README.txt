@@ -16,12 +16,11 @@
 Welcome to the Apache ManifoldCF project!
 -----------------------------------------
 
-Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors,
-under incubation.
+Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors.
 
 For a complete description of the ManifoldCF project, team composition, source
 code repositories, and other details, please see the ManifoldCF web site at
-http://incubator.apache.org/connectors
+http://manifoldcf.apache.org
 
 
 Getting Started
@@ -118,7 +117,7 @@ Contact
 -------
 
   o For general information visit the main project site at
-    http://incubator.apache.org/connectors
+    http://manifoldcf.apache.org
 
 
 =========================================================================
