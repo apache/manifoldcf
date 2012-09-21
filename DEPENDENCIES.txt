@@ -9,7 +9,7 @@ ManifoldCF requires
 
 For building ManifoldCF:
 ----------------------
-* Read the documentation at http://incubator.apache.org/connectors/how-to-build-and-deploy.html
+* Read the "how-to-build-and-deploy.html" documentation page
 
 For testing ManifoldCF:
 ----------------------

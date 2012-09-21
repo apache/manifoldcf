@@ -16,12 +16,11 @@
 Welcome to the Apache ManifoldCF project!
 -----------------------------------------
 
-Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors,
-under incubation.
+Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors.
 
 For a complete description of the ManifoldCF project, team composition, source
 code repositories, and other details, please see the ManifoldCF web site at
-http://incubator.apache.org/connectors
+http://manifoldcf.apache.org
 
 Instructions for Building Apache ManifoldCF from Source
 -----------------------------------------------------
@@ -33,7 +32,7 @@ Instructions for Building Apache ManifoldCF from Source
    
 3. Copy the lib folder in the lib distribution into the source distribution.
 
-4. Download the Java SE 6 JDK (Java Development Kit), or greater, from http://java.sun.com.
+4. Download the Java SE 6 JDK (Java Development Kit), or greater, from http://www.oracle.com/technetwork/java/index.html.
    You will need the JDK installed, and the %JAVA_HOME%\bin directory included
    on your command path.  To test this, issue a "java -version" command from your
    shell and verify that the Java version is 1.6 or greater.
@@ -120,5 +119,5 @@ Contact
 -------
 
   o For general information visit the main project site at
-    http://incubator.apache.org/connectors
+    http://manifoldcf.apache.org
 
