@@ -70,14 +70,14 @@
   </japanese>
 
   <external-refs>
-    <java      href="http://lucene.apache.org/java/" />
-    <nutch     href="http://lucene.apache.org/nutch/" />
-    <lucy      href="http://lucene.apache.org/lucy/" />
+    <java      href="http://lucene.apache.org/core" />
+    <nutch     href="http://nutch.apache.org" />
+    <lucy      href="http://lucy.apache.org" />
     <orp      href="http://lucene.apache.org/openrelevance/" />
     <solr      href="http://lucene.apache.org/solr/" />
     <lucene.net href="http://incubator.apache.org/lucene.net/" />
-    <tika      href="http://lucene.apache.org/tika/" />
-    <mahout    href="http://lucene.apache.org/mahout/" />
+    <tika      href="http://tika.apache.org" />
+    <mahout    href="http://mahout.apache.org" />
     <droids    href="http://incubator.apache.org/droids/" />
     <pylucene    href="http://lucene.apache.org/pylucene/" />
     <book     href="http://www.manning.com/wright/" />
