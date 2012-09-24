@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-To run the Alfresco connector, copy the alfresco-web-service-client-3.4.e.jar
-into this directory, and run ManifoldCF using the standard means.  You can read more
-about the process on the "how-to-build-and-deploy.html" documentation page.
+To run the Alfresco connector, copy the
+alfresco-web-service-client-3.4.e.jar into this directory, and run
+ManifoldCF using the standard means.  You can read more about the
+process on the "how-to-build-and-deploy.html" documentation page.

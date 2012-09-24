@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-The LiveLink connector requires a client library from OpenText in order to function.
-The client jar is call lapi.jar, and the version we have tested against can be found
-in the LAPI 9.7.1 package from OpenText.  Copy that jar to this directory, and run
-ManifoldCF using the appropriate means.  More can be found in the
+The LiveLink connector requires a client library from OpenText in
+order to function.  The client jar is call lapi.jar, and the version we
+have tested against can be found in the LAPI 9.7.1 package from
+OpenText.  Copy that jar to this directory, and run ManifoldCF
+using the appropriate means.  More can be found in the
 "how-to-build-and-deploy.html" documentation page.
 
 
