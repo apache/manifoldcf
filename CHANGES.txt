@@ -5,6 +5,10 @@ $Id$
 
 ======================= Release 1.0 =====================
 
+CONNECTORS-539: Multi-process agent run not properly initializing
+crawler/authority environment.
+(Karl Wright)
+
 CONNECTORS-538: Maven build broken on SharePoint Connector
 (Piergiorgio Lucidi)
 
