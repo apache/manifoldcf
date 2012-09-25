@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.0 =====================
 
+CONNECTORS-540: Multi-process proprietary webapps run not properly
+running the start-webapps.sh.
+(Shinichiro Abe)
+
 CONNECTORS-539: Multi-process agent run not properly initializing
 crawler/authority environment.
 (Karl Wright)

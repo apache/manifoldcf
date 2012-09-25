@@ -453,6 +453,7 @@
                 <include name="mcf-ui-core.jar"/>
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
+                <include name="mcf-api-servlet.jar"/>
             </fileset>
         </copy>
         <jar destfile="build/webapp/api-service-proprietary/WEB-INF/lib/mcf-api-service.jar" basedir="build/api-service/classes"/>
