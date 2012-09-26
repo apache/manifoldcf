@@ -20,18 +20,13 @@
     <import file="../connector-build.xml"/>
 
     <target name="integration">
-        <mkdir dir="dist/integration"/>
-        <copy todir="dist/integration">
-          <fileset dir="integration">
-              <include name="README-3.x.txt"/>
-              <include name="README-4.x.txt"/>
-          </fileset>
-          <fileset dir="../../lib/solr-3.x">
-              <include name="apache-solr-mcf-*.jar"/>
-          </fileset>
-          <fileset dir="../../lib/solr-4.x">
-              <include name="apache-solr-mcf-*.jar"/>
-          </fileset>
+        <mkdir dir="dist/integration/solr-3.x"/>
+        <copy todir="dist/integration/solr-3.x">
+          <fileset dir="../../lib/solr-3.x"/>
+        </copy>
+        <mkdir dir="dist/integration/solr-4.x"/>
+        <copy todir="dist/integration/solr-4.x">
+          <fileset dir="../../lib/solr-4.x"/>
         </copy>
     </target>
     
