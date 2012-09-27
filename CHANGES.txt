@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.0 =====================
 
+CONNECTORS-544: Add missing materials to combined service war.
+Also include a way of easily invoking it from the single-process example
+directory.
+(Karl Wright)
+
 CONNECTORS-540: Multi-process proprietary webapps run not properly
 running the start-webapps.sh.
 (Shinichiro Abe)

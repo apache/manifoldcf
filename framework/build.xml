@@ -556,7 +556,7 @@
         <jar destfile="build/webapp/crawler-ui-proprietary/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
 
-    <target name="webapp-combined-service" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
+    <target name="webapp-combined-service" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,jar-authority-servlet">
         <mkdir dir="build/webapp/combined-service/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service/WEB-INF/lib">
             <fileset dir="../lib">
@@ -587,6 +587,8 @@
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
                 <include name="mcf-ui-core.jar"/>
+                <include name="mcf-api-servlet.jar"/>
+                <include name="mcf-authority-servlet.jar"/>
             </fileset>
         </copy>
         <mkdir dir="build/webapp/combined-service/WEB-INF/jsp"/>
@@ -601,7 +603,7 @@
         <jar destfile="build/webapp/combined-service/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>
   
-      <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent">
+      <target name="webapp-combined-service-proprietary" depends="compile-combined-service,jar-core,jar-ui-core,jar-agents,jar-pull-agent,jar-api-servlet,jar-authority-servlet">
         <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
@@ -639,6 +641,8 @@
                 <include name="mcf-agents.jar"/>
                 <include name="mcf-pull-agent.jar"/>
                 <include name="mcf-ui-core.jar"/>
+                <include name="mcf-api-servlet.jar"/>
+                <include name="mcf-authority-servlet.jar"/>
             </fileset>
         </copy>
         <mkdir dir="build/webapp/combined-service-proprietary/WEB-INF/jsp"/>
