@@ -8,6 +8,10 @@ CONNECTORS-535: Move readme files into Solr plugin modules.
 
 ======================= Release 1.0 =====================
 
+CONNECTORS-548: Update maven build documentation to reflect limitations
+in how maven builds can be done.
+(Erlend Garåsen, Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-547: Web crawler, on encountering fatal error with no
 contents, would throw a StringIndexOutOfRange exception.
 (Erlend Garåsen, Karl Wright)
