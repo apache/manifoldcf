@@ -294,10 +294,7 @@ mvn clean install -DskipITs
           <source>
 mvn clean package
           </source>
-          <p>To reinstall all the new artifacts in your local Maven repository without running unit tests and integration tests, type:</p>
-          <source>
-mvn clean install -Dmaven.test.skip
-          </source>
+          <p>NOTE: Due to current limitations in the ManifoldCF Maven poms, you MUST run a complete "mvn clean install" as the first step.  You cannot skip steps, or the build will fail.</p>
         </section>
       </section>
     </section>
