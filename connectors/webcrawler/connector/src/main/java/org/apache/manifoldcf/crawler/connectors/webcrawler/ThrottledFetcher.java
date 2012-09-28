@@ -1773,6 +1773,8 @@ public class ThrottledFetcher
           Reader r = new InputStreamReader(is,encoding);
           char[] buffer = new char[maxSize];
           int amt = r.read(buffer);
+          if (amt == -1)
+            return "";
           return new String(buffer,0,amt);
         }
         finally
