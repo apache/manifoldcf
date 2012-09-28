@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.0 =====================
 
+CONNECTORS-547: Web crawler, on encountering fatal error with no
+contents, would throw a StringIndexOutOfRange exception.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-545: web-proprietary wars need to be used by single-
 process proprietary example.
 (Shinichiro Abe, Karl Wright)
@@ -25,7 +29,7 @@ CONNECTORS-538: Maven build broken on SharePoint Connector
 
 CONNECTORS-537: NPE when trying to display a history report when
 the corresponding connector is unregistered.
-(Erlend Garason, Karl Wright)
+(Erlend Garåsen, Karl Wright)
 
 CONNECTORS-533: Do not forgo xxx-README files in connector-lib-proprietary.
 (Karl Wright)
