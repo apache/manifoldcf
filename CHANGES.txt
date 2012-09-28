@@ -8,6 +8,10 @@ CONNECTORS-535: Move readme files into Solr plugin modules.
 
 ======================= Release 1.0 =====================
 
+CONNECTORS-545: web-proprietary wars need to be used by single-
+process proprietary example.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-544: Add missing materials to combined service war.
 Also include a way of easily invoking it from the single-process example
 directory.
