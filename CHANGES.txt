@@ -8,6 +8,9 @@ CONNECTORS-535: Move readme files into Solr plugin modules.
 
 ======================= Release 1.0 =====================
 
+CONNECTORS-549: Wrong credentials not correctly managed by CMIS Connector
+(Piergiorgio Lucidi)
+
 CONNECTORS-548: Update maven build documentation to reflect limitations
 in how maven builds can be done.
 (Erlend Garåsen, Piergiorgio Lucidi, Karl Wright)

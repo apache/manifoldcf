@@ -47,6 +47,7 @@ import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.Constants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -433,6 +434,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             throw (RemoteException) thr;
           else if (thr instanceof CmisConnectionException)
             throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
+          else if (thr instanceof CmisPermissionDeniedException)
+            throw new ManifoldCFException("CMIS: Wrong credentials during getting a new session: " + thr.getMessage(), thr);
           else
             throw (Error) thr;
         }
