@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-550: Ant targets for zip distributions were not working
+on Linux variants.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-535: Move readme files into Solr plugin modules.
 (Karl Wright)
 
