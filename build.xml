@@ -45,7 +45,11 @@
     <target name="setup-release-base-url">
         <property name="release-base-url" value="http://www.apache.org/dist/manifoldcf"/>
     </target>
-    
+
+    <target name="setup-archive-base-url">
+        <property name="archive-base-url" value="http://archive.apache.org/dist/manifoldcf"/>
+    </target>
+
     <target name="transfer-root-files">
         <mkdir dir="build/site"/>
         <copy todir="build/site" file=".htaccess"/>
@@ -56,7 +60,12 @@
         <mkdir dir="build/releases"/>
         <get src="${release-base-url}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin.zip"/>
     </target>
-    
+
+    <target name="download-archive" depends="setup-archive-base-url">
+        <mkdir dir="build/releases"/>
+        <get src="${archive-base-url}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin.zip"/>
+    </target>
+
     <target name="install-release" depends="download-release">
         <mkdir dir="build/publish/release"/>
         <!-- unpack -->
@@ -67,7 +76,18 @@
             <fileset dir="build/releases/apache-manifoldcf-${release-version}-bin/apache-manifoldcf-${release-version}/doc"/>
         </copy>
     </target>
-    
+
+    <target name="install-archive" depends="download-archive">
+        <mkdir dir="build/publish/release"/>
+        <!-- unpack -->
+        <unzip src="build/releases/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin"/>
+        <!-- copy -->
+        <mkdir dir="build/site/release"/>
+        <copy todir="build/site/release/release-${release-version}">
+            <fileset dir="build/releases/apache-manifoldcf-${release-version}-bin/apache-manifoldcf-${release-version}/doc"/>
+        </copy>
+    </target>
+
     <target name="checkout-trunk-release">
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build/releases"/>
@@ -104,6 +124,9 @@
 
     <target name="get-releases-doc" depends="install-trunk-release">
         <antcall target="install-release">
+            <param name="release-version" value="1.0"/>
+        </antcall>
+        <antcall target="install-archive">
             <param name="release-version" value="0.6"/>
         </antcall>
     </target>
