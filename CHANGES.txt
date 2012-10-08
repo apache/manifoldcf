@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-546: Rework the how-to-build-and-deploy documentation
+page to be clearer and also cover the combined war.
+(Karl Wright)
+
 CONNECTORS-550: Ant targets for zip distributions were not working
 on Linux variants.
 (Ahmet Arslan, Karl Wright)
