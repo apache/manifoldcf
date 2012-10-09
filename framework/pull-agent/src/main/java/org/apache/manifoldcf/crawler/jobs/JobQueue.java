@@ -346,6 +346,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(map,"WHERE "+query,list,null);
 
     // Map newseed fields to seed
+    map.clear();
     map.put(isSeedField,seedstatusToString(SEEDSTATUS_SEED));
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -354,7 +355,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
 
     // Clear out all failtime fields (since we obviously haven't been retrying whilst we were not
     // running)
-    map = new HashMap();
+    map.clear();
     map.put(failTimeField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -542,7 +543,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(statusField,statusToString(STATUS_PENDING))});
     performDelete("WHERE "+query,list,null);
 
-    // Turn PENDINGPURGATORY, COMPLETED into PURGATORY.
+    // Turn PENDINGPURGATORY and COMPLETED into PURGATORY.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PURGATORY));
     map.put(checkTimeField,new Long(0L));
@@ -553,7 +554,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // than being set back to some arbitrary value.
     // The alternative, which would be to reprioritize all the documents at this point, is somewhat attractive, but let's see if we can get away
     // without for now.
-
+      
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID),

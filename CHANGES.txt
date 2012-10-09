@@ -3,6 +3,12 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-551: Resetting agents process causes job's seed
+documents to be flipped into the PURGATORY state, which in turn
+may cause the documents to be deleted and the job to be shut down
+if the seed documents are the only documents.
+(Martin Gielow, Karl Wright)
+
 CONNECTORS-546: Rework the how-to-build-and-deploy documentation
 page to be clearer and also cover the combined war.
 (Karl Wright)
