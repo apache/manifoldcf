@@ -1,7 +1,15 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.0 =====================
+======================= Release 1.0.1 =====================
+
+CONNECTORS-551: Resetting agents process causes job's seed
+documents to be flipped into the PURGATORY state, which in turn
+may cause the documents to be deleted and the job to be shut down
+if the seed documents are the only documents.
+(Martin Gielow, Karl Wright)
+
+======================= Release 1.0 =====================
 
 CONNECTORS-549: Wrong credentials not correctly managed by CMIS Connector
 (Piergiorgio Lucidi)
