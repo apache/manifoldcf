@@ -371,8 +371,8 @@ cd example
           <p></p>
           <p>Another caveat that you will need to be aware of with the quick-start version of ManifoldCF is that it in no way removes the need for you to run any separate processes
             that individual connectors require.  Specifically, the Documentum and FileNet connectors require processes to be independently started in order to function.  You will need
-            to read about these connector-specific processes below in order to use the corresponding connectors.  However, the Quick Start build does place the necessary jars, script,
-            and defines in a set of <em>xxx-process</em> directories right underneath the <em>dist/example</em> directory.</p>
+            to read about these connector-specific processes below in order to use the corresponding connectors.  Scripts for running these processes can be found in the directories
+            named <em>xxx-process</em>.</p>
           <p></p>
         </section>
         
@@ -421,10 +421,11 @@ cd example
           </table>
           <p></p>
           <section>
-            <title>Initializing the database</title>
+            <title>Initializing the database and running</title>
             <p></p>
-            <p>If you run the multiprocess model, you will need to initialize the database before you start the agents process or use the crawler UI.  To do this, all you need to do is
-                run the <em>initialize[.sh|.bat]</em> script.  Be sure you have started your database instance first!</p>
+            <p>If you run the multiprocess model, after you first start the database (using <em>start-database[.sh|.bat]</em>), you will need to initialize the database before you start the agents process or use the crawler UI.  To do this, all you need to do is
+                run the <em>initialize[.sh|.bat]</em> script.  Then, you will need to start the web applications (using <em>start-webapps[.sh|.bat]</em>) and the agents process (using
+                <em>start-agents[.sh|.bat]</em>).</p>
             <p></p>
           </section>
 
@@ -457,14 +458,18 @@ cd example
             MCF_HOME, which should point to ManifoldCF's home execution directory, where the <em>properties.xml</em> file is found.)</p>
             
           <p></p>
-          <p>The basic steps required to set up and run ManifoldCF in multi-process mode are as follows:</p>
+          <p>The basic steps required to set up and run ManifoldCF in command-driven multi-process mode are as follows:</p>
           <p></p>
           <ul>
             <li>Install PostgreSQL or MySQL.  The PostgreSQL JDBC driver included with ManifoldCF is known to work with version 9.1, so that version is the currently recommended
               one.  If you want to use MySQL, the ant "download-dependencies" build target will fetch the appropriate MySQL JDBC driver.</li>
             <li>Configure the database for your environment; the default configuration is acceptable for testing and experimentation.</li>
+            <li>Create the database instance (see commands below)</li>
+            <li>Initialize the database instance (see commands below)</li>
+            <li>Register the pull agent (org.apache.manifoldcf.crawler.system.CrawlerAgent, see below)</li>
+            <li>Register your connectors and authorities (see below)</li>
             <li>Install a Java application server, such as Tomcat.</li>
-            <li>Deploy the war files from <em>web/war</em> to your application server (see below).</li>
+            <li>Deploy the war files from <em>web/war</em>, except for <em>mcf-combined.war</em>, to your application server (see below).</li>
             <li>Set the starting environment variables for your app server to include any -D commands found in <em>web/define</em>.  The -D commands should be of the
               form, "-D&#60;file name&#62;=&#60;file contents&#62;".  You will also need a "-Dorg.apache.manifoldcf.configfile=&#60;properties file&#62;" define option, or the
               equivalent, in the application server's JVM startup in order for ManifoldCF to be able to locate its configuration file.</li>
@@ -474,8 +479,6 @@ cd example
               these connectors functional.)</li>
             <li>Start your application server.</li>
             <li>Start the ManifoldCF agents process.</li>
-            <li>Register the pull agent (see below)</li>
-            <li>Register your connectors and authorities (see below)</li>
             <li>At this point, you should be able to interact with the ManifoldCF UI, which can be accessed via the mcf-crawler-ui web application</li>
           </ul>
           <p></p>
@@ -520,6 +523,11 @@ cd example
               <tr><td>org.apache.manifoldcf.crawler.ImportConfiguration</td><td><em>filename</em> [<em>passcode</em>]</td><td>Import crawler configuration from a file</td></tr>
             </table>
             <p></p>
+            <p>NOTE: By adding a passcode as a second argument to the ExportConfiguration command class, the exported file will be encrypted by using the AES algorithm. This can be useful to
+              prevent repository passwords to be stored in clear text. In order to use this functionality, you must enter a salt value to your configuration file. The same passcode along
+              with the salt value are used to decrypt the file with the ImportConfiguration command class. See the documentation for the commands and properties above to find the
+              correct arguments and settings.</p>
+            <p></p>
             <table>
               <tr><th>Authority Command Class</th><th>Arguments</th><th>Function</th></tr>
               <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td><em>classname</em> <em>description</em></td><td>Register an authority connector class</td></tr>
@@ -528,15 +536,10 @@ cd example
               <tr><td>org.apache.manifoldcf.authorities.SynchronizeAuthorities</td><td>None</td><td>Un-register all registered authority connector classes that can't be found</td></tr>
             </table>
             <p></p>
-            <p>Remember that you need to include all the jars under <em>dist/multiprocess-example/processes/lib</em> in the classpath whenever you run one of these commands!
-                But, luckily, there are scripts which do this for you.  These can be found in <em>dist/multiprocess-example/processes/executecommand[.sh,.bat]</em>.
+            <p>Remember that you need to include all the jars under <em>multiprocess-example/processes/lib</em> in the classpath whenever you run one of these commands!
+                But, luckily, there are scripts which do this for you.  These can be found in <em>multiprocess-example/processes/executecommand[.sh,.bat]</em>.
                 The scripts require some environment variables to be set, such as <em>MCF_HOME</em> and <em>JAVA_HOME</em>, and expect the configuration file to be
                 found at <em>MCF_HOME/properties.xml</em>.</p>
-            <p></p>
-            <p>NOTE: By adding a passcode as a second argument to the ExportConfiguration command class, the exported file will be encrypted by using the AES algorithm. This can be useful to
-              prevent repository passwords to be stored in clear text. In order to use this functionality, you must enter a salt value to your configuration file. The same passcode along
-              with the salt value are used to decrypt the file with the ImportConfiguration command class. See the documentation for the commands and properties above to find the
-              correct arguments and settings.</p>
             <p></p>
           </section>
           <section>
@@ -570,8 +573,7 @@ cd example
         <title>The <em>connectors.xml</em> configuration file</title>
         <p></p>
         <p>The quick-start, combined, and simplified multi-process sample deployments of ManifoldCF have their own configuration file, called <em>connectors.xml</em>,
-          in order to register the available connectors in the database.
-          The file has this basic format:</p>
+          which is used to register the available connectors in the database.  The file has this basic format:</p>
         <p></p>
         <source>
 &#60;?xml version="1.0" encoding="UTF-8" ?&#62;
@@ -628,7 +630,7 @@ cd example
           <li>PostgreSQL (preferred)</li>
           <li>MySQL (preferred)</li>
           <li>HSQLDB</li>
-          <li>Derby (not recommended)</li>
+          <li>Derby (not recommended for production)</li>
         </ul>
         <p>You can select the database of your choice by setting the approprate properties in the applicable <em>properties.xml</em> file.  The choice of database is largely orthogonal
           to the choice of deployment model.  The ManifoldCF deployment examples provided can thus be readily altered to use the database you desire.  The details and caveats of
