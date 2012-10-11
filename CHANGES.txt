@@ -9,6 +9,10 @@ may cause the documents to be deleted and the job to be shut down
 if the seed documents are the only documents.
 (Martin Gielow, Karl Wright)
 
+CONNECTORS-546: Rework the how-to-build-and-deploy documentation
+page to be clearer and also cover the combined war.
+(Karl Wright)
+
 ======================= Release 1.0 =====================
 
 CONNECTORS-549: Wrong credentials not correctly managed by CMIS Connector
