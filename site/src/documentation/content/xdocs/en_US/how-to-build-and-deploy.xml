@@ -65,7 +65,8 @@
         <ol>
           <li>Check out the desired release from https://svn.apache.org/repos/asf/manifoldcf/tags, or unpack the desired source distribution.</li>
           <li>cd to the top-level directory.</li>
-          <li><strong>EITHER:</strong> overlay the lib directory from the corresponding lib distribution (preferred), <strong>OR</strong> run "ant make-core-deps" to build the code dependencies.</li>
+          <li><strong>EITHER:</strong> overlay the lib directory from the corresponding lib distribution (preferred, where possible), <strong>OR</strong> run "ant make-core-deps" to
+            build the code dependencies.  The latter is the only possibility if you are building from trunk, but it is not guaranteed to work for older releases.</li>
           <li>Run "ant make-deps", to download LGPL and other open source but non-Apache compatible libraries.</li>
           <li>Install proprietary build dependencies.  See below for details.</li>
           <li>Run "ant build".</li>
@@ -96,7 +97,8 @@
           <li>CMIS authority</li>
           <li>Documentum authority</li>
           <li>LiveLink authority</li>
-          <li>Null authority connector</li>
+          <li>Null authority</li>
+          <li>LDAP authority</li>
         </ul>
         <p></p>
         <p>Finally, the following output connectors will be built:</p>
@@ -127,7 +129,7 @@
           <title>Building and running the Documentum connector</title>
           <p></p>
           <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.  After building, you must install DFC on the build system, and locate the jars it installs.  Copy
-              these jars to the directory <em>dist/documentum-server-process/lib-proprietary</em>.</p>
+              these jars to the directory <em>documentum-server-process/lib-proprietary</em>.</p>
           <p>For a binary distribution, copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
           <p>If you have done everything right, you should be able to start the Documentum connector's registry and server processes, as per the instructions.</p>
           <p></p>
@@ -137,7 +139,7 @@
           <title>Building and running the FileNet connector</title>
           <p></p>
           <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is built against a set of stub classes.  After building, install the FileNet P8 API on your system,
-              and copy "Jace.jar" and the other dependent jars from that installation into <em>dist/filenet-server-process/lib-proprietary</em>.</p>
+              and copy "Jace.jar" and the other dependent jars from that installation into <em>filenet-server-process/lib-proprietary</em>.</p>
           <p>If you have downloaded a binary distribution, place the jar in <em>filenet-server-process/lib-proprietary</em>.</p>
           <p>If correctly done, you will be able to start the FileNet connector's registry and server processes, as per the instructions.</p>
           <p></p>
@@ -164,8 +166,8 @@
         <section>
           <title>Building and running the LiveLink connector</title>
           <p></p>
-          <p>This connector needs OpenText's LAPI package in order to be run, but is built against a set of stubs.  After building, copy the lapi.jar into the <em>dist/connector-lib-proprietary</em>
-              directory, and uncomment the LiveLink-related connector lines in <em>dist/connectors.xml</em>.</p>
+          <p>This connector needs OpenText's LAPI package in order to be run, but is built against a set of stubs.  After building, copy the lapi.jar into the <em>connector-lib-proprietary</em>
+              directory, and uncomment the LiveLink-related connector lines in <em>connectors.xml</em>.</p>
           <p>If you have downloaded a binary distribution, place the jar in <em>connector-lib-proprietary</em>, and modify the <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
@@ -203,8 +205,12 @@
              <li>http[s]://&#60;server_name&#62;/_vti_bin/webs.asmx</li>
           </ul>
           <p></p>
-          <p>Note well: For SharePoint instances version 3.0 or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information when SharePoint 3.0 was released.  This service can be found in the directory <em>dist/sharepoint-integration</em> after ManifoldCF is built.
-            To install it on your SharePoint 3.0 machine, follow the directions in the file <strong>Installation Readme.txt</strong>, found in that directory.</p>
+          <p>Note well: For SharePoint instances version 3.0 (2007) or higher, in order to support file and folder level security, you also must deploy a custom SharePoint web service
+            on the SharePoint instance you intend to connect to.  This is because Microsoft apparently overlooked support for web-service-based access to such security information
+            when SharePoint 2007 was released.  For SharePoint version 4.0 (2010), the service is even more critical, because backwards compatibility was not maintained and without
+            this service no crawling can occur.  Two versions of this service can be found in the distribution directory <em>sharepoint-integration</em>.
+            Pick the version appropriate for your SharePoint installation, and install it following the instructions in the file <strong>Installation Readme.txt</strong>, found in the
+            corresponding directory.</p>
           <p></p>
         </section>
         
@@ -405,7 +411,7 @@ cd example
           <p></p>
           <table>
             <caption>Multiprocess example files and directories</caption>
-            <tr><th><em>dist/multiprocess-example</em> file/directory</th><th>Meaning</th></tr>
+            <tr><th><em>multiprocess-example</em> file/directory</th><th>Meaning</th></tr>
             <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
             <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
             <tr><td><em>properties.xml</em></td><td>an example ManifoldCF configuration file, in the right place for the multiprocess script to find it</td></tr>
@@ -479,7 +485,7 @@ cd example
             <li>At this point, you should be able to interact with the ManifoldCF UI, which can be accessed via the mcf-crawler-ui web application</li>
           </ul>
           <p></p>
-          <p>The detailed list of commands is presented below:</p>
+          <p>The detailed list of commands is presented below.</p>
           <p></p>
           <section>
             <title>Commands</title>
@@ -542,8 +548,9 @@ cd example
           <section>
             <title>Deploying the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web applications</title>
             <p></p>
-            <p>If you built ManifoldCF using ant, then the ant build will have constructed three war files for you under <em>dist/multiprocess-example/web</em>.  If you intend to run
-                ManifoldCF in multiprocess mode, you will need to deploy these web applications on you application server.  There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web
+            <p>If you built ManifoldCF using ant, then the ant build will have constructed four war files for you under <em>web/war</em>.  You should ignore the <em>mcf-combined</em>
+                war in this directory for this deployment model.  If you intend to run ManifoldCF in multiprocess mode, you will need to deploy the other web applications on you application server.
+                There is no requirement that the <strong>mcf-crawler-ui</strong>, <strong>mcf-authority-service</strong>, and <strong>mcf-api-service</strong> web
                 applications be deployed on the same instance of the application server.  With the current architecture of ManifoldCF, they must be deployed on the same physical server, however.</p>
             <p></p>
             <p>For each of the application servers involved with ManifoldCF, you must set the following define, so that the ManifoldCF web applications can locate the configuration file:</p>
