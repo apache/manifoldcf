@@ -38,6 +38,7 @@
     <module>gts</module>
     <module>jcifs</module>
     <module>jdbc</module>
+    <module>ldap</module>
     <module>nullauthority</module>
     <module>nulloutput</module>
     <module>rss</module>

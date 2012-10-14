@@ -3,6 +3,8 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-542: Add pom.xml for LDAP authority.
+(Karl Wright)
 
 CONNECTORS-550: Ant targets for zip distributions were not working
 on Linux variants.
