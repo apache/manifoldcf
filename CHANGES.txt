@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.0.1 =====================
 
+CONNECTORS-555: Alfresco maven build is broken
+(Piergiorgio Lucidi)
+
 CONNECTORS-551: Resetting agents process causes job's seed
 documents to be flipped into the PURGATORY state, which in turn
 may cause the documents to be deleted and the job to be shut down
