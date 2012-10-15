@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-555: Alfresco maven build is broken
+(Piergiorgio Lucidi)
+
 CONNECTORS-542: Add pom.xml for LDAP authority.
 (Karl Wright)
 
