@@ -297,6 +297,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
     // All the arguments need to go into this string, since they affect ingestion.
     Map args = new HashMap();
+    Map<String, ArrayList<String>> forcedFields = new HashMap<String, ArrayList<String>>();
+    Map fieldMap = new HashMap();
     int i = 0;
     while (i < params.getChildCount())
     {
@@ -311,6 +313,28 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           args.put(attrName,list);
         }
         list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_VALUE));
+      }
+    }
+    i = 0;
+    while (i < spec.getChildCount())
+    {
+      ConfigurationNode node = spec.getChild(i++);
+      if (node.getType().equals(SolrConfig.NODE_FIELDMAP))
+      {
+        String source = node.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
+        String target = node.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
+        if (target == null)
+          target = "";
+        fieldMap.put(source,target);
+      }
+      if (node.getType().equals(SolrConfig.NODE_FORCEDFIELD)) {
+        String attrName = node.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDNAME);
+        ArrayList list = forcedFields.get(attrName);
+        if (list == null) {
+          list = new ArrayList<String>();
+          forcedFields.put(attrName, list);
+        }
+        list.add(node.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDVALUE));
       }
     }
     
@@ -345,22 +369,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     packList(sb,nameValues,'+');
-    
-    Map fieldMap = new HashMap();
-    i = 0;
-    while (i < spec.getChildCount())
-    {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals(SolrConfig.NODE_FIELDMAP))
-      {
-        String source = sn.getAttributeValue(SolrConfig.ATTRIBUTE_SOURCE);
-        String target = sn.getAttributeValue(SolrConfig.ATTRIBUTE_TARGET);
-        if (target == null)
-          target = "";
-        fieldMap.put(source,target);
-      }
-    }
-    
+
     sortArray = new String[fieldMap.size()];
     i = 0;
     iter = fieldMap.keySet().iterator();
@@ -385,6 +394,21 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     }
     
     packList(sb,sourceTargets,'+');
+
+    // encode forced fields
+    ArrayList forcedItems = new ArrayList();
+
+    for (String name : forcedFields.keySet()) {
+      for( String value : forcedFields.get(name)) {
+        fixedList[0] = name;
+        fixedList[1] = value;
+        StringBuilder pairBuffer = new StringBuilder();
+        packFixedList(pairBuffer, fixedList, '=');
+        forcedItems.add(pairBuffer.toString());
+      }
+    }
+
+    packList(sb, forcedItems, '+');
 
     // Here, append things which we have no intention of unpacking.  This includes stuff that comes from
     // the configuration information, for instance.
@@ -416,7 +440,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       else
         sb.append('-');
     }
-    
+
     return sb.toString();
   }
 
@@ -476,6 +500,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     index = unpackList(nameValues,outputDescription,index,'+');
     ArrayList sts = new ArrayList();
     index = unpackList(sts,outputDescription,index,'+');
+    ArrayList forcedNameValues = new ArrayList();
+    index = unpackList(forcedNameValues,outputDescription,index,'+');
+
     String[] fixedBuffer = new String[2];
     
     // Do the name/value pairs
@@ -501,6 +528,32 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       String x = (String)sts.get(i++);
       unpackFixedList(fixedBuffer,x,0,'=');
       sourceTargets.put(fixedBuffer[0],fixedBuffer[1]);
+    }
+
+    Map<String, ArrayList<String>> forcedFields = new HashMap<String, ArrayList<String>>();
+    i = 0;
+    while (i < forcedNameValues.size()) {
+      String x = (String) forcedNameValues.get(i++);
+      unpackFixedList(fixedBuffer, x, 0, '=');
+      ArrayList list = forcedFields.get(fixedBuffer[0]);
+      if (list == null) {
+        list = new ArrayList();
+        forcedFields.put(fixedBuffer[0], list);
+      }
+      list.add(fixedBuffer[1]);
+    }
+    
+    for (String field : forcedFields.keySet()) {
+      ArrayList<String> values = forcedFields.get(field);
+      if (values.size() > 1) {
+        String[] arValues = new String[values.size()];
+        for (i = 0; i < values.size(); i++) {
+          arValues[i] = values.get(i);
+        }
+        document.addField(field, arValues);
+      } else {
+        document.addField(field, values.get(0));
+      }
     }
 
     // Establish a session
@@ -1522,6 +1575,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"SolrConnector.SolrFieldMapping"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.SolrForcedFields"));
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
@@ -1553,6 +1607,31 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    postFormSetAnchor(\"solr_fieldmapping_\"+i)\n"+
 "  // Undo, so we won't get two deletes next time\n"+
 "  eval(\"editjob.solr_fieldmapping_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addForcedField()\n"+
+"{\n"+
+"  if (editjob.solr_forcedfield_name.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ForcedFieldNameMustNotBeEmpty")+"\");\n"+
+"    editjob.solr_forcedfield_name.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editjob.solr_forcedfield_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"solr_forcedfield\");\n"+
+"}\n"+
+"\n"+
+"function deleteForcedField(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editjob.solr_forcedfield_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editjob.solr_forcedfields_count.value==i)\n"+
+"    postFormSetAnchor(\"solr_forcedfield\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"solr_forcedfield_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editjob.solr_forcedfield_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
 "}\n"+
 "\n"+
 "//-->\n"+
@@ -1702,6 +1781,93 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       }
     }
 
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrForcedFields"))) {
+      out.print(
+        "<table class=\"displaytable\">\n"
+        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+        + "  <tr>\n"
+        + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "SolrConnector.ForcedFields") + "</nobr><br/>" + Messages.getBodyString(locale, "SolrConnector.ForcedFieldsDescription") + "</td>\n"
+        + "    <td class=\"boxcell\">\n"
+        + "      <table class=\"formtable\">\n"
+        + "        <tr class=\"formheaderrow\">\n"
+        + "          <td class=\"formcolumnheader\"></td>\n"
+        + "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "SolrConnector.SolrFieldName") + "</nobr></td>\n"
+        + "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "SolrConnector.SolrFieldValue") + "</nobr></td>\n"
+        + "        </tr>\n");
+      
+      i = 0;
+      while (i < os.getChildCount()) {
+        SpecificationNode sn = os.getChild(i);
+        if (sn.getType().equals(SolrConfig.NODE_FORCEDFIELD)) {
+          String name = sn.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDNAME);
+          String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDVALUE);
+          String prefix = "solr_forcedfield_" + Integer.toString(i);
+          out.print(
+            "        <tr class=\"" + (((i % 2) == 0) ? "evenformrow" : "oddformrow") + "\">\n"
+            + "          <td class=\"formcolumncell\">\n"
+            + "            <a name=\"" + prefix + "\">\n"
+            + "              <input type=\"button\" value=\"Delete\" alt=\"" + Messages.getAttributeString(locale, "SolrConnector.DeleteForcedField") + Integer.toString(i + 1) + "\" onclick='javascript:deleteForcedField(" + Integer.toString(i) + ");'/>\n"
+            + "              <input type=\"hidden\" name=\"" + prefix + "_op\" value=\"Continue\"/>\n"
+            + "              <input type=\"hidden\" name=\"" + prefix + "_name\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name) + "\"/>\n"
+            + "              <input type=\"hidden\" name=\"" + prefix + "_value\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value) + "\"/>\n"
+            + "            </a>\n"
+            + "          </td>\n"
+            + "          <td class=\"formcolumncell\">\n"
+            + "            <nobr>" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name) + "</nobr>\n"
+            + "          </td>\n"
+            + "          <td class=\"formcolumncell\">\n"
+            + "            <nobr>" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value) + "</nobr>\n"
+            + "          </td>\n"
+            + "        </tr>\n");
+        }
+        i++;
+      }
+      
+      if (i == 0) {
+        out.print(
+          "        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale, "SolrConnector.NoForcedFieldsSpecified") + "</td></tr>\n");
+      }
+      out.print(
+        "        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"
+        + "        <tr class=\"formrow\">\n"
+        + "          <td class=\"formcolumncell\">\n"
+        + "            <a name=\"solr_forcedfield\">\n"
+        + "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale, "SolrConnector.AddForcedField") + "\" onclick=\"javascript:addForcedField();\"/>\n"
+        + "            </a>\n"
+        + "            <input type=\"hidden\" name=\"solr_forcedfields_count\" value=\"" + i + "\"/>\n"
+        + "            <input type=\"hidden\" name=\"solr_forcedfield_op\" value=\"Continue\"/>\n"
+        + "          </td>\n"
+        + "          <td class=\"formcolumncell\">\n"
+        + "            <nobr><input type=\"text\" size=\"15\" name=\"solr_forcedfield_name\" value=\"\"/></nobr>\n"
+        + "          </td>\n"
+        + "          <td class=\"formcolumncell\">\n"
+        + "            <nobr><input type=\"text\" size=\"15\" name=\"solr_forcedfield_value\" value=\"\"/></nobr>\n"
+        + "          </td>\n"
+        + "        </tr>\n"
+        + "      </table>\n"
+        + "    </td>\n"
+        + "  </tr>\n"
+        + "</table>\n");
+    } else {
+      // Hiddens for forced field
+      i = 0;
+      while (i < os.getChildCount()) {
+        SpecificationNode sn = os.getChild(i);
+        if (sn.getType().equals(SolrConfig.NODE_FORCEDFIELD)) {
+          String name = sn.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDNAME);
+          String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDVALUE);
+          String prefix = "solr_forcedfield_" + Integer.toString(i);
+          out.print(
+            "<input type=\"hidden\" name=\"" + prefix + "_name\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name) + "\"/>\n"
+            + "<input type=\"hidden\" name=\"" + prefix + "_value\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value) + "\"/>\n");
+        }
+        i++;
+      }
+      out.print(
+"<input type=\"hidden\" name=\"solr_forcedfields_count\" value=\""+Integer.toString(i)+"\"/>\n"
+      );
+    }
+
   }
   
   /** Process a specification post.
@@ -1762,6 +1928,52 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         os.addChild(os.getChildCount(),node);
       }
     }
+    
+    x = variableContext.getParameter("solr_forcedfields_count");
+    if (x != null && x.length() > 0) {
+      // About to gather the forced fields nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < os.getChildCount()) {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(SolrConfig.NODE_FORCEDFIELD)) {
+          os.removeChild(i);
+        } else {
+          i++;
+        }
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count) {
+        String prefix = "solr_forcedfield_" + Integer.toString(i);
+        String op = variableContext.getParameter(prefix + "_op");
+        if (op == null || !op.equals("Delete")) {
+          // Gather the fieldmap etc.
+          String name = variableContext.getParameter(prefix + "_name");
+          String value = variableContext.getParameter(prefix + "_value");
+          if (value == null) {
+            value = "";
+          }
+          SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FORCEDFIELD);
+          node.setAttribute(SolrConfig.ATTRIBUTE_FORCEDNAME, name);
+          node.setAttribute(SolrConfig.ATTRIBUTE_FORCEDVALUE, value);
+          os.addChild(os.getChildCount(), node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("solr_forcedfield_op");
+      if (addop != null && addop.equals("Add")) {
+        String name = variableContext.getParameter("solr_forcedfield_name");
+        String value = variableContext.getParameter("solr_forcedfield_value");
+        if (value == null) {
+          value = "";
+        }
+        SpecificationNode node = new SpecificationNode(SolrConfig.NODE_FORCEDFIELD);
+        node.setAttribute(SolrConfig.ATTRIBUTE_FORCEDNAME, name);
+        node.setAttribute(SolrConfig.ATTRIBUTE_FORCEDVALUE, value);
+        os.addChild(os.getChildCount(), node);
+      }
+    }
+
     return null;
   }
   
@@ -1851,6 +2063,46 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "</table>\n"
     );
 
-  }
+    // Display forced fields
+    out.print(
+      "\n"
+      + "<table class=\"displaytable\">\n"
+      + "  <tr>\n"
+      + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "SolrConnector.ForcedFields") + "</nobr></td>\n"
+      + "    <td class=\"boxcell\">\n"
+      + "      <table class=\"formtable\">\n"
+      + "        <tr class=\"formheaderrow\">\n"
+      + "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "SolrConnector.SolrFieldName") + "</nobr></td>\n"
+      + "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale, "SolrConnector.SolrFieldValue") + "</nobr></td>\n"
+      + "        </tr>\n");
 
+    i = 0;
+    while (i < os.getChildCount()) {
+      SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(SolrConfig.NODE_FORCEDFIELD)) {
+        String name = sn.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDNAME);
+        String value = sn.getAttributeValue(SolrConfig.ATTRIBUTE_FORCEDVALUE);
+        out.print(
+          "        <tr class=\"" + (((i % 2) == 0) ? "evenformrow" : "oddformrow") + "\">\n"
+          + "          <td class=\"formcolumncell\">\n"
+          + "            <nobr>" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name) + "</nobr>\n"
+          + "          </td>\n"
+          + "          <td class=\"formcolumncell\">\n"
+          + "            <nobr>" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value) + "</nobr>\n"
+          + "          </td>\n"
+          + "        </tr>\n");
+      }
+      i++;
+    }
+
+    if (i == 0) {
+      out.print(
+        "        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale, "SolrConnector.NoForcedFieldsSpecified") + "</td></tr>\n");
+    }
+    out.print(
+      "      </table>\n"
+      + "    </td>\n"
+      + "  </tr>\n"
+      + "</table>\n");
+  }
 }

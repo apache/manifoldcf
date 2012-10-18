@@ -79,4 +79,10 @@ public class SolrConfig
   /** Attribute describing a target field name */
   public static final String ATTRIBUTE_TARGET = "target";
 
+  /** Node describing a forcedfield */
+  public static final String NODE_FORCEDFIELD = "forcedfield";
+  /** Attribute describing a field name */
+  public static final String ATTRIBUTE_FORCEDNAME = "name";
+  /** Attribute describing a field value */
+  public static final String ATTRIBUTE_FORCEDVALUE = "value";
 }
