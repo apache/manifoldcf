@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-556: performCommit() is in the wrong place for
+ingeststatus table update.
+(Karl Wright)
+
 CONNECTORS-542: Add pom.xml for LDAP authority.
 (Karl Wright)
 

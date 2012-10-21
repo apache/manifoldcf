@@ -1398,7 +1398,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           }
 
           // Update failed to find a matching record, so try the insert
-          performCommit();
           break;
         }
         catch (ManifoldCFException e)
@@ -1452,6 +1451,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       {
         performInsert(map,null);
         noteModifications(1,0,0);
+        performCommit();
         return;
       }
       catch (ManifoldCFException e)
