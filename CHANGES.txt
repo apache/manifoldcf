@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-558: Fix 'Insert Here' button.
+(Shinichiro Abe)
+
 CONNECTORS-556: performCommit() is in the wrong place for
 ingeststatus table update.
 (Karl Wright)

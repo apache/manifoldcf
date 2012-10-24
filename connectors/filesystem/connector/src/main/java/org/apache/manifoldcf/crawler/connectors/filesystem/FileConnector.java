@@ -494,7 +494,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "              <tr class=\"evenformrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr>\n"+
-"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.InsertHere") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"InsertHere\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"FileConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"FileConnector.InsertHere") + "\" onClick='Javascript:SpecOp(\"specop"+instanceDescription+"\",\"Insert Here\",\"match_"+Integer.toString(k)+"_"+Integer.toString(j+1)+"\")' alt=\""+Messages.getAttributeString(locale,"FileConnector.InsertNewMatchForPath")+Integer.toString(k)+" before position #"+Integer.toString(j)+"\"/>\n"+
 "                  </nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
