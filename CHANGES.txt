@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-559: Help link of navigation.jsp is incorrect by locale.
+(Shinichiro Abe)
+
 CONNECTORS-558: Fix 'Insert Here' button.
 (Shinichiro Abe)
 

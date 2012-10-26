@@ -82,6 +82,6 @@
 <p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Miscellaneous")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href='<%="http://manifoldcf.apache.org/release/trunk/"+pageContext.getRequest().getLocale().toString()+"/end-user-documentation.html"%>' alt="Help"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Help")%></a></nobr>
+		<nobr><a class="menulink" href='<%="http://manifoldcf.apache.org/release/trunk/"+Messages.getString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/end-user-documentation.html"%>' alt="Help"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Help")%></a></nobr>
 	</li>
 </ul>
