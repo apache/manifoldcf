@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-561: Only download font packages if they aren't already
+present.
+(Alex Ott)
+
 CONNECTORS-559: Help link of navigation.jsp is incorrect by locale.
 (Shinichiro Abe)
 
