@@ -41,7 +41,13 @@
         </exec>
         <loadfile property="svn-output" srcFile="build/svn-check/svn.output"/>
         <condition property="svn-version-ok">
-            <contains string="${svn-output}" substring="1.7."/>
+            <or>
+                <contains string="${svn-output}" substring="1.7."/>
+                <contains string="${svn-output}" substring="1.8."/>
+                <contains string="${svn-output}" substring="1.9."/>
+                <contains string="${svn-output}" substring="1.10."/>
+                <contains string="${svn-output}" substring="1.11."/>
+            </or>
         </condition>
     </target>
 
