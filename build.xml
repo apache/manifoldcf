@@ -3035,13 +3035,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="dir-name" value="commons-httpclient"/>
         </antcall>
         <!-- Apply cumulative post-3.1 fixes patch -->
-        <antcall target="patch-source-via-svn">
+        <antcall target="patch-source">
             <param name="root-dir" value="build/download"/>
             <param name="diff-file" value="../../upstream-diffs/commons-httpclient-3.1.cumulative.patch"/>
             <param name="dir-name" value="commons-httpclient"/>
         </antcall>
         <!-- Apply mcf-specific features and fixes patch -->
-        <antcall target="patch-source-via-svn">
+        <antcall target="patch-source">
             <param name="root-dir" value="build/download"/>
             <param name="diff-file" value="../../upstream-diffs/commons-httpclient-3.1.mcf.patch"/>
             <param name="dir-name" value="commons-httpclient"/>
@@ -3134,7 +3134,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="dir-name" value="xerces2-j"/>
         </antcall>
         <!-- Apply mcf-specific features and fixes patch -->
-        <antcall target="patch-source-via-svn">
+        <antcall target="patch-source">
             <param name="root-dir" value="build/download"/>
             <param name="diff-file" value="../../upstream-diffs/xerces2-j-2.9.1.mcf.patch"/>
             <param name="dir-name" value="xerces2-j"/>

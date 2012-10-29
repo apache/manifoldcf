@@ -51,8 +51,17 @@
         </condition>
     </target>
 
+    <target name="calculate-patch-available" depends="calculate-svn-patch-available" unless="svn-version-ok">
+        <condition property="patch-ok">
+            <os family="unix"/>
+        </condition>
+    </target>
+    
     <target name="check-svn-patch-available" depends="calculate-svn-patch-available" unless="svn-version-ok">
-        <echo message="You need svn version 1.7 or higher."/>
+        <echo message="You need svn version 1.7 or higher - attempting patch instead."/>
+    </target>
+    
+    <target name="check-patch-available" depends="calculate-patch-available" unless="patch-ok">
     </target>
     
     <target name="patch-source-via-svn" depends="check-svn-patch-available" if="svn-version-ok">
@@ -63,6 +72,15 @@
               <arg value="${dir-name}" />
         </exec>
     </target>
+    
+    <target name="patch-source-via-patch" depends="check-patch-available" if="patch-ok">
+        <mkdir dir="${root-dir}"/>
+        <exec dir="${root-dir}/${dir-name}" executable="patch" input="../${diff-file}" failifexecutionfails="true" failonerror="true">
+              <arg value="-p0" />
+        </exec>
+    </target>
+    
+    <target name="patch-source" depends="patch-source-via-svn,patch-source-via-patch"/>
     
     <target name="build-via-ant">
         <exec osfamily="windows" dir="${root-dir}" executable="cmd" failifexecutionfails="true" failonerror="true">
