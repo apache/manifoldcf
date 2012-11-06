@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-564: Configure velocity to use the ManifoldCF log
+configuration and the logger "velocity".
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-561: Only download font packages if they aren't already
 present.
 (Alex Ott)
