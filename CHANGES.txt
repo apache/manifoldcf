@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-563: Extended LDAP authority connector
+(Maciej Li¿ewski)
+
 CONNECTORS-561: Only download font packages if they aren't already
 present.
 (Alex Ott)
