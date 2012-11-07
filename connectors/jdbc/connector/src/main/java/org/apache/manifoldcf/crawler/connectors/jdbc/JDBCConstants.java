@@ -68,6 +68,15 @@ public class JDBCConstants
   /** The name of the id list */
   public static String idListVariable = "IDLIST";
 
+  /** JDBCAuthority */
+  /** Query returning user Id parameter name */
+  public static String databaseUserIdQuery = "User Id Query";
+  /** Query returning user tokens parameter name */
+  public static String databaseTokensQuery = "User Tokens Query";
+  /** The name of the user name variable */
+  public static String userNameVariable = "USERNAME";
+  /** The name of the user id variable */
+  public static String userIDVariable = "UID";
 }
 
 
