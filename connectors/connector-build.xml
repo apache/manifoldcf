@@ -37,6 +37,8 @@
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
             <include name="commons-httpclient*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
