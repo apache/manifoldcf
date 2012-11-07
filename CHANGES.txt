@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-566: Simple JDBC Authority connector.
+(Maciej Li¿ewski)
+
 CONNECTORS-564: Configure velocity to use the ManifoldCF log
 configuration and the logger "velocity".
 (Shigeki Kobayashi, Karl Wright)
