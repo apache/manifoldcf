@@ -18,8 +18,20 @@
 */
 package org.apache.manifoldcf.scriptengine;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
+import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.HttpResponse;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import java.io.*;
 
 /** DELETE command.  This performs a REST-style DELETE operation, designed to work
@@ -51,22 +63,19 @@ public class DELETECommand implements Command
     try
     {
       HttpClient client = sp.getHttpClient();
-      DeleteMethod method = new DeleteMethod(urlString);
+      HttpDelete method = new HttpDelete(urlString);
       try
       {
-        int resultCode = client.executeMethod(method);
-        byte[] responseData = method.getResponseBody();
-        // We presume that the data is utf-8, since that's what the API
-        // uses throughout.
-        String resultJSON = new String(responseData,"utf-8");
-
+        HttpResponse httpResponse = client.execute(method);
+        int resultCode = httpResponse.getStatusLine().getStatusCode();
+        String resultJSON = sp.convertToString(httpResponse);
         result.setReference(new VariableResult(resultCode,resultJSON));
       
         return false;
       }
       finally
       {
-        method.releaseConnection();
+        //method.releaseConnection();
       }
     }
     catch (IOException e)

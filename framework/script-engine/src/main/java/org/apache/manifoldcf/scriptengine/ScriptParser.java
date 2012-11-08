@@ -19,7 +19,20 @@
 
 package org.apache.manifoldcf.scriptengine;
 
-import org.apache.commons.httpclient.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.HttpResponse;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import java.util.*;
 import java.io.*;
 
@@ -28,7 +41,7 @@ import java.io.*;
 public class ScriptParser
 {
   /** The connection manager. */
-  protected HttpConnectionManager connectionManager = null;
+  protected ClientConnectionManager connectionManager = null;
   
   /** The client instance */
   protected HttpClient httpClient = null;
@@ -1141,14 +1154,54 @@ public class ScriptParser
       t.throwException(message + ": "+t);
   }
   
+  public static String convertToString(HttpResponse httpResponse)
+    throws IOException
+  {
+    InputStream is = httpResponse.getEntity().getContent();
+    String charSet = EntityUtils.getContentCharSet(httpResponse.getEntity());
+    if (charSet == null)
+      charSet = "utf-8";
+    char[] buffer = new char[65536];
+    Reader r = new InputStreamReader(is,charSet);
+    try
+    {
+      Writer w = new StringWriter();
+      try
+      {
+        while (true)
+        {
+          int amt = r.read(buffer);
+          if (amt == -1)
+            break;
+          w.write(buffer,0,amt);
+        }
+      }
+      finally
+      {
+        w.flush();
+      }
+      return w.toString();
+    }
+    finally
+    {
+      r.close();
+    }
+  }
+  
   public HttpClient getHttpClient()
   {
     synchronized (httpClientLock)
     {
       if (httpClient == null)
       {
-        connectionManager = new MultiThreadedHttpConnectionManager();
-        httpClient = new HttpClient(connectionManager);
+        connectionManager = new ThreadSafeClientConnManager();
+        BasicHttpParams params = new BasicHttpParams();
+        params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+        params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+        //params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeOut);
+        DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+        localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+        httpClient = localHttpClient;
       }
     }
     return httpClient;

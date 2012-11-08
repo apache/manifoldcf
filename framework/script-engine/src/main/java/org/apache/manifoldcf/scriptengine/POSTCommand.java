@@ -19,8 +19,21 @@
 package org.apache.manifoldcf.scriptengine;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.HttpResponse;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import java.io.*;
 
 /** POST command.  This performs a REST-style POST operation, designed to work
@@ -61,24 +74,20 @@ public class POSTCommand implements Command
     {
       String json = configuration.toJSON();
       HttpClient client = sp.getHttpClient();
-      PostMethod method = new PostMethod(urlString);
+      HttpPost method = new HttpPost(urlString);
       try
       {
-        method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
-        method.setRequestBody(json);
-        int resultCode = client.executeMethod(method);
-        byte[] responseData = method.getResponseBody();
-        // We presume that the data is utf-8, since that's what the API
-        // uses throughout.
-        String resultJSON = new String(responseData,"utf-8");
-
+        method.setEntity(new StringEntity(json,ContentType.create("text/plain","UTF-8")));
+        HttpResponse httpResponse = client.execute(method);
+        int resultCode = httpResponse.getStatusLine().getStatusCode();
+        String resultJSON = sp.convertToString(httpResponse);
         result.setReference(new VariableResult(resultCode,resultJSON));
       
         return false;
       }
       finally
       {
-        method.releaseConnection();
+        //method.releaseConnection();
       }
     }
     catch (ManifoldCFException e)
