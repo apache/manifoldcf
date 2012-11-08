@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-562: Some web.xml files contain wrong declarations
+(Alex Ott, Erlend Garåsen)
+
 CONNECTORS-564: Configure velocity to use the ManifoldCF log
 configuration and the logger "velocity".
 (Shigeki Kobayashi, Karl Wright)
