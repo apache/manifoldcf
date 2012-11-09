@@ -25,6 +25,7 @@ import org.apache.http.HttpException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpEntity;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.CoreConnectionPNames;
@@ -1157,35 +1158,40 @@ public class ScriptParser
   public static String convertToString(HttpResponse httpResponse)
     throws IOException
   {
-    InputStream is = httpResponse.getEntity().getContent();
-    String charSet = EntityUtils.getContentCharSet(httpResponse.getEntity());
-    if (charSet == null)
-      charSet = "utf-8";
-    char[] buffer = new char[65536];
-    Reader r = new InputStreamReader(is,charSet);
-    try
+    HttpEntity entity = httpResponse.getEntity();
+    if (entity != null)
     {
-      Writer w = new StringWriter();
+      InputStream is = entity.getContent();
       try
       {
-        while (true)
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        char[] buffer = new char[65536];
+        Reader r = new InputStreamReader(is,charSet);
+        Writer w = new StringWriter();
+        try
         {
-          int amt = r.read(buffer);
-          if (amt == -1)
-            break;
-          w.write(buffer,0,amt);
+          while (true)
+          {
+            int amt = r.read(buffer);
+            if (amt == -1)
+              break;
+            w.write(buffer,0,amt);
+          }
         }
+        finally
+        {
+          w.flush();
+        }
+        return w.toString();
       }
       finally
       {
-        w.flush();
+        is.close();
       }
-      return w.toString();
     }
-    finally
-    {
-      r.close();
-    }
+    return "";
   }
   
   public HttpClient getHttpClient()
