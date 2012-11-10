@@ -34,13 +34,26 @@ import java.util.Locale;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 import java.net.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.auth.*;
-import org.apache.commons.httpclient.params.*;
-import org.apache.commons.httpclient.protocol.*;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
 
 
 /** This is the "repository connector" for Microsoft SharePoint.
@@ -87,9 +100,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   // SSL support
   private String keystoreData = null;
   private IKeystoreManager keystoreManager = null;
-  private SharepointSecureSocketFactory secureSocketFactory = null;
-  private ProtocolFactory myFactory = null;
-  private MultiThreadedHttpConnectionManager connectionManager = null;
+  
+  private ClientConnectionManager connectionManager = null;
+  private HttpClient httpClient = null;
 
   // Current host name
   private static String currentHost = null;
@@ -187,24 +200,39 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       // Set up ssl if indicated
       keystoreData = params.getParameter( "keystore" );
-      myFactory = new ProtocolFactory();
+
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+      connectionManager = localConnectionManager;
 
       if (keystoreData != null)
       {
         keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-        secureSocketFactory = new SharepointSecureSocketFactory(keystoreManager.getSecureSocketFactory());
-        Protocol myHttpsProtocol = new Protocol("https", (ProtocolSocketFactory)secureSocketFactory, 443);
-        myFactory.registerProtocol("https",myHttpsProtocol);
+        SSLSocketFactory myFactory = new SSLSocketFactory(keystoreManager.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
+        Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+        connectionManager.getSchemeRegistry().register(myHttpsProtocol);
       }
-
-      connectionManager = new MultiThreadedHttpConnectionManager();
-      connectionManager.getParams().setMaxTotalConnections(1);
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
+      BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,60000);
+      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+      if (strippedUserName != null)
+      {
+        localHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(serverName,serverPort),
+          new NTCredentials(strippedUserName, password, currentHost, ntlmDomain));
+      }
+
+      httpClient = localHttpClient;
+      
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
-        myFactory, getClass(), "sharepoint-client-config.wsdd",
-        connectionManager );
+        getClass(), "sharepoint-client-config.wsdd",
+        httpClient );
       
     }
     sessionTimeout = System.currentTimeMillis() + sessionExpirationInterval;
@@ -225,10 +253,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     keystoreData = null;
     keystoreManager = null;
-    secureSocketFactory = null;
-    myFactory = null;
 
     proxy = null;
+    httpClient = null;
     if (connectionManager != null)
       connectionManager.shutdown();
     connectionManager = null;
@@ -275,10 +302,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     keystoreData = null;
     keystoreManager = null;
-    secureSocketFactory = null;
-    myFactory = null;
 
     proxy = null;
+    httpClient = null;
     if (connectionManager != null)
       connectionManager.shutdown();
     connectionManager = null;
@@ -354,7 +380,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (proxy != null && System.currentTimeMillis() >= sessionTimeout)
       expireSession();
     if (connectionManager != null)
-      connectionManager.closeIdleConnections(60000L);
+      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
   }
 
   /** Request arbitrary connector information.
@@ -1357,6 +1383,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
 
+
               // Set stuff up for fetch activity logging
               long startFetchTime = System.currentTimeMillis();
               try
@@ -1369,119 +1396,49 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   OutputStream os = new FileOutputStream(tempFile);
                   try
                   {
-                    // Read the document.
+                    // Catch all exceptions having to do with reading the document
                     try
                     {
-                      HttpClient httpClient = new HttpClient(connectionManager);
-                      HostConfiguration clientConf = new HostConfiguration();
-                      clientConf.setParams(new HostParams());
-                      clientConf.setHost(serverName,serverPort,myFactory.getProtocol(serverProtocol));
-
-                      Credentials credentials;
-                      if (strippedUserName != null)
-                        credentials =  new NTCredentials(strippedUserName, password, currentHost, ntlmDomain);
-                      else
-                        credentials = null;
-
-                      if (credentials != null)
-                        httpClient.getState().setCredentials(new AuthScope(serverName,serverPort,null),
-                          credentials);
-
-                      HttpMethodBase method = new GetMethod( encodedServerLocation + encodedDocumentPath );
-                      try
+                      ExecuteMethodThread emt = new ExecuteMethodThread(httpClient,
+                        serverUrl + encodedServerLocation + encodedDocumentPath, os);
+                      emt.start();
+                      emt.join();
+                      Throwable t = emt.getException();
+                      if (t instanceof InterruptedException)
+                        throw (InterruptedException)t;
+                      if (t instanceof IOException)
+                        throw (IOException)t;
+                      else if (t instanceof Error)
+                        throw (Error)t;
+                      else if (t instanceof org.apache.http.HttpException)
+                        throw (org.apache.http.HttpException)t;
+                      else if (t instanceof RuntimeException)
+                        throw (RuntimeException)t;
+                      
+                      int returnCode = emt.getResponse();
+                        
+                      if (returnCode == 404 || returnCode == 401 || returnCode == 400)
                       {
-                        // Set up SSL using our keystore
-                        method.getParams().setParameter("http.socket.timeout", new Integer(60000));
-
-                        int returnCode;
-                        ExecuteMethodThread t = new ExecuteMethodThread(httpClient,clientConf,method);
-                        try
-                        {
-                          t.start();
-                          t.join();
-                          Throwable thr = t.getException();
-                          if (thr != null)
-                          {
-                            if (thr instanceof IOException)
-                              throw (IOException)thr;
-                            if (thr instanceof RuntimeException)
-                              throw (RuntimeException)thr;
-                            else
-                              throw (Error)thr;
-                          }
-                          returnCode = t.getResponse();
-                        }
-                        catch (InterruptedException e)
-                        {
-                          t.interrupt();
-                          // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-                          method = null;
-                          throw e;
-                        }
-                        if (returnCode == HttpStatus.SC_NOT_FOUND || returnCode == HttpStatus.SC_UNAUTHORIZED || returnCode == HttpStatus.SC_BAD_REQUEST)
-                        {
-                          // Well, sharepoint thought the document was there, but it really isn't, so delete it.
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
-                          activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                            null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
-                          activities.deleteDocument(documentIdentifier,version);
-                          i++;
-                          continue;
-                        }
-                        if (returnCode != HttpStatus.SC_OK)
-                        {
-                          activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                            null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-                          throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
-                        }
-
-                        // int contentSize = (int)method.getResponseContentLength();
-                        InputStream is = method.getResponseBodyAsStream();
-                        try
-                        {
-                          byte[] transferBuffer = new byte[65536];
-                          while (true)
-                          {
-                            int amt = is.read(transferBuffer);
-                            if (amt == -1)
-                              break;
-                            os.write(transferBuffer,0,amt);
-                          }
-                        }
-                        finally
-                        {
-                          try
-                          {
-                            is.close();
-                          }
-                          catch (java.net.SocketTimeoutException e)
-                          {
-                            Logging.connectors.warn("SharePoint: Socket timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                          }
-                          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                          {
-                            Logging.connectors.warn("SharePoint: Connect timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                          }
-                          catch (InterruptedIOException e)
-                          {
-                            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                          }
-                          catch (IOException e)
-                          {
-                            Logging.connectors.warn("SharePoint: Error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                          }
-                        }
+                        // Well, sharepoint thought the document was there, but it really isn't, so delete it.
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
+                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                          null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
+                        activities.deleteDocument(documentIdentifier,version);
+                        i++;
+                        continue;
                       }
-                      finally
+                      else if (returnCode != 200)
                       {
-                        if (method != null)
-                          method.releaseConnection();
+                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                          null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
+                        throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
                       }
 
                       // Log the normal fetch activity
                       activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                         new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+
                     }
                     catch (InterruptedException e)
                     {
@@ -1496,7 +1453,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
                         currentTime + 12 * 60 * 60000L,-1,true);
                     }
-                    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                    catch (org.apache.http.conn.ConnectTimeoutException e)
                     {
                       activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
                         new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
@@ -1516,7 +1473,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                         new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
                       throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
                     }
-                    catch (HttpException e)
+                    catch (org.apache.http.HttpException e)
                     {
                       Logging.connectors.warn("SharePoint: HttpException thrown",e);
                       activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
@@ -1540,6 +1497,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     os.close();
                   }
                   
+                  // Ingest the document
                   long documentLength = tempFile.length();
                   if (activities.checkLengthIndexable(documentLength))
                   {
@@ -4828,27 +4786,59 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
   protected static class ExecuteMethodThread extends Thread
   {
-    protected HttpClient client;
-    protected HostConfiguration hostConfiguration;
-    protected HttpMethodBase executeMethod;
-    protected Throwable exception = null;
-    protected int rval = 0;
+    protected final HttpClient httpClient;
+    protected final String url;
+    protected final OutputStream os;
 
-    public ExecuteMethodThread(HttpClient client, HostConfiguration hostConfiguration, HttpMethodBase executeMethod)
+    protected Throwable exception = null;
+    protected int returnCode = 0;
+
+    public ExecuteMethodThread( HttpClient httpClient, String url, OutputStream os )
     {
       super();
       setDaemon(true);
-      this.client = client;
-      this.hostConfiguration = hostConfiguration;
-      this.executeMethod = executeMethod;
+      this.httpClient = httpClient;
+      this.url = url;
+      this.os = os;
     }
 
     public void run()
     {
       try
       {
-        // Call the execute method appropriately
-        rval = client.executeMethod(hostConfiguration,executeMethod,null);
+        HttpGet method = new HttpGet( url );
+        // Try block to insure that the connection gets cleaned up
+        try
+        {
+          // Begin the fetch
+          HttpResponse response = httpClient.execute(method);
+          returnCode = response.getStatusLine().getStatusCode();
+          
+          if (returnCode == 200)
+          {
+            // Process the data
+            HttpEntity entity = response.getEntity();
+            if (entity != null)
+            {
+              InputStream is = entity.getContent();
+              // Figure out what to do with the data. 
+              byte[] transferBuffer = new byte[65536];
+              while (true)
+              {
+                int amt = is.read(transferBuffer);
+                if (amt == -1)
+                  break;
+                os.write(transferBuffer,0,amt);
+              }
+            }
+          }
+        }
+        finally
+        {
+          // Consumes and closes the stream, releasing the connection
+          method.abort();
+        }
+
       }
       catch (Throwable e)
       {
@@ -4863,7 +4853,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     public int getResponse()
     {
-      return rval;
+      return returnCode;
     }
   }
 
@@ -5776,205 +5766,5 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
-  /** Socket factory for our https implementation.
-  */
-  protected static class MySSLSocketFactory implements org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory
-  {
-    protected javax.net.ssl.SSLSocketFactory thisSocketFactory = null;
-    protected IKeystoreManager keystore;
-
-    /** Constructor.  Pass the keystore.
-    */
-    public MySSLSocketFactory(IKeystoreManager keystore)
-      throws ManifoldCFException
-    {
-      this.keystore = keystore;
-      thisSocketFactory = keystore.getSecureSocketFactory();
-    }
-
-
-    public Socket createSocket(String host,
-      int port,
-      InetAddress clientHost,
-      int clientPort)
-      throws IOException, UnknownHostException
-    {
-      return thisSocketFactory.createSocket(host,
-        port,
-        clientHost,
-        clientPort);
-    }
-
-
-    public Socket createSocket(final String host,
-      final int port,
-      final InetAddress localAddress,
-      final int localPort,
-      final HttpConnectionParams params)
-      throws IOException, UnknownHostException, ConnectTimeoutException
-    {
-      if (params == null)
-      {
-        throw new IllegalArgumentException("Parameters may not be null");
-      }
-      int timeout = params.getConnectionTimeout();
-      if (timeout == 0)
-      {
-        return createSocket(host, port, localAddress, localPort);
-      }
-      else
-      {
-        return createSocket(host, port, localAddress, localPort);
-
-        /*
-        return thisSocketFactory.createSocket(host,
-          port,
-          localAddress,
-          localPort,
-          timeout);
-        */
-      }
-    }
-
-    public Socket createSocket(String host, int port)
-      throws IOException, UnknownHostException
-    {
-      return thisSocketFactory.createSocket(host,port);
-    }
-
-    public Socket createSocket(Socket socket,
-      String host,
-      int port,
-      boolean autoClose)
-      throws IOException, UnknownHostException
-    {
-      return thisSocketFactory.createSocket(socket,
-        host,
-        port,
-        autoClose);
-    }
-
-
-    /** There's a socket factory per keystore;
-    * look at the keystore to do the comparison.
-    */
-    public boolean equals(Object obj)
-    {
-      if (obj == null || !(obj instanceof MySSLSocketFactory))
-        return false;
-      MySSLSocketFactory other = (MySSLSocketFactory)obj;
-      try
-      {
-        return keystore.getString().equals(other.keystore.getString());
-      }
-      catch (ManifoldCFException e)
-      {
-        return false;
-      }
-    }
-
-    public int hashCode()
-    {
-      try
-      {
-        return keystore.getString().hashCode();
-      }
-      catch (ManifoldCFException e)
-      {
-        return 0;
-      }
-    }
-
-
-  }
-
-  /** HTTPClient secure socket factory, which implements SecureProtocolSocketFactory
-  */
-  protected static class SharepointSecureSocketFactory implements SecureProtocolSocketFactory
-  {
-    /** This is the javax.net socket factory.
-    */
-    protected javax.net.ssl.SSLSocketFactory socketFactory;
-
-    /** Constructor */
-    public SharepointSecureSocketFactory(javax.net.ssl.SSLSocketFactory socketFactory)
-    {
-      this.socketFactory = socketFactory;
-    }
-
-    public Socket createSocket(
-      String host,
-      int port,
-      InetAddress clientHost,
-      int clientPort)
-      throws IOException, UnknownHostException
-    {
-      return socketFactory.createSocket(
-        host,
-        port,
-        clientHost,
-        clientPort
-      );
-    }
-
-    public Socket createSocket(
-      final String host,
-      final int port,
-      final InetAddress localAddress,
-      final int localPort,
-      final HttpConnectionParams params
-    ) throws IOException, UnknownHostException, ConnectTimeoutException
-    {
-      if (params == null)
-      {
-        throw new IllegalArgumentException("Parameters may not be null");
-      }
-      int timeout = params.getConnectionTimeout();
-      if (timeout == 0)
-      {
-        return createSocket(host, port, localAddress, localPort);
-      }
-      else
-        throw new IllegalArgumentException("This implementation does not handle non-zero connection timeouts");
-    }
-
-    public Socket createSocket(String host, int port)
-      throws IOException, UnknownHostException
-    {
-      return socketFactory.createSocket(
-        host,
-        port
-      );
-    }
-
-    public Socket createSocket(
-      Socket socket,
-      String host,
-      int port,
-      boolean autoClose)
-      throws IOException, UnknownHostException
-    {
-      return socketFactory.createSocket(
-        socket,
-        host,
-        port,
-        autoClose
-      );
-    }
-
-    public boolean equals(Object obj)
-    {
-      if (obj == null || !(obj instanceof SharepointSecureSocketFactory))
-        return false;
-      // Each object is unique
-      return super.equals(obj);
-    }
-
-    public int hashCode()
-    {
-      return super.hashCode();
-    }
-
-  }
 
 }

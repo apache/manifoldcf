@@ -37,9 +37,8 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import com.microsoft.schemas.sharepoint.dsp.*;
 import com.microsoft.schemas.sharepoint.soap.*;
 
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolFactory;
-import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.http.client.HttpClient;
+
 import org.apache.axis.EngineConfiguration;
 
 import javax.xml.namespace.QName;
@@ -68,8 +67,7 @@ import org.w3c.dom.Document;
 public class SPSProxyHelper {
 
 
-  public static final String PROTOCOL_FACTORY_PROPERTY = "ManifoldCF_Protocol_Factory";
-  public static final String CONNECTION_MANAGER_PROPERTY = "ManifoldCF_Connection_Manager";
+  public static final String HTTPCLIENT_PROPERTY = "ManifoldCF_HttpClient";
 
   private String serverUrl;
   private String serverLocation;
@@ -77,9 +75,8 @@ public class SPSProxyHelper {
   private String baseUrl;
   private String userName;
   private String password;
-  private ProtocolFactory myFactory;
   private EngineConfiguration configuration;
-  private HttpConnectionManager connectionManager;
+  private HttpClient httpClient;
 
   /**
   *
@@ -88,7 +85,7 @@ public class SPSProxyHelper {
   * @param password
   */
   public SPSProxyHelper( String serverUrl, String serverLocation, String decodedServerLocation, String userName, String password,
-    ProtocolFactory myFactory, Class resourceClass, String configFileName, HttpConnectionManager connectionManager )
+    Class resourceClass, String configFileName, HttpClient httpClient )
   {
     this.serverUrl = serverUrl;
     this.serverLocation = serverLocation;
@@ -99,9 +96,8 @@ public class SPSProxyHelper {
       baseUrl = serverUrl + serverLocation;
     this.userName = userName;
     this.password = password;
-    this.myFactory = myFactory;
     this.configuration = new ResourceProvider(resourceClass,configFileName);
-    this.connectionManager = connectionManager;
+    this.httpClient = httpClient;
   }
 
   /**
@@ -118,10 +114,10 @@ public class SPSProxyHelper {
     try
     {
       if ( site.compareTo("/") == 0 ) site = ""; // root case
-        UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager  );
+        UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
-      PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
       com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
       com.microsoft.schemas.sharepoint.soap.directory.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( guid, "List" );
@@ -318,10 +314,10 @@ public class SPSProxyHelper {
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: Getting document acls for site '"+site+"' file '"+file+"': Encoded relative path is '"+encodedRelativePath+"'");
-      UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager  );
+      UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
-      MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
       com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
       com.microsoft.sharepoint.webpartpages.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( encodedRelativePath, "Item" );
@@ -516,7 +512,7 @@ public class SPSProxyHelper {
       if ( site.equals("/") ) site = ""; // root case
       if ( dspStsWorks )
       {
-        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, configuration, httpClient );
         StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
         String[] vArray = new String[1];
@@ -609,7 +605,7 @@ public class SPSProxyHelper {
       {
         // New code
         
-        MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap itemCall = itemService.getPermissionsSoapHandler( );
 
         int startingIndex = 0;
@@ -792,7 +788,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -981,7 +977,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -1166,7 +1162,7 @@ public class SPSProxyHelper {
     try
     {
       if ( site.compareTo("/") == 0 ) site = ""; // root case
-        VersionsWS versionsService = new VersionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        VersionsWS versionsService = new VersionsWS( baseUrl + site, userName, password, configuration, httpClient );
       VersionsSoap versionsCall = versionsService.getVersionsSoapHandler( );
 
       GetVersionsResponseGetVersionsResult versionsResp = versionsCall.getVersions( docPath );
@@ -1444,7 +1440,7 @@ public class SPSProxyHelper {
         site = "";
 
       // Attempt a listservice call
-      ListsWS listService = new ListsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
       ListsSoap listCall = listService.getListsSoapHandler();
       listCall.getListCollection();
 
@@ -1454,7 +1450,7 @@ public class SPSProxyHelper {
         // The web service allows us to get acls for a site, so that's what we will attempt
 
         // This fails:
-        MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
         // This works:
@@ -1557,7 +1553,7 @@ public class SPSProxyHelper {
       // The docLibrary must be a GUID, because we don't have  title.
 
       if ( site.compareTo( "/") == 0 ) site = "";
-        ListsWS listService = new ListsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
       ListsSoap listCall = listService.getListsSoapHandler();
 
       GetListResponseGetListResult listResponse = listCall.getList( listName );
@@ -1684,7 +1680,7 @@ public class SPSProxyHelper {
 
       if ( dspStsWorks )
       {
-        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, configuration, httpClient );
         StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
         String[] vArray = new String[1];
@@ -1805,7 +1801,7 @@ public class SPSProxyHelper {
       {
         // SharePoint 2010: Get field values some other way
         // Sharepoint 2010; use Lists service instead
-        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, configuration, httpClient );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
         String sitePlusDocId = serverLocation + site + "/" + docId;
@@ -1951,7 +1947,7 @@ public class SPSProxyHelper {
       ArrayList result = new ArrayList();
 
       if ( parentSite.equals( "/") ) parentSite = "";
-        WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, myFactory, configuration, connectionManager );
+        WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, configuration, httpClient );
       WebsSoap webCall = webService.getWebsSoapHandler();
 
       GetWebCollectionResponseGetWebCollectionResult webResp = webCall.getWebCollection();
@@ -2082,7 +2078,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -2226,7 +2222,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -2520,18 +2516,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public PermissionsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public PermissionsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/Permissions.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap getPermissionsSoapHandler( )
@@ -2541,10 +2535,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getPermissionsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient);
       return _stub;
     }
   }
@@ -2561,18 +2552,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public MCPermissionsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public MCPermissionsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/MCPermissions.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.sharepoint.webpartpages.PermissionsSoap getPermissionsSoapHandler( )
@@ -2582,10 +2571,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getPermissionsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2602,18 +2588,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public UserGroupWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public UserGroupWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/usergroup.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap getUserGroupSoapHandler( )
@@ -2623,10 +2607,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getUserGroupSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2643,18 +2624,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public StsAdapterWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public StsAdapterWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/dspsts.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.dsp.StsAdapterSoap getStsAdapterSoapHandler( )
@@ -2664,10 +2643,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getStsAdapterSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2684,18 +2660,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public ListsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public ListsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/lists.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.ListsSoap getListsSoapHandler( )
@@ -2705,10 +2679,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getListsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2725,18 +2696,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public VersionsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public VersionsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/versions.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.VersionsSoap getVersionsSoapHandler( )
@@ -2746,10 +2715,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getVersionsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2766,18 +2732,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public WebsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public WebsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/webs.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.WebsSoap getWebsSoapHandler( )
@@ -2787,10 +2751,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getWebsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
