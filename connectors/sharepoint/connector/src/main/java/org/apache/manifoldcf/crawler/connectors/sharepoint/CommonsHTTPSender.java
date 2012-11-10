@@ -62,6 +62,9 @@ import java.io.Reader;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.io.StringWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -193,7 +196,8 @@ public class CommonsHTTPSender extends BasicHandler {
             throw fault;
           }
 
-          InputStream releaseConnectionOnCloseStream = response.getEntity().getContent();
+          // Transfer to a temporary file.  If we stream it, we may wind up waiting on the socket outside this thread.
+          InputStream releaseConnectionOnCloseStream = new FileBackedInputStream(response.getEntity().getContent());
 
           Header contentEncoding =
             response.getFirstHeader(HTTPConstants.HEADER_CONTENT_ENCODING);
@@ -439,7 +443,155 @@ public class CommonsHTTPSender extends BasicHandler {
     }
     return "";
   }
+  
+  private static class FileBackedInputStream extends InputStream {
     
+    private InputStream fileInputStream = null;
+    private File file = null;
+    
+    public FileBackedInputStream(InputStream is)
+      throws IOException
+    {
+      File readyToOpenFile = null;
+      // Create a file and read into it
+      File tempFile = File.createTempFile("__shp__",".tmp");
+      try
+      {
+        // Open the output stream
+        OutputStream os = new FileOutputStream(tempFile);
+        try
+        {
+          byte[] buffer = new byte[65536];
+          while (true)
+          {
+            int amt = is.read(buffer);
+            if (amt == -1)
+              break;
+            os.write(buffer,0,amt);
+          }
+        }
+        finally
+        {
+          os.close();
+        }
+        readyToOpenFile = tempFile;
+        tempFile = null;
+      }
+      finally
+      {
+        if (tempFile != null)
+          tempFile.delete();
+      }
+      
+      try
+      {
+        fileInputStream = new FileInputStream(file);
+        file = readyToOpenFile;
+        readyToOpenFile = null;
+      }
+      finally
+      {
+        if (readyToOpenFile != null)
+          readyToOpenFile.delete();
+      }
+    }
+    
+    @Override
+    public int available()
+      throws IOException
+    {
+      if (fileInputStream != null)
+        return fileInputStream.available();
+      return super.available();
+    }
+    
+    @Override
+    public void close()
+      throws IOException
+    {
+      IOException exception = null;
+      try
+      {
+        if (fileInputStream != null)
+          fileInputStream.close();
+      }
+      catch (IOException e)
+      {
+        exception = e;
+      }
+      fileInputStream = null;
+      if (file != null)
+        file.delete();
+      file = null;
+      if (exception != null)
+        throw exception;
+    }
+    
+    @Override
+    public void mark(int readlimit)
+    {
+      if (fileInputStream != null)
+        fileInputStream.mark(readlimit);
+      else
+        super.mark(readlimit);
+    }
+    
+    @Override
+    public void reset()
+      throws IOException
+    {
+      if (fileInputStream != null)
+        fileInputStream.reset();
+      else
+        super.reset();
+    }
+    
+    @Override
+    public boolean markSupported()
+    {
+      if (fileInputStream != null)
+        return fileInputStream.markSupported();
+      return super.markSupported();
+    }
+    
+    @Override
+    public long skip(long n)
+      throws IOException
+    {
+      if (fileInputStream != null)
+        return fileInputStream.skip(n);
+      return super.skip(n);
+    }
+    
+    @Override
+    public int read(byte[] b, int off, int len)
+      throws IOException
+    {
+      if (fileInputStream != null)
+        return fileInputStream.read(b,off,len);
+      return super.read(b,off,len);
+    }
+
+    @Override
+    public int read(byte[] b)
+      throws IOException
+    {
+      if (fileInputStream != null)
+        return fileInputStream.read(b);
+      return super.read(b);
+    }
+    
+    @Override
+    public int read()
+      throws IOException
+    {
+      if (fileInputStream != null)
+        return fileInputStream.read();
+      return -1;
+    }
+    
+  }
+  
   private static class MessageRequestEntity implements HttpEntity {
 
     private final Message message;
