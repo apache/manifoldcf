@@ -33,7 +33,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import java.util.*;
 import java.io.*;
 
@@ -1200,7 +1200,7 @@ public class ScriptParser
     {
       if (httpClient == null)
       {
-        connectionManager = new ThreadSafeClientConnManager();
+        connectionManager = new PoolingClientConnectionManager();
         BasicHttpParams params = new BasicHttpParams();
         params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
         params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);

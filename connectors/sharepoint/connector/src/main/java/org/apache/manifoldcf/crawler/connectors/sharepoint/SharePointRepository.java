@@ -1568,7 +1568,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                         // This is not fatal
                         Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
                       }
-                      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                      catch (org.apache.http.conn.ConnectTimeoutException e)
                       {
                         // This is not fatal
                         Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
@@ -1597,7 +1597,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               {
                 throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
               }
-              catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+              catch (org.apache.http.conn.ConnectTimeoutException e)
               {
                 throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
               }
