@@ -33,8 +33,25 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpEntity;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.ContentType;
+
 
 /** Tests that run the "agents daemon" should be derived from this */
 public class ManifoldCFInstance
@@ -253,7 +270,46 @@ public class ManifoldCFInstance
   {
     return "http://localhost:"+Integer.toString(testPort)+"/mcf-api-service/json/"+command;
   }
-  
+
+  public static String convertToString(HttpResponse httpResponse)
+    throws IOException
+  {
+    HttpEntity entity = httpResponse.getEntity();
+    if (entity != null)
+    {
+      InputStream is = entity.getContent();
+      try
+      {
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        char[] buffer = new char[65536];
+        Reader r = new InputStreamReader(is,charSet);
+        Writer w = new StringWriter();
+        try
+        {
+          while (true)
+          {
+            int amt = r.read(buffer);
+            if (amt == -1)
+              break;
+            w.write(buffer,0,amt);
+          }
+        }
+        finally
+        {
+          w.flush();
+        }
+        return w.toString();
+      }
+      finally
+      {
+        is.close();
+      }
+    }
+    return "";
+  }
+
   /** Perform an json API GET operation.
   *@param apiURL is the operation.
   *@param expectedResponse is the expected response code.
@@ -262,15 +318,21 @@ public class ManifoldCFInstance
   public String performAPIGetOperation(String apiURL, int expectedResponse)
     throws Exception
   {
-    HttpClient client = new HttpClient();
-    GetMethod method = new GetMethod(apiURL);
-    int response = client.executeMethod(method);
-    byte[] responseData = method.getResponseBody();
-    String responseString = new String(responseData,"utf-8");
-    if (response != expectedResponse)
-      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
-    // We presume that the data is utf-8, since that's what the API uses throughout.
-    return responseString;
+    DefaultHttpClient client = new DefaultHttpClient();
+    HttpGet method = new HttpGet(apiURL);
+    try
+    {
+      HttpResponse response = client.execute(method);
+      int responseCode = response.getStatusLine().getStatusCode();
+      String responseString = convertToString(response);
+      if (responseCode != expectedResponse)
+        throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(responseCode)+": "+responseString);
+      return responseString;
+    }
+    finally
+    {
+      method.abort();
+    }
   }
 
   /** Perform an json API DELETE operation.
@@ -281,15 +343,22 @@ public class ManifoldCFInstance
   public String performAPIDeleteOperation(String apiURL, int expectedResponse)
     throws Exception
   {
-    HttpClient client = new HttpClient();
-    DeleteMethod method = new DeleteMethod(apiURL);
-    int response = client.executeMethod(method);
-    byte[] responseData = method.getResponseBody();
-    String responseString = new String(responseData,"utf-8");
-    if (response != expectedResponse)
-      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
-    // We presume that the data is utf-8, since that's what the API uses throughout.
-    return responseString;
+    DefaultHttpClient client = new DefaultHttpClient();
+    HttpDelete method = new HttpDelete(apiURL);
+    try
+    {
+      HttpResponse response = client.execute(method);
+      int responseCode = response.getStatusLine().getStatusCode();
+      String responseString = convertToString(response);
+      if (responseCode != expectedResponse)
+        throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(responseCode)+": "+responseString);
+      // We presume that the data is utf-8, since that's what the API uses throughout.
+      return responseString;
+    }
+    finally
+    {
+      method.abort();
+    }
   }
 
   /** Perform an json API PUT operation.
@@ -301,17 +370,23 @@ public class ManifoldCFInstance
   public String performAPIPutOperation(String apiURL, int expectedResponse, String input)
     throws Exception
   {
-    HttpClient client = new HttpClient();
-    PutMethod method = new PutMethod(apiURL);
-    method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
-    method.setRequestBody(input);
-    int response = client.executeMethod(method);
-    byte[] responseData = method.getResponseBody();
-    String responseString = new String(responseData,"utf-8");
-    if (response != expectedResponse)
-      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
-    // We presume that the data is utf-8, since that's what the API uses throughout.
-    return responseString;
+    DefaultHttpClient client = new DefaultHttpClient();
+    HttpPut method = new HttpPut(apiURL);
+    try
+    {
+      method.setEntity(new StringEntity(input,ContentType.create("text/plain","UTF-8")));
+      HttpResponse response = client.execute(method);
+      int responseCode = response.getStatusLine().getStatusCode();
+      String responseString = convertToString(response);
+      if (responseCode != expectedResponse)
+        throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(responseCode)+": "+responseString);
+      // We presume that the data is utf-8, since that's what the API uses throughout.
+      return responseString;
+    }
+    finally
+    {
+      method.abort();
+    }
   }
 
   /** Perform an json API POST operation.
@@ -323,17 +398,23 @@ public class ManifoldCFInstance
   public String performAPIPostOperation(String apiURL, int expectedResponse, String input)
     throws Exception
   {
-    HttpClient client = new HttpClient();
-    PostMethod method = new PostMethod(apiURL);
-    method.setRequestHeader("Content-type", "text/plain; charset=UTF-8");
-    method.setRequestBody(input);
-    int response = client.executeMethod(method);
-    byte[] responseData = method.getResponseBody();
-    String responseString = new String(responseData,"utf-8");
-    if (response != expectedResponse)
-      throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(response)+": "+responseString);
-    // We presume that the data is utf-8, since that's what the API uses throughout.
-    return responseString;
+    DefaultHttpClient client = new DefaultHttpClient();
+    HttpPost method = new HttpPost(apiURL);
+    try
+    {
+      method.setEntity(new StringEntity(input,ContentType.create("text/plain","UTF-8")));
+      HttpResponse response = client.execute(method);
+      int responseCode = response.getStatusLine().getStatusCode();
+      String responseString = convertToString(response);
+      if (responseCode != expectedResponse)
+        throw new Exception("API http error; expected "+Integer.toString(expectedResponse)+", saw "+Integer.toString(responseCode)+": "+responseString);
+      // We presume that the data is utf-8, since that's what the API uses throughout.
+      return responseString;
+    }
+    finally
+    {
+      method.abort();
+    }
   }
 
   /** Perform a json GET API operation, using Configuration structures to represent the json.  This is for testing convenience,
