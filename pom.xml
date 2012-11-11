@@ -49,6 +49,7 @@
     <commons-collections.version>3.2.1</commons-collections.version>
     <commons-fileupload.version>1.2.2</commons-fileupload.version>
     <commons-httpclient.version>3.1-mcf-1</commons-httpclient.version>
+    <httpcomponent.version>4.2.2</httpcomponent.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>

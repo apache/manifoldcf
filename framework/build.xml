@@ -38,6 +38,8 @@
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
             <include name="commons-httpclient*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
@@ -313,6 +315,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -349,6 +353,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -390,6 +396,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -427,6 +435,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -470,6 +480,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -515,6 +527,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -567,6 +581,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -614,6 +630,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -729,6 +747,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -767,6 +787,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -888,6 +910,8 @@
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -916,6 +940,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -1020,7 +1046,9 @@
         <property name="manifest-cp-57" value="${manifest-cp-56} lib/jetty-xml.jar"/>
         <property name="manifest-cp-58" value="${manifest-cp-57} lib/slf4j-api.jar"/>
         <property name="manifest-cp-59" value="${manifest-cp-58} lib/slf4j-simple.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-59}"/>
+        <property name="manifest-cp-60" value="${manifest-cp-59} lib/httpcore.jar"/>
+        <property name="manifest-cp-61" value="${manifest-cp-60} lib/httpclient.jar"/>
+        <property name="manifest-cp" value="${manifest-cp-61}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1041,6 +1069,8 @@
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
                 <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -1153,7 +1183,9 @@
         <property name="manifest-cp-proprietary-59" value="${manifest-cp-proprietary-58} lib/jetty-xml.jar"/>
         <property name="manifest-cp-proprietary-60" value="${manifest-cp-proprietary-59} lib/slf4j-api.jar"/>
         <property name="manifest-cp-proprietary-61" value="${manifest-cp-proprietary-60} lib/slf4j-simple.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-61}"/>
+        <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} lib/httpcore.jar"/>
+        <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} lib/httpclient.jar"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-63}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
