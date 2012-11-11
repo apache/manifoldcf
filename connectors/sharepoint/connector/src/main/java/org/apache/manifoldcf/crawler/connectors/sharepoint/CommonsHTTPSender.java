@@ -485,7 +485,7 @@ public class CommonsHTTPSender extends BasicHandler {
       
       try
       {
-        fileInputStream = new FileInputStream(file);
+        fileInputStream = new FileInputStream(readyToOpenFile);
         file = readyToOpenFile;
         readyToOpenFile = null;
       }
