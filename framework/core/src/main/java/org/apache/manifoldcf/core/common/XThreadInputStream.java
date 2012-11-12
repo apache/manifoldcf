@@ -105,36 +105,49 @@ public class XThreadInputStream extends InputStream
   public int read(byte[] b, int off, int len)
     throws IOException
   {
-    int totalAmt = 0;
-    while (true)
+    try
     {
-      if (len == 0)
-        return 0;
-      int copyLen;
-      synchronized (this)
+      int totalAmt = 0;
+      while (true)
       {
-        if (streamEnd)
+        if (len == 0)
+          return 0;
+        int copyLen;
+        synchronized (this)
         {
-          if (totalAmt != 0)
-            return totalAmt;
-          return -1;
+          copyLen = byteCount;
+          if (copyLen > len)
+            copyLen = len;
+          int remLen = buffer.length - startPoint;
+          if (copyLen > remLen)
+            copyLen = remLen;
+          if (copyLen == 0)
+          {
+            if (streamEnd)
+            {
+              if (totalAmt != 0)
+                return totalAmt;
+              return -1;
+            }
+            wait();
+            continue;
+          }
         }
-        copyLen = byteCount;
-        if (copyLen > len)
-          copyLen = len;
-        int remLen = buffer.length - startPoint;
-        if (copyLen > remLen)
-          copyLen = remLen;
+        System.arraycopy(buffer, startPoint, b, off, copyLen);
+        totalAmt += copyLen;
+        len -= copyLen;
+        synchronized (this)
+        {
+          startPoint += copyLen;
+          startPoint &= (buffer.length - 1);
+          byteCount -= copyLen;
+          notifyAll();
+        }
       }
-      System.arraycopy(buffer, startPoint, b, off, copyLen);
-      totalAmt += copyLen;
-      len -= copyLen;
-      synchronized (this)
-      {
-        startPoint += copyLen;
-        startPoint &= (buffer.length - 1);
-        byteCount -= copyLen;
-      }
+    }
+    catch (InterruptedException e)
+    {
+      throw new InterruptedIOException(e.getMessage());
     }
   }
   
