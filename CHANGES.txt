@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-568: Combined web.xml file contains wrong declarations.
+(Swami Rajamohan)
+
 CONNECTORS-562: Some web.xml files contain wrong declarations
 (Alex Ott, Erlend Garåsen)
 
