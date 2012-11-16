@@ -385,7 +385,7 @@ public class ThrottledFetcher
         // stand
         try
         {
-          int statusCode = methodThread.getResponseCode();
+          statusCode = methodThread.getResponseCode();
           long currentTime;
           switch (statusCode)
           {
