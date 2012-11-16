@@ -974,7 +974,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 maxOpenConnectionsPerServer,
                 minimumMillisecondsPerFetchPerServer,
                 connectionLimit,
-                feedTimeout);
+                feedTimeout,
+                proxyHost,
+                proxyPort,
+                proxyAuthDomain,
+                proxyAuthUsername,
+                proxyAuthPassword);
               try
               {
                 // Begin the fetch
@@ -983,8 +988,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 {
                   // Execute the request.
                   // Use the connect timeout from the document specification!
-                  int status = connection.executeFetch(protocol,port,pathPart,userAgent,from,proxyHost,proxyPort,
-                    proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+                  int status = connection.executeFetch(protocol,port,pathPart,userAgent,from,
                     lastETagValue,lastModifiedValue);
                   switch (status)
                   {

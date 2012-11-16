@@ -446,14 +446,15 @@ public class Robots
 
       // Do the fetch
       IThrottledConnection connection = fetcher.createConnection(hostName,minimumMillisecondsPerBytePerServer,
-        maxOpenConnectionsPerServer,minimumMillisecondsPerFetchPerServer,connectionLimit,ROBOT_TIMEOUT_MILLISECONDS);
+        maxOpenConnectionsPerServer,minimumMillisecondsPerFetchPerServer,connectionLimit,ROBOT_TIMEOUT_MILLISECONDS,
+        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
       try
       {
         connection.beginFetch(ROBOT_CONNECTION_TYPE);
         try
         {
           int responseCode = connection.executeFetch(protocol,port,ROBOT_FILE_NAME,userAgent,from,
-            proxyHost, proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,null,null);
+            null,null);
           switch (responseCode)
           {
           case IThrottledConnection.STATUS_OK:

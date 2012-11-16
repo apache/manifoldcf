@@ -30,12 +30,25 @@ public class XThreadInputStream extends InputStream
   private int startPoint = 0;
   private int byteCount = 0;
   private boolean streamEnd = false;
+  private IOException failureException = null;
   private InputStream sourceStream;
+  private boolean abort = false;
   
   /** Constructor */
   public XThreadInputStream(InputStream sourceStream)
   {
     this.sourceStream = sourceStream;
+  }
+  
+  /** Call this method to abort the stuffQueue() method.
+  */
+  public void abort()
+  {
+    synchronized (this)
+    {
+      abort = true;
+      notifyAll();
+    }
   }
   
   /** This method is called from the helper thread side, to keep the queue
@@ -50,7 +63,7 @@ public class XThreadInputStream extends InputStream
       int readStartPoint;
       synchronized (this)
       {
-        if (streamEnd)
+        if (streamEnd || abort)
           return;
         // Calculate amount to read
         maxToRead = buffer.length - byteCount;
@@ -65,10 +78,23 @@ public class XThreadInputStream extends InputStream
       // See how to break up the reads into pieces.  We only do one piece right now.
       if (readStartPoint + maxToRead >= buffer.length)
         maxToRead = buffer.length - readStartPoint;
-      int amt = sourceStream.read(buffer, readStartPoint, maxToRead);
+      
+      int amt = -1;
+      IOException exception = null;
+      try
+      {
+        amt = sourceStream.read(buffer, readStartPoint, maxToRead);
+      }
+      catch (IOException e)
+      {
+        exception = e;
+      }
+      
       synchronized (this)
       {
-        if (amt == -1)
+        if (exception != null)
+          failureException = exception;
+        else if (amt == -1)
           streamEnd = true;
         else
           byteCount += amt;
@@ -129,6 +155,8 @@ public class XThreadInputStream extends InputStream
                 return totalAmt;
               return -1;
             }
+            if (failureException != null)
+              throw failureException;
             wait();
             continue;
           }
