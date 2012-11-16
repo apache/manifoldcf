@@ -137,7 +137,7 @@ public class XThreadInputStream extends InputStream
       while (true)
       {
         if (len == 0)
-          return 0;
+          return totalAmt;
         int copyLen;
         synchronized (this)
         {
@@ -163,6 +163,7 @@ public class XThreadInputStream extends InputStream
         }
         System.arraycopy(buffer, startPoint, b, off, copyLen);
         totalAmt += copyLen;
+        off += copyLen;
         len -= copyLen;
         synchronized (this)
         {
