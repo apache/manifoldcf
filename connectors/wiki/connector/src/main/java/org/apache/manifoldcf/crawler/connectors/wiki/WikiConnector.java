@@ -31,11 +31,28 @@ import org.apache.manifoldcf.agents.common.XMLContext;
 import org.apache.manifoldcf.agents.common.XMLStringContext;
 import org.apache.manifoldcf.agents.common.XMLFileContext;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
-import org.apache.commons.httpclient.auth.*;
-import org.apache.commons.httpclient.protocol.*;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.HttpResponse;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
 
 import java.util.*;
 import java.io.*;
@@ -77,7 +94,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String serverDomain = null;
   
   /** Connection management */
-  protected MultiThreadedHttpConnectionManager connectionManager = null;
+  protected ClientConnectionManager connectionManager = null;
 
   protected HttpClient httpClient = null;
   
@@ -136,11 +153,18 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       baseURL = protocol + "://" + server + ((portString!=null)?":" + portString:"") + path + "/api.php?format=xml&";
 
       // Set up connection manager
-      connectionManager = new MultiThreadedHttpConnectionManager();
-      connectionManager.getParams().setMaxTotalConnections(1);
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+      connectionManager = localConnectionManager;
 
-      httpClient = new HttpClient(connectionManager);
-
+      BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,300000);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,300000);
+      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      httpClient = localHttpClient;
+      
       loginToAPI();
       
       hasBeenSetup = true;
@@ -158,7 +182,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return false;
 
     // Grab the httpclient, and use the same one throughout.
-    HttpClient client = getInitializedClient();
+    HttpClient client = httpClient;
     
     // First step in login process: get the token
     Map<String, String> loginParams = new HashMap<String, String>();
@@ -175,31 +199,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     APILoginResult result = new APILoginResult();
         
-    HttpMethodBase method = getInitializedPostMethod(loginURL,loginParams);
-
     try {
+      HttpRequestBase method = getInitializedPostMethod(loginURL,loginParams);
       ExecuteAPILoginThread t = new ExecuteAPILoginThread(client, method, result);
       try {
         t.start();
         t.join();
 
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof ManifoldCFException) {
-            if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
-              throw new InterruptedException(thr.getMessage());
-            }
-            throw (ManifoldCFException) thr;
-          } else if (thr instanceof ServiceInterruption) {
-            throw (ServiceInterruption) thr;
-          } else if (thr instanceof IOException) {
-            throw (IOException) thr;
-          } else if (thr instanceof RuntimeException) {
-            throw (RuntimeException) thr;
-          } else {
-            throw (Error) thr;
-          }
-        }
+        handleException(t.getException());
       } catch (ManifoldCFException e) {
         t.interrupt();
         throw e;
@@ -209,6 +216,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       } catch (IOException e) {
         t.interrupt();
         throw e;
+      } catch (HttpException e) {
+	t.interrupt();
+	throw e;
       } catch (InterruptedException e) {
         t.interrupt();
         // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
@@ -228,14 +238,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       
     } catch (InterruptedException e) {
-      // Drop the connection on the floor
-      method = null;
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     } catch (ManifoldCFException e) {
-      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) // Drop the connection on the floor
-      {
-        method = null;
-      }
       throw e;
     } catch (java.net.SocketTimeoutException e) {
       long currentTime = System.currentTimeMillis();
@@ -243,48 +247,30 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     } catch (java.net.SocketException e) {
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Login received a socket error reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
-    } catch (org.apache.commons.httpclient.ConnectTimeoutException e) {
+    } catch (ConnectTimeoutException e) {
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Login connection timed out reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
     } catch (InterruptedIOException e) {
-      method = null;
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     } catch (IOException e) {
       throw new ManifoldCFException("Login had an IO failure: " + e.getMessage(), e);
-    } finally {
-      if (method != null) {
-        method.releaseConnection();
-      }
+    } catch (HttpException e) {
+      throw new ManifoldCFException("Login had an Http exception: "+e.getMessage(), e);
     }
 
     // First request is finished.  Fire off the second one.
     
     loginParams.put("lgtoken", token);
     
-    method = getInitializedPostMethod(loginURL,loginParams);
     try {
-      ExecuteTokenAPILoginThread t = new ExecuteTokenAPILoginThread(client, method, result);
+      HttpRequestBase method = getInitializedPostMethod(loginURL,loginParams);
+      ExecuteTokenAPILoginThread t = new ExecuteTokenAPILoginThread(httpClient, method, result);
       try {
         t.start();
         t.join();
 
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof ManifoldCFException) {
-            if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
-              throw new InterruptedException(thr.getMessage());
-            }
-            throw (ManifoldCFException) thr;
-          } else if (thr instanceof ServiceInterruption) {
-            throw (ServiceInterruption) thr;
-          } else if (thr instanceof IOException) {
-            throw (IOException) thr;
-          } else if (thr instanceof RuntimeException) {
-            throw (RuntimeException) thr;
-          } else {
-            throw (Error) thr;
-          }
-        }
+	handleException(t.getException());
+	
       } catch (ManifoldCFException e) {
         t.interrupt();
         throw e;
@@ -294,6 +280,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       } catch (IOException e) {
         t.interrupt();
         throw e;
+      } catch (HttpException e) {
+	t.interrupt();
+	throw e;
       } catch (InterruptedException e) {
         t.interrupt();
         // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
@@ -302,14 +291,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Fall through
     } catch (InterruptedException e) {
-      // Drop the connection on the floor
-      method = null;
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     } catch (ManifoldCFException e) {
-      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) // Drop the connection on the floor
-      {
-        method = null;
-      }
       throw e;
     } catch (java.net.SocketTimeoutException e) {
       long currentTime = System.currentTimeMillis();
@@ -317,18 +300,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     } catch (java.net.SocketException e) {
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Login received a socket error reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
-    } catch (org.apache.commons.httpclient.ConnectTimeoutException e) {
+    } catch (ConnectTimeoutException e) {
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Login connection timed out reading from Wiki server: " + e.getMessage(), e, currentTime + 300000L, currentTime + 12L * 60000L, -1, false);
     } catch (InterruptedIOException e) {
-      method = null;
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     } catch (IOException e) {
       throw new ManifoldCFException("Login had an IO failure: " + e.getMessage(), e);
-    } finally {
-      if (method != null) {
-        method.releaseConnection();
-      }
+    } catch (HttpException e) {
+      throw new ManifoldCFException("Login had an Http exception: "+e.getMessage(), e);
     }
     
     // Check result
@@ -347,12 +327,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected class ExecuteAPILoginThread extends Thread {
 
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected APILoginResult result;
     protected Throwable exception = null;
     protected String token = null;
 
-    public ExecuteAPILoginThread(HttpClient client, HttpMethodBase executeMethod, APILoginResult result) {
+    public ExecuteAPILoginThread(HttpClient client, HttpRequestBase executeMethod, APILoginResult result) {
       super();
       setDaemon(true);
       this.client = client;
@@ -363,13 +343,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public void run() {
       try {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200) {
-          throw new ManifoldCFException("Unexpected response code " + rval + ": " + executeMethod.getResponseBodyAsString());
+	HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200) {
+          throw new ManifoldCFException("Unexpected response code " + rval.getStatusLine().getStatusCode() + ": " + readResponseAsString(rval));
         }
 
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try {
           // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
           //<api>
@@ -388,6 +368,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               x.parse(is);
               token = c.getToken();
             }
+	    catch (InterruptedIOException e)
+	    {
+	      throw e;
+	    }
             catch (IOException e)
             {
               long time = System.currentTimeMillis();
@@ -405,6 +389,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       } catch (Throwable e) {
         this.exception = e;
+      } finally {
+	executeMethod.abort();
       }
     }
 
@@ -494,11 +480,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected class ExecuteTokenAPILoginThread extends Thread {
 
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected APILoginResult result;
 
-    public ExecuteTokenAPILoginThread(HttpClient client, HttpMethodBase executeMethod, APILoginResult result) {
+    public ExecuteTokenAPILoginThread(HttpClient client, HttpRequestBase executeMethod, APILoginResult result) {
       super();
       setDaemon(true);
       this.client = client;
@@ -509,13 +495,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public void run() {
       try {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200) {
-          throw new ManifoldCFException("Unexpected response code " + rval + ": " + executeMethod.getResponseBodyAsString());
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200) {
+          throw new ManifoldCFException("Unexpected response code " + rval.getStatusLine().getStatusCode() + ": " + readResponseAsString(rval));
         }
 
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try {
           // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
           //<api>
@@ -550,6 +536,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       } catch (Throwable e) {
         this.exception = e;
+      } finally {
+	executeMethod.abort();
       }
     }
 
@@ -639,8 +627,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void poll()
     throws ManifoldCFException
   {
-    if (connectionManager != null)
-      connectionManager.closeIdleConnections(60000L);
+    // MHL
+    //if (connectionManager != null)
+    //  connectionManager.closeIdleConnections(60000L);
   }
 
   /** Close the connection.  Call this before discarding the connection.
@@ -1620,29 +1609,26 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   // Protected static classes and methods
 
-  /** Create and initialize an HttpClient instance */
-  protected HttpClient getInitializedClient()
-    throws ServiceInterruption, ManifoldCFException
+  /** Create and initialize an HttpRequestBase */
+  protected HttpRequestBase getInitializedGetMethod(String URL)
+    throws IOException
   {
-    return httpClient;
-  }
-
-  /** Create and initialize an HttpMethodBase */
-  protected HttpMethodBase getInitializedMethod(String URL)
-  {
-    GetMethod method = new GetMethod(URL);
-    method.getParams().setParameter("http.socket.timeout", new Integer(300000));
-    return method;
+    return new HttpGet(URL);
   }
 
   /** Create an initialize a post method */
-  protected HttpMethodBase getInitializedPostMethod(String URL, Map<String,String> params)
+  protected HttpRequestBase getInitializedPostMethod(String URL, Map<String,String> params)
+    throws IOException
   {
-    PostMethod method = new PostMethod(URL);
+    HttpPost method = new HttpPost(URL);
+    List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+    
     for (String key : params.keySet()) {
-      method.setParameter(key, params.get(key));
+      pairs.add(new BasicNameValuePair(key, params.get(key)));
     }
-    method.getParams().setParameter("http.socket.timeout", new Integer(300000));
+    
+    method.setEntity(new UrlEncodedFormEntity(pairs, HTTP.UTF_8));
+    
     return method;
   }
   
@@ -1657,33 +1643,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     boolean loginAttempted = false;
     while (true)
     {
-      HttpClient client = getInitializedClient();
-      HttpMethodBase executeMethod = getInitializedMethod(getCheckURL());
+      HttpClient client = httpClient;
       try
       {
+	HttpRequestBase executeMethod = getInitializedGetMethod(getCheckURL());
         ExecuteCheckThread t = new ExecuteCheckThread(client,executeMethod);
         try
         {
           t.start();
           t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof ManifoldCFException)
-            {
-              if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw new InterruptedException(thr.getMessage());
-              throw (ManifoldCFException)thr;
-            }
-            else if (thr instanceof ServiceInterruption)
-              throw (ServiceInterruption)thr;
-            else if (thr instanceof IOException)
-              throw (IOException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          handleException(t.getException());
           if (loginAttempted || !t.isLoginRequired())
             return;
         }
@@ -1702,6 +1671,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw e;
         }
+	catch (HttpException e)
+	{
+	  t.interrupt();
+	  throw e;
+	}
         catch (InterruptedException e)
         {
           t.interrupt();
@@ -1711,15 +1685,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (InterruptedException e)
       {
-        // Drop the connection on the floor
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (ManifoldCFException e)
       {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          // Drop the connection on the floor
-          executeMethod = null;
         throw e;
       }
       catch (java.net.SocketTimeoutException e)
@@ -1732,24 +1701,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Fetch test received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Fetch test connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
       catch (InterruptedIOException e)
       {
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         throw new ManifoldCFException("Fetch test had an IO failure: "+e.getMessage(),e);
       }
-      finally
+      catch (HttpException e)
       {
-        if (executeMethod != null)
-          executeMethod.releaseConnection();
+	throw new ManifoldCFException("Fetch test had Http exception: "+e.getMessage(),e);
       }
       
       if (!loginToAPI())
@@ -1771,11 +1738,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class ExecuteCheckThread extends Thread
   {
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected boolean loginNeeded = false;
 
-    public ExecuteCheckThread(HttpClient client, HttpMethodBase executeMethod)
+    public ExecuteCheckThread(HttpClient client, HttpRequestBase executeMethod)
     {
       super();
       setDaemon(true);
@@ -1788,11 +1755,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200)
-          throw new ManifoldCFException("Unexpected response code: "+rval);
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200)
+          throw new ManifoldCFException("Unexpected response code: "+rval.getStatusLine().getStatusCode()+": "+readResponseAsString(rval));
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try
         {
           loginNeeded = parseCheckResponse(is);
@@ -1812,6 +1779,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       catch (Throwable e)
       {
         this.exception = e;
+      }
+      finally
+      {
+	executeMethod.abort();
       }
     }
 
@@ -1997,12 +1968,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     boolean loginAttempted = false;
     while (true)
     {
-      HttpClient client = getInitializedClient();
-      HttpMethodBase executeMethod = getInitializedMethod(getListPagesURL(startPageTitle,namespace,prefix));
       try
       {
+	HttpRequestBase executeMethod = getInitializedGetMethod(getListPagesURL(startPageTitle,namespace,prefix));
         PageBuffer pageBuffer = new PageBuffer();
-        ExecuteListPagesThread t = new ExecuteListPagesThread(client,executeMethod,pageBuffer,startPageTitle);
+        ExecuteListPagesThread t = new ExecuteListPagesThread(httpClient,executeMethod,pageBuffer,startPageTitle);
         try
         {
           t.start();
@@ -2019,24 +1989,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           }
           
           t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof ManifoldCFException)
-            {
-              if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw new InterruptedException(thr.getMessage());
-              throw (ManifoldCFException)thr;
-            }
-            else if (thr instanceof ServiceInterruption)
-              throw (ServiceInterruption)thr;
-            else if (thr instanceof IOException)
-              throw (IOException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          handleException(t.getException());
           if (loginAttempted || !t.isLoginRequired())
             return t.getLastPageTitle();
         }
@@ -2055,6 +2008,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw e;
         }
+	catch (HttpException e)
+	{
+	  t.interrupt();
+	  throw e;
+	}
         catch (InterruptedException e)
         {
           t.interrupt();
@@ -2069,15 +2027,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (InterruptedException e)
       {
-        // Drop the connection on the floor
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (ManifoldCFException e)
       {
         if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          // Drop the connection on the floor
-          executeMethod = null;
         throw e;
       }
       catch (java.net.SocketTimeoutException e)
@@ -2090,24 +2044,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("ListPages received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("ListPages connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
       catch (InterruptedIOException e)
       {
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         throw new ManifoldCFException("ListPages had an IO failure: "+e.getMessage(),e);
       }
-      finally
+      catch (HttpException e)
       {
-        if (executeMethod != null)
-          executeMethod.releaseConnection();
+	throw new ManifoldCFException("ListPages had an HTTP exception: "+e.getMessage(),e);
       }
       
       if (!loginToAPI())
@@ -2147,14 +2099,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class ExecuteListPagesThread extends Thread
   {
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected PageBuffer pageBuffer;
     protected String lastPageTitle = null;
     protected String startPageTitle;
     protected boolean loginNeeded = false;
 
-    public ExecuteListPagesThread(HttpClient client, HttpMethodBase executeMethod, PageBuffer pageBuffer, String startPageTitle)
+    public ExecuteListPagesThread(HttpClient client, HttpRequestBase executeMethod, PageBuffer pageBuffer, String startPageTitle)
     {
       super();
       setDaemon(true);
@@ -2169,11 +2121,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200)
-          throw new ManifoldCFException("Unexpected response code: "+rval);
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200)
+          throw new ManifoldCFException("Unexpected response code: "+rval.getStatusLine().getStatusCode()+": "+readResponseAsString(rval));
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try
         {
           ReturnString returnString = new ReturnString();
@@ -2199,6 +2151,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       finally
       {
         pageBuffer.signalDone();
+	executeMethod.abort();
       }
     }
 
@@ -2424,33 +2377,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     boolean loginAttempted = false;
     while (true)
     {
-      HttpClient client = getInitializedClient();
-      HttpMethodBase executeMethod = getInitializedMethod(getGetDocURLsURL(documentIdentifiers));
       try
       {
-        ExecuteGetDocURLsThread t = new ExecuteGetDocURLsThread(client,executeMethod,urls);
+	HttpRequestBase executeMethod = getInitializedGetMethod(getGetDocURLsURL(documentIdentifiers));
+        ExecuteGetDocURLsThread t = new ExecuteGetDocURLsThread(httpClient,executeMethod,urls);
         try
         {
           t.start();
           t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof ManifoldCFException)
-            {
-              if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw new InterruptedException(thr.getMessage());
-              throw (ManifoldCFException)thr;
-            }
-            else if (thr instanceof ServiceInterruption)
-              throw (ServiceInterruption)thr;
-            else if (thr instanceof IOException)
-              throw (IOException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          handleException(t.getException());
           if (loginAttempted || !t.isLoginRequired())
             return;
         }
@@ -2469,6 +2404,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw e;
         }
+	catch (HttpException e)
+	{
+	  t.interrupt();
+	  throw e;
+	}
         catch (InterruptedException e)
         {
           t.interrupt();
@@ -2478,15 +2418,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (InterruptedException e)
       {
-        // Drop the connection on the floor
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (ManifoldCFException e)
       {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          // Drop the connection on the floor
-          executeMethod = null;
         throw e;
       }
       catch (java.net.SocketTimeoutException e)
@@ -2499,24 +2434,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("URL fetch received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("URL fetch connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
       catch (InterruptedIOException e)
       {
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         throw new ManifoldCFException("URL fetch had an IO failure: "+e.getMessage(),e);
       }
-      finally
+      catch (HttpException e)
       {
-        if (executeMethod != null)
-          executeMethod.releaseConnection();
+	throw new ManifoldCFException("URL fetch had an HTTP exception: "+e.getMessage(),e);
       }
       
       if (!loginToAPI())
@@ -2551,12 +2484,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class ExecuteGetDocURLsThread extends Thread
   {
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected Map<String,String> urls;
     protected boolean loginNeeded = false;
 
-    public ExecuteGetDocURLsThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> urls)
+    public ExecuteGetDocURLsThread(HttpClient client, HttpRequestBase executeMethod, Map<String,String> urls)
     {
       super();
       setDaemon(true);
@@ -2570,11 +2503,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200)
-          throw new ManifoldCFException("Unexpected response code: "+rval);
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200)
+          throw new ManifoldCFException("Unexpected response code: "+rval.getStatusLine().getStatusCode()+": "+readResponseAsString(rval));
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try
         {
           loginNeeded = parseGetDocURLsResponse(is,urls);
@@ -2594,6 +2527,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       catch (Throwable e)
       {
         this.exception = e;
+      }
+      finally
+      {
+	executeMethod.abort();
       }
     }
 
@@ -2758,33 +2695,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     boolean loginAttempted = false;
     while (true)
     {
-      HttpClient client = getInitializedClient();
-      HttpMethodBase executeMethod = getInitializedMethod(getGetTimestampURL(documentIdentifiers));
       try
       {
-        ExecuteGetTimestampThread t = new ExecuteGetTimestampThread(client,executeMethod,versions);
+	HttpRequestBase executeMethod = getInitializedGetMethod(getGetTimestampURL(documentIdentifiers));
+        ExecuteGetTimestampThread t = new ExecuteGetTimestampThread(httpClient,executeMethod,versions);
         try
         {
           t.start();
           t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof ManifoldCFException)
-            {
-              if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw new InterruptedException(thr.getMessage());
-              throw (ManifoldCFException)thr;
-            }
-            else if (thr instanceof ServiceInterruption)
-              throw (ServiceInterruption)thr;
-            else if (thr instanceof IOException)
-              throw (IOException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          handleException(t.getException());
           if (loginAttempted || !t.isLoginRequired())
             return;
         }
@@ -2803,6 +2722,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw e;
         }
+	catch (HttpException e)
+	{
+	  t.interrupt();
+	  throw e;
+	}
         catch (InterruptedException e)
         {
           t.interrupt();
@@ -2812,15 +2736,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (InterruptedException e)
       {
-        // Drop the connection on the floor
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (ManifoldCFException e)
       {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          // Drop the connection on the floor
-          executeMethod = null;
         throw e;
       }
       catch (java.net.SocketTimeoutException e)
@@ -2833,24 +2752,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Version fetch received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Version fetch connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
       catch (InterruptedIOException e)
       {
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         throw new ManifoldCFException("Version fetch had an IO failure: "+e.getMessage(),e);
       }
-      finally
+      catch (HttpException e)
       {
-        if (executeMethod != null)
-          executeMethod.releaseConnection();
+	throw new ManifoldCFException("Version fetch had an HTTP exception: "+e.getMessage(),e);
       }
       
       if (!loginToAPI())
@@ -2885,12 +2802,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class ExecuteGetTimestampThread extends Thread
   {
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected Map<String,String> versions;
     protected boolean loginNeeded = false;
 
-    public ExecuteGetTimestampThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> versions)
+    public ExecuteGetTimestampThread(HttpClient client, HttpRequestBase executeMethod, Map<String,String> versions)
     {
       super();
       setDaemon(true);
@@ -2904,11 +2821,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200)
-          throw new ManifoldCFException("Unexpected response code: "+rval);
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200)
+          throw new ManifoldCFException("Unexpected response code: "+rval.getStatusLine().getStatusCode()+": "+readResponseAsString(rval));
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try
         {
           loginNeeded = parseGetTimestampResponse(is,versions);
@@ -2928,6 +2845,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       catch (Throwable e)
       {
         this.exception = e;
+      }
+      finally
+      {
+	executeMethod.abort();
       }
     }
 
@@ -3163,35 +3084,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     boolean loginAttempted = false;
     while (true)
     {
-      HttpClient client = getInitializedClient();
-      HttpMethodBase executeMethod = getInitializedMethod(getGetNamespacesURL());
-      
       try
       {
-        ExecuteGetNamespacesThread t = new ExecuteGetNamespacesThread(client,executeMethod,namespaces);
+	HttpRequestBase executeMethod = getInitializedGetMethod(getGetNamespacesURL());
+        ExecuteGetNamespacesThread t = new ExecuteGetNamespacesThread(httpClient,executeMethod,namespaces);
         try
         {
           t.start();
           t.join();
           
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof ManifoldCFException)
-            {
-              if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw new InterruptedException(thr.getMessage());
-              throw (ManifoldCFException)thr;
-            }
-            else if (thr instanceof ServiceInterruption)
-              throw (ServiceInterruption)thr;
-            else if (thr instanceof IOException)
-              throw (IOException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          handleException(t.getException());
           if (loginAttempted || !t.isLoginRequired())
             return;
         }
@@ -3210,6 +3112,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw e;
         }
+	catch (HttpException e)
+	{
+	  t.interrupt();
+	  throw e;
+	}
         catch (InterruptedException e)
         {
           t.interrupt();
@@ -3219,15 +3126,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       catch (InterruptedException e)
       {
-        // Drop the connection on the floor
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (ManifoldCFException e)
       {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          // Drop the connection on the floor
-          executeMethod = null;
         throw e;
       }
       catch (java.net.SocketTimeoutException e)
@@ -3240,24 +3142,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Get namespaces received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Get namespaces connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
       catch (InterruptedIOException e)
       {
-        executeMethod = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
         throw new ManifoldCFException("Get namespaces had an IO failure: "+e.getMessage(),e);
       }
-      finally
+      catch (HttpException e)
       {
-        if (executeMethod != null)
-          executeMethod.releaseConnection();
+	throw new ManifoldCFException("Get namespaces had an HTTP exception: "+e.getMessage(),e);
       }
       
       if (!loginToAPI())
@@ -3270,12 +3170,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class ExecuteGetNamespacesThread extends Thread
   {
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected Map<String,String> namespaces;
     protected boolean loginNeeded = false;
 
-    public ExecuteGetNamespacesThread(HttpClient client, HttpMethodBase executeMethod, Map<String,String> namespaces)
+    public ExecuteGetNamespacesThread(HttpClient client, HttpRequestBase executeMethod, Map<String,String> namespaces)
     {
       super();
       setDaemon(true);
@@ -3289,14 +3189,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200)
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200)
         {
-          throw new ManifoldCFException("Unexpected response code "+rval+": "+executeMethod.getResponseBodyAsString());
+          throw new ManifoldCFException("Unexpected response code "+rval.getStatusLine().getStatusCode()+": "+readResponseAsString(rval));
         }
 
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try
         {
           // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -3349,6 +3249,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       catch (Throwable e)
       {
         this.exception = e;
+      }
+      finally
+      {
+	executeMethod.abort();
       }
     }
 
@@ -3515,9 +3419,6 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     boolean loginAttempted = false;
     while (true)
     {
-      HttpClient client = getInitializedClient();
-      HttpMethodBase executeMethod = getInitializedMethod(getGetDocInfoURL(documentIdentifier));
-      
       String statusCode = "UNKNOWN";
       String errorMessage = null;
       long startTime = System.currentTimeMillis();
@@ -3525,7 +3426,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       
       try
       {
-        ExecuteGetDocInfoThread t = new ExecuteGetDocInfoThread(client,executeMethod,documentIdentifier);
+	HttpRequestBase executeMethod = getInitializedGetMethod(getGetDocInfoURL(documentIdentifier));
+        ExecuteGetDocInfoThread t = new ExecuteGetDocInfoThread(httpClient,executeMethod,documentIdentifier);
         try
         {
           t.start();
@@ -3534,24 +3436,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           statusCode = t.getStatusCode();
           errorMessage = t.getErrorMessage();
             
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof ManifoldCFException)
-            {
-              if (((ManifoldCFException)thr).getErrorCode() == ManifoldCFException.INTERRUPTED)
-                throw new InterruptedException(thr.getMessage());
-              throw (ManifoldCFException)thr;
-            }
-            else if (thr instanceof ServiceInterruption)
-              throw (ServiceInterruption)thr;
-            else if (thr instanceof IOException)
-              throw (IOException)thr;
-            else if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else
-              throw (Error)thr;
-          }
+          handleException(t.getException());
    
           // Fetch all the data we need from the thread, and do the indexing.
           File contentFile = t.getContentFile();
@@ -3620,6 +3505,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw e;
         }
+	catch (HttpException e)
+	{
+	  t.interrupt();
+	  throw e;
+	}
         catch (InterruptedException e)
         {
           t.interrupt();
@@ -3634,7 +3524,6 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       catch (InterruptedException e)
       {
         // Drop the connection on the floor
-        executeMethod = null;
         statusCode = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
@@ -3642,8 +3531,6 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
         {
-          // Drop the connection on the floor
-          executeMethod = null;
           statusCode = null;
         }
         throw e;
@@ -3658,14 +3545,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Get doc info received a socket error reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         long currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("Get doc info connection timed out reading from Wiki server: "+e.getMessage(),e,currentTime+300000L,currentTime+12L * 60000L,-1,false);
       }
       catch (InterruptedIOException e)
       {
-        executeMethod = null;
         statusCode = null;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
@@ -3673,10 +3559,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         throw new ManifoldCFException("Get doc info had an IO failure: "+e.getMessage(),e);
       }
+      catch (HttpException e)
+      {
+	throw new ManifoldCFException("Get doc info had an HTTP exception: "+e.getMessage(),e);
+      }
       finally
       {
-        if (executeMethod != null)
-          executeMethod.releaseConnection();
         if (statusCode != null)
           activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,new Long(dataSize),documentIdentifier,statusCode,errorMessage,null);
       }
@@ -3691,7 +3579,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class ExecuteGetDocInfoThread extends Thread
   {
     protected HttpClient client;
-    protected HttpMethodBase executeMethod;
+    protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
     protected String documentIdentifier;
     protected File contentFile = null;
@@ -3704,7 +3592,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String errorMessage = null;
     protected boolean loginNeeded = false;
 
-    public ExecuteGetDocInfoThread(HttpClient client, HttpMethodBase executeMethod, String documentIdentifier)
+    public ExecuteGetDocInfoThread(HttpClient client, HttpRequestBase executeMethod, String documentIdentifier)
     {
       super();
       setDaemon(true);
@@ -3718,14 +3606,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Call the execute method appropriately
-        int rval = client.executeMethod(executeMethod);
-        if (rval != 200)
+        HttpResponse rval = client.execute(executeMethod);
+        if (rval.getStatusLine().getStatusCode() != 200)
         {
-          statusCode = "HTTP code "+rval;
-          throw new ManifoldCFException("Unexpected response code "+rval+": "+executeMethod.getResponseBodyAsString());
+          statusCode = "HTTP code "+rval.getStatusLine().getStatusCode();
+          throw new ManifoldCFException("Unexpected response code "+rval.getStatusLine().getStatusCode()+": "+readResponseAsString(rval));
         }
         // Read response and make sure it's valid
-        InputStream is = executeMethod.getResponseBodyAsStream();
+        InputStream is = rval.getEntity().getContent();
         try
         {
           // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -3757,6 +3645,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               statusCode = "OK";
               loginNeeded = c.isLoginRequired();
             }
+	    catch (InterruptedIOException e)
+	    {
+	      throw e;
+	    }
             catch (IOException e)
             {
               long time = System.currentTimeMillis();
@@ -3785,6 +3677,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         statusCode = "Exception";
         errorMessage = e.getMessage();
         this.exception = e;
+      }
+      finally
+      {
+	executeMethod.abort();
       }
     }
 
@@ -4334,4 +4230,66 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
   }
   
+  protected static String readResponseAsString(HttpResponse httpResponse)
+    throws IOException
+  {
+    HttpEntity entity = httpResponse.getEntity();
+    if (entity != null)
+    {
+      InputStream is = entity.getContent();
+      try
+      {
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        char[] buffer = new char[65536];
+        Reader r = new InputStreamReader(is,charSet);
+        Writer w = new StringWriter();
+        try
+        {
+          while (true)
+          {
+            int amt = r.read(buffer);
+            if (amt == -1)
+              break;
+            w.write(buffer,0,amt);
+          }
+        }
+        finally
+        {
+          w.flush();
+        }
+        return w.toString();
+      }
+      finally
+      {
+        is.close();
+      }
+    }
+    return "";
+  }
+  
+  protected static void handleException(Throwable thr)
+    throws InterruptedException, ManifoldCFException, ServiceInterruption, IOException, HttpException
+  {
+    if (thr != null) {
+      if (thr instanceof ManifoldCFException) {
+	if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
+	  throw new InterruptedException(thr.getMessage());
+	}
+	throw (ManifoldCFException) thr;
+      } else if (thr instanceof ServiceInterruption) {
+	throw (ServiceInterruption) thr;
+      } else if (thr instanceof IOException) {
+	throw (IOException) thr;
+      } else if (thr instanceof HttpException) {
+	throw (HttpException) thr;
+      } else if (thr instanceof RuntimeException) {
+	throw (RuntimeException) thr;
+      } else {
+	throw (Error) thr;
+      }
+    }
+  }
+
 }

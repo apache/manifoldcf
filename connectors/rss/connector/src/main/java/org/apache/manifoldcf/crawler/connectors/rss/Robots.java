@@ -511,7 +511,7 @@ public class Robots
       }
       catch (IOException e)
       {
-        throw new ServiceInterruption("Couldn't fetch robots.txt from "+protocol+"://"+hostName+":"+Integer.toString(port),currentTime + 300000L);
+        throw new ServiceInterruption("Couldn't fetch robots.txt from "+protocol+"://"+hostName+((port==-1)?"":":"+Integer.toString(port)),currentTime + 300000L);
       }
       finally
       {

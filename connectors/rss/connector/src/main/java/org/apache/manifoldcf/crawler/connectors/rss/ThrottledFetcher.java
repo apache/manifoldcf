@@ -217,13 +217,20 @@ public class ThrottledFetcher
   protected static class ThrottledConnection implements IThrottledConnection
   {
     /** The connection bandwidth we want */
-    protected double minimumMillisecondsPerBytePerServer;
+    protected final double minimumMillisecondsPerBytePerServer;
     /** The maximum open connections per server */
-    protected int maxOpenConnectionsPerServer;
+    protected final int maxOpenConnectionsPerServer;
     /** The minimum time between fetches */
-    protected long minimumMillisecondsPerFetchPerServer;
+    protected final long minimumMillisecondsPerFetchPerServer;
     /** The server object we use to track connections and fetches. */
-    protected Server server;
+    protected final Server server;
+    /** Connection timeout in milliseconds */
+    protected final int connectionTimeoutMilliseconds;
+    /** The client connection manager */
+    protected final ClientConnectionManager connectionManager;
+    /** The httpclient */
+    protected final HttpClient httpClient;
+
     /** The method object */
     protected HttpRequestBase executeMethod = null;
     /** The start-fetch time */
@@ -238,17 +245,11 @@ public class ThrottledFetcher
     protected String fetchType = null;
     /** The current bytes in the current fetch */
     protected long fetchCounter = 0L;
-    /** Connection timeout in milliseconds */
-    protected int connectionTimeoutMilliseconds;
 
     /** The thread that is actually doing the work */
     protected ExecuteMethodThread methodThread = null;
     /** Set if thread has been started */
     protected boolean threadStarted = false;
-    /** The client connection manager */
-    protected ClientConnectionManager connectionManager = null;
-    /** The httpclient */
-    protected HttpClient httpClient = null;
     
     /** Constructor.
     */
@@ -293,7 +294,7 @@ public class ThrottledFetcher
 
         HttpHost proxy = new HttpHost(proxyHost, proxyPort);
 
-        httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
       }
       
       httpClient = localHttpClient;
