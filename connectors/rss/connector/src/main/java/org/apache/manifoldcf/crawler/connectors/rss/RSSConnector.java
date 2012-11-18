@@ -2393,7 +2393,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.ContentIfPresentInContentField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInContentField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\"><hr/></td>\n"+
