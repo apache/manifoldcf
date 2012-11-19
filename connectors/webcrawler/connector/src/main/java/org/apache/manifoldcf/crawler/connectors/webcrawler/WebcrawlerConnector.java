@@ -710,7 +710,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   // Prepare to perform the fetch, and decide what to do with the document.
                   //
                   IThrottledConnection connection = ThrottledFetcher.getConnection(protocol,ipAddress,port,
-                    credential,trustStore,throttleDescription,binNames,connectionLimit);
+                    credential,trustStore,throttleDescription,binNames,connectionLimit,
+                    proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
                   try
                   {
                     connection.beginFetch((sessionState == SESSIONSTATE_LOGIN)?FETCH_LOGIN:FETCH_STANDARD);
@@ -719,8 +720,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
                       // Execute the fetch!
                       connection.executeFetch(url.getFile(),userAgent,from,connectionTimeoutMilliseconds,
-                        socketTimeoutMilliseconds,false,hostName,formData,lc,
-                        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+                        socketTimeoutMilliseconds,false,hostName,formData,lc);
                       int response = connection.getResponseCode();
 
                       if (response == 200 || response == 302 || response == 301)
@@ -5050,14 +5050,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       try
       {
         IThrottledConnection connection = ThrottledFetcher.getConnection(protocol,hostIPAddress,port,credential,
-          trustStore,throttleDescription,binNames,connectionLimit);
+          trustStore,throttleDescription,binNames,connectionLimit,
+          proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
         try
         {
           connection.beginFetch(FETCH_ROBOTS);
           try
           {
-            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null,
-              proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null);
             long expirationTime = currentTime+1000*60*60*24;
             int code = connection.getResponseCode();
             if (code == 200)

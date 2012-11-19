@@ -110,7 +110,8 @@ public class ThrottledFetcher
     PageCredentials authentication,
     IKeystoreManager trustStore,
     ThrottleDescription throttleDescription, String[] binNames,
-    int connectionLimit)
+    int connectionLimit,
+    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException
   {
     // First, create a protocol factory object, if we can
@@ -259,7 +260,8 @@ public class ThrottledFetcher
               }
               else
               {
-                connectionToReuse = cb.findConnection(maxConnections,bins,protocol,server,port,authentication,trustStoreString);
+                connectionToReuse = cb.findConnection(maxConnections,bins,protocol,server,port,authentication,trustStoreString,
+                  proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
               }
 
               // Increment after we successfully handled this bin
@@ -368,7 +370,8 @@ public class ThrottledFetcher
 
           // If we have a connection located, activate it.
           if (connectionToReuse == null)
-            connectionToReuse = new ThrottledConnection(protocol,server,port,authentication,myFactory,trustStoreString,bins);
+            connectionToReuse = new ThrottledConnection(protocol,server,port,authentication,myFactory,trustStoreString,bins,
+              proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
           connectionToReuse.setup(throttleDescription);
           return connectionToReuse;
         }
@@ -517,7 +520,8 @@ public class ThrottledFetcher
     */
     public synchronized ThrottledConnection findConnection(int maxConnections,
       ConnectionBin[] binNames, String protocol, String server, int port,
-      PageCredentials authentication, String trustStoreString)
+      PageCredentials authentication, String trustStoreString,
+      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
       throws PoolException
     {
       //sanityCheck();
@@ -559,7 +563,8 @@ public class ThrottledFetcher
       rval.activate();
       //sanityCheck();
 
-      if (!rval.matches(binNames,protocol,server,port,authentication,trustStoreString))
+      if (!rval.matches(binNames,protocol,server,port,authentication,trustStoreString,
+        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword))
       {
         // Destroy old connection.  That should free up space for a new creation.
         rval.destroy();
@@ -1016,7 +1021,17 @@ public class ThrottledFetcher
     protected long startFetchTime = -1L;
     /** The cookies from the last fetch */
     protected LoginCookies lastFetchCookies = null;
-
+    /** Proxy host */
+    protected final String proxyHost;
+    /** Proxy port */
+    protected final int proxyPort;
+    /** Proxy auth domain */
+    protected final String proxyAuthDomain;
+    /** Proxy auth user name */
+    protected final String proxyAuthUsername;
+    /** Proxy auth password */
+    protected final String proxyAuthPassword;
+    
     /** Protocol socket factory */
     protected ProtocolSocketFactory secureSocketFactory = null;
     protected ProtocolFactory myFactory = null;
@@ -1028,8 +1043,14 @@ public class ThrottledFetcher
     /** Constructor.  Create a connection with a specific server and port, and
     * register it as active against all bins. */
     public ThrottledConnection(String protocol, String server, int port, PageCredentials authentication,
-      ProtocolFactory myFactory, String trustStoreString, ConnectionBin[] connectionBins)
+      ProtocolFactory myFactory, String trustStoreString, ConnectionBin[] connectionBins,
+      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     {
+      this.proxyHost = proxyHost;
+      this.proxyPort = proxyPort;
+      this.proxyAuthDomain = proxyAuthDomain;
+      this.proxyAuthUsername = proxyAuthUsername;
+      this.proxyAuthPassword = proxyAuthPassword;
       this.protocol = protocol;
       this.server = server;
       this.port = port;
@@ -1073,24 +1094,78 @@ public class ThrottledFetcher
 
     /** See if this instances matches a given server and port. */
     public boolean matches(ConnectionBin[] bins, String protocol, String server, int port, PageCredentials authentication,
-      String trustStoreString)
+      String trustStoreString, String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     {
-      if (this.trustStoreString == null && trustStoreString != null)
-        return false;
-      if (this.trustStoreString != null && trustStoreString == null)
-        return false;
-      if (this.trustStoreString != null && !this.trustStoreString.equals(trustStoreString))
-        return false;
+      if (this.trustStoreString == null || trustStoreString == null)
+      {
+        if (this.trustStoreString != trustStoreString)
+          return false;
+      }
+      else
+      {
+        if (!this.trustStoreString.equals(trustStoreString))
+          return false;
+      }
 
-      if (this.authentication == null && authentication != null)
-        return false;
-      if (this.authentication != null && authentication == null)
-        return false;
-      if (this.authentication != null && !this.authentication.equals(authentication))
-        return false;
+      if (this.authentication == null || authentication == null)
+      {
+        if (this.authentication != authentication)
+          return false;
+      }
+      else
+      {
+        if (!this.authentication.equals(authentication))
+          return false;
+      }
 
+      if (this.proxyHost == null || proxyHost == null)
+      {
+        if (this.proxyHost != proxyHost)
+          return false;
+      }
+      else
+      {
+        if (!this.proxyHost.equals(proxyHost))
+          return false;
+        if (this.proxyAuthDomain == null || proxyAuthDomain == null)
+        {
+          if (this.proxyAuthDomain != proxyAuthDomain)
+            return false;
+        }
+        else
+        {
+          if (!this.proxyAuthDomain.equals(proxyAuthDomain))
+            return false;
+        }
+        if (this.proxyAuthUsername == null || proxyAuthUsername == null)
+        {
+          if (this.proxyAuthUsername != proxyAuthUsername)
+            return false;
+        }
+        else
+        {
+          if (!this.proxyAuthUsername.equals(proxyAuthUsername))
+            return false;
+        }
+        if (this.proxyAuthPassword == null || proxyAuthPassword == null)
+        {
+          if (this.proxyAuthPassword != proxyAuthPassword)
+            return false;
+        }
+        else
+        {
+          if (!this.proxyAuthPassword.equals(proxyAuthPassword))
+            return false;
+        }
+      }
+      
+      if (this.proxyPort != proxyPort)
+        return false;
+      
+      
       if (this.connectionBinArray.length != bins.length || !this.protocol.equals(protocol) || !this.server.equals(server) || this.port != port)
         return false;
+      
       int i = 0;
       while (i < bins.length)
       {
@@ -1202,6 +1277,7 @@ public class ThrottledFetcher
     * @param fetchType is a short descriptive string describing the kind of fetch being requested.  This
     *        is used solely for logging purposes.
     */
+    @Override
     public void beginFetch(String fetchType)
       throws ManifoldCFException
     {
@@ -1293,10 +1369,10 @@ public class ThrottledFetcher
     * @param formData describes additional form arguments and how to fetch the page.
     * @param loginCookies describes the cookies that should be in effect for this page fetch.
     */
+    @Override
     public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
       int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
-      LoginCookies loginCookies,
-      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
+      LoginCookies loginCookies)
       throws ManifoldCFException, ServiceInterruption
     {
       StringBuilder sb = new StringBuilder(protocol);
@@ -1366,13 +1442,9 @@ public class ThrottledFetcher
           clientConf.setProxy(proxyHost,proxyPort);
           if (proxyAuthUsername != null && proxyAuthUsername.length() > 0)
           {
-            if (proxyAuthPassword == null)
-              proxyAuthPassword = "";
-            if (proxyAuthDomain == null)
-              proxyAuthDomain = "";
             // Set up NTLM credentials for this fetch too.
             client.getState().setProxyCredentials(AuthScope.ANY,
-              new NTCredentials(proxyAuthUsername,proxyAuthPassword,currentHost,proxyAuthDomain));
+              new NTCredentials(proxyAuthUsername,(proxyAuthPassword==null)?"":proxyAuthPassword,currentHost,(proxyAuthDomain==null)?"":proxyAuthDomain));
           }
         }
 
@@ -1658,6 +1730,7 @@ public class ThrottledFetcher
     /** Get the http response code.
     *@return the response code.  This is either an HTTP response code, or one of the codes above.
     */
+    @Override
     public int getResponseCode()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1667,6 +1740,7 @@ public class ThrottledFetcher
     /** Get the last fetch cookies.
     *@return the cookies now in effect from the last fetch.
     */
+    @Override
     public LoginCookies getLastFetchCookies()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1676,6 +1750,7 @@ public class ThrottledFetcher
     /** Get response headers
     *@return a map keyed by header name containing a list of values.
     */
+    @Override
     public Map<String,List<String>> getResponseHeaders()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1702,6 +1777,7 @@ public class ThrottledFetcher
     *@param headerName is the name of the header.
     *@return the header value, or null if it doesn't exist.
     */
+    @Override
     public String getResponseHeader(String headerName)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1716,6 +1792,7 @@ public class ThrottledFetcher
     /** Get the response input stream.  It is the responsibility of the caller
     * to close this stream when done.
     */
+    @Override
     public InputStream getResponseBodyStream()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1762,6 +1839,7 @@ public class ThrottledFetcher
 
     /** Get limited response as a string.
     */
+    @Override
     public String getLimitedResponseBody(int maxSize, String encoding)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1811,6 +1889,7 @@ public class ThrottledFetcher
 
     /** Note that the connection fetch was interrupted by something.
     */
+    @Override
     public void noteInterrupted(Throwable e)
     {
       if (statusCode > 0)
@@ -1823,6 +1902,7 @@ public class ThrottledFetcher
     /** Done with the fetch.  Call this when the fetch has been completed.  A log entry will be generated
     * describing what was done.
     */
+    @Override
     public void doneFetch(IVersionActivity activities)
       throws ManifoldCFException
     {
@@ -1878,6 +1958,7 @@ public class ThrottledFetcher
 
     /** Close the connection.  Call this to end this server connection.
     */
+    @Override
     public void close()
       throws ManifoldCFException
     {
@@ -1947,6 +2028,7 @@ public class ThrottledFetcher
 
     /** Read a byte.
     */
+    @Override
     public int read()
       throws IOException
     {
@@ -1959,6 +2041,7 @@ public class ThrottledFetcher
 
     /** Read lots of bytes.
     */
+    @Override
     public int read(byte[] b)
       throws IOException
     {
@@ -1967,6 +2050,7 @@ public class ThrottledFetcher
 
     /** Read lots of specific bytes.
     */
+    @Override
     public int read(byte[] b, int off, int len)
       throws IOException
     {
@@ -2035,6 +2119,7 @@ public class ThrottledFetcher
 
     /** Skip
     */
+    @Override
     public long skip(long n)
       throws IOException
     {
@@ -2044,6 +2129,7 @@ public class ThrottledFetcher
 
     /** Get available.
     */
+    @Override
     public int available()
       throws IOException
     {
@@ -2052,6 +2138,7 @@ public class ThrottledFetcher
 
     /** Mark.
     */
+    @Override
     public void mark(int readLimit)
     {
       inputStream.mark(readLimit);
@@ -2059,6 +2146,7 @@ public class ThrottledFetcher
 
     /** Reset.
     */
+    @Override
     public void reset()
       throws IOException
     {
@@ -2067,6 +2155,7 @@ public class ThrottledFetcher
 
     /** Check if mark is supported.
     */
+    @Override
     public boolean markSupported()
     {
       return inputStream.markSupported();
@@ -2074,6 +2163,7 @@ public class ThrottledFetcher
 
     /** Close.
     */
+    @Override
     public void close()
       throws IOException
     {

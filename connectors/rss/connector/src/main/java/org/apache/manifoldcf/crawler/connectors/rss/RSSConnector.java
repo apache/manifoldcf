@@ -974,7 +974,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 maxOpenConnectionsPerServer,
                 minimumMillisecondsPerFetchPerServer,
                 connectionLimit,
-                feedTimeout);
+                feedTimeout,
+                proxyHost,
+                proxyPort,
+                proxyAuthDomain,
+                proxyAuthUsername,
+                proxyAuthPassword);
               try
               {
                 // Begin the fetch
@@ -983,8 +988,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 {
                   // Execute the request.
                   // Use the connect timeout from the document specification!
-                  int status = connection.executeFetch(protocol,port,pathPart,userAgent,from,proxyHost,proxyPort,
-                    proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+                  int status = connection.executeFetch(protocol,port,pathPart,userAgent,from,
                     lastETagValue,lastModifiedValue);
                   switch (status)
                   {
@@ -2389,7 +2393,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.ContentIfPresentInContentField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInContentField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\"><hr/></td>\n"+
