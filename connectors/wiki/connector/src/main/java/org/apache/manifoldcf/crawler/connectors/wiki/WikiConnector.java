@@ -48,6 +48,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.message.BasicHeader;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -57,6 +58,8 @@ import org.apache.http.HttpException;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+
+import java.util.concurrent.TimeUnit;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -89,6 +92,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** Base URL */
   protected String baseURL = null;
   
+  /** The user-agent for this connector instance */
+  protected String userAgent = null;
+
   protected String serverLogin = null;
   protected String serverPass = null;
   protected String serverDomain = null;
@@ -140,6 +146,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     if (hasBeenSetup == false)
     {
+      String emailAddress = params.getParameter(WikiConfig.PARAM_EMAIL);
+      if (emailAddress != null)
+        userAgent = "Mozilla/5.0 (ApacheManifoldCFWikiReader; "+((emailAddress==null)?"":emailAddress)+")";
+      else
+        userAgent = null;
+
       String protocol = params.getParameter(WikiConfig.PARAM_PROTOCOL);
       if (protocol == null || protocol.length() == 0)
         protocol = "http";
@@ -627,9 +639,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void poll()
     throws ManifoldCFException
   {
-    // MHL
-    //if (connectionManager != null)
-    //  connectionManager.closeIdleConnections(60000L);
+    if (connectionManager != null)
+      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
   }
 
   /** Close the connection.  Call this before discarding the connection.
@@ -644,7 +655,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     serverPass = null;
     serverDomain = null;
     baseURL = null;
-    
+    userAgent = null;
+
     if (httpClient != null) {
       httpClient = null;
     }
@@ -828,12 +840,19 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"WikiConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"WikiConnector.Email"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "function checkConfig()\n"+
 "{\n"+
+"  if (editconnection.email.value != \"\" && editconnection.email.value.indexOf(\"@\") == -1)\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.NeedAValidEmailAddress")+"\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.WikiServerPortMustBeAValidInteger")+"\");\n"+
@@ -851,6 +870,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "\n"+
 "function checkConfigForSave()\n"+
 "{\n"+
+"  if (editconnection.email.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.EmailAddressRequiredToBeIncludedInAllRequestHeaders")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.Email")+"\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"WikiConnector.PleaseSupplyAValidWikiServerName")+"\");\n"+
@@ -893,6 +919,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
+    String email = parameters.getParameter(WikiConfig.PARAM_EMAIL);
+    if (email == null)
+      email = "";
+
     String protocol = parameters.getParameter(WikiConfig.PARAM_PROTOCOL);
     if (protocol == null)
       protocol = "http";
@@ -922,6 +952,25 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       domain = "";
     }
     
+    // Email tab
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Email")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WikiConnector.EmailAddressToContactColon") + "</nobr></td><td class=\"value\"><input type=\"text\" size=\"32\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"email\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(email)+"\"/>\n"
+      );
+    }
+
     if (tabName.equals(Messages.getString(locale,"WikiConnector.Server")))
     {
       out.print(
@@ -1004,6 +1053,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
+    String email = variableContext.getParameter("email");
+    if (email != null)
+      parameters.setParameter(WikiConfig.PARAM_EMAIL,email);
+
     String protocol = variableContext.getParameter("serverprotocol");
     if (protocol != null)
       parameters.setParameter(WikiConfig.PARAM_PROTOCOL,protocol);
@@ -1613,7 +1666,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected HttpRequestBase getInitializedGetMethod(String URL)
     throws IOException
   {
-    return new HttpGet(URL);
+    HttpGet method = new HttpGet(URL);
+    if (userAgent != null)
+      method.setHeader(new BasicHeader("User-Agent",userAgent));
+    return method;
   }
 
   /** Create an initialize a post method */
@@ -1621,6 +1677,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws IOException
   {
     HttpPost method = new HttpPost(URL);
+    if (userAgent != null)
+      method.setHeader(new BasicHeader("User-Agent",userAgent));
+
     List<NameValuePair> pairs = new ArrayList<NameValuePair>();
     
     for (String key : params.keySet()) {
