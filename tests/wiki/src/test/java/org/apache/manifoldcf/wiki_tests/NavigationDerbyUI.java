@@ -138,8 +138,15 @@ public class NavigationDerbyUI extends BaseUIDerby
     window = testerInstance.findWindow(null);
     link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
     link.click();
-    // Visit the Server tab
+    // Visit the rest of the tabs - Email first
     window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Email tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("email"));
+    textarea.setValue(testerInstance.createStringDescription("foo@bar.com"));
+    // Visit the Server tab
     link = window.findLink(testerInstance.createStringDescription("Server tab"));
     link.click();
     window = testerInstance.findWindow(null);
