@@ -953,7 +953,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     
     // Email tab
-    if (tabName.equals(Messages.getString(locale,"RSSConnector.Email")))
+    if (tabName.equals(Messages.getString(locale,"WikiConnector.Email")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
