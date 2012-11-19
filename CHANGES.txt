@@ -3,6 +3,16 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-569: Add User-Agent header for Wiki connector.
+Newer versions of Wiki need this.
+(Karl Wright)
+
+CONNECTORS-560: Use standard patch if "svn patch" is not available.
+(Alex Ott, Karl Wright)
+
+CONNECTORS-568: Combined web.xml file contains wrong declarations.
+(Swami Rajamohan)
+
 CONNECTORS-562: Some web.xml files contain wrong declarations
 (Alex Ott, Erlend Garåsen)
 
