@@ -32,14 +32,16 @@ import org.apache.manifoldcf.agents.common.XMLContext;
 import org.apache.manifoldcf.agents.common.XMLStringContext;
 import org.apache.manifoldcf.agents.common.XMLFileContext;
 
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
+
 import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
-
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
 
 /** This is the Web Crawler implementation of the IRepositoryConnector interface.
 * This connector may be superceded by one that calls out to python, or by a entirely
@@ -1375,7 +1377,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               {
                 throw new ManifoldCFException("Socket timeout error closing stream: "+e.getMessage(),e);
               }
-              catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+              catch (ConnectTimeoutException e)
               {
                 throw new ManifoldCFException("Socket connect timeout error closing stream: "+e.getMessage(),e);
               }
@@ -5113,7 +5115,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e2)
+            catch (ConnectTimeoutException e2)
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
@@ -5127,7 +5129,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
           }
-          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+          catch (ConnectTimeoutException e)
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Web: Fetch of robots.txt from "+protocol+"://"+hostIPAddressAndPort+"(host='"+hostName+"') generated Socket Connect Timeout Exception: "+e.getMessage(),e);
@@ -5141,7 +5143,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e2)
+            catch (ConnectTimeoutException e2)
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
@@ -5174,7 +5176,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e2)
+            catch (ConnectTimeoutException e2)
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
@@ -6330,7 +6332,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket connect timeout exception: "+e.getMessage(),e);
     }
@@ -7069,7 +7071,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket connect timeout exception: "+e.getMessage(),e);
     }
@@ -7124,7 +7126,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       throw new ManifoldCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
     }

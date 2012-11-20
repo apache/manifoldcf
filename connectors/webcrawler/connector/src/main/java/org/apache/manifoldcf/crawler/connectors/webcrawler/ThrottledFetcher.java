@@ -2158,7 +2158,7 @@ public class ThrottledFetcher
       {
         Logging.connectors.debug("Socket timeout exception trying to close connection: "+e.getMessage(),e);
       }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+      catch (ConnectTimeoutException e)
       {
         Logging.connectors.debug("Socket connection timeout exception trying to close connection: "+e.getMessage(),e);
       }

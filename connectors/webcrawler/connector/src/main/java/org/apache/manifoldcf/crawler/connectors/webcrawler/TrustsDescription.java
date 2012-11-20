@@ -23,10 +23,6 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.util.regex.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
-
 /** This class describes trust information pulled from a configuration.
 * The data contained is organized by regular expression performed on a url.  What we store
 * for each regular expression is a Pattern, for efficiency.
