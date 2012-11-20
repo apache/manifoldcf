@@ -23,9 +23,9 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.util.regex.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
 
 /** This class describes credential information pulled from a configuration.
 * The data contained is organized by regular expression performed on a url.  What we store

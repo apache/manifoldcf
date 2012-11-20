@@ -20,9 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
+import org.apache.http.auth.Credentials;
 
 /** This interface describes immutable classes which represents authentication information for page-based authentication.
 */

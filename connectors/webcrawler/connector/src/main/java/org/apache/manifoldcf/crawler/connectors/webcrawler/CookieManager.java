@@ -27,8 +27,9 @@ import org.apache.manifoldcf.crawler.interfaces.CacheKeyFactory;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 
-import org.apache.commons.httpclient.Cookie;
-import org.apache.commons.httpclient.cookie.Cookie2;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.impl.cookie.BasicClientCookie2;
 
 /** This class manages the database table into which we write cookies.  The data resides in the database,
 * as well as in cache (up to a certain point).  The result is that there is a memory limited, database-backed repository
@@ -217,18 +218,13 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
         while (i < cookies.getCookieCount())
         {
           Cookie c = cookies.getCookie(i);
-          Cookie2 c2;
-          if (c instanceof Cookie2)
-            c2 = (Cookie2)c;
-          else
-            c2 = null;
           HashMap map = new HashMap();
           map.put(keyField,sessionKey);
           map.put(ordinalField,new Long(i));
           String domain = c.getDomain();
           if (domain != null && domain.length() > 0)
             map.put(domainField,domain);
-          map.put(domainSpecifiedField,booleanToString(c.isDomainAttributeSpecified()));
+          map.put(domainSpecifiedField,booleanToString(domain != null && domain.length() > 0));
           String name = c.getName();
           if (name != null && name.length() > 0)
             map.put(nameField,name);
@@ -238,45 +234,26 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
           String path = c.getPath();
           if (path != null && path.length() > 0)
             map.put(pathField,path);
-          map.put(pathSpecifiedField,booleanToString(c.isPathAttributeSpecified()));
+          map.put(pathSpecifiedField,booleanToString(path != null && path.length() > 0));
           map.put(versionField,new Long(c.getVersion()));
-          if (c2 != null)
-            map.put(versionSpecifiedField,booleanToString(c2.isVersionAttributeSpecified()));
-          else
-            // Make something up.  It may not be correct, but there's really no choice.
-            map.put(versionSpecifiedField,booleanToString(true));
+          // Make something up.  It may not be correct, but there's really no choice.
+          map.put(versionSpecifiedField,booleanToString(true));
           String comment = c.getComment();
           if (comment != null && comment.length() > 0)
             map.put(commentField,comment);
-          map.put(secureField,booleanToString(c.getSecure()));
+          map.put(secureField,booleanToString(c.isSecure()));
           Date expirationDate = c.getExpiryDate();
           if (expirationDate != null)
             map.put(expirationDateField,new Long(expirationDate.getTime()));
-          if (c2 != null)
-            map.put(discardField,booleanToString(!c2.isPersistent()));
-          else
-            // Once again, make something up.
-            map.put(discardField,booleanToString(true));
-          if (c2 != null)
-          {
-            String commentURL = c2.getCommentURL();
-            if (commentURL != null && commentURL.length() > 0)
-              map.put(commentURLField,commentURL);
-          }
-          if (c2 != null)
-          {
-            int[] ports = c2.getPorts();
-            if (ports != null && ports.length > 0)
-              map.put(portField,portsToString(ports));
-          }
-          if (c2 != null)
-            map.put(portBlankField,booleanToString(c2.isPortAttributeBlank()));
-          else
-            map.put(portBlankField,booleanToString(true));
-          if (c2 != null)
-            map.put(portSpecifiedField,booleanToString(c2.isPortAttributeSpecified()));
-          else
-            map.put(portSpecifiedField,booleanToString(false));
+          map.put(discardField,booleanToString(!c.isPersistent()));
+          String commentURL = c.getCommentURL();
+          if (commentURL != null && commentURL.length() > 0)
+            map.put(commentURLField,commentURL);
+          int[] ports = c.getPorts();
+          if (ports != null && ports.length > 0)
+            map.put(portField,portsToString(ports));
+          map.put(portBlankField,booleanToString(ports == null || ports.length == 0));
+          map.put(portSpecifiedField,booleanToString(ports != null && ports.length > 0));
           performInsert(map,null);
           i++;
         }
@@ -330,25 +307,21 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
     while (i < result.getRowCount())
     {
       IResultRow row = result.getRow(i++);
-      Cookie2 c = new Cookie2();
+      String name = (String)row.getValue(nameField);
+      String value = (String)row.getValue(valueField);
+      BasicClientCookie2 c = new BasicClientCookie2(name,value);
       String domain = (String)row.getValue(domainField);
       if (domain != null && domain.length() > 0)
         c.setDomain(domain);
-      c.setDomainAttributeSpecified(stringToBoolean((String)row.getValue(domainSpecifiedField)));
-      String name = (String)row.getValue(nameField);
-      if (name != null && name.length() > 0)
-        c.setName(name);
-      String value = (String)row.getValue(valueField);
-      if (value != null && value.length() > 0)
-        c.setValue(value);
+      //c.setDomainAttributeSpecified(stringToBoolean((String)row.getValue(domainSpecifiedField)));
       String path = (String)row.getValue(pathField);
       if (path != null && path.length() > 0)
         c.setPath(path);
-      c.setPathAttributeSpecified(stringToBoolean((String)row.getValue(pathSpecifiedField)));
+      //c.setPathAttributeSpecified(stringToBoolean((String)row.getValue(pathSpecifiedField)));
       Long version = (Long)row.getValue(versionField);
       if (version != null)
         c.setVersion((int)version.longValue());
-      c.setVersionAttributeSpecified(stringToBoolean((String)row.getValue(versionSpecifiedField)));
+      //c.setVersionAttributeSpecified(stringToBoolean((String)row.getValue(versionSpecifiedField)));
       String comment = (String)row.getValue(commentField);
       if (comment != null)
         c.setComment(comment);
@@ -364,8 +337,8 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
       // Ports are comma-separated
       if (ports != null && ports.length() > 0)
         c.setPorts(stringToPorts(ports));
-      c.setPortAttributeBlank(stringToBoolean((String)row.getValue(portBlankField)));
-      c.setPortAttributeSpecified(stringToBoolean((String)row.getValue(portSpecifiedField)));
+      //c.setPortAttributeBlank(stringToBoolean((String)row.getValue(portBlankField)));
+      //c.setPortAttributeSpecified(stringToBoolean((String)row.getValue(portSpecifiedField)));
 
       dcs.addCookie(c);
     }
@@ -438,7 +411,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
   */
   protected static class DynamicCookieSet implements LoginCookies
   {
-    protected ArrayList cookies = new ArrayList();
+    protected List<Cookie> cookies = new ArrayList<Cookie>();
 
     public DynamicCookieSet()
     {
@@ -456,7 +429,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
 
     public Cookie getCookie(int index)
     {
-      return (Cookie)cookies.get(index);
+      return cookies.get(index);
     }
   }
 

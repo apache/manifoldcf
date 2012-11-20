@@ -50,6 +50,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.Header;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.client.params.ClientPNames;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -272,6 +273,7 @@ public class ThrottledFetcher
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,connectionTimeoutMilliseconds);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeoutMilliseconds);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
       localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       

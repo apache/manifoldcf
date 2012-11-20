@@ -1,6 +1,6 @@
 /* $Id: ThrottledFetcher.java 989847 2010-08-26 17:52:30Z kwright $ */
 
-/**
+/**`
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements. See the NOTICE file distributed with
 * this work for additional information regarding copyright ownership.
@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -26,13 +27,49 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
-import org.apache.commons.httpclient.protocol.*;
-import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.NameValuePair;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.AbstractHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpHost;
+import org.apache.http.Header;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.cookie.params.CookieSpecPNames;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
 
 /** This class uses httpclient to fetch stuff from webservers.  However, it additionally controls the fetch
 * rate in two ways: first, controlling the overall bandwidth used per server, and second, limiting the number
@@ -114,23 +151,21 @@ public class ThrottledFetcher
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     throws ManifoldCFException
   {
-    // First, create a protocol factory object, if we can
-    ProtocolFactory myFactory = new ProtocolFactory();
+    // Create the https scheme for this connection
+    SSLSocketFactory myFactory;
     String trustStoreString;
-    ProtocolSocketFactory secureSocketFactory;
     if (trustStore != null)
     {
-      secureSocketFactory = new WebSecureSocketFactory(trustStore.getSecureSocketFactory());
+      myFactory = new SSLSocketFactory(trustStore.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
       trustStoreString = trustStore.getString();
     }
     else
     {
+      myFactory = new SSLSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(), new BrowserCompatHostnameVerifier());
       trustStoreString = null;
-      secureSocketFactory = new WebSecureSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory());
     }
-
-    Protocol myHttpsProtocol = new Protocol("https", (ProtocolSocketFactory)secureSocketFactory, 443);
-    myFactory.registerProtocol("https",myHttpsProtocol);
+    
+    Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
 
     ConnectionBin[] bins = new ConnectionBin[binNames.length];
 
@@ -370,7 +405,7 @@ public class ThrottledFetcher
 
           // If we have a connection located, activate it.
           if (connectionToReuse == null)
-            connectionToReuse = new ThrottledConnection(protocol,server,port,authentication,myFactory,trustStoreString,bins,
+            connectionToReuse = new ThrottledConnection(protocol,server,port,authentication,myHttpsProtocol,trustStoreString,bins,
               proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
           connectionToReuse.setup(throttleDescription);
           return connectionToReuse;
@@ -853,126 +888,6 @@ public class ThrottledFetcher
 
   }
 
-  // Where to record result info/file data
-  protected final static String resultLogFile = "/common/web/resultlog";
-  // Where to record the actual data
-  protected final static String dataFileFolder = "/common/web/data/";
-
-  // This is the one instance of the output class
-  protected static DataRecorder dataRecorder = new DataRecorder();
-
-  /** This class takes care of recording data and results for posterity */
-  protected static class DataRecorder
-  {
-    protected int documentNumber = 0;
-
-    public DataRecorder()
-    {
-    }
-
-    public DataSession getSession(String url)
-      throws ManifoldCFException
-    {
-      return new DataSession(this,url);
-    }
-
-    /** Atomically write resultlog record, returning data file name to use */
-    public synchronized String writeResponseRecord(String url, int responseCode, ArrayList headerNames, ArrayList headerValues)
-      throws ManifoldCFException
-    {
-      // Open log file
-      try
-      {
-        OutputStream os = new FileOutputStream(resultLogFile,true);
-        try
-        {
-          OutputStreamWriter writer = new OutputStreamWriter(os,"utf-8");
-          try
-          {
-            String documentName = Integer.toString(documentNumber++);
-            writer.write("URI: "+url+"\n");
-            writer.write("File: "+documentName+"\n");
-            writer.write("Code: "+Integer.toString(responseCode)+"\n");
-            int i = 0;
-            while (i < headerNames.size())
-            {
-              writer.write("Header: "+(String)headerNames.get(i)+":"+(String)headerValues.get(i)+"\n");
-              i++;
-            }
-            return documentName;
-          }
-          finally
-          {
-            writer.close();
-          }
-        }
-        finally
-        {
-          os.close();
-        }
-      }
-      catch (IOException e)
-      {
-        throw new ManifoldCFException("Error recording file info: "+e.getMessage(),e);
-      }
-
-    }
-
-
-  }
-
-  /** Helper class for the above */
-  protected static class DataSession
-  {
-    protected DataRecorder dr;
-    protected String url;
-    protected int responseCode = 0;
-    protected ArrayList headerNames = new ArrayList();
-    protected ArrayList headerValues = new ArrayList();
-    protected String documentName = null;
-
-    public DataSession(DataRecorder dr, String url)
-    {
-      this.dr = dr;
-      this.url = url;
-    }
-
-    public void setResponseCode(int responseCode)
-    {
-      this.responseCode = responseCode;
-    }
-
-    public void addHeader(String headerName, String headerValue)
-    {
-      headerNames.add(headerName);
-      headerValues.add(headerValue);
-    }
-
-    public void endHeader()
-      throws ManifoldCFException
-    {
-      documentName = dr.writeResponseRecord(url,responseCode,headerNames,headerValues);
-    }
-
-    public void write(byte[] theBytes, int off, int length)
-      throws IOException
-    {
-      if (documentName == null)
-        throw new IOException("Must end header before reading data!");
-      OutputStream os = new FileOutputStream(dataFileFolder+documentName,true);
-      try
-      {
-        os.write(theBytes,off,length);
-      }
-      finally
-      {
-        os.close();
-      }
-    }
-
-  }
-
-
   /** Throttled connections.  Each instance of a connection describes the bins to which it belongs,
   * along with the actual open connection itself, and the last time the connection was used. */
   protected static class ThrottledConnection implements IThrottledConnection
@@ -1004,9 +919,11 @@ public class ThrottledFetcher
     protected String trustStoreString;
 
     /** The http connection manager.  The pool is of size 1.  */
-    protected MultiThreadedHttpConnectionManager connManager = null;
+    protected PoolingClientConnectionManager connManager = null;
+    /** The http client object. */
+    protected AbstractHttpClient httpClient = null;
     /** The method object */
-    protected HttpMethodBase fetchMethod = null;
+    protected HttpRequestBase fetchMethod = null;
     /** The error trace, if any */
     protected Throwable throwable = null;
     /** The current URL being fetched */
@@ -1031,19 +948,19 @@ public class ThrottledFetcher
     protected final String proxyAuthUsername;
     /** Proxy auth password */
     protected final String proxyAuthPassword;
+    /** Https protocol */
+    protected final Scheme myHttpsProtocol;
+
+    /** The thread that is actually doing the work */
+    protected ExecuteMethodThread methodThread = null;
+    /** Set if thread has been started */
+    protected boolean threadStarted = false;
     
-    /** Protocol socket factory */
-    protected ProtocolSocketFactory secureSocketFactory = null;
-    protected ProtocolFactory myFactory = null;
-
-
-    /** Hack added to record all access data from current crawler */
-    protected DataSession dataSession = null;
 
     /** Constructor.  Create a connection with a specific server and port, and
     * register it as active against all bins. */
     public ThrottledConnection(String protocol, String server, int port, PageCredentials authentication,
-      ProtocolFactory myFactory, String trustStoreString, ConnectionBin[] connectionBins,
+      Scheme myHttpsProtocol, String trustStoreString, ConnectionBin[] connectionBins,
       String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
     {
       this.proxyHost = proxyHost;
@@ -1055,7 +972,7 @@ public class ThrottledFetcher
       this.server = server;
       this.port = port;
       this.authentication = authentication;
-      this.myFactory = myFactory;
+      this.myHttpsProtocol = myHttpsProtocol;
       this.trustStoreString = trustStoreString;
       this.connectionBinArray = connectionBins;
       this.throttleBinArray = new ThrottleBin[connectionBins.length];
@@ -1210,10 +1127,11 @@ public class ThrottledFetcher
 
       if (connManager != null)
       {
-        connManager.closeIdleConnections(idleTimeout);
-        connManager.deleteClosedConnections();
+        connManager.closeIdleConnections(idleTimeout, TimeUnit.MILLISECONDS);
+        connManager.closeExpiredConnections();
         // Need to determine if there's a valid connection in the connection manager still, or if it is empty.
-        return connManager.getConnectionsInPool() == 0;
+        //return connManager.getConnectionsInPool() == 0;
+        return true;
       }
       else
         return true;
@@ -1312,47 +1230,6 @@ public class ThrottledFetcher
       }
     }
 
-    protected static class ExecuteMethodThread extends Thread
-    {
-      protected HttpClient client;
-      protected HostConfiguration hostConfiguration;
-      protected HttpMethodBase executeMethod;
-      protected Throwable exception = null;
-      protected int rval = 0;
-
-      public ExecuteMethodThread(HttpClient client, HostConfiguration hostConfiguration, HttpMethodBase executeMethod)
-      {
-        super();
-        setDaemon(true);
-        this.client = client;
-        this.hostConfiguration = hostConfiguration;
-        this.executeMethod = executeMethod;
-      }
-
-      public void run()
-      {
-        try
-        {
-          // Call the execute method appropriately
-          rval = client.executeMethod(hostConfiguration,executeMethod,null);
-        }
-        catch (Throwable e)
-        {
-          this.exception = e;
-        }
-      }
-
-      public Throwable getException()
-      {
-        return exception;
-      }
-
-      public int getResponse()
-      {
-        return rval;
-      }
-    }
-
     /** Execute the fetch and get the return code.  This method uses the
     * standard logging mechanism to keep track of the fetch attempt.  It also
     * signals the following conditions: ServiceInterruption (if a dynamic
@@ -1401,199 +1278,206 @@ public class ThrottledFetcher
       else
         myUrl = fetchUrl;
 
-      if (recordEverything)
-        // Start a new data session
-        dataSession = dataRecorder.getSession(myUrl);
-
-      try
+      if (connManager == null)
       {
-        if (connManager == null)
-          connManager = new MultiThreadedHttpConnectionManager();
-        HttpConnectionManagerParams httpConParam = connManager.getParams();
-        httpConParam.setDefaultMaxConnectionsPerHost(1);
-        httpConParam.setMaxTotalConnections(1);
-        httpConParam.setConnectionTimeout(connectionTimeoutMilliseconds);
-        httpConParam.setSoTimeout(socketTimeoutMilliseconds);
-        connManager.setParams(httpConParam);
+        PoolingClientConnectionManager localConnManager = new PoolingClientConnectionManager();
+        // Set up protocol registry
+        localConnManager.getSchemeRegistry().register(myHttpsProtocol);
+        localConnManager.setMaxTotal(1);
+        localConnManager.setDefaultMaxPerRoute(1);
+        connManager = localConnManager;
+      }
 
-        long startTime = 0L;
-        if (Logging.connectors.isDebugEnabled())
-        {
-          startTime = System.currentTimeMillis();
-          Logging.connectors.debug("WEB: Waiting for an HttpClient object");
-        }
+      long startTime = 0L;
+      if (Logging.connectors.isDebugEnabled())
+      {
+        startTime = System.currentTimeMillis();
+        Logging.connectors.debug("WEB: Waiting for an HttpClient object");
+      }
 
+      // If we already have an httpclient object, great.  Otherwise we have to get one, and initialize it with
+      // those parameters that aren't expected to change.
+      if (httpClient == null)
+      {
+        BasicHttpParams params = new BasicHttpParams();
+        params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+        params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+        params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+        // MEDIUM_SECURITY compatibility level not supported in HttpComponents.  Try BROWSER_NETSCAPE?
+        HttpClientParams.setCookiePolicy(params,CookiePolicy.BROWSER_COMPATIBILITY);
+        params.setBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER,new Boolean(true));
 
-        HttpClient client = new HttpClient(connManager);
-        // Permit circular redirections, because that is how some sites set cookies
-        client.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.ALLOW_CIRCULAR_REDIRECTS,new Boolean(true));
-        // If there are redirects, this is essential to make sure the right socket factory gets used
-        client.getParams().setParameter(org.apache.commons.httpclient.params.HttpClientParams.PROTOCOL_FACTORY,myFactory);
-
-        HostConfiguration clientConf = new HostConfiguration();
-        // clientConf.setLocalAddress(currentAddr);
-
-        // Set up protocol to use
-        clientConf.setParams(new HostParams());
-        clientConf.setHost(server,port,myFactory.getProtocol(protocol));
+        DefaultHttpClient localHttpClient = new DefaultHttpClient(connManager,params);
+        localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+          
         // If there's a proxy, set that too.
         if (proxyHost != null && proxyHost.length() > 0)
         {
-          clientConf.setProxy(proxyHost,proxyPort);
+          // Configure proxy authentication
           if (proxyAuthUsername != null && proxyAuthUsername.length() > 0)
           {
-            // Set up NTLM credentials for this fetch too.
-            client.getState().setProxyCredentials(AuthScope.ANY,
-              new NTCredentials(proxyAuthUsername,(proxyAuthPassword==null)?"":proxyAuthPassword,currentHost,(proxyAuthDomain==null)?"":proxyAuthDomain));
+            localHttpClient.getCredentialsProvider().setCredentials(
+              new AuthScope(proxyHost, proxyPort),
+              new NTCredentials(proxyAuthUsername, (proxyAuthPassword==null)?"":proxyAuthPassword, currentHost, (proxyAuthDomain==null)?"":proxyAuthDomain));
           }
+
+          HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+
+          localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }
-
-
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("WEB: Got an HttpClient object after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
-
-        startFetchTime = System.currentTimeMillis();
-
-        int pageFetchMethod = FormData.SUBMITMETHOD_GET;
-        if (formData != null)
-          pageFetchMethod = formData.getSubmitMethod();
-        switch (pageFetchMethod)
-        {
-        case FormData.SUBMITMETHOD_GET:
-          // MUST be just the path, or apparently we wind up resetting the HostConfiguration
-          // Add additional parameters to url path
-          String fullUrlPath;
-          if (formData != null)
-          {
-            StringBuilder psb = new StringBuilder(urlPath);
-            Iterator iter = formData.getElementIterator();
-            char appendChar;
-            if (urlPath.indexOf("?") == -1)
-              appendChar = '?';
-            else
-              appendChar = '&';
-            while (iter.hasNext())
-            {
-              FormDataElement e = (FormDataElement)iter.next();
-              psb.append(appendChar);
-              appendChar = '&';
-              String param = e.getElementName();
-              String value = e.getElementValue();
-              psb.append(java.net.URLEncoder.encode(param,"utf-8"));
-              if (value != null)
-                psb.append('=').append(java.net.URLEncoder.encode(value,"utf-8"));
-            }
-            fullUrlPath = psb.toString();
-          }
-          else
-          {
-            fullUrlPath = urlPath;
-          }
-          // Hack; apparently httpclient treats // as a protocol specifier and so it rips off the first section of the path in that case.
-          while (fullUrlPath.startsWith("//"))
-            fullUrlPath = fullUrlPath.substring(1);
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: Get method for '"+fullUrlPath+"'");
-          fetchMethod = new GetMethod(fullUrlPath);
-          break;
-        case FormData.SUBMITMETHOD_POST:
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: Post method for '"+urlPath+"'");
-          // MUST be just the path, or apparently we wind up resetting the HostConfiguration
-          PostMethod postMethod = new PostMethod(urlPath);
-          // Add parameters to post variables
-          if (formData != null)
-          {
-            Iterator iter = formData.getElementIterator();
-            while (iter.hasNext())
-            {
-              FormDataElement e = (FormDataElement)iter.next();
-              String param = e.getElementName();
-              String value = e.getElementValue();
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("WEB: Post parameter name '"+param+"' value '"+value+"' for '"+urlPath+"'");
-              postMethod.addParameter(param,value);
-            }
-          }
-          fetchMethod = postMethod;
-          break;
-        default:
-          throw new ManifoldCFException("Illegal method type: "+Integer.toString(pageFetchMethod));
-        }
-
-        // Set all appropriate headers and parameters
-        fetchMethod.setRequestHeader("User-Agent",userAgent);
-        fetchMethod.setRequestHeader("From",from);
-        HttpMethodParams params = fetchMethod.getParams();
-        if (host != null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: For "+myUrl+", setting virtual host to "+host);
-          params.setVirtualHost(host);
-        }
-        params.setSoTimeout(socketTimeoutMilliseconds);
-        params.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY_MEDIUM_SECURITY);
-        params.setParameter(HttpMethodParams.SINGLE_COOKIE_HEADER,new Boolean(true));
-        fetchMethod.setParams(params);
-        fetchMethod.setFollowRedirects(redirectOK);
-
-        // Clear all current cookies
-        HttpState state = client.getState();
-        state.clearCookies();
-
-        // If we have any cookies to set, set them.
-        if (loginCookies != null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: Adding "+Integer.toString(loginCookies.getCookieCount())+" cookies for '"+urlPath+"'");
-          int h = 0;
-          while (h < loginCookies.getCookieCount())
-          {
-            state.addCookie(loginCookies.getCookie(h++));
-          }
-        }
-
-        // Copy out the current cookies, in case the fetch fails
-        lastFetchCookies = loginCookies;
 
         // Set up authentication to use
         if (authentication != null)
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: For "+myUrl+", discovered matching authentication credentials");
-          state.setCredentials(AuthScope.ANY, authentication.makeCredentialsObject(host));
+          localHttpClient.getCredentialsProvider().setCredentials(AuthScope.ANY,
+            authentication.makeCredentialsObject(host));
         }
+          
+        httpClient = localHttpClient;
+      }
 
-        // Set the state.  May not be necessary, but I'd rather not depend on undocumented httpclient implementation details.
-        client.setState(state);
 
-        // Fire it off!
-        try
+      // Set the parameters we haven't keyed on (so these can change from request to request)
+      httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeoutMilliseconds);
+      httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeoutMilliseconds);
+      httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,redirectOK);
+
+      if (host != null)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: For "+myUrl+", setting virtual host to "+host);
+        // This will use default port and scheme; it is possible that we should set these explicitly
+        HttpHost virtualHost = new HttpHost(host);
+        httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,virtualHost);
+      }
+
+
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("WEB: Got an HttpClient object after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
+
+      startFetchTime = System.currentTimeMillis();
+
+      int pageFetchMethod = FormData.SUBMITMETHOD_GET;
+      if (formData != null)
+        pageFetchMethod = formData.getSubmitMethod();
+      switch (pageFetchMethod)
+      {
+      case FormData.SUBMITMETHOD_GET:
+        // MUST be just the path, or apparently we wind up resetting the HostConfiguration
+        // Add additional parameters to url path
+        String fullUrlPath;
+        if (formData != null)
         {
-          ExecuteMethodThread t = new ExecuteMethodThread(client,clientConf,fetchMethod);
+          StringBuilder psb = new StringBuilder(urlPath);
+          Iterator iter = formData.getElementIterator();
+          char appendChar;
+          if (urlPath.indexOf("?") == -1)
+            appendChar = '?';
+          else
+            appendChar = '&';
           try
           {
-            t.start();
-            t.join();
-            Throwable thr = t.getException();
-            if (thr != null)
+            while (iter.hasNext())
             {
-              throw thr;
+              FormDataElement el = (FormDataElement)iter.next();
+              psb.append(appendChar);
+              appendChar = '&';
+              String param = el.getElementName();
+              String value = el.getElementValue();
+              psb.append(java.net.URLEncoder.encode(param,"utf-8"));
+              if (value != null)
+              {
+                psb.append('=').append(java.net.URLEncoder.encode(value,"utf-8"));
+              }
             }
-            statusCode = t.getResponse();
-            if (recordEverything)
-              dataSession.setResponseCode(statusCode);
           }
-          catch (InterruptedException e)
+          catch (java.io.UnsupportedEncodingException e)
           {
-            t.interrupt();
-            // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-            throw e;
+            throw new ManifoldCFException("Unsupported encoding: "+e.getMessage(),e);
           }
 
-          // At least we didn't get an exception!  Copy out the current cookies for later reference.
-          lastFetchCookies = new CookieSet(client.getState().getCookies());
+          fullUrlPath = psb.toString();
+        }
+        else
+        {
+          fullUrlPath = urlPath;
+        }
+        // Hack; apparently httpclient treats // as a protocol specifier and so it rips off the first section of the path in that case.
+        while (fullUrlPath.startsWith("//"))
+          fullUrlPath = fullUrlPath.substring(1);
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Get method for '"+fullUrlPath+"'");
+        fetchMethod = new HttpGet(fullUrlPath);
+        break;
+      case FormData.SUBMITMETHOD_POST:
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Post method for '"+urlPath+"'");
+        // MUST be just the path, or apparently we wind up resetting the HostConfiguration
+        HttpPost postMethod = new HttpPost(urlPath);
+        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 
+        // Add parameters to post variables
+        if (formData != null)
+        {
+          Iterator iter = formData.getElementIterator();
+          while (iter.hasNext())
+          {
+            FormDataElement e = (FormDataElement)iter.next();
+            String param = e.getElementName();
+            String value = e.getElementValue();
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("WEB: Post parameter name '"+param+"' value '"+value+"' for '"+urlPath+"'");
+            nvps.add(new BasicNameValuePair(param,value));
+          }
+        }
+        try
+        {
+          postMethod.setEntity(new UrlEncodedFormEntity(nvps,HTTP.UTF_8));
+        }
+        catch (java.io.UnsupportedEncodingException e)
+        {
+          throw new ManifoldCFException("Unsupported UTF-8 encoding: "+e.getMessage(),e);
+        }
+        fetchMethod = postMethod;
+        break;
+      default:
+        throw new ManifoldCFException("Illegal method type: "+Integer.toString(pageFetchMethod));
+      }
+
+      // Set all appropriate headers and parameters
+      fetchMethod.setHeader(new BasicHeader("User-Agent",userAgent));
+      fetchMethod.setHeader(new BasicHeader("From",from));
+        
+      // Clear all current cookies
+      httpClient.getCookieStore().clear();
+
+      // If we have any cookies to set, set them.
+      if (loginCookies != null)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Adding "+Integer.toString(loginCookies.getCookieCount())+" cookies for '"+urlPath+"'");
+        int h = 0;
+        while (h < loginCookies.getCookieCount())
+        {
+          httpClient.getCookieStore().addCookie(loginCookies.getCookie(h++));
+        }
+      }
+
+      // Copy out the current cookies, in case the fetch fails
+      lastFetchCookies = loginCookies;
+
+      // Create the thread
+      methodThread = new ExecuteMethodThread(this, httpClient, fetchMethod);
+      try
+      {
+        methodThread.start();
+        threadStarted = true;
+        try
+        {
+          statusCode = methodThread.getResponseCode();
+            
           switch (statusCode)
           {
           case HttpStatus.SC_REQUEST_TIMEOUT:
@@ -1616,112 +1500,85 @@ public class ThrottledFetcher
           default:
             return;
           }
-
         }
-        catch (java.net.SocketTimeoutException e)
+        catch (InterruptedException e)
         {
-          throwable = e;
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Timed out waiting for IO for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_5MIN,
-            currentTime + TIME_2HRS,-1,false);
-        }
-        catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-        {
-          throwable = e;
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Timed out waiting for connection for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_5MIN,
-            currentTime + TIME_2HRS,-1,false);
-        }
-        catch (InterruptedIOException e)
-        {
-          //Logging.connectors.warn("IO interruption seen",e);
-          throwable = new ManifoldCFException("Interrupted: "+e.getMessage(),e);
-          statusCode = FETCH_INTERRUPTED;
-          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-        }
-        catch (org.apache.commons.httpclient.RedirectException e)
-        {
-          throwable = e;
-          statusCode = FETCH_CIRCULAR_REDIRECT;
-          if (recordEverything)
-            dataSession.setResponseCode(statusCode);
-          return;
-        }
-        catch (org.apache.commons.httpclient.NoHttpResponseException e)
-        {
-          throwable = e;
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Timed out waiting for response for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_15MIN,
-            currentTime + TIME_2HRS,-1,false);
-        }
-        catch (java.net.ConnectException e)
-        {
-          throwable = e;
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Timed out waiting for a connection for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_2HRS,
-            currentTime + TIME_6HRS,-1,false);
-        }
-        catch (javax.net.ssl.SSLException e)
-        {
-          // Probably this is an incorrectly configured trust store
-          throwable = new ManifoldCFException("SSL handshake error: "+e.getMessage()+"; check your connection's Certificate configuration",e);
-          statusCode = FETCH_IO_ERROR;
-          if (recordEverything)
-            dataSession.setResponseCode(statusCode);
-          return;
-        }
-        catch (IOException e)
-        {
-          // Treat this as a bad url.  We don't know what happened, but it isn't something we are going to naively
-          // retry on.
-          throwable = e;
-          statusCode = FETCH_IO_ERROR;
-          if (recordEverything)
-            dataSession.setResponseCode(statusCode);
-          return;
+          methodThread.interrupt();
+          methodThread = null;
+          threadStarted = false;
+          throw e;
         }
 
       }
       catch (InterruptedException e)
       {
-        // Drop the current connection, and in fact the whole pool, on the floor.
+        // Drop the current connection on the floor, so it cannot be reused.
         fetchMethod = null;
-        connManager = null;
         throwable = new ManifoldCFException("Interrupted: "+e.getMessage(),e);
         statusCode = FETCH_INTERRUPTED;
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
-      catch (IllegalArgumentException e)
+      catch (java.net.SocketTimeoutException e)
       {
-        throwable = new ManifoldCFException("Illegal URI: '"+myUrl+"'",e);
-        statusCode = FETCH_BAD_URI;
-        if (recordEverything)
-          dataSession.setResponseCode(statusCode);
+        throwable = e;
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Timed out waiting for IO for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_5MIN,
+          currentTime + TIME_2HRS,-1,false);
+      }
+      catch (ConnectTimeoutException e)
+      {
+        throwable = e;
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Timed out waiting for connection for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_5MIN,
+          currentTime + TIME_2HRS,-1,false);
+      }
+      catch (InterruptedIOException e)
+      {
+        //Logging.connectors.warn("IO interruption seen",e);
+        throwable = new ManifoldCFException("Interrupted: "+e.getMessage(),e);
+        statusCode = FETCH_INTERRUPTED;
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      catch (RedirectException e)
+      {
+        throwable = e;
+        statusCode = FETCH_CIRCULAR_REDIRECT;
         return;
       }
-      catch (IllegalStateException e)
+      catch (NoHttpResponseException e)
       {
-        throwable = new ManifoldCFException("Illegal state while fetching URI: '"+myUrl+"'",e);
-        statusCode = FETCH_SEQUENCE_ERROR;
-        if (recordEverything)
-          dataSession.setResponseCode(statusCode);
+        throwable = e;
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Timed out waiting for response for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_15MIN,
+          currentTime + TIME_2HRS,-1,false);
+      }
+      catch (java.net.ConnectException e)
+      {
+        throwable = e;
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Timed out waiting for a connection for '"+myUrl+"': "+e.getMessage(), e, currentTime + TIME_2HRS,
+          currentTime + TIME_6HRS,-1,false);
+      }
+      catch (javax.net.ssl.SSLException e)
+      {
+        // Probably this is an incorrectly configured trust store
+        throwable = new ManifoldCFException("SSL handshake error: "+e.getMessage()+"; check your connection's Certificate configuration",e);
+        statusCode = FETCH_IO_ERROR;
         return;
       }
-      catch (ServiceInterruption e)
+      catch (IOException e)
       {
-        throw e;
-      }
-      catch (ManifoldCFException e)
-      {
-        throw e;
+        // Treat this as a bad url.  We don't know what happened, but it isn't something we are going to naively
+        // retry on.
+        throwable = e;
+        statusCode = FETCH_IO_ERROR;
+        return;
       }
       catch (Throwable e)
       {
         Logging.connectors.debug("WEB: Caught an unexpected exception: "+e.getMessage(),e);
         throwable = e;
         statusCode = FETCH_UNKNOWN_ERROR;
-        if (recordEverything)
-          dataSession.setResponseCode(statusCode);
         return;
       }
 
@@ -1744,7 +1601,28 @@ public class ThrottledFetcher
     public LoginCookies getLastFetchCookies()
       throws ManifoldCFException, ServiceInterruption
     {
-      return lastFetchCookies;
+      if (fetchMethod == null)
+        throw new ManifoldCFException("Attempt to get cookies when there is no method");
+      if (methodThread == null || threadStarted == false)
+        throw new ManifoldCFException("Attempt to get cookies when no method thread");
+      try
+      {
+        return methodThread.getCookies();
+      }
+      catch (InterruptedException e)
+      {
+        methodThread.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (HttpException e)
+      {
+        handleHTTPException(e,"reading cookies");
+      }
+      catch (IOException e)
+      {
+        handleIOException(e,"reading cookies");
+      }
+      return null;
     }
 
     /** Get response headers
@@ -1754,23 +1632,28 @@ public class ThrottledFetcher
     public Map<String,List<String>> getResponseHeaders()
       throws ManifoldCFException, ServiceInterruption
     {
-      Header[] headers = fetchMethod.getResponseHeaders();
-      Map<String,List<String>> rval = new HashMap<String,List<String>>();
-      int i = 0;
-      while (i < headers.length)
+      if (fetchMethod == null)
+        throw new ManifoldCFException("Attempt to get headers when there is no method");
+      if (methodThread == null || threadStarted == false)
+        throw new ManifoldCFException("Attempt to get headers when no method thread");
+      try
       {
-        Header h = headers[i++];
-        String name = h.getName();
-        String value = h.getValue();
-        List<String> values = rval.get(name);
-        if (values == null)
-        {
-          values = new ArrayList<String>();
-          rval.put(name,values);
-        }
-        values.add(value);
+        return methodThread.getResponseHeaders();
       }
-      return rval;
+      catch (InterruptedException e)
+      {
+        methodThread.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (HttpException e)
+      {
+        handleHTTPException(e,"reading headers");
+      }
+      catch (IOException e)
+      {
+        handleIOException(e,"reading headers");
+      }
+      return null;
     }
 
     /** Get a specified response header, if it exists.
@@ -1781,12 +1664,28 @@ public class ThrottledFetcher
     public String getResponseHeader(String headerName)
       throws ManifoldCFException, ServiceInterruption
     {
-      Header h = fetchMethod.getResponseHeader(headerName);
-      if (h == null)
-        return null;
-      if (recordEverything)
-        dataSession.addHeader(headerName,h.getValue());
-      return h.getValue();
+      if (fetchMethod == null)
+        throw new ManifoldCFException("Attempt to get a header when there is no method");
+      if (methodThread == null || threadStarted == false)
+        throw new ManifoldCFException("Attempt to get a header when no method thread");
+      try
+      {
+        return methodThread.getFirstHeader(headerName);
+      }
+      catch (InterruptedException e)
+      {
+        methodThread.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+      catch (HttpException e)
+      {
+        handleHTTPException(e,"reading header");
+      }
+      catch (IOException e)
+      {
+        handleIOException(e,"reading header");
+      }
+      return null;
     }
 
     /** Get the response input stream.  It is the responsibility of the caller
@@ -1797,44 +1696,27 @@ public class ThrottledFetcher
       throws ManifoldCFException, ServiceInterruption
     {
       if (fetchMethod == null)
-        throw new ManifoldCFException("Attempt to get a response when there is no method");
+        throw new ManifoldCFException("Attempt to get an input stream when there is no method");
+      if (methodThread == null || threadStarted == false)
+        throw new ManifoldCFException("Attempt to get an input stream when no method thread");
       try
       {
-        if (recordEverything)
-          dataSession.endHeader();
-        InputStream bodyStream = fetchMethod.getResponseBodyAsStream();
-        if (bodyStream == null)
-        {
-          Logging.connectors.debug("Web: Couldn't set up response stream for '"+myUrl+"', retrying");
-          throw new ServiceInterruption("Failed to set up body response stream for "+myUrl,null,TIME_5MIN,-1L,2,false);
-        }
-        return new ThrottledInputstream(this,bodyStream,dataSession);
+        return methodThread.getSafeInputStream();
       }
-      catch (java.net.SocketTimeoutException e)
+      catch (InterruptedException e)
       {
-        Logging.connectors.debug("Web: Socket timeout exception setting up response stream for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("Socket timeout exception setting up response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
-      }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-      {
-        Logging.connectors.debug("Web: Connect timeout exception setting up response stream for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("Connect timeout exception setting up response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
-      }
-      catch (InterruptedIOException e)
-      {
-        //Logging.connectors.warn("IO interruption seen: "+e.getMessage(),e);
+        methodThread.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
       {
-        Logging.connectors.debug("Web: IO exception setting up response stream for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("IO exception setting up response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
+        handleIOException(e, "reading response stream");
       }
-      catch (IllegalStateException e)
+      catch (HttpException e)
       {
-        Logging.connectors.debug("Web: State error getting response body for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("State error getting response body: "+e.getMessage(),e,TIME_5MIN,-1L,2,false);
+        handleHTTPException(e, "reading response stream");
       }
+      return null;
     }
 
     /** Get limited response as a string.
@@ -1860,31 +1742,11 @@ public class ThrottledFetcher
           is.close();
         }
       }
-      catch (java.net.SocketTimeoutException e)
-      {
-        Logging.connectors.debug("Web: Socket timeout exception reading response stream for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("Socket timeout exception reading response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
-      }
-      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-      {
-        Logging.connectors.debug("Web: Connect timeout exception reading response stream for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("Connect timeout exception reading response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
-      }
-      catch (InterruptedIOException e)
-      {
-        //Logging.connectors.warn("IO interruption seen: "+e.getMessage(),e);
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
       catch (IOException e)
       {
-        Logging.connectors.debug("Web: IO exception reading response stream for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("IO exception reading response stream: "+e.getMessage(),e,System.currentTimeMillis()+TIME_5MIN,-1L,2,false);
+        handleIOException(e,"reading limited response");
       }
-      catch (IllegalStateException e)
-      {
-        Logging.connectors.debug("Web: State error reading response body for '"+myUrl+"', retrying");
-        throw new ServiceInterruption("State error reading response body: "+e.getMessage(),e,TIME_5MIN,-1L,2,false);
-      }
+      return null;
     }
 
     /** Note that the connection fetch was interrupted by something.
@@ -1908,6 +1770,24 @@ public class ThrottledFetcher
     {
       if (fetchType != null)
       {
+        // Abort the connection, if not already complete
+        try
+        {
+          methodThread.abort();
+        }
+        catch (InterruptedException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (HttpException e)
+        {
+          handleTerminalHTTPException(e,"aborting");
+        }
+        catch (IOException e)
+        {
+          handleTerminalIOException(e,"aborting");
+        }
+
         long endTime = System.currentTimeMillis();
         int i = 0;
         while (i < throttleBinArray.length)
@@ -1932,20 +1812,30 @@ public class ThrottledFetcher
             Logging.connectors.debug("WEB: Fetch exception for '"+myUrl+"'",throwable);
         }
 
-
-        // Clear out all the parameters
-        if (fetchMethod != null)
+        // Shut down (join) the connection thread, if any, and if it started
+        if (threadStarted)
         {
           try
           {
-            fetchMethod.releaseConnection();
+            methodThread.finishUp();
           }
-          catch (IllegalStateException e)
+          catch (InterruptedException e)
           {
-            // looks like the fetch method didn't have one, or it was already released.  Just eat the exception.
+            throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
-          fetchMethod = null;
+          catch (HttpException e)
+          {
+            handleTerminalHTTPException(e,"finishing up");
+          }
+          catch (IOException e)
+          {
+            handleTerminalIOException(e,"finishing up");
+          }
+          threadStarted = false;
+          methodThread = null;
         }
+        
+        fetchMethod = null;
         throwable = null;
         startFetchTime = -1L;
         myUrl = null;
@@ -1999,6 +1889,104 @@ public class ThrottledFetcher
         poolLock.notifyAll();
       }
     }
+    
+    protected void handleTerminalHTTPException(HttpException e, String activity)
+      throws ManifoldCFException
+    {
+      long currentTime = System.currentTimeMillis();
+      Logging.connectors.debug("Web: Unexpected HTTP exception "+activity+" for '"+myUrl+"'");
+      throw new ManifoldCFException("Unexpected HTTP exception "+activity+": "+e.getMessage(),e);
+    }
+
+    protected void handleHTTPException(HttpException e, String activity)
+      throws ServiceInterruption, ManifoldCFException
+    {
+      long currentTime = System.currentTimeMillis();
+      Logging.connectors.debug("Web: HTTP exception "+activity+" for '"+myUrl+"', retrying");
+      throw new ServiceInterruption("HTTP exception "+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
+    }
+
+    protected void handleTerminalIOException(IOException e, String activity)
+      throws ManifoldCFException
+    {
+      if (e instanceof java.net.SocketTimeoutException)
+      {
+        Logging.connectors.debug("Web: Unexpected socket timeout exception "+activity+" for '"+myUrl+"', retrying");
+        throw new ManifoldCFException("Unexpected socket timeout exception "+activity+": "+e.getMessage(),e);
+      }
+      if (e instanceof ConnectTimeoutException)
+      {
+        Logging.connectors.debug("Web: Unexpected connect timeout exception "+activity+" for '"+myUrl+"', retrying");
+        throw new ManifoldCFException("Unexpected connect timeout exception "+activity+": "+e.getMessage(),e);
+      }
+      if (e instanceof InterruptedIOException)
+      {
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      if (e instanceof NoHttpResponseException)
+      {
+        throw new ManifoldCFException("Unexpectedly timed out "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
+      }
+      if (e instanceof java.net.ConnectException)
+      {
+        throw new ManifoldCFException("Unexpectedly timed out "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
+      }
+      if (e instanceof java.net.NoRouteToHostException)
+      {
+        // This exception means we know the IP address but can't get there.  That's either a firewall issue, or it's something transient
+        // with the network.  Some degree of retry is probably wise.
+        throw new ManifoldCFException("Unexpected no route to host during "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
+      }
+      Logging.connectors.debug("Web: Unexpected IO exception "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
+      throw new ManifoldCFException("Unexpected IO exception "+activity+": "+e.getMessage(),e);
+    }
+    
+    protected void handleIOException(IOException e, String activity)
+      throws ServiceInterruption, ManifoldCFException
+    {
+      if (e instanceof java.net.SocketTimeoutException)
+      {
+        long currentTime = System.currentTimeMillis();
+        Logging.connectors.debug("Web: Socket timeout exception "+activity+" for '"+myUrl+"', retrying");
+        throw new ServiceInterruption("Socket timeout exception "+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
+      }
+      if (e instanceof ConnectTimeoutException)
+      {
+        long currentTime = System.currentTimeMillis();
+        Logging.connectors.debug("Web: Connect timeout exception "+activity+" for '"+myUrl+"', retrying");
+        throw new ServiceInterruption("Connect timeout exception "+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
+      }
+      if (e instanceof InterruptedIOException)
+      {
+        methodThread.interrupt();
+        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      if (e instanceof NoHttpResponseException)
+      {
+        // Give up after 2 hours.
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Timed out "+activity+" for '"+myUrl+"'", e, currentTime + 15L * 60000L,
+          currentTime + 120L * 60000L,-1,false);
+      }
+      if (e instanceof java.net.ConnectException)
+      {
+        // Give up after 6 hours.
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("Timed out "+activity+" for '"+myUrl+"'", e, currentTime + 1000000L,
+          currentTime + 720L * 60000L,-1,false);
+      }
+      if (e instanceof java.net.NoRouteToHostException)
+      {
+        // This exception means we know the IP address but can't get there.  That's either a firewall issue, or it's something transient
+        // with the network.  Some degree of retry is probably wise.
+        long currentTime = System.currentTimeMillis();
+        throw new ServiceInterruption("No route to host during "+activity+" for '"+myUrl+"'", e, currentTime + 1000000L,
+          currentTime + 720L * 60000L,-1,false);
+      }
+      long currentTime = System.currentTimeMillis();
+      Logging.connectors.debug("Web: IO exception "+activity+" for '"+myUrl+"', retrying");
+      throw new ServiceInterruption("IO exception "+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
+    }
 
   }
 
@@ -2015,15 +2003,12 @@ public class ThrottledFetcher
     /** The stream we are wrapping. */
     protected InputStream inputStream;
 
-    protected DataSession dataSession;
-
     /** Constructor.
     */
-    public ThrottledInputstream(ThrottledConnection connection, InputStream is, DataSession dataSession)
+    public ThrottledInputstream(ThrottledConnection connection, InputStream is)
     {
       this.throttledConnection = connection;
       this.inputStream = is;
-      this.dataSession = dataSession;
     }
 
     /** Read a byte.
@@ -2094,8 +2079,6 @@ public class ThrottledFetcher
         try
         {
           amt = inputStream.read(b,off,len);
-          if (recordEverything && amt != -1)
-            dataSession.write(b,off,amt);
           return amt;
         }
         finally
@@ -2222,14 +2205,10 @@ public class ThrottledFetcher
   }
 
   /** HTTPClient secure socket factory, which implements SecureProtocolSocketFactory
-  */
   protected static class WebSecureSocketFactory implements SecureProtocolSocketFactory
   {
-    /** This is the javax.net socket factory.
-    */
     protected javax.net.ssl.SSLSocketFactory socketFactory;
 
-    /** Constructor */
     public WebSecureSocketFactory(javax.net.ssl.SSLSocketFactory socketFactory)
     {
       this.socketFactory = socketFactory;
@@ -2350,7 +2329,8 @@ public class ThrottledFetcher
     }
 
   }
-
+  */
+  
   /** Create a secure socket in a thread, so that we can "give up" after a while if the socket fails to connect.
   */
   protected static class SocketCreateThread extends Thread
@@ -2403,6 +2383,335 @@ public class ThrottledFetcher
     {
       return rval;
     }
+  }
+
+  /** This thread does the actual socket communication with the server.
+  * It's set up so that it can be abandoned at shutdown time.
+  *
+  * The way it works is as follows:
+  * - it starts the transaction
+  * - it receives the response, and saves that for the calling class to inspect
+  * - it transfers the data part to an input stream provided to the calling class
+  * - it shuts the connection down
+  *
+  * If there is an error, the sequence is aborted, and an exception is recorded
+  * for the calling class to examine.
+  *
+  * The calling class basically accepts the sequence above.  It starts the
+  * thread, and tries to get a response code.  If instead an exception is seen,
+  * the exception is thrown up the stack.
+  */
+  protected static class ExecuteMethodThread extends Thread
+  {
+    /** The connection */
+    protected final ThrottledConnection theConnection;
+    /** Client and method, all preconfigured */
+    protected final AbstractHttpClient httpClient;
+    protected final HttpRequestBase executeMethod;
+    
+    protected HttpResponse response = null;
+    protected Throwable responseException = null;
+    protected LoginCookies cookies = null;
+    protected Throwable cookieException = null;
+    protected XThreadInputStream threadStream = null;
+    protected boolean threadCreated = false;
+    protected Throwable streamException = null;
+
+    protected Throwable shutdownException = null;
+
+    protected Throwable generalException = null;
+    
+    public ExecuteMethodThread(ThrottledConnection theConnection,
+      AbstractHttpClient httpClient, HttpRequestBase executeMethod)
+    {
+      super();
+      setDaemon(true);
+      this.theConnection = theConnection;
+      this.httpClient = httpClient;
+      this.executeMethod = executeMethod;
+    }
+
+    public void run()
+    {
+      try
+      {
+        try
+        {
+          // Call the execute method appropriately
+          synchronized (this)
+          {
+            try
+            {
+              response = httpClient.execute(executeMethod);
+            }
+            catch (java.net.SocketTimeoutException e)
+            {
+              responseException = e;
+            }
+            catch (ConnectTimeoutException e)
+            {
+              responseException = e;
+            }
+            catch (InterruptedIOException e)
+            {
+              throw e;
+            }
+            catch (Throwable e)
+            {
+              responseException = e;
+            }
+            this.notifyAll();
+          }
+          
+          // Fetch the cookies
+          if (responseException == null)
+          {
+            synchronized (this)
+            {
+              try
+              {
+                cookies = new CookieSet(httpClient.getCookieStore().getCookies());
+              }
+              catch (Throwable e)
+              {
+                cookieException = e;
+              }
+              this.notifyAll();
+            }
+          }
+
+          // Start the transfer of the content
+          if (cookieException == null && responseException == null)
+          {
+            synchronized (this)
+            {
+              try
+              {
+                InputStream bodyStream = response.getEntity().getContent();
+                if (bodyStream != null)
+                {
+                  bodyStream = new ThrottledInputstream(theConnection,bodyStream);
+                  threadStream = new XThreadInputStream(bodyStream);
+                }
+                threadCreated = true;
+              }
+              catch (java.net.SocketTimeoutException e)
+              {
+                streamException = e;
+              }
+              catch (ConnectTimeoutException e)
+              {
+                streamException = e;
+              }
+              catch (InterruptedIOException e)
+              {
+                throw e;
+              }
+              catch (Throwable e)
+              {
+                streamException = e;
+              }
+              this.notifyAll();
+            }
+          }
+          
+          if (cookieException == null && responseException == null && streamException == null)
+          {
+            if (threadStream != null)
+            {
+              // Stuff the content until we are done
+              threadStream.stuffQueue();
+            }
+          }
+          
+        }
+        finally
+        {
+          synchronized (this)
+          {
+            try
+            {
+              executeMethod.abort();
+            }
+            catch (Throwable e)
+            {
+              shutdownException = e;
+            }
+            this.notifyAll();
+          }
+        }
+      }
+      catch (Throwable e)
+      {
+        // We catch exceptions here that should ONLY be InterruptedExceptions, as a result of the thread being aborted.
+        this.generalException = e;
+      }
+    }
+
+    public int getResponseCode()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until the response object is there
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+            return response.getStatusLine().getStatusCode();
+          wait();
+        }
+      }
+    }
+
+    public Map<String,List<String>> getResponseHeaders()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait for the response object to appear
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+          {
+            Header[] headers = response.getAllHeaders();
+            Map<String,List<String>> rval = new HashMap<String,List<String>>();
+            int i = 0;
+            while (i < headers.length)
+            {
+              Header h = headers[i++];
+              String name = h.getName();
+              String value = h.getValue();
+              List<String> values = rval.get(name);
+              if (values == null)
+              {
+                values = new ArrayList<String>();
+                rval.put(name,values);
+              }
+              values.add(value);
+            }
+            return rval;
+          }
+          wait();
+        }
+      }
+
+    }
+    
+    public String getFirstHeader(String headerName)
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait for the response object to appear
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+          {
+            Header h = response.getFirstHeader(headerName);
+            if (h == null)
+              return null;
+            return h.getValue();
+          }
+          wait();
+        }
+      }
+    }
+
+    public LoginCookies getCookies()
+      throws InterruptedException, IOException, HttpException
+    {
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before getting cookies");
+          checkException(cookieException);
+          if (cookies != null)
+            return cookies;
+          wait();
+        }
+      }
+    }
+    
+    public InputStream getSafeInputStream()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until stream is created, or until we note an exception was thrown.
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before getting stream");
+          if (cookieException != null)
+            throw new IllegalStateException("Check for cookies before getting stream");
+          checkException(streamException);
+          if (threadCreated)
+            return threadStream;
+          wait();
+        }
+      }
+    }
+    
+    public void abort()
+      throws InterruptedException, IOException, HttpException
+    {
+      // This will be called during the stream access, either
+      // in addition to getSafeInputStream or in exchange.
+      // So we wait for the stream, and when we have it we
+      // kill it, and that will cause the whole thread to abort, 
+      // if it isn't already done.
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before aborting stream");
+          if (cookieException != null)
+            throw new IllegalStateException("Check for cookies before getting stream");
+          checkException(streamException);
+          if (threadCreated)
+          {
+            if (threadStream != null)
+              threadStream.abort();
+            return;
+          }
+          wait();
+        }
+      }
+    }
+    
+    public void finishUp()
+      throws InterruptedException, IOException, HttpException
+    {
+      join();
+      checkException(shutdownException);
+    }
+    
+    protected synchronized void checkException(Throwable exception)
+      throws IOException, HttpException
+    {
+      if (exception != null)
+      {
+        // Throw the current exception, but clear it, so no further throwing is possible on the same problem.
+        Throwable e = exception;
+        if (e instanceof IOException)
+          throw (IOException)e;
+        else if (e instanceof HttpException)
+          throw (HttpException)e;
+        else if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        else if (e instanceof Error)
+          throw (Error)e;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+e.getClass().getName(),e);
+      }
+    }
+
   }
 
 }
