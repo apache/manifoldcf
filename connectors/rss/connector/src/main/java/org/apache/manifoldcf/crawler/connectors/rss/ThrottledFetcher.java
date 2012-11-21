@@ -1412,9 +1412,6 @@ public class ThrottledFetcher
       {
         synchronized (this)
         {
-          if (responseException != null)
-            throw new IllegalStateException("Check for response before aborting stream");
-          checkException(streamException);
           if (threadCreated)
           {
             if (threadStream != null)
