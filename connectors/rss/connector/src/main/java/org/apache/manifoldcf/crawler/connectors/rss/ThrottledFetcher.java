@@ -669,28 +669,7 @@ public class ThrottledFetcher
       
       if (fetchType != null)
       {
-        // Abort the connection, if not already complete
-        try
-        {
-          methodThread.abort();
-        }
-        catch (InterruptedException e)
-        {
-          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (InterruptedIOException e)
-        {
-          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (HttpException e)
-        {
-          throw new ManifoldCFException("Unexpected Http exception: "+e.getMessage(),e);
-        }
-        catch (IOException e)
-        {
-          throw new ManifoldCFException("Unexpected IO exception: "+e.getMessage(),e);
-        }
-
+        methodThread.abort();
         long endTime = System.currentTimeMillis();
         server.endFetch();
 
@@ -706,25 +685,20 @@ public class ThrottledFetcher
         }
         
         // Shut down (join) the connection thread, if any, and if it started
-        if (threadStarted)
+        if (methodThread != null)
         {
-          try
+          if (threadStarted)
           {
-            methodThread.finishUp();
+            try
+            {
+              methodThread.finishUp();
+            }
+            catch (InterruptedException e)
+            {
+              throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            threadStarted = false;
           }
-          catch (InterruptedException e)
-          {
-            throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (HttpException e)
-          {
-            throw new ManifoldCFException("Unexpected HTTP exception: "+e.getMessage(),e);
-          }
-          catch (IOException e)
-          {
-            throw new ManifoldCFException("Unexpected IO exception: "+e.getMessage(),e);
-          }
-          threadStarted = false;
           methodThread = null;
         }
         
@@ -1225,9 +1199,11 @@ public class ThrottledFetcher
     protected HttpResponse response = null;
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
-    protected boolean threadCreated = false;
+    protected boolean streamCreated = false;
     protected Throwable streamException = null;
 
+    protected boolean abortThread = false;
+    
     protected Throwable shutdownException = null;
 
     protected Throwable generalException = null;
@@ -1254,51 +1230,19 @@ public class ThrottledFetcher
           // Call the execute method appropriately
           synchronized (this)
           {
-            try
-            {
-              response = httpClient.execute(executeMethod);
-            }
-            catch (java.net.SocketTimeoutException e)
-            {
-              responseException = e;
-            }
-            catch (ConnectTimeoutException e)
-            {
-              responseException = e;
-            }
-            catch (InterruptedIOException e)
-            {
-              throw e;
-            }
-            catch (Throwable e)
-            {
-              responseException = e;
-            }
-            this.notifyAll();
-          }
-            
-          // Start the transfer of the content
-          if (responseException == null)
-          {
-            synchronized (this)
+            if (!abortThread)
             {
               try
               {
-                InputStream bodyStream = response.getEntity().getContent();
-                if (bodyStream != null)
-                {
-                  bodyStream = new ThrottledInputstream(theConnection,server,bodyStream,minimumMillisecondsPerBytePerServer);
-                  threadStream = new XThreadInputStream(bodyStream);
-                }
-                threadCreated = true;
+                response = httpClient.execute(executeMethod);
               }
               catch (java.net.SocketTimeoutException e)
               {
-                streamException = e;
+                responseException = e;
               }
               catch (ConnectTimeoutException e)
               {
-                streamException = e;
+                responseException = e;
               }
               catch (InterruptedIOException e)
               {
@@ -1306,9 +1250,47 @@ public class ThrottledFetcher
               }
               catch (Throwable e)
               {
-                streamException = e;
+                responseException = e;
               }
               this.notifyAll();
+            }
+          }
+            
+          // Start the transfer of the content
+          if (responseException == null)
+          {
+            synchronized (this)
+            {
+              if (!abortThread)
+              {
+                try
+                {
+                  InputStream bodyStream = response.getEntity().getContent();
+                  if (bodyStream != null)
+                  {
+                    bodyStream = new ThrottledInputstream(theConnection,server,bodyStream,minimumMillisecondsPerBytePerServer);
+                    threadStream = new XThreadInputStream(bodyStream);
+                  }
+                  streamCreated = true;
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                  streamException = e;
+                }
+                catch (ConnectTimeoutException e)
+                {
+                  streamException = e;
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw e;
+                }
+                catch (Throwable e)
+                {
+                  streamException = e;
+                }
+                this.notifyAll();
+              }
             }
           }
           
@@ -1393,7 +1375,7 @@ public class ThrottledFetcher
           if (responseException != null)
             throw new IllegalStateException("Check for response before getting stream");
           checkException(streamException);
-          if (threadCreated)
+          if (streamCreated)
             return threadStream;
           wait();
         }
@@ -1401,33 +1383,26 @@ public class ThrottledFetcher
     }
     
     public void abort()
-      throws InterruptedException, IOException, HttpException
     {
-      // This will be called during the stream access, either
-      // in addition to getSafeInputStream or in exchange.
-      // So we wait for the stream, and when we have it we
-      // kill it, and that will cause the whole thread to abort, 
-      // if it isn't already done.
-      while (true)
+      // This will be called during the finally
+      // block in the case where all is well (and
+      // the stream completed) and in the case where
+      // there were exceptions.
+      synchronized (this)
       {
-        synchronized (this)
+        if (streamCreated)
         {
-          if (threadCreated)
-          {
-            if (threadStream != null)
-              threadStream.abort();
-            return;
-          }
-          wait();
+          if (threadStream != null)
+            threadStream.abort();
         }
+        abortThread = true;
       }
     }
     
     public void finishUp()
-      throws InterruptedException, IOException, HttpException
+      throws InterruptedException
     {
       join();
-      checkException(shutdownException);
     }
     
     protected synchronized void checkException(Throwable exception)

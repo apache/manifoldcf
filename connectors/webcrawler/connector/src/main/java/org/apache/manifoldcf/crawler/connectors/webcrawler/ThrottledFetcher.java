@@ -1785,22 +1785,7 @@ public class ThrottledFetcher
       if (fetchType != null)
       {
         // Abort the connection, if not already complete
-        try
-        {
-          methodThread.abort();
-        }
-        catch (InterruptedException e)
-        {
-          throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (HttpException e)
-        {
-          handleTerminalHTTPException(e,"aborting");
-        }
-        catch (IOException e)
-        {
-          handleTerminalIOException(e,"aborting");
-        }
+        methodThread.abort();
 
         long endTime = System.currentTimeMillis();
         int i = 0;
@@ -1827,25 +1812,20 @@ public class ThrottledFetcher
         }
 
         // Shut down (join) the connection thread, if any, and if it started
-        if (threadStarted)
+        if (methodThread != null)
         {
-          try
+          if (threadStarted)
           {
-            methodThread.finishUp();
+            try
+            {
+              methodThread.finishUp();
+            }
+            catch (InterruptedException e)
+            {
+              throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
+            threadStarted = false;
           }
-          catch (InterruptedException e)
-          {
-            throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (HttpException e)
-          {
-            handleTerminalHTTPException(e,"finishing up");
-          }
-          catch (IOException e)
-          {
-            handleTerminalIOException(e,"finishing up");
-          }
-          threadStarted = false;
           methodThread = null;
         }
         
@@ -1904,14 +1884,6 @@ public class ThrottledFetcher
       }
     }
     
-    protected void handleTerminalHTTPException(HttpException e, String activity)
-      throws ManifoldCFException
-    {
-      long currentTime = System.currentTimeMillis();
-      Logging.connectors.debug("Web: Unexpected HTTP exception "+activity+" for '"+myUrl+"'");
-      throw new ManifoldCFException("Unexpected HTTP exception "+activity+": "+e.getMessage(),e);
-    }
-
     protected void handleHTTPException(HttpException e, String activity)
       throws ServiceInterruption, ManifoldCFException
     {
@@ -1920,41 +1892,6 @@ public class ThrottledFetcher
       throw new ServiceInterruption("HTTP exception "+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
     }
 
-    protected void handleTerminalIOException(IOException e, String activity)
-      throws ManifoldCFException
-    {
-      if (e instanceof java.net.SocketTimeoutException)
-      {
-        Logging.connectors.debug("Web: Unexpected socket timeout exception "+activity+" for '"+myUrl+"', retrying");
-        throw new ManifoldCFException("Unexpected socket timeout exception "+activity+": "+e.getMessage(),e);
-      }
-      if (e instanceof ConnectTimeoutException)
-      {
-        Logging.connectors.debug("Web: Unexpected connect timeout exception "+activity+" for '"+myUrl+"', retrying");
-        throw new ManifoldCFException("Unexpected connect timeout exception "+activity+": "+e.getMessage(),e);
-      }
-      if (e instanceof InterruptedIOException)
-      {
-        throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
-      }
-      if (e instanceof NoHttpResponseException)
-      {
-        throw new ManifoldCFException("Unexpectedly timed out "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
-      }
-      if (e instanceof java.net.ConnectException)
-      {
-        throw new ManifoldCFException("Unexpectedly timed out "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
-      }
-      if (e instanceof java.net.NoRouteToHostException)
-      {
-        // This exception means we know the IP address but can't get there.  That's either a firewall issue, or it's something transient
-        // with the network.  Some degree of retry is probably wise.
-        throw new ManifoldCFException("Unexpected no route to host during "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
-      }
-      Logging.connectors.debug("Web: Unexpected IO exception "+activity+" for '"+myUrl+"': "+e.getMessage(),e);
-      throw new ManifoldCFException("Unexpected IO exception "+activity+": "+e.getMessage(),e);
-    }
-    
     protected void handleIOException(IOException e, String activity)
       throws ServiceInterruption, ManifoldCFException
     {
@@ -2428,8 +2365,9 @@ public class ThrottledFetcher
     protected LoginCookies cookies = null;
     protected Throwable cookieException = null;
     protected XThreadInputStream threadStream = null;
-    protected boolean threadCreated = false;
+    protected boolean streamCreated = false;
     protected Throwable streamException = null;
+    protected boolean abortThread = false;
 
     protected Throwable shutdownException = null;
 
@@ -2454,27 +2392,30 @@ public class ThrottledFetcher
           // Call the execute method appropriately
           synchronized (this)
           {
-            try
+            if (!abortThread)
             {
-              response = httpClient.execute(executeMethod);
+              try
+              {
+                response = httpClient.execute(executeMethod);
+              }
+              catch (java.net.SocketTimeoutException e)
+              {
+                responseException = e;
+              }
+              catch (ConnectTimeoutException e)
+              {
+                responseException = e;
+              }
+              catch (InterruptedIOException e)
+              {
+                throw e;
+              }
+              catch (Throwable e)
+              {
+                responseException = e;
+              }
+              this.notifyAll();
             }
-            catch (java.net.SocketTimeoutException e)
-            {
-              responseException = e;
-            }
-            catch (ConnectTimeoutException e)
-            {
-              responseException = e;
-            }
-            catch (InterruptedIOException e)
-            {
-              throw e;
-            }
-            catch (Throwable e)
-            {
-              responseException = e;
-            }
-            this.notifyAll();
           }
           
           // Fetch the cookies
@@ -2482,15 +2423,18 @@ public class ThrottledFetcher
           {
             synchronized (this)
             {
-              try
+              if (!abortThread)
               {
-                cookies = new CookieSet(httpClient.getCookieStore().getCookies());
+                try
+                {
+                  cookies = new CookieSet(httpClient.getCookieStore().getCookies());
+                }
+                catch (Throwable e)
+                {
+                  cookieException = e;
+                }
+                this.notifyAll();
               }
-              catch (Throwable e)
-              {
-                cookieException = e;
-              }
-              this.notifyAll();
             }
           }
 
@@ -2499,33 +2443,36 @@ public class ThrottledFetcher
           {
             synchronized (this)
             {
-              try
+              if (!abortThread)
               {
-                InputStream bodyStream = response.getEntity().getContent();
-                if (bodyStream != null)
+                try
                 {
-                  bodyStream = new ThrottledInputstream(theConnection,bodyStream);
-                  threadStream = new XThreadInputStream(bodyStream);
+                  InputStream bodyStream = response.getEntity().getContent();
+                  if (bodyStream != null)
+                  {
+                    bodyStream = new ThrottledInputstream(theConnection,bodyStream);
+                    threadStream = new XThreadInputStream(bodyStream);
+                  }
+                  streamCreated = true;
                 }
-                threadCreated = true;
+                catch (java.net.SocketTimeoutException e)
+                {
+                  streamException = e;
+                }
+                catch (ConnectTimeoutException e)
+                {
+                  streamException = e;
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw e;
+                }
+                catch (Throwable e)
+                {
+                  streamException = e;
+                }
+                this.notifyAll();
               }
-              catch (java.net.SocketTimeoutException e)
-              {
-                streamException = e;
-              }
-              catch (ConnectTimeoutException e)
-              {
-                streamException = e;
-              }
-              catch (InterruptedIOException e)
-              {
-                throw e;
-              }
-              catch (Throwable e)
-              {
-                streamException = e;
-              }
-              this.notifyAll();
             }
           }
           
@@ -2664,7 +2611,7 @@ public class ThrottledFetcher
           if (cookieException != null)
             throw new IllegalStateException("Check for cookies before getting stream");
           checkException(streamException);
-          if (threadCreated)
+          if (streamCreated)
             return threadStream;
           wait();
         }
@@ -2672,33 +2619,26 @@ public class ThrottledFetcher
     }
     
     public void abort()
-      throws InterruptedException, IOException, HttpException
     {
-      // This will be called during the stream access, either
-      // in addition to getSafeInputStream or in exchange.
-      // So we wait for the stream, and when we have it we
-      // kill it, and that will cause the whole thread to abort, 
-      // if it isn't already done.
-      while (true)
+      // This will be called during the finally
+      // block in the case where all is well (and
+      // the stream completed) and in the case where
+      // there were exceptions.
+      synchronized (this)
       {
-        synchronized (this)
+        if (streamCreated)
         {
-          if (threadCreated)
-          {
-            if (threadStream != null)
-              threadStream.abort();
-            return;
-          }
-          wait();
+          if (threadStream != null)
+            threadStream.abort();
         }
+        abortThread = true;
       }
     }
     
     public void finishUp()
-      throws InterruptedException, IOException, HttpException
+      throws InterruptedException
     {
       join();
-      checkException(shutdownException);
     }
     
     protected synchronized void checkException(Throwable exception)
