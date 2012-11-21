@@ -1252,32 +1252,48 @@ public class ThrottledFetcher
       LoginCookies loginCookies)
       throws ManifoldCFException, ServiceInterruption
     {
-      StringBuilder sb = new StringBuilder(protocol);
-      sb.append("://").append(server);
+      int resolvedPort;
+      String displayedPort;
       if (port != -1)
       {
         if (!(protocol.equals("http") && port == 80) &&
           !(protocol.equals("https") && port == 443))
-        sb.append(":").append(Integer.toString(port));
+          displayedPort = ":"+Integer.toString(port);
+        else
+          displayedPort = "";
+        resolvedPort = port;
       }
-      sb.append(urlPath);
+      else
+      {
+        if (protocol.equals("http"))
+          resolvedPort = 80;
+        else if (protocol.equals("https"))
+          resolvedPort = 443;
+        else
+          throw new IllegalArgumentException("Unexpected protocol: "+protocol);
+        displayedPort = "";
+      }
+
+      StringBuilder sb = new StringBuilder(protocol);
+      sb.append("://").append(server).append(displayedPort).append(urlPath);
       String fetchUrl = sb.toString();
+
+      HttpHost fetchHost = new HttpHost(server,resolvedPort,protocol);
+      HttpHost hostHost;
+      
       if (host != null)
       {
         sb.setLength(0);
-        sb.append(protocol).append("://").append(host);
-        if (port != -1)
-        {
-          if (!(protocol.equals("http") && port == 80) &&
-            !(protocol.equals("https") && port == 443))
-          sb.append(":").append(Integer.toString(port));
-        }
-        sb.append(urlPath);
+        sb.append(protocol).append("://").append(host).append(displayedPort).append(urlPath);
         myUrl = sb.toString();
+        hostHost = new HttpHost(host,resolvedPort,protocol);
       }
       else
+      {
         myUrl = fetchUrl;
-
+        hostHost = fetchHost;
+      }
+      
       if (connManager == null)
       {
         PoolingClientConnectionManager localConnManager = new PoolingClientConnectionManager();
@@ -1300,6 +1316,7 @@ public class ThrottledFetcher
       if (httpClient == null)
       {
         BasicHttpParams params = new BasicHttpParams();
+        params.setParameter(ClientPNames.DEFAULT_HOST,fetchHost);
         params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
         params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
         params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
@@ -1348,9 +1365,7 @@ public class ThrottledFetcher
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: For "+myUrl+", setting virtual host to "+host);
-        // This will use default port and scheme; it is possible that we should set these explicitly
-        HttpHost virtualHost = new HttpHost(host);
-        httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,virtualHost);
+        httpClient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,hostHost);
       }
 
 
@@ -1477,7 +1492,6 @@ public class ThrottledFetcher
         try
         {
           statusCode = methodThread.getResponseCode();
-            
           switch (statusCode)
           {
           case HttpStatus.SC_REQUEST_TIMEOUT:
@@ -2669,11 +2683,6 @@ public class ThrottledFetcher
       {
         synchronized (this)
         {
-          if (responseException != null)
-            throw new IllegalStateException("Check for response before aborting stream");
-          if (cookieException != null)
-            throw new IllegalStateException("Check for cookies before getting stream");
-          checkException(streamException);
           if (threadCreated)
           {
             if (threadStream != null)
