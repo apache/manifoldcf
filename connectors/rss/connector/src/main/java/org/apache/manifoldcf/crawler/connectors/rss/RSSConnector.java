@@ -32,14 +32,16 @@ import org.apache.manifoldcf.agents.common.XMLContext;
 import org.apache.manifoldcf.agents.common.XMLStringContext;
 import org.apache.manifoldcf.agents.common.XMLFileContext;
 
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
+
 import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
-
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
 
 /** This is the RSS implementation of the IRepositoryConnector interface.
 * This connector basically looks at an RSS document in order to seed the
@@ -1147,7 +1149,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                       Logging.connectors.warn("RSS: Socket timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
                       rval[i] = null;
                     }
-                    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+                    catch (ConnectTimeoutException e)
                     {
                       Logging.connectors.warn("RSS: Connecto timeout exception fetching document contents '"+urlValue+"' - skipping: "+e.getMessage(), e);
                       rval[i] = null;
@@ -3412,7 +3414,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       throw new ManifoldCFException("Socket timeout error: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket connect timeout error: "+e.getMessage(),e);
     }

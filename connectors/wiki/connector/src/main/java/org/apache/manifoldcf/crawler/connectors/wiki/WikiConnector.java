@@ -49,6 +49,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.client.params.ClientPNames;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -174,6 +175,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,300000);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,300000);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
       httpClient = localHttpClient;
       
