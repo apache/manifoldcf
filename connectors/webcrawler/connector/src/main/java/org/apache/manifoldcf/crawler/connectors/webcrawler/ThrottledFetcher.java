@@ -64,7 +64,15 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.cookie.BasicPathHandler;
+import org.apache.http.impl.cookie.BrowserCompatSpec;
+import org.apache.http.cookie.CookieSpecFactory;
+import org.apache.http.cookie.CookieSpec;
 
+import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.CircularRedirectException;
@@ -1331,7 +1339,17 @@ public class ThrottledFetcher
 
         DefaultHttpClient localHttpClient = new DefaultHttpClient(connManager,params);
         localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
-          
+        localHttpClient.getCookieSpecs().register(CookiePolicy.BROWSER_COMPATIBILITY, new CookieSpecFactory()
+          {
+
+            public CookieSpec newInstance(HttpParams params)
+            {
+              return new LaxBrowserCompatSpec();
+            }
+    
+          }
+        );
+
         // If there's a proxy, set that too.
         if (proxyHost != null && proxyHost.length() > 0)
         {
@@ -2330,6 +2348,28 @@ public class ThrottledFetcher
     {
       return rval;
     }
+  }
+
+  /** Class to override browser compatibility to make it not check cookie paths.  See CONNECTORS-97.
+  */
+  protected static class LaxBrowserCompatSpec extends BrowserCompatSpec
+  {
+
+    public LaxBrowserCompatSpec()
+    {
+      super();
+      registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler()
+        {
+          @Override
+          public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException
+          {
+            // No validation
+          }
+              
+        }
+      );
+    }
+    
   }
 
   /** This thread does the actual socket communication with the server.
