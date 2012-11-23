@@ -31,11 +31,6 @@ import java.util.regex.*;
 
 import com.opentext.api.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
-
-
 /** This is the Livelink implementation of the IAuthorityConnector interface.
 * This is not based on Volant code, but has been developed by me at the behest of
 * James Maupin for use at Shell.
