@@ -251,42 +251,6 @@ public class CommonsHTTPSender extends BasicHandler {
         }
       }
 
-/*
-      ExecuteMethodThread t = new ExecuteMethodThread(httpClient,targetURL.toString(),msgContext);
-      try
-      {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof Exception)
-            throw (Exception)thr;
-          else
-            throw (Error)thr;
-        }
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw e;
-      }
-*/
-      /*
-      if (log.isDebugEnabled()) {
-        if (null == contentLength) {
-          log.debug("\n"
-            + Messages.getMessage("no00", "Content-Length"));
-          }
-          log.debug("\n" + Messages.getMessage("xmlRecd00"));
-          log.debug("-----------------------------------------------");
-          log.debug(msgContext.getResponseMessage().getSOAPPartAsString());
-        }
-      }
-      */
-
     } catch (AxisFault af) {
       log.debug(af);
       throw af;
@@ -923,7 +887,6 @@ public class CommonsHTTPSender extends BasicHandler {
     {
       if (exception != null)
       {
-        // Throw the current exception, but clear it, so no further throwing is possible on the same problem.
         Throwable e = exception;
         if (e instanceof IOException)
           throw (IOException)e;
