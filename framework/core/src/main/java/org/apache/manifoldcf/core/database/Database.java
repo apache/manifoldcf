@@ -853,7 +853,7 @@ public abstract class Database
       {
         // There are a lot of different sorts of error that can be embedded here.  Unfortunately, it's database dependent how
         // to interpret the error.  So toss a generic error, and let the caller figure out if it needs to treat it differently.
-        throw new ManifoldCFException("Exception doing query: "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        throw new ManifoldCFException("SQLException doing query"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
     }
     finally
@@ -962,7 +962,7 @@ public abstract class Database
       }
       catch (java.sql.SQLException e)
       {
-        throw new ManifoldCFException("Resultset error: "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        throw new ManifoldCFException("SQLException getting resultset"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
     }
     catch (Throwable e)
@@ -1101,9 +1101,9 @@ public abstract class Database
     {
       return rs.getBlob(col);
     }
-    catch (java.sql.SQLException sqle)
+    catch (java.sql.SQLException e)
     {
-      throw new ManifoldCFException("Error in getBlob",sqle,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      throw new ManifoldCFException("SQLException in getBlob"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
@@ -1119,9 +1119,9 @@ public abstract class Database
       int type = rsmd.getColumnType(col);
       return (type == java.sql.Types.BLOB);
     }
-    catch (java.sql.SQLException sqle)
+    catch (java.sql.SQLException e)
     {
-      throw new ManifoldCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      throw new ManifoldCFException("SQLException doing isBlob("+col+")"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
@@ -1138,9 +1138,9 @@ public abstract class Database
       return (type == java.sql.Types.VARBINARY ||
         type == java.sql.Types.BINARY || type == java.sql.Types.LONGVARBINARY);
     }
-    catch (java.sql.SQLException sqle)
+    catch (java.sql.SQLException e)
     {
-      throw new ManifoldCFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      throw new ManifoldCFException("SQLException doing isBinary("+col+")"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
@@ -1314,7 +1314,7 @@ public abstract class Database
       }
       catch (java.sql.SQLException e)
       {
-        throw new ManifoldCFException("Exception in getObject(): "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        throw new ManifoldCFException("SQLException doing getObject()"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
     }
     catch (Throwable e)
