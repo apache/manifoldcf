@@ -911,6 +911,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // Look at the metadata attributes.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
     String pathAttributeName = null;
+    String pathSeparator = null;
     HashMap holder = new HashMap();
     MatchMap matchMap = new MatchMap();
     boolean includeAllMetadata = false;
@@ -952,7 +953,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
       }
       else if (n.getType().equals("pathnameattribute"))
+      {
         pathAttributeName = n.getAttributeValue("value");
+        pathSeparator = n.getAttributeValue("separator");
+        if (pathSeparator == null)
+          pathSeparator = "/";
+      }
       else if (n.getType().equals("pathmap"))
       {
         // Path mapping info also needs to be looked at, because it affects what is
@@ -991,7 +997,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // This starts with = since ; is used by another optional component (the forced acls)
     StringBuilder pathNameAttributeVersion = new StringBuilder();
     if (pathAttributeName != null)
-      pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
+      pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(pathSeparator).append(":").append(matchMap);
 
     // The version string includes the following:
     // 1) The modify date for the document
@@ -2332,7 +2338,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.Security")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SecurityColon")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Enabled")+"\n"+
 "      <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Disabled")+"\n"+
@@ -2425,12 +2431,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // Find the path-value metadata attribute name
     i = 0;
     String pathNameAttribute = "";
+    String pathNameSeparator = "/";
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals("pathnameattribute"))
       {
         pathNameAttribute = sn.getAttributeValue("value");
+        if (sn.getAttributeValue("separator") != null)
+          pathNameSeparator = sn.getAttributeValue("separator");
       }
     }
 
@@ -2687,8 +2696,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathAttributeName")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
 "      <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"    </td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathSeparatorString")+"</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <input type=\"text\" name=\"specpathnameseparator\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
@@ -2770,6 +2783,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       out.print(
 "<input type=\"hidden\" name=\"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
 "<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\"specpathnameseparator\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
 "<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
       );
       i = 0;
@@ -3201,6 +3215,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     xc = variableContext.getParameter("specpathnameattribute");
     if (xc != null)
     {
+      String separator = variableContext.getParameter("specpathnameseparator");
+      if (separator == null)
+        separator = "/";
       // Delete old one
       int i = 0;
       while (i < ds.getChildCount())
@@ -3215,6 +3232,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         SpecificationNode node = new SpecificationNode("pathnameattribute");
         node.setAttribute("value",xc);
+        node.setAttribute("separator",separator);
         ds.addChild(ds.getChildCount(),node);
       }
     }
@@ -3384,7 +3402,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
     out.print(
 "  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.Security")+"</td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.SecurityColon")+"</td>\n"+
 "    <td class=\"value\">"+(securityOn?Messages.getBodyString(locale,"LivelinkConnector.Enabled2"):Messages.getBodyString(locale,"LivelinkConnector.Disabled"))+"</td>\n"+
 "  </tr>\n"+
 "\n"+
@@ -3494,32 +3512,39 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // Find the path-name metadata attribute name
     i = 0;
     String pathNameAttribute = "";
+    String pathSeparator = "/";
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals("pathnameattribute"))
       {
         pathNameAttribute = sn.getAttributeValue("value");
+        if (sn.getAttributeValue("separator") != null)
+          pathSeparator = sn.getAttributeValue("separator");
       }
     }
-    out.print(
-"  <tr>\n"
-    );
     if (pathNameAttribute.length() > 0)
     {
       out.print(
+"  <tr>\n"+
 "    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathNameMetadataAttribute")+"</td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</td>\n"
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathSeparatorString")+"</td>\n"+
+"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSeparator)+"</td>\n"+
+"  </tr>\n"
       );
     }
     else
     {
       out.print(
-"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoPathNameMetadataAttributeSpecified")+"</td>\n"
+"  <tr>\n"+
+"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoPathNameMetadataAttributeSpecified")+"</td>\n"+
+"  </tr>\n"
       );
     }
     out.print(
-"  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "\n"+
@@ -5708,6 +5733,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // The path attribute name
     protected String pathAttributeName;
 
+    // The path separator
+    protected String pathSeparator;
+    
     // The node ID to path name mapping (which acts like a cache)
     protected Map pathMap = new HashMap();
 
@@ -5719,12 +5747,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       throws ManifoldCFException
     {
       pathAttributeName = null;
+      pathSeparator = null;
       int i = 0;
       while (i < spec.getChildCount())
       {
         SpecificationNode n = spec.getChild(i++);
         if (n.getType().equals("pathnameattribute"))
+        {
           pathAttributeName = n.getAttributeValue("value");
+          pathSeparator = n.getAttributeValue("separator");
+          if (pathSeparator == null)
+            pathSeparator = "/";
+        }
         else if (n.getType().equals("pathmap"))
         {
           String pathMatch = n.getAttributeValue("match");
@@ -5817,7 +5851,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           String parentPath = getNodePathString(parentIdentifier);
           if (parentPath == null)
             return null;
-          path = parentPath + "/"+ name;
+          path = parentPath + pathSeparator + name;
         }
 
         pathMap.put(documentIdentifier,path);

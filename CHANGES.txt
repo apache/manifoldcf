@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-573: Add the ability to specify path separator characters
+in the LiveLink connector.
+(David Morana, Karl Wright)
+
 CONNECTORS-571: MySQL timeout was not being handled properly.
 (Shigeki Kobayashi, Karl Wright)
 
