@@ -177,7 +177,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       int index = userName.indexOf("\\");
       if (index != -1)
       {
-        strippedUserName = userName.substring(index+1);
+        strippedUserName = "\\"+userName.substring(index+1);
         ntlmDomain = userName.substring(0,index);
       }
       else
