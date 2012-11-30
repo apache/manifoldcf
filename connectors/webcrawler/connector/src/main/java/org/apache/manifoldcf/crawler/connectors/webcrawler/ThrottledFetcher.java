@@ -1515,6 +1515,7 @@ public class ThrottledFetcher
         try
         {
           statusCode = methodThread.getResponseCode();
+          lastFetchCookies = methodThread.getCookies();
           switch (statusCode)
           {
           case HttpStatus.SC_REQUEST_TIMEOUT:
@@ -1638,28 +1639,7 @@ public class ThrottledFetcher
     public LoginCookies getLastFetchCookies()
       throws ManifoldCFException, ServiceInterruption
     {
-      if (fetchMethod == null)
-        throw new ManifoldCFException("Attempt to get cookies when there is no method");
-      if (methodThread == null || threadStarted == false)
-        throw new ManifoldCFException("Attempt to get cookies when no method thread");
-      try
-      {
-        return methodThread.getCookies();
-      }
-      catch (InterruptedException e)
-      {
-        methodThread.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (HttpException e)
-      {
-        handleHTTPException(e,"reading cookies");
-      }
-      catch (IOException e)
-      {
-        handleIOException(e,"reading cookies");
-      }
-      return null;
+      return lastFetchCookies;
     }
 
     /** Get response headers
