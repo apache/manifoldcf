@@ -4543,7 +4543,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Seeds") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.SeedsColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
     );
     try
