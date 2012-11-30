@@ -37,6 +37,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -1261,7 +1262,7 @@ public class ThrottledFetcher
     {
       // Set up scheme
       SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
-        new BrowserCompatHostnameVerifier());
+        new AllowAllHostnameVerifier());
       Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
 
       int resolvedPort;
