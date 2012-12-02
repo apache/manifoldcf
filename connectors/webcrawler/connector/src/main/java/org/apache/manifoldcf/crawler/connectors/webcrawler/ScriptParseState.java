@@ -37,6 +37,7 @@ public class ScriptParseState extends BasicParseState
 
   // Override methods having to do with notification of tag discovery
 
+  @Override
   protected void noteTag(String tagName, Map attributes)
     throws ManifoldCFException
   {
@@ -57,6 +58,7 @@ public class ScriptParseState extends BasicParseState
     }
   }
 
+  @Override
   protected void noteEndTag(String tagName)
     throws ManifoldCFException
   {

@@ -19,28 +19,14 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
 
-/** This class recognizes and interprets all meta tags */
-public class MetaParseState extends ScriptParseState
+/** This class is the handler for redirection parsing during state transitions */
+public class FindRedirectionHandler extends FindHandler implements IRedirectionHandler
 {
-  protected IMetaTagHandler handler;
-
-  public MetaParseState(IMetaTagHandler handler)
+  public FindRedirectionHandler(String parentURI)
   {
-    super();
-    this.handler = handler;
-  }
-
-  @Override
-  protected void noteNonscriptTag(String tagName, Map attributes)
-    throws ManifoldCFException
-  {
-    super.noteNonscriptTag(tagName,attributes);
-    if (tagName.equals("meta"))
-    {
-      handler.noteMetaTag(attributes);
-    }
+    super(parentURI);
   }
 
 }
+

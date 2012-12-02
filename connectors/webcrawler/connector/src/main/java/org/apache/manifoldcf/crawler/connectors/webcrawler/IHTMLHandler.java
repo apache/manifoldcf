@@ -52,4 +52,11 @@ public interface IHTMLHandler extends IDiscoveredLinkHandler, IMetaTagHandler
   /** Note discovered FRAME SRC */
   public void noteFRAMESRC(String rawURL)
     throws ManifoldCFException;
+
+  /** Note a character of text.
+  * Structured this way to keep overhead low for handlers that don't use text.
+  */
+  public void noteTextCharacter(char textCharacter)
+    throws ManifoldCFException;
+
 }
