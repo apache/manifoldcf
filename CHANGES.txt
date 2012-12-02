@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-574: Add more Web connector session login stages, and
+a session login test.
+(Karl Wright)
+
 CONNECTORS-573: Add the ability to specify path separator characters
 in the LiveLink connector.
 (David Morana, Karl Wright)

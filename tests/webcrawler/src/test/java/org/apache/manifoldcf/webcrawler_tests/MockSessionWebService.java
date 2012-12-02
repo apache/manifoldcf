@@ -43,9 +43,10 @@ public class MockSessionWebService
     server.setThreadPool(new QueuedThreadPool(100));
     servlet = new SessionWebServlet(numContentDocs,userName,password);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName","none");
     context.setContextPath("/web");
     server.setHandler(context);
-    context.addServlet(new ServletHolder(servlet), "/");
+    context.addServlet(new ServletHolder(servlet), "/*");
   }
     
   public void start() throws Exception
@@ -203,7 +204,7 @@ public class MockSessionWebService
     {
       String redirectTarget;
       if (returnID == null)
-        redirectTarget = "/web/indexpage.html";
+        redirectTarget = "/web/index.html";
       else
         redirectTarget = "/web/protectedcontent.html?id="+returnID;
       res.sendRedirect(redirectTarget);

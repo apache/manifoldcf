@@ -83,7 +83,7 @@ public class SessionTester
     ConfigurationNode loginPage = new ConfigurationNode(WebcrawlerConfig.NODE_AUTHPAGE);
     loginPage.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,"/loginpage\\.html(\\?|$)");
     loginPage.setAttribute(WebcrawlerConfig.ATTR_TYPE,WebcrawlerConfig.ATTRVALUE_FORM);
-    loginPage.setAttribute(WebcrawlerConfig.ATTR_MATCHREGEXP,"/loginpage\\.html(\\?|$)");
+    loginPage.setAttribute(WebcrawlerConfig.ATTR_MATCHREGEXP,"");
     // Set credentials
     ConfigurationNode userParameter = new ConfigurationNode(WebcrawlerConfig.NODE_AUTHPARAMETER);
     userParameter.setAttribute(WebcrawlerConfig.ATTR_NAMEREGEXP,"user");
@@ -113,7 +113,7 @@ public class SessionTester
     
     // Now, save
     mgr.save(conn);
-      
+
     // Create a basic null output connection, and save it.
     IOutputConnectionManager outputMgr = OutputConnectionManagerFactory.make(tc);
     IOutputConnection outputConn = outputMgr.create();

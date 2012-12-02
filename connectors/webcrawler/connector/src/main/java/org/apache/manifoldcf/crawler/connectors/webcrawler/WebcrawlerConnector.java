@@ -626,6 +626,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // later to detect redirection to login.
         SequenceCredentials sessionCredential = getSequenceCredential(documentIdentifier);
 
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Web: For document identifier '"+documentIdentifier+"' found session credential key '"+sessionCredential.getSequenceKey()+"'");
+        }
+        
         // Set up the initial state and state variables.
         int sessionState = SESSIONSTATE_NORMAL;
         String currentURI = documentIdentifier;
