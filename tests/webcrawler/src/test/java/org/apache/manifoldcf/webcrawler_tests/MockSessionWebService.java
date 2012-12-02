@@ -26,7 +26,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import javax.servlet.http.HttpSession;
 
 import java.io.*;
 import java.util.*;
@@ -84,38 +84,99 @@ public class MockSessionWebService
         //    or as a redirection back to the content page, or as a redirection to the index page)
         
         // Get path part of request URL
-        // MHL
-        String pathPart = "";
-
-        if (pathPart.equals("/loginpage.html"))
+        String pathPart = req.getPathInfo();
+        if (pathPart == null)
         {
-          // Login page logic
-          String id = req.getParameter("id");
-          Integer idNumber;
-          if (id == null)
-            idNumber = null;
-          else
-            idNumber = new Integer(id);
-          
-          String userName = req.getParameter("user");
-          String password = req.getParameter("password");
-          
-          // MHL
+          // 404
+          generateMissingPageResponse(res);
         }
-        else if (pathPart.equals("/protectedcontent.html"))
+        else
         {
-          // Content page logic
-          String id = req.getParameter("id");
-          if (id == null)
+          if (pathPart.equals("/loginpage.html"))
           {
-            generateBadArgumentResponse(res);
+            // Login page logic
+            String id = req.getParameter("id");
+            Integer idNumber;
+            if (id == null)
+              idNumber = null;
+            else
+              idNumber = new Integer(id);
+            
+            HttpSession session = req.getSession();
+            Object loginInfo = session.getAttribute("logininfo");
+            if (loginInfo != null && (loginInfo instanceof Boolean) && (((Boolean)loginInfo).booleanValue()))
+            {
+              // Already logged in: redirect back to content or index
+              generateLoginRedirectPage(res,idNumber);
+            }
+            else
+            {
+              String userName = req.getParameter("user");
+              String password = req.getParameter("password");
+            
+              if (userName == null || password == null || !loginUser.equals(userName) || !loginPassword.equals(password))
+              {
+                generateLoginFormPage(res,idNumber);
+              }
+              else
+              {
+                // Login succeeded, so set the session properly
+                session.setAttribute("logininfo",new Boolean(true));
+                generateLoginRedirectPage(res,idNumber);
+              }
+            }
           }
-          // MHL
-        }
-        else if (pathPart.equals("/index.html"))
-        {
-          // Index logic
-          // MHL
+          else if (pathPart.equals("/protectedcontent.html"))
+          {
+            // Content page logic
+            String id = req.getParameter("id");
+            if (id == null)
+            {
+              generateBadArgumentResponse(res);
+            }
+            else
+            {
+              Integer idNumber = new Integer(id);
+              if (idNumber.intValue() >= contentPageCount)
+              {
+                generateMissingPageResponse(res);
+              }
+              else
+              {
+                HttpSession session = req.getSession();
+                Object loginInfo = session.getAttribute("logininfo");
+                if (loginInfo != null && (loginInfo instanceof Boolean) && (((Boolean)loginInfo).booleanValue()))
+                {
+                  // Return content
+                  generateContentDisplayPage(res,idNumber.intValue());
+                }
+                else
+                {
+                  // Redirect to login page
+                  generateContentRedirectPage(res,idNumber.intValue());
+                }
+              }
+            }
+          }
+          else if (pathPart.equals("/index.html"))
+          {
+            // Index logic
+            HttpSession session = req.getSession();
+            Object loginInfo = session.getAttribute("logininfo");
+            if (loginInfo != null && (loginInfo instanceof Boolean) && (((Boolean)loginInfo).booleanValue()))
+            {
+              // Return content
+              generateIndexDisplayPage(res,contentPageCount);
+            }
+            else
+            {
+              generateIndexRedirectPage(res);
+            }
+          }
+          else
+          {
+            generateMissingPageResponse(res);
+          }
         }
       }
       catch (IOException e)
@@ -125,10 +186,16 @@ public class MockSessionWebService
       }
     }
 
+    protected static void generateMissingPageResponse(HttpServletResponse res)
+      throws IOException
+    {
+      res.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+    
     protected static void generateBadArgumentResponse(HttpServletResponse res)
       throws IOException
     {
-      // MHL
+      res.sendError(HttpServletResponse.SC_BAD_REQUEST);
     }
     
     protected static void generateLoginRedirectPage(HttpServletResponse res, Integer returnID)
@@ -139,8 +206,7 @@ public class MockSessionWebService
         redirectTarget = "/web/indexpage.html";
       else
         redirectTarget = "/web/protectedcontent.html?id="+returnID;
-      
-      // MHL
+      res.sendRedirect(redirectTarget);
     }
     
     protected static void generateLoginFormPage(HttpServletResponse res, Integer returnID)
@@ -170,7 +236,7 @@ public class MockSessionWebService
       throws IOException
     {
       String redirectTarget = "/web/loginpage.html?id="+itemNumber;
-      // MHL
+      res.sendRedirect(redirectTarget);
     }
 
     protected static void generateContentDisplayPage(HttpServletResponse res, int itemNumber)
@@ -190,7 +256,7 @@ public class MockSessionWebService
       throws IOException
     {
       String redirectTarget = "/web/loginpage.html";
-      // MHL
+      res.sendRedirect(redirectTarget);
     }
     
     protected static void generateIndexDisplayPage(HttpServletResponse res, int countItems)
