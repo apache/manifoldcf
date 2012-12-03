@@ -72,6 +72,11 @@ import org.apache.http.impl.cookie.BasicPathHandler;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpec;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.client.CookieStore;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.client.protocol.ClientContext;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -1489,9 +1494,8 @@ public class ThrottledFetcher
       fetchMethod.setHeader(new BasicHeader("User-Agent",userAgent));
       fetchMethod.setHeader(new BasicHeader("From",from));
         
-      // Clear all current cookies
-      httpClient.getCookieStore().clear();
-
+      // Use a custom cookie store
+      CookieStore cookieStore = new BasicCookieStore();
       // If we have any cookies to set, set them.
       if (loginCookies != null)
       {
@@ -1500,15 +1504,18 @@ public class ThrottledFetcher
         int h = 0;
         while (h < loginCookies.getCookieCount())
         {
-          httpClient.getCookieStore().addCookie(loginCookies.getCookie(h++));
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("WEB:  Cookie '"+loginCookies.getCookie(h)+"' added");
+          cookieStore.addCookie(loginCookies.getCookie(h++));
         }
       }
+
 
       // Copy out the current cookies, in case the fetch fails
       lastFetchCookies = loginCookies;
 
       // Create the thread
-      methodThread = new ExecuteMethodThread(this, httpClient, fetchMethod);
+      methodThread = new ExecuteMethodThread(this, httpClient, fetchMethod, cookieStore);
       try
       {
         methodThread.start();
@@ -1640,6 +1647,14 @@ public class ThrottledFetcher
     public LoginCookies getLastFetchCookies()
       throws ManifoldCFException, ServiceInterruption
     {
+      if (Logging.connectors.isDebugEnabled())
+      {
+        Logging.connectors.debug("WEB: Retrieving cookies...");
+        for (int i = 0; i < lastFetchCookies.getCookieCount(); i++)
+        {
+          Logging.connectors.debug("WEB:   Cookie '"+lastFetchCookies.getCookie(i)+"'");
+        }
+      }
       return lastFetchCookies;
     }
 
@@ -2376,6 +2391,7 @@ public class ThrottledFetcher
     /** Client and method, all preconfigured */
     protected final AbstractHttpClient httpClient;
     protected final HttpRequestBase executeMethod;
+    protected final CookieStore cookieStore;
     
     protected HttpResponse response = null;
     protected Throwable responseException = null;
@@ -2391,13 +2407,14 @@ public class ThrottledFetcher
     protected Throwable generalException = null;
     
     public ExecuteMethodThread(ThrottledConnection theConnection,
-      AbstractHttpClient httpClient, HttpRequestBase executeMethod)
+      AbstractHttpClient httpClient, HttpRequestBase executeMethod, CookieStore cookieStore)
     {
       super();
       setDaemon(true);
       this.theConnection = theConnection;
       this.httpClient = httpClient;
       this.executeMethod = executeMethod;
+      this.cookieStore = cookieStore;
     }
 
     public void run()
@@ -2413,7 +2430,10 @@ public class ThrottledFetcher
             {
               try
               {
-                response = httpClient.execute(executeMethod);
+                HttpContext context = new BasicHttpContext();
+                context.setAttribute(ClientContext.COOKIE_STORE,cookieStore);
+
+                response = httpClient.execute(executeMethod, context);
               }
               catch (java.net.SocketTimeoutException e)
               {
@@ -2444,7 +2464,7 @@ public class ThrottledFetcher
               {
                 try
                 {
-                  cookies = new CookieSet(httpClient.getCookieStore().getCookies());
+                  cookies = new CookieSet(cookieStore.getCookies());
                 }
                 catch (Throwable e)
                 {
