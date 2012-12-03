@@ -18,25 +18,27 @@
 */
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
-import org.apache.commons.httpclient.*;
+import java.util.List;
+
+import org.apache.http.cookie.Cookie;
 
 /** This class represents a bunch of cookies */
 public class CookieSet implements LoginCookies
 {
-  protected Cookie[] cookieList;
+  protected List<Cookie> cookieList;
 
-  public CookieSet(Cookie[] cookieList)
+  public CookieSet(List<Cookie> cookieList)
   {
     this.cookieList = cookieList;
   }
 
   public int getCookieCount()
   {
-    return cookieList.length;
+    return cookieList.size();
   }
 
   public Cookie getCookie(int index)
   {
-    return cookieList[index];
+    return cookieList.get(index);
   }
 }

@@ -17,6 +17,8 @@
 */
 package org.apache.manifoldcf.crawler.connectors.sharepoint;
 
+import org.apache.manifoldcf.core.common.XThreadInputStream;
+
 import org.apache.axis.AxisFault;
 import org.apache.axis.Constants;
 import org.apache.axis.Message;
@@ -47,6 +49,12 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
 
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
+
 import org.apache.commons.logging.Log;
 
 import javax.xml.soap.MimeHeader;
@@ -69,7 +77,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 /* Class to use httpcomponents to communicate with a SOAP server.
 * I've replaced the original rather complicated class with a much simpler one that
@@ -88,165 +98,6 @@ public class CommonsHTTPSender extends BasicHandler {
 
   public CommonsHTTPSender() {
     this.clientProperties = CommonsHTTPClientPropertiesFactory.create();
-  }
-
-  protected static class ExecuteMethodThread extends Thread
-  {
-    protected final HttpClient httpClient;
-    protected final String targetURL;
-    protected final MessageContext msgContext;
-
-    protected Throwable exception = null;
-    protected int returnCode = 0;
-
-    public ExecuteMethodThread( HttpClient httpClient, String targetURL, MessageContext msgContext )
-    {
-      super();
-      setDaemon(true);
-      this.httpClient = httpClient;
-      this.targetURL = targetURL;
-      this.msgContext = msgContext;
-    }
-
-    public void run()
-    {
-      try
-      {
-        boolean posting = true;
-        // If we're SOAP 1.2, allow the web method to be set from the
-        // MessageContext.
-        if (msgContext.getSOAPConstants() == SOAPConstants.SOAP12_CONSTANTS) {
-          String webMethod = msgContext.getStrProp(SOAP12Constants.PROP_WEBMETHOD);
-          if (webMethod != null) {
-            posting = webMethod.equals(HTTPConstants.HEADER_POST);
-          }
-        }
-
-        boolean http10 = false;
-        String httpVersion = msgContext.getStrProp(MessageContext.HTTP_TRANSPORT_VERSION);
-        if (httpVersion != null) {
-          if (httpVersion.equals(HTTPConstants.HEADER_PROTOCOL_V10)) {
-            http10 = true;
-          }
-          // assume 1.1
-        }
-
-        HttpRequestBase method;
-        if (posting) {
-          HttpPost postMethod = new HttpPost(targetURL);
-          
-          // set false as default, addContetInfo can overwrite
-          HttpProtocolParams.setUseExpectContinue(postMethod.getParams(),false);
-
-          Message reqMessage = msgContext.getRequestMessage();
-          
-          boolean httpChunkStream = addContextInfo(postMethod, msgContext);
-
-          HttpEntity requestEntity = null;
-          requestEntity = new MessageRequestEntity(reqMessage, httpChunkStream,
-            http10 || !httpChunkStream);
-          postMethod.setEntity(requestEntity);
-          method = postMethod;
-        } else {
-          method = new HttpGet(targetURL);
-        }
-        
-        if (http10)
-          HttpProtocolParams.setVersion(method.getParams(),new ProtocolVersion("HTTP",1,0));
-
-        // Try block to insure that the connection gets cleaned up
-        try
-        {
-          // Begin the fetch
-          HttpResponse response = httpClient.execute(method);
-
-          returnCode = response.getStatusLine().getStatusCode();
-          
-          String contentType =
-            getHeader(response, HTTPConstants.HEADER_CONTENT_TYPE);
-          String contentLocation =
-            getHeader(response, HTTPConstants.HEADER_CONTENT_LOCATION);
-          String contentLength =
-            getHeader(response, HTTPConstants.HEADER_CONTENT_LENGTH);
-
-          if ((returnCode > 199) && (returnCode < 300)) {
-
-            // SOAP return is OK - so fall through
-          } else if (msgContext.getSOAPConstants() ==
-            SOAPConstants.SOAP12_CONSTANTS) {
-            // For now, if we're SOAP 1.2, fall through, since the range of
-            // valid result codes is much greater
-          } else if ((contentType != null) && !contentType.equals("text/html")
-            && ((returnCode > 499) && (returnCode < 600))) {
-
-            // SOAP Fault should be in here - so fall through
-          } else {
-            String statusMessage = response.getStatusLine().toString();
-            AxisFault fault = new AxisFault("HTTP",
-              "(" + returnCode + ")"
-            + statusMessage, null,
-              null);
-
-            fault.setFaultDetailString(
-              Messages.getMessage("return01",
-              "" + returnCode,
-              getResponseBodyAsString(response)));
-            fault.addFaultDetail(Constants.QNAME_FAULTDETAIL_HTTPERRORCODE,
-              Integer.toString(returnCode));
-            throw fault;
-          }
-
-          // Transfer to a temporary file.  If we stream it, we may wind up waiting on the socket outside this thread.
-          InputStream releaseConnectionOnCloseStream = new FileBackedInputStream(response.getEntity().getContent());
-
-          Header contentEncoding =
-            response.getFirstHeader(HTTPConstants.HEADER_CONTENT_ENCODING);
-          if (contentEncoding != null) {
-            AxisFault fault = new AxisFault("HTTP",
-              "unsupported content-encoding of '"
-            + contentEncoding.getValue()
-            + "' found", null, null);
-            throw fault;
-          }
-
-          Message outMsg = new Message(releaseConnectionOnCloseStream,
-            false, contentType, contentLocation);
-          
-          // Transfer HTTP headers of HTTP message to MIME headers of SOAP message
-          Header[] responseHeaders = response.getAllHeaders();
-          MimeHeaders responseMimeHeaders = outMsg.getMimeHeaders();
-          for (int i = 0; i < responseHeaders.length; i++) {
-            Header responseHeader = responseHeaders[i];
-            responseMimeHeaders.addHeader(responseHeader.getName(),
-              responseHeader.getValue());
-          }
-          outMsg.setMessageType(Message.RESPONSE);
-          
-          // Put the message in the message context.
-          msgContext.setResponseMessage(outMsg);
-        }
-        finally
-        {
-          // Consumes and closes the stream, releasing the connection
-          method.abort();
-        }
-
-      }
-      catch (Throwable e)
-      {
-        this.exception = e;
-      }
-    }
-
-    public Throwable getException()
-    {
-      return exception;
-    }
-
-    public int getResponse()
-    {
-      return returnCode;
-    }
   }
 
   /**
@@ -274,40 +125,131 @@ public class CommonsHTTPSender extends BasicHandler {
       // Get the HttpClient
       HttpClient httpClient = (HttpClient)msgContext.getProperty(SPSProxyHelper.HTTPCLIENT_PROPERTY);
 
-      ExecuteMethodThread t = new ExecuteMethodThread(httpClient,targetURL.toString(),msgContext);
-      try
-      {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof Exception)
-            throw (Exception)thr;
-          else
-            throw (Error)thr;
+      boolean posting = true;
+      // If we're SOAP 1.2, allow the web method to be set from the
+      // MessageContext.
+      if (msgContext.getSOAPConstants() == SOAPConstants.SOAP12_CONSTANTS) {
+        String webMethod = msgContext.getStrProp(SOAP12Constants.PROP_WEBMETHOD);
+        if (webMethod != null) {
+          posting = webMethod.equals(HTTPConstants.HEADER_POST);
         }
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw e;
       }
 
-      /*
-      if (log.isDebugEnabled()) {
-        if (null == contentLength) {
-          log.debug("\n"
-            + Messages.getMessage("no00", "Content-Length"));
+      boolean http10 = false;
+      String httpVersion = msgContext.getStrProp(MessageContext.HTTP_TRANSPORT_VERSION);
+      if (httpVersion != null) {
+        if (httpVersion.equals(HTTPConstants.HEADER_PROTOCOL_V10)) {
+          http10 = true;
+        }
+        // assume 1.1
+      }
+
+      HttpRequestBase method;
+        
+      if (posting) {
+        HttpPost postMethod = new HttpPost(targetURL.toString());
+          
+        // set false as default, addContetInfo can overwrite
+        HttpProtocolParams.setUseExpectContinue(postMethod.getParams(),false);
+
+        Message reqMessage = msgContext.getRequestMessage();
+          
+        boolean httpChunkStream = addContextInfo(postMethod, msgContext);
+
+        HttpEntity requestEntity = null;
+        requestEntity = new MessageRequestEntity(reqMessage, httpChunkStream,
+          http10 || !httpChunkStream);
+        postMethod.setEntity(requestEntity);
+        method = postMethod;
+      } else {
+        method = new HttpGet(targetURL.toString());
+      }
+        
+      if (http10)
+        HttpProtocolParams.setVersion(method.getParams(),new ProtocolVersion("HTTP",1,0));
+
+      BackgroundHTTPThread methodThread = new BackgroundHTTPThread(httpClient,method);
+      methodThread.start();
+      try
+      {
+        int returnCode = methodThread.getResponseCode();
+          
+        String contentType =
+          getHeader(methodThread, HTTPConstants.HEADER_CONTENT_TYPE);
+        String contentLocation =
+          getHeader(methodThread, HTTPConstants.HEADER_CONTENT_LOCATION);
+        String contentLength =
+          getHeader(methodThread, HTTPConstants.HEADER_CONTENT_LENGTH);
+        
+        if ((returnCode > 199) && (returnCode < 300)) {
+
+          // SOAP return is OK - so fall through
+        } else if (msgContext.getSOAPConstants() ==
+          SOAPConstants.SOAP12_CONSTANTS) {
+          // For now, if we're SOAP 1.2, fall through, since the range of
+          // valid result codes is much greater
+        } else if ((contentType != null) && !contentType.equals("text/html")
+          && ((returnCode > 499) && (returnCode < 600))) {
+
+          // SOAP Fault should be in here - so fall through
+        } else {
+          String statusMessage = methodThread.getResponseStatus();
+          AxisFault fault = new AxisFault("HTTP",
+            "(" + returnCode + ")"
+          + statusMessage, null,
+            null);
+
+          fault.setFaultDetailString(
+            Messages.getMessage("return01",
+            "" + returnCode,
+            getResponseBodyAsString(methodThread)));
+          fault.addFaultDetail(Constants.QNAME_FAULTDETAIL_HTTPERRORCODE,
+            Integer.toString(returnCode));
+          throw fault;
+        }
+
+        String contentEncoding =
+         methodThread.getFirstHeader(HTTPConstants.HEADER_CONTENT_ENCODING);
+        if (contentEncoding != null) {
+          AxisFault fault = new AxisFault("HTTP",
+            "unsupported content-encoding of '"
+          + contentEncoding
+          + "' found", null, null);
+          throw fault;
+        }
+
+        Map<String,List<String>> responseHeaders = methodThread.getResponseHeaders();
+
+        InputStream dataStream = methodThread.getSafeInputStream();
+
+        Message outMsg = new Message(new BackgroundInputStream(methodThread,dataStream),
+          false, contentType, contentLocation);
+          
+        // Transfer HTTP headers of HTTP message to MIME headers of SOAP message
+        MimeHeaders responseMimeHeaders = outMsg.getMimeHeaders();
+        for (String name : responseHeaders.keySet())
+        {
+          List<String> values = responseHeaders.get(name);
+          for (String value : values) {
+            responseMimeHeaders.addHeader(name,value);
           }
-          log.debug("\n" + Messages.getMessage("xmlRecd00"));
-          log.debug("-----------------------------------------------");
-          log.debug(msgContext.getResponseMessage().getSOAPPartAsString());
+        }
+        outMsg.setMessageType(Message.RESPONSE);
+          
+        // Put the message in the message context.
+        msgContext.setResponseMessage(outMsg);
+        
+        // Pass off the method thread to the stream for closure
+        methodThread = null;
+      }
+      finally
+      {
+        if (methodThread != null)
+        {
+          methodThread.abort();
+          methodThread.finishUp();
         }
       }
-      */
 
     } catch (AxisFault af) {
       log.debug(af);
@@ -401,20 +343,20 @@ public class CommonsHTTPSender extends BasicHandler {
     return httpChunkStream;
   }
 
-  private static String getHeader(HttpResponse response, String headerName) {
-    Header header = response.getFirstHeader(headerName);
-    return (header == null) ? null : header.getValue().trim();
+  private static String getHeader(BackgroundHTTPThread methodThread, String headerName)
+    throws IOException, InterruptedException, HttpException {
+    String header = methodThread.getFirstHeader(headerName);
+    return (header == null) ? null : header.trim();
   }
 
-  private static String getResponseBodyAsString(HttpResponse httpResponse)
-    throws IOException {
-    HttpEntity entity = httpResponse.getEntity();
-    if (entity != null)
+  private static String getResponseBodyAsString(BackgroundHTTPThread methodThread)
+    throws IOException, InterruptedException, HttpException {
+    InputStream is = methodThread.getSafeInputStream();
+    if (is != null)
     {
-      InputStream is = entity.getContent();
       try
       {
-        String charSet = EntityUtils.getContentCharSet(entity);
+        String charSet = methodThread.getCharSet();
         if (charSet == null)
           charSet = "utf-8";
         char[] buffer = new char[65536];
@@ -442,154 +384,6 @@ public class CommonsHTTPSender extends BasicHandler {
       }
     }
     return "";
-  }
-  
-  private static class FileBackedInputStream extends InputStream {
-    
-    private InputStream fileInputStream = null;
-    private File file = null;
-    
-    public FileBackedInputStream(InputStream is)
-      throws IOException
-    {
-      File readyToOpenFile = null;
-      // Create a file and read into it
-      File tempFile = File.createTempFile("__shp__",".tmp");
-      try
-      {
-        // Open the output stream
-        OutputStream os = new FileOutputStream(tempFile);
-        try
-        {
-          byte[] buffer = new byte[65536];
-          while (true)
-          {
-            int amt = is.read(buffer);
-            if (amt == -1)
-              break;
-            os.write(buffer,0,amt);
-          }
-        }
-        finally
-        {
-          os.close();
-        }
-        readyToOpenFile = tempFile;
-        tempFile = null;
-      }
-      finally
-      {
-        if (tempFile != null)
-          tempFile.delete();
-      }
-      
-      try
-      {
-        fileInputStream = new FileInputStream(readyToOpenFile);
-        file = readyToOpenFile;
-        readyToOpenFile = null;
-      }
-      finally
-      {
-        if (readyToOpenFile != null)
-          readyToOpenFile.delete();
-      }
-    }
-    
-    @Override
-    public int available()
-      throws IOException
-    {
-      if (fileInputStream != null)
-        return fileInputStream.available();
-      return super.available();
-    }
-    
-    @Override
-    public void close()
-      throws IOException
-    {
-      IOException exception = null;
-      try
-      {
-        if (fileInputStream != null)
-          fileInputStream.close();
-      }
-      catch (IOException e)
-      {
-        exception = e;
-      }
-      fileInputStream = null;
-      if (file != null)
-        file.delete();
-      file = null;
-      if (exception != null)
-        throw exception;
-    }
-    
-    @Override
-    public void mark(int readlimit)
-    {
-      if (fileInputStream != null)
-        fileInputStream.mark(readlimit);
-      else
-        super.mark(readlimit);
-    }
-    
-    @Override
-    public void reset()
-      throws IOException
-    {
-      if (fileInputStream != null)
-        fileInputStream.reset();
-      else
-        super.reset();
-    }
-    
-    @Override
-    public boolean markSupported()
-    {
-      if (fileInputStream != null)
-        return fileInputStream.markSupported();
-      return super.markSupported();
-    }
-    
-    @Override
-    public long skip(long n)
-      throws IOException
-    {
-      if (fileInputStream != null)
-        return fileInputStream.skip(n);
-      return super.skip(n);
-    }
-    
-    @Override
-    public int read(byte[] b, int off, int len)
-      throws IOException
-    {
-      if (fileInputStream != null)
-        return fileInputStream.read(b,off,len);
-      return super.read(b,off,len);
-    }
-
-    @Override
-    public int read(byte[] b)
-      throws IOException
-    {
-      if (fileInputStream != null)
-        return fileInputStream.read(b);
-      return super.read(b);
-    }
-    
-    @Override
-    public int read()
-      throws IOException
-    {
-      if (fileInputStream != null)
-        return fileInputStream.read();
-      return -1;
-    }
-    
   }
   
   private static class MessageRequestEntity implements HttpEntity {
@@ -663,6 +457,450 @@ public class CommonsHTTPSender extends BasicHandler {
     public Header getContentEncoding() {
       return null;
     }
+  }
+
+  /** This input stream wraps a background http transaction thread, so that
+  * the thread is ended when the stream is closed.
+  */
+  private static class BackgroundInputStream extends InputStream {
+    
+    private BackgroundHTTPThread methodThread = null;
+    private InputStream xThreadInputStream = null;
+    
+    /** Construct an http transaction stream.  The stream is driven by a background
+    * thread, whose existence is tied to this class.  The sequence of activity that
+    * this class expects is as follows:
+    * (1) Construct the httpclient and request object and initialize them
+    * (2) Construct a background method thread, and start it
+    * (3) If the response calls for it, call this constructor, and put the resulting stream
+    *    into the message response
+    * (4) Otherwise, terminate the background method thread in the standard manner,
+    *    being sure NOT
+    */
+    public BackgroundInputStream(BackgroundHTTPThread methodThread, InputStream xThreadInputStream)
+    {
+      this.methodThread = methodThread;
+      this.xThreadInputStream = xThreadInputStream;
+    }
+    
+    @Override
+    public int available()
+      throws IOException
+    {
+      if (xThreadInputStream != null)
+        return xThreadInputStream.available();
+      return super.available();
+    }
+    
+    @Override
+    public void close()
+      throws IOException
+    {
+      try
+      {
+        if (xThreadInputStream != null)
+        {
+          xThreadInputStream.close();
+          xThreadInputStream = null;
+        }
+      }
+      finally
+      {
+        if (methodThread != null)
+        {
+          methodThread.abort();
+          try
+          {
+            methodThread.finishUp();
+          }
+          catch (InterruptedException e)
+          {
+            throw new InterruptedIOException(e.getMessage());
+          }
+          methodThread = null;
+        }
+      }
+    }
+    
+    @Override
+    public void mark(int readlimit)
+    {
+      if (xThreadInputStream != null)
+        xThreadInputStream.mark(readlimit);
+      else
+        super.mark(readlimit);
+    }
+    
+    @Override
+    public void reset()
+      throws IOException
+    {
+      if (xThreadInputStream != null)
+        xThreadInputStream.reset();
+      else
+        super.reset();
+    }
+    
+    @Override
+    public boolean markSupported()
+    {
+      if (xThreadInputStream != null)
+        return xThreadInputStream.markSupported();
+      return super.markSupported();
+    }
+    
+    @Override
+    public long skip(long n)
+      throws IOException
+    {
+      if (xThreadInputStream != null)
+        return xThreadInputStream.skip(n);
+      return super.skip(n);
+    }
+    
+    @Override
+    public int read(byte[] b, int off, int len)
+      throws IOException
+    {
+      if (xThreadInputStream != null)
+        return xThreadInputStream.read(b,off,len);
+      return super.read(b,off,len);
+    }
+
+    @Override
+    public int read(byte[] b)
+      throws IOException
+    {
+      if (xThreadInputStream != null)
+        return xThreadInputStream.read(b);
+      return super.read(b);
+    }
+    
+    @Override
+    public int read()
+      throws IOException
+    {
+      if (xThreadInputStream != null)
+        return xThreadInputStream.read();
+      return -1;
+    }
+    
+  }
+
+  /** This thread does the actual socket communication with the server.
+  * It's set up so that it can be abandoned at shutdown time.
+  *
+  * The way it works is as follows:
+  * - it starts the transaction
+  * - it receives the response, and saves that for the calling class to inspect
+  * - it transfers the data part to an input stream provided to the calling class
+  * - it shuts the connection down
+  *
+  * If there is an error, the sequence is aborted, and an exception is recorded
+  * for the calling class to examine.
+  *
+  * The calling class basically accepts the sequence above.  It starts the
+  * thread, and tries to get a response code.  If instead an exception is seen,
+  * the exception is thrown up the stack.
+  */
+  protected static class BackgroundHTTPThread extends Thread
+  {
+    /** Client and method, all preconfigured */
+    protected final HttpClient httpClient;
+    protected final HttpRequestBase executeMethod;
+    
+    protected HttpResponse response = null;
+    protected Throwable responseException = null;
+    protected XThreadInputStream threadStream = null;
+    protected String charSet = null;
+    protected boolean streamCreated = false;
+    protected Throwable streamException = null;
+    protected boolean abortThread = false;
+
+    protected Throwable shutdownException = null;
+
+    protected Throwable generalException = null;
+    
+    public BackgroundHTTPThread(HttpClient httpClient, HttpRequestBase executeMethod)
+    {
+      super();
+      setDaemon(true);
+      this.httpClient = httpClient;
+      this.executeMethod = executeMethod;
+    }
+
+    public void run()
+    {
+      try
+      {
+        try
+        {
+          // Call the execute method appropriately
+          synchronized (this)
+          {
+            if (!abortThread)
+            {
+              try
+              {
+                response = httpClient.execute(executeMethod);
+              }
+              catch (java.net.SocketTimeoutException e)
+              {
+                responseException = e;
+              }
+              catch (ConnectTimeoutException e)
+              {
+                responseException = e;
+              }
+              catch (InterruptedIOException e)
+              {
+                throw e;
+              }
+              catch (Throwable e)
+              {
+                responseException = e;
+              }
+              this.notifyAll();
+            }
+          }
+          
+          // Start the transfer of the content
+          if (responseException == null)
+          {
+            synchronized (this)
+            {
+              if (!abortThread)
+              {
+                try
+                {
+                  HttpEntity entity = response.getEntity();
+                  InputStream bodyStream = entity.getContent();
+                  if (bodyStream != null)
+                  {
+                    threadStream = new XThreadInputStream(bodyStream);
+                    charSet = EntityUtils.getContentCharSet(entity);
+                  }
+                  streamCreated = true;
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                  streamException = e;
+                }
+                catch (ConnectTimeoutException e)
+                {
+                  streamException = e;
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw e;
+                }
+                catch (Throwable e)
+                {
+                  streamException = e;
+                }
+                this.notifyAll();
+              }
+            }
+          }
+          
+          if (responseException == null && streamException == null)
+          {
+            if (threadStream != null)
+            {
+              // Stuff the content until we are done
+              threadStream.stuffQueue();
+            }
+          }
+          
+        }
+        finally
+        {
+          synchronized (this)
+          {
+            try
+            {
+              executeMethod.abort();
+            }
+            catch (Throwable e)
+            {
+              shutdownException = e;
+            }
+            this.notifyAll();
+          }
+        }
+      }
+      catch (Throwable e)
+      {
+        // We catch exceptions here that should ONLY be InterruptedExceptions, as a result of the thread being aborted.
+        this.generalException = e;
+      }
+    }
+
+    public int getResponseCode()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until the response object is there
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+            return response.getStatusLine().getStatusCode();
+          wait();
+        }
+      }
+    }
+
+    public String getResponseStatus()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until the response object is there
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+            return response.getStatusLine().toString();
+          wait();
+        }
+      }
+    }
+
+    public Map<String,List<String>> getResponseHeaders()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait for the response object to appear
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+          {
+            Header[] headers = response.getAllHeaders();
+            Map<String,List<String>> rval = new HashMap<String,List<String>>();
+            int i = 0;
+            while (i < headers.length)
+            {
+              Header h = headers[i++];
+              String name = h.getName();
+              String value = h.getValue();
+              List<String> values = rval.get(name);
+              if (values == null)
+              {
+                values = new ArrayList<String>();
+                rval.put(name,values);
+              }
+              values.add(value);
+            }
+            return rval;
+          }
+          wait();
+        }
+      }
+
+    }
+    
+    public String getFirstHeader(String headerName)
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait for the response object to appear
+      while (true)
+      {
+        synchronized (this)
+        {
+          checkException(responseException);
+          if (response != null)
+          {
+            Header h = response.getFirstHeader(headerName);
+            if (h == null)
+              return null;
+            return h.getValue();
+          }
+          wait();
+        }
+      }
+    }
+
+    public InputStream getSafeInputStream()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until stream is created, or until we note an exception was thrown.
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before getting stream");
+          checkException(streamException);
+          if (streamCreated)
+            return threadStream;
+          wait();
+        }
+      }
+    }
+    
+    public String getCharSet()
+      throws InterruptedException, IOException, HttpException
+    {
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before getting charset");
+          checkException(streamException);
+          if (streamCreated)
+            return charSet;
+          wait();
+        }
+      }
+    }
+    
+    public void abort()
+    {
+      // This will be called during the finally
+      // block in the case where all is well (and
+      // the stream completed) and in the case where
+      // there were exceptions.
+      synchronized (this)
+      {
+        if (streamCreated)
+        {
+          if (threadStream != null)
+            threadStream.abort();
+        }
+        abortThread = true;
+      }
+    }
+    
+    public void finishUp()
+      throws InterruptedException
+    {
+      join();
+    }
+    
+    protected synchronized void checkException(Throwable exception)
+      throws IOException, HttpException
+    {
+      if (exception != null)
+      {
+        Throwable e = exception;
+        if (e instanceof IOException)
+          throw (IOException)e;
+        else if (e instanceof HttpException)
+          throw (HttpException)e;
+        else if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        else if (e instanceof Error)
+          throw (Error)e;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+e.getClass().getName(),e);
+      }
+    }
+
   }
 
 }

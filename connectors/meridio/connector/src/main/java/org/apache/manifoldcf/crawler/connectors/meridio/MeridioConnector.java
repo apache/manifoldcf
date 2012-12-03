@@ -31,9 +31,6 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolFactory;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 
 import java.io.File;
 import java.io.InterruptedIOException;
@@ -83,7 +80,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   // These are the variables needed to establish a connection
   protected URL DmwsURL = null;
   protected URL RmwsURL = null;
-  protected ProtocolFactory myFactory = null;
+  protected javax.net.ssl.SSLSocketFactory mySSLFactory = null;
   protected MeridioWrapper meridio_  = null;  // A handle to the Meridio Java API Wrapper
 
   /** Constructor.
@@ -148,15 +145,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
         // Set up ssl if indicated
         String keystoreData = params.getParameter( "MeridioKeystore" );
-        myFactory = new ProtocolFactory();
 
         if (keystoreData != null)
-        {
-          IKeystoreManager keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-          MeridioSecureSocketFactory secureSocketFactory = new MeridioSecureSocketFactory(keystoreManager.getSecureSocketFactory());
-          Protocol myHttpsProtocol = new Protocol("https", (ProtocolSocketFactory)secureSocketFactory, 443);
-          myFactory.registerProtocol("https",myHttpsProtocol);
-        }
+          mySSLFactory = KeystoreManagerFactory.make("",keystoreData).getSecureSocketFactory();
+        else
+          mySSLFactory = null;
 
         // Put together the url base
         String clientProtocol = params.getParameter("MeridioWebClientProtocol");
@@ -194,9 +187,13 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           params.getParameter("UserName"),
           params.getObfuscatedParameter("Password"),
           InetAddress.getLocalHost().getHostName(),
-          myFactory,
+          mySSLFactory,
           getClass(),
           "meridio-client-config.wsdd");
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Meridio: bad number: "+e.getMessage(),e);
       }
       catch (UnknownHostException unknownHostException)
       {
@@ -440,7 +437,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
       urlVersionBase = null;
       DmwsURL = null;
       RmwsURL = null;
-      myFactory = null;
+      mySSLFactory = null;
       Logging.connectors.debug("Meridio: Exiting 'disconnect' method");
     }
   }
