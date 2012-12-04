@@ -245,7 +245,8 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
           Date expirationDate = c.getExpiryDate();
           if (expirationDate != null)
             map.put(expirationDateField,new Long(expirationDate.getTime()));
-          map.put(discardField,booleanToString(!c.isPersistent()));
+          //map.put(discardField,booleanToString(!c.isPersistent()));
+          map.put(discardField,booleanToString(false));
           String commentURL = c.getCommentURL();
           if (commentURL != null && commentURL.length() > 0)
             map.put(commentURLField,commentURL);

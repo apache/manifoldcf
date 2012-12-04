@@ -72,11 +72,11 @@ import org.apache.http.impl.cookie.BasicPathHandler;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.client.CookieStore;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.cookie.CookieIdentityComparator;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -1495,7 +1495,7 @@ public class ThrottledFetcher
       fetchMethod.setHeader(new BasicHeader("From",from));
         
       // Use a custom cookie store
-      CookieStore cookieStore = new BasicCookieStore();
+      CookieStore cookieStore = new OurBasicCookieStore();
       // If we have any cookies to set, set them.
       if (loginCookies != null)
       {
@@ -1514,6 +1514,8 @@ public class ThrottledFetcher
       // Copy out the current cookies, in case the fetch fails
       lastFetchCookies = loginCookies;
 
+      //httpClient.setCookieStore(cookieStore);
+      
       // Create the thread
       methodThread = new ExecuteMethodThread(this, httpClient, fetchMethod, cookieStore);
       try
@@ -2432,8 +2434,7 @@ public class ThrottledFetcher
               {
                 HttpContext context = new BasicHttpContext();
                 context.setAttribute(ClientContext.COOKIE_STORE,cookieStore);
-
-                response = httpClient.execute(executeMethod, context);
+                response = httpClient.execute(executeMethod,context);
               }
               catch (java.net.SocketTimeoutException e)
               {
@@ -2696,6 +2697,100 @@ public class ThrottledFetcher
         else
           throw new RuntimeException("Unhandled exception of type: "+e.getClass().getName(),e);
       }
+    }
+
+  }
+
+  protected static class OurBasicCookieStore implements CookieStore, Serializable {
+
+    private static final long serialVersionUID = -7581093305228232025L;
+
+    private final TreeSet<Cookie> cookies;
+
+    public OurBasicCookieStore() {
+      super();
+      this.cookies = new TreeSet<Cookie>(new CookieIdentityComparator());
+    }
+
+    /**
+     * Adds an {@link Cookie HTTP cookie}, replacing any existing equivalent cookies.
+     * If the given cookie has already expired it will not be added, but existing
+     * values will still be removed.
+     *
+     * @param cookie the {@link Cookie cookie} to be added
+     *
+     * @see #addCookies(Cookie[])
+     *
+     */
+    public synchronized void addCookie(Cookie cookie) {
+      if (cookie != null) {
+        // first remove any old cookie that is equivalent
+        cookies.remove(cookie);
+        cookies.add(cookie);
+      }
+    }
+
+    /**
+     * Adds an array of {@link Cookie HTTP cookies}. Cookies are added individually and
+     * in the given array order. If any of the given cookies has already expired it will
+     * not be added, but existing values will still be removed.
+     *
+     * @param cookies the {@link Cookie cookies} to be added
+     *
+     * @see #addCookie(Cookie)
+     *
+     */
+    public synchronized void addCookies(Cookie[] cookies) {
+      if (cookies != null) {
+        for (Cookie cooky : cookies) {
+          this.addCookie(cooky);
+        }
+      }
+    }
+
+    /**
+     * Returns an immutable array of {@link Cookie cookies} that this HTTP
+     * state currently contains.
+     *
+     * @return an array of {@link Cookie cookies}.
+     */
+    public synchronized List<Cookie> getCookies() {
+      //create defensive copy so it won't be concurrently modified
+      return new ArrayList<Cookie>(cookies);
+    }
+
+    /**
+     * Removes all of {@link Cookie cookies} in this HTTP state
+     * that have expired by the specified {@link java.util.Date date}.
+     *
+     * @return true if any cookies were purged.
+     *
+     * @see Cookie#isExpired(Date)
+     */
+    public synchronized boolean clearExpired(final Date date) {
+      if (date == null) {
+        return false;
+      }
+      boolean removed = false;
+      for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
+        if (it.next().isExpired(date)) {
+          it.remove();
+            removed = true;
+        }
+      }
+      return removed;
+    }
+
+    /**
+     * Clears all cookies.
+     */
+    public synchronized void clear() {
+      cookies.clear();
+    }
+
+    @Override
+    public synchronized String toString() {
+      return cookies.toString();
     }
 
   }
