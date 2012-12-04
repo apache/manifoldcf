@@ -91,7 +91,6 @@ public class Base
       "log4j.rootLogger=WARN, MAIN\n" +
       "log4j.appender.MAIN=org.apache.log4j.RollingFileAppender\n" +
       "log4j.appender.MAIN.layout=org.apache.log4j.PatternLayout\n" +
-      "log4j.logger.org.apache.http.headers=DEBUG\n"+
       "log4j.appender.MAIN.layout.ConversionPattern=%5p %d{ISO8601} (%t) - %m%n\n"
     );
   }
