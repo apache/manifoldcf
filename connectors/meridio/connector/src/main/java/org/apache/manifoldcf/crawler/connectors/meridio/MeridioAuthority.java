@@ -28,10 +28,6 @@ import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
 
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolFactory;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
-
 import java.rmi.RemoteException;
 import java.util.*;
 import java.io.*;
@@ -56,7 +52,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   private URL RmwsURL = null;
   private URL MetaCartawsURL = null;
 
-  private ProtocolFactory myFactory = null;
+  private javax.net.ssl.SSLSocketFactory mySSLFactory = null;
 
   private String DMWSProxyHost = null;
   private String DMWSProxyPort = null;
@@ -207,15 +203,11 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
       // Set up ssl if indicated
       String keystoreData = params.getParameter( "MeridioKeystore" );
-      myFactory = new ProtocolFactory();
 
       if (keystoreData != null)
-      {
-        IKeystoreManager keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-        MeridioSecureSocketFactory secureSocketFactory = new MeridioSecureSocketFactory(keystoreManager.getSecureSocketFactory());
-        Protocol myHttpsProtocol = new Protocol("https", (ProtocolSocketFactory)secureSocketFactory, 443);
-        myFactory.registerProtocol("https",myHttpsProtocol);
-      }
+        mySSLFactory = KeystoreManagerFactory.make("",keystoreData).getSecureSocketFactory();
+      else
+        mySSLFactory = null;
 
       try
       {
@@ -247,9 +239,13 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           DMWSProxyHost, DMWSProxyPort, RMWSProxyHost, RMWSProxyPort, MetaCartaWSProxyHost, MetaCartaWSProxyPort,
           UserName, Password,
           InetAddress.getLocalHost().getHostName(),
-          myFactory,
+          mySSLFactory,
           getClass(),
           "meridio-client-config.wsdd");
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Meridio: bad number: "+e.getMessage(),e);
       }
       catch (UnknownHostException unknownHostException)
       {
@@ -450,7 +446,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       DmwsURL = null;
       RmwsURL = null;
       MetaCartawsURL = null;
-      myFactory = null;
+      mySSLFactory = null;
       DMWSProxyHost = null;
       DMWSProxyPort = null;
       RMWSProxyHost = null;

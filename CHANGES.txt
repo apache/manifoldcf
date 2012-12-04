@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-120: Port ManifoldCF to httpcomponents 4.2.2, from legacy
+commons-httpclient 3.1 (mcf edition).
+(Karl Wright)
+
 CONNECTORS-574: Add more Web connector session login stages, and
 a session login test.
 (Karl Wright)
