@@ -186,6 +186,17 @@
         <available file="build-stub/src/main/java" property="hasStubs"/>
     </target>
 
+    <target name="has-proprietary-materials-check">
+    </target>
+    
+    <target name="build-stubs-check" depends="has-stubs-check,has-proprietary-materials-check" if="hasStubs">
+        <condition property="buildStubs">
+            <not>
+                <isset property="proprietaryMaterialsAvailable"/>
+            </not>
+        </condition>
+    </target>
+
     <target name="include-README-lib-proprietary-check" depends="precompile-check" if="canBuild">
         <available file="proprietary-library-instructions.txt" property="includeREADMELibProprietary"/>
     </target>
@@ -194,7 +205,7 @@
         <available file="proprietary-library-instructions.txt" property="includeProprietaryInstructionsLibProprietary"/>
     </target>
 
-    <target name="compile-stubs" depends="has-stubs-check" if="hasStubs">
+    <target name="compile-stubs" depends="build-stubs-check" if="buildStubs">
         <mkdir dir="build/stubclasses"/>
         <javac srcdir="build-stub/src/main/java" destdir="build/stubclasses" target="1.6" source="1.6" debug="true" debuglevel="lines,vars,source">
             <classpath>
