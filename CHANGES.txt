@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-577: Typo in language message properties which cause stack
+traces
+(Erlend Garåsen) 
+
 CONNECTORS-120: Port ManifoldCF to httpcomponents 4.2.2, from legacy
 commons-httpclient 3.1 (mcf edition).
 (Karl Wright)
