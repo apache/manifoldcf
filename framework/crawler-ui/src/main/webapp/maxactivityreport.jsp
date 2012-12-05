@@ -59,7 +59,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 		}
 		if (!isRegularExpression(report.reportbucketdesc.value))
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeABalidRegularExpression")%>");
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
 			report.reportbucketdesc.focus();
 			return;
 		}
