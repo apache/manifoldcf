@@ -128,9 +128,13 @@
         <section>
           <title>Building and running the Documentum connector</title>
           <p></p>
-          <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.  After building, you must install DFC on the build system, and locate the jars it installs.  Copy
-              these jars to the directory <em>documentum-server-process/lib-proprietary</em>.</p>
-          <p>For a binary distribution, copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
+          <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.
+              The stubs mimic the class structure of DFC 6.0.  If your DFC is newer, it is possible that the class structure of the DFC
+              classes might have changed, and you may need to build the connector yourself.</p>
+          <p>If you need to supply DFC classes during build time, copy the DFC and dependent jars to the source directory
+              <em>connectors/documentum/lib-proprietary</em>, and build using "ant build".  The jars will be copied  into
+              the right place in your <em>dist</em> directory automatically.</p>
+          <p>For a binary distribution, just copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
           <p>If you have done everything right, you should be able to start the Documentum connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
@@ -138,9 +142,13 @@
         <section>
           <title>Building and running the FileNet connector</title>
           <p></p>
-          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is built against a set of stub classes.  After building, install the FileNet P8 API on your system,
-              and copy "Jace.jar" and the other dependent jars from that installation into <em>filenet-server-process/lib-proprietary</em>.</p>
-          <p>If you have downloaded a binary distribution, place the jar in <em>filenet-server-process/lib-proprietary</em>.</p>
+          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is usually built against a set of stub classes.
+              The stubs mimic the class structure of FileNet P8 API 4.5.  If your FileNet is newer, it is possible that the class structure of the
+              API might have changed, and you may need to build the connector yourself.</p>
+          <p>If you need to supply your own Jace.jar at build time, copy it to the source directory <em>connectors/filenet/lib-proprietary</em>,
+              and build using "ant build".  The Jace.jar will be copied into the right place in your <em>dist</em> directory automatically.</p>
+          <p>If you do not wish to build, simply copy your Jace.jar and the other dependent jars from that installation into the distribution directory
+              <em>filenet-server-process/lib-proprietary</em>.</p>
           <p>If correctly done, you will be able to start the FileNet connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
@@ -166,9 +174,13 @@
         <section>
           <title>Building and running the LiveLink connector</title>
           <p></p>
-          <p>This connector needs OpenText's LAPI package in order to be run, but is built against a set of stubs.  After building, copy the lapi.jar into the <em>connector-lib-proprietary</em>
-              directory, and uncomment the LiveLink-related connector lines in <em>connectors.xml</em>.</p>
-          <p>If you have downloaded a binary distribution, place the jar in <em>connector-lib-proprietary</em>, and modify the <em>connectors.xml</em> file.</p>
+          <p>This connector needs OpenText's LAPI package in order to be run.  It is usually built against a set of stubs. The stubs, however, mimic the
+              class structure of LAPI 9.7.1.  Later versions (such as 10.x) have a different class structure.  Therefore, you may need to rebuild ManifoldCF
+              against your lapi.jar, in order for the connector to work properly.</p>
+          <p>If you need to supply your own lapi.jar at build time, copy it to the source directory <em>connectors/livelink/lib-proprietary</em>, and build using "ant build".
+              The lapi.jar will be copied into the right place in your <em>dist</em> directory automatically.</p>
+          <p>If you do not wish to build, simply copy your lapi.jar into the binary distribution's <em>connector-lib-proprietary</em>
+              directory, and uncomment the LiveLink-related connector lines in <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
         
@@ -488,7 +500,7 @@ cd example
             <li>At this point, you should be able to interact with the ManifoldCF UI, which can be accessed via the mcf-crawler-ui web application</li>
           </ul>
           <p></p>
-          <p>The detailed list of commands is presented below:</p>
+          <p>The detailed list of commands is presented below.</p>
           <p></p>
           <section>
             <title>Commands</title>
