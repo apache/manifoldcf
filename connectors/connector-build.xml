@@ -103,11 +103,11 @@
 
     <path id="mcf-connector-build.implementation-classpath">
         <pathelement location="build/interface/classes"/>
+        <pathelement location="build/stubclasses"/>
     </path>
 
     <path id="implementation-classpath">
         <path refid="mcf-connector-build.implementation-classpath"/>
-        <pathelement location="build/stubclasses"/>
     </path>
 
     <path id="mcf-connector-build.interface-classpath">

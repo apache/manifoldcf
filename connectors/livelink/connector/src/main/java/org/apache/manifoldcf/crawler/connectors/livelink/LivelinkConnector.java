@@ -895,7 +895,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
     String pathAttributeName = null;
     String pathSeparator = null;
-    HashMap holder = new HashMap();
+    Set<String> holder = new HashSet<String>();
     MatchMap matchMap = new MatchMap();
     boolean includeAllMetadata = false;
     int i = 0;
@@ -925,14 +925,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             {
               attributeName = attrs[j++];
               String metadataName = packCategoryAttribute(category,attributeName);
-              holder.put(metadataName,metadataName);
+              holder.add(metadataName);
             }
           }
         }
         else
         {
           String metadataName = packCategoryAttribute(category,attributeName);
-          holder.put(metadataName,metadataName);
+          holder.add(metadataName);
         }
       }
       else if (n.getType().equals("pathnameattribute"))
@@ -962,10 +962,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       // Put into an array
       String[] sortArray = new String[holder.size()];
       i = 0;
-      Iterator iter = holder.keySet().iterator();
-      while (iter.hasNext())
+      for (String attrName : holder)
       {
-        sortArray[i++] = (String)iter.next();
+        sortArray[i++] = attrName;
       }
 
       // Sort!
