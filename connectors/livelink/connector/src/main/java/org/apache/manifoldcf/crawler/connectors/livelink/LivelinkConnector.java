@@ -4704,6 +4704,80 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
+  /** This object represents a cache of version information.
+  * Initialize it with the volume ID and object ID and revision number (usually zero).
+  * Then, request the desired fields from it.
+  */
+  protected class VersionInformation
+  {
+    protected final int volumeID;
+    protected final int objectID;
+    protected final int revisionNumber;
+    
+    protected LLValue versionValue = null;
+    
+    public VersionInformation(int volumeID, int objectID, int revisionNumber)
+    {
+      this.volumeID = volumeID;
+      this.objectID = objectID;
+      this.revisionNumber = revisionNumber;
+    }
+    
+    public boolean exists()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      return getVersionValue() != null;
+    }
+    
+    // MHL
+    
+    protected LLValue getVersionValue()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      if (versionValue == null)
+      {
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          GetVersionInfoThread t = new GetVersionInfoThread(volumeID,objectID,revisionNumber);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ServiceInterruption)
+                throw (ServiceInterruption)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+            versionValue = t.getResponse();
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      return versionValue;
+    }
+    
+  }
+  
   /** This object represents an object information cache.
   * Initialize it with the volume ID and object ID, and then request
   * the appropriate fields from it.  Keep it around as long as needed; it functions as a cache
@@ -5046,6 +5120,73 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return objectValue;
     }
     
+  }
+
+  /** Thread we can abandon that gets version information for a volume and an id and a revision.
+  */
+  protected class GetVersionInfoThread extends Thread
+  {
+    protected int vol;
+    protected int id;
+    protected int revNumber;
+    protected Throwable exception = null;
+    protected LLValue rval = null;
+
+    public GetVersionInfoThread(int vol, int id, int revNumber)
+    {
+      super();
+      setDaemon(true);
+      this.vol = vol;
+      this.id = id;
+      this.revNumber = revNumber;
+    }
+
+    public void run()
+    {
+      try
+      {
+        LLValue versioninfo = new LLValue().setAssocNotSet();
+        int status = LLDocs.GetVersionInfo(vol,id,revNumber,versioninfo);
+
+        // Need to detect if object was deleted, and return null in this case!!!
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Livelink: Version status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status));
+        }
+
+        // Treat both 103101 and 103102 as 'object not found'.
+        if (status == 103101 || status == 103102)
+          return;
+
+        // This error means we don't have permission to get the object's status, apparently
+        if (status < 0)
+        {
+          Logging.connectors.debug("Livelink: Version info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+
+            " ("+llServer.getErrors()+")");
+          return;
+        }
+
+        if (status != 0)
+        {
+          throw new ManifoldCFException("Error retrieving document version "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+        }
+        rval = versioninfo;
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+    public LLValue getResponse()
+    {
+      return rval;
+    }
   }
 
   /** Thread we can abandon that gets object information for a volume and an id.
