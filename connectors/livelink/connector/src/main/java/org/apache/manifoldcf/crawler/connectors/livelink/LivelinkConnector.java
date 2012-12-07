@@ -106,6 +106,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   // allowed; they must be mapped to the appropriate volume object before
   // being returned to the crawler.
 
+  // Metadata names for general metadata fields
+  protected final static String GENERAL_NAME_FIELD = "general_name";
+  protected final static String GENERAL_DESCRIPTION_FIELD = "general_description";
+  protected final static String GENERAL_CREATIONDATE_FIELD = "general_creationdate";
+  protected final static String GENERAL_MODIFYDATE_FIELD = "general_modifydate";
+  protected final static String GENERAL_OWNER = "general_owner";
+  protected final static String GENERAL_CREATOR = "general_creator";
+  protected final static String GENERAL_MODIFIER = "general_modifier";
+
   // Signal that we have set up a connection properly
   private boolean hasBeenSetup = false;
 
@@ -662,29 +671,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(1)+"&objAction=download";
     else
       return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(colonPosition+1)+"&objAction=download";
-  }
-
-  /** Convert a document identifier to an object ID.  MUST be a simple document, not a folder or project.
-  *@param documentIdentifier is the document identifier.
-  *@return the object id, or -1 if documentIdentifier does not describe a document.
-  */
-  protected static int convertToObjectID(String documentIdentifier)
-    throws ManifoldCFException
-  {
-    if (!documentIdentifier.startsWith("D"))
-      return -1;
-    int colonPosition = documentIdentifier.indexOf(":",1);
-    try
-    {
-      if (colonPosition == -1)
-        return Integer.parseInt(documentIdentifier.substring(1));
-      else
-        return Integer.parseInt(documentIdentifier.substring(colonPosition+1));
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
-    }
   }
 
   /** Request arbitrary connector information.
@@ -1364,13 +1350,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
-          if (checkIngest(objID,spec))
+          if (checkIngest(llc,objID,spec))
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
 
             // Grab the access tokens for this file from the version string, inside ingest method.
-            ingestFromLiveLink(documentIdentifiers[i],versions[i],activities,desc,sDesc);
+            ingestFromLiveLink(llc,documentIdentifiers[i],versions[i],activities,desc,sDesc);
           }
           else
           {
@@ -3693,7 +3679,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * @param documentIdentifier is the document identifier (as far as the crawler knows).
   * @param activities is the process activity structure, so we can ingest
   */
-  protected void ingestFromLiveLink(String documentIdentifier, String version,
+  protected void ingestFromLiveLink(LivelinkContext llc,
+    String documentIdentifier, String version,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
     throws ManifoldCFException, ServiceInterruption
@@ -3719,9 +3706,52 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     RepositoryDocument rd = new RepositoryDocument();
 
+    int colonPos = documentIdentifier.indexOf(":",1);
+    
+    int objID;
+    int vol;
+
+    if (colonPos == -1)
+    {
+      objID = new Integer(documentIdentifier.substring(1)).intValue();
+      vol = LLENTWK_VOL;
+    }
+    else
+    {
+      objID = new Integer(documentIdentifier.substring(colonPos+1)).intValue();
+      vol = new Integer(documentIdentifier.substring(1,colonPos)).intValue();
+    }
+
+    // Add general metadata
+    ObjectInformation objInfo = llc.getObjectInformation(vol,objID);
+    VersionInformation versInfo = llc.getVersionInformation(vol,objID,0);
+    if (!objInfo.exists())
+    {
+      Logging.connectors.debug("Livelink: No object "+contextMsg+": not ingesting");
+      return;
+    }
+    if (!versInfo.exists())
+    {
+      Logging.connectors.debug("Livelink: No version data "+contextMsg+": not ingesting");
+      return;
+    }
+    
+    rd.addField(GENERAL_NAME_FIELD,objInfo.getName());
+    rd.addField(GENERAL_DESCRIPTION_FIELD,objInfo.getComments());
+    rd.addField(GENERAL_CREATIONDATE_FIELD,objInfo.getCreationDate().toString());
+    rd.addField(GENERAL_MODIFYDATE_FIELD,versInfo.getModifyDate().toString());
+    UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
+    UserInformation creator = llc.getUserInformation(objInfo.getCreatorId().intValue());
+    UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId().intValue());
+    if (owner != null)
+      rd.addField(GENERAL_OWNER,owner.getName());
+    if (creator != null)
+      rd.addField(GENERAL_CREATOR,creator.getName());
+    if (modifier != null)
+      rd.addField(GENERAL_MODIFIER,modifier.getName());
+
     // Iterate over the metadata items.  These are organized by category
     // for speed of lookup.
-    int objID = convertToObjectID(documentIdentifier);
 
     // Unpack version string
     int startPos = 0;
@@ -5957,7 +5987,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param objID is the file ID.
   *@param documentSpecification is the specification.
   */
-  protected boolean checkIngest(int objID, DocumentSpecification documentSpecification)
+  protected boolean checkIngest(LivelinkContext llc, int objID, DocumentSpecification documentSpecification)
     throws ManifoldCFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
