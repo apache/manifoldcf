@@ -5,14 +5,14 @@ $Id$
 
 CONNECTORS-579: Add untrusted, unverified https support to the RSS
 connector.
-(David Morano, Karl Wright)
+(David Morana, Karl Wright)
 
 CONNECTORS-575: Modify Livelink connector build to use stub only when
 there is no lapi.jar available.  This is to support the fact that lapi jars are
 not compatible from release to release, class-wise, so clients will need to
 build this connector against the jar that they have, instead of the jar that
 we have.
-(David Morano, Karl Wright)
+(David Morana, Karl Wright)
 
 CONNECTORS-577: Typo in language message properties which cause stack
 traces
