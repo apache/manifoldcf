@@ -1017,14 +1017,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       rval[i] = null;
-      LLValue value = getObjectInfo(vol,objID);
-      if (value != null)
+      ObjectInformation value = new ObjectInformation(vol,objID);
+      if (value.exists())
       {
         // Make sure we have permission to see the object's contents
-        int permissions = value.toInteger("Permissions");
+        int permissions = value.getPermissions().intValue();
         if ((permissions & LAPI_DOCUMENTS.PERM_SEECONTENTS) != 0)
         {
-          Date dt = value.toDate("ModifyDate");
+          Date dt = value.getModifyDate();
           // The rights don't change when the object changes, so we have to include those too.
           int[] rights = getObjectRights(vol,objID);
           if (rights != null)
@@ -1077,7 +1077,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               // things that are
               // the equivalent of acls.
 
-              actualAcls = lookupTokens(rights, vol, objID);
+              actualAcls = lookupTokens(rights, value);
               java.util.Arrays.sort(actualAcls);
               // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
               // to be really really really sure.
@@ -4729,8 +4729,29 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return getVersionValue() != null;
     }
     
-    // MHL
-    
+    /** Get modify date.
+    */
+    public Date getModifyDate()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return elem.toDate("MODIFYDATE"); 
+    }
+
+    /** Get modifier.
+    */
+    public Integer getOwnerId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("OWNER")); 
+    }
+
+    /** Get version LLValue */
     protected LLValue getVersionValue()
       throws ServiceInterruption, ManifoldCFException
     {
@@ -5018,6 +5039,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return obj;
     }
 
+    /** Get permissions.
+    */
+    public Integer getPermissions()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(objectValue.toInteger("Permissions"));
+    }
+    
     /** Get OpenText document name.
     */
     public String getName()
@@ -5042,13 +5074,24 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     /** Get owner ID.
     */
-    public int getOwnerId()
+    public Integer getOwnerId()
       throws ServiceInterruption, ManifoldCFException
     {
       LLValue elem = getObjectValue();
       if (elem == null)
-        return -1;
-      return elem.toInteger("USERID"); 
+        return null;
+      return new Integer(elem.toInteger("UserId")); 
+    }
+
+    /** Get group ID.
+    */
+    public Integer getGroupId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("GroupId")); 
     }
     
     /** Get creation date.
@@ -5064,13 +5107,24 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     
     /** Get creator ID.
     */
-    public int getCreatorId()
+    public Integer getCreatorId()
       throws ServiceInterruption, ManifoldCFException
     {
       LLValue elem = getObjectValue();
       if (elem == null)
-        return -1;
-      return elem.toInteger("CREATEDBY"); 
+        return null;
+      return new Integer(elem.toInteger("CREATEDBY")); 
+    }
+
+    /* Get modify date.
+    */
+    public Date getModifyDate()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toDate("ModifyDate"); 
     }
 
     /** Get the objInfo object.
@@ -5268,9 +5322,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Build a set of actual acls given a set of rights */
-  protected String[] lookupTokens(int[] rights, int vol, int objID)
+  protected String[] lookupTokens(int[] rights, ObjectInformation objInfo)
     throws ManifoldCFException, ServiceInterruption
   {
+    if (!objInfo.exists())
+      return null;
+    
     String[] convertedAcls = new String[rights.length];
 
     LLValue infoObject = null;
@@ -5285,29 +5342,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
       case LAPI_DOCUMENTS.RIGHT_OWNER:
         // Look up user for current document (UserID attribute)
-        if (infoObject == null)
-        {
-          infoObject = getObjectInfo(vol, objID);
-          if (infoObject == null)
-          {
-            tokenValue = null;
-            break;
-          }
-        }
-        tokenValue = Integer.toString(infoObject.toInteger("UserID"));
+        tokenValue = objInfo.getOwnerId().toString();
         break;
       case LAPI_DOCUMENTS.RIGHT_GROUP:
-        // Look up group for current document (GroupID attribute)
-        if (infoObject == null)
-        {
-          infoObject = getObjectInfo(vol, objID);
-          if (infoObject == null)
-          {
-            tokenValue = null;
-            break;
-          }
-        }
-        tokenValue = Integer.toString(infoObject.toInteger("GroupID"));
+        tokenValue = objInfo.getGroupId().toString();
         break;
       case LAPI_DOCUMENTS.RIGHT_WORLD:
         // Add "Guest" token
