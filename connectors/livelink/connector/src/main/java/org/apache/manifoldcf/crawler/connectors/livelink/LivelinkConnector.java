@@ -4825,7 +4825,50 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       return getObjectValue() != null;
     }
-    
+
+    /** Get the complete path for the current object.
+    */
+    public String getObjectPath()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      ObjectInformation currentObject = this;
+      String path = null;
+      while (true)
+      {
+        if (currentObject.objectID == LLCATWK_ID)
+          return CATEGORY_NAME + ":" + path;
+        else if (currentObject.objectID == LLENTWK_ID)
+          return ENTWKSPACE_NAME + ":" + path;
+
+        LLValue x = currentObject.getObjectValue();
+        if (x == null)
+        {
+          // The document identifier describes a path that does not exist.
+          // This is unexpected, but an exception would terminate the job, and we don't want that.
+          Logging.connectors.warn("Livelink: Bad identifier found? "+Integer.toString(currentObject.objectID)+" apparently does not exist, but need to look up its path");
+          return null;
+        }
+
+        // Get the name attribute
+        String name = x.toString("Name");
+        if (path == null)
+          path = name;
+        else
+          path = name + "/" + path;
+
+        // Get the parentID attribute
+        int parentID = x.toInteger("ParentID");
+        if (parentID == -1)
+        {
+          // Oops, hit the top of the path without finding the workspace we're in.
+          // No idea where it lives; note this condition and exit.
+          Logging.connectors.warn("Livelink: Object ID "+Integer.toString(currentObject.objectID)+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
+          return null;
+        }
+        currentObject = new ObjectInformation(0,parentID);
+      }
+    }
+
     /**
     * Returns the object ID specified by the path name.
     * @param startPath is the folder name (a string with dots as separators)
@@ -5373,50 +5416,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       j++;
     }
     return actualAcls;
-  }
-
-  /** Get an object's standard path, given its ID.
-  */
-  protected String getObjectPath(int id)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    int objectId = id;
-    String path = null;
-    while (true)
-    {
-      // Load the object. I'm told I can use zero for a volume ID safely.
-      LLValue x = getObjectInfo(0,objectId);
-      if (x == null)
-      {
-        // The document identifier describes a path that does not exist.
-        // This is unexpected, but an exception would terminate the job, and we don't want that.
-        Logging.connectors.warn("Livelink: Bad identifier found? "+Integer.toString(id)+" apparently does not exist, but need to look up its path");
-        return null;
-      }
-
-      if (objectId == LLCATWK_ID)
-        return CATEGORY_NAME + ":" + path;
-      else if (objectId == LLENTWK_ID)
-        return ENTWKSPACE_NAME + ":" + path;
-
-      // Get the name attribute
-      String name = x.toString("Name");
-      if (path == null)
-        path = name;
-      else
-        path = name + "/" + path;
-
-      // Get the parentID attribute
-      int parentID = x.toInteger("ParentID");
-      if (parentID == -1)
-      {
-        // Oops, hit the top of the path without finding the workspace we're in.
-        // No idea where it lives; note this condition and exit.
-        Logging.connectors.warn("Livelink: Object ID "+Integer.toString(id)+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
-        return null;
-      }
-      objectId = parentID;
-    }
   }
 
   protected class GetObjectCategoryIDsThread extends Thread
@@ -6188,7 +6187,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected String findPath(int catID)
       throws ManifoldCFException, ServiceInterruption
     {
-      return getObjectPath(catID);
+      return new ObjectInformation(0,catID).getObjectPath();
     }
 
     /** Find a set of attributes given a category ID */
