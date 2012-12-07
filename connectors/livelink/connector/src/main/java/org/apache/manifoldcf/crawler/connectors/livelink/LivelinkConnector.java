@@ -4943,8 +4943,65 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       return obj;
     }
-  
-    public LLValue getObjectValue()
+
+    /** Get OpenText document name.
+    */
+    public String getName()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toString("NAME"); 
+    }
+
+    /** Get OpenText comments/description.
+    */
+    public String getComments()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toString("COMMENT"); 
+    }
+
+    /** Get owner ID.
+    */
+    public int getOwnerId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return -1;
+      return elem.toInteger("USERID"); 
+    }
+    
+    /** Get creation date.
+    */
+    public Date getCreationDate()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toDate("CREATEDATE"); 
+    }
+    
+    /** Get creator ID.
+    */
+    public int getCreatorId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return -1;
+      return elem.toInteger("CREATEDBY"); 
+    }
+
+    /** Get the objInfo object.
+    */
+    protected LLValue getObjectValue()
       throws ServiceInterruption, ManifoldCFException
     {
       if (objectValue == null)
