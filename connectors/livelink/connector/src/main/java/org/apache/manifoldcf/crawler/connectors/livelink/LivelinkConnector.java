@@ -112,6 +112,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   // Data required for maintaining livelink connection
   private LAPI_DOCUMENTS LLDocs = null;
   private LAPI_ATTRIBUTES LLAttributes = null;
+  private LAPI_USERS LLUsers = null;
+  
   private LLSERVER llServer = null;
   private int LLENTWK_VOL;
   private int LLENTWK_ID;
@@ -214,6 +216,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         LLDocs = new LAPI_DOCUMENTS(llServer.getLLSession());
         LLAttributes = new LAPI_ATTRIBUTES(llServer.getLLSession());
+        LLUsers = new LAPI_USERS(llServer.getLLSession());
+        
         if (Logging.connectors.isDebugEnabled())
         {
           String passwordExists = (serverPassword!=null&&serverPassword.length()>0)?"password exists":"";
@@ -4704,6 +4708,155 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
+  /** Local cache for various kinds of objects that may be useful more than once.
+  */
+  protected class LivelinkContext
+  {
+    /** Cache of ObjectInformation objects. */
+    protected Map<ObjectInformation,ObjectInformation> objectInfoMap = new HashMap<ObjectInformation,ObjectInformation>();
+    /** Cache of VersionInformation objects. */
+    protected Map<VersionInformation,VersionInformation> versionInfoMap = new HashMap<VersionInformation,VersionInformation>();
+    /** Cache of UserInformation objects */
+    protected Map<UserInformation,UserInformation> userInfoMap = new HashMap<UserInformation,UserInformation>();
+    
+    public LivelinkContext()
+    {
+    }
+    
+    public ObjectInformation getObjectInformation(int volumeID, int objectID)
+    {
+      ObjectInformation oi = new ObjectInformation(volumeID,objectID);
+      ObjectInformation lookupValue = objectInfoMap.get(oi);
+      if (lookupValue == null)
+      {
+        objectInfoMap.put(oi,oi);
+        return oi;
+      }
+      return lookupValue;
+    }
+    
+    public VersionInformation getVersionInformation(int volumeID, int objectID, int revisionNumber)
+    {
+      VersionInformation vi = new VersionInformation(volumeID,objectID,revisionNumber);
+      VersionInformation lookupValue = versionInfoMap.get(vi);
+      if (lookupValue == null)
+      {
+        versionInfoMap.put(vi,vi);
+        return vi;
+      }
+      return lookupValue;
+    }
+    
+    public UserInformation getUserInformation(int userID)
+    {
+      UserInformation ui = new UserInformation(userID);
+      UserInformation lookupValue = userInfoMap.get(ui);
+      if (lookupValue == null)
+      {
+        userInfoMap.put(ui,ui);
+        return ui;
+      }
+      return lookupValue;
+    }
+  }
+
+  /** This object represents a cache of user information.
+  * Initialize it with the user ID.  Then, request desired fields from it.
+  */
+  protected class UserInformation
+  {
+    protected final int userID;
+    
+    protected LLValue userValue = null;
+    
+    public UserInformation(int userID)
+    {
+      this.userID = userID;
+    }
+    
+    public boolean exists()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      return getUserValue() != null;
+    }
+    
+    public String getName()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue userValue = getUserValue();
+      if (userValue == null)
+        return null;
+      return userValue.toString("NAME");
+    }
+      
+    protected LLValue getUserValue()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      if (userValue == null)
+      {
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          GetUserInfoThread t = new GetUserInfoThread(userID);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ServiceInterruption)
+                throw (ServiceInterruption)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+            userValue = t.getResponse();
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      return userValue;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "("+userID+")";
+    }
+    
+    @Override
+    public int hashCode()
+    {
+      return (userID << 5) ^ (userID >> 3);
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof UserInformation))
+        return false;
+      UserInformation other = (UserInformation)o;
+      return userID == other.userID;
+    }
+
+  }
+  
   /** This object represents a cache of version information.
   * Initialize it with the volume ID and object ID and revision number (usually zero).
   * Then, request the desired fields from it.
@@ -4797,6 +4950,21 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return versionValue;
     }
     
+    @Override
+    public int hashCode()
+    {
+      return (volumeID << 5) ^ (volumeID >> 3) ^ (objectID << 5) ^ (objectID >> 3) ^ (revisionNumber << 5) ^ (revisionNumber >> 3);
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof VersionInformation))
+        return false;
+      VersionInformation other = (VersionInformation)o;
+      return volumeID == other.volumeID && objectID == other.objectID && revisionNumber == other.revisionNumber;
+    }
+
   }
   
   /** This object represents an object information cache.
@@ -5207,8 +5375,23 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return objectValue;
     }
     
+    @Override
+    public int hashCode()
+    {
+      return (volumeID << 5) ^ (volumeID >> 3) ^ (objectID << 5) ^ (objectID >> 3);
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof ObjectInformation))
+        return false;
+      ObjectInformation other = (ObjectInformation)o;
+      return volumeID == other.volumeID && objectID == other.objectID;
+    }
   }
 
+  
   /** Get the complete path for an object.
   */
   protected String getObjectPath(ObjectInformation currentObject)
@@ -5250,13 +5433,76 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
+  /** Thread we can abandon that gets user information for a userID.
+  */
+  protected class GetUserInfoThread extends Thread
+  {
+    protected final int user;
+    protected Throwable exception = null;
+    protected LLValue rval = null;
+
+    public GetUserInfoThread(int user)
+    {
+      super();
+      setDaemon(true);
+      this.user = user;
+    }
+
+    public void run()
+    {
+      try
+      {
+        LLValue userinfo = new LLValue().setAssoc();
+        int status = LLUsers.GetUserByID(user,userinfo);
+
+        // Need to detect if object was deleted, and return null in this case!!!
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Livelink: User status retrieved for "+Integer.toString(user)+": status="+Integer.toString(status));
+        }
+
+        // Treat both 103101 and 103102 as 'object not found'.
+        if (status == 103101 || status == 103102)
+          return;
+
+        // This error means we don't have permission to get the object's status, apparently
+        if (status < 0)
+        {
+          Logging.connectors.debug("Livelink: User info inaccessable for user "+Integer.toString(user)+
+            " ("+llServer.getErrors()+")");
+          return;
+        }
+
+        if (status != 0)
+        {
+          throw new ManifoldCFException("Error retrieving user "+Integer.toString(user)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+        }
+        rval = userinfo;
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+    public LLValue getResponse()
+    {
+      return rval;
+    }
+  }
+
   /** Thread we can abandon that gets version information for a volume and an id and a revision.
   */
   protected class GetVersionInfoThread extends Thread
   {
-    protected int vol;
-    protected int id;
-    protected int revNumber;
+    protected final int vol;
+    protected final int id;
+    protected final int revNumber;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -5438,8 +5684,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   protected class GetObjectCategoryIDsThread extends Thread
   {
-    protected int vol;
-    protected int id;
+    protected final int vol;
+    protected final int id;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
