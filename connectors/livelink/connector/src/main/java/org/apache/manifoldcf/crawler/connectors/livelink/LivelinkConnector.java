@@ -5115,6 +5115,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return elem.toString("COMMENT"); 
     }
 
+    /** Get parent ID.
+    */
+    public Integer getParentId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("ParentId")); 
+    }
+
     /** Get owner ID.
     */
     public Integer getOwnerId()
@@ -5349,19 +5360,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       return rval;
     }
-  }
-
-  /**
-  * Returns an Assoc value object containing information
-  * about the specified object.
-  * @param vol is the volume id (which comes from the project)
-  * @param id the object ID
-  * @return LLValue the LAPI value object, or null if object has been deleted (or doesn't exist)
-  */
-  protected LLValue getObjectInfo(int vol, int id)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    return new ObjectInformation(vol,id).getObjectValue();
   }
 
   /** Build a set of actual acls given a set of rights */
@@ -6006,9 +6004,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
         }
 
-        // Load the object
-        LLValue x = getObjectInfo(volumeID,objectID);
-        if (x == null)
+        ObjectInformation objInfo = new ObjectInformation(volumeID,objectID);
+        if (!objInfo.exists())
         {
           // The document identifier describes a path that does not exist.
           // This is unexpected, but don't die: just log a warning and allow the higher level to deal with it.
@@ -6017,9 +6014,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
 
         // Get the name attribute
-        String name = x.toString("Name");
+        String name = objInfo.getName();
         // Get the parentID attribute
-        int parentID = x.toInteger("ParentID");
+        int parentID = objInfo.getParentId().intValue();
         if (parentID == -1)
           path = name;
         else
