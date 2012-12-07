@@ -815,9 +815,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-
+    LivelinkContext llc = new LivelinkContext();
+    
     // First, grab the root LLValue
-    ObjectInformation rootValue = new ObjectInformation(LLENTWK_VOL,LLENTWK_ID);
+    ObjectInformation rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
     if (!rootValue.exists())
     {
       // If we get here, it HAS to be a bad network/transient problem.
@@ -884,6 +885,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     getSession();
 
+    // Initialize a "livelink context", to minimize the number of objects we have to fetch
+    LivelinkContext llc = new LivelinkContext();
+    
     // First, process the spec to get the string we tack on
 
     // Read the forced acls.  A null return indicates that security is disabled!!!
@@ -921,7 +925,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // Locate all metadata items for the specified category path,
           // and enter them into the array
-          String[] attrs = getCategoryAttributes(category);
+          String[] attrs = getCategoryAttributes(llc,category);
           if (attrs != null)
           {
             int j = 0;
@@ -977,7 +981,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       packList(metadataString,sortArray,'+');
     }
     else
-      catAccum = new CategoryPathAccumulator();
+      catAccum = new CategoryPathAccumulator(llc);
 
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
@@ -1021,7 +1025,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       rval[i] = null;
-      ObjectInformation value = new ObjectInformation(vol,objID);
+      ObjectInformation value = llc.getObjectInformation(vol,objID);
       if (value.exists())
       {
         // Make sure we have permission to see the object's contents
@@ -1216,12 +1220,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     getSession();
 
+    // Initialize livelink context
+    LivelinkContext llc = new LivelinkContext();
+    
     // First, initialize the table of catid's.
     // Keeping this around will allow us to benefit from batching of documents.
-    MetadataDescription desc = new MetadataDescription();
+    MetadataDescription desc = new MetadataDescription(llc);
 
     // Build the node/path cache
-    SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
+    SystemMetadataDescription sDesc = new SystemMetadataDescription(llc,spec);
 
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -3610,7 +3617,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getChildFolders(pathString);
+    return getChildFolders(new LivelinkContext(),pathString);
   }
 
 
@@ -3622,7 +3629,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getChildCategories(pathString);
+    return getChildCategories(new LivelinkContext(),pathString);
   }
 
   /** Given a category path, get a list of legal attribute names.
@@ -3633,9 +3640,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-
+    return getCategoryAttributes(new LivelinkContext(), pathString);
+  }
+  
+  protected String[] getCategoryAttributes(LivelinkContext llc, String pathString)
+    throws ManifoldCFException, ServiceInterruption
+  {
     // Start at root
-    RootValue rv = new RootValue(pathString);
+    RootValue rv = new RootValue(llc,pathString);
 
     // Get the object id of the category the path describes
     int catObjectID = getCategoryId(rv);
@@ -4112,10 +4124,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
-  protected String[] getChildFolders(String pathString)
+  protected String[] getChildFolders(LivelinkContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
-    RootValue rv = new RootValue(pathString);
+    RootValue rv = new RootValue(llc,pathString);
 
     // Get the volume, object id of the folder/project the path describes
     VolumeAndId vid = getPathId(rv);
@@ -4176,11 +4188,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
-  protected String[] getChildCategories(String pathString)
+  protected String[] getChildCategories(LivelinkContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
     // Start at root
-    RootValue rv = new RootValue(pathString);
+    RootValue rv = new RootValue(llc,pathString);
 
     // Get the volume, object id of the folder/project the path describes
     VolumeAndId vid = getPathId(rv);
@@ -5392,47 +5404,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   
-  /** Get the complete path for an object.
-  */
-  protected String getObjectPath(ObjectInformation currentObject)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    String path = null;
-    while (true)
-    {
-      if (currentObject.isCategoryWorkspace())
-        return CATEGORY_NAME + ((path==null)?"":":" + path);
-      else if (currentObject.isEntityWorkspace())
-        return ENTWKSPACE_NAME + ((path==null)?"":":" + path);
-
-      if (!currentObject.exists())
-      {
-        // The document identifier describes a path that does not exist.
-        // This is unexpected, but an exception would terminate the job, and we don't want that.
-        Logging.connectors.warn("Livelink: Bad identifier found? "+currentObject.toString()+" apparently does not exist, but need to look up its path");
-        return null;
-      }
-
-      // Get the name attribute
-      String name = currentObject.getName();
-      if (path == null)
-        path = name;
-      else
-        path = name + "/" + path;
-
-      // Get the parentID attribute
-      int parentID = currentObject.getParentId().intValue();
-      if (parentID == -1)
-      {
-        // Oops, hit the top of the path without finding the workspace we're in.
-        // No idea where it lives; note this condition and exit.
-        Logging.connectors.warn("Livelink: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
-        return null;
-      }
-      currentObject = new ObjectInformation(0,parentID);
-    }
-  }
-
   /** Thread we can abandon that gets user information for a userID.
   */
   protected class GetUserInfoThread extends Thread
@@ -6171,6 +6142,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class SystemMetadataDescription
   {
+    // The livelink context
+    protected final LivelinkContext llc;
+    
     // The path attribute name
     protected String pathAttributeName;
 
@@ -6184,9 +6158,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected MatchMap matchMap = new MatchMap();
 
     /** Constructor */
-    public SystemMetadataDescription(DocumentSpecification spec)
+    public SystemMetadataDescription(LivelinkContext llc, DocumentSpecification spec)
       throws ManifoldCFException
     {
+      this.llc = llc;
       pathAttributeName = null;
       pathSeparator = null;
       int i = 0;
@@ -6270,7 +6245,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
         }
 
-        ObjectInformation objInfo = new ObjectInformation(volumeID,objectID);
+        ObjectInformation objInfo = llc.getObjectInformation(volumeID,objectID);
         if (!objInfo.exists())
         {
           // The document identifier describes a path that does not exist.
@@ -6309,13 +6284,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class MetadataDescription
   {
+    protected final LivelinkContext llc;
+    
     // This is a map of category name to category ID and attributes
     protected Map categoryMap = new HashMap();
 
     /** Constructor.
     */
-    public MetadataDescription()
+    public MetadataDescription(LivelinkContext llc)
     {
+      this.llc = llc;
     }
 
     /** Iterate over the metadata items represented by the specified chunk of version string.
@@ -6351,7 +6329,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           MetadataPathItem item = (MetadataPathItem)categoryMap.get(category);
           if (item == null)
           {
-            RootValue rv = new RootValue(category);
+            RootValue rv = new RootValue(llc,category);
             if (rootValue == null)
             {
               rootValue = rv.getRootValue();
@@ -6386,6 +6364,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class CategoryPathAccumulator
   {
+    // Livelink context
+    protected final LivelinkContext llc;
+    
     // This is the map from category ID to category path name.
     // It's keyed by an Integer formed from the id, and has String values.
     protected HashMap categoryPathMap = new HashMap();
@@ -6395,8 +6376,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected HashMap attributeMap = new HashMap();
 
     /** Constructor */
-    public CategoryPathAccumulator()
+    public CategoryPathAccumulator(LivelinkContext llc)
     {
+      this.llc = llc;
     }
 
     /** Get a specified set of packed category paths with attribute names, given the category identifiers */
@@ -6450,7 +6432,48 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected String findPath(int catID)
       throws ManifoldCFException, ServiceInterruption
     {
-      return getObjectPath(new ObjectInformation(0,catID));
+      return getObjectPath(llc.getObjectInformation(0,catID));
+    }
+
+    /** Get the complete path for an object.
+    */
+    protected String getObjectPath(ObjectInformation currentObject)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      String path = null;
+      while (true)
+      {
+        if (currentObject.isCategoryWorkspace())
+          return CATEGORY_NAME + ((path==null)?"":":" + path);
+        else if (currentObject.isEntityWorkspace())
+          return ENTWKSPACE_NAME + ((path==null)?"":":" + path);
+
+        if (!currentObject.exists())
+        {
+          // The document identifier describes a path that does not exist.
+          // This is unexpected, but an exception would terminate the job, and we don't want that.
+          Logging.connectors.warn("Livelink: Bad identifier found? "+currentObject.toString()+" apparently does not exist, but need to look up its path");
+          return null;
+        }
+
+        // Get the name attribute
+        String name = currentObject.getName();
+        if (path == null)
+          path = name;
+        else
+          path = name + "/" + path;
+
+        // Get the parentID attribute
+        int parentID = currentObject.getParentId().intValue();
+        if (parentID == -1)
+        {
+          // Oops, hit the top of the path without finding the workspace we're in.
+          // No idea where it lives; note this condition and exit.
+          Logging.connectors.warn("Livelink: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
+          return null;
+        }
+        currentObject = llc.getObjectInformation(0,parentID);
+      }
     }
 
     /** Find a set of attributes given a category ID */
@@ -6469,6 +6492,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class RootValue
   {
+    protected final LivelinkContext llc;
     protected String workspaceName;
     protected ObjectInformation rootValue = null;
     protected String remainderPath;
@@ -6476,8 +6500,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Constructor.
     *@param pathString is the path string.
     */
-    public RootValue(String pathString)
+    public RootValue(LivelinkContext llc, String pathString)
     {
+      this.llc = llc;
       int colonPos = pathString.indexOf(":");
       if (colonPos == -1)
       {
@@ -6508,9 +6533,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (rootValue == null)
       {
         if (workspaceName.equals(CATEGORY_NAME))
-          rootValue = new ObjectInformation(LLCATWK_VOL,LLCATWK_ID);
+          rootValue = llc.getObjectInformation(LLCATWK_VOL,LLCATWK_ID);
         else if (workspaceName.equals(ENTWKSPACE_NAME))
-          rootValue = new ObjectInformation(LLENTWK_VOL,LLENTWK_ID);
+          rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
         else
           throw new ManifoldCFException("Bad workspace name: "+workspaceName);
       }
