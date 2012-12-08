@@ -34,6 +34,7 @@
     <module>filesystem</module>
     <module>sharepoint</module>
     <module>rss</module>
+    <module>webcrawler</module>
   </modules>
   <build>
     <defaultGoal>integration-test</defaultGoal>
