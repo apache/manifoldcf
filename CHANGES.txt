@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-580: Remove build of commons-httpclient-mcf, and all
+ant and maven dependencies.
+(Karl Wright)
+
 CONNECTORS-579: Add untrusted, unverified https support to the RSS
 connector.
 (David Morana, Karl Wright)
