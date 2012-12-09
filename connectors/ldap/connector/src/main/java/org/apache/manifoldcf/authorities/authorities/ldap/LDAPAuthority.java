@@ -111,6 +111,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     groupSearch = configParams.getParameter( "ldapGroupSearch" );
     groupNameAttr = configParams.getParameter( "ldapGroupNameAttr" );
     userNameAttr = configParams.getParameter( "ldapUserNameAttr" );
+    
     groupMemberDN = "1".equals(getParam(configParams, "ldapGroupMemberDn", ""));
     addUserRecord = "1".equals(getParam(configParams, "ldapAddUserRecord", ""));
   }
@@ -157,16 +158,10 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     env.put(Context.PROVIDER_URL, "ldap://"+serverName+":"+serverPort+"/"+serverBase);
 
     //get bind credentials
-    String bindUser = getParam(parameters, "ldapBindUser", "");
-    String bindPass = "";
-    try {
-      bindPass = ManifoldCF.deobfuscate(getParam(parameters, "ldapBindPass", ""));
-    } catch (ManifoldCFException ex) {
-      if (!bindUser.isEmpty()) {
-        Logger.getLogger(LDAPAuthority.class.getName()).log(Level.SEVERE, "Deobfuscation error", ex);
-      }
-    }
-    if (!bindUser.isEmpty()) {
+    String bindUser = getParam(parameters, "ldapBindUser", null);
+    String bindPass = getParam(parameters, "ldapBindPass", null);
+    if (bindPass != null && bindUser != null) {
+      bindPass = ManifoldCF.deobfuscate(bindPass);
       env.put(Context.SECURITY_AUTHENTICATION, "simple");
       env.put(Context.SECURITY_PRINCIPAL, bindUser);
       env.put(Context.SECURITY_CREDENTIALS, bindPass);
@@ -230,6 +225,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       }
       session = null;
       sessionExpirationTime = -1L;
+
     }
   }
     
@@ -242,6 +238,17 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     throws ManifoldCFException {
     disconnectSession();
     super.disconnect();
+    // Zero out all the stuff that we want to be sure we don't use again
+    serverName = null;
+    serverPort = null;
+    serverBase = null;
+    userBase = null;
+    userSearch = null;
+    groupBase = null;
+    groupSearch = null;
+    groupNameAttr = null;
+    userNameAttr = null;
+
   }
 
   protected String createCacheConnectionString() {
@@ -530,12 +537,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     boolean fGroupMemberDN = "1".equals(getParam(parameters, "ldapGroupMemberDn", ""));
     
     String fBindUser = getParam(parameters, "ldapBindUser", "");
-    String fBindPass = "";
-    try {
-      fBindPass = ManifoldCF.deobfuscate(getParam(parameters, "ldapBindPass", ""));
-    } catch (ManifoldCFException ex) {
-      //ignore
-    }
+    String fBindPass = getParam(parameters, "ldapBindPass", null);
+    if (fBindPass != null)
+      fBindPass = ManifoldCF.deobfuscate(fBindPass);
+    else
+      fBindPass = "";
 
     if (tabName.equals(Messages.getString(locale,"LDAP.LDAP"))) {
       out.print(
@@ -682,14 +688,13 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     copyParam(variableContext, parameters, "ldapGroupSearch" );
     copyParam(variableContext, parameters, "ldapGroupNameAttr" );
     
-    copyParam2(variableContext, parameters, "ldapGroupMemberDn");
-    copyParam2(variableContext, parameters, "ldapAddUserRecord");
-    copyParam2(variableContext, parameters, "ldapBindUser");
+    copyParam(variableContext, parameters, "ldapGroupMemberDn");
+    copyParam(variableContext, parameters, "ldapAddUserRecord");
+    copyParam(variableContext, parameters, "ldapBindUser");
     String bindPass = variableContext.getParameter("ldapBindPass");
-    if (bindPass == null) {
-      bindPass = "";
+    if (bindPass != null) {
+      parameters.setParameter("ldapBindPass", ManifoldCF.obfuscate(bindPass));
     }
-    parameters.setParameter("ldapBindPass", ManifoldCF.obfuscate(bindPass));
 
     return null;
   }
