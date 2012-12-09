@@ -17,7 +17,8 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.methods.HttpGet;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerAction extends OpenSearchServerConnection {
@@ -32,7 +33,7 @@ public class OpenSearchServerAction extends OpenSearchServerConnection {
     StringBuffer url = getApiUrl("action");
     url.append("&action=");
     url.append(cmd.name());
-    GetMethod method = new GetMethod(url.toString());
+    HttpGet method = new HttpGet(url.toString());
     call(method);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;
