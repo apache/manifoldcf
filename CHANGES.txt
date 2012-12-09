@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-581: Port OpenSearchServer connector and ElasticSearch
+connector to httpcomponents.
+(Karl Wright)
+
 CONNECTORS-566: Simple JDBC Authority connector.
 (Maciej Li¿ewski)
 

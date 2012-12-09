@@ -17,7 +17,8 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.methods.HttpGet;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerSchema extends OpenSearchServerConnection {
@@ -28,7 +29,7 @@ public class OpenSearchServerSchema extends OpenSearchServerConnection {
     String indexName = config.getIndexName();
     StringBuffer url = getApiUrl("schema");
     url.append("&cmd=indexList");
-    GetMethod method = new GetMethod(url.toString());
+    HttpGet method = new HttpGet(url.toString());
     String xpath = "count(/response/index[@name='" + indexName + "'])";
     call(method);
     if ("1".equals(checkXPath(xpath)))

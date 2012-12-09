@@ -19,8 +19,9 @@
 
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.HttpClient;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class ElasticSearchAction extends ElasticSearchConnection
@@ -36,7 +37,7 @@ public class ElasticSearchAction extends ElasticSearchConnection
   {
     super(config, client);
     StringBuffer url = getApiUrl(cmd.toString(), checkConnection);
-    GetMethod method = new GetMethod(url.toString());
+    HttpGet method = new HttpGet(url.toString());
     call(method);
     if ("true".equals(checkJson(jsonStatus)))
       return;

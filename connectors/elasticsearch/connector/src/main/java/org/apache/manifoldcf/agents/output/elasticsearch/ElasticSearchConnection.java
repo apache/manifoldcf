@@ -21,11 +21,38 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.io.StringWriter;
+import java.io.Reader;
+import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.URLEncoder;
 
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpClient;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.Header;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.message.BasicHeader;
+
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
@@ -87,15 +114,14 @@ public class ElasticSearchConnection
     return url;
   }
 
-  protected void call(HttpMethod method) throws ManifoldCFException
+  protected void call(HttpRequestBase method) throws ManifoldCFException
   {
-    HttpClient hc = client;
     try
     {
-      hc.executeMethod(method);
-      if (!checkResultCode(method.getStatusCode()))
+      HttpResponse resp = client.execute(method);
+      if (!checkResultCode(resp.getStatusLine().getStatusCode()))
         throw new ManifoldCFException(getResultDescription());
-      response = IOUtils.toString(method.getResponseBodyAsStream());
+      response = getResponseBodyAsString(resp.getEntity());
     } catch (HttpException e)
     {
       setResult(Result.ERROR, e.getMessage());
@@ -107,8 +133,45 @@ public class ElasticSearchConnection
     } finally
     {
       if (method != null)
-        method.releaseConnection();
+        method.abort();
     }
+  }
+
+  private static String getResponseBodyAsString(HttpEntity entity)
+    throws IOException, HttpException {
+    InputStream is = entity.getContent();
+    if (is != null)
+    {
+      try
+      {
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        char[] buffer = new char[65536];
+        Reader r = new InputStreamReader(is,charSet);
+        Writer w = new StringWriter();
+        try
+        {
+          while (true)
+          {
+            int amt = r.read(buffer);
+            if (amt == -1)
+              break;
+            w.write(buffer,0,amt);
+          }
+        }
+        finally
+        {
+          w.flush();
+        }
+        return w.toString();
+      }
+      finally
+      {
+        is.close();
+      }
+    }
+    return "";
   }
 
   protected String checkJson(String jsonQuery) throws ManifoldCFException
