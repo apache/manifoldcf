@@ -1576,6 +1576,11 @@
             <param name="connector-label" value="JDBC"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector"/>
         </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="jdbc"/>
+            <param name="connector-label" value="JDBC"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.jdbc.JDBCAuthority"/>
+        </antcall>
     </target>
     
     <target name="deliver-jdbc-connector-doc" depends="calculate-jdbc-doc-condition" if="jdbc-doc.include">
