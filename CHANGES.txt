@@ -13,6 +13,10 @@ CONNECTORS-566: Simple JDBC Authority connector.
 CONNECTORS-563: Augment LDAP authority to include new features.
 (Maciej Li¿ewski)
 
+CONNECTORS-580: Remove build of commons-httpclient-mcf, and all
+ant and maven dependencies.
+(Karl Wright)
+
 CONNECTORS-579: Add untrusted, unverified https support to the RSS
 connector.
 (David Morana, Karl Wright)

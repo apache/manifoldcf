@@ -3064,33 +3064,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="commons-logging"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- Download and build patched version of commons-httpclient 3.1 -->
-        <mkdir dir="build/download"/>
-        <delete dir="build/download/commons-httpclient"/>
-        <antcall target="checkout-source-via-svn">
-            <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="http://svn.apache.org/repos/asf/httpcomponents/oac.hc3x/tags/HTTPCLIENT_3_1"/>
-            <param name="dir-name" value="commons-httpclient"/>
-        </antcall>
-        <!-- Apply cumulative post-3.1 fixes patch -->
-        <antcall target="patch-source">
-            <param name="root-dir" value="build/download"/>
-            <param name="diff-file" value="../../upstream-diffs/commons-httpclient-3.1.cumulative.patch"/>
-            <param name="dir-name" value="commons-httpclient"/>
-        </antcall>
-        <!-- Apply mcf-specific features and fixes patch -->
-        <antcall target="patch-source">
-            <param name="root-dir" value="build/download"/>
-            <param name="diff-file" value="../../upstream-diffs/commons-httpclient-3.1.mcf.patch"/>
-            <param name="dir-name" value="commons-httpclient"/>
-        </antcall>
-        <!-- Supply dependencies -->
-        <mkdir dir="build/download/commons-httpclient/lib"/>
-        <copy todir="build/download/commons-httpclient/lib" file="lib/commons-logging.jar"/>
-        <copy todir="build/download/commons-httpclient/lib" file="lib/commons-codec.jar"/>
-        <!-- Build it -->
-        <ant dir="build/download/commons-httpclient" target="dist"/>
-        <copy todir="lib" file="build/download/commons-httpclient/dist/commons-httpclient.jar"/>
     </target>
   
     <target name="download-slf4j">
