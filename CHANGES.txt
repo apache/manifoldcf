@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-566: Simple JDBC Authority connector.
+(Maciej Li¿ewski)
+
 CONNECTORS-563: Augment LDAP authority to include new features.
 (Maciej Li¿ewski)
 
