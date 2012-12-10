@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-583: Catch MySQL lock timeout, and retry that transaction.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-581: Port OpenSearchServer connector and ElasticSearch
 connector to httpcomponents.
 (Karl Wright)

@@ -118,6 +118,12 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       //new Exception(message).printStackTrace();
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
     }
+    // Lock timeout
+    if (sqlState != null && sqlState.equals("41000"))
+    {
+      //new Exception(message).printStackTrace();
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
