@@ -31,6 +31,7 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
+import org.apache.http.conn.ConnectTimeoutException;
 
 import java.io.File;
 import java.io.InterruptedIOException;
@@ -1395,7 +1396,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             throw new ManifoldCFException("Socket timeout exception: "+ioex.getMessage(), ioex);
           }
-          catch (org.apache.commons.httpclient.ConnectTimeoutException ioex)
+          catch (ConnectTimeoutException ioex)
           {
             throw new ManifoldCFException("Connect timeout exception: "+ioex.getMessage(), ioex);
           }
