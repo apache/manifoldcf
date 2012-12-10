@@ -918,6 +918,18 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     }
   }
 
+  /** Construct index hint clause.
+  * On most databases this returns an empty string, but on MySQL this returns
+  * a USE INDEX hint.  It requires the name of an index.
+  *@param indexName is the name of an index.
+  *@return the query chunk that should go between the table names and the WHERE
+  * clause.
+  */
+  public String constructIndexHintClause(String indexName)
+  {
+    return "FORCE INDEX ("+indexName+") ";
+  }
+
   /** Construct a cast to a double value.
   * On most databases this cast needs to be explicit, but on some it is implicit (and cannot be in fact
   * specified).

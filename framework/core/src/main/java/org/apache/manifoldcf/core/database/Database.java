@@ -483,6 +483,18 @@ public abstract class Database
     }
   }
 
+  /** Construct index hint clause.
+  * On most databases this returns an empty string, but on MySQL this returns
+  * a USE INDEX hint.  It requires the name of an index.
+  *@param indexName is the name of an index.
+  *@return the query chunk that should go between the table names and the WHERE
+  * clause.
+  */
+  public String constructIndexHintClause(String indexName)
+  {
+    return "";
+  }
+
   /** Construct an offset/limit clause.
   * This method constructs an offset/limit clause in the proper manner for the database in question.
   *@param offset is the starting offset number.
