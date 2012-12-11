@@ -6749,6 +6749,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             {
               try
               {
+                System.out.println("The target is: "+host.toString());
                 response = httpClient.execute(host,executeMethod);
               }
               catch (java.net.SocketTimeoutException e)
