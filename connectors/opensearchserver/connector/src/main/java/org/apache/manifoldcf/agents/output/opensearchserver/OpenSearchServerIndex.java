@@ -73,7 +73,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
     @Override
     public InputStream getContent()
       throws IOException, IllegalStateException {
-      return null;
+      return inputStream;
     }
     
     @Override
