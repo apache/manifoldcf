@@ -282,6 +282,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     return new String[]{serverName};
   }
 
+  protected HttpHost getHost()
+  {
+    return new HttpHost(llServer.getHost(),ingestPortNumber,ingestProtocol);
+  }
+
   protected void getSession()
     throws ManifoldCFException, ServiceInterruption
   {
@@ -473,10 +478,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   // on this instance!
 
 
-  protected static int executeMethodViaThread(HttpClient client, HttpRequestBase executeMethod)
+  protected static int executeMethodViaThread(HttpHost host, HttpClient client, HttpRequestBase executeMethod)
     throws InterruptedException, HttpException, IOException
   {
-    ExecuteMethodThread t = new ExecuteMethodThread(client,executeMethod);
+    ExecuteMethodThread t = new ExecuteMethodThread(host, client,executeMethod);
     t.start();
     try
     {
@@ -514,7 +519,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       HttpGet method = new HttpGet(ingestHttpAddress);
       try
       {
-        int statusCode = executeMethodViaThread(client,method);
+        int statusCode = executeMethodViaThread(getHost(),client,method);
         switch (statusCode)
         {
         case 502:
@@ -3849,7 +3854,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Long readSize = null;
 
     HttpGet method = new HttpGet(ingestHttpAddress);
-    ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
+    ExecuteMethodThread methodThread = new ExecuteMethodThread(getHost(), client,method);
     methodThread.start();
     try
     {
@@ -4073,7 +4078,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Livelink: Created new HttpGet "+contextMsg+"; executing authentication method");
-      int statusCode = executeMethodViaThread(httpClient,authget);
+      int statusCode = executeMethodViaThread(getHost(),httpClient,authget);
 
       if (statusCode == 502 || statusCode == 500)
       {
@@ -6707,6 +6712,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected static class ExecuteMethodThread extends Thread
   {
     /** Client and method, all preconfigured */
+    protected final HttpHost host;
     protected final HttpClient httpClient;
     protected final HttpRequestBase executeMethod;
     
@@ -6721,10 +6727,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     protected Throwable generalException = null;
     
-    public ExecuteMethodThread(HttpClient httpClient, HttpRequestBase executeMethod)
+    public ExecuteMethodThread(HttpHost host, HttpClient httpClient, HttpRequestBase executeMethod)
     {
       super();
       setDaemon(true);
+      this.host = host;
       this.httpClient = httpClient;
       this.executeMethod = executeMethod;
     }
@@ -6742,7 +6749,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             {
               try
               {
-                response = httpClient.execute(executeMethod);
+                response = httpClient.execute(host,executeMethod);
               }
               catch (java.net.SocketTimeoutException e)
               {
