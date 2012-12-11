@@ -706,8 +706,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     StringBuilder query = new StringBuilder();
     List list = new ArrayList();
-    list.add(databaseName.toUpperCase());
-    list.add(tableName.toUpperCase());
+    list.add(databaseName.toLowerCase(Locale.ROOT));
+    list.add(tableName.toLowerCase(Locale.ROOT));
     query.append("SELECT column_name, is_nullable, data_type, character_maximum_length ")
       .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME=?");
     IResultSet set = performQuery(query.toString(),list,cacheKeys,queryClass);
@@ -723,7 +723,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
     String primaryKey = null;
     if (primarySet.getRowCount() != 0)
-      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase();
+      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase(Locale.ROOT);
     if (primaryKey == null)
       primaryKey = "";
     
@@ -733,7 +733,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = ((String)row.getValue("column_name")).toLowerCase();
+      String fieldName = ((String)row.getValue("column_name")).toLowerCase(Locale.ROOT);
       String type = (String)row.getValue("data_type");
       Long width = (Long)row.getValue("character_maximum_length");
       String isNullable = (String)row.getValue("is_nullable");
@@ -770,8 +770,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     String query = "SELECT index_name,column_name,non_unique,seq_in_index FROM INFORMATION_SCHEMA.STATISTICS "+
       "WHERE TABLE_SCHEMA=? AND TABLE_NAME=? ORDER BY index_name,seq_in_index ASC";
     List list = new ArrayList();
-    list.add(databaseName.toUpperCase());
-    list.add(tableName.toUpperCase());
+    list.add(databaseName.toLowerCase(Locale.ROOT));
+    list.add(tableName.toLowerCase(Locale.ROOT));
     IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     String lastIndexName = null;
     List<String> indexColumns = null;
@@ -780,8 +780,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     while (i < result.getRowCount())
     {
       IResultRow row = result.getRow(i++);
-      String indexName = ((String)row.getValue("index_name")).toLowerCase();
-      String columnName = ((String)row.getValue("column_name")).toLowerCase();
+      String indexName = ((String)row.getValue("index_name")).toLowerCase(Locale.ROOT);
+      String columnName = ((String)row.getValue("column_name")).toLowerCase(Locale.ROOT);
       String nonUnique = row.getValue("non_unique").toString();
       
       if (lastIndexName != null && !lastIndexName.equals(indexName))
@@ -832,7 +832,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     IResultSet set = performQuery("SHOW TABLES",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
-    String columnName = "Tables_in_"+databaseName.toLowerCase();
+    String columnName = "Tables_in_"+databaseName.toLowerCase(Locale.ROOT);
     // System.out.println(columnName);
 
     int i = 0;

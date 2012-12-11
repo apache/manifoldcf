@@ -935,7 +935,7 @@ public abstract class Database
                 value = null;
                 if (colnum > -1)
                 {
-                  value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key.toLowerCase()));
+                  value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key.toLowerCase(Locale.ROOT)));
                 }
                 //System.out.println(" Key = '"+resultLabels[i]+"', value = "+((value==null)?"NULL":value.toString()));
                 m.put(resultLabels[i], value);
