@@ -154,6 +154,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Thread context */
   protected IThreadContext threadContext;
   
+  /** Cached getNextDocuments order-by index name */
+  protected String getNextDocumentsIndex = null;
+  
   /** Constructor.
   *@param database is the database handle.
   */
@@ -266,6 +269,33 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Get the 'getNextDocuments' index name.
+  */
+  public String getGetNextDocumentsIndex()
+    throws ManifoldCFException
+  {
+    if (getNextDocumentsIndex == null)
+    {
+      // Figure out what index it is
+      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField});
+      Map indexes = getTableIndexes(null,null);
+      Iterator iter = indexes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String indexName = (String)iter.next();
+        IndexDescription id = (IndexDescription)indexes.get(indexName);
+        if (id.equals(docpriorityIndex))
+        {
+          getNextDocumentsIndex = indexName;
+          break;
+        }
+      }
+      if (getNextDocumentsIndex == null)
+        throw new ManifoldCFException("Can't find getnextdocuments index");
+    }
+    return getNextDocumentsIndex;
+  }
+  
   /** Analyze job tables due to major event */
   public void unconditionallyAnalyzeTables()
     throws ManifoldCFException
