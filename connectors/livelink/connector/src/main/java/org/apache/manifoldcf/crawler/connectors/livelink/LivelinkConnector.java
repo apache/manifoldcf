@@ -576,6 +576,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     catch (Throwable e)
     {
       e.printStackTrace();
+      return e.getMessage();
     }
   }
 
