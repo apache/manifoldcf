@@ -5398,6 +5398,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             Throwable thr = t.getException();
             if (thr != null)
             {
+		    thr.printStackTrace();
               if (thr instanceof RuntimeException)
                 throw (RuntimeException)thr;
               else if (thr instanceof ServiceInterruption)
