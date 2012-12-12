@@ -2123,10 +2123,11 @@ public class JobManager implements IJobManager
       .append(") ");
       
     sb.append(" ORDER BY ")
-      .append(jobQueue.docPriorityField).append(" ASC,")
-      .append(jobQueue.statusField).append(" ASC,")
-      .append(jobQueue.checkActionField).append(" ASC,")
-      .append(jobQueue.checkTimeField).append(" ASC ")
+      .append(jobQueue.docPriorityField).append(" ASC ")
+      // These match the where clause, but they break MySQL
+      //.append(jobQueue.statusField).append(" ASC,")
+      //.append(jobQueue.checkActionField).append(" ASC,")
+      //.append(jobQueue.checkTimeField).append(" ASC ")
       .append(database.constructOffsetLimitClause(0,1,true));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
@@ -2202,10 +2203,11 @@ public class JobManager implements IJobManager
       .append(")");
 
     sb.append(" ORDER BY ")
-      .append("t0.").append(jobQueue.docPriorityField).append(" ASC,")
-      .append("t0.").append(jobQueue.statusField).append(" ASC,")
-      .append("t0.").append(jobQueue.checkActionField).append(" ASC,")
-      .append("t0.").append(jobQueue.checkTimeField).append(" ASC ");
+      .append("t0.").append(jobQueue.docPriorityField).append(" ASC ");
+      // These break MySQL
+      //.append("t0.").append(jobQueue.statusField).append(" ASC,")
+      //.append("t0.").append(jobQueue.checkActionField).append(" ASC,")
+      //.append("t0.").append(jobQueue.checkTimeField).append(" ASC ");
 
 
     // Before entering the transaction, we must provide the throttlelimit object with all the connector

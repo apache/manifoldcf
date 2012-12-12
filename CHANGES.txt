@@ -3,6 +3,12 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-584: Fix MySQL use of indexes on ORDER-BY stuffing query.
+Turns out that MySQL will not order by an index unless only the first column
+in the index is specified in the ordering criteria.  Still need to check if this
+breaks other databases like PostgreSQL, Derby, or HSQLDB.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-583: Catch MySQL lock timeout, and retry that transaction.
 (Shigeki Kobayashi, Karl Wright)
 
