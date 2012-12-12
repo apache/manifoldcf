@@ -290,8 +290,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
           break;
         }
       }
-      if (getNextDocumentsIndex == null)
-        throw new ManifoldCFException("Can't find getnextdocuments index");
+      // Derby doesn't actually allow us to get index columns, so
+      // for Derby, we return null.
+      //if (getNextDocumentsIndex == null)
+      //  throw new ManifoldCFException("Can't find getnextdocuments index");
     }
     return getNextDocumentsIndex;
   }
