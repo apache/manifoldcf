@@ -4870,6 +4870,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                 throw (Error)thr;
             }
             userValue = t.getResponse();
+            break;
           }
           catch (InterruptedException e)
           {
@@ -4986,6 +4987,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                 throw (Error)thr;
             }
             versionValue = t.getResponse();
+            break;
           }
           catch (InterruptedException e)
           {
@@ -5398,7 +5400,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             Throwable thr = t.getException();
             if (thr != null)
             {
-		    thr.printStackTrace();
               if (thr instanceof RuntimeException)
                 throw (RuntimeException)thr;
               else if (thr instanceof ServiceInterruption)
@@ -5412,6 +5413,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                 throw (Error)thr;
             }
             objectValue = t.getResponse();
+            break;
           }
           catch (InterruptedException e)
           {
