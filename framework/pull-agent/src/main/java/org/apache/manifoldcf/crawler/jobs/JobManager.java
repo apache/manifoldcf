@@ -2122,12 +2122,9 @@ public class JobManager implements IJobManager
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
       .append(") ");
       
-    sb.append(" ORDER BY ")
-      .append(jobQueue.docPriorityField).append(" ASC ")
-      // These match the where clause, but they break MySQL
-      //.append(jobQueue.statusField).append(" ASC,")
-      //.append(jobQueue.checkActionField).append(" ASC,")
-      //.append(jobQueue.checkTimeField).append(" ASC ")
+    sb.append(" ").append(database.constructIndexOrderByClause(new String[]{
+      jobQueue.docPriorityField, jobQueue.statusField, jobQueue.checkActionField, jobQueue.checkTimeField},
+      true)).append(" ")
       .append(database.constructOffsetLimitClause(0,1,true));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
@@ -2202,13 +2199,9 @@ public class JobManager implements IJobManager
       .append(jobQueue.prereqEventManager.eventNameField).append("=t4.").append(eventManager.eventNameField)
       .append(")");
 
-    sb.append(" ORDER BY ")
-      .append("t0.").append(jobQueue.docPriorityField).append(" ASC ");
-      // These break MySQL
-      //.append("t0.").append(jobQueue.statusField).append(" ASC,")
-      //.append("t0.").append(jobQueue.checkActionField).append(" ASC,")
-      //.append("t0.").append(jobQueue.checkTimeField).append(" ASC ");
-
+    sb.append(" ").append(database.constructIndexOrderByClause(new String[]{
+      "t0."+jobQueue.docPriorityField, "t0."+jobQueue.statusField, "t0."+jobQueue.checkActionField, "t0."+jobQueue.checkTimeField},
+      true)).append(" ");
 
     // Before entering the transaction, we must provide the throttlelimit object with all the connector
     // instances it could possibly need.  The purpose for doing this is to prevent a deadlock where

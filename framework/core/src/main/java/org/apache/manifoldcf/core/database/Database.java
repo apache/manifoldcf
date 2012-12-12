@@ -495,6 +495,28 @@ public abstract class Database
     return "";
   }
 
+  /** Construct ORDER-BY clause meant for reading from an index.
+  * Supply the field names belonging to the index, in order.
+  * Also supply a corresponding boolean array, where TRUE means "ASC", and FALSE
+  * means "DESC".
+  *@param fieldNames are the names of the fields in the index that is to be used.
+  *@param direction is a boolean describing the sorting order of the first term.
+  *@return a query chunk, including "ORDER BY" text, which is appropriate for
+  * at least ordering by the FIRST column supplied.
+  */
+  public String constructIndexOrderByClause(String[] fieldNames, boolean direction)
+  {
+    if (fieldNames.length == 0)
+      return "";
+    StringBuilder sb = new StringBuilder("ORDER BY ");
+    sb.append(fieldNames[0]);
+    if (direction)
+      sb.append(" ASC");
+    else
+      sb.append(" DESC");
+    return sb.toString();
+  }
+  
   /** Construct an offset/limit clause.
   * This method constructs an offset/limit clause in the proper manner for the database in question.
   *@param offset is the starting offset number.

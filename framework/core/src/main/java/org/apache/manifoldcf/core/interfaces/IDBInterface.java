@@ -263,6 +263,17 @@ public interface IDBInterface
   */
   public String constructIndexHintClause(String indexName);
   
+  /** Construct ORDER-BY clause meant for reading from an index.
+  * Supply the field names belonging to the index, in order.
+  * Also supply a corresponding boolean array, where TRUE means "ASC", and FALSE
+  * means "DESC".
+  *@param fieldNames are the names of the fields in the index that is to be used.
+  *@param direction is a boolean describing the sorting order of the first term.
+  *@return a query chunk, including "ORDER BY" text, which is appropriate for
+  * at least ordering by the FIRST column supplied.
+  */
+  public String constructIndexOrderByClause(String[] fieldNames, boolean direction);
+  
   /** Construct a cast to a double value.
   * On most databases this cast needs to be explicit, but on some it is implicit (and cannot be in fact
   * specified).
