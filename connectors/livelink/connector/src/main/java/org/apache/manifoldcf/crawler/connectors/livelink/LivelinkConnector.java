@@ -578,11 +578,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         throw e;
       return "Error: "+e.getMessage();
     }
-    catch (Throwable e)
-    {
-      e.printStackTrace();
-      return e.getMessage();
-    }
   }
 
   /** This method is periodically called for all connectors that are connected but not
@@ -2177,12 +2172,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       catch (ManifoldCFException e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       out.print(
@@ -2672,12 +2667,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       catch (ManifoldCFException e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       out.print(
