@@ -154,8 +154,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Thread context */
   protected IThreadContext threadContext;
   
-  /** Cached getNextDocuments order-by index name */
-  protected String getNextDocumentsIndex = null;
+  /** Cached getNextDocuments order-by index hint */
+  protected String getNextDocumentsIndexHint = null;
   
   /** Constructor.
   *@param database is the database handle.
@@ -269,33 +269,18 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
-  /** Get the 'getNextDocuments' index name.
+  /** Get the 'getNextDocuments' index hint.
   */
-  public String getGetNextDocumentsIndex()
+  public String getGetNextDocumentsIndexHint()
     throws ManifoldCFException
   {
-    if (getNextDocumentsIndex == null)
+    if (getNextDocumentsIndexHint == null)
     {
       // Figure out what index it is
-      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField});
-      Map indexes = getTableIndexes(null,null);
-      Iterator iter = indexes.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String indexName = (String)iter.next();
-        IndexDescription id = (IndexDescription)indexes.get(indexName);
-        if (id.equals(docpriorityIndex))
-        {
-          getNextDocumentsIndex = indexName;
-          break;
-        }
-      }
-      // Derby doesn't actually allow us to get index columns, so
-      // for Derby, we return null.
-      //if (getNextDocumentsIndex == null)
-      //  throw new ManifoldCFException("Can't find getnextdocuments index");
+      getNextDocumentsIndexHint = getDBInterface().constructIndexHintClause(getTableName(),
+        new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField}));
     }
-    return getNextDocumentsIndex;
+    return getNextDocumentsIndexHint;
   }
   
   /** Analyze job tables due to major event */

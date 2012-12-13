@@ -257,11 +257,13 @@ public interface IDBInterface
   /** Construct index hint clause.
   * On most databases this returns an empty string, but on MySQL this returns
   * a USE INDEX hint.  It requires the name of an index.
-  *@param indexName is the name of an index.
+  *@param tableName is the table the index is from.
+  *@param description is the description of an index, which is expected to exist.
   *@return the query chunk that should go between the table names and the WHERE
   * clause.
   */
-  public String constructIndexHintClause(String indexName);
+  public String constructIndexHintClause(String tableName, IndexDescription description)
+    throws ManifoldCFException;
   
   /** Construct ORDER-BY clause meant for reading from an index.
   * Supply the field names belonging to the index, in order.

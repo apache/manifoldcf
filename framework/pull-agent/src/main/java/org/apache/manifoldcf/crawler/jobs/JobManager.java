@@ -2104,7 +2104,7 @@ public class JobManager implements IJobManager
     sb.append(jobQueue.docPriorityField).append(",").append(jobQueue.jobIDField).append(",")
       .append(jobQueue.docHashField).append(",").append(jobQueue.docIDField)
       .append(" FROM ").append(jobQueue.getTableName())
-      .append(" t0 ").append(database.constructIndexHintClause(jobQueue.getGetNextDocumentsIndex())).append("WHERE ");
+      .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
       
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
       //new UnitaryClause(jobQueue.docPriorityField,">=",new Long(0L)),
@@ -2160,7 +2160,7 @@ public class JobManager implements IJobManager
       .append(jobQueue.failTimeField).append(",t0.")
       .append(jobQueue.failCountField).append(",t0.")
       .append(jobQueue.prioritySetField).append(" FROM ").append(jobQueue.getTableName())
-      .append(" t0 ").append(database.constructIndexHintClause(jobQueue.getGetNextDocumentsIndex())).append("WHERE ");
+      .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
     
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
       //new UnitaryClause("t0."+jobQueue.docPriorityField,">=",new Long(0L)),

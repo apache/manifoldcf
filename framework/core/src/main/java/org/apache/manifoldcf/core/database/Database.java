@@ -486,11 +486,13 @@ public abstract class Database
   /** Construct index hint clause.
   * On most databases this returns an empty string, but on MySQL this returns
   * a USE INDEX hint.  It requires the name of an index.
-  *@param indexName is the name of an index.
+  *@param tableName is the table the index is from.
+  *@param description is the description of an index, which is expected to exist.
   *@return the query chunk that should go between the table names and the WHERE
   * clause.
   */
-  public String constructIndexHintClause(String indexName)
+  public String constructIndexHintClause(String tableName, IndexDescription description)
+    throws ManifoldCFException
   {
     return "";
   }
