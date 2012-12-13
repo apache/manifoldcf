@@ -106,12 +106,23 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   // allowed; they must be mapped to the appropriate volume object before
   // being returned to the crawler.
 
+  // Metadata names for general metadata fields
+  protected final static String GENERAL_NAME_FIELD = "general_name";
+  protected final static String GENERAL_DESCRIPTION_FIELD = "general_description";
+  protected final static String GENERAL_CREATIONDATE_FIELD = "general_creationdate";
+  protected final static String GENERAL_MODIFYDATE_FIELD = "general_modifydate";
+  protected final static String GENERAL_OWNER = "general_owner";
+  protected final static String GENERAL_CREATOR = "general_creator";
+  protected final static String GENERAL_MODIFIER = "general_modifier";
+
   // Signal that we have set up a connection properly
   private boolean hasBeenSetup = false;
 
   // Data required for maintaining livelink connection
   private LAPI_DOCUMENTS LLDocs = null;
   private LAPI_ATTRIBUTES LLAttributes = null;
+  private LAPI_USERS LLUsers = null;
+  
   private LLSERVER llServer = null;
   private int LLENTWK_VOL;
   private int LLENTWK_ID;
@@ -214,6 +225,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         LLDocs = new LAPI_DOCUMENTS(llServer.getLLSession());
         LLAttributes = new LAPI_ATTRIBUTES(llServer.getLLSession());
+        LLUsers = new LAPI_USERS(llServer.getLLSession());
+        
         if (Logging.connectors.isDebugEnabled())
         {
           String passwordExists = (serverPassword!=null&&serverPassword.length()>0)?"password exists":"";
@@ -267,6 +280,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     // This should return server name
     return new String[]{serverName};
+  }
+
+  protected HttpHost getHost()
+  {
+    return new HttpHost(llServer.getHost(),ingestPortNumber,ingestProtocol);
   }
 
   protected void getSession()
@@ -498,7 +516,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       String ingestHttpAddress = ingestCgiPath;
 
       HttpClient client = getInitializedClient(contextMsg);
-      HttpGet method = new HttpGet(ingestHttpAddress);
+      HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
       try
       {
         int statusCode = executeMethodViaThread(client,method);
@@ -579,7 +597,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public void disconnect()
     throws ManifoldCFException
   {
-    llServer.disconnect();
+    if (llServer != null)
+      llServer.disconnect();
     hasBeenSetup = false;
     llServer = null;
     LLDocs = null;
@@ -658,29 +677,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(1)+"&objAction=download";
     else
       return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(colonPosition+1)+"&objAction=download";
-  }
-
-  /** Convert a document identifier to an object ID.  MUST be a simple document, not a folder or project.
-  *@param documentIdentifier is the document identifier.
-  *@return the object id, or -1 if documentIdentifier does not describe a document.
-  */
-  protected static int convertToObjectID(String documentIdentifier)
-    throws ManifoldCFException
-  {
-    if (!documentIdentifier.startsWith("D"))
-      return -1;
-    int colonPosition = documentIdentifier.indexOf(":",1);
-    try
-    {
-      if (colonPosition == -1)
-        return Integer.parseInt(documentIdentifier.substring(1));
-      else
-        return Integer.parseInt(documentIdentifier.substring(colonPosition+1));
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
-    }
   }
 
   /** Request arbitrary connector information.
@@ -811,10 +807,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-
+    LivelinkContext llc = new LivelinkContext();
+    
     // First, grab the root LLValue
-    LLValue rootValue = getObjectInfo(LLENTWK_VOL,LLENTWK_ID);
-    if (rootValue == null)
+    ObjectInformation rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
+    if (!rootValue.exists())
     {
       // If we get here, it HAS to be a bad network/transient problem.
       Logging.connectors.warn("Livelink: Could not look up root workspace object during seeding!  Retrying -");
@@ -833,7 +830,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // The id returned is simply the node path, which can't be messed up
         long beginTime = System.currentTimeMillis();
         String path = n.getAttributeValue("path");
-        VolumeAndId vaf = getPathId(rootValue,path);
+        VolumeAndId vaf = rootValue.getPathId(path);
         if (vaf != null)
         {
           activities.recordActivity(new Long(beginTime),ACTIVITY_SEED,null,
@@ -880,6 +877,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     getSession();
 
+    // Initialize a "livelink context", to minimize the number of objects we have to fetch
+    LivelinkContext llc = new LivelinkContext();
+    
     // First, process the spec to get the string we tack on
 
     // Read the forced acls.  A null return indicates that security is disabled!!!
@@ -895,7 +895,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
     String pathAttributeName = null;
     String pathSeparator = null;
-    HashMap holder = new HashMap();
+    Set<String> holder = new HashSet<String>();
     MatchMap matchMap = new MatchMap();
     boolean includeAllMetadata = false;
     int i = 0;
@@ -917,7 +917,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // Locate all metadata items for the specified category path,
           // and enter them into the array
-          String[] attrs = getCategoryAttributes(category);
+          String[] attrs = getCategoryAttributes(llc,category);
           if (attrs != null)
           {
             int j = 0;
@@ -925,14 +925,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             {
               attributeName = attrs[j++];
               String metadataName = packCategoryAttribute(category,attributeName);
-              holder.put(metadataName,metadataName);
+              holder.add(metadataName);
             }
           }
         }
         else
         {
           String metadataName = packCategoryAttribute(category,attributeName);
-          holder.put(metadataName,metadataName);
+          holder.add(metadataName);
         }
       }
       else if (n.getType().equals("pathnameattribute"))
@@ -962,10 +962,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       // Put into an array
       String[] sortArray = new String[holder.size()];
       i = 0;
-      Iterator iter = holder.keySet().iterator();
-      while (iter.hasNext())
+      for (String attrName : holder)
       {
-        sortArray[i++] = (String)iter.next();
+        sortArray[i++] = attrName;
       }
 
       // Sort!
@@ -974,7 +973,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       packList(metadataString,sortArray,'+');
     }
     else
-      catAccum = new CategoryPathAccumulator();
+      catAccum = new CategoryPathAccumulator(llc);
 
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
@@ -1018,14 +1017,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       rval[i] = null;
-      LLValue value = getObjectInfo(vol,objID);
-      if (value != null)
+      ObjectInformation value = llc.getObjectInformation(vol,objID);
+      if (value.exists())
       {
         // Make sure we have permission to see the object's contents
-        int permissions = value.toInteger("Permissions");
+        int permissions = value.getPermissions().intValue();
         if ((permissions & LAPI_DOCUMENTS.PERM_SEECONTENTS) != 0)
         {
-          Date dt = value.toDate("ModifyDate");
+          Date dt = value.getModifyDate();
           // The rights don't change when the object changes, so we have to include those too.
           int[] rights = getObjectRights(vol,objID);
           if (rights != null)
@@ -1078,7 +1077,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               // things that are
               // the equivalent of acls.
 
-              actualAcls = lookupTokens(rights, vol, objID);
+              actualAcls = lookupTokens(rights, value);
               java.util.Arrays.sort(actualAcls);
               // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
               // to be really really really sure.
@@ -1213,12 +1212,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     getSession();
 
+    // Initialize livelink context
+    LivelinkContext llc = new LivelinkContext();
+    
     // First, initialize the table of catid's.
     // Keeping this around will allow us to benefit from batching of documents.
-    MetadataDescription desc = new MetadataDescription();
+    MetadataDescription desc = new MetadataDescription(llc);
 
     // Build the node/path cache
-    SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
+    SystemMetadataDescription sDesc = new SystemMetadataDescription(llc,spec);
 
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -1354,13 +1356,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
-          if (checkIngest(objID,spec))
+          if (checkIngest(llc,objID,spec))
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
 
             // Grab the access tokens for this file from the version string, inside ingest method.
-            ingestFromLiveLink(documentIdentifiers[i],versions[i],activities,desc,sDesc);
+            ingestFromLiveLink(llc,documentIdentifiers[i],versions[i],activities,desc,sDesc);
           }
           else
           {
@@ -2170,12 +2172,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       catch (ManifoldCFException e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       out.print(
@@ -2665,12 +2667,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (ServiceInterruption e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       catch (ManifoldCFException e)
       {
-        e.printStackTrace();
+        //e.printStackTrace();
         out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
       }
       out.print(
@@ -3607,7 +3609,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getChildFolders(pathString);
+    return getChildFolders(new LivelinkContext(),pathString);
   }
 
 
@@ -3619,7 +3621,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getChildCategories(pathString);
+    return getChildCategories(new LivelinkContext(),pathString);
   }
 
   /** Given a category path, get a list of legal attribute names.
@@ -3630,9 +3632,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-
+    return getCategoryAttributes(new LivelinkContext(), pathString);
+  }
+  
+  protected String[] getCategoryAttributes(LivelinkContext llc, String pathString)
+    throws ManifoldCFException, ServiceInterruption
+  {
     // Start at root
-    RootValue rv = new RootValue(pathString);
+    RootValue rv = new RootValue(llc,pathString);
 
     // Get the object id of the category the path describes
     int catObjectID = getCategoryId(rv);
@@ -3678,7 +3685,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   * @param documentIdentifier is the document identifier (as far as the crawler knows).
   * @param activities is the process activity structure, so we can ingest
   */
-  protected void ingestFromLiveLink(String documentIdentifier, String version,
+  protected void ingestFromLiveLink(LivelinkContext llc,
+    String documentIdentifier, String version,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
     throws ManifoldCFException, ServiceInterruption
@@ -3704,9 +3712,52 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     RepositoryDocument rd = new RepositoryDocument();
 
+    int colonPos = documentIdentifier.indexOf(":",1);
+    
+    int objID;
+    int vol;
+
+    if (colonPos == -1)
+    {
+      objID = new Integer(documentIdentifier.substring(1)).intValue();
+      vol = LLENTWK_VOL;
+    }
+    else
+    {
+      objID = new Integer(documentIdentifier.substring(colonPos+1)).intValue();
+      vol = new Integer(documentIdentifier.substring(1,colonPos)).intValue();
+    }
+
+    // Add general metadata
+    ObjectInformation objInfo = llc.getObjectInformation(vol,objID);
+    VersionInformation versInfo = llc.getVersionInformation(vol,objID,0);
+    if (!objInfo.exists())
+    {
+      Logging.connectors.debug("Livelink: No object "+contextMsg+": not ingesting");
+      return;
+    }
+    if (!versInfo.exists())
+    {
+      Logging.connectors.debug("Livelink: No version data "+contextMsg+": not ingesting");
+      return;
+    }
+    
+    rd.addField(GENERAL_NAME_FIELD,objInfo.getName());
+    rd.addField(GENERAL_DESCRIPTION_FIELD,objInfo.getComments());
+    rd.addField(GENERAL_CREATIONDATE_FIELD,objInfo.getCreationDate().toString());
+    rd.addField(GENERAL_MODIFYDATE_FIELD,versInfo.getModifyDate().toString());
+    UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
+    UserInformation creator = llc.getUserInformation(objInfo.getCreatorId().intValue());
+    UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId().intValue());
+    if (owner != null)
+      rd.addField(GENERAL_OWNER,owner.getName());
+    if (creator != null)
+      rd.addField(GENERAL_CREATOR,creator.getName());
+    if (modifier != null)
+      rd.addField(GENERAL_MODIFIER,modifier.getName());
+
     // Iterate over the metadata items.  These are organized by category
     // for speed of lookup.
-    int objID = convertToObjectID(documentIdentifier);
 
     // Unpack version string
     int startPos = 0;
@@ -3798,7 +3849,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String resultDescription = null;
     Long readSize = null;
 
-    HttpGet method = new HttpGet(ingestHttpAddress);
+    HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
     ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
     methodThread.start();
     try
@@ -4018,7 +4069,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     long currentTime;
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("Livelink: Session authenticating via http "+contextMsg+"...");
-    HttpGet authget = new HttpGet(createLivelinkLoginURI());
+    HttpGet authget = new HttpGet(getHost().toURI() + createLivelinkLoginURI());
     try
     {
       if (Logging.connectors.isDebugEnabled())
@@ -4109,10 +4160,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
-  protected String[] getChildFolders(String pathString)
+  protected String[] getChildFolders(LivelinkContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
-    RootValue rv = new RootValue(pathString);
+    RootValue rv = new RootValue(llc,pathString);
 
     // Get the volume, object id of the folder/project the path describes
     VolumeAndId vid = getPathId(rv);
@@ -4173,11 +4224,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
-  protected String[] getChildCategories(String pathString)
+  protected String[] getChildCategories(LivelinkContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
     // Start at root
-    RootValue rv = new RootValue(pathString);
+    RootValue rv = new RootValue(llc,pathString);
 
     // Get the volume, object id of the folder/project the path describes
     VolumeAndId vid = getPathId(rv);
@@ -4705,6 +4756,825 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
+  /** Local cache for various kinds of objects that may be useful more than once.
+  */
+  protected class LivelinkContext
+  {
+    /** Cache of ObjectInformation objects. */
+    protected Map<ObjectInformation,ObjectInformation> objectInfoMap = new HashMap<ObjectInformation,ObjectInformation>();
+    /** Cache of VersionInformation objects. */
+    protected Map<VersionInformation,VersionInformation> versionInfoMap = new HashMap<VersionInformation,VersionInformation>();
+    /** Cache of UserInformation objects */
+    protected Map<UserInformation,UserInformation> userInfoMap = new HashMap<UserInformation,UserInformation>();
+    
+    public LivelinkContext()
+    {
+    }
+    
+    public ObjectInformation getObjectInformation(int volumeID, int objectID)
+    {
+      ObjectInformation oi = new ObjectInformation(volumeID,objectID);
+      ObjectInformation lookupValue = objectInfoMap.get(oi);
+      if (lookupValue == null)
+      {
+        objectInfoMap.put(oi,oi);
+        return oi;
+      }
+      return lookupValue;
+    }
+    
+    public VersionInformation getVersionInformation(int volumeID, int objectID, int revisionNumber)
+    {
+      VersionInformation vi = new VersionInformation(volumeID,objectID,revisionNumber);
+      VersionInformation lookupValue = versionInfoMap.get(vi);
+      if (lookupValue == null)
+      {
+        versionInfoMap.put(vi,vi);
+        return vi;
+      }
+      return lookupValue;
+    }
+    
+    public UserInformation getUserInformation(int userID)
+    {
+      UserInformation ui = new UserInformation(userID);
+      UserInformation lookupValue = userInfoMap.get(ui);
+      if (lookupValue == null)
+      {
+        userInfoMap.put(ui,ui);
+        return ui;
+      }
+      return lookupValue;
+    }
+  }
+
+  /** This object represents a cache of user information.
+  * Initialize it with the user ID.  Then, request desired fields from it.
+  */
+  protected class UserInformation
+  {
+    protected final int userID;
+    
+    protected LLValue userValue = null;
+    
+    public UserInformation(int userID)
+    {
+      this.userID = userID;
+    }
+    
+    public boolean exists()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      return getUserValue() != null;
+    }
+    
+    public String getName()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue userValue = getUserValue();
+      if (userValue == null)
+        return null;
+      return userValue.toString("NAME");
+    }
+      
+    protected LLValue getUserValue()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      if (userValue == null)
+      {
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          GetUserInfoThread t = new GetUserInfoThread(userID);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ServiceInterruption)
+                throw (ServiceInterruption)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+            userValue = t.getResponse();
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      return userValue;
+    }
+
+    @Override
+    public String toString()
+    {
+      return "("+userID+")";
+    }
+    
+    @Override
+    public int hashCode()
+    {
+      return (userID << 5) ^ (userID >> 3);
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof UserInformation))
+        return false;
+      UserInformation other = (UserInformation)o;
+      return userID == other.userID;
+    }
+
+  }
+  
+  /** This object represents a cache of version information.
+  * Initialize it with the volume ID and object ID and revision number (usually zero).
+  * Then, request the desired fields from it.
+  */
+  protected class VersionInformation
+  {
+    protected final int volumeID;
+    protected final int objectID;
+    protected final int revisionNumber;
+    
+    protected LLValue versionValue = null;
+    
+    public VersionInformation(int volumeID, int objectID, int revisionNumber)
+    {
+      this.volumeID = volumeID;
+      this.objectID = objectID;
+      this.revisionNumber = revisionNumber;
+    }
+    
+    public boolean exists()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      return getVersionValue() != null;
+    }
+    
+    /** Get modify date.
+    */
+    public Date getModifyDate()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return elem.toDate("MODIFYDATE"); 
+    }
+
+    /** Get modifier.
+    */
+    public Integer getOwnerId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("OWNER")); 
+    }
+
+    /** Get version LLValue */
+    protected LLValue getVersionValue()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      if (versionValue == null)
+      {
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          GetVersionInfoThread t = new GetVersionInfoThread(volumeID,objectID,revisionNumber);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ServiceInterruption)
+                throw (ServiceInterruption)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+            versionValue = t.getResponse();
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      return versionValue;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+      return (volumeID << 5) ^ (volumeID >> 3) ^ (objectID << 5) ^ (objectID >> 3) ^ (revisionNumber << 5) ^ (revisionNumber >> 3);
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof VersionInformation))
+        return false;
+      VersionInformation other = (VersionInformation)o;
+      return volumeID == other.volumeID && objectID == other.objectID && revisionNumber == other.revisionNumber;
+    }
+
+  }
+  
+  /** This object represents an object information cache.
+  * Initialize it with the volume ID and object ID, and then request
+  * the appropriate fields from it.  Keep it around as long as needed; it functions as a cache
+  * of sorts...
+  */
+  protected class ObjectInformation
+  {
+    protected final int volumeID;
+    protected final int objectID;
+    
+    protected LLValue objectValue = null;
+    
+    public ObjectInformation(int volumeID, int objectID)
+    {
+      this.volumeID = volumeID;
+      this.objectID = objectID;
+    }
+
+    /**
+    * Check whether object seems to exist or not.
+    */
+    public boolean exists()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      return getObjectValue() != null;
+    }
+
+    /** Check if this object is the category workspace.
+    */
+    public boolean isCategoryWorkspace()
+    {
+      return objectID == LLCATWK_ID;
+    }
+    
+    /** Check if this object is the entity workspace.
+    */
+    public boolean isEntityWorkspace()
+    {
+      return objectID == LLENTWK_ID;
+    }
+    
+    /** toString override */
+    @Override
+    public String toString()
+    {
+      return "(Volume: "+volumeID+", Object: "+objectID+")";
+    }
+    
+
+    /**
+    * Returns the object ID specified by the path name.
+    * @param startPath is the folder name (a string with dots as separators)
+    */
+    public VolumeAndId getPathId(String startPath)
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue objInfo = getObjectValue();
+      if (objInfo == null)
+        return null;
+
+      // Grab the volume ID and starting object
+      int obj = objInfo.toInteger("ID");
+      int vol = objInfo.toInteger("VolumeID");
+
+      // Pick apart the start path.  This is a string separated by slashes.
+      int charindex = 0;
+      while (charindex < startPath.length())
+      {
+        StringBuilder currentTokenBuffer = new StringBuilder();
+        // Find the current token
+        while (charindex < startPath.length())
+        {
+          char x = startPath.charAt(charindex++);
+          if (x == '/')
+            break;
+          if (x == '\\')
+          {
+            // Attempt to escape what follows
+            x = startPath.charAt(charindex);
+            charindex++;
+          }
+          currentTokenBuffer.append(x);
+        }
+
+        String subFolder = currentTokenBuffer.toString();
+        // We want only folders that are children of the current object and which match the specified subfolder
+        String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
+          " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ") and Name='" + subFolder + "'";
+
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+
+            LLValue children = t.getResponse();
+            if (children == null)
+              return null;
+
+            // If there is one child, then we are okay.
+            if (children.size() == 1)
+            {
+              // New starting point is the one we found.
+              obj = children.toInteger(0, "ID");
+              int subtype = children.toInteger(0, "SubType");
+              if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+              {
+                vol = obj;
+                obj = -obj;
+              }
+            }
+            else
+            {
+              // Couldn't find the path.  Instead of throwing up, return null to indicate
+              // illegal node.
+              return null;
+            }
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+
+          }
+        }
+
+      }
+      return new VolumeAndId(vol,obj);
+    }
+
+    /**
+    * Returns the category ID specified by the path name.
+    * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
+    */
+    public int getCategoryId(String startPath)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      LLValue objInfo = getObjectValue();
+      if (objInfo == null)
+        return -1;
+
+      // Grab the volume ID and starting object
+      int obj = objInfo.toInteger("ID");
+      int vol = objInfo.toInteger("VolumeID");
+
+      // Pick apart the start path.  This is a string separated by slashes.
+      if (startPath.length() == 0)
+        return -1;
+
+      int charindex = 0;
+      while (charindex < startPath.length())
+      {
+        StringBuilder currentTokenBuffer = new StringBuilder();
+        // Find the current token
+        while (charindex < startPath.length())
+        {
+          char x = startPath.charAt(charindex++);
+          if (x == '/')
+            break;
+          if (x == '\\')
+          {
+            // Attempt to escape what follows
+            x = startPath.charAt(charindex);
+            charindex++;
+          }
+          currentTokenBuffer.append(x);
+        }
+        String subFolder = currentTokenBuffer.toString();
+        String filterString;
+
+        // We want only folders that are children of the current object and which match the specified subfolder
+        if (charindex < startPath.length())
+          filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
+          " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ")";
+        else
+          filterString = "SubType="+LAPI_DOCUMENTS.CATEGORYSUBTYPE;
+
+        filterString += " and Name='" + subFolder + "'";
+
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+
+            LLValue children = t.getResponse();
+            if (children == null)
+              return -1;
+
+            // If there is one child, then we are okay.
+            if (children.size() == 1)
+            {
+              // New starting point is the one we found.
+              obj = children.toInteger(0, "ID");
+              int subtype = children.toInteger(0, "SubType");
+              if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+              {
+                vol = obj;
+                obj = -obj;
+              }
+            }
+            else
+            {
+              // Couldn't find the path.  Instead of throwing up, return null to indicate
+              // illegal node.
+              return -1;
+            }
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      return obj;
+    }
+
+    /** Get permissions.
+    */
+    public Integer getPermissions()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(objectValue.toInteger("Permissions"));
+    }
+    
+    /** Get OpenText document name.
+    */
+    public String getName()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toString("NAME"); 
+    }
+
+    /** Get OpenText comments/description.
+    */
+    public String getComments()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toString("COMMENT"); 
+    }
+
+    /** Get parent ID.
+    */
+    public Integer getParentId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("ParentId")); 
+    }
+
+    /** Get owner ID.
+    */
+    public Integer getOwnerId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("UserId")); 
+    }
+
+    /** Get group ID.
+    */
+    public Integer getGroupId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("GroupId")); 
+    }
+    
+    /** Get creation date.
+    */
+    public Date getCreationDate()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toDate("CREATEDATE"); 
+    }
+    
+    /** Get creator ID.
+    */
+    public Integer getCreatorId()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("CREATEDBY")); 
+    }
+
+    /* Get modify date.
+    */
+    public Date getModifyDate()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return elem.toDate("ModifyDate"); 
+    }
+
+    /** Get the objInfo object.
+    */
+    protected LLValue getObjectValue()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      if (objectValue == null)
+      {
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          GetObjectInfoThread t = new GetObjectInfoThread(volumeID,objectID);
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ServiceInterruption)
+                throw (ServiceInterruption)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+            objectValue = t.getResponse();
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      return objectValue;
+    }
+    
+    @Override
+    public int hashCode()
+    {
+      return (volumeID << 5) ^ (volumeID >> 3) ^ (objectID << 5) ^ (objectID >> 3);
+    }
+    
+    @Override
+    public boolean equals(Object o)
+    {
+      if (!(o instanceof ObjectInformation))
+        return false;
+      ObjectInformation other = (ObjectInformation)o;
+      return volumeID == other.volumeID && objectID == other.objectID;
+    }
+  }
+
+  
+  /** Thread we can abandon that gets user information for a userID.
+  */
+  protected class GetUserInfoThread extends Thread
+  {
+    protected final int user;
+    protected Throwable exception = null;
+    protected LLValue rval = null;
+
+    public GetUserInfoThread(int user)
+    {
+      super();
+      setDaemon(true);
+      this.user = user;
+    }
+
+    public void run()
+    {
+      try
+      {
+        LLValue userinfo = new LLValue().setAssoc();
+        int status = LLUsers.GetUserByID(user,userinfo);
+
+        // Need to detect if object was deleted, and return null in this case!!!
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Livelink: User status retrieved for "+Integer.toString(user)+": status="+Integer.toString(status));
+        }
+
+        // Treat both 103101 and 103102 as 'object not found'.
+        if (status == 103101 || status == 103102)
+          return;
+
+        // This error means we don't have permission to get the object's status, apparently
+        if (status < 0)
+        {
+          Logging.connectors.debug("Livelink: User info inaccessable for user "+Integer.toString(user)+
+            " ("+llServer.getErrors()+")");
+          return;
+        }
+
+        if (status != 0)
+        {
+          throw new ManifoldCFException("Error retrieving user "+Integer.toString(user)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+        }
+        rval = userinfo;
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+    public LLValue getResponse()
+    {
+      return rval;
+    }
+  }
+
+  /** Thread we can abandon that gets version information for a volume and an id and a revision.
+  */
+  protected class GetVersionInfoThread extends Thread
+  {
+    protected final int vol;
+    protected final int id;
+    protected final int revNumber;
+    protected Throwable exception = null;
+    protected LLValue rval = null;
+
+    public GetVersionInfoThread(int vol, int id, int revNumber)
+    {
+      super();
+      setDaemon(true);
+      this.vol = vol;
+      this.id = id;
+      this.revNumber = revNumber;
+    }
+
+    public void run()
+    {
+      try
+      {
+        LLValue versioninfo = new LLValue().setAssocNotSet();
+        int status = LLDocs.GetVersionInfo(vol,id,revNumber,versioninfo);
+
+        // Need to detect if object was deleted, and return null in this case!!!
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Livelink: Version status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status));
+        }
+
+        // Treat both 103101 and 103102 as 'object not found'.
+        if (status == 103101 || status == 103102)
+          return;
+
+        // This error means we don't have permission to get the object's status, apparently
+        if (status < 0)
+        {
+          Logging.connectors.debug("Livelink: Version info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+
+            " ("+llServer.getErrors()+")");
+          return;
+        }
+
+        if (status != 0)
+        {
+          throw new ManifoldCFException("Error retrieving document version "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+        }
+        rval = versioninfo;
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+    public LLValue getResponse()
+    {
+      return rval;
+    }
+  }
+
+  /** Thread we can abandon that gets object information for a volume and an id.
+  */
   protected class GetObjectInfoThread extends Thread
   {
     protected int vol;
@@ -4768,58 +5638,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
-  /**
-  * Returns an Assoc value object containing information
-  * about the specified object.
-  * @param vol is the volume id (which comes from the project)
-  * @param id the object ID
-  * @return LLValue the LAPI value object, or null if object has been deleted (or doesn't exist)
-  */
-  protected LLValue getObjectInfo(int vol, int id)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
-    {
-      GetObjectInfoThread t = new GetObjectInfoThread(vol,id);
-      try
-      {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else if (thr instanceof ServiceInterruption)
-            throw (ServiceInterruption)thr;
-          else if (thr instanceof ManifoldCFException)
-          {
-            sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-            continue;
-          }
-          else
-            throw (Error)thr;
-        }
-        return t.getResponse();
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
-    }
-  }
-
   /** Build a set of actual acls given a set of rights */
-  protected String[] lookupTokens(int[] rights, int vol, int objID)
+  protected String[] lookupTokens(int[] rights, ObjectInformation objInfo)
     throws ManifoldCFException, ServiceInterruption
   {
+    if (!objInfo.exists())
+      return null;
+    
     String[] convertedAcls = new String[rights.length];
 
     LLValue infoObject = null;
@@ -4834,29 +5659,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
       case LAPI_DOCUMENTS.RIGHT_OWNER:
         // Look up user for current document (UserID attribute)
-        if (infoObject == null)
-        {
-          infoObject = getObjectInfo(vol, objID);
-          if (infoObject == null)
-          {
-            tokenValue = null;
-            break;
-          }
-        }
-        tokenValue = Integer.toString(infoObject.toInteger("UserID"));
+        tokenValue = objInfo.getOwnerId().toString();
         break;
       case LAPI_DOCUMENTS.RIGHT_GROUP:
-        // Look up group for current document (GroupID attribute)
-        if (infoObject == null)
-        {
-          infoObject = getObjectInfo(vol, objID);
-          if (infoObject == null)
-          {
-            tokenValue = null;
-            break;
-          }
-        }
-        tokenValue = Integer.toString(infoObject.toInteger("GroupID"));
+        tokenValue = objInfo.getGroupId().toString();
         break;
       case LAPI_DOCUMENTS.RIGHT_WORLD:
         // Add "Guest" token
@@ -4886,54 +5692,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     return actualAcls;
   }
 
-  /** Get an object's standard path, given its ID.
-  */
-  protected String getObjectPath(int id)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    int objectId = id;
-    String path = null;
-    while (true)
-    {
-      // Load the object. I'm told I can use zero for a volume ID safely.
-      LLValue x = getObjectInfo(0,objectId);
-      if (x == null)
-      {
-        // The document identifier describes a path that does not exist.
-        // This is unexpected, but an exception would terminate the job, and we don't want that.
-        Logging.connectors.warn("Livelink: Bad identifier found? "+Integer.toString(id)+" apparently does not exist, but need to look up its path");
-        return null;
-      }
-
-      if (objectId == LLCATWK_ID)
-        return CATEGORY_NAME + ":" + path;
-      else if (objectId == LLENTWK_ID)
-        return ENTWKSPACE_NAME + ":" + path;
-
-      // Get the name attribute
-      String name = x.toString("Name");
-      if (path == null)
-        path = name;
-      else
-        path = name + "/" + path;
-
-      // Get the parentID attribute
-      int parentID = x.toInteger("ParentID");
-      if (parentID == -1)
-      {
-        // Oops, hit the top of the path without finding the workspace we're in.
-        // No idea where it lives; note this condition and exit.
-        Logging.connectors.warn("Livelink: Object ID "+Integer.toString(id)+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
-        return null;
-      }
-      objectId = parentID;
-    }
-  }
-
   protected class GetObjectCategoryIDsThread extends Thread
   {
-    protected int vol;
-    protected int id;
+    protected final int vol;
+    protected final int id;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
@@ -5083,107 +5845,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected VolumeAndId getPathId(RootValue rv)
     throws ManifoldCFException, ServiceInterruption
   {
-    return getPathId(rv.getRootValue(),rv.getRemainderPath());
-  }
-
-  /**
-  * Returns the object ID specified by the path name.
-  * @param objInfo a value object containing information about root folder (or workspace) above the specified object
-  * @param startPath is the folder name (a string with dots as separators)
-  */
-  protected VolumeAndId getPathId(LLValue objInfo, String startPath)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    // Grab the volume ID and starting object
-    int obj = objInfo.toInteger("ID");
-    int vol = objInfo.toInteger("VolumeID");
-
-    // Pick apart the start path.  This is a string separated by slashes.
-    int charindex = 0;
-    while (charindex < startPath.length())
-    {
-      StringBuilder currentTokenBuffer = new StringBuilder();
-      // Find the current token
-      while (charindex < startPath.length())
-      {
-        char x = startPath.charAt(charindex++);
-        if (x == '/')
-          break;
-        if (x == '\\')
-        {
-          // Attempt to escape what follows
-          x = startPath.charAt(charindex);
-          charindex++;
-        }
-        currentTokenBuffer.append(x);
-      }
-
-      String subFolder = currentTokenBuffer.toString();
-      // We want only folders that are children of the current object and which match the specified subfolder
-      String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
-        " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ") and Name='" + subFolder + "'";
-
-      int sanityRetryCount = FAILURE_RETRY_COUNT;
-      while (true)
-      {
-        ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
-        try
-        {
-          t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else if (thr instanceof ManifoldCFException)
-            {
-              sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-              continue;
-            }
-            else
-              throw (Error)thr;
-          }
-
-          LLValue children = t.getResponse();
-          if (children == null)
-            return null;
-
-          // If there is one child, then we are okay.
-          if (children.size() == 1)
-          {
-            // New starting point is the one we found.
-            obj = children.toInteger(0, "ID");
-            int subtype = children.toInteger(0, "SubType");
-            if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
-            {
-              vol = obj;
-              obj = -obj;
-            }
-          }
-          else
-          {
-            // Couldn't find the path.  Instead of throwing up, return null to indicate
-            // illegal node.
-            return null;
-          }
-          break;
-        }
-        catch (InterruptedException e)
-        {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (RuntimeException e)
-        {
-          sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
-          continue;
-
-        }
-      }
-
-    }
-    return new VolumeAndId(vol,obj);
+    return rv.getRootValue().getPathId(rv.getRemainderPath());
   }
 
   /** Rootvalue version of getCategoryId.
@@ -5191,114 +5853,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected int getCategoryId(RootValue rv)
     throws ManifoldCFException, ServiceInterruption
   {
-    return getCategoryId(rv.getRootValue(),rv.getRemainderPath());
-  }
-
-  /**
-  * Returns the category ID specified by the path name.
-  * @param objInfo a value object containing information about root folder (or workspace) above the specified object
-  * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
-  */
-  protected int getCategoryId(LLValue objInfo, String startPath)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    // Grab the volume ID and starting object
-    int obj = objInfo.toInteger("ID");
-    int vol = objInfo.toInteger("VolumeID");
-
-    // Pick apart the start path.  This is a string separated by slashes.
-    if (startPath.length() == 0)
-      return -1;
-
-    int charindex = 0;
-    while (charindex < startPath.length())
-    {
-      StringBuilder currentTokenBuffer = new StringBuilder();
-      // Find the current token
-      while (charindex < startPath.length())
-      {
-        char x = startPath.charAt(charindex++);
-        if (x == '/')
-          break;
-        if (x == '\\')
-        {
-          // Attempt to escape what follows
-          x = startPath.charAt(charindex);
-          charindex++;
-        }
-        currentTokenBuffer.append(x);
-      }
-      String subFolder = currentTokenBuffer.toString();
-      String filterString;
-
-      // We want only folders that are children of the current object and which match the specified subfolder
-      if (charindex < startPath.length())
-        filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
-        " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ")";
-      else
-        filterString = "SubType="+LAPI_DOCUMENTS.CATEGORYSUBTYPE;
-
-      filterString += " and Name='" + subFolder + "'";
-
-      int sanityRetryCount = FAILURE_RETRY_COUNT;
-      while (true)
-      {
-        ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
-        try
-        {
-          t.start();
-          t.join();
-          Throwable thr = t.getException();
-          if (thr != null)
-          {
-            if (thr instanceof RuntimeException)
-              throw (RuntimeException)thr;
-            else if (thr instanceof ManifoldCFException)
-            {
-              sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
-              continue;
-            }
-            else
-              throw (Error)thr;
-          }
-
-          LLValue children = t.getResponse();
-          if (children == null)
-            return -1;
-
-          // If there is one child, then we are okay.
-          if (children.size() == 1)
-          {
-            // New starting point is the one we found.
-            obj = children.toInteger(0, "ID");
-            int subtype = children.toInteger(0, "SubType");
-            if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
-            {
-              vol = obj;
-              obj = -obj;
-            }
-          }
-          else
-          {
-            // Couldn't find the path.  Instead of throwing up, return null to indicate
-            // illegal node.
-            return -1;
-          }
-          break;
-        }
-        catch (InterruptedException e)
-        {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (RuntimeException e)
-        {
-          sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
-          continue;
-        }
-      }
-    }
-    return obj;
+    return rv.getRootValue().getCategoryId(rv.getRemainderPath());
   }
 
   // Protected static methods
@@ -5441,7 +5996,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param objID is the file ID.
   *@param documentSpecification is the specification.
   */
-  protected boolean checkIngest(int objID, DocumentSpecification documentSpecification)
+  protected boolean checkIngest(LivelinkContext llc, int objID, DocumentSpecification documentSpecification)
     throws ManifoldCFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
@@ -5626,6 +6181,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class SystemMetadataDescription
   {
+    // The livelink context
+    protected final LivelinkContext llc;
+    
     // The path attribute name
     protected String pathAttributeName;
 
@@ -5639,9 +6197,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected MatchMap matchMap = new MatchMap();
 
     /** Constructor */
-    public SystemMetadataDescription(DocumentSpecification spec)
+    public SystemMetadataDescription(LivelinkContext llc, DocumentSpecification spec)
       throws ManifoldCFException
     {
+      this.llc = llc;
       pathAttributeName = null;
       pathSeparator = null;
       int i = 0;
@@ -5725,9 +6284,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
         }
 
-        // Load the object
-        LLValue x = getObjectInfo(volumeID,objectID);
-        if (x == null)
+        ObjectInformation objInfo = llc.getObjectInformation(volumeID,objectID);
+        if (!objInfo.exists())
         {
           // The document identifier describes a path that does not exist.
           // This is unexpected, but don't die: just log a warning and allow the higher level to deal with it.
@@ -5736,9 +6294,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
 
         // Get the name attribute
-        String name = x.toString("Name");
+        String name = objInfo.getName();
         // Get the parentID attribute
-        int parentID = x.toInteger("ParentID");
+        int parentID = objInfo.getParentId().intValue();
         if (parentID == -1)
           path = name;
         else
@@ -5765,13 +6323,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class MetadataDescription
   {
+    protected final LivelinkContext llc;
+    
     // This is a map of category name to category ID and attributes
     protected Map categoryMap = new HashMap();
 
     /** Constructor.
     */
-    public MetadataDescription()
+    public MetadataDescription(LivelinkContext llc)
     {
+      this.llc = llc;
     }
 
     /** Iterate over the metadata items represented by the specified chunk of version string.
@@ -5785,7 +6346,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       HashMap newMap = new HashMap();
 
       // Start at root
-      LLValue rootValue = null;
+      ObjectInformation rootValue = null;
 
       // Walk through string and process each metadata element in turn.
       int i = 0;
@@ -5807,7 +6368,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           MetadataPathItem item = (MetadataPathItem)categoryMap.get(category);
           if (item == null)
           {
-            RootValue rv = new RootValue(category);
+            RootValue rv = new RootValue(llc,category);
             if (rootValue == null)
             {
               rootValue = rv.getRootValue();
@@ -5816,7 +6377,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             // Get the object id of the category the path describes.
             // NOTE: We don't use the RootValue version of getCategoryId because
             // we want to use the cached value of rootValue, if it was around.
-            int catObjectID = getCategoryId(rootValue,rv.getRemainderPath());
+            int catObjectID = rootValue.getCategoryId(rv.getRemainderPath());
             if (catObjectID != -1)
             {
               item = new MetadataPathItem(catObjectID,rv.getRemainderPath());
@@ -5842,6 +6403,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class CategoryPathAccumulator
   {
+    // Livelink context
+    protected final LivelinkContext llc;
+    
     // This is the map from category ID to category path name.
     // It's keyed by an Integer formed from the id, and has String values.
     protected HashMap categoryPathMap = new HashMap();
@@ -5851,8 +6415,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected HashMap attributeMap = new HashMap();
 
     /** Constructor */
-    public CategoryPathAccumulator()
+    public CategoryPathAccumulator(LivelinkContext llc)
     {
+      this.llc = llc;
     }
 
     /** Get a specified set of packed category paths with attribute names, given the category identifiers */
@@ -5906,7 +6471,48 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected String findPath(int catID)
       throws ManifoldCFException, ServiceInterruption
     {
-      return getObjectPath(catID);
+      return getObjectPath(llc.getObjectInformation(0,catID));
+    }
+
+    /** Get the complete path for an object.
+    */
+    protected String getObjectPath(ObjectInformation currentObject)
+      throws ManifoldCFException, ServiceInterruption
+    {
+      String path = null;
+      while (true)
+      {
+        if (currentObject.isCategoryWorkspace())
+          return CATEGORY_NAME + ((path==null)?"":":" + path);
+        else if (currentObject.isEntityWorkspace())
+          return ENTWKSPACE_NAME + ((path==null)?"":":" + path);
+
+        if (!currentObject.exists())
+        {
+          // The document identifier describes a path that does not exist.
+          // This is unexpected, but an exception would terminate the job, and we don't want that.
+          Logging.connectors.warn("Livelink: Bad identifier found? "+currentObject.toString()+" apparently does not exist, but need to look up its path");
+          return null;
+        }
+
+        // Get the name attribute
+        String name = currentObject.getName();
+        if (path == null)
+          path = name;
+        else
+          path = name + "/" + path;
+
+        // Get the parentID attribute
+        int parentID = currentObject.getParentId().intValue();
+        if (parentID == -1)
+        {
+          // Oops, hit the top of the path without finding the workspace we're in.
+          // No idea where it lives; note this condition and exit.
+          Logging.connectors.warn("Livelink: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
+          return null;
+        }
+        currentObject = llc.getObjectInformation(0,parentID);
+      }
     }
 
     /** Find a set of attributes given a category ID */
@@ -5925,15 +6531,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class RootValue
   {
+    protected final LivelinkContext llc;
     protected String workspaceName;
-    protected LLValue rootValue = null;
+    protected ObjectInformation rootValue = null;
     protected String remainderPath;
 
     /** Constructor.
     *@param pathString is the path string.
     */
-    public RootValue(String pathString)
+    public RootValue(LivelinkContext llc, String pathString)
     {
+      this.llc = llc;
       int colonPos = pathString.indexOf(":");
       if (colonPos == -1)
       {
@@ -5958,24 +6566,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Get the root node.
     *@return the root node.
     */
-    public LLValue getRootValue()
+    public ObjectInformation getRootValue()
       throws ManifoldCFException, ServiceInterruption
     {
       if (rootValue == null)
       {
         if (workspaceName.equals(CATEGORY_NAME))
-          rootValue = getObjectInfo(LLCATWK_VOL,LLCATWK_ID);
+          rootValue = llc.getObjectInformation(LLCATWK_VOL,LLCATWK_ID);
         else if (workspaceName.equals(ENTWKSPACE_NAME))
-          rootValue = getObjectInfo(LLENTWK_VOL,LLENTWK_ID);
+          rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
         else
           throw new ManifoldCFException("Bad workspace name: "+workspaceName);
-        if (rootValue == null)
-        {
-          Logging.connectors.warn("Livelink: Could not get workspace/volume ID!  Retrying...");
-          // This cannot mean a real failure; it MUST mean that we have had an intermittent communication hiccup.  So, pass it off as a service interruption.
-          throw new ServiceInterruption("Service interruption getting root value",new ManifoldCFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
-            System.currentTimeMillis()+600000L,-1,true);
-        }
+      }
+      
+      if (!rootValue.exists())
+      {
+        Logging.connectors.warn("Livelink: Could not get workspace/volume ID!  Retrying...");
+        // This cannot mean a real failure; it MUST mean that we have had an intermittent communication hiccup.  So, pass it off as a service interruption.
+        throw new ServiceInterruption("Service interruption getting root value",new ManifoldCFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
+          System.currentTimeMillis()+600000L,-1,true);
       }
 
       return rootValue;

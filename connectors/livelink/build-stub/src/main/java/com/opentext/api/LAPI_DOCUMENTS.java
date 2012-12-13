@@ -47,6 +47,11 @@ public class LAPI_DOCUMENTS
   {
     return 0;
   }
+
+  public int GetVersionInfo(int vol, int id, int revNumber, LLValue objinfo)
+  {
+    return 0;
+  }
   
   public int GetObjectRights(int vol, int objID, LLValue objinfo)
   {
