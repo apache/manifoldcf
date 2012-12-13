@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-587: Manual startup did not properly set lastchecktime.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-578: Refactor Livelink connector, and add support for
 general metadata.
 (David Morana, Karl Wright)
