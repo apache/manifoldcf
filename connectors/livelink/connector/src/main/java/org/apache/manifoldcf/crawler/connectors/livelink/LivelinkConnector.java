@@ -602,7 +602,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public void disconnect()
     throws ManifoldCFException
   {
-    llServer.disconnect();
+    if (llServer != null)
+      llServer.disconnect();
     hasBeenSetup = false;
     llServer = null;
     LLDocs = null;
