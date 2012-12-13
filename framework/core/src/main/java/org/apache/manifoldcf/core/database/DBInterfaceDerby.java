@@ -84,6 +84,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   static
   {
     System.setProperty("derby.locks.waitTimeout","-1");
+    // Detect deadlocks immediately
+    System.setProperty("derby.locks.deadlockTimeout","0");
   }
   
   protected static String getFullDatabasePath(String databaseName)
