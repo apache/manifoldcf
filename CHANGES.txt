@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-543: Add testing infrastructure for combined war.
+(Karl Wright)
+
 CONNECTORS-587: Manual startup did not properly set lastchecktime.
 (Maciej Li¿ewski, Karl Wright)
 

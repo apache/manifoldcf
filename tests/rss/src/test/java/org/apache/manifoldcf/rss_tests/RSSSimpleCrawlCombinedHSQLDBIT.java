@@ -18,46 +18,45 @@
 */
 package org.apache.manifoldcf.rss_tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
+/** This is a very basic sanity check */
+public class RSSSimpleCrawlCombinedHSQLDBIT extends BaseHSQLDB
 {
-  public BaseHSQLDB()
-  {
-    super();
-  }
+
+  protected RSSSimpleCrawlTester tester;
+  protected MockRSSService rssService = null;
   
-  public BaseHSQLDB(boolean singleWar)
+  public RSSSimpleCrawlCombinedHSQLDBIT()
   {
     super(true);
+    tester = new RSSSimpleCrawlTester(mcfInstance);
   }
   
-  protected String[] getConnectorNames()
+  // Setup and teardown the mock wiki service
+  
+  @Before
+  public void createRSSService()
+    throws Exception
   {
-    return new String[]{"File Connector"};
+    rssService = new MockRSSService(10);
+    rssService.start();
   }
   
-  protected String[] getConnectorClasses()
+  @After
+  public void shutdownRSSService()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.rss.RSSConnector"};
+    if (rssService != null)
+      rssService.stop();
   }
-  
-  protected String[] getOutputNames()
+
+  @Test
+  public void simpleCrawl()
+    throws Exception
   {
-    return new String[]{"Null Output"};
+    tester.executeTest();
   }
-  
-  protected String[] getOutputClasses()
-  {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
-  }
-  
 }
