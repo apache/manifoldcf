@@ -18,45 +18,40 @@
 */
 package org.apache.manifoldcf.filesystem_tests;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.crawler.interfaces.*;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** Tests that run the "agents daemon" should be derived from this */
-public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
+/** This is a very basic sanity check */
+public class APISanityCombinedHSQLDBIT extends BaseHSQLDB
 {
-  public BaseHSQLDB()
+  protected APISanityTester tester;
+  
+  public APISanityCombinedHSQLDBIT()
   {
-    super();
+    super(true);
+    tester = new APISanityTester(mcfInstance);
   }
   
-  public BaseHSQLDB(boolean singleWar)
+  @Before
+  public void setupTester()
+    throws Exception
   {
-    super(singleWar);
-  }
-
-  protected String[] getConnectorNames()
-  {
-    return new String[]{"File Connector"};
+    tester.setupTestArea();
   }
   
-  protected String[] getConnectorClasses()
+  @After
+  public void teardownTester()
+    throws Exception
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    tester.teardownTestArea();
   }
   
-  protected String[] getOutputNames()
+  @Test
+  public void sanityCheck()
+    throws Exception
   {
-    return new String[]{"Null Output"};
+    tester.executeTest();
   }
   
-  protected String[] getOutputClasses()
-  {
-    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
-  }
 }

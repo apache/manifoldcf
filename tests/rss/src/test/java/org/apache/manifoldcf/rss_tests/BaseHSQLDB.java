@@ -37,7 +37,7 @@ public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
   
   public BaseHSQLDB(boolean singleWar)
   {
-    super(true);
+    super(singleWar);
   }
   
   protected String[] getConnectorNames()
