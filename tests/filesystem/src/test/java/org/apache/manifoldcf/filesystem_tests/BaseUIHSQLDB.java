@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.tests;
+package org.apache.manifoldcf.filesystem_tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -27,39 +27,37 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-import org.apache.manifoldcf.core.tests.HTMLTester;
-
 /** Tests that run the "agents daemon" should be derived from this */
-public class ConnectorBaseUIDerby extends BaseITDerby
+public class BaseUIHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIHSQLDB
 {
-  protected HTMLTester testerInstance = null;
-
-  public ConnectorBaseUIDerby()
+  public BaseUIHSQLDB()
   {
     super();
   }
   
-  public ConnectorBaseUIDerby(boolean singleWar)
+  public BaseUIHSQLDB(boolean singleWar)
   {
     super(singleWar);
   }
 
-  @Before
-  public void setupHTMLTester()
-    throws Exception
+  protected String[] getConnectorNames()
   {
-    testerInstance = new HTMLTester();
-    testerInstance.setup();
+    return new String[]{"File Connector"};
   }
   
-  @After
-  public void teardownHTMLTester()
-    throws Exception
+  protected String[] getConnectorClasses()
   {
-    if (testerInstance != null)
-    {
-      testerInstance.teardown();
-      testerInstance = null;
-    }
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
   }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"Null Output"};
+  }
+  
+  protected String[] getOutputClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+  }
+
 }

@@ -34,6 +34,16 @@ public class ConnectorBaseUIHSQLDB extends BaseITHSQLDB
 {
   protected HTMLTester testerInstance = null;
   
+  public ConnectorBaseUIHSQLDB()
+  {
+    super();
+  }
+  
+  public ConnectorBaseUIHSQLDB(boolean singleWar)
+  {
+    super(singleWar);
+  }
+
   @Before
   public void setupHTMLTester()
     throws Exception

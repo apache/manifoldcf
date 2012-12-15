@@ -2431,6 +2431,10 @@
         <ant dir="tests/filesystem" target="run-HSQLDB"/>
     </target>
 
+    <target name="run-filesystem-UI-tests-HSQLDB" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
+        <ant dir="tests/filesystem" target="run-UI-HSQLDB"/>
+    </target>
+
     <target name="run-filesystem-loadtests-HSQLDB" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <ant dir="tests/filesystem" target="run-load-HSQLDB"/>
     </target>
@@ -2672,7 +2676,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-filesystem-UI-tests-HSQLDB,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
