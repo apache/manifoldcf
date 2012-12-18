@@ -4500,7 +4500,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   protected class FeedItemContextClass extends XMLContext
   {
     protected int dechromedContentMode;
-    protected String linkField = null;
+    protected List<String> linkField = new ArrayList<String>();
     protected String pubDateField = null;
     protected String titleField = null;
     protected ArrayList categoryField = new ArrayList();
@@ -4520,7 +4520,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       if (qName.equals("link"))
       {
         // "link" tag
-        linkField = atts.getValue("href");
+        String ref = atts.getValue("href");
+        if (ref != null && ref.length() > 0)
+          linkField.add(ref);
         return super.beginTag(namespaceURI,localName,qName,atts);
       }
       else if (qName.equals("published") || qName.equals("updated"))
@@ -4675,100 +4677,103 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
       throws ManifoldCFException
     {
-      if (linkField != null && linkField.length() > 0)
+      if (linkField.size() > 0)
       {
         Long origDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
           origDate = parseZuluDate(pubDateField);
 
-        String[] links = linkField.split(", ");
-        int l = 0;
-        while (l < links.length)
+        for (String linkValue : linkField)
         {
-          String rawURL = links[l++].trim();
-          // Process the link
-          String newIdentifier = makeDocumentIdentifier(filter.getCanonicalizationPolicies(),documentIdentifier,rawURL);
-          if (newIdentifier != null)
+          String[] links = linkValue.split(", ");
+          int l = 0;
+          while (l < links.length)
           {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found a link to '"+newIdentifier+"', which has origination date "+
-              ((origDate==null)?"null":origDate.toString()));
-            if (filter.isLegalURL(newIdentifier))
+            String rawURL = links[l++].trim();
+            // Process the link
+            String newIdentifier = makeDocumentIdentifier(filter.getCanonicalizationPolicies(),documentIdentifier,rawURL);
+            if (newIdentifier != null)
             {
-              if (contentsFile == null)
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found a link to '"+newIdentifier+"', which has origination date "+
+                ((origDate==null)?"null":origDate.toString()));
+              if (filter.isLegalURL(newIdentifier))
               {
-                // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","category","description"};
-                String[][] dataValues = new String[dataNames.length][];
-                if (origDate != null)
-                  dataValues[0] = new String[]{origDate.toString()};
-                if (titleField != null)
-                  dataValues[1] = new String[]{titleField};
-                dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
-                int q = 0;
-                while (q < categoryField.size())
+                if (contentsFile == null)
                 {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
-                  q++;
+                  // It's a reference!  Add it.
+                  String[] dataNames = new String[]{"pubdate","title","source","category","description"};
+                  String[][] dataValues = new String[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
+                  if (descriptionField != null)
+                    dataValues[4] = new String[]{descriptionField};
+                    
+                  // Add document reference, including the data to pass down
+                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
                 }
-                if (descriptionField != null)
-                  dataValues[4] = new String[]{descriptionField};
-                  
-                // Add document reference, including the data to pass down
-                activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                else
+                {
+                  // The issue here is that if a document is ingested without a jobqueue entry, the document will not
+                  // be cleaned up if the job is deleted; nor is there any expiration possibility.  So, we really do need to make
+                  // sure a jobqueue entry gets created somehow.  Therefore I can't just ingest the document
+                  // right here.
+
+                  // Now, set up the carrydown info
+                  String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
+                  Object[][] dataValues = new Object[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
+                  if (descriptionField != null)
+                    dataValues[5] = new String[]{descriptionField};
+                    
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+
+                    dataValues[4] = new Object[]{ci};
+
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
+                }
               }
               else
               {
-                // The issue here is that if a document is ingested without a jobqueue entry, the document will not
-                // be cleaned up if the job is deleted; nor is there any expiration possibility.  So, we really do need to make
-                // sure a jobqueue entry gets created somehow.  Therefore I can't just ingest the document
-                // right here.
-
-                // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
-                Object[][] dataValues = new Object[dataNames.length][];
-                if (origDate != null)
-                  dataValues[0] = new String[]{origDate.toString()};
-                if (titleField != null)
-                  dataValues[1] = new String[]{titleField};
-                dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
-                int q = 0;
-                while (q < categoryField.size())
-                {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
-                  q++;
-                }
-                if (descriptionField != null)
-                  dataValues[5] = new String[]{descriptionField};
-                  
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
-                {
-                  contentsFile = null;
-
-                  dataValues[4] = new Object[]{ci};
-
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
-                }
-                finally
-                {
-                  ci.discard();
-                }
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Identifier '"+newIdentifier+"' is excluded");
               }
             }
             else
             {
               if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("RSS: Identifier '"+newIdentifier+"' is excluded");
+                Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found an unincluded URL '"+rawURL+"'");
             }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found an unincluded URL '"+rawURL+"'");
           }
         }
       }
