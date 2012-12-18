@@ -6557,7 +6557,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   protected class FeedItemContextClass extends XMLContext
   {
-    protected String linkField = null;
+    protected List<String> linkField = new ArrayList<String>();
 
     public FeedItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
     {
@@ -6571,7 +6571,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       if (qName.equals("link"))
       {
         // "link" tag
-        linkField = atts.getValue("href");
+        String ref = atts.getValue("href");
+        if (ref != null && ref.length() > 0)
+          linkField.add(ref);
         return super.beginTag(namespaceURI,localName,qName,atts);
       }
       else
@@ -6585,15 +6587,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public void process(IXMLHandler handler)
       throws ManifoldCFException
     {
-      if (linkField != null && linkField.length() > 0)
+      if (linkField.size() > 0)
       {
-        String[] links = linkField.split(", ");
-        int l = 0;
-        while (l < links.length)
+        for (String linkValue : linkField)
         {
-          String rawURL = links[l++].trim();
-          // Process the link
-          handler.noteDiscoveredLink(rawURL);
+          String[] links = linkValue.split(", ");
+          int l = 0;
+          while (l < links.length)
+          {
+            String rawURL = links[l++].trim();
+            // Process the link
+            handler.noteDiscoveredLink(rawURL);
+          }
         }
       }
     }
