@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-591: Elasticsearch download URL has changed.
+(Minoru Osuka)
+
 CONNECTORS-589: Parse multiple link tags inside an entry tag, for
 Atom feeds.
 (David Morana, Karl Wright)
