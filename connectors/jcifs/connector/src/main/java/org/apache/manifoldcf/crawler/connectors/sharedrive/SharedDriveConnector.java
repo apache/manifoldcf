@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Date;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -777,6 +778,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         RepositoryDocument rd = new RepositoryDocument();
                         rd.setBinary(inputStream, tempFile.length());
                         rd.setFileName(file.getName());
+                        rd.addField("lastModified", new Date(file.lastModified()).toString());
                         int index = 0;
                         index = setDocumentSecurity(rd,version,index);
                         index = setPathMetadata(rd,version,index);
@@ -830,6 +832,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     RepositoryDocument rd = new RepositoryDocument();
                     rd.setBinary(inputStream, fileLength(file));
                     rd.setFileName(file.getName());
+                    rd.addField("lastModified", new Date(file.lastModified()).toString());
                     int index = 0;
                     index = setDocumentSecurity(rd,version,index);
                     index = setPathMetadata(rd,version,index);
