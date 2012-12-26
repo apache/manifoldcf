@@ -723,7 +723,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
               long startFetchTime = System.currentTimeMillis();
               String fileName = getFileCanonicalPath(file);
-              if (fileName != null)
+              if (fileName != null && !file.isHidden())
               {
                 // manipulate path to include the DFS alias, not the literal path
                 // String newPath = matchPrefix + fileName.substring(matchReplace.length());
@@ -850,9 +850,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               }
               else
               {
-                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null");
+                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null, or because file is hidden");
                 activities.recordActivity(null,ACTIVITY_ACCESS,
-                  null,documentIdentifier,"Skip","Null canonical path",null);
+                  null,documentIdentifier,"Skip","Null canonical path or hidden file",null);
               }
             }
           }

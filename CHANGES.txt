@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-593: Skip hidden files in JCIFS connector.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-592: Add "last modified" metadata to JCIFs connector.
 (Shigeki Kobayashi, Karl Wright)
 
