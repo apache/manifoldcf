@@ -27,9 +27,10 @@ import java.util.*;
 */
 public class TrackerClass
 {
-  // The goal of this class is to keep track of at least the last two events
+  // The goal of this class is to keep track of at least some of the history
   // potentially affecting each record.
-  
+  protected final static long HISTORY_LENGTH = 60000L * 15;     // 15 minutes
+
   // Active transaction
   protected final static Map<String,TransactionData> transactionData = new HashMap<String,TransactionData>();
   
@@ -94,7 +95,7 @@ public class TrackerClass
     if (td == null)
       return;
     // Only keep stuff around for an hour
-    long removalCutoff = currentTime - (60000 * 60);
+    long removalCutoff = currentTime - HISTORY_LENGTH;
     synchronized (history)
     {
       history.add(td);
