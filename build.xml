@@ -68,6 +68,7 @@
         <ant dir="connectors/jdbc" target="clean"/>
         <ant dir="connectors/livelink" target="clean"/>
         <ant dir="connectors/solr" target="clean"/>
+        <ant dir="connectors/solrcloud" target="clean"/>
         <ant dir="connectors/memex" target="clean"/>
         <ant dir="connectors/meridio" target="clean"/>
         <ant dir="connectors/opensearchserver" target="clean"/>
@@ -87,6 +88,7 @@
         <ant dir="tests/opensearchserver" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
         <ant dir="tests/solr" target="clean"/>
+        <ant dir="tests/solrcloud" target="clean"/>
         <ant dir="tests/jcifs" target="clean"/>
         <ant dir="tests/jdbc" target="clean"/>
         <ant dir="tests/sharepoint" target="clean"/>
@@ -118,6 +120,7 @@
         <ant dir="connectors/jdbc" target="clean"/>
         <ant dir="connectors/livelink" target="clean"/>
         <ant dir="connectors/solr" target="clean"/>
+        <ant dir="connectors/solrcloud" target="clean"/>
         <ant dir="connectors/memex" target="clean"/>
         <ant dir="connectors/meridio" target="clean"/>
         <ant dir="connectors/opensearchserver" target="clean"/>
@@ -137,6 +140,7 @@
         <ant dir="tests/opensearchserver" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
         <ant dir="tests/solr" target="clean"/>
+        <ant dir="tests/solrcloud" target="clean"/>
         <ant dir="tests/jcifs" target="clean"/>
         <ant dir="tests/jdbc" target="clean"/>
         <ant dir="tests/sharepoint" target="clean"/>
@@ -636,6 +640,42 @@
 
     <target name="run-tests-HSQLDB-solr-connector" depends="setup-solr-connector,setup-solr-connector-tests" if="downloaded">
         <ant dir="connectors/solr" target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="setup-solrcloud-connector" depends="build-framework" if="downloaded"/>
+
+    <target name="setup-solrcloud-connector-tests" depends="build-tests-framework" if="downloaded"/>
+
+    <target name="build-solrcloud-connector" depends="setup-solrcloud-connector" if="downloaded">
+        <ant dir="connectors/solrcloud" target="build"/>
+    </target>
+
+    <target name="doc-solrcloud-connector" depends="setup-solrcloud-connector" if="downloaded">
+        <ant dir="connectors/solrcloud" target="doc"/>
+    </target>
+
+    <target name="build-tests-solrcloud-connector" depends="setup-solrcloud-connector,setup-solrcloud-connector-tests" if="downloaded">
+        <ant dir="connectors/solrcloud" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-solrcloud-connector" depends="setup-solrcloud-connector,setup-solrcloud-connector-tests" if="downloaded">
+        <ant dir="connectors/solrcloud" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-solrcloud-connector" depends="setup-solrcloud-connector,setup-solrcloud-connector-tests" if="downloaded">
+        <ant dir="connectors/solrcloud" target="run-tests-derby"/>
+    </target>
+
+    <target name="run-tests-postgresql-solrcloud-connector" depends="setup-solrcloud-connector,setup-solrcloud-connector-tests" if="downloaded">
+        <ant dir="connectors/solrcloud" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-solrcloud-connector" depends="setup-solrcloud-connector,setup-solrcloud-connector-tests" if="downloaded">
+        <ant dir="connectors/solrcloud" target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-solrcloud-connector" depends="setup-solrcloud-connector,setup-solrcloud-connector-tests" if="downloaded">
+        <ant dir="connectors/solrcloud" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-memex-connector" depends="build-framework" if="downloaded"/>
@@ -1705,6 +1745,43 @@
         </antcall>
     </target>
 
+    <target name="calculate-solrcloud-condition" depends="build-solrcloud-connector">
+        <available file="connectors/solrcloud/dist/lib" type="dir" property="solrcloud.exists"/>
+        <condition property="solrcloud.include">
+            <and>
+                <isset property="solrcloud.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="calculate-solrcloud-doc-condition" depends="doc-solrcloud-connector">
+        <available file="connectors/solrcloud/dist/doc" type="dir" property="solrcloud-doc.exists"/>
+        <condition property="solrcloud-doc.include">
+            <and>
+                <isset property="solrcloud-doc.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="deliver-solrcloud-connector" depends="calculate-solrcloud-condition" if="solrcloud.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="solrcloud"/>
+        </antcall>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="solrcloud"/>
+            <param name="connector-label" value="SolrCloud"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.solrcloud.SolrCloudConnector"/>
+        </antcall>
+    </target>
+    
+    <target name="deliver-solrcloud-connector-doc" depends="calculate-solrcloud-doc-condition" if="solrcloud-doc.include">
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="solrcloud"/>
+        </antcall>
+    </target>
+
     <target name="calculate-memex-condition" depends="build-memex-connector">
         <available file="connectors/memex/dist/lib" type="dir" property="memex.exists"/>
         <condition property="memex.include">
@@ -2155,6 +2232,15 @@
       </condition>
     </target>
 
+    <target name="calculate-solrcloud-tests-condition" depends="calculate-filesystem-condition,calculate-solrcloud-condition">
+      <condition property="solrcloud-tests.include">
+        <and>
+            <isset property="filesystem.include"/>
+            <isset property="solrcloud.include"/>
+        </and>
+      </condition>
+    </target>
+
     <target name="calculate-gts-tests-condition" depends="calculate-filesystem-condition,calculate-gts-condition">
       <condition property="gts-tests.include">
         <and>
@@ -2257,6 +2343,10 @@
 
     <target name="run-solr-UI-tests-derby" depends="build-tests-framework,build-tests-solr-connector,build-tests-filesystem-connector,calculate-solr-tests-condition" if="solr-tests.include">
         <ant dir="tests/solr" target="run-UI-derby"/>
+    </target>
+
+    <target name="run-solrcloud-UI-tests-derby" depends="build-tests-framework,build-tests-solrcloud-connector,build-tests-filesystem-connector,calculate-solrcloud-tests-condition" if="solrcloud-tests.include">
+        <ant dir="tests/solrcloud" target="run-UI-derby"/>
     </target>
 
     <target name="run-gts-UI-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-gts-connector,calculate-gts-tests-condition" if="gts-tests.include">
@@ -2487,29 +2577,29 @@
         <ant dir="tests/sharepoint" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector"/>
+    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-solrcloud-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector"/>
     <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
     <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
 
-    <target name="run-tests-derby-open-connectors" depends="run-tests-derby-activedirectory-connector,run-tests-derby-ldap-connector,run-tests-derby-alfresco-connector,run-tests-derby-cmis-connector,run-tests-derby-filesystem-connector,run-tests-derby-nullauthority-connector,run-tests-derby-nulloutput-connector,run-tests-derby-rss-connector,run-tests-derby-solr-connector,run-tests-derby-webcrawler-connector,run-tests-derby-wiki-connector,run-tests-derby-jdbc-connector"/>
+    <target name="run-tests-derby-open-connectors" depends="run-tests-derby-activedirectory-connector,run-tests-derby-ldap-connector,run-tests-derby-alfresco-connector,run-tests-derby-cmis-connector,run-tests-derby-filesystem-connector,run-tests-derby-nullauthority-connector,run-tests-derby-nulloutput-connector,run-tests-derby-rss-connector,run-tests-derby-solr-connector,run-tests-derby-solrcloud-connector,run-tests-derby-webcrawler-connector,run-tests-derby-wiki-connector,run-tests-derby-jdbc-connector"/>
     <target name="run-tests-derby-lgpl-connectors" depends="run-tests-derby-jcifs-connector"/>
     <target name="run-tests-derby-proprietary-connectors" depends="run-tests-derby-documentum-connector,run-tests-derby-filenet-connector,run-tests-derby-livelink-connector,run-tests-derby-memex-connector,run-tests-derby-meridio-connector,run-tests-derby-sharepoint-connector"/>
     
     <target name="end-to-end-tests-derby" depends="run-filesystem-tests-derby,run-webcrawler-tests-derby,run-rss-tests-derby,run-wiki-tests-derby,run-alfresco-tests-derby,run-cmis-tests-derby,run-sharepoint-tests-derby"/>
 
-    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-ldap-connector,run-tests-postgresql-alfresco-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-wiki-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector,run-tests-postgresql-elasticsearch-connector"/>
+    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-ldap-connector,run-tests-postgresql-alfresco-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-solrcloud-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-wiki-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector,run-tests-postgresql-elasticsearch-connector"/>
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
     <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
-    <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-ldap-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector,run-tests-mysql-elasticsearch-connector"/>
+    <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-ldap-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-solrcloud-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector,run-tests-mysql-elasticsearch-connector"/>
     <target name="run-tests-mysql-lgpl-connectors" depends="run-tests-mysql-jcifs-connector"/>
     <target name="run-tests-mysql-proprietary-connectors" depends="run-tests-mysql-documentum-connector,run-tests-mysql-filenet-connector,run-tests-mysql-livelink-connector,run-tests-mysql-memex-connector,run-tests-mysql-meridio-connector,run-tests-mysql-sharepoint-connector"/>
     
     <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
 
-    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-ldap-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector,run-tests-HSQLDB-elasticsearch-connector"/>
+    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-ldap-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-solrcloud-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector,run-tests-HSQLDB-elasticsearch-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
     <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
     
@@ -2527,8 +2617,8 @@
     <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
     <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
     
-    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
-    <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
+    <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-solrcloud-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
+    <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-solrcloud-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
     
     <target name="deliver-lgpl-connectors" depends="deliver-jcifs-connector"/>
     <target name="deliver-lgpl-connectors-doc" depends="deliver-jcifs-connector-doc"/>
@@ -2676,7 +2766,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-filesystem-UI-tests-HSQLDB,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-filesystem-UI-tests-HSQLDB,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-solrcloud-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
@@ -3547,7 +3637,21 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-    <target name="make-core-deps" depends="download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="download-solrj">
+        <mkdir dir="lib/solr-4.x"/>
+        <mkdir dir="lib/solr-4.x/solrj-lib"/>
+        <mkdir dir="build/download"/>
+        <get src="http://www.us.apache.org/dist/lucene/solr/4.0.0/apache-solr-4.0.0.tgz" dest="build/download/apache-solr-4.0.0.tgz"/>
+        <untar src="build/download/apache-solr-4.0.0.tgz" dest="build/download" compression="gzip"/>
+    	<copy todir="lib/solr-4.x">
+            <fileset file="build/download/apache-solr-4.0.0/dist/apache-solr-solrj-4.0.0.jar"/>
+        </copy>
+    	<copy todir="lib/solr-4.x/solrj-lib">
+            <fileset  dir="build/download/apache-solr-4.0.0/dist/solrj-lib"/>
+        </copy>
+    </target>
+
+    <target name="make-core-deps" depends="download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
@@ -3586,6 +3690,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/jdbc" target="download-dependencies"/>
         <ant dir="connectors/livelink" target="download-dependencies"/>
         <ant dir="connectors/solr" target="download-dependencies"/>
+        <ant dir="connectors/solrcloud" target="download-dependencies"/>
         <ant dir="connectors/memex" target="download-dependencies"/>
         <ant dir="connectors/meridio" target="download-dependencies"/>
         <ant dir="connectors/opensearchserver" target="download-dependencies"/>
@@ -3622,6 +3727,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/jdbc" target="download-cleanup"/>
         <ant dir="connectors/livelink" target="download-cleanup"/>
         <ant dir="connectors/solr" target="download-cleanup"/>
+        <ant dir="connectors/solrcloud" target="download-cleanup"/>
         <ant dir="connectors/memex" target="download-cleanup"/>
         <ant dir="connectors/meridio" target="download-cleanup"/>
         <ant dir="connectors/opensearchserver" target="download-cleanup"/>
