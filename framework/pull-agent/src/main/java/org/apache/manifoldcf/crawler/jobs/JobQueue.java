@@ -758,49 +758,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     TrackerClass.noteRecordEvent(recID, newStatus, "Note completion");
   }
 
-  /** Either delete a record, or set status to "rescan", depending on the
-  * record's state.
-  */
-  public boolean updateOrDeleteRecord(Long recID, int currentStatus)
-    throws ManifoldCFException
-  {
-    HashMap map = new HashMap();
-    
-    int newStatus;
-    String actionFieldValue;
-    Long checkTimeValue;
-    
-    switch (currentStatus)
-    {
-    case STATUS_ACTIVE:
-    case STATUS_ACTIVEPURGATORY:
-      // Delete it
-      deleteRecord(recID);
-      return true;
-    case STATUS_ACTIVENEEDRESCAN:
-    case STATUS_ACTIVENEEDRESCANPURGATORY:
-      newStatus = STATUS_PENDINGPURGATORY;
-      actionFieldValue = actionToString(ACTION_RESCAN);
-      checkTimeValue = new Long(0L);
-      // Leave doc priority unchanged.
-      break;
-    default:
-      TrackerClass.printForensics(recID, currentStatus);
-      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
-    }
-
-    map.put(statusField,statusToString(newStatus));
-    map.put(checkTimeField,checkTimeValue);
-    map.put(checkActionField,actionFieldValue);
-    map.put(failTimeField,null);
-    map.put(failCountField,null);
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,recID)});
-    performUpdate(map,"WHERE "+query,list,null);
-    TrackerClass.noteRecordEvent(recID, newStatus, "Rescan or delete");
-    return false;
-  }
 
   /** Either mark a record as hopcountremoved, or set status to "rescan", depending on the
   * record's state.

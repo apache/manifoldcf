@@ -999,6 +999,7 @@ public class JobManager implements IJobManager
         }
         
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
@@ -1009,11 +1010,13 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -1260,6 +1263,7 @@ public class JobManager implements IJobManager
         }
 
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
@@ -1270,11 +1274,13 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -1820,6 +1826,7 @@ public class JobManager implements IJobManager
         }
 
         database.performCommit();
+        TrackerClass.noteCommit();
         
         return new DocumentSetAndFlags(rval, rvalBoolean);
 
@@ -1827,6 +1834,7 @@ public class JobManager implements IJobManager
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -1839,6 +1847,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -2441,11 +2450,13 @@ public class JobManager implements IJobManager
           i++;
         }
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -2459,6 +2470,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -2606,11 +2618,13 @@ public class JobManager implements IJobManager
         // we don't delete them here.
         
         database.performCommit();
+        TrackerClass.noteCommit();
         return rval;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -2624,6 +2638,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -2986,16 +3001,19 @@ public class JobManager implements IJobManager
         }
 
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3193,11 +3211,13 @@ public class JobManager implements IJobManager
         }
 
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3210,6 +3230,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -3288,11 +3309,13 @@ public class JobManager implements IJobManager
         }
 
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3305,6 +3328,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -3523,6 +3547,7 @@ public class JobManager implements IJobManager
           hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
 
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
@@ -3543,6 +3568,7 @@ public class JobManager implements IJobManager
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3556,6 +3582,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -5437,6 +5464,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     jobQueue.prepareIncrementalScan(jobID);
+    TrackerClass.noteCommit();
   }
 
   /** Manually abort a running job.  The job will be permanently stopped, and will not run again until
