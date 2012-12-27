@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.crawler.jobs;
 
 import java.util.*;
+import java.io.*;
 
 /** Debugging class to keep track of recent modifications to the jobqueue table,
 * along with context as to where it occurred.  If a jobqueue state error occurs,
@@ -105,6 +106,8 @@ public class TrackerClass
         TransactionData td2 = history.get(0);
         if (td2.isFlushable(removalCutoff))
           history.remove(0);
+        else
+          break;
       }
     }
     
@@ -127,22 +130,24 @@ public class TrackerClass
     {
       synchronized (history)
       {
-        System.out.println("---- Forensics for record "+recordID+", current status: "+existingStatus+" ----");
-        System.out.println("--Current stack trace--");
-        new Exception("Unexpected jobqueue status").printStackTrace();
-        System.out.println("--Active transactions--");
+        System.err.println("---- Forensics for record "+recordID+", current status: "+existingStatus+" ----");
+        System.err.println("--Current stack trace--");
+        StringWriter sw = new StringWriter();
+        new Exception("Unexpected jobqueue status").printStackTrace(new PrintWriter(sw,true));
+        System.err.print(sw.toString());
+        System.err.println("--Active transactions--");
         for (String threadName : transactionData.keySet())
         {
           for (HistoryRecord hr : transactionData.get(threadName).getEvents())
           {
             if (hr.applies(recordID))
             {
-              System.out.println("Thread '"+threadName+"' was active:");
+              System.err.println("Thread '"+threadName+"' was active:");
               hr.print();
             }
           }
         }
-        System.out.println("--Pertinent History--");
+        System.err.println("--Pertinent History--");
         for (TransactionData td : history)
         {
           for (HistoryRecord hr : td.getEvents())
@@ -197,8 +202,10 @@ public class TrackerClass
     
     public void print()
     {
-      System.out.println("  at "+new Long(timestamp)+", location: ");
-      trace.printStackTrace();
+      System.err.println("  at "+new Long(timestamp)+", location: ");
+      StringWriter sw = new StringWriter();
+      trace.printStackTrace(new PrintWriter(sw,true));
+      System.err.print(sw.toString());
     }
     
     public abstract boolean applies(Long recordID);
@@ -220,7 +227,7 @@ public class TrackerClass
     @Override
     public void print()
     {
-      System.out.println("Record "+recordID+" status modified to "+newStatus);
+      System.err.println("Record "+recordID+" status modified to "+newStatus);
       super.print();
     }
     
@@ -245,7 +252,7 @@ public class TrackerClass
     @Override
     public void print()
     {
-      System.out.println("All job related records modified for job "+jobID);
+      System.err.println("All job related records modified for job "+jobID);
       super.print();
     }
     
@@ -266,7 +273,7 @@ public class TrackerClass
     @Override
     public void print()
     {
-      System.out.println("All records modified");
+      System.err.println("All records modified");
       super.print();
     }
 
