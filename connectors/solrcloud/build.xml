@@ -21,11 +21,12 @@
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="../../lib/solr-4.x">
-            <include name="apache-solr-solrj-*.jar"/>
-        </fileset>
-        <fileset dir="../../lib/solr-4.x/solrj-lib">
-            <include name="*.jar"/>
+        <fileset dir="../../lib">
+            <include name="solr-solrj*.jar"/>
+            <include name="httpmime*.jar"/>
+            <include name="zookeeper*.jar"/>
+            <include name="wstx-asl*.jar"/>
+            <include name="jcl-over-slf4j*.jar"/>
         </fileset>
     </path>
 	
@@ -33,16 +34,12 @@
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
-            <fileset dir="../../lib/solr-4.x">
-                <include name="apache-solr-solrj-*.jar"/>
-            </fileset>
-        </copy>
-        <copy todir="dist/lib">
-            <fileset dir="../../lib/solr-4.x/solrj-lib">
-                <include name="httpclient-*.jar"/>
-                <include name="httpcore-*.jar"/>
-                <include name="httpmime-*.jar"/>
-                <include name="zookeeper-*.jar"/>
+            <fileset dir="../../lib">
+                <include name="solr-solrj*.jar"/>
+                <include name="httpmime*.jar"/>
+                <include name="zookeeper*.jar"/>
+                <include name="wstx-asl*.jar"/>
+                <include name="jcl-over-slf4j*.jar"/>
             </fileset>
         </copy>
     </target>
