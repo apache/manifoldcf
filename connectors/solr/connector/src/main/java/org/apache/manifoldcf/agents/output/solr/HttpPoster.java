@@ -58,6 +58,8 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.util.ContentStreamBase;
+import org.apache.solr.client.solrj.response.SolrPingResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 
 /**
 * Posts an input stream to SOLR
@@ -906,7 +908,7 @@ public class HttpPoster
         // Open a socket to ingest, and to the response stream to get the post result
         try
         {
-          solrServer.deleteById(documentURI);
+          UpdateResponse response = solrServer.deleteById(documentURI);
             
           // Success
           activityStart = new Long(fullStartTime);
@@ -988,7 +990,7 @@ public class HttpPoster
         try
         {
           // Do the operation!
-          solrServer.commit();
+          UpdateResponse response = solrServer.commit();
         }
         catch (InterruptedIOException ioe)
         {
@@ -1037,9 +1039,7 @@ public class HttpPoster
         // Do the operation!
         try
         {
-          // MHL to check status via SolrJ
-          if (false)
-            throw new IOException("blah");
+          SolrPingResponse response = solrServer.ping();
         }
         catch (InterruptedIOException ioe)
         {
