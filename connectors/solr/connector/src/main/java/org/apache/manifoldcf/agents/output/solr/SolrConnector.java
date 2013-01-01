@@ -185,15 +185,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
       }
       
-      String userID = params.getParameter(SolrConfig.PARAM_USERID);
-      String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
-      String realm = params.getParameter(SolrConfig.PARAM_REALM);
-      String keystoreData = params.getParameter(SolrConfig.PARAM_KEYSTORE);
-      IKeystoreManager keystoreManager;
-      if (keystoreData != null)
-        keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-      else
-        keystoreManager = null;
 
       // Now, initialize Solr-j
       String solrType = params.getParameter(SolrConfig.PARAM_SOLR_TYPE);
@@ -202,6 +193,16 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
       if (solrType.equals(SolrConfig.SOLR_TYPE_STANDARD))
       {
+        String userID = params.getParameter(SolrConfig.PARAM_USERID);
+        String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
+        String realm = params.getParameter(SolrConfig.PARAM_REALM);
+        String keystoreData = params.getParameter(SolrConfig.PARAM_KEYSTORE);
+        IKeystoreManager keystoreManager;
+        if (keystoreData != null)
+          keystoreManager = KeystoreManagerFactory.make("",keystoreData);
+        else
+          keystoreManager = null;
+
         String protocol = params.getParameter(SolrConfig.PARAM_PROTOCOL);
         if (protocol == null || protocol.length() == 0)
           throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_PROTOCOL);
@@ -285,9 +286,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
           
           poster = new HttpPoster(zookeeperHost,collection,
             zkClientTimeout,zkConnectTimeout,
-            updatePath,removePath,statusPath,realm,userID,password,
+            updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
-            keystoreManager,maxDocumentLength,commitWithin);
+            maxDocumentLength,commitWithin);
           
         }
         catch (NumberFormatException e)

@@ -120,9 +120,8 @@ public class HttpPoster
   public HttpPoster(String zookeeperHosts, String collection,
     int zkClientTimeout, int zkConnectTimeout,
     String updatePath, String removePath, String statusPath,
-    String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    IKeystoreManager keystoreManager, Long maxDocumentLength,
+    Long maxDocumentLength,
     String commitWithin)
     throws ManifoldCFException
   {
@@ -138,9 +137,6 @@ public class HttpPoster
     this.idAttributeName = idAttributeName;
     
     this.maxDocumentLength = maxDocumentLength;
-    
-    // What to do with basic auth and keystore manager parameters?  Do they even make sense?
-    // MHL
     
     try
     {
@@ -1098,9 +1094,6 @@ public class HttpPoster
     @Override
     public Reader getReader() throws IOException
     {
-      // MHL - I think this should always return null, but we need to confirm
-      //String charset = getCharsetFromContentType( this.getContentType() );
-      //return charset == null ? new InputStreamReader( this.getStream() ) : new InputStreamReader( this.getStream(), charset );
       return null;
     }
 
