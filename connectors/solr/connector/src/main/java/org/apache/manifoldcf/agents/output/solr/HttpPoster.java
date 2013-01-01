@@ -1079,6 +1079,12 @@ public class HttpPoster
     }
     
     @Override
+    public Long getSize()
+    {
+      return new Long(length);
+    }
+    
+    @Override
     public InputStream getStream() throws IOException
     {
       return is;
