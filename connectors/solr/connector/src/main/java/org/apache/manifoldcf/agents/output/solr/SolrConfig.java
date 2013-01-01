@@ -27,12 +27,47 @@ public class SolrConfig
 
   // Configuration parameters
 
+  /** Solr type */
+  public static final String PARAM_SOLR_TYPE = "Solr type";
+  /** Type: Standard */
+  public static final String SOLR_TYPE_STANDARD = "standard";
+  /** Type: Solr Cloud */
+  public static final String SOLR_TYPE_SOLRCLOUD = "solrcloud";
+  
+  // SolrCloud zookeeper parameters
+  
+  // Zookeeper hosts, as nodes
+  /** Zookeeper node */
+  public static final String NODE_ZOOKEEPER = "zookeeper";
+  /** Zookeeper hostname */
+  public static final String ATTR_HOST = "host";
+  /** Zookeeper port */
+  public static final String ATTR_PORT = "port";
+  
+  /** ZooKeeper client timeout */
+  public static final String PARAM_ZOOKEEPER_CLIENT_TIMEOUT = "ZooKeeper client timeout";
+  /** ZooKeeper connect timeout */
+  public static final String PARAM_ZOOKEEPER_CONNECT_TIMEOUT = "ZooKeeper connect timeout";
+  /** Collection name */
+  public static final String PARAM_COLLECTION = "Collection";
+  
+  // General indexing parameters
+  
   /** Protocol */
   public static final String PARAM_PROTOCOL = "Server protocol";
+  /** Protocol: http */
+  public static final String PROTOCOL_TYPE_HTTP = "http";
+  /** Protocol: https */
+  public static final String PROTOCOL_TYPE_HTTPS = "https";
+  
   /** Server name */
   public static final String PARAM_SERVER = "Server name";
   /** Port */
   public static final String PARAM_PORT = "Server port";
+  /** Connection timeout */
+  public static final String PARAM_CONNECTION_TIMEOUT = "Connection timeout";
+  /** Socket timeout */
+  public static final String PARAM_SOCKET_TIMEOUT = "Socket timeout";
   /** Webapp */
   public static final String PARAM_WEBAPPNAME = "Server web application";
   /** Core */

@@ -2832,6 +2832,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="httpclient"/>
             <param name="artifact-type" value="jar"/>
         </antcall -->
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/httpcomponents"/>
+            <param name="artifact-version" value="4.2.1"/>
+            <param name="artifact-name" value="httpmime"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
     <target name="download-json">
@@ -3052,7 +3059,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="commons-io"/>
-            <param name="artifact-version" value="1.3.2"/>
+            <param name="artifact-version" value="2.1"/>
             <param name="artifact-name" value="commons-io"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -3072,7 +3079,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
   
     <target name="download-slf4j">
         <mkdir dir="lib"/>
-        <property name="slf4j-version" value="1.6.4"/>
+        <property name="slf4j-version" value="1.6.6"/>
         <property name="slf4j-package" value="org/slf4j"/>
         <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="slf4j-api"/>
@@ -3080,6 +3087,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="slf4j-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jcl-over-slf4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3481,7 +3492,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/codehaus/woodstox"/>
-            <param name="artifact-version" value="3.2.3"/>
+            <param name="artifact-version" value="3.2.9"/>
             <param name="artifact-name" value="wstx-asl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -3547,7 +3558,25 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-    <target name="make-core-deps" depends="download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="download-solrj">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/solr"/>
+            <param name="artifact-version" value="4.0.0"/>
+            <param name="artifact-name" value="solr-solrj"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/zookeeper"/>
+            <param name="artifact-version" value="3.3.6"/>
+            <param name="artifact-name" value="zookeeper"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="make-core-deps" depends="download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

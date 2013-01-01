@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-594: Port Solr connector to use SolrJ, and add
+capability to work with SolrCloud installations.
+(Minoru Osuka, Ryan McKinley, Karl Wright)
+
 CONNECTORS-593: Skip hidden files in JCIFS connector.
 (Shigeki Kobayashi, Karl Wright)
 
