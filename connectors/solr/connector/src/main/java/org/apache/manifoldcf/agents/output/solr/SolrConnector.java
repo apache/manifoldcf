@@ -956,6 +956,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (core == null)
       core = "";
 
+    String collection = parameters.getParameter(SolrConfig.PARAM_COLLECTION);
+    if (collection == null)
+      collection = "collection1";
+    
     String connectionTimeout = parameters.getParameter(SolrConfig.PARAM_CONNECTION_TIMEOUT);
     if (connectionTimeout == null)
       connectionTimeout = "60";
@@ -1292,6 +1296,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "          </td>\n"+
 "        </tr>\n"+
 "      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.CollectionName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"collection\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collection)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
@@ -1639,6 +1650,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String core = variableContext.getParameter("core");
     if (core != null)
       parameters.setParameter(SolrConfig.PARAM_CORE,core);
+
+    String collection = variableContext.getParameter("collection");
+    if (collection != null)
+      parameters.setParameter(SolrConfig.PARAM_COLLECTION,collection);
 
     String connectionTimeout = variableContext.getParameter("connectiontimeout");
     if (connectionTimeout != null)
