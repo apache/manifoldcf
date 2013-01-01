@@ -56,10 +56,15 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.util.ContentStreamBase;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.util.ContentStream;
+
 
 /**
 * Posts an input stream to SOLR
@@ -756,7 +761,7 @@ public class HttpPoster
           try
           {
             readFromDocumentStreamYet = true;
-            solrServer.request(contentStreamUpdateRequest);
+            UpdateResponse response = contentStreamUpdateRequest.process(solrServer);
             
             // Successful completion
             activityStart = new Long(fullStartTime);
@@ -908,7 +913,7 @@ public class HttpPoster
         // Open a socket to ingest, and to the response stream to get the post result
         try
         {
-          UpdateResponse response = solrServer.deleteById(documentURI);
+          UpdateResponse response = new UpdateRequest(postRemoveAction).deleteById(documentURI).process(solrServer);
             
           // Success
           activityStart = new Long(fullStartTime);
@@ -1039,7 +1044,7 @@ public class HttpPoster
         // Do the operation!
         try
         {
-          SolrPingResponse response = solrServer.ping();
+          SolrPingResponse response = new SolrPing(postStatusAction).process(solrServer);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1106,6 +1111,45 @@ public class HttpPoster
     }
 
   }
-  
+
+  /** Special version of ping class where we can control the URL
+  */
+  protected static class SolrPing extends SolrRequest
+  {
+    private ModifiableSolrParams params;
+    
+    public SolrPing()
+    {
+      super( METHOD.GET, "/admin/ping" );
+      params = new ModifiableSolrParams();
+    }
+
+    public SolrPing(String url)
+    {
+      super( METHOD.GET, url );
+      params = new ModifiableSolrParams();
+    }
+
+    @Override
+    public Collection<ContentStream> getContentStreams() {
+      return null;
+    }
+
+    @Override
+    public ModifiableSolrParams getParams() {
+      return params;
+    }
+
+    @Override
+    public SolrPingResponse process( SolrServer server ) throws SolrServerException, IOException 
+    {
+      long startTime = System.currentTimeMillis();
+      SolrPingResponse res = new SolrPingResponse();
+      res.setResponse( server.request( this ) );
+      res.setElapsedTime( System.currentTimeMillis()-startTime );
+      return res;
+    }
+  }
+
 }
 
