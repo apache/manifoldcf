@@ -681,7 +681,8 @@ public class ThrottledFetcher
       
       if (fetchType != null)
       {
-        methodThread.abort();
+        if (methodThread != null && threadStarted)
+          methodThread.abort();
         long endTime = System.currentTimeMillis();
         server.endFetch();
 

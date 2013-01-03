@@ -1806,7 +1806,8 @@ public class ThrottledFetcher
       if (fetchType != null)
       {
         // Abort the connection, if not already complete
-        methodThread.abort();
+        if (methodThread != null && threadStarted)
+          methodThread.abort();
 
         long endTime = System.currentTimeMillis();
         int i = 0;
