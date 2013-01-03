@@ -6111,7 +6111,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
       throws ManifoldCFException, ServiceInterruption
     {
-      if (qName.equals("rss"))
+      if (localName.equals("rss"))
       {
         // RSS feed detected
         outerTagCount++;
@@ -6119,19 +6119,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           Logging.connectors.debug("WEB: Parsed bottom-level XML for RSS document '"+documentURI+"'");
         return new RSSContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
       }
-      else if (qName.equals("rdf:RDF"))
+      else if (localName.equals("RDF"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
         return new RDFContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
       }
-      else if (qName.equals("feed"))
+      else if (localName.equals("feed"))
       {
         // Basic feed detected
         outerTagCount++;
         return new FeedContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
       }
-      else if (qName.equals("urlset") || qName.equals("sitemapindex"))
+      else if (localName.equals("urlset") || localName.equals("sitemapindex"))
       {
         // Sitemap detected
         outerTagCount++;
@@ -6147,8 +6147,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
-      if (tagName.equals("rdf:RDF"))
+      String tagName = context.getLocalname();
+      if (tagName.equals("RDF"))
       {
         ((RDFContextClass)context).process();
       }
@@ -6184,7 +6184,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // Handle each channel
-      if (qName.equals("channel"))
+      if (localName.equals("channel"))
       {
         // Channel detected
         return new RSSChannelContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
@@ -6199,7 +6199,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       // If it's our channel tag, process global channel information
       XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
+      String tagName = context.getLocalname();
       if (tagName.equals("channel"))
       {
         ((RSSChannelContextClass)context).process();
@@ -6230,12 +6230,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new RSSItemContextClass(theStream,namespaceURI,localName,qName,atts);
@@ -6248,7 +6248,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
         ttlValue = ((XMLStringContext)theContext).getValue();
@@ -6297,12 +6297,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("guid"))
+      else if (localName.equals("guid"))
       {
         // "guid" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
@@ -6319,7 +6319,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
         linkField = ((XMLStringContext)theContext).getValue();
@@ -6376,12 +6376,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new RDFItemContextClass(theStream,namespaceURI,localName,qName,atts);
@@ -6394,7 +6394,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
         ttlValue = ((XMLStringContext)theContext).getValue();
@@ -6438,7 +6438,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
@@ -6455,7 +6455,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
         linkField = ((XMLStringContext)theContext).getValue();
@@ -6505,12 +6505,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("entry"))
+      else if (localName.equals("entry"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new FeedItemContextClass(theStream,namespaceURI,localName,qName,atts);
@@ -6523,7 +6523,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
         ttlValue = ((XMLStringContext)theContext).getValue();
@@ -6568,7 +6568,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
         String ref = atts.getValue("href");
@@ -6625,7 +6625,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "url", nothing else.
-      if (qName.equals("url") || qName.equals("sitemap"))
+      if (localName.equals("url") || localName.equals("sitemap"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new UrlsetItemContextClass(theStream,namespaceURI,localName,qName,atts);
@@ -6638,7 +6638,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("url") || theTag.equals("sitemap"))
       {
         // It's an item.
@@ -6683,7 +6683,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "loc", nothing else.
-      if (qName.equals("loc"))
+      if (localName.equals("loc"))
       {
         // "loc" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
@@ -6700,7 +6700,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("loc"))
       {
         linkField = ((XMLStringContext)theContext).getValue();

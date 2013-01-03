@@ -3487,7 +3487,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
       throws ManifoldCFException, ServiceInterruption
     {
-      if (qName.equals("rss"))
+      if (localName.equals("rss"))
       {
         // RSS feed detected
         outerTagCount++;
@@ -3495,19 +3495,19 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           Logging.connectors.debug("RSS: Parsed bottom-level XML for RSS document '"+documentIdentifier+"'");
         return new RSSContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (qName.equals("rdf:RDF"))
+      else if (localName.equals("RDF"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
         return new RDFContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (qName.equals("feed"))
+      else if (localName.equals("feed"))
       {
         // Basic feed detected
         outerTagCount++;
         return new FeedContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (qName.equals("urlset") || qName.equals("sitemapindex"))
+      else if (localName.equals("urlset") || localName.equals("sitemapindex"))
       {
         // Sitemap detected
         outerTagCount++;
@@ -3523,12 +3523,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
+      String tagName = context.getLocalname();
       if (tagName.equals("rss"))
       {
         rescanTimeSet = ((RSSContextClass)context).process();
       }
-      else if (tagName.equals("rdf:RDF"))
+      else if (tagName.equals("RDF"))
       {
         rescanTimeSet = ((RDFContextClass)context).process();
       }
@@ -3569,7 +3569,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // Handle each channel
-      if (qName.equals("channel"))
+      if (localName.equals("channel"))
       {
         // Channel detected
         return new RSSChannelContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
@@ -3584,7 +3584,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       // If it's our channel tag, process global channel information
       XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
+      String tagName = context.getLocalname();
       if (tagName.equals("channel"))
       {
         rescanTimeSet = ((RSSChannelContextClass)context).process();
@@ -3626,12 +3626,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new RSSItemContextClass(theStream,namespaceURI,localName,qName,atts,filter.getDechromedContentMode());
@@ -3644,7 +3644,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
         ttlValue = ((XMLStringContext)theContext).getValue();
@@ -3733,27 +3733,27 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("guid"))
+      else if (localName.equals("guid"))
       {
         // "guid" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("pubDate"))
+      else if (localName.equals("pubDate"))
       {
         // "pubDate" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("title"))
+      else if (localName.equals("title"))
       {
         // "title" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("category"))
+      else if (localName.equals("category"))
       {
         // "category" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
@@ -3766,13 +3766,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
             return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
           }
           break;
         case DECHROMED_DESCRIPTION:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
             try
             {
@@ -3794,7 +3794,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           }
           break;
         case DECHROMED_CONTENT:
-          if (qName.equals("content"))
+          if (localName.equals("content"))
           {
             try
             {
@@ -3814,7 +3814,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
-          else if (qName.equals("description"))
+          else if (localName.equals("description"))
           {
             return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
           }
@@ -3832,7 +3832,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
         linkField = ((XMLStringContext)theContext).getValue();
@@ -4044,12 +4044,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new RDFItemContextClass(theStream,namespaceURI,localName,qName,atts,filter.getDechromedContentMode());
@@ -4062,7 +4062,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
         ttlValue = ((XMLStringContext)theContext).getValue();
@@ -4149,17 +4149,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("dc:date"))
+      else if (localName.equals("date"))
       {
         // "dc:date" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("title"))
+      else if (localName.equals("title"))
       {
         // "title" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
@@ -4169,13 +4169,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
             return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
           }
           break;
         case DECHROMED_DESCRIPTION:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
             try
             {
@@ -4197,7 +4197,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           }
           break;
         case DECHROMED_CONTENT:
-          if (qName.equals("dc:content"))
+          if (localName.equals("content"))
           {
             try
             {
@@ -4217,7 +4217,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
-          else if (qName.equals("description"))
+          else if (localName.equals("description"))
           {
             return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
           }
@@ -4235,12 +4235,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
         linkField = ((XMLStringContext)theContext).getValue();
       }
-      else if (theTag.equals("dc:date"))
+      else if (theTag.equals("date"))
       {
         pubDateField = ((XMLStringContext)theContext).getValue();
       }
@@ -4411,12 +4411,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("entry"))
+      else if (localName.equals("entry"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new FeedItemContextClass(theStream,namespaceURI,localName,qName,atts,filter.getDechromedContentMode());
@@ -4429,7 +4429,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
         ttlValue = ((XMLStringContext)theContext).getValue();
@@ -4517,7 +4517,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
         String ref = atts.getValue("href");
@@ -4525,17 +4525,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           linkField.add(ref);
         return super.beginTag(namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("published") || qName.equals("updated"))
+      else if (localName.equals("published") || localName.equals("updated"))
       {
         // "published" pr "updated" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("title"))
+      else if (localName.equals("title"))
       {
         // "title" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("category"))
+      else if (localName.equals("category"))
       {
         String category = atts.getValue("term");
         if (category != null && category.length() > 0)
@@ -4547,13 +4547,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
-          if (qName.equals("subtitle"))
+          if (localName.equals("subtitle"))
           {
             return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
           }
           break;
         case DECHROMED_DESCRIPTION:
-          if (qName.equals("subtitle"))
+          if (localName.equals("subtitle"))
           {
             try
             {
@@ -4575,7 +4575,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           }
           break;
         case DECHROMED_CONTENT:
-          if (qName.equals("content"))
+          if (localName.equals("content"))
           {
             try
             {
@@ -4595,7 +4595,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
-          else if (qName.equals("subtitle"))
+          else if (localName.equals("subtitle"))
           {
             return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
           }
@@ -4613,7 +4613,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("published") || theTag.equals("updated"))
       {
         pubDateField = ((XMLStringContext)theContext).getValue();
@@ -4804,7 +4804,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "url", nothing else.
-      if (qName.equals("url") || qName.equals("sitemap"))
+      if (localName.equals("url") || localName.equals("sitemap"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
         return new UrlsetItemContextClass(theStream,namespaceURI,localName,qName,atts);
@@ -4817,7 +4817,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("url") || theTag.equals("sitemap"))
       {
         // It's an item.
@@ -4896,12 +4896,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       // The tags we care about are "loc" and "lastmod", nothing else.
-      if (qName.equals("loc"))
+      if (localName.equals("loc"))
       {
         // "loc" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
       }
-      else if (qName.equals("lastmod"))
+      else if (localName.equals("lastmod"))
       {
         // "lastmod" tag
         return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
@@ -4918,7 +4918,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       throws ManifoldCFException, ServiceInterruption
     {
       XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("loc"))
       {
         linkField = ((XMLStringContext)theContext).getValue();

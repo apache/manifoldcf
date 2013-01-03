@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-596: RSS and Web connectors need to peel off any
+namespace qualifies from tag names when processing XML feeds.
+(David Morana, Karl Wright)
+
 CONNECTORS-594: Port Solr connector to use SolrJ, and add
 capability to work with SolrCloud installations.
 (Minoru Osuka, Ryan McKinley, Karl Wright)
