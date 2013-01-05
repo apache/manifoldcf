@@ -92,11 +92,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Dechromed content mode - content field */
   public static final int DECHROMED_CONTENT = 2;
 
-  /** Chromed suppression mode - use chromed content */
+  /** Chromed suppression mode - use chromed content if dechromed content not available */
   public static final int CHROMED_USE = 0;
-  /** Chromed suppression mode - skip all chromed content */
+  /** Chromed suppression mode - skip documents if dechromed content not available */
   public static final int CHROMED_SKIP = 1;
-
+  /** Chromed suppression mode - index metadata only if dechromed content not available */
+  public static final int CHROMED_METADATA_ONLY = 2;
+  
   /** Robots usage flag */
   protected int robotsUsage = ROBOTS_ALL;
 
@@ -2406,6 +2408,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "  <tr>\n"+
 "    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"metadata\" "+(chromedMode.equals("metadata")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoContentMetadataOnly")+"</nobr></td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -3939,7 +3944,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               ((origDate==null)?"null":origDate.toString()));
             if (filter.isLegalURL(newIdentifier))
             {
-              if (contentsFile == null)
+              if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
                 String[] dataNames = new String[]{"pubdate","title","source","category","description"};
@@ -3988,19 +3993,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
                 if (descriptionField != null)
                   dataValues[5] = new String[]{descriptionField};
-
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
+                  
+                if (contentsFile == null)
                 {
-                  contentsFile = null;
-                  dataValues[4] = new Object[]{ci};
+                  CharacterInput ci = new NullCharacterInput();
+                  try
+                  {
+                    dataValues[4] = new Object[]{ci};
 
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
-                finally
+                else
                 {
-                  ci.discard();
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+                    dataValues[4] = new Object[]{ci};
+
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
               }
             }
@@ -4323,7 +4346,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               ((origDate==null)?"null":origDate.toString()));
             if (filter.isLegalURL(newIdentifier))
             {
-              if (contentsFile == null)
+              if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
                 String[] dataNames = new String[]{"pubdate","title","source","description"};
@@ -4356,18 +4379,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 dataValues[2] = new String[]{documentIdentifier};
                 if (descriptionField != null)
                   dataValues[4] = new String[]{descriptionField};
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
+                  
+                if (contentsFile == null)
                 {
-                  contentsFile = null;
-                  dataValues[3] = new Object[]{ci};
+                  CharacterInput ci = new NullCharacterInput();
+                  try
+                  {
+                    dataValues[3] = new Object[]{ci};
 
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
-                finally
+                else
                 {
-                  ci.discard();
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+                    dataValues[3] = new Object[]{ci};
+
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
               }
             }
@@ -4699,7 +4741,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 ((origDate==null)?"null":origDate.toString()));
               if (filter.isLegalURL(newIdentifier))
               {
-                if (contentsFile == null)
+                if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
                 {
                   // It's a reference!  Add it.
                   String[] dataNames = new String[]{"pubdate","title","source","category","description"};
@@ -4746,20 +4788,38 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                   }
                   if (descriptionField != null)
                     dataValues[5] = new String[]{descriptionField};
-                    
-                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                  try
+                  
+                  if (contentsFile == null)
                   {
-                    contentsFile = null;
+                    CharacterInput ci = new NullCharacterInput();
+                    try
+                    {
+                      dataValues[4] = new Object[]{ci};
 
-                    dataValues[4] = new Object[]{ci};
-
-                    // Add document reference, including the data to pass down, and the dechromed content too
-                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                      // Add document reference, including the data to pass down, and the dechromed content too
+                      activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    }
+                    finally
+                    {
+                      ci.discard();
+                    }
                   }
-                  finally
+                  else
                   {
-                    ci.discard();
+                    CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                    try
+                    {
+                      contentsFile = null;
+
+                      dataValues[4] = new Object[]{ci};
+
+                      // Add document reference, including the data to pass down, and the dechromed content too
+                      activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    }
+                    finally
+                    {
+                      ci.discard();
+                    }
                   }
                 }
               }
@@ -6124,6 +6184,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               chromedContentMode = CHROMED_USE;
             else if (mode.equals("skip"))
               chromedContentMode = CHROMED_SKIP;
+            else if (mode.equals("metadata"))
+              chromedContentMode = CHROMED_METADATA_ONLY;
           }
         }
       }
