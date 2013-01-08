@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-600: Add a field to the RSS connector that contains
+document origination date in ISO 8601 format.
+(David Morana, Karl Wright)
+
 CONNECTORS-598: Add an RSS connector mode that allows just
 metadata to be consumed, in conjunction with content from description
 or content fields.

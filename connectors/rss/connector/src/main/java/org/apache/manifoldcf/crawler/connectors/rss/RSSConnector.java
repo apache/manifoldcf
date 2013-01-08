@@ -41,6 +41,7 @@ import org.apache.http.HttpException;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.text.*;
 import java.util.regex.*;
 
 /** This is the RSS implementation of the IRepositoryConnector interface.
@@ -1449,24 +1450,33 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
             Long minimumOrigTime = null;
             String[] pubDateValues = new String[pubDates.size()];
+            String[] pubDateValuesISO = new String[pubDates.size()];
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+            df.setTimeZone(tz);
             k = 0;
             while (k < pubDates.size())
             {
               String pubDate = (String)pubDates.get(k);
-              pubDateValues[k++] = pubDate;
+              pubDateValues[k] = pubDate;
               try
               {
                 Long pubDateLong = new Long(pubDate);
                 if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
                   minimumOrigTime = pubDateLong;
+                pubDateValuesISO[k] = df.format(new Date(pubDateLong.longValue()));
               }
               catch (NumberFormatException e)
               {
                 // Do nothing; the version string seems to not mean anything
               }
+              k++;
             }
             if (k > 0)
+            {
               rd.addField("pubdate",pubDateValues);
+              rd.addField("pubdateiso",pubDateValuesISO);
+            }
 
             if (minimumOrigTime != null)
               activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
