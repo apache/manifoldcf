@@ -3,6 +3,12 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-601: Revise algorithm for screening out documents that
+are not text in the web connector.  Since CJK characters mess up the
+old definition of "strange" character, use the more-limited definition of
+all non-whitespace characters less than 32.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-600: Add a field to the RSS connector that contains
 document origination date in ISO 8601 format.
 (David Morana, Karl Wright)
