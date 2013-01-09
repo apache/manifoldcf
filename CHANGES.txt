@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-605: Maven build is broken: commons-httpclient version is missing
+(Piergiorgio Lucidi)
+
 CONNECTORS-601: Revise algorithm for screening out documents that
 are not text in the web connector.  Since CJK characters mess up the
 old definition of "strange" character, use the more-limited definition of
