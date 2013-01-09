@@ -517,6 +517,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
       HttpClient client = getInitializedClient(contextMsg);
       HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
+      method.setHeader(new BasicHeader("Accept","*/*"));
       try
       {
         int statusCode = executeMethodViaThread(client,method);
@@ -3850,6 +3851,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Long readSize = null;
 
     HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
+    method.setHeader(new BasicHeader("Accept","*/*"));
+
     ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
     methodThread.start();
     try
@@ -4070,6 +4073,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("Livelink: Session authenticating via http "+contextMsg+"...");
     HttpGet authget = new HttpGet(getHost().toURI() + createLivelinkLoginURI());
+    authget.setHeader(new BasicHeader("Accept","*/*"));
     try
     {
       if (Logging.connectors.isDebugEnabled())

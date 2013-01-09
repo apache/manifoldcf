@@ -1493,6 +1493,7 @@ public class ThrottledFetcher
       // Set all appropriate headers and parameters
       fetchMethod.setHeader(new BasicHeader("User-Agent",userAgent));
       fetchMethod.setHeader(new BasicHeader("From",from));
+      fetchMethod.setHeader(new BasicHeader("Accept","*/*"));
         
       // Use a custom cookie store
       CookieStore cookieStore = new OurBasicCookieStore();

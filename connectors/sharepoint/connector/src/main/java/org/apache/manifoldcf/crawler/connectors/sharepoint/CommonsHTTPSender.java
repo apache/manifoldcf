@@ -305,6 +305,8 @@ public class CommonsHTTPSender extends BasicHandler {
         msg.getContentType(msgContext.getSOAPConstants())));
     }
     
+    method.setHeader(new BasicHeader("Accept","*/*"));
+
     method.setHeader(new BasicHeader(HTTPConstants.HEADER_SOAP_ACTION,
       "\"" + action + "\""));
     method.setHeader(new BasicHeader(HTTPConstants.HEADER_USER_AGENT, Messages.getMessage("axisUserAgent")));

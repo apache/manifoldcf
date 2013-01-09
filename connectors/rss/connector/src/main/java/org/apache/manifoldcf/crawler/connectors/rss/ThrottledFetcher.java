@@ -384,6 +384,8 @@ public class ThrottledFetcher
       // Set all appropriate headers
       executeMethod.setHeader(new BasicHeader("User-Agent",userAgent));
       executeMethod.setHeader(new BasicHeader("From",from));
+      executeMethod.setHeader(new BasicHeader("Accept","*/*"));
+
       if (lastETag != null)
         executeMethod.setHeader(new BasicHeader("ETag",lastETag));
       if (lastModified != null)

@@ -1671,6 +1671,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     HttpGet method = new HttpGet(URL);
     if (userAgent != null)
       method.setHeader(new BasicHeader("User-Agent",userAgent));
+    method.setHeader(new BasicHeader("Accept","*/*"));
     return method;
   }
 
