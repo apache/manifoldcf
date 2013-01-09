@@ -6896,7 +6896,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       if (isStrange(x))
         count++;
     }
-    return ((double)count)/((double)chunkLength) < 0.30;
+    return ((double)count)/((double)chunkLength) < 0.70;
   }
 
   /** Check if character is not typical ASCII. */
