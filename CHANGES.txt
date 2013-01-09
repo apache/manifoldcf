@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-604: Make headers exactly the same as for MCF 1.0.1.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-605: Maven build is broken: commons-httpclient version is missing
 (Piergiorgio Lucidi)
 

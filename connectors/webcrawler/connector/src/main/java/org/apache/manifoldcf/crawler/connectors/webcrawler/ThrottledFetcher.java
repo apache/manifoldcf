@@ -1296,7 +1296,7 @@ public class ThrottledFetcher
       sb.append("://").append(server).append(displayedPort).append(urlPath);
       String fetchUrl = sb.toString();
 
-      HttpHost fetchHost = new HttpHost(server,resolvedPort,protocol);
+      HttpHost fetchHost = new HttpHost(server,port,protocol);
       HttpHost hostHost;
       
       if (host != null)
