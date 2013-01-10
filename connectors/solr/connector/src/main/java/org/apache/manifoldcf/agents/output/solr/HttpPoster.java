@@ -756,7 +756,8 @@ public class HttpPoster
             activityStart = new Long(fullStartTime);
             activityBytes = new Long(length);
             activityCode = "FAILED";
-            activityDetails = e.getMessage();
+            activityDetails = e.getMessage() +
+              ((e.getCause() != null)?": "+e.getCause().getMessage():"");
             
             // Rethrow; will interpret at a higher level
             throw e;
@@ -767,7 +768,8 @@ public class HttpPoster
             activityStart = new Long(fullStartTime);
             activityBytes = new Long(length);
             activityCode = Integer.toString(e.code());
-            activityDetails = e.getMessage();
+            activityDetails = e.getMessage() +
+              ((e.getCause() != null)?": "+e.getCause().getMessage():"");
             
             // Rethrow; we'll interpret at the next level
             throw e;
@@ -877,7 +879,8 @@ public class HttpPoster
         {
           activityStart = new Long(fullStartTime);
           activityCode = "FAILED";
-          activityDetails = e.getMessage();
+          activityDetails = e.getMessage() +
+            ((e.getCause() != null)?": "+e.getCause().getMessage():"");
 
           throw e;
         }
@@ -885,7 +888,8 @@ public class HttpPoster
         {
           activityStart = new Long(fullStartTime);
           activityCode = "FAILED";
-          activityDetails = e.getMessage();
+          activityDetails = e.getMessage() +
+            ((e.getCause() != null)?": "+e.getCause().getMessage():"");
 
           throw e;
         }
