@@ -630,7 +630,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Web: For document identifier '"+documentIdentifier+"' found session credential key '"+sessionCredential.getSequenceKey()+"'");
+          if (sessionCredential != null)
+            Logging.connectors.debug("Web: For document identifier '"+documentIdentifier+"' found session credential key '"+sessionCredential.getSequenceKey()+"'");
         }
         
         // Set up the initial state and state variables.

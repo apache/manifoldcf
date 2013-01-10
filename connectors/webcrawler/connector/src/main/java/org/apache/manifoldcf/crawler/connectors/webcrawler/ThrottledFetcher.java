@@ -1270,33 +1270,33 @@ public class ThrottledFetcher
         new AllowAllHostnameVerifier());
       Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
 
-      int resolvedPort;
+      int hostPort;
       String displayedPort;
       if (port != -1)
       {
         if (!(protocol.equals("http") && port == 80) &&
           !(protocol.equals("https") && port == 443))
+        {
           displayedPort = ":"+Integer.toString(port);
+          hostPort = port;
+        }
         else
+        {
           displayedPort = "";
-        resolvedPort = port;
+          hostPort = -1;
+        }
       }
       else
       {
-        if (protocol.equals("http"))
-          resolvedPort = 80;
-        else if (protocol.equals("https"))
-          resolvedPort = 443;
-        else
-          throw new IllegalArgumentException("Unexpected protocol: "+protocol);
         displayedPort = "";
+        hostPort = -1;
       }
 
       StringBuilder sb = new StringBuilder(protocol);
       sb.append("://").append(server).append(displayedPort).append(urlPath);
       String fetchUrl = sb.toString();
 
-      HttpHost fetchHost = new HttpHost(server,port,protocol);
+      HttpHost fetchHost = new HttpHost(server,hostPort,protocol);
       HttpHost hostHost;
       
       if (host != null)
@@ -1304,7 +1304,7 @@ public class ThrottledFetcher
         sb.setLength(0);
         sb.append(protocol).append("://").append(host).append(displayedPort).append(urlPath);
         myUrl = sb.toString();
-        hostHost = new HttpHost(host,resolvedPort,protocol);
+        hostHost = new HttpHost(host,hostPort,protocol);
       }
       else
       {
