@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-603: Upgrade the CMIS Connector to OpenCMIS 0.8.0
+(Piergiorgio Lucidi)
+
 CONNECTORS-604: Make headers exactly the same as for MCF 1.0.1.
 (Shinichiro Abe, Karl Wright)
 
