@@ -6903,7 +6903,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   /** Check if character is not typical ASCII or utf-8. */
   protected static boolean isStrange(byte x)
   {
-    return (x < 32) && (!isWhiteSpace(x));
+    return (x >= 0 && x < 32) && (!isWhiteSpace(x));
   }
 
   /** Check if a byte is a whitespace character. */
