@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-607: Handle multi-valued parameters properly in the
+Solr connector.
+(Minoru Osuka, Shinichiro Abe, Karl Wright)
+
 CONNECTORS-603: Upgrade the CMIS Connector to OpenCMIS 0.8.0
 (Piergiorgio Lucidi)
 

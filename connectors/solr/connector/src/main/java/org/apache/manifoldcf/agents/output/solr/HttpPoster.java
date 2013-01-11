@@ -611,13 +611,30 @@ public class HttpPoster
   }
 
   /** Write a field */
-  protected static void writeField(ContentStreamUpdateRequest out, String fieldName, String fieldValue)
+  protected static void writeField(ModifiableSolrParams out, String fieldName, String[] fieldValues)
   {
-    out.setParam(fieldName,fieldValue);
+    out.add(fieldName, fieldValues);
+  }
+  
+  /** Write a field */
+  protected static void writeField(ModifiableSolrParams out, String fieldName, List<String> fieldValues)
+  {
+    String[] values = new String[fieldValues.size()];
+    int i = 0;
+    for (String fieldValue : fieldValues) {
+      values[i] = fieldValue;
+    }
+    writeField(out, fieldName, values);
+  }
+  
+  /** Write a field */
+  protected static void writeField(ModifiableSolrParams out, String fieldName, String fieldValue)
+  {
+    out.add(fieldName, fieldValue);
   }
 
   /** Output an acl level */
-  protected void writeACLs(ContentStreamUpdateRequest out, String aclType, String[] acl, String[] denyAcl)
+  protected void writeACLs(ModifiableSolrParams out, String aclType, String[] acl, String[] denyAcl)
   {
     String metadataACLName = LITERAL + allowAttributeName + aclType;
     for (int i = 0; i < acl.length; i++)
@@ -689,21 +706,20 @@ public class HttpPoster
         {
           ContentStreamUpdateRequest contentStreamUpdateRequest = new ContentStreamUpdateRequest(postUpdateAction);
           
+          ModifiableSolrParams out = new ModifiableSolrParams();
+          
           // Write the id field
-          writeField(contentStreamUpdateRequest,LITERAL+idAttributeName,documentURI);
+          writeField(out,LITERAL+idAttributeName,documentURI);
 
           // Write the access token information
-          writeACLs(contentStreamUpdateRequest,"share",shareAcls,shareDenyAcls);
-          writeACLs(contentStreamUpdateRequest,"document",acls,denyAcls);
+          writeACLs(out,"share",shareAcls,shareDenyAcls);
+          writeACLs(out,"document",acls,denyAcls);
 
           // Write the arguments
           for (String name : arguments.keySet())
           {
             List<String> values = arguments.get(name);
-            for (String value : values)
-            {
-              writeField(contentStreamUpdateRequest,name,value);
-            }
+            writeField(out,name,values);
           }
 
           // Write the metadata, each in a field by itself
@@ -719,18 +735,16 @@ public class HttpPoster
               if (newFieldName.toLowerCase().equals(idAttributeName.toLowerCase()))
                 newFieldName = ID_METADATA;
               String[] values = document.getFieldAsStrings(fieldName);
-              // We only handle strings right now!!!
-              for (String value : values)
-              {
-                writeField(contentStreamUpdateRequest,LITERAL+newFieldName,value);
-              }
+              writeField(out,LITERAL+newFieldName,values);
             }
           }
                 
           // Write the commitWithin parameter
           if (commitWithin != null)
-            writeField(contentStreamUpdateRequest,COMMITWITHIN_METADATA,commitWithin);
+            writeField(out,COMMITWITHIN_METADATA,commitWithin);
 
+          contentStreamUpdateRequest.setParams(out);
+          
           contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length));
 
           // Fire off the request.
