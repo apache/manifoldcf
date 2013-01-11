@@ -622,7 +622,7 @@ public class HttpPoster
     String[] values = new String[fieldValues.size()];
     int i = 0;
     for (String fieldValue : fieldValues) {
-      values[i] = fieldValue;
+      values[i++] = fieldValue;
     }
     writeField(out, fieldName, values);
   }
