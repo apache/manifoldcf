@@ -370,19 +370,31 @@ public class HttpPoster
     if ((e instanceof InterruptedIOException) && (!(e instanceof java.net.SocketTimeoutException)))
       throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
 
-    // Intercept "broken pipe" exception, since that seems to be what we get if the ingestion API kills the socket right after a 400 goes out.
-    // Basically, we have no choice but to interpret that in the same manner as a 400, since no matter how we do it, it's a race and the 'broken pipe'
-    // result is always possible.  So we might as well expect it and treat it properly.
-    if (e.getClass().getName().equals("java.net.SocketException") && e.getMessage().toLowerCase().indexOf("broken pipe") != -1)
+    long currentTime = System.currentTimeMillis();
+    
+    if (e.getClass().getName().equals("java.net.SocketException"))
     {
-      // We've seen what looks like the ingestion interface forcibly closing the socket.
-      // We *choose* to interpret this just like a 400 response.  However, we log in the history using a different code,
-      // since we really don't know what happened for sure.
-      return;
+      // Intercept "broken pipe" exception, since that seems to be what we get if the ingestion API kills the socket right after a 400 goes out.
+      // Basically, we have no choice but to interpret that in the same manner as a 400, since no matter how we do it, it's a race and the 'broken pipe'
+      // result is always possible.  So we might as well expect it and treat it properly.
+      if (e.getMessage().toLowerCase().indexOf("broken pipe") != -1)
+        // We've seen what looks like the ingestion interface forcibly closing the socket.
+        // We *choose* to interpret this just like a 400 response.  However, we log in the history using a different code,
+        // since we really don't know what happened for sure.
+        return;
+      
+      // Other socket exceptions are service interruptions - but if we keep getting them, it means 
+      // that a socket timeout is probably set too low to accept this particular document.  So
+      // we retry for a while, then skip the document.
+      throw new ServiceInterruption("Socket timeout exception during "+context+": "+e.getMessage(),
+        e,
+        currentTime + interruptionRetryTime,
+        currentTime + 1L * 60L * 60000L,
+        -1,
+        false);
     }
     
-    // Otherwise, presume that retries might fix it.
-    long currentTime = System.currentTimeMillis();
+    // Otherwise, no idea what the trouble is, so presume that retries might fix it.
     throw new ServiceInterruption("IO exception during "+context+": "+e.getMessage(),
       e,
       currentTime + interruptionRetryTime,

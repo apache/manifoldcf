@@ -226,7 +226,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         // Pick up timeouts
         String socketTimeoutString = params.getParameter(SolrConfig.PARAM_SOCKET_TIMEOUT);
         if (socketTimeoutString == null)
-          socketTimeoutString = "60";
+          socketTimeoutString = "900";
         String connectTimeoutString = params.getParameter(SolrConfig.PARAM_CONNECTION_TIMEOUT);
         if (connectTimeoutString == null)
           connectTimeoutString = "60";
@@ -967,7 +967,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     String socketTimeout = parameters.getParameter(SolrConfig.PARAM_SOCKET_TIMEOUT);
     if (socketTimeout == null)
-      socketTimeout = "60";
+      socketTimeout = "900";
 
     String zkClientTimeout = parameters.getParameter(SolrConfig.PARAM_ZOOKEEPER_CLIENT_TIMEOUT);
     if (zkClientTimeout == null)
