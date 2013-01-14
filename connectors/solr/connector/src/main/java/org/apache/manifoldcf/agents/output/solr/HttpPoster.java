@@ -51,6 +51,8 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -217,7 +219,20 @@ public class HttpPoster
     params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
     params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
     DefaultHttpClient localClient = new DefaultHttpClient(connectionManager,params);
-          
+
+    // No retries
+    localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+	    HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+    
     if (userID != null && userID.length() > 0 && password != null)
     {
       Credentials credentials = new UsernamePasswordCredentials(userID, password);

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-610: Can't use retries with httpclient instance used
+with solrj, so disable retries explicitly.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-609: Solrj doesn't always set the code property of
 its http exceptions right, so we need to parse it out ourselves.
 (Ahmet Arslan, Karl Wright)
