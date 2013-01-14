@@ -321,6 +321,12 @@ public class SPSProxyHelper {
       com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
       com.microsoft.sharepoint.webpartpages.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( encodedRelativePath, "Item" );
+      if (aclResult == null)
+      {
+        Logging.connectors.debug("SharePoint: document acls were null");
+        return null;
+      }
+      
       org.apache.axis.message.MessageElement[] aclList = aclResult.get_any();
 
       if (Logging.connectors.isDebugEnabled())
