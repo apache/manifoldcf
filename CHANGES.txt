@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-609: Solrj doesn't always set the code property of
+its http exceptions right, so we need to parse it out ourselves.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-608: Solr connector times out chronically on some
 documents.
 (David Morana, Karl Wright)

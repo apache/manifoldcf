@@ -29,6 +29,7 @@ import java.net.*;
 import java.util.*;
 import javax.net.*;
 import javax.net.ssl.*;
+import java.util.regex.*;
 
 import org.apache.log4j.*;
 
@@ -334,18 +335,39 @@ public class HttpPoster
   protected static void handleSolrException(SolrException e, String context)
     throws ManifoldCFException, ServiceInterruption
   {
+    int code = e.code();
+    if (code == 0)
+    {
+      try
+      {
+        // Solrj doesn't always set the code properly.  If it doesn't, we have to parse it out of the exception string.  Ugh.
+        Pattern p = Pattern.compile("non ok status:([0-9]*),");
+        Matcher m = p.matcher(e.getMessage());
+        if (m.find())
+          code = Integer.parseInt(m.group(1));
+      }
+      catch (PatternSyntaxException e2)
+      {
+        throw new ManifoldCFException("Unexpected error: "+e2.getMessage());
+      }
+      catch (NumberFormatException e2)
+      {
+        throw new ManifoldCFException("Unexpected error: "+e2.getMessage());
+      }
+    }
+      
     // Use the exception text to determine the proper result.
-    if (e.code() == 500 && e.getMessage().indexOf("org.apache.tika.exception.TikaException") != -1)
+    if (code == 500 && e.getMessage().indexOf("org.apache.tika.exception.TikaException") != -1)
       // Can't process the document, so don't keep trying.
       return;
 
     // If the code is in the 400 range, the document will never be accepted, so indicate that.
-    if (e.code() >= 400 && e.code() < 500)
+    if (code >= 400 && code < 500)
       return;
     
     // The only other kind of return code we know how to handle is 50x.
     // For these, we should retry for a while.
-    if (e.code() == 500)
+    if (code == 500)
     {
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("Solr exception during "+context+" ("+e.code()+"): "+e.getMessage(),
