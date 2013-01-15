@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.1-dev =====================
+======================= Release 1.1 =====================
 
 CONNECTORS-582: Upgrade to official httpcomponents 4.2.3
 release.
