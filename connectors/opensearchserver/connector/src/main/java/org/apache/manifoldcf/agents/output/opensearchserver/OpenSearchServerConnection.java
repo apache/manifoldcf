@@ -53,6 +53,8 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
@@ -111,6 +113,19 @@ public class OpenSearchServerConnection {
     localConnectionManager.setMaxTotal(1);
     connectionManager = localConnectionManager;
     DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager);
+    // No retries
+    localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+
     httpClient = localHttpClient;
   }
 

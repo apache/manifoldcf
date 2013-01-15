@@ -55,6 +55,8 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 /** This is the "repository connector" for Microsoft SharePoint.
 * Document identifiers for this connector come in three forms:
@@ -218,9 +220,21 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       BasicHttpParams params = new BasicHttpParams();
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,60000);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
       localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       if (strippedUserName != null)
       {

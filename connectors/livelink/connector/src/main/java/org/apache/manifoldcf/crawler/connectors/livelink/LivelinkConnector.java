@@ -64,6 +64,8 @@ import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
@@ -420,10 +422,23 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,60000);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,300000);
       params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+
       localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       // Set up authentication to use
       if (ntlmDomain != null)

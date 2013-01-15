@@ -30,6 +30,8 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
@@ -104,6 +106,18 @@ public class ElasticSearchConnector extends BaseOutputConnector
     localConnectionManager.setMaxTotal(1);
     connectionManager = localConnectionManager;
     DefaultHttpClient localClient = new DefaultHttpClient(connectionManager);
+    // No retries
+    localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
     client = localClient;
   }
   

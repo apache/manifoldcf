@@ -226,7 +226,7 @@ public class HttpPoster
 	public boolean retryRequest(
 	  IOException exception,
 	  int executionCount,
-	    HttpContext context)
+          HttpContext context)
 	{
 	  return false;
 	}

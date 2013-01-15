@@ -77,6 +77,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.CookieIdentityComparator;
+import org.apache.http.client.HttpRequestRetryHandler;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -1344,6 +1345,18 @@ public class ThrottledFetcher
         params.setBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER,new Boolean(true));
 
         DefaultHttpClient localHttpClient = new DefaultHttpClient(connManager,params);
+        // No retries
+        localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+          {
+            public boolean retryRequest(
+              IOException exception,
+              int executionCount,
+              HttpContext context)
+            {
+              return false;
+            }
+         
+          });
         localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
         localHttpClient.getCookieSpecs().register(CookiePolicy.BROWSER_COMPATIBILITY, new CookieSpecFactory()
           {

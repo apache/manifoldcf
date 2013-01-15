@@ -87,6 +87,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.HttpHost;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 
 public class MeridioWrapper
@@ -259,9 +261,22 @@ public class MeridioWrapper
     BasicHttpParams dmwsParams = new BasicHttpParams();
     dmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
     dmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-    dmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,60000);
+    dmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
     dmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
     DefaultHttpClient localDmwsHttpClient = new DefaultHttpClient(connectionManager,dmwsParams);
+    // No retries
+    localDmwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+
     localDmwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
     if (domainUser != null)
     {
@@ -290,9 +305,22 @@ public class MeridioWrapper
     BasicHttpParams rmwsParams = new BasicHttpParams();
     rmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
     rmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-    rmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,60000);
+    rmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
     rmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
     DefaultHttpClient localRmwsHttpClient = new DefaultHttpClient(connectionManager,rmwsParams);
+    // No retries
+    localRmwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+
     localRmwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
     if (domainUser != null)
     {
@@ -323,9 +351,22 @@ public class MeridioWrapper
       BasicHttpParams mcwsParams = new BasicHttpParams();
       mcwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
       mcwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-      mcwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,60000);
+      mcwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       mcwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localMcwsHttpClient = new DefaultHttpClient(connectionManager,mcwsParams);
+      // No retries
+      localMcwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+
       localMcwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       if (domainUser != null)
       {

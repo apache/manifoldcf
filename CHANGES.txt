@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-612: Disable HttpClient retries everywhere.
+(Karl Wright)
+
 CONNECTORS-611: Handle inability to get permissions for funky docs
 by skipping those docs, rather than throwing an NPE.
 (Ahmet Arslan, Karl Wright)

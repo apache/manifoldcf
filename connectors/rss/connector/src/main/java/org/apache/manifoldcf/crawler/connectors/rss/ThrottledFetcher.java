@@ -53,6 +53,8 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -287,6 +289,19 @@ public class ThrottledFetcher
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeoutMilliseconds);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+         
+        });
+
       localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       
       // If there's a proxy, set that too.
