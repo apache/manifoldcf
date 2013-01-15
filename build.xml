@@ -2815,27 +2815,25 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-httpcomponents">
         <mkdir dir="lib"/>
-        <get src="http://people.apache.org/~kwright/httpcore-4.2.4-SNAPSHOT.jar" dest="lib/httpcore.jar"/>
-        <get src="http://people.apache.org/~kwright/httpclient-4.2.3-SNAPSHOT.jar" dest="lib/httpclient.jar"/>
 
-        <!-- antcall target="download-via-maven">
+        <antcall target="download-via-maven">
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.2.2"/>
+            <param name="artifact-version" value="4.2.3"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="httpcore"/>
             <param name="artifact-type" value="jar"/>
-        </antcall -->
-        <!-- antcall target="download-via-maven">
+        </antcall>
+        <antcall target="download-via-maven">
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.2.2"/>
+            <param name="artifact-version" value="4.2.3"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="httpclient"/>
             <param name="artifact-type" value="jar"/>
-        </antcall -->
+        </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/httpcomponents"/>
-            <param name="artifact-version" value="4.2.1"/>
+            <param name="artifact-version" value="4.2.3"/>
             <param name="artifact-name" value="httpmime"/>
             <param name="artifact-type" value="jar"/>
         </antcall>

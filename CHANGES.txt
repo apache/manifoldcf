@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.1-dev =====================
 
+CONNECTORS-582: Upgrade to official httpcomponents 4.2.3
+release.
+(Karl Wright)
+
 CONNECTORS-612: Disable HttpClient retries everywhere.
 (Karl Wright)
 
