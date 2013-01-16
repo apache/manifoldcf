@@ -41,6 +41,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Local connection */
   protected HttpPoster poster = null;
   
+  /** Expiration */
+  protected long expirationTime = -1L;
+  
   /** The allow attribute name */
   protected String allowAttributeName = "allow_token_";
   /** The deny attribute name */
@@ -58,6 +61,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
+  
+  /** Idle connection expiration interval */
+  protected final static long EXPIRATION_INTERVAL = 300000L;
   
   /** Constructor.
   */
@@ -93,7 +99,15 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException
   {
     if (poster != null)
-      poster.poll();
+    {
+      if (expirationTime <= System.currentTimeMillis())
+      {
+        // Expire connection
+        poster.shutdown();
+        poster = null;
+        expirationTime = -1L;
+      }
+    }
   }
 
   /** Close the connection.  Call this before discarding the connection.
@@ -103,8 +117,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException
   {
     if (poster != null)
+    {
       poster.shutdown();
-    poster = null;
+      poster = null;
+      expirationTime = -1L;
+    }
     maxDocumentLength = null;
     includedMimeTypesString = null;
     includedMimeTypes = null;
@@ -301,6 +318,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         throw new ManifoldCFException("Illegal value for parameter '"+SolrConfig.PARAM_SOLR_TYPE+"': '"+solrType+"'");
       
     }
+    expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
   }
 
   /** Parse a mime type field into individual mime types in a hash */

@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-614: Solr connection release not working right.
+(Karl Wright)
+
 CONNECTORS-582: Upgrade to official httpcomponents 4.2.3
 release.
 (Karl Wright)

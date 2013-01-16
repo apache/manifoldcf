@@ -250,14 +250,6 @@ public class HttpPoster
     solrServer = httpSolrServer;
   }
 
-  /** Poll the poster.
-  */
-  public void poll()
-  {
-    if (connectionManager != null)
-      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
-  }
-  
   /** Shut down the poster.
   */
   public void shutdown()
