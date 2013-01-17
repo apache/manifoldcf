@@ -279,6 +279,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     RepositoryDocument data = new RepositoryDocument();
                     data.setBinary(is,fileBytes);
                     data.setFileName(file.getName());
+                    data.setMimeType(mapExtensionToMimeType(file.getName()));
                     data.addField("uri",file.toString());
                     // MHL for other metadata
                     activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
@@ -306,6 +307,31 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       i++;
     }
+  }
+
+  protected final static Map<String,String> mimeMap;
+  static {
+    mimeMap = new HashMap<String,String>();
+    mimeMap.put("txt","text/plain");
+    mimeMap.put(".pdf","application/pdf");
+    mimeMap.put(".doc","application/msword");
+    mimeMap.put(".docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    mimeMap.put(".ppt","application/vnd.ms-powerpoint");
+    mimeMap.put(".pptx","application/vnd.openxmlformats-officedocument.presentationml.presentation");
+    mimeMap.put(".xls","application/vnd.ms-excel");
+    mimeMap.put(".xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  }
+  
+  /** Map an extension to a mime type */
+  protected static String mapExtensionToMimeType(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    int dotIndex = fileName.lastIndexOf(".");
+    if (dotIndex == -1)
+      return null;
+    return mimeMap.get(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
   }
 
   // UI support methods.
