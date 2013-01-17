@@ -1349,6 +1349,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
           RepositoryDocument rd = new RepositoryDocument();
 
+          // Set the content type
+          rd.setMimeType(cache.getContentType(documentIdentifier));
+          
           // Turn into acls and add into description
           String[] aclArray = new String[acls.size()];
           int j = 0;
