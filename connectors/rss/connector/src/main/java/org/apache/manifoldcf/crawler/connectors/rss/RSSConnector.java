@@ -1355,6 +1355,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             long dataSize = cache.getDataLength(urlValue);
             RepositoryDocument rd = new RepositoryDocument();
 
+            // Set content type
+            rd.setMimeType(cache.getContentType(urlValue));
+
             // Turn into acls and add into description
             String[] aclArray = new String[acls.size()];
             int j = 0;

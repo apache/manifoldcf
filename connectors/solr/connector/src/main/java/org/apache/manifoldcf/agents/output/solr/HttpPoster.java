@@ -736,6 +736,7 @@ public class HttpPoster
     {
       long length = document.getBinaryLength();
       InputStream is = document.getBinaryStream();
+      String contentType = document.getMimeType();
 
       try
       {
@@ -786,7 +787,7 @@ public class HttpPoster
 
           contentStreamUpdateRequest.setParams(out);
           
-          contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length));
+          contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType));
 
           // Fire off the request.
           // Note: I need to know whether the document has been permanently rejected or not, but we currently have
@@ -1089,13 +1090,15 @@ public class HttpPoster
   */
   protected static class RepositoryDocumentStream extends ContentStreamBase
   {
-    protected InputStream is;
-    protected long length;
+    protected final InputStream is;
+    protected final long length;
+    protected final String contentType;
     
-    public RepositoryDocumentStream(InputStream is, long length)
+    public RepositoryDocumentStream(InputStream is, long length, String contentType)
     {
       this.is = is;
       this.length = length;
+      this.contentType = contentType;
     }
     
     @Override
@@ -1119,7 +1122,7 @@ public class HttpPoster
     @Override
     public String getContentType()
     {
-      return "application/octet-stream";
+      return contentType;
     }
 
   }
