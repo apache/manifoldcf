@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-617: Simple report NPE under Derby.
+(Karl Wright)
+
 ======================= Release 1.1 =====================
 
 CONNECTORS-613: Add a way of getting a document's mime type
