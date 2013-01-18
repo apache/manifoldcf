@@ -1573,6 +1573,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             
             String objName = object.getObjectName();
 
+            String contentType = object.getContentType();
+            
             // This particular way of getting content failed, because DFC loaded the
             // whole object into memory (very very bad DFC!)
             // InputStream is = objIDfSysObject.getContent();
@@ -1609,6 +1611,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
             rval = new RepositoryDocument();
 
+            if (contentType != null)
+              rval.setMimeType(contentType);
+            
             // Handle the metadata.
             // The start of the version string contains the names of the metadata.  We parse it out of the
             // version string, because we don't want the chance of somebody changing something after we got

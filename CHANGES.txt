@@ -5,6 +5,11 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-613: Add a way of getting a document's mime type
+to Solr, since Tika needs mime type in order to extract content
+since Solr 4.0.0.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-614: Solr connection release not working right.
 (Karl Wright)
 
