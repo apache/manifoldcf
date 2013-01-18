@@ -3528,6 +3528,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
               String lastModified = t.getLastModified();
               
               RepositoryDocument rd = new RepositoryDocument();
+              
+              // For wiki, type is always text/plain
+              rd.setMimeType("text/plain");
+              
               dataSize = contentFile.length();
               InputStream is = new FileInputStream(contentFile);
               try

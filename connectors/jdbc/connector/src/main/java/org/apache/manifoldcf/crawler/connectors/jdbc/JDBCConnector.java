@@ -442,6 +442,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
     addConstant(vm,JDBCConstants.urlReturnVariable,JDBCConstants.urlReturnColumnName);
     addConstant(vm,JDBCConstants.dataReturnVariable,JDBCConstants.dataReturnColumnName);
+    addConstant(vm,JDBCConstants.contentTypeReturnVariable,JDBCConstants.contentTypeReturnColumnName);
     if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,scanOnly))
       return;
 
@@ -529,11 +530,24 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 // We will ingest something, so remove this id from the map in order that we know what we still
                 // need to delete when all done.
                 map.remove(id);
+                String contentType;
+                o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
+                if (o != null)
+                  contentType = readAsString(o);
+                else
+                  contentType = null;
+                
                 if (contents instanceof BinaryInput)
                 {
                   // An ingestion will take place for this document.
                   RepositoryDocument rd = new RepositoryDocument();
 
+                  // Default content type is application/octet-stream for binary data
+                  if (contentType == null)
+                    rd.setMimeType("application/octet-stream");
+                  else
+                    rd.setMimeType(contentType);
+                  
                   applyAccessTokens(rd,version,spec);
                   applyMetadata(rd,row);
 
@@ -578,6 +592,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     byte[] bytes = value.getBytes("utf-8");
                     RepositoryDocument rd = new RepositoryDocument();
 
+                    // Default content type is text/plain for character data
+                    if (contentType == null)
+                      rd.setMimeType("text/plain");
+                    else
+                      rd.setMimeType(contentType);
+                    
                     applyAccessTokens(rd,version,spec);
                     applyMetadata(rd,row);
 
@@ -1382,6 +1402,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     documentKnownColumns.put(JDBCConstants.idReturnColumnName,"");
     documentKnownColumns.put(JDBCConstants.urlReturnColumnName,"");
     documentKnownColumns.put(JDBCConstants.dataReturnColumnName,"");
+    documentKnownColumns.put(JDBCConstants.contentTypeReturnColumnName,"");
   }
   
   /** Apply metadata to a repository document.

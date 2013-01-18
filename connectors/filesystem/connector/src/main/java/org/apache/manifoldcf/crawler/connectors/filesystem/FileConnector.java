@@ -313,13 +313,13 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   static {
     mimeMap = new HashMap<String,String>();
     mimeMap.put("txt","text/plain");
-    mimeMap.put(".pdf","application/pdf");
-    mimeMap.put(".doc","application/msword");
-    mimeMap.put(".docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    mimeMap.put(".ppt","application/vnd.ms-powerpoint");
-    mimeMap.put(".pptx","application/vnd.openxmlformats-officedocument.presentationml.presentation");
-    mimeMap.put(".xls","application/vnd.ms-excel");
-    mimeMap.put(".xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    mimeMap.put("pdf","application/pdf");
+    mimeMap.put("doc","application/msword");
+    mimeMap.put("docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    mimeMap.put("ppt","application/vnd.ms-powerpoint");
+    mimeMap.put("pptx","application/vnd.openxmlformats-officedocument.presentationml.presentation");
+    mimeMap.put("xls","application/vnd.ms-excel");
+    mimeMap.put("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
   
   /** Map an extension to a mime type */
