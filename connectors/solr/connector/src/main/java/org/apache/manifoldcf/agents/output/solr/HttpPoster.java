@@ -403,14 +403,24 @@ public class HttpPoster
     
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
-      // Intercept "broken pipe" exception, since that seems to be what we get if the ingestion API kills the socket right after a 400 goes out.
-      // Basically, we have no choice but to interpret that in the same manner as a 400, since no matter how we do it, it's a race and the 'broken pipe'
-      // result is always possible.  So we might as well expect it and treat it properly.
+      // In the past we would have treated this as a straight document rejection, and
+      // treated it in the same manner as a 400.  The reasoning is that the server can
+      // perfectly legally send out a 400 and drop the connection immediately thereafter,
+      // this a race condition.
+      // However, Solr 4.0 (or the Jetty version that the example runs on) seems
+      // to have a bug where it drops the connection when two simultaneous documents come in
+      // at the same time.  This is the final version of Solr 4.0 so we need to deal with
+      // this.
       if (e.getMessage().toLowerCase().indexOf("broken pipe") != -1)
-        // We've seen what looks like the ingestion interface forcibly closing the socket.
-        // We *choose* to interpret this just like a 400 response.  However, we log in the history using a different code,
-        // since we really don't know what happened for sure.
-        return;
+        // Treat it as a service interruption, but with a limited number of retries.
+        // In that way we won't burden the user with a huge retry interval; it should
+        // give up fairly quickly, and yet NOT give up if the error was merely transient
+        throw new ServiceInterruption("Server dropped connection during "+context+": "+e.getMessage(),
+          e,
+          currentTime + interruptionRetryTime,
+          -1L,
+          3,
+          false);
       
       // Other socket exceptions are service interruptions - but if we keep getting them, it means 
       // that a socket timeout is probably set too low to accept this particular document.  So
@@ -418,7 +428,7 @@ public class HttpPoster
       throw new ServiceInterruption("Socket timeout exception during "+context+": "+e.getMessage(),
         e,
         currentTime + interruptionRetryTime,
-        currentTime + 1L * 60L * 60000L,
+        currentTime + 20L * 60000L,
         -1,
         false);
     }
@@ -811,10 +821,17 @@ public class HttpPoster
             // Log what happened to us
             activityStart = new Long(fullStartTime);
             activityBytes = new Long(length);
-            activityCode = "FAILED";
             activityDetails = e.getMessage() +
               ((e.getCause() != null)?": "+e.getCause().getMessage():"");
             
+            // Broken pipe exceptions we log specially because they usually mean
+            // Solr has rejected the document, and the user will want to know that.
+            if (e.getCause() != null && e.getCause().getClass().getName().equals("java.net.SocketException") &&
+              activityDetails.indexOf("broken pipe") != -1)
+              activityCode = "SOLR REJECT";
+            else
+              activityCode = "FAILED";
+
             // Rethrow; will interpret at a higher level
             throw e;
           }

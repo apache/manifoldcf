@@ -8,6 +8,12 @@ CONNECTORS-617: Simple report NPE under Derby.
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-616: Work around Solr 4.0 or Jetty bug where connections
+are dropped randomly under multithreaded load.  Broken pipe exceptions
+are now retried after a minute, for up to three times, before the Solr
+connector concludes that the document cannot be indexed and skips it.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-613: Add a way of getting a document's mime type
 to Solr, since Tika needs mime type in order to extract content
 since Solr 4.0.0.
