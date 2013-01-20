@@ -411,7 +411,9 @@ public class HttpPoster
       // to have a bug where it drops the connection when two simultaneous documents come in
       // at the same time.  This is the final version of Solr 4.0 so we need to deal with
       // this.
-      if (e.getMessage().toLowerCase().indexOf("broken pipe") != -1)
+      if (e.getMessage().toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
+        e.getMessage().toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
+        e.getMessage().toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1)
         // Treat it as a service interruption, but with a limited number of retries.
         // In that way we won't burden the user with a huge retry interval; it should
         // give up fairly quickly, and yet NOT give up if the error was merely transient
@@ -784,7 +786,7 @@ public class HttpPoster
               newFieldName = fieldName;
             if (newFieldName.length() > 0)
             {
-              if (newFieldName.toLowerCase().equals(idAttributeName.toLowerCase()))
+              if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT)))
                 newFieldName = ID_METADATA;
               String[] values = document.getFieldAsStrings(fieldName);
               writeField(out,LITERAL+newFieldName,values);
@@ -827,7 +829,9 @@ public class HttpPoster
             // Broken pipe exceptions we log specially because they usually mean
             // Solr has rejected the document, and the user will want to know that.
             if (e.getCause() != null && e.getCause().getClass().getName().equals("java.net.SocketException") &&
-              activityDetails.indexOf("broken pipe") != -1)
+              (activityDetails.toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
+                activityDetails.toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
+                activityDetails.toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1))
               activityCode = "SOLR REJECT";
             else
               activityCode = "FAILED";
