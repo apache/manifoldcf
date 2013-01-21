@@ -8,6 +8,11 @@ CONNECTORS-617: Simple report NPE under Derby.
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-618: MySQL orders indexes so that NULL values are first.
+This is a problem for the stuffer query, which then must go through
+millions of rows before it finds the one it is looking for.
+(Shigeki Kobayashi, Karl Wright)
+
 CONNECTORS-616: Work around Solr 4.0 or Jetty bug where connections
 are dropped randomly under multithreaded load.  Broken pipe exceptions
 are now retried after a minute, for up to three times, before the Solr
