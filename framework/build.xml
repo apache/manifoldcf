@@ -749,6 +749,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -788,6 +789,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
