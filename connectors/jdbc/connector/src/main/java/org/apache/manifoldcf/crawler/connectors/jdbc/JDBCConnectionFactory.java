@@ -173,7 +173,6 @@ public class JDBCConnectionFactory
   }
 
   public static void releaseConnection(WrappedConnection c)
-    throws ManifoldCFException, ServiceInterruption
   {
     c.release();
   }

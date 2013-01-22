@@ -241,6 +241,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String queryText = sb.toString();
     long startQueryTime = System.currentTimeMillis();
+    // Contract for IDynamicResultset indicates that if successfully obtained, it MUST
+    // be closed.
     try
     {
       idSet = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -357,6 +359,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IDynamicResultSet result;
     String queryText = sb.toString();
     long startTime = System.currentTimeMillis();
+    // Get a dynamic resultset.  Contract for dynamic resultset is that if
+    // one is returned, it MUST be closed, or a connection will leak.
     try
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -368,11 +372,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    // If success, record that too.
-    activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-      createQueryString(queryText,paramList), "OK", null, null);
     try
     {
+      // If success, record that too.
+      activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+        createQueryString(queryText,paramList), "OK", null, null);
       // Now, go through resultset
       while (true)
       {
@@ -471,6 +475,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IDynamicResultSet result;
     String queryText = sb.toString();
     long startTime = System.currentTimeMillis();
+    // Get a dynamic resultset.  Contract for dynamic resultset is that if
+    // one is returned, it MUST be closed, or a connection will leak.
     try
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -482,12 +488,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    // If success, record that too.
-    activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-      createQueryString(queryText,paramList), "OK", null, null);
-
     try
     {
+      // If success, record that too.
+      activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+        createQueryString(queryText,paramList), "OK", null, null);
+
       while (true)
       {
         IResultRow row = result.getNextRow();
