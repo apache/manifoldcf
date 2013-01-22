@@ -8,6 +8,10 @@ CONNECTORS-617: Simple report NPE under Derby.
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-620: It was possible for the JDBC Connector to leak
+JDBC connections under some error conditions.
+(Anthony Leonard, Karl Wright)
+
 CONNECTORS-619: Include slf4j jars in multiprocess agents classpath.
 This was causing Solrj to not work on multiprocess deployments.
 (Erlend Garåsen, Karl Wright) 
