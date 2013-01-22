@@ -2132,7 +2132,7 @@ public class JobManager implements IJobManager
     {
       IResultRow row = set.getRow(0);
       Double docPriority = (Double)row.getValue(jobQueue.docPriorityField);
-      if (docPriority != null)
+      if (docPriority != null && docPriority.doubleValue() < jobQueue.noDocPriorityValue)
         scanRecord.addBins(docPriority);
     }
     return rval;

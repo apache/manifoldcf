@@ -110,6 +110,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public static final String prioritySetField = "priorityset";
   public static final String checkActionField = "checkaction";
 
+  public static final double noDocPriorityValue = 1e9;
+  public static final Double nullDocPriority = new Double(noDocPriorityValue + 1.0);
+  
   protected static Map statusMap;
 
   static
@@ -198,7 +201,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       }
       else
       {
-        // Upgrade code goes here, if needed
+        // Upgrade; null docpriority fields bashed to 'infinity', so they don't slow down MySQL
+        Map map = new HashMap();
+        map.put(docPriorityField,nullDocPriority);
+        performUpdate(map,"WHERE "+docPriorityField+" IS NULL",null,null);
       }
 
       // Secondary table installation
@@ -688,7 +694,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(prioritySetField,null);
-    map.put(docPriorityField,null);
+    map.put(docPriorityField,nullDocPriority);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID)});
@@ -715,7 +721,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       actionFieldValue = null;
       checkTimeValue = null;
       // Remove document priority; we don't want to pollute the queue.  See CONNECTORS-290.
-      map.put(docPriorityField,null);
+      map.put(docPriorityField,nullDocPriority);
       map.put(prioritySetField,null);
       break;
     case STATUS_ACTIVENEEDRESCAN:
