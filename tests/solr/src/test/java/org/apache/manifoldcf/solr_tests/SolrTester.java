@@ -151,29 +151,42 @@ public class SolrTester
     instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
     System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
-    // Check to be sure we actually processed the right number of documents.
-    JobStatus status = jobManager.getStatus(job.getID());
-    if (status.getDocumentsProcessed() != 111)
-      throw new ManifoldCFException("Wrong number of documents processed - expected 111, saw "+new Long(status.getDocumentsProcessed()).toString());
+    ManifoldCFException exception = null;
     
-    // Look in the connection history for anything other than an OK
-    FilterCriteria fc = new FilterCriteria(new String[]{"document ingest (Solr Connection)"},null,null,null,null);
-    SortOrder sc = new SortOrder();
-    IResultSet result = mgr.genHistorySimple("File Connection",fc,sc,0,10000);
-    for (int i = 0; i < result.getRowCount(); i++)
+    if (exception == null)
     {
-      IResultRow row = result.getRow(i);
-      String activity = (String)row.getValue("activity");
-      String resultCode = (String)row.getValue("resultcode");
-      String resultDetails = (String)row.getValue("resultdesc");
-      if (activity.startsWith("document ingest") && !resultCode.equals("OK"))
-        throw new ManifoldCFException("An indexing operation ("+activity+") failed with result code "+resultCode+" details "+((resultDetails==null)?"none":resultDetails));
+      // Check to be sure we actually processed the right number of documents.
+      JobStatus status = jobManager.getStatus(job.getID());
+      if (status.getDocumentsProcessed() != 111)
+        exception = new ManifoldCFException("Wrong number of documents processed - expected 111, saw "+new Long(status.getDocumentsProcessed()).toString());
     }
-
+    
+    if (exception == null)
+    {
+      // Look in the connection history for anything other than an OK
+      FilterCriteria fc = new FilterCriteria(new String[]{"document ingest (Solr Connection)"},null,null,null,null);
+      SortOrder sc = new SortOrder();
+      IResultSet result = mgr.genHistorySimple("File Connection",fc,sc,0,10000);
+      for (int i = 0; i < result.getRowCount(); i++)
+      {
+        IResultRow row = result.getRow(i);
+        String activity = (String)row.getValue("activity");
+        String resultCode = (String)row.getValue("resultcode");
+        String resultDetails = (String)row.getValue("resultdesc");
+        if (activity.startsWith("document ingest") && !resultCode.equals("OK"))
+          exception = new ManifoldCFException("An indexing operation ("+activity+") failed with result code "+resultCode+" details "+((resultDetails==null)?"none":resultDetails));
+        if (exception != null)
+          break;
+      }
+    }
+    
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
     instance.waitJobDeletedNative(jobManager,job.getID(),300000L);
-      
+    
+    if (exception != null)
+      throw exception;
+    
     // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
   }
   
