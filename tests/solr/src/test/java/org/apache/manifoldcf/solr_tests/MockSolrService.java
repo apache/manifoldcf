@@ -43,7 +43,8 @@ public class MockSolrService
     server.setThreadPool(new QueuedThreadPool(35));
     servlet = new SolrServlet();
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setContextPath("/");
+    context.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName","none");
+    context.setContextPath("/solr");
     server.setHandler(context);
     context.addServlet(new ServletHolder(servlet), "/*");
   }
@@ -88,7 +89,9 @@ public class MockSolrService
           generateDeleteResponse(res);
         }
         else
+        {
           generateMissingPageResponse(res);
+        }
       }
       catch (IOException e)
       {
@@ -105,6 +108,7 @@ public class MockSolrService
       res.setContentType("text/xml; charset=utf-8");
       res.getWriter().printf("<solr>\n");
       res.getWriter().printf("</solr>\n");
+      res.getWriter().flush();
     }
     
     protected static void generateUpdateResponse(HttpServletResponse res)
@@ -115,6 +119,7 @@ public class MockSolrService
       res.getWriter().printf("<result>\n");
       res.getWriter().printf("  <doc name=\"something\"/>\n");
       res.getWriter().printf("</result>\n");
+      res.getWriter().flush();
     }
     
     protected static void generateDeleteResponse(HttpServletResponse res)
@@ -125,6 +130,7 @@ public class MockSolrService
       res.getWriter().printf("<result>\n");
       res.getWriter().printf("  <doc name=\"something\"/>\n");
       res.getWriter().printf("</result>\n");
+      res.getWriter().flush();
     }
     
     protected static void generateMissingPageResponse(HttpServletResponse res)

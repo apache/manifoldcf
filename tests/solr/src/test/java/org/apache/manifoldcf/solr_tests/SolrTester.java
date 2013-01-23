@@ -54,15 +54,8 @@ public class SolrTester
       int i1 = 0;
       while (i1 < 10)
       {
-        String fileName1 = fileName0 + "/dir-" + i1;
-        FileHelper.createDirectory(new File(fileName1));
-        int i2 = 0;
-        while (i2 < 10)
-        {
-          String fileName2 = fileName1 + "/file-"+i2;
-          FileHelper.createFile(new File(fileName2),"Test file "+i0+":"+i1+":"+i2);
-          i2++;
-        }
+        String fileName1 = fileName0 + "/file-"+i1;
+        FileHelper.createFile(new File(fileName1),"Test file "+i0+":"+i1);
         i1++;
       }
       i0++;
@@ -155,20 +148,31 @@ public class SolrTester
     // Now, start the job, and wait until it completes.
     long startTime = System.currentTimeMillis();
     jobManager.manualStart(job.getID());
-    instance.waitJobInactiveNative(jobManager,job.getID(),18000L);
+    instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
     System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
-    // Look in the connection history for anything other than an OK
-    // MHL
-    
     // Check to be sure we actually processed the right number of documents.
     JobStatus status = jobManager.getStatus(job.getID());
     if (status.getDocumentsProcessed() != 111)
       throw new ManifoldCFException("Wrong number of documents processed - expected 111, saw "+new Long(status.getDocumentsProcessed()).toString());
-      
+    
+    // Look in the connection history for anything other than an OK
+    FilterCriteria fc = new FilterCriteria(new String[]{"document ingest (Solr Connection)"},null,null,null,null);
+    SortOrder sc = new SortOrder();
+    IResultSet result = mgr.genHistorySimple("File Connection",fc,sc,0,10000);
+    for (int i = 0; i < result.getRowCount(); i++)
+    {
+      IResultRow row = result.getRow(i);
+      String activity = (String)row.getValue("activity");
+      String resultCode = (String)row.getValue("resultcode");
+      String resultDetails = (String)row.getValue("resultdesc");
+      if (activity.startsWith("document ingest") && !resultCode.equals("OK"))
+        throw new ManifoldCFException("An indexing operation ("+activity+") failed with result code "+resultCode+" details "+((resultDetails==null)?"none":resultDetails));
+    }
+
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),18000L);
+    instance.waitJobDeletedNative(jobManager,job.getID(),300000L);
       
     // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
   }
