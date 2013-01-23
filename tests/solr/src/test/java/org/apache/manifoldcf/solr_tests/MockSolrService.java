@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.rss_tests;
+package org.apache.manifoldcf.solr_tests;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;

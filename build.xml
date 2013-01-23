@@ -2255,6 +2255,10 @@
         <ant dir="tests/jdbc" target="run-UI-derby"/>
     </target>
 
+    <target name="run-solr-tests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-solr-connector,calculate-solr-tests-condition" if="solr-tests.include">
+        <ant dir="tests/solr" target="run-derby"/>
+    </target>
+
     <target name="run-solr-UI-tests-derby" depends="build-tests-framework,build-tests-solr-connector,build-tests-filesystem-connector,calculate-solr-tests-condition" if="solr-tests.include">
         <ant dir="tests/solr" target="run-UI-derby"/>
     </target>
