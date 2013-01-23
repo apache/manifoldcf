@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-621: Solr connector commit logic needs to use specified
+update path.
+(Karl Wright)
+
 CONNECTORS-620: It was possible for the JDBC Connector to leak
 JDBC connections under some error conditions.
 (Anthony Leonard, Karl Wright)

@@ -1032,7 +1032,9 @@ public class HttpPoster
         try
         {
           // Do the operation!
-          UpdateResponse response = solrServer.commit();
+          UpdateRequest updateRequest = new UpdateRequest(postUpdateAction + "?commit=true");
+          UpdateResponse response = updateRequest.process(solrServer);
+          //UpdateResponse response = solrServer.commit();
         }
         catch (InterruptedIOException ioe)
         {
