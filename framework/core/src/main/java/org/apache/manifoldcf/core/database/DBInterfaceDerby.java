@@ -1563,7 +1563,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return "true";
       else
@@ -1583,7 +1583,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,0);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return "true";
       else
@@ -1603,7 +1603,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return m.group(1);
       return "";
@@ -1626,7 +1626,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,0);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return m.group(1);
       return "";

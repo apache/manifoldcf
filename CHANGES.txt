@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-617: Simple report NPE under Derby.
+(Karl Wright)
+
 CONNECTORS-621: Solr connector commit logic needs to use specified
 update path.
 (Karl Wright)
