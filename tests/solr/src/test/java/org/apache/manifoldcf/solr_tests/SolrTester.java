@@ -145,14 +145,32 @@ public class SolrTester
     // Save the job.
     jobManager.save(job);
 
-    // Now, start the job, and wait until it completes.
-    long startTime = System.currentTimeMillis();
-    jobManager.manualStart(job.getID());
-    instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
-    System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
-
     ManifoldCFException exception = null;
     
+    if (exception == null)
+    {
+      try
+      {
+        // Now, start the job, and wait until it completes.
+        long startTime = System.currentTimeMillis();
+        jobManager.manualStart(job.getID());
+        instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
+        System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
+        
+        // Force reindexing, and immediately retry.  This is the case
+        // that always produces IOExceptions.
+        org.apache.manifoldcf.agents.system.ManifoldCF.signalOutputConnectionRedo(tc,"Solr Connection");
+        startTime = System.currentTimeMillis();
+        jobManager.manualStart(job.getID());
+        instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
+        System.err.println("Second crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
+      }
+      catch (ManifoldCFException e)
+      {
+        exception = e;
+      }
+    }
+
     if (exception == null)
     {
       // Check to be sure we actually processed the right number of documents.
