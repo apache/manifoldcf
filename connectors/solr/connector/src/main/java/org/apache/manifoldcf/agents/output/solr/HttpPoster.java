@@ -213,7 +213,7 @@ public class HttpPoster
           
     BasicHttpParams params = new BasicHttpParams();
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
-    params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+    params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
     params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
     params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
     params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
