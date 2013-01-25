@@ -20,11 +20,16 @@ version of Documentum's DFC on your system, and then locate the pertinent jars.
 Copy all the jars that are needed to run your version of DFC into this directory, and
 start the process using the supplied "run" scripts.
 
-(Bear in mind that DFC has a JNI component as well, so the process must include access
+Remember that DFC has a JNI component as well, so the process must include access
 to the appropriate dll's or so's in order to be functional.  This is accomplished by setting
 an environment variable before running the scripts that start the ManifoldCF
-documentum connector server process.  Read the "how-to-build-and-deploy.html"
-document for details.)
+documentum connector server process.
+
+If you find there are incompatibilities between your version of DFC and the one your
+ManifoldCF release was built against, you must build ManifoldCF yourself, and include
+a copy of DFC prior to building, in the directory connectors/documentum/lib-proprietary.
+
+Read the "how-to-build-and-deploy.html" document for details.
 
 
 

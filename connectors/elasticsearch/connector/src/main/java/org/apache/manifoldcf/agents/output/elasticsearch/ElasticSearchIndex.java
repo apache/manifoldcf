@@ -25,18 +25,23 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.HttpEntity;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.Header;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchIndex extends ElasticSearchConnection
 {
 
-  private class IndexRequestEntity implements RequestEntity
+  private class IndexRequestEntity implements HttpEntity
   {
 
     private RepositoryDocument document;
@@ -49,23 +54,36 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       this.inputStream = inputStream;
     }
 
-    public long getContentLength()
-    {
-      return -1;
+    @Override
+    public boolean isChunked() {
+      return false;
     }
-
-    public String getContentType()
-    {
-      return "application/x-www-form-urlencoded";
+    
+    @Override
+    public void consumeContent()
+      throws IOException {
+      EntityUtils.consume(this);
     }
-
-    public boolean isRepeatable()
-    {
+    
+    @Override
+    public boolean isRepeatable() {
       return false;
     }
 
-    public void writeRequest(OutputStream out) throws IOException
-    {
+    @Override
+    public boolean isStreaming() {
+      return false;
+    }
+    
+    @Override
+    public InputStream getContent()
+      throws IOException, IllegalStateException {
+      return inputStream;
+    }
+    
+    @Override
+    public void writeTo(OutputStream out)
+      throws IOException {
       PrintWriter pw = new PrintWriter(out);
       try
       {
@@ -114,6 +132,23 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         IOUtils.closeQuietly(pw);
       }
     }
+
+    @Override
+    public long getContentLength() {
+      // Unknown (chunked) length
+      return -1L;
+    }
+
+    @Override
+    public Header getContentType() {
+      return new BasicHeader("Content-type","application/x-www-form-urlencoded");
+    }
+
+    @Override
+    public Header getContentEncoding() {
+      return null;
+    }
+
   }
 
   public ElasticSearchIndex(HttpClient client, String documentURI, RepositoryDocument document, 
@@ -132,15 +167,14 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     }
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
-    PutMethod put = new PutMethod(url.toString());
-    RequestEntity entity = new IndexRequestEntity(document, inputStream);
-    put.setRequestEntity(entity);
+    HttpPut put = new HttpPut(url.toString());
+    put.setEntity(new IndexRequestEntity(document, inputStream));
     call(put);
     if ("true".equals(checkJson(jsonStatus)))
       return;
     String error = checkJson(jsonException);
     setResult(Result.ERROR, error);
-    System.err.println(getResponse());
+    Logging.connectors.error(getResponse());
   }
 
 }

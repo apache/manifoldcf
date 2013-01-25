@@ -114,6 +114,11 @@ public class FormDataAccumulator implements FormData
     }
   }
 
+  public void overrideActionURI(String overrideURI)
+  {
+    this.actionURI = overrideURI;
+  }
+  
   public void applyOverrides(LoginParameters lp)
   {
     // This map contains the control names we have ALREADY wiped clean.

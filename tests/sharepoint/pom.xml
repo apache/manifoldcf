@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-tests</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -92,9 +92,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>${commons-httpclient.version}</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>

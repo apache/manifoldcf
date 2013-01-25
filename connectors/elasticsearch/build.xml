@@ -22,7 +22,7 @@
     <target name="download-dependencies">
         
         <mkdir dir="build/download"/>
-        <get src="http://cloud.github.com/downloads/elasticsearch/elasticsearch/elasticsearch-0.19.0.tar.gz" 
+        <get src="http://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.19.0.tar.gz" 
             dest="build/download/elasticsearch.tar.gz"/>
         <gunzip src="build/download/elasticsearch.tar.gz"/>
         <untar src="build/download/elasticsearch.tar" dest="test-materials-proprietary"/>
@@ -30,7 +30,7 @@
         <!-- download and install the attachment plugin -->
         <mkdir dir="test-materials-proprietary/elasticsearch-0.19.0/plugins"/>
         
-        <get src="http://cloud.github.com/downloads/elasticsearch/elasticsearch-mapper-attachments/elasticsearch-mapper-attachments-1.2.0.zip" 
+        <get src="http://download.elasticsearch.org/elasticsearch/elasticsearch-mapper-attachments/elasticsearch-mapper-attachments-1.2.0.zip" 
             dest="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments.zip"/>
         
         <unzip src="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments.zip" dest="test-materials-proprietary/elasticsearch-0.19.0/plugins/mapper-attachments"/>

@@ -30,24 +30,40 @@ import org.junit.*;
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseUIDerby extends org.apache.manifoldcf.crawler.tests.ConnectorBaseUIDerby
 {
+  @Override
   protected String[] getConnectorNames()
   {
     return new String[]{"JDBC Connector"};
   }
   
+  @Override
   protected String[] getConnectorClasses()
   {
     return new String[]{"org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConnector"};
   }
   
+  @Override
   protected String[] getOutputNames()
   {
     return new String[]{"Null Output"};
   }
   
+  @Override
   protected String[] getOutputClasses()
   {
     return new String[]{"org.apache.manifoldcf.agents.output.nullconnector.NullConnector"};
+  }
+
+  @Override
+  protected String[] getAuthorityNames()
+  {
+    return new String[]{"JDBC Authority"};
+  }
+  
+  @Override
+  protected String[] getAuthorityClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.authorities.authorities.jdbc.JDBCAuthority"};
   }
 
 }

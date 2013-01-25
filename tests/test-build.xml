@@ -35,7 +35,8 @@
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
-            <include name="commons-httpclient*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
@@ -112,6 +113,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -131,6 +133,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -150,6 +153,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -169,6 +173,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -188,6 +193,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -207,6 +213,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -226,6 +233,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -245,6 +253,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -264,6 +273,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -283,6 +293,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -302,6 +313,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -321,6 +333,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -340,6 +353,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -359,6 +373,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>
@@ -378,6 +393,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war-proprietary/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war-proprietary/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war-proprietary/mcf-api-service.war"/>
+            <jvmarg value="-DcombinedWarPath=../../../framework/build/war-proprietary/mcf-combined-service.war"/>
             <classpath>
                 <path refid="test-classpath"/>
                 <pathelement location="build/test/classes"/>

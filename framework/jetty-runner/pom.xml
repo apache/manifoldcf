@@ -20,7 +20,7 @@
 	<parent>
 		<groupId>org.apache.manifoldcf</groupId>
 		<artifactId>mcf-framework</artifactId>
-		<version>1.1-SNAPSHOT</version>
+		<version>1.2-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -337,9 +337,9 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>${commons-httpclient.version}</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

@@ -33,7 +33,17 @@ import org.apache.manifoldcf.core.tests.HTMLTester;
 public class ConnectorBaseUIDerby extends BaseITDerby
 {
   protected HTMLTester testerInstance = null;
+
+  public ConnectorBaseUIDerby()
+  {
+    super();
+  }
   
+  public ConnectorBaseUIDerby(boolean singleWar)
+  {
+    super(singleWar);
+  }
+
   @Before
   public void setupHTMLTester()
     throws Exception

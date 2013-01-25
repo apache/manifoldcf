@@ -20,6 +20,11 @@ version of the FileNet API on your system, and then locate the pertinent jars.
 Copy all the jars that are needed to run your version of the API into this directory, and
 start the process using the supplied "run" scripts.
 
+If you find there are incompatibilities between your version of DFC and the one your
+ManifoldCF release was built against, you must build ManifoldCF yourself, and include
+a copy of the API prior to building, in the directory connectors/filenet/lib-proprietary.
+
+Read the "how-to-build-and-deploy.html" document for details.
 
 
 

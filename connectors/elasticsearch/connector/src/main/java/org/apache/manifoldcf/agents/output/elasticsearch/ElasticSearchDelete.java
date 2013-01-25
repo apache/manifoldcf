@@ -19,8 +19,9 @@
 
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.DeleteMethod;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class ElasticSearchDelete extends ElasticSearchConnection
@@ -33,8 +34,8 @@ public class ElasticSearchDelete extends ElasticSearchConnection
     try
     {
       String idField = java.net.URLEncoder.encode(documentURI,"utf-8");
-      DeleteMethod method = new DeleteMethod(config.getServerLocation());
-      method.setPath("/" + config.getIndexName() + "/" + config.getIndexType()
+      HttpDelete method = new HttpDelete(config.getServerLocation() +
+          "/" + config.getIndexName() + "/" + config.getIndexType()
           + "/" + idField);
       call(method);
       if ("ok".equals(jsonStatus))

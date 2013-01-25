@@ -581,9 +581,6 @@ public class WorkerThread extends Thread
                               deleteList.clear();
                               ArrayList requeueList = new ArrayList();
 
-                              if (e.isAbortOnFail())
-                                abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
-
                               Set<String> fetchDocuments = new HashSet<String>();
                               for (int i = 0; i < fetchList.size(); i++)
                               {
@@ -603,6 +600,8 @@ public class WorkerThread extends Thread
                                     if (e.isAbortOnFail())
                                     {
                                       rescanList.add(qd);
+                                      // The job when we are done updating all the tables
+                                      abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                                     }
                                     else
                                     {

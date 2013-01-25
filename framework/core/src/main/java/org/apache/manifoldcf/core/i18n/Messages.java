@@ -31,6 +31,7 @@ import java.io.InputStream;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 
 public class Messages
 {
@@ -59,6 +60,10 @@ public class Messages
     // This is the property which describes the resource loader itself
     configuration.setProperty("mcf."+VelocityEngine.RESOURCE_LOADER+".instance",new MCFVelocityResourceLoader(classInstance));
     engine.setExtendedProperties(configuration);
+    engine.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+      "org.apache.velocity.runtime.log.Log4JLogChute" );
+    engine.setProperty("runtime.log.logsystem.log4j.logger",
+      "velocity");
     return engine;
   }
   

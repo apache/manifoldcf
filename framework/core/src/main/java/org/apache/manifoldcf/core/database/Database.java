@@ -483,6 +483,42 @@ public abstract class Database
     }
   }
 
+  /** Construct index hint clause.
+  * On most databases this returns an empty string, but on MySQL this returns
+  * a USE INDEX hint.  It requires the name of an index.
+  *@param tableName is the table the index is from.
+  *@param description is the description of an index, which is expected to exist.
+  *@return the query chunk that should go between the table names and the WHERE
+  * clause.
+  */
+  public String constructIndexHintClause(String tableName, IndexDescription description)
+    throws ManifoldCFException
+  {
+    return "";
+  }
+
+  /** Construct ORDER-BY clause meant for reading from an index.
+  * Supply the field names belonging to the index, in order.
+  * Also supply a corresponding boolean array, where TRUE means "ASC", and FALSE
+  * means "DESC".
+  *@param fieldNames are the names of the fields in the index that is to be used.
+  *@param direction is a boolean describing the sorting order of the first term.
+  *@return a query chunk, including "ORDER BY" text, which is appropriate for
+  * at least ordering by the FIRST column supplied.
+  */
+  public String constructIndexOrderByClause(String[] fieldNames, boolean direction)
+  {
+    if (fieldNames.length == 0)
+      return "";
+    StringBuilder sb = new StringBuilder("ORDER BY ");
+    sb.append(fieldNames[0]);
+    if (direction)
+      sb.append(" ASC");
+    else
+      sb.append(" DESC");
+    return sb.toString();
+  }
+  
   /** Construct an offset/limit clause.
   * This method constructs an offset/limit clause in the proper manner for the database in question.
   *@param offset is the starting offset number.
@@ -853,7 +889,7 @@ public abstract class Database
       {
         // There are a lot of different sorts of error that can be embedded here.  Unfortunately, it's database dependent how
         // to interpret the error.  So toss a generic error, and let the caller figure out if it needs to treat it differently.
-        throw new ManifoldCFException("Exception doing query: "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        throw new ManifoldCFException("SQLException doing query"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
     }
     finally
@@ -923,7 +959,7 @@ public abstract class Database
                 value = null;
                 if (colnum > -1)
                 {
-                  value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key.toLowerCase()));
+                  value = getObject(rs,rsmd,colnum,(spec == null)?ResultSpecification.FORM_DEFAULT:spec.getForm(key.toLowerCase(Locale.ROOT)));
                 }
                 //System.out.println(" Key = '"+resultLabels[i]+"', value = "+((value==null)?"NULL":value.toString()));
                 m.put(resultLabels[i], value);
@@ -962,7 +998,7 @@ public abstract class Database
       }
       catch (java.sql.SQLException e)
       {
-        throw new ManifoldCFException("Resultset error: "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        throw new ManifoldCFException("SQLException getting resultset"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
     }
     catch (Throwable e)
@@ -1101,9 +1137,9 @@ public abstract class Database
     {
       return rs.getBlob(col);
     }
-    catch (java.sql.SQLException sqle)
+    catch (java.sql.SQLException e)
     {
-      throw new ManifoldCFException("Error in getBlob",sqle,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      throw new ManifoldCFException("SQLException in getBlob"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
@@ -1119,9 +1155,9 @@ public abstract class Database
       int type = rsmd.getColumnType(col);
       return (type == java.sql.Types.BLOB);
     }
-    catch (java.sql.SQLException sqle)
+    catch (java.sql.SQLException e)
     {
-      throw new ManifoldCFException("Error in isBlob("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      throw new ManifoldCFException("SQLException doing isBlob("+col+")"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
@@ -1138,9 +1174,9 @@ public abstract class Database
       return (type == java.sql.Types.VARBINARY ||
         type == java.sql.Types.BINARY || type == java.sql.Types.LONGVARBINARY);
     }
-    catch (java.sql.SQLException sqle)
+    catch (java.sql.SQLException e)
     {
-      throw new ManifoldCFException("Error in isBinary("+col+"): "+sqle.getMessage(),sqle,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+      throw new ManifoldCFException("SQLException doing isBinary("+col+")"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
     }
     catch (Exception sqle)
     {
@@ -1314,7 +1350,7 @@ public abstract class Database
       }
       catch (java.sql.SQLException e)
       {
-        throw new ManifoldCFException("Exception in getObject(): "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
+        throw new ManifoldCFException("SQLException doing getObject()"+((e.getSQLState() != null)?" ("+e.getSQLState()+")":"")+": "+e.getMessage(),e,ManifoldCFException.DATABASE_CONNECTION_ERROR);
       }
     }
     catch (Throwable e)

@@ -22,7 +22,6 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
-import org.apache.tools.ant.taskdefs.Zip;
 
 import java.io.*;
 import java.security.GeneralSecurityException;

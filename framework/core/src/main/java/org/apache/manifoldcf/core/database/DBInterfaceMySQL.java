@@ -112,6 +112,18 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       //new Exception(message).printStackTrace();
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
     }
+    // Transaction timeout
+    if (sqlState != null && sqlState.equals("HY000"))
+    {
+      //new Exception(message).printStackTrace();
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
+    // Lock timeout
+    if (sqlState != null && sqlState.equals("41000"))
+    {
+      //new Exception(message).printStackTrace();
+      return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);
+    }
     // Note well: We also have to treat 'duplicate key' as a transaction abort, since this is what you get when two threads attempt to
     // insert the same row.  (Everything only works, then, as long as there is a unique constraint corresponding to every bad insert that
     // one could make.)
@@ -694,8 +706,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     StringBuilder query = new StringBuilder();
     List list = new ArrayList();
-    list.add(databaseName.toUpperCase());
-    list.add(tableName.toUpperCase());
+    list.add(databaseName.toLowerCase(Locale.ROOT));
+    list.add(tableName.toLowerCase(Locale.ROOT));
     query.append("SELECT column_name, is_nullable, data_type, character_maximum_length ")
       .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=? AND TABLE_NAME=?");
     IResultSet set = performQuery(query.toString(),list,cacheKeys,queryClass);
@@ -711,7 +723,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
     String primaryKey = null;
     if (primarySet.getRowCount() != 0)
-      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase();
+      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase(Locale.ROOT);
     if (primaryKey == null)
       primaryKey = "";
     
@@ -721,7 +733,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = ((String)row.getValue("column_name")).toLowerCase();
+      String fieldName = ((String)row.getValue("column_name")).toLowerCase(Locale.ROOT);
       String type = (String)row.getValue("data_type");
       Long width = (Long)row.getValue("character_maximum_length");
       String isNullable = (String)row.getValue("is_nullable");
@@ -758,8 +770,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     String query = "SELECT index_name,column_name,non_unique,seq_in_index FROM INFORMATION_SCHEMA.STATISTICS "+
       "WHERE TABLE_SCHEMA=? AND TABLE_NAME=? ORDER BY index_name,seq_in_index ASC";
     List list = new ArrayList();
-    list.add(databaseName.toUpperCase());
-    list.add(tableName.toUpperCase());
+    list.add(databaseName.toLowerCase(Locale.ROOT));
+    list.add(tableName.toLowerCase(Locale.ROOT));
     IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     String lastIndexName = null;
     List<String> indexColumns = null;
@@ -768,8 +780,8 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     while (i < result.getRowCount())
     {
       IResultRow row = result.getRow(i++);
-      String indexName = ((String)row.getValue("index_name")).toLowerCase();
-      String columnName = ((String)row.getValue("column_name")).toLowerCase();
+      String indexName = ((String)row.getValue("index_name")).toLowerCase(Locale.ROOT);
+      String columnName = ((String)row.getValue("column_name")).toLowerCase(Locale.ROOT);
       String nonUnique = row.getValue("non_unique").toString();
       
       if (lastIndexName != null && !lastIndexName.equals(indexName))
@@ -820,7 +832,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   {
     IResultSet set = performQuery("SHOW TABLES",null,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
-    String columnName = "Tables_in_"+databaseName.toLowerCase();
+    String columnName = "Tables_in_"+databaseName.toLowerCase(Locale.ROOT);
     // System.out.println(columnName);
 
     int i = 0;
@@ -904,6 +916,32 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     {
       throw reinterpretException(e);
     }
+  }
+
+  /** Construct index hint clause.
+  * On most databases this returns an empty string, but on MySQL this returns
+  * a USE INDEX hint.  It requires the name of an index.
+  *@param tableName is the table the index is from.
+  *@param description is the description of an index, which is expected to exist.
+  *@return the query chunk that should go between the table names and the WHERE
+  * clause.
+  */
+  public String constructIndexHintClause(String tableName, IndexDescription description)
+    throws ManifoldCFException
+  {
+    // Figure out what index it is
+    Map indexes = getTableIndexes(tableName,null,null);
+    Iterator iter = indexes.keySet().iterator();
+    while (iter.hasNext())
+    {
+      String indexName = (String)iter.next();
+      IndexDescription id = (IndexDescription)indexes.get(indexName);
+      if (id.equals(description))
+      {
+        return "FORCE INDEX ("+indexName+")";
+      }
+    }
+    throw new ManifoldCFException("Expected index description "+description+" not found");
   }
 
   /** Construct a cast to a double value.

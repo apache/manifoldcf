@@ -35,7 +35,11 @@ public class WikiConfig
   public static final String PARAM_PORT = "Server port";
   /** Path */
   public static final String PARAM_PATH = "Server path";
-	
+  
+  /** Email */
+  public static final String PARAM_EMAIL = "Email";
+  
+  // Login info
   public static final String PARAM_LOGIN = "serverlogin";
   public static final String PARAM_PASSWORD = "serverpass";
   public static final String PARAM_DOMAIN = "serverdomain";

@@ -187,6 +187,8 @@ public class FormParseState extends LinkParseState
       if (optionValueText != null)
         optionValueText.append(thisChar);
     }
+    else
+      handler.noteTextCharacter(thisChar);
   }
 
 }

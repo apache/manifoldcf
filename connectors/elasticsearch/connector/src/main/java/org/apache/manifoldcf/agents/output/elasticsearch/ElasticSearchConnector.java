@@ -26,8 +26,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
@@ -86,7 +91,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
 
 
-  private MultiThreadedHttpConnectionManager connectionManager = null;
+  private ClientConnectionManager connectionManager = null;
   private HttpClient client = null;
 
   public ElasticSearchConnector()
@@ -97,9 +102,23 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
-    connectionManager = new MultiThreadedHttpConnectionManager();
-    connectionManager.getParams().setMaxTotalConnections(1);
-    client = new HttpClient(connectionManager);
+    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+    localConnectionManager.setMaxTotal(1);
+    connectionManager = localConnectionManager;
+    DefaultHttpClient localClient = new DefaultHttpClient(connectionManager);
+    // No retries
+    localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+    client = localClient;
   }
   
   @Override

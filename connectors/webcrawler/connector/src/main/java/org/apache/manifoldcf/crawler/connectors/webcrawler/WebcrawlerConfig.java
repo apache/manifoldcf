@@ -96,8 +96,12 @@ public class WebcrawlerConfig
   public static final String ATTRVALUE_LINK = "link";
   /** Authentication page type: Redirection */
   public static final String ATTRVALUE_REDIRECTION = "redirection";
+  /** Authentication page type: Access */
+  public static final String ATTRVALUE_CONTENT = "content";
   /** Form name or link target regexp for authentication page */
   public static final String ATTR_MATCHREGEXP = "match";
+  /** URL to fetch next in a sequence (an override) */
+  public static final String ATTR_OVERRIDETARGETURL = "overridetargeturl";
   /** Authentication parameter node */
   public static final String NODE_AUTHPARAMETER = "authparameter";
   /** Authentication parameter name regexp */

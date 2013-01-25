@@ -18,7 +18,6 @@ cmd /c ant make-deps
 
 cmd /c mvn install:install-file -Dfile=lib/jdbcpool.jar -DgroupId=com.bitmechanic -DartifactId=jdbcpool -Dversion=0.99 -Dpackaging=jar
 
-cmd /c mvn install:install-file -Dfile=lib/commons-httpclient.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient -Dversion=3.1-mcf-1  -Dpackaging=jar
 cmd /c mvn install:install-file -Dfile=lib/xercesImpl.jar -DgroupId=xerces -DartifactId=xercesImpl -Dversion=2.9.1-mcf-1  -Dpackaging=jar
 cmd /c mvn install:install-file -Dfile=connectors/jcifs/lib-proprietary/jcifs.jar -DgroupId=org.samba.jcifs -DartifactId=jcifs -Dversion=1.3.17  -Dpackaging=jar
 

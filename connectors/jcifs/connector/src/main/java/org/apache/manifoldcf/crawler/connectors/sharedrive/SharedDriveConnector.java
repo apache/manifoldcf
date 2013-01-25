@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Date;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -722,7 +723,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
               long startFetchTime = System.currentTimeMillis();
               String fileName = getFileCanonicalPath(file);
-              if (fileName != null)
+              if (fileName != null && !file.isHidden())
               {
                 // manipulate path to include the DFS alias, not the literal path
                 // String newPath = matchPrefix + fileName.substring(matchReplace.length());
@@ -777,6 +778,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         RepositoryDocument rd = new RepositoryDocument();
                         rd.setBinary(inputStream, tempFile.length());
                         rd.setFileName(file.getName());
+                        String contentType = mapExtensionToMimeType(file.getName());
+                        if (contentType != null)
+                          rd.setMimeType(contentType);
+                        rd.addField("lastModified", new Date(file.lastModified()).toString());
                         int index = 0;
                         index = setDocumentSecurity(rd,version,index);
                         index = setPathMetadata(rd,version,index);
@@ -830,6 +835,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     RepositoryDocument rd = new RepositoryDocument();
                     rd.setBinary(inputStream, fileLength(file));
                     rd.setFileName(file.getName());
+                    String contentType = mapExtensionToMimeType(file.getName());
+                    if (contentType != null)
+                      rd.setMimeType(contentType);
+                    rd.addField("lastModified", new Date(file.lastModified()).toString());
                     int index = 0;
                     index = setDocumentSecurity(rd,version,index);
                     index = setPathMetadata(rd,version,index);
@@ -847,9 +856,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               }
               else
               {
-                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null");
+                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null, or because file is hidden");
                 activities.recordActivity(null,ACTIVITY_ACCESS,
-                  null,documentIdentifier,"Skip","Null canonical path",null);
+                  null,documentIdentifier,"Skip","Null canonical path or hidden file",null);
               }
             }
           }
@@ -973,8 +982,31 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
   }
 
-
-
+  protected final static Map<String,String> mimeMap;
+  static {
+    mimeMap = new HashMap<String,String>();
+    mimeMap.put("txt","text/plain");
+    mimeMap.put("pdf","application/pdf");
+    mimeMap.put("doc","application/msword");
+    mimeMap.put("docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    mimeMap.put("ppt","application/vnd.ms-powerpoint");
+    mimeMap.put("pptx","application/vnd.openxmlformats-officedocument.presentationml.presentation");
+    mimeMap.put("xls","application/vnd.ms-excel");
+    mimeMap.put("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  }
+  
+  /** Map an extension to a mime type */
+  protected static String mapExtensionToMimeType(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    int dotIndex = fileName.lastIndexOf(".");
+    if (dotIndex == -1)
+      return null;
+    return mimeMap.get(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
+  }
+  
   /** This method calculates an ACL string based on whether there are forced acls and also based on
   * the acls in place for a file.
   */

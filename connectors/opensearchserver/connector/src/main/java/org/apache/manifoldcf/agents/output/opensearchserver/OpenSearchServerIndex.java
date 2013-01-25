@@ -22,8 +22,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.HttpEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.Header;
+import org.apache.http.util.EntityUtils;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.common.Base64;
@@ -31,7 +35,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerIndex extends OpenSearchServerConnection {
 
-  private class IndexRequestEntity implements RequestEntity {
+  private static class IndexRequestEntity implements HttpEntity {
 
     private String documentURI;
 
@@ -45,19 +49,36 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
       this.fileName = FilenameUtils.getName(documentURI);
     }
 
-    public long getContentLength() {
-      return -1;
+    @Override
+    public boolean isChunked() {
+      return false;
     }
-
-    public String getContentType() {
-      return "text/xml; charset=utf-8";
+    
+    @Override
+    public void consumeContent()
+      throws IOException {
+      EntityUtils.consume(this);
     }
-
+    
+    @Override
     public boolean isRepeatable() {
       return false;
     }
 
-    public void writeRequest(OutputStream out) throws IOException {
+    @Override
+    public boolean isStreaming() {
+      return false;
+    }
+    
+    @Override
+    public InputStream getContent()
+      throws IOException, IllegalStateException {
+      return inputStream;
+    }
+    
+    @Override
+    public void writeTo(OutputStream out)
+      throws IOException {
       PrintWriter pw = new PrintWriter(out);
       try {
         pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
@@ -78,15 +99,31 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
         IOUtils.closeQuietly(pw);
       }
     }
+
+    @Override
+    public long getContentLength() {
+      // Unknown (chunked) length
+      return -1L;
+    }
+
+    @Override
+    public Header getContentType() {
+      return new BasicHeader("Content-type","text/xml; charset=utf-8");
+    }
+
+    @Override
+    public Header getContentEncoding() {
+      return null;
+    }
+
   }
 
   public OpenSearchServerIndex(String documentURI, InputStream inputStream,
       OpenSearchServerConfig config) throws ManifoldCFException {
     super(config);
     StringBuffer url = getApiUrl("update");
-    PutMethod put = new PutMethod(url.toString());
-    RequestEntity entity = new IndexRequestEntity(documentURI, inputStream);
-    put.setRequestEntity(entity);
+    HttpPut put = new HttpPut(url.toString());
+    put.setEntity(new IndexRequestEntity(documentURI, inputStream));
     call(put);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;

@@ -110,6 +110,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public static final String prioritySetField = "priorityset";
   public static final String checkActionField = "checkaction";
 
+  public static final double noDocPriorityValue = 1e9;
+  public static final Double nullDocPriority = new Double(noDocPriorityValue + 1.0);
+  
   protected static Map statusMap;
 
   static
@@ -154,6 +157,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Thread context */
   protected IThreadContext threadContext;
   
+  /** Cached getNextDocuments order-by index hint */
+  protected String getNextDocumentsIndexHint = null;
+  
   /** Constructor.
   *@param database is the database handle.
   */
@@ -195,7 +201,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       }
       else
       {
-        // Upgrade code goes here, if needed
+        // Upgrade; null docpriority fields bashed to 'infinity', so they don't slow down MySQL
+        Map map = new HashMap();
+        map.put(docPriorityField,nullDocPriority);
+        performUpdate(map,"WHERE "+docPriorityField+" IS NULL",null,null);
       }
 
       // Secondary table installation
@@ -266,6 +275,20 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
+  /** Get the 'getNextDocuments' index hint.
+  */
+  public String getGetNextDocumentsIndexHint()
+    throws ManifoldCFException
+  {
+    if (getNextDocumentsIndexHint == null)
+    {
+      // Figure out what index it is
+      getNextDocumentsIndexHint = getDBInterface().constructIndexHintClause(getTableName(),
+        new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField}));
+    }
+    return getNextDocumentsIndexHint;
+  }
+  
   /** Analyze job tables due to major event */
   public void unconditionallyAnalyzeTables()
     throws ManifoldCFException
@@ -671,7 +694,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(prioritySetField,null);
-    map.put(docPriorityField,null);
+    map.put(docPriorityField,nullDocPriority);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID)});
@@ -698,7 +721,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       actionFieldValue = null;
       checkTimeValue = null;
       // Remove document priority; we don't want to pollute the queue.  See CONNECTORS-290.
-      map.put(docPriorityField,null);
+      map.put(docPriorityField,nullDocPriority);
       map.put(prioritySetField,null);
       break;
     case STATUS_ACTIVENEEDRESCAN:
@@ -721,48 +744,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
-  }
-
-  /** Either delete a record, or set status to "rescan", depending on the
-  * record's state.
-  */
-  public boolean updateOrDeleteRecord(Long recID, int currentStatus)
-    throws ManifoldCFException
-  {
-    HashMap map = new HashMap();
-    
-    int newStatus;
-    String actionFieldValue;
-    Long checkTimeValue;
-    
-    switch (currentStatus)
-    {
-    case STATUS_ACTIVE:
-    case STATUS_ACTIVEPURGATORY:
-      // Delete it
-      deleteRecord(recID);
-      return true;
-    case STATUS_ACTIVENEEDRESCAN:
-    case STATUS_ACTIVENEEDRESCANPURGATORY:
-      newStatus = STATUS_PENDINGPURGATORY;
-      actionFieldValue = actionToString(ACTION_RESCAN);
-      checkTimeValue = new Long(0L);
-      // Leave doc priority unchanged.
-      break;
-    default:
-      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
-    }
-
-    map.put(statusField,statusToString(newStatus));
-    map.put(checkTimeField,checkTimeValue);
-    map.put(checkActionField,actionFieldValue);
-    map.put(failTimeField,null);
-    map.put(failCountField,null);
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,recID)});
-    performUpdate(map,"WHERE "+query,list,null);
-    return false;
   }
 
   /** Either mark a record as hopcountremoved, or set status to "rescan", depending on the

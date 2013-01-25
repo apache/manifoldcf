@@ -26,6 +26,10 @@ public interface LoginParameters
 {
   public static final String _rcsid = "@(#)$Id: LoginParameters.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** Get the override target URL.
+  */
+  public String getOverrideTargetURL();
+
   /** Get the preferred redirection pattern.
   */
   public Pattern getPreferredRedirectionPattern();
@@ -38,6 +42,10 @@ public interface LoginParameters
   */
   public Pattern getFormNamePattern();
 
+  /** Get the content pattern.
+  */
+  public Pattern getContentPattern();
+  
   /** Get the number of parameters.
   */
   public int getParameterCount();

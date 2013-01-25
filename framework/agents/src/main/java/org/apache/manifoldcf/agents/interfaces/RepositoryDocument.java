@@ -45,6 +45,7 @@ public class RepositoryDocument
   protected Security shareSecurity = new Security();
   protected List<Security> directorySecurity = new ArrayList<Security>();
   protected String fileName = "docname";
+  protected String contentMimeType = "application/octet-stream";
   
   /** Constructor.
   */
@@ -52,6 +53,22 @@ public class RepositoryDocument
   {
   }
 
+  /** Set the document's mime type.
+  *@param mimeType is the mime type.
+  */
+  public void setMimeType(String mimeType)
+  {
+    contentMimeType = mimeType;
+  }
+  
+  /** Get the document's mime type.
+  *@return the mime type.
+  */
+  public String getMimeType()
+  {
+    return contentMimeType;
+  }
+  
   /** Set the document's "file" allow acls.
   *@param acl is the allowed "file" access control token list for the document.
   */

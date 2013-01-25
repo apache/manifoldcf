@@ -1512,6 +1512,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       {
         map.put(startTimeField,new Long(startTime));
       }
+      // The seeding was complete or we wouldn't have gotten called, so at least note that.
+      map.put(lastCheckTimeField,new Long(startTime));
       performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
     }
     catch (ManifoldCFException e)

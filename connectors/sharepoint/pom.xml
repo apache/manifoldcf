@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-connectors</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -93,33 +93,33 @@
         <artifactId>axistools-maven-plugin</artifactId>
         <version>1.4</version>
         
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.axis</groupId>
-						<artifactId>axis</artifactId>
-						<version>1.4</version>
-					</dependency>
-					<dependency>
-						<groupId>commons-logging</groupId>
-						<artifactId>commons-logging</artifactId>
-						<version>${commons-logging.version}</version>
-					</dependency>
-					<dependency>
-						<groupId>commons-discovery</groupId>
-						<artifactId>commons-discovery</artifactId>
-						<version>0.2</version>
-					</dependency>
-					<dependency>
-						<groupId>javax.xml</groupId>
-						<artifactId>jaxrpc-api</artifactId>
-						<version>1.1</version>
-					</dependency>
-					<dependency>
-						<groupId>wsdl4j</groupId>
-						<artifactId>wsdl4j</artifactId>
-						<version>1.6.2</version>
-					</dependency>
-				</dependencies>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.axis</groupId>
+            <artifactId>axis</artifactId>
+            <version>1.4</version>
+          </dependency>
+          <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons-logging.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>commons-discovery</groupId>
+            <artifactId>commons-discovery</artifactId>
+            <version>0.2</version>
+          </dependency>
+          <dependency>
+            <groupId>javax.xml</groupId>
+            <artifactId>jaxrpc-api</artifactId>
+            <version>1.1</version>
+          </dependency>
+          <dependency>
+            <groupId>wsdl4j</groupId>
+            <artifactId>wsdl4j</artifactId>
+            <version>1.6.2</version>
+          </dependency>
+        </dependencies>
         
         <configuration>
           <sourceDirectory>wsdls</sourceDirectory>
@@ -181,9 +181,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>${commons-httpclient.version}</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>

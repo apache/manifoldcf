@@ -24,6 +24,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import java.util.*;
 import java.io.*;
 
+
 /** This is the output connector for SOLR.  Currently, no frills.
 */
 public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutputConnector
@@ -37,8 +38,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Document removal activity */
   public final static String REMOVE_ACTIVITY = "document deletion";
 
-  /** Local data */
+  /** Local connection */
   protected HttpPoster poster = null;
+  
+  /** Expiration */
+  protected long expirationTime = -1L;
+  
   /** The allow attribute name */
   protected String allowAttributeName = "allow_token_";
   /** The deny attribute name */
@@ -56,6 +61,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
+  
+  /** Idle connection expiration interval */
+  protected final static long EXPIRATION_INTERVAL = 300000L;
   
   /** Constructor.
   */
@@ -83,13 +91,37 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     super.connect(configParameters);
   }
 
+  /** This method is periodically called for all connectors that are connected but not
+  * in active use.
+  */
+  @Override
+  public void poll()
+    throws ManifoldCFException
+  {
+    if (poster != null)
+    {
+      if (expirationTime <= System.currentTimeMillis())
+      {
+        // Expire connection
+        poster.shutdown();
+        poster = null;
+        expirationTime = -1L;
+      }
+    }
+  }
+
   /** Close the connection.  Call this before discarding the connection.
   */
   @Override
   public void disconnect()
     throws ManifoldCFException
   {
-    poster = null;
+    if (poster != null)
+    {
+      poster.shutdown();
+      poster = null;
+      expirationTime = -1L;
+    }
     maxDocumentLength = null;
     includedMimeTypesString = null;
     includedMimeTypes = null;
@@ -104,26 +136,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   {
     if (poster == null)
     {
-      String protocol = params.getParameter(SolrConfig.PARAM_PROTOCOL);
-      if (protocol == null || protocol.length() == 0)
-        throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_PROTOCOL);
-
-      String server = params.getParameter(SolrConfig.PARAM_SERVER);
-      if (server == null || server.length() == 0)
-        throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_SERVER);
-
-      String port = params.getParameter(SolrConfig.PARAM_PORT);
-      if (port == null || port.length() == 0)
-        port = "80";
-
-      String webapp = params.getParameter(SolrConfig.PARAM_WEBAPPNAME);
-      if (webapp == null || webapp.length() == 0)
-        webapp = "";
-
-      String core = params.getParameter(SolrConfig.PARAM_CORE);
-      if (core != null && core.length() == 0)
-        core = null;
-      
       String updatePath = params.getParameter(SolrConfig.PARAM_UPDATEPATH);
       if (updatePath == null || updatePath.length() == 0)
         updatePath = "";
@@ -190,33 +202,123 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         }
       }
       
-      String userID = params.getParameter(SolrConfig.PARAM_USERID);
-      String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
-      String realm = params.getParameter(SolrConfig.PARAM_REALM);
-      String keystoreData = params.getParameter(SolrConfig.PARAM_KEYSTORE);
-      IKeystoreManager keystoreManager;
-      if (keystoreData != null)
-        keystoreManager = KeystoreManagerFactory.make("",keystoreData);
+
+      // Now, initialize Solr-j
+      String solrType = params.getParameter(SolrConfig.PARAM_SOLR_TYPE);
+      if (solrType == null)
+        solrType = SolrConfig.SOLR_TYPE_STANDARD;
+
+      if (solrType.equals(SolrConfig.SOLR_TYPE_STANDARD))
+      {
+        String userID = params.getParameter(SolrConfig.PARAM_USERID);
+        String password = params.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
+        String realm = params.getParameter(SolrConfig.PARAM_REALM);
+        String keystoreData = params.getParameter(SolrConfig.PARAM_KEYSTORE);
+        IKeystoreManager keystoreManager;
+        if (keystoreData != null)
+          keystoreManager = KeystoreManagerFactory.make("",keystoreData);
+        else
+          keystoreManager = null;
+
+        String protocol = params.getParameter(SolrConfig.PARAM_PROTOCOL);
+        if (protocol == null || protocol.length() == 0)
+          throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_PROTOCOL);
+
+        String server = params.getParameter(SolrConfig.PARAM_SERVER);
+        if (server == null || server.length() == 0)
+          throw new ManifoldCFException("Missing parameter: "+SolrConfig.PARAM_SERVER);
+
+        String port = params.getParameter(SolrConfig.PARAM_PORT);
+        if (port == null || port.length() == 0)
+          port = "80";
+
+        String webapp = params.getParameter(SolrConfig.PARAM_WEBAPPNAME);
+        if (webapp != null && webapp.length() == 0)
+          webapp = null;
+
+        String core = params.getParameter(SolrConfig.PARAM_CORE);
+        if (core != null && core.length() == 0)
+          core = null;
+
+        // Pick up timeouts
+        String socketTimeoutString = params.getParameter(SolrConfig.PARAM_SOCKET_TIMEOUT);
+        if (socketTimeoutString == null)
+          socketTimeoutString = "900";
+        String connectTimeoutString = params.getParameter(SolrConfig.PARAM_CONNECTION_TIMEOUT);
+        if (connectTimeoutString == null)
+          connectTimeoutString = "60";
+        
+        try
+        {
+          int socketTimeout = Integer.parseInt(socketTimeoutString) * 1000;
+          int connectTimeout = Integer.parseInt(connectTimeoutString) * 1000;
+          
+          poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,core,
+            connectTimeout,socketTimeout,
+            updatePath,removePath,statusPath,realm,userID,password,
+            allowAttributeName,denyAttributeName,idAttributeName,
+            keystoreManager,maxDocumentLength,commitWithin);
+          
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage());
+        }
+
+      }
+      else if (solrType.equals(SolrConfig.SOLR_TYPE_SOLRCLOUD))
+      {
+        StringBuilder zookeeperString = new StringBuilder();
+        // Pull together the zookeeper string describing the zookeeper nodes
+        for (int i = 0; i < params.getChildCount(); i++)
+        {
+          ConfigurationNode cn = params.getChild(i);
+          if (cn.getType().equals(SolrConfig.NODE_ZOOKEEPER))
+          {
+            if (zookeeperString.length() > 0)
+              zookeeperString.append(",");
+            zookeeperString.append(cn.getAttributeValue(SolrConfig.ATTR_HOST)).append(":").append(cn.getAttributeValue(SolrConfig.ATTR_PORT));
+          }
+        }
+        String zookeeperHost = zookeeperString.toString();
+        
+        // Get collection
+        String collection = params.getParameter(SolrConfig.PARAM_COLLECTION);
+        if (collection == null)
+          collection = "collection1";
+
+        // Pick up timeouts
+        String zkClientTimeoutString = params.getParameter(SolrConfig.PARAM_ZOOKEEPER_CLIENT_TIMEOUT);
+        if (zkClientTimeoutString == null)
+          zkClientTimeoutString = "60";
+        String zkConnectTimeoutString = params.getParameter(SolrConfig.PARAM_ZOOKEEPER_CONNECT_TIMEOUT);
+        if (zkConnectTimeoutString == null)
+          zkConnectTimeoutString = "60";
+        
+        // Create an httpposter
+        try
+        {
+          int zkClientTimeout = Integer.parseInt(zkClientTimeoutString) * 1000;
+          int zkConnectTimeout = Integer.parseInt(zkConnectTimeoutString) * 1000;
+          
+          poster = new HttpPoster(zookeeperHost,collection,
+            zkClientTimeout,zkConnectTimeout,
+            updatePath,removePath,statusPath,
+            allowAttributeName,denyAttributeName,idAttributeName,
+            maxDocumentLength,commitWithin);
+          
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException(e.getMessage());
+        }
+
+      }
       else
-        keystoreManager = null;
+        throw new ManifoldCFException("Illegal value for parameter '"+SolrConfig.PARAM_SOLR_TYPE+"': '"+solrType+"'");
       
-      if (core != null)
-      {
-        if (webapp.length() == 0)
-          throw new ManifoldCFException("Webapp must be specified if core is specified.");
-        webapp = webapp + "/" + core;
-      }
-      
-      try
-      {
-        poster = new HttpPoster(protocol,server,Integer.parseInt(port),webapp,updatePath,removePath,statusPath,realm,userID,password,
-          allowAttributeName,denyAttributeName,idAttributeName,keystoreManager,maxDocumentLength,commitWithin);
-      }
-      catch (NumberFormatException e)
-      {
-        throw new ManifoldCFException(e.getMessage());
-      }
     }
+    expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
   }
 
   /** Parse a mime type field into individual mime types in a hash */
@@ -525,8 +627,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   {
     // Establish a session
     getSession();
-
-    // Call the ingestion API.
     poster.deletePost(documentURI,activities);
   }
 
@@ -544,7 +644,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     // Do a commit post
     if (doCommits)
+    {
       poster.commitPost();
+    }
   }
 
   // UI support methods.
@@ -568,7 +670,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    tabsArray.add(Messages.getString(locale,"SolrConnector.SolrType"));
     tabsArray.add(Messages.getString(locale,"SolrConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Zookeeper"));
+    tabsArray.add(Messages.getString(locale,"SolrConnector.Paths"));
     tabsArray.add(Messages.getString(locale,"SolrConnector.Schema"));
     tabsArray.add(Messages.getString(locale,"SolrConnector.Arguments"));
     tabsArray.add(Messages.getString(locale,"SolrConnector.Documents"));
@@ -628,6 +733,18 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.WebApplicationMustBeSpecifiedIfCoreIsSpecified")+"\");\n"+
 "    editconnection.webappname.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (!isInteger(editconnection.connectiontimeout.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ConnectionTimeoutMustBeInteger")+"\");\n"+
+"    editconnection.connectiontimeout.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (!isInteger(editconnection.sockettimeout.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.SocketTimeoutMustBeInteger")+"\");\n"+
+"    editconnection.sockettimeout.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
@@ -700,24 +817,38 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (!isInteger(editconnection.connectiontimeout.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ConnectionTimeoutMustBeInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
+"    editconnection.connectiontimeout.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (!isInteger(editconnection.sockettimeout.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.SocketTimeoutMustBeInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
+"    editconnection.sockettimeout.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.updatepath.value != \"\" && editconnection.updatepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.UpdatePathMustStartWithACharacter")+"\");\n"+
-"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Paths")+"\");\n"+
 "    editconnection.updatepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.removepath.value != \"\" && editconnection.removepath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.RemovePathMustStartWithACharacter")+"\");\n"+
-"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Paths")+"\");\n"+
 "    editconnection.removepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.statuspath.value != \"\" && editconnection.statuspath.value.substring(0,1) != \"/\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.StatusPathMustStartWithACharacter")+"\");\n"+
-"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Server")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Paths")+"\");\n"+
 "    editconnection.statuspath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -736,6 +867,43 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
+"}\n"+
+"\n"+
+"function deleteZookeeperHost(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_zookeeper_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.count_zookeeper.value==i)\n"+
+"    postFormSetAnchor(\"zookeeper\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"zookeeper_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_zookeeper_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addZookeeperHost()\n"+
+"{\n"+
+"  if (editconnection.host_zookeeper.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"SolrConnector.ZookeeperHostCannotBeNull")+"\");\n"+
+"    editconnection.host_zookeeper.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editconnection.port_zookeeper.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ZookeeperPortCannotBeNull")+"\");\n"+
+"    editconnection.port_zookeeper.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isInteger(editconnection.port_zookeeper.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ZookeeperPortMustBeAnInteger")+"\");\n"+
+"    editconnection.port_zookeeper.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.op_zookeeper.value=\"Add\";\n"+
+"  postFormSetAnchor(\"zookeeper\");\n"+
 "}\n"+
 "\n"+
 "function deleteArgument(i)\n"+
@@ -783,9 +951,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
+    String type = parameters.getParameter(SolrConfig.PARAM_SOLR_TYPE);
+    if (type == null)
+      type = SolrConfig.SOLR_TYPE_STANDARD;
+    
     String protocol = parameters.getParameter(SolrConfig.PARAM_PROTOCOL);
     if (protocol == null)
-      protocol = "http";
+      protocol = SolrConfig.PROTOCOL_TYPE_HTTP;
 		
     String server = parameters.getParameter(SolrConfig.PARAM_SERVER);
     if (server == null)
@@ -803,6 +975,26 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (core == null)
       core = "";
 
+    String collection = parameters.getParameter(SolrConfig.PARAM_COLLECTION);
+    if (collection == null)
+      collection = "collection1";
+    
+    String connectionTimeout = parameters.getParameter(SolrConfig.PARAM_CONNECTION_TIMEOUT);
+    if (connectionTimeout == null)
+      connectionTimeout = "60";
+    
+    String socketTimeout = parameters.getParameter(SolrConfig.PARAM_SOCKET_TIMEOUT);
+    if (socketTimeout == null)
+      socketTimeout = "900";
+
+    String zkClientTimeout = parameters.getParameter(SolrConfig.PARAM_ZOOKEEPER_CLIENT_TIMEOUT);
+    if (zkClientTimeout == null)
+      zkClientTimeout = "60";
+
+    String zkConnectTimeout = parameters.getParameter(SolrConfig.PARAM_ZOOKEEPER_CONNECT_TIMEOUT);
+    if (zkConnectTimeout == null)
+      zkConnectTimeout = "60";
+    
     String updatePath = parameters.getParameter(SolrConfig.PARAM_UPDATEPATH);
     if (updatePath == null)
       updatePath = "/update/extract";
@@ -858,6 +1050,32 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (excludedMimeTypes == null)
       excludedMimeTypes = "";
     
+    // "SOLR type" tab
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.SolrType")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.SolrType2") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"solrtype\">\n"+
+"        <option value=\""+SolrConfig.SOLR_TYPE_STANDARD+"\""+(type.equals(SolrConfig.SOLR_TYPE_STANDARD)?" selected=\"true\"":"")+">"+Messages.getBodyString(locale,"SolrConnector.SingleServer")+"</option>\n"+
+"        <option value=\""+SolrConfig.SOLR_TYPE_SOLRCLOUD+"\""+(type.equals(SolrConfig.SOLR_TYPE_SOLRCLOUD)?" selected=\"true\"":"")+">"+Messages.getBodyString(locale,"SolrConnector.SolrCloud")+"</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Type tab hiddens
+      out.print(
+"<input type=\"hidden\" name=\"solrtype\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(type)+"\"/>\n"
+      );
+    }
+
     // "Server" tab
     // Always pass the whole keystore as a hidden.
     if (solrKeystore != null)
@@ -874,12 +1092,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.Protocol") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"serverprotocol\">\n"+
-"        <option value=\"http\""+(protocol.equals("http")?" selected=\"true\"":"")+">http</option>\n"+
-"        <option value=\"https\""+(protocol.equals("https")?" selected=\"true\"":"")+">https</option>\n"+
+"        <option value=\""+SolrConfig.PROTOCOL_TYPE_HTTP+"\""+(protocol.equals(SolrConfig.PROTOCOL_TYPE_HTTP)?" selected=\"true\"":"")+">http</option>\n"+
+"        <option value=\""+SolrConfig.PROTOCOL_TYPE_HTTPS+"\""+(protocol.equals(SolrConfig.PROTOCOL_TYPE_HTTPS)?" selected=\"true\"":"")+">https</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -908,22 +1127,17 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "      <input name=\"core\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(core)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UpdateHandler") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ConnectionTimeout") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input name=\"updatepath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(updatePath)+"\"/>\n"+
+"      <input name=\"connectiontimeout\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionTimeout)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.RemoveHandler") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.SocketTimeout") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input name=\"removepath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(removePath)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.StatusHandler") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input name=\"statuspath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusPath)+"\"/>\n"+
+"      <input name=\"sockettimeout\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(socketTimeout)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
@@ -996,20 +1210,214 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"serverport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(port)+"\"/>\n"+
 "<input type=\"hidden\" name=\"webappname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(webapp)+"\"/>\n"+
 "<input type=\"hidden\" name=\"core\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(core)+"\"/>\n"+
-"<input type=\"hidden\" name=\"updatepath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(updatePath)+"\"/>\n"+
-"<input type=\"hidden\" name=\"removepath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(removePath)+"\"/>\n"+
-"<input type=\"hidden\" name=\"statuspath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusPath)+"\"/>\n"+
+"<input type=\"hidden\" name=\"connectiontimeout\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionTimeout)+"\"/>\n"+
+"<input type=\"hidden\" name=\"sockettimeout\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(socketTimeout)+"\"/>\n"+
 "<input type=\"hidden\" name=\"realm\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(realm)+"\"/>\n"+
 "<input type=\"hidden\" name=\"userid\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userID)+"\"/>\n"+
 "<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
       );
     }
 
+    // "Zookeeper" tab
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Zookeeper")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ZookeeperHosts") + "</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.Host") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.Port") + "</nobr></td>\n"+
+"        </tr>\n"
+      );
+
+      // Loop through the existing zookeeper nodes
+      int k = 0;
+      for (int i = 0; i < parameters.getChildCount(); i++)
+      {
+        ConfigurationNode cn = parameters.getChild(i);
+        if (cn.getType().equals(SolrConfig.NODE_ZOOKEEPER))
+        {
+          String host = cn.getAttributeValue(SolrConfig.ATTR_HOST);
+          String zkport = cn.getAttributeValue(SolrConfig.ATTR_PORT);
+          String postfix = "zookeeper_"+k;
+          out.print(
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+postfix+"\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"SolrConnector.DeleteZookeeperHost")+Integer.toString(k+1)+"\" onclick='javascript:deleteZookeeperHost("+Integer.toString(k)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+"op_"+postfix+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+"host_"+postfix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(host)+"\"/>\n"+
+"              <input type=\"hidden\" name=\""+"port_"+postfix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(zkport)+"\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(host)+"</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(zkport)+"</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+          );
+          k++;
+        }
+      }
+      // If this looks like the first time through for this connection, add a default zookeeper setup.
+      // Only works because after the first post, parameters always will have children.
+      if (parameters.getChildCount() == 0)
+      {
+        String postfix = "zookeeper_"+k;
+        out.print(
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+postfix+"\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"SolrConnector.DeleteZookeeperHost")+Integer.toString(k+1)+"\" onclick='javascript:deleteZookeeperHost("+Integer.toString(k)+");'/>\n"+
+"              <input type=\"hidden\" name=\""+"op_"+postfix+"\" value=\"Continue\"/>\n"+
+"              <input type=\"hidden\" name=\""+"host_"+postfix+"\" value=\"localhost\"/>\n"+
+"              <input type=\"hidden\" name=\""+"port_"+postfix+"\" value=\"2181\"/>\n"+
+"            </a>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>localhost</nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>2181</nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"
+        );
+        k++;
+      }
+      if (k == 0)
+      {
+        out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">"+Messages.getBodyString(locale,"SolrConnector.NoZookeeperHostsSpecified")+"</td></tr>\n"
+        );
+      }
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\"zookeeper\">\n"+
+"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SolrConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"SolrConnector.AddZookeeperHost") + "\" onclick=\"javascript:addZookeeperHost();\"/>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\"count_zookeeper\" value=\""+k+"\"/>\n"+
+"            <input type=\"hidden\" name=\"op_zookeeper\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"30\" name=\"host_zookeeper\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr><input type=\"text\" size=\"5\" name=\"port_zookeeper\" value=\"\"/></nobr>\n"+
+"          </td>\n"+
+"        </tr>\n"+
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.CollectionName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"collection\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collection)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ZookeeperClientTimeout") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"zkclienttimeout\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(zkClientTimeout)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ZookeeperConnectTimeout") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"zkconnecttimeout\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(zkConnectTimeout)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for Zookeeper tab
+      int k = 0;
+      for (int i = 0; i < parameters.getChildCount(); i++)
+      {
+        ConfigurationNode cn = parameters.getChild(i);
+        if (cn.getType().equals(SolrConfig.NODE_ZOOKEEPER))
+        {
+          String host = cn.getAttributeValue(SolrConfig.ATTR_HOST);
+          String zkport = cn.getAttributeValue(SolrConfig.ATTR_PORT);
+          String postfix = "zookeeper_"+k;
+          out.print(
+"<input type=\"hidden\" name=\"host_"+postfix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(host)+"\"/>\n"+
+"<input type=\"hidden\" name=\"port_"+postfix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(zkport)+"\"/>\n"
+          );
+          k++;
+        }
+      }
+      if (parameters.getChildCount() == 0)
+      {
+        String postfix = "zookeeper_"+k;
+        out.print(
+"<input type=\"hidden\" name=\"host_"+postfix+"\" value=\"localhost\"/>\n"+
+"<input type=\"hidden\" name=\"port_"+postfix+"\" value=\"2181\"/>\n"
+        );
+        k++;
+      }
+      out.print(
+"<input type=\"hidden\" name=\"count_zookeeper\" value=\""+k+"\"/>\n"+
+"<input type=\"hidden\" name=\"zkclienttimeout\" value=\""+zkClientTimeout+"\"/>\n"+
+"<input type=\"hidden\" name=\"zkconnecttimeout\" value=\""+zkConnectTimeout+"\"/>\n"
+      );
+    }
+    
+    // "Paths" tab
+    if (tabName.equals(Messages.getString(locale,"SolrConnector.Paths")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.UpdateHandler") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"updatepath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(updatePath)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.RemoveHandler") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"removepath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(removePath)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.StatusHandler") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"statuspath\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusPath)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Paths tab hiddens
+      out.print(
+"<input type=\"hidden\" name=\"updatepath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(updatePath)+"\"/>\n"+
+"<input type=\"hidden\" name=\"removepath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(removePath)+"\"/>\n"+
+"<input type=\"hidden\" name=\"statuspath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusPath)+"\"/>\n"
+      );
+    }
+    
     // "Schema" tab
     if (tabName.equals(Messages.getString(locale,"SolrConnector.Schema")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.IDFieldName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -1031,6 +1439,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.MaximumDocumentLength") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -1066,6 +1475,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.CommitAtEndOfEveryJob") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -1236,6 +1646,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
+    String type = variableContext.getParameter("solrtype");
+    if (type != null)
+      parameters.setParameter(SolrConfig.PARAM_SOLR_TYPE,type);
+
     String protocol = variableContext.getParameter("serverprotocol");
     if (protocol != null)
       parameters.setParameter(SolrConfig.PARAM_PROTOCOL,protocol);
@@ -1256,6 +1670,26 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (core != null)
       parameters.setParameter(SolrConfig.PARAM_CORE,core);
 
+    String collection = variableContext.getParameter("collection");
+    if (collection != null)
+      parameters.setParameter(SolrConfig.PARAM_COLLECTION,collection);
+
+    String connectionTimeout = variableContext.getParameter("connectiontimeout");
+    if (connectionTimeout != null)
+      parameters.setParameter(SolrConfig.PARAM_CONNECTION_TIMEOUT,connectionTimeout);
+    
+    String socketTimeout = variableContext.getParameter("sockettimeout");
+    if (socketTimeout != null)
+      parameters.setParameter(SolrConfig.PARAM_SOCKET_TIMEOUT,socketTimeout);
+
+    String zkClientTimeout = variableContext.getParameter("zkclienttimeout");
+    if (zkClientTimeout != null)
+      parameters.setParameter(SolrConfig.PARAM_ZOOKEEPER_CLIENT_TIMEOUT,zkClientTimeout);
+    
+    String zkConnectTimeout = variableContext.getParameter("zkconnecttimeout");
+    if (zkConnectTimeout != null)
+      parameters.setParameter(SolrConfig.PARAM_ZOOKEEPER_CONNECT_TIMEOUT,zkConnectTimeout);
+    
     String updatePath = variableContext.getParameter("updatepath");
     if (updatePath != null)
       parameters.setParameter(SolrConfig.PARAM_UPDATEPATH,updatePath);
@@ -1310,14 +1744,56 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       parameters.setParameter(SolrConfig.PARAM_COMMITWITHIN,commitWithin);
     
     String keystoreValue = variableContext.getParameter("keystoredata");
-    IKeystoreManager mgr;
     if (keystoreValue != null)
-      mgr = KeystoreManagerFactory.make("",keystoreValue);
-    else
-      mgr = KeystoreManagerFactory.make("");
-    parameters.setParameter(SolrConfig.PARAM_KEYSTORE,mgr.getString());
+    {
+      IKeystoreManager mgr = KeystoreManagerFactory.make("",keystoreValue);
+      parameters.setParameter(SolrConfig.PARAM_KEYSTORE,mgr.getString());
+    }
 
-    String x = variableContext.getParameter("argument_count");
+    String x = variableContext.getParameter("count_zookeeper");
+    if (x != null && x.length() > 0)
+    {
+      // About to gather the bandwidth nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < parameters.getChildCount())
+      {
+        ConfigNode node = parameters.getChild(i);
+        if (node.getType().equals(SolrConfig.NODE_ZOOKEEPER))
+          parameters.removeChild(i);
+        else
+          i++;
+      }
+      int count = Integer.parseInt(x);
+      i = 0;
+      while (i < count)
+      {
+        String postfix = "zookeeper_"+Integer.toString(i);
+        String op = variableContext.getParameter("op_"+postfix);
+        if (op == null || !op.equals("Delete"))
+        {
+          // Gather the host etc.
+          String host = variableContext.getParameter("host_"+postfix);
+          String zkport = variableContext.getParameter("port_"+postfix);
+          ConfigNode node = new ConfigNode(SolrConfig.NODE_ZOOKEEPER);
+          node.setAttribute(SolrConfig.ATTR_HOST,host);
+          node.setAttribute(SolrConfig.ATTR_PORT,zkport);
+          parameters.addChild(parameters.getChildCount(),node);
+        }
+        i++;
+      }
+      String addop = variableContext.getParameter("op_zookeeper");
+      if (addop != null && addop.equals("Add"))
+      {
+        String host = variableContext.getParameter("host_zookeeper");
+        String zkport = variableContext.getParameter("port_zookeeper");
+        ConfigNode node = new ConfigNode(SolrConfig.NODE_ZOOKEEPER);
+        node.setAttribute(SolrConfig.ATTR_HOST,host);
+        node.setAttribute(SolrConfig.ATTR_PORT,zkport);
+        parameters.addChild(parameters.getChildCount(),node);
+      }
+    }
+
+    x = variableContext.getParameter("argument_count");
     if (x != null && x.length() > 0)
     {
       // About to gather the argument nodes, so get rid of the old ones.
@@ -1363,6 +1839,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String configOp = variableContext.getParameter("configop");
     if (configOp != null)
     {
+      IKeystoreManager mgr;
       if (configOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("solrkeystorealias");
@@ -1462,8 +1939,62 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     
     out.print(
 "    </td>\n"+
-"  </tr>\n"+
-"\n"+
+"  </tr>\n"
+    );
+    
+    out.print(
+"\n"
+    );
+    
+    out.print(
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ZookeeperHosts") + "</nobr></td>\n"+
+"    <td class=\"boxcell\" colspan=\"3\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.Host") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.Port") + "</nobr></td>\n"+
+"        </tr>\n"
+    );
+
+    int instanceNumber = 0;
+    for (int i = 0; i < parameters.getChildCount(); i++)
+    {
+      ConfigNode cn = parameters.getChild(i);
+      if (cn.getType().equals(SolrConfig.NODE_ZOOKEEPER))
+      {
+        // An argument node!  Look for all its parameters.
+        String host = cn.getAttributeValue(SolrConfig.ATTR_HOST);
+        String zkport = cn.getAttributeValue(SolrConfig.ATTR_PORT);
+
+        out.print(
+"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(host)+"</nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(zkport)+"</nobr></td>\n"+
+"        </tr>\n"
+        );
+        
+        instanceNumber++;
+      }
+    }
+    if (instanceNumber == 0)
+    {
+      out.print(
+"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">" + Messages.getBodyString(locale,"SolrConnector.NoZookeeperHostsSpecified") + "</td></tr>\n"
+      );
+    }
+
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+    );
+
+    out.print(
+"\n"
+    );
+
+    out.print(
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.Arguments3") + "</nobr></td>\n"+
 "    <td class=\"boxcell\" colspan=\"3\">\n"+
@@ -1474,11 +2005,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "        </tr>\n"
     );
     
-    int i = 0;
-    int instanceNumber = 0;
-    while (i < parameters.getChildCount())
+    instanceNumber = 0;
+    for (int i = 0; i < parameters.getChildCount(); i++)
     {
-      ConfigNode cn = parameters.getChild(i++);
+      ConfigNode cn = parameters.getChild(i);
       if (cn.getType().equals(SolrConfig.NODE_ARGUMENT))
       {
         // An argument node!  Look for all its parameters.
@@ -1505,7 +2035,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     out.print(
 "      </table>\n"+
 "    </td>\n"+
-"  </tr>\n"+
+"  </tr>\n"
+    );
+    
+    out.print(
 "</table>\n"
     );
   }

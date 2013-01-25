@@ -32,6 +32,7 @@ public class MetaParseState extends ScriptParseState
     this.handler = handler;
   }
 
+  @Override
   protected void noteNonscriptTag(String tagName, Map attributes)
     throws ManifoldCFException
   {

@@ -84,6 +84,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   static
   {
     System.setProperty("derby.locks.waitTimeout","-1");
+    // Detect deadlocks immediately
+    System.setProperty("derby.locks.deadlockTimeout","0");
   }
   
   protected static String getFullDatabasePath(String databaseName)
@@ -631,7 +633,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     {
       List list = new ArrayList();
       list.add("APP");
-      list.add(tableName.toUpperCase());
+      list.add(tableName.toUpperCase(Locale.ROOT));
       performModification("CALL SYSCS_UTIL.SYSCS_UPDATE_STATISTICS(?,?,null)",list,null);
     }
     else
@@ -875,7 +877,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   {
     String query = "SELECT CAST(t0.columnname AS VARCHAR(128)) AS columnname,CAST(t0.columndatatype AS VARCHAR(128)) AS columndatatype FROM sys.syscolumns t0, sys.systables t1 WHERE t0.referenceid=t1.tableid AND CAST(t1.tablename AS VARCHAR(128))=? ORDER BY t0.columnnumber ASC";
     List list = new ArrayList();
-    list.add(tableName.toUpperCase());
+    list.add(tableName.toUpperCase(Locale.ROOT));
 
     IResultSet set = performQuery(query,list,cacheKeys,queryClass);
     if (set.getRowCount() == 0)
@@ -886,7 +888,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = ((String)row.getValue("columnname")).toLowerCase();
+      String fieldName = ((String)row.getValue("columnname")).toLowerCase(Locale.ROOT);
       String type = (String)row.getValue("columndatatype");
       boolean isNull = false;
       boolean isPrimaryKey = false;
@@ -1548,7 +1550,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   @Override
   protected String mapLabelName(String rawLabelName)
   {
-    return rawLabelName.toLowerCase();
+    return rawLabelName.toLowerCase(Locale.ROOT);
   }
 
   // Functions that correspond to user-defined functions in Derby
@@ -1561,7 +1563,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return "true";
       else
@@ -1581,7 +1583,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,0);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return "true";
       else
@@ -1601,7 +1603,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return m.group(1);
       return "";
@@ -1624,7 +1626,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,0);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return m.group(1);
       return "";
