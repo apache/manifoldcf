@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-623: The stream_size and stream_name can be sent to Solr now.
+(Shinichiro Abe)
+
 CONNECTORS-622: CMIS Connector returns NPE trying to get an empty boolean or date value
 (Piergiorgio Lucidi)
 
