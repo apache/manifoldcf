@@ -755,7 +755,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     Map<String,String> paramMap = new HashMap<String,String>();
-	
+  
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
@@ -810,7 +810,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, parameters);
     outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);
-	
+  
   }
 
   /**
@@ -912,7 +912,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
-	
+  
     Map<String,String> paramMap = new HashMap<String,String>();
 
     // Fill in the map with data from all tabs
@@ -1004,9 +1004,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       Locale locale, DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale,CMIS_QUERY_TAB_PROPERTY));
-	
+  
     Map<String,String> paramMap = new HashMap<String,String>();
-	
+  
     // Fill in the specification header map, using data from all tabs.
     fillInCMISQuerySpecificationMap(paramMap, ds);
 
@@ -1104,8 +1104,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                   }
                 } else {
                   String stringValue = (String) property.getValue();
-                  rd.addField(propertyId, stringValue);
-                  
+                  if(StringUtils.isNotEmpty(stringValue)){
+                    rd.addField(propertyId, stringValue);
+                  }
                 }
                 break;
      
@@ -1117,7 +1118,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                   }
                 } else {
                   Boolean booleanValue = (Boolean) property.getValue();
-                  rd.addField(propertyId, booleanValue.toString());
+                  if(booleanValue!=null){
+                    rd.addField(propertyId, booleanValue.toString());
+                  }
                 }
                 break;
 
@@ -1129,7 +1132,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                   }
                 } else {
                   BigInteger integerValue = (BigInteger) property.getValue();
-                  rd.addField(propertyId, integerValue.toString());
+                  if(integerValue!=null){
+                    rd.addField(propertyId, integerValue.toString());
+                  }
                 }
                 break;
 
@@ -1141,7 +1146,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                   }
                 } else {
                   BigDecimal decimalValue = (BigDecimal) property.getValue();
-                  rd.addField(propertyId, decimalValue.toString());
+                  if(decimalValue!=null){
+                    rd.addField(propertyId, decimalValue.toString());
+                  }
                 }
                 break;
 
@@ -1154,8 +1161,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                   }
                 } else {
                   GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
-                  rd.addField(propertyId,
-                      ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                  if(dateValue!=null){
+                    rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
+                  }
                 }
                 break;
 

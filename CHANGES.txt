@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-622: CMIS Connector returns NPE trying to get an empty boolean or date value
+(Piergiorgio Lucidi)
+
 CONNECTORS-617: Simple report NPE under Derby.
 (Karl Wright)
 
