@@ -749,6 +749,7 @@ public class HttpPoster
       long length = document.getBinaryLength();
       InputStream is = document.getBinaryStream();
       String contentType = document.getMimeType();
+      String contentName = document.getFileName();
 
       try
       {
@@ -802,7 +803,7 @@ public class HttpPoster
 
           contentStreamUpdateRequest.setParams(out);
           
-          contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType));
+          contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType,contentName));
 
           // Fire off the request.
           // Note: I need to know whether the document has been permanently rejected or not, but we currently have
@@ -1119,12 +1120,14 @@ public class HttpPoster
     protected final InputStream is;
     protected final long length;
     protected final String contentType;
+    protected final String contentName;
     
-    public RepositoryDocumentStream(InputStream is, long length, String contentType)
+    public RepositoryDocumentStream(InputStream is, long length, String contentType, String contentName)
     {
       this.is = is;
       this.length = length;
       this.contentType = contentType;
+      this.contentName = contentName;
     }
     
     @Override
@@ -1151,6 +1154,11 @@ public class HttpPoster
       return contentType;
     }
 
+    @Override
+    public String getName()
+    {
+      return contentName;
+    }
   }
 
   /** Special version of ping class where we can control the URL
