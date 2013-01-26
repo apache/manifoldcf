@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-606: Add indexing via subsidiary thread to ElasticSearch
+connector.
+(Karl Wright)
+
 CONNECTORS-394: Fully internationalize crawler UI.
 (Karl Wright)
 

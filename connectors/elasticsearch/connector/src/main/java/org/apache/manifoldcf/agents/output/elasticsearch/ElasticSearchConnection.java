@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URLEncoder;
 
 import org.apache.http.conn.ClientConnectionManager;
@@ -114,26 +115,110 @@ public class ElasticSearchConnection
     return url;
   }
 
+  protected static class CallThread extends Thread
+  {
+    protected final HttpClient client;
+    protected final HttpRequestBase method;
+    protected int resultCode = -1;
+    protected String response = null;
+    protected Throwable exception = null;
+    
+    public CallThread(HttpClient client, HttpRequestBase method)
+    {
+      this.client = client;
+      this.method = method;
+      setDaemon(true);
+    }
+    
+    @Override
+    public void run()
+    {
+      try
+      {
+        try
+        {
+          HttpResponse resp = client.execute(method);
+          resultCode = resp.getStatusLine().getStatusCode();
+          response = getResponseBodyAsString(resp.getEntity());
+        }
+        finally
+        {
+          method.abort();
+        }
+      }
+      catch (java.net.SocketTimeoutException e)
+      {
+        exception = e;
+      }
+      catch (InterruptedIOException e)
+      {
+        // Just exit
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public int getResultCode()
+    {
+      return resultCode;
+    }
+    
+    public String getResponse()
+    {
+      return response;
+    }
+    
+    public Throwable getException()
+    {
+      return exception;
+    }
+  }
+  
   protected void call(HttpRequestBase method) throws ManifoldCFException
   {
+    CallThread ct = new CallThread(client, method);
     try
     {
-      HttpResponse resp = client.execute(method);
-      if (!checkResultCode(resp.getStatusLine().getStatusCode()))
-        throw new ManifoldCFException(getResultDescription());
-      response = getResponseBodyAsString(resp.getEntity());
-    } catch (HttpException e)
+      ct.start();
+      try
+      {
+        ct.join();
+        Throwable t = ct.getException();
+        if (t != null)
+        {
+          if (t instanceof HttpException)
+            throw (HttpException)t;
+          else if (t instanceof IOException)
+            throw (IOException)t;
+          else if (t instanceof RuntimeException)
+            throw (RuntimeException)t;
+          else if (t instanceof Error)
+            throw (Error)t;
+          else
+            throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
+        }
+        
+        if (!checkResultCode(ct.getResultCode()))
+          throw new ManifoldCFException(getResultDescription());
+        response = ct.getResponse();
+      }
+      catch (InterruptedException e)
+      {
+        ct.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+    }
+    catch (HttpException e)
     {
       setResult(Result.ERROR, e.getMessage());
       throw new ManifoldCFException(e);
-    } catch (IOException e)
+    }
+    catch (IOException e)
     {
       setResult(Result.ERROR, e.getMessage());
       throw new ManifoldCFException(e);
-    } finally
-    {
-      if (method != null)
-        method.abort();
     }
   }
 
