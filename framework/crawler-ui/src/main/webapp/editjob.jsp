@@ -166,7 +166,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ApacheManifoldCFEditJob")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ApacheManifoldCFEditJob")%>
 	</title>
 
 	<script type="text/javascript">
@@ -424,15 +424,15 @@
 	if (connList.length == 0)
 	{
 %>
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></p>
-	<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoRepositoryConnectionsDefinedCreateOneFirst")%></td></tr></table>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoRepositoryConnectionsDefinedCreateOneFirst")%></td></tr></table>
 <%
 	}
 	else if (outputList.length == 0)
 	{
 %>
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></p>
-	<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoOutputConnectionsDefinedCreateOneFirst")%></td></tr></table>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoOutputConnectionsDefinedCreateOneFirst")%></td></tr></table>
 <%
 	}
 	else
@@ -477,13 +477,13 @@
 	if (description.length() > 0)
 	{
 %>
-			  <nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.EditJob")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditJob")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	}
 	else
 	{
 %>
-		          <nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></nobr>
+		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></nobr>
 <%
 	}
 %>
@@ -503,7 +503,7 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NameColon")%></nobr></td><td class="value" colspan="3">
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NameColon")%></nobr></td><td class="value" colspan="3">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -538,7 +538,7 @@
 				mapField = mapValue.toString();
 %>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumHopCountForType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>'<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.colon")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumHopCountForType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>'<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.colon")%></nobr></td>
 				<td class="value" colspan="3" >
 					<input name='<%="hopmax_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="text" size="5" value='<%=mapField%>'/>
 				</td>
@@ -548,11 +548,11 @@
 %>
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopCountModeColon")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.HopCountModeColon")%></nobr></td>
 				<td class="value" colspan="3">
-					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_ACCURATE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"checked=\"true\"":"")%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DeleteUnreachableDocuments")%></input></nobr><br/>
-					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NODELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"checked=\"true\"":"")%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForNow")%></input></nobr><br/>
-					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NEVERDELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?"checked=\"true\"":"")%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForever")%></input></nobr><br/>
+					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_ACCURATE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"checked=\"true\"":"")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.DeleteUnreachableDocuments")%></input></nobr><br/>
+					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NODELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"checked=\"true\"":"")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForNow")%></input></nobr><br/>
+					<nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NEVERDELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?"checked=\"true\"":"")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForever")%></input></nobr><br/>
 				</td>
 			</tr>
 		  </table>
@@ -595,10 +595,10 @@
 	    if (outputName.length() == 0)
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
 				<td class="value">
 					<select name="outputname" size="1">
-						<option <%="".equals(outputName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+						<option <%="".equals(outputName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
 <%
 		int j = 0;
 		while (j < outputList.length)
@@ -616,7 +616,7 @@
 	    else
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.OutputConnectionColon")%></nobr></td>
 				<td class="value"><input type="hidden" name="outputname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(outputName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(outputName)%></td>
 <%
 	    }
@@ -626,10 +626,10 @@
 	    if (connectionName.length() == 0)
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
 				<td class="value">
 					<select name="connectionname" size="1">
-						<option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+						<option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
 <%
 		int j = 0;
 		while (j < connList.length)
@@ -647,17 +647,17 @@
 	    else
 	    {
 %>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RepositoryConnectionColon")%></nobr></td>
 				<td class="value"><input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
 <%
 	    }
 %>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.PriorityColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.PriorityColon")%></nobr></td>
 				<td class="value">
 					<select name="priority" size="1">
-						<option value="1" <%=(priority==1)?"selected=\"selected\"":""%>>1 <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Highest")%></option>
+						<option value="1" <%=(priority==1)?"selected=\"selected\"":""%>>1 <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Highest")%></option>
 						<option value="2" <%=(priority==2)?"selected=\"selected\"":""%>>2</option>
 						<option value="3" <%=(priority==3)?"selected=\"selected\"":""%>>3</option>
 						<option value="4" <%=(priority==4)?"selected=\"selected\"":""%>>4</option>
@@ -666,15 +666,15 @@
 						<option value="7" <%=(priority==7)?"selected=\"selected\"":""%>>7</option>
 						<option value="8" <%=(priority==8)?"selected=\"selected\"":""%>>8</option>
 						<option value="9" <%=(priority==9)?"selected=\"selected\"":""%>>9</option>
-						<option value="10" <%=(priority==10)?"selected=\"selected\"":""%>>10 <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Lowest")%></option>
+						<option value="10" <%=(priority==10)?"selected=\"selected\"":""%>>10 <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Lowest")%></option>
 					</select>
 				</td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.StartMethodColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartMethodColon")%></nobr></td>
 				<td class="value">
 					<select name="startmethod" size="1">
-						<option value='<%=IJobDescription.START_WINDOWBEGIN%>' <%=(startMethod==IJobDescription.START_WINDOWBEGIN)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.StartWhenScheduleWindowStarts")%></option>
-						<option value='<%=IJobDescription.START_WINDOWINSIDE%>' <%=(startMethod==IJobDescription.START_WINDOWINSIDE)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.StartEvenInsideAScheduleWindow")%></option>
-						<option value='<%=IJobDescription.START_DISABLE%>' <%=(startMethod==IJobDescription.START_DISABLE)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.DontAutomaticallyStartThisJob")%></option>
+						<option value='<%=IJobDescription.START_WINDOWBEGIN%>' <%=(startMethod==IJobDescription.START_WINDOWBEGIN)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartWhenScheduleWindowStarts")%></option>
+						<option value='<%=IJobDescription.START_WINDOWINSIDE%>' <%=(startMethod==IJobDescription.START_WINDOWINSIDE)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartEvenInsideAScheduleWindow")%></option>
+						<option value='<%=IJobDescription.START_DISABLE%>' <%=(startMethod==IJobDescription.START_DISABLE)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.DontAutomaticallyStartThisJob")%></option>
 					</select>
 				</td>
 			</tr>
@@ -703,21 +703,21 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduleTypeColon")%></nobr></td><td class="value"><select name="scheduletype" size="1">
-					<option value='<%=IJobDescription.TYPE_CONTINUOUS%>' <%=(type==IJobDescription.TYPE_CONTINUOUS)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RescanDocumentsDynamically")%></option>
-					<option value='<%=IJobDescription.TYPE_SPECIFIED%>' <%=(type==IJobDescription.TYPE_SPECIFIED)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScanEveryDocumentOnce")%></option>
-				</select></td><td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr></td><td class="value">
-					<nobr><input type="text" size="5" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduleTypeColon")%></nobr></td><td class="value"><select name="scheduletype" size="1">
+					<option value='<%=IJobDescription.TYPE_CONTINUOUS%>' <%=(type==IJobDescription.TYPE_CONTINUOUS)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RescanDocumentsDynamically")%></option>
+					<option value='<%=IJobDescription.TYPE_SPECIFIED%>' <%=(type==IJobDescription.TYPE_SPECIFIED)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScanEveryDocumentOnce")%></option>
+				</select></td><td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr></td><td class="value">
+					<nobr><input type="text" size="5" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr></td>
 				<td class="value">
-					<nobr><input type="text" size="5" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+					<nobr><input type="text" size="5" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr></td>
 				<td class="value">
-					<nobr><input type="text" size="5" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+					<nobr><input type="text" size="5" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
 				</td>
 			</tr>
 <%
@@ -739,7 +739,7 @@
 	    if (scheduleRecords.size() == 0)
 	    {
 %>
-			<tr><td class="message" colspan="4"><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.NoScheduleSpecified")%></td></tr>
+			<tr><td class="message" colspan="4"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoScheduleSpecified")%></td></tr>
 <%
 	    }
 	    else
@@ -768,20 +768,20 @@
 		}
 %>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
 				<td colspan="3" class="value">
 				    <select class="schedulepulldown" multiple="true" name='<%="dayofweek"+postFix%>' size="3">
-					<option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
-					<option value="0" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
-					<option value="1" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
-					<option value="2" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Tuesdays")%></option>
-					<option value="3" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Wednesdays")%></option>
-					<option value="4" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
-					<option value="5" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
-					<option value="6" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.at")%> 
+					<option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
+					<option value="0" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
+					<option value="1" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
+					<option value="2" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Tuesdays")%></option>
+					<option value="3" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Wednesdays")%></option>
+					<option value="4" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
+					<option value="5" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
+					<option value="6" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%> 
 				    <select class="schedulepulldown" multiple="true" name='<%="hourofday"+postFix%>' size="3">
-					<option value="none" <%=(srHourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
+					<option value="none" <%=(srHourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
 					k = 0;
 					while (k < 24)
@@ -804,37 +804,37 @@
 						k++;
 					}
 %>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.plus")%> 
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%> 
 				    <select class="schedulepulldown" multiple="true" name='<%="minutesofhour"+postFix%>' size="3">
-					<option value="none" <%=(srMinutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
+					<option value="none" <%=(srMinutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
 <%
 					k = 0;
 					while (k < 60)
 					{
 %>
-						<option value='<%=k%>' <%=(srMinutesOfHour!=null&&srMinutesOfHour.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k)%> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutes")%></option>
+						<option value='<%=k%>' <%=(srMinutesOfHour!=null&&srMinutesOfHour.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k)%> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%></option>
 <%
 						k++;
 					}
 %>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.in")%> 
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%> 
 				    <select class="schedulepulldown" multiple="true" name='<%="monthofyear"+postFix%>' size="3">
-					<option value="none" <%=(srMonthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
-					<option value="0" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
-					<option value="1" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
-					<option value="2" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.March")%></option>
-					<option value="3" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.April")%></option>
-					<option value="4" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.May")%></option>
-					<option value="5" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.June")%></option>
-					<option value="6" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.July")%></option>
-					<option value="7" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(7))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.August")%></option>
-					<option value="8" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(8))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.September")%></option>
-					<option value="9" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
-					<option value="10" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
-					<option value="11" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.on")%>
+					<option value="none" <%=(srMonthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
+					<option value="0" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
+					<option value="1" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
+					<option value="2" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.March")%></option>
+					<option value="3" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.April")%></option>
+					<option value="4" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.May")%></option>
+					<option value="5" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.June")%></option>
+					<option value="6" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.July")%></option>
+					<option value="7" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(7))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.August")%></option>
+					<option value="8" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(8))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.September")%></option>
+					<option value="9" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
+					<option value="10" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
+					<option value="11" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.on")%>
 				    <select class="schedulepulldown" multiple="true" name='<%="dayofmonth"+postFix%>' size="3">
-					<option value="none" <%=(srDayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
+					<option value="none" <%=(srDayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
 <%
 					k = 0;
 					while (k < 31)
@@ -859,13 +859,13 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
-					<input type="text" size="5" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
+					<input type="text" size="5" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
 				</td>
 			</tr>
 			<tr>
 				<td class="message" colspan="4">
-					<a name='<%="remove_schedule_"+Integer.toString(l)%>'><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RemoveSchedule")%>" onClick='<%="Javascript:RemoveSchedule("+Integer.toString(l)+")"%>' alt='<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.RemoveScheduleRecord")+Integer.toString(l)%>'/></a>
+					<a name='<%="remove_schedule_"+Integer.toString(l)%>'><input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RemoveSchedule")%>" onClick='<%="Javascript:RemoveSchedule("+Integer.toString(l)+")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.RemoveScheduleRecord")+Integer.toString(l)%>'/></a>
 					<input type="hidden" name='<%="recordop"+postFix%>' value=""/>
 				</td>
 			</tr>
@@ -879,20 +879,20 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
 				<td colspan="3" class="value">
 				    <select class="schedulepulldown" multiple="true" name="dayofweek" size="3">
-					<option value="none" <%=(dayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
-					<option value="0" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
-					<option value="1" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
-					<option value="2" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Tuesdays")%></option>
-					<option value="3" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Wednesdays")%></option>
-					<option value="4" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
-					<option value="5" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
-					<option value="6" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.at")%> 
+					<option value="none" <%=(dayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
+					<option value="0" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
+					<option value="1" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
+					<option value="2" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Tuesdays")%></option>
+					<option value="3" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Wednesdays")%></option>
+					<option value="4" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
+					<option value="5" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
+					<option value="6" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%> 
 				    <select class="schedulepulldown" multiple="true" name="hourofday" size="3">
-					<option value="none" <%=(hourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
+					<option value="none" <%=(hourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
 					int k = 0;
 					while (k < 24)
@@ -915,37 +915,37 @@
 						k++;
 					}
 %>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.plus")%> 
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%> 
 				    <select class="schedulepulldown" multiple="true" name="minutesofhour" size="3">
-					<option value="none" <%=(minutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
+					<option value="none" <%=(minutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
 <%
 					k = 0;
 					while (k < 60)
 					{
 %>
-						<option value='<%=k%>' <%=(minutesOfHour!=null&&minutesOfHour.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k)%> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutes")%></option>
+						<option value='<%=k%>' <%=(minutesOfHour!=null&&minutesOfHour.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k)%> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%></option>
 <%
 						k++;
 					}
 %>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.in")%> 
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%> 
 				    <select class="schedulepulldown" multiple="true" name="monthofyear" size="3">
-					<option value="none" <%=(monthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
-					<option value="0" <%=(monthOfYear!=null&&monthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
-					<option value="1" <%=(monthOfYear!=null&&monthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
-					<option value="2" <%=(monthOfYear!=null&&monthOfYear.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.March")%></option>
-					<option value="3" <%=(monthOfYear!=null&&monthOfYear.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.April")%></option>
-					<option value="4" <%=(monthOfYear!=null&&monthOfYear.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.May")%></option>
-					<option value="5" <%=(monthOfYear!=null&&monthOfYear.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.June")%></option>
-					<option value="6" <%=(monthOfYear!=null&&monthOfYear.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.July")%></option>
-					<option value="7" <%=(monthOfYear!=null&&monthOfYear.checkValue(7))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.August")%></option>
-					<option value="8" <%=(monthOfYear!=null&&monthOfYear.checkValue(8))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.September")%></option>
-					<option value="9" <%=(monthOfYear!=null&&monthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
-					<option value="10" <%=(monthOfYear!=null&&monthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
-					<option value="11" <%=(monthOfYear!=null&&monthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.on")%> 
+					<option value="none" <%=(monthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
+					<option value="0" <%=(monthOfYear!=null&&monthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
+					<option value="1" <%=(monthOfYear!=null&&monthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
+					<option value="2" <%=(monthOfYear!=null&&monthOfYear.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.March")%></option>
+					<option value="3" <%=(monthOfYear!=null&&monthOfYear.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.April")%></option>
+					<option value="4" <%=(monthOfYear!=null&&monthOfYear.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.May")%></option>
+					<option value="5" <%=(monthOfYear!=null&&monthOfYear.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.June")%></option>
+					<option value="6" <%=(monthOfYear!=null&&monthOfYear.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.July")%></option>
+					<option value="7" <%=(monthOfYear!=null&&monthOfYear.checkValue(7))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.August")%></option>
+					<option value="8" <%=(monthOfYear!=null&&monthOfYear.checkValue(8))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.September")%></option>
+					<option value="9" <%=(monthOfYear!=null&&monthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
+					<option value="10" <%=(monthOfYear!=null&&monthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
+					<option value="11" <%=(monthOfYear!=null&&monthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.on")%> 
 				    <select class="schedulepulldown" multiple="true" name="dayofmonth" size="3">
-					<option value="none" <%=(dayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
+					<option value="none" <%=(dayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
 <%
 					k = 0;
 					while (k < 31)
@@ -970,14 +970,14 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
-					<input type="text" size="5" name="duration" value='<%=((duration==null)?"":duration.toString())%>'/> <%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
+					<input type="text" size="5" name="duration" value='<%=((duration==null)?"":duration.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
 				</td>
 			</tr>
 			<tr>
 				<td class="message" colspan="4">
 					<input type="hidden" name="recordop" value=""/>
-					<a name="add_schedule"><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AddScheduledTime")%>" onClick="javascript:AddScheduledTime()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.AddNewScheduleRecord")%>"/></a>
+					<a name="add_schedule"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddScheduledTime")%>" onClick="javascript:AddScheduledTime()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddNewScheduleRecord")%>"/></a>
 				</td>
 			</tr>
 		  </table>
@@ -1149,7 +1149,7 @@
 	if (connectionName.length() > 0 && outputName.length() > 0)
 	{
 %>
-			<input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>"/>
+			<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>"/>
 <%
 	}
 	else
@@ -1157,12 +1157,12 @@
 		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")))
 		{
 %>
-			<input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>"/>
+			<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>"/>
 <%
 		}
 	}
 %>
-			&nbsp;<input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>"/>
+			&nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>"/>
 			</nobr></td>
 			</tr>
 		  </table>

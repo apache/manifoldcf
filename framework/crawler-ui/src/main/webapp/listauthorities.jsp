@@ -30,7 +30,7 @@
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 
 	<title>
-		<%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.ApacheManifoldCFListAuthorities")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.ApacheManifoldCFListAuthorities")%>
 	</title>
 
 	<script type="text/javascript">
@@ -57,7 +57,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.ListOfAuthorityConnections")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.ListOfAuthorityConnections")%></p>
 	<form class="standardform" name="listconnections" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
 		<input type="hidden" name="type" value="authority"/>
@@ -76,8 +76,8 @@
 				<td class="separator" colspan="5"><hr/></td>
 			</tr>
 			<tr class="headerrow">
-				<td class="columnheader"></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.Name")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.Description")%></td><td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.AuthorityType")%></td>
-				<td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.Max")%></td>
+				<td class="columnheader"></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Name")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Description")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AuthorityType")%></td>
+				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Max")%></td>
 			</tr>
 <%
 	int i = 0;
@@ -98,7 +98,7 @@
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
-				<a href='<%="viewauthority.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>&nbsp;<a href='<%="editauthority.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="Edit "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%="Delete "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
+				<a href='<%="viewauthority.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>&nbsp;<a href='<%="editauthority.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
 			</td>
 			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
 			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
@@ -111,7 +111,7 @@
 			<tr>
 				<td class="separator" colspan="5"><hr/></td>
 			</tr>
-			<tr><td class="message" colspan="5"><a href="editauthority.jsp" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.AddNewConnection")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"listauthorities.AddaNewConnection")%></a></td></tr>
+			<tr><td class="message" colspan="5"><a href="editauthority.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.AddNewConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AddaNewConnection")%></a></td></tr>
 		</table>
 
 <%

@@ -29,7 +29,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ApacheManifoldCFViewRepositoryConnectionStatus")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ApacheManifoldCFViewRepositoryConnectionStatus")%>
 	</title>
 
 	<script type="text/javascript">
@@ -37,7 +37,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("<%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.DeleteConnection")%> '"+connectionName+"'?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewconnection.DeleteConnection")%> '"+connectionName+"'?"))
 		{
 			document.viewconnection.op.value="Delete";
 			document.viewconnection.connname.value=connectionName;
@@ -56,7 +56,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ViewRepositoryConnectionStatus")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ViewRepositoryConnectionStatus")%></p>
 	<form class="standardform" name="viewconnection" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
 		<input type="hidden" name="type" value="connection"/>
@@ -123,24 +123,24 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.NameColon")%></nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.DescriptionColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.NameColon")%></nobr></td><td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.DescriptionColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionTypeColon")%></nobr></td><td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.MaxConnectionsColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionTypeColon")%></nobr></td><td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.MaxConnectionsColon")%></nobr></td><td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.AuthorityColon")%></nobr></td><td class="value" colspan="3"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authorityName)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.AuthorityColon")%></nobr></td><td class="value" colspan="3"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authorityName)%></nobr></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ThrottlingColon")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ThrottlingColon")%></nobr></td>
 				<td class="boxcell" colspan="3">
 					<table class="formtable">
 						<tr class="formheaderrow">
@@ -178,7 +178,7 @@
 		if (j == 0)
 		{
 %>
-						<tr class="formrow"><td colspan="3" class="formmessage"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.NoThrottles")%></nobr></td></tr>
+						<tr class="formrow"><td colspan="3" class="formmessage"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.NoThrottles")%></nobr></td></tr>
 <%
 		}
 %>
@@ -199,12 +199,12 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionStatusColon")%></nobr></td><td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ConnectionStatusColon")%></nobr></td><td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="Delete this connection"><%=Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a>
+		<tr><td class="message" colspan="4"><a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a>
 		</td></tr>
 		</table>
 

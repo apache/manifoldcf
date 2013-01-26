@@ -28,60 +28,60 @@
 
 %>
 
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Outputs")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Outputs")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listoutputs.jsp" alt="List output connections"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
+		<nobr><a class="menulink" href="listoutputs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listoutputconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Authorities")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Authorities")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listauthorities.jsp" alt="List authorities"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%></a></nobr>
+		<nobr><a class="menulink" href="listauthorities.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthorities")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Repositories")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Repositories")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listconnections.jsp" alt="List repository connections"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListRepositoryConnections")%></a></nobr>
+		<nobr><a class="menulink" href="listconnections.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listrepositoryconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListRepositoryConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Jobs")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Jobs")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="listjobs.jsp" alt="List jobs"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ListAllJobs")%></a></nobr>						
+		<nobr><a class="menulink" href="listjobs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listjobs")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAllJobs")%></a></nobr>						
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="showjobstatus.jsp" alt="Manage jobs"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.StatusAndJobManagement")%></a></nobr>						
+		<nobr><a class="menulink" href="showjobstatus.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Managejobs")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.StatusAndJobManagement")%></a></nobr>						
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.StatusReports")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.StatusReports")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="documentstatus.jsp" alt="Document status"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.DocumentStatus")%></a></nobr>
+		<nobr><a class="menulink" href="documentstatus.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Documentstatus")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.DocumentStatus")%></a></nobr>
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="queuestatus.jsp" alt="Queue status"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.QueueStatus")%></a></nobr>
+		<nobr><a class="menulink" href="queuestatus.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Queuestatus")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.QueueStatus")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.HistoryReports")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.HistoryReports")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href="simplereport.jsp" alt="Simple history"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.SimpleHistory")%></a></nobr>
+		<nobr><a class="menulink" href="simplereport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Simplehistory")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.SimpleHistory")%></a></nobr>
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="maxactivityreport.jsp" alt="Maximum activity"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.MaximumActivity")%></a></nobr>
+		<nobr><a class="menulink" href="maxactivityreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Maximumactivity")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.MaximumActivity")%></a></nobr>
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="maxbandwidthreport.jsp" alt="Maximum bandwidth"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.MaximumBandwidth")%></a></nobr>
+		<nobr><a class="menulink" href="maxbandwidthreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Maximumbandwidth")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.MaximumBandwidth")%></a></nobr>
 	</li>
 	<li class="menuitem">
-		<nobr><a class="menulink" href="resultreport.jsp" alt="Result histogram"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.ResultHistogram")%></a></nobr>
+		<nobr><a class="menulink" href="resultreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Resulthistogram")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ResultHistogram")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Miscellaneous")%></nobr></p>
+<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Miscellaneous")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
-		<nobr><a class="menulink" href='<%="http://manifoldcf.apache.org/release/trunk/"+Messages.getString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/end-user-documentation.html"%>' alt="Help"><%=Messages.getString(pageContext.getRequest().getLocale(),"navigation.Help")%></a></nobr>
+		<nobr><a class="menulink" href='<%="http://manifoldcf.apache.org/release/trunk/"+Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/end-user-documentation.html"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Help")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Help")%></a></nobr>
 	</li>
 </ul>

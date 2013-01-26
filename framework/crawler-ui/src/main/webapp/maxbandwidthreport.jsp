@@ -31,7 +31,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ApacheManifoldCFMaximumBandwidthReport")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ApacheManifoldCFMaximumBandwidthReport")%>
 	</title>
 
 	<script type="text/javascript">
@@ -166,7 +166,7 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.MaximumBandwidthReport")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.MaximumBandwidthReport")%></p>
 <%
 if (maintenanceUnderway == false)
 {
@@ -402,9 +402,9 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Connection")%></td><td class="value" colspan="1">
+				<td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Connection")%></td><td class="value" colspan="1">
 					<select name="reportconnection" size="3">
-						<option <%=(reportConnection.length()==0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+						<option <%=(reportConnection.length()==0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 	int i = 0;
 	while (i < connList.length)
@@ -425,7 +425,7 @@ if (maintenanceUnderway == false)
 	if (reportConnection.length() > 0)
 	{
 %>
-				<td class="description" colspan="1"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Activities")%></td><td class="value" colspan="1">
+				<td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Activities")%></td><td class="value" colspan="1">
 					<input type="hidden" name="reportactivities_posted" value="true"/>
 					<select multiple="true" name="reportactivities" size="3">
 <%
@@ -455,10 +455,10 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.StartTime")%></td>
+				<td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.StartTime")%></td>
 				<td class="value" colspan="3">
 				    <select class="schedulepulldown" name='reportstarthour' size="3">
-					<option value="" <%=(startHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(startHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 					k = 0;
 					while (k < 24)
@@ -483,7 +483,7 @@ if (maintenanceUnderway == false)
 %>
 				    </select><nobr/>:<nobr/> 
 				    <select class="schedulepulldown" name='reportstartminute' size="3">
-					<option value="" <%=(startMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(startMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 					k = 0;
 					while (k < 60)
@@ -494,24 +494,24 @@ if (maintenanceUnderway == false)
 						k++;
 					}
 %>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.on")%> 
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.on")%> 
 				    <select class="schedulepulldown" name='reportstartmonth' size="3">
-					<option value="" <%=(startMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
-					<option value="0" <%=(startMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.January")%></option>
-					<option value="1" <%=(startMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.February")%></option>
-					<option value="2" <%=(startMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.March")%></option>
-					<option value="3" <%=(startMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.April")%></option>
-					<option value="4" <%=(startMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.May")%></option>
-					<option value="5" <%=(startMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.June")%></option>
-					<option value="6" <%=(startMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.July")%></option>
-					<option value="7" <%=(startMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.August")%></option>
-					<option value="8" <%=(startMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.September")%></option>
-					<option value="9" <%=(startMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.October")%></option>
-					<option value="10" <%=(startMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.November")%></option>
-					<option value="11" <%=(startMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.December")%></option>
+					<option value="" <%=(startMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="0" <%=(startMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.January")%></option>
+					<option value="1" <%=(startMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.February")%></option>
+					<option value="2" <%=(startMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.March")%></option>
+					<option value="3" <%=(startMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.April")%></option>
+					<option value="4" <%=(startMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.May")%></option>
+					<option value="5" <%=(startMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.June")%></option>
+					<option value="6" <%=(startMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.July")%></option>
+					<option value="7" <%=(startMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.August")%></option>
+					<option value="8" <%=(startMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.September")%></option>
+					<option value="9" <%=(startMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.October")%></option>
+					<option value="10" <%=(startMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.November")%></option>
+					<option value="11" <%=(startMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.December")%></option>
 				    </select><nobr/>
 				    <select class="schedulepulldown" name='reportstartday' size="3">
-					<option value="" <%=(startDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(startDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 					k = 0;
 					while (k < 31)
@@ -534,7 +534,7 @@ if (maintenanceUnderway == false)
 %>
 				    </select><nobr/>,<nobr/>
 				    <select class="schedulepulldown" name='reportstartyear' size="3">
-					<option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 					<option value="2005" <%=(startYear.equals("2005"))?"selected=\"selected\"":""%>>2005</option>
 					<option value="2006" <%=(startYear.equals("2006"))?"selected=\"selected\"":""%>>2006</option>
 					<option value="2007" <%=(startYear.equals("2007"))?"selected=\"selected\"":""%>>2007</option>
@@ -550,10 +550,10 @@ if (maintenanceUnderway == false)
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EndTime")%></td>
+				<td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EndTime")%></td>
 				<td class="value" colspan="3">
 				    <select class="schedulepulldown" name='reportendhour' size="3">
-					<option value="" <%=(endHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(endHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 					k = 0;
 					while (k < 24)
@@ -578,7 +578,7 @@ if (maintenanceUnderway == false)
 %>
 				    </select><nobr/>:<nobr/> 
 				    <select class="schedulepulldown" name='reportendminute' size="3">
-					<option value="" <%=(endMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(endMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 					k = 0;
 					while (k < 60)
@@ -589,24 +589,24 @@ if (maintenanceUnderway == false)
 						k++;
 					}
 %>
-				    </select> <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.on")%> 
+				    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.on")%> 
 				    <select class="schedulepulldown" name='reportendmonth' size="3">
-					<option value="" <%=(endMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
-					<option value="0" <%=(endMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.January")%></option>
-					<option value="1" <%=(endMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.February")%></option>
-					<option value="2" <%=(endMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.March")%></option>
-					<option value="3" <%=(endMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.April")%></option>
-					<option value="4" <%=(endMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.May")%></option>
-					<option value="5" <%=(endMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.June")%></option>
-					<option value="6" <%=(endMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.July")%></option>
-					<option value="7" <%=(endMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.August")%></option>
-					<option value="8" <%=(endMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.September")%></option>
-					<option value="9" <%=(endMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.October")%></option>
-					<option value="10" <%=(endMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.November")%></option>
-					<option value="11" <%=(endMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.December")%></option>
+					<option value="" <%=(endMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="0" <%=(endMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.January")%></option>
+					<option value="1" <%=(endMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.February")%></option>
+					<option value="2" <%=(endMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.March")%></option>
+					<option value="3" <%=(endMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.April")%></option>
+					<option value="4" <%=(endMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.May")%></option>
+					<option value="5" <%=(endMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.June")%></option>
+					<option value="6" <%=(endMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.July")%></option>
+					<option value="7" <%=(endMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.August")%></option>
+					<option value="8" <%=(endMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.September")%></option>
+					<option value="9" <%=(endMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.October")%></option>
+					<option value="10" <%=(endMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.November")%></option>
+					<option value="11" <%=(endMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.December")%></option>
 				    </select><nobr/>
 				    <select class="schedulepulldown" name='reportendday' size="3">
-					<option value="" <%=(endDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(endDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 <%
 					k = 0;
 					while (k < 31)
@@ -629,7 +629,7 @@ if (maintenanceUnderway == false)
 %>
 				    </select><nobr/>,<nobr/>
 				    <select class="schedulepulldown" name='reportendyear' size="3">
-					<option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
+					<option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
 					<option value="2005" <%=(endYear.equals("2005"))?"selected=\"selected\"":""%>>2005</option>
 					<option value="2006" <%=(endYear.equals("2006"))?"selected=\"selected\"":""%>>2006</option>
 					<option value="2007" <%=(endYear.equals("2007"))?"selected=\"selected\"":""%>>2007</option>
@@ -648,9 +648,9 @@ if (maintenanceUnderway == false)
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EntityMatch")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EntityMatch")%></nobr></td>
 				<td class="value"><input type="text" name="reportentitymatch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ResultCodeMatch")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ResultCodeMatch")%></nobr></td>
 				<td class="value"><input type="text" name="reportresultcodematch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
 			</tr>
 			<tr>
@@ -658,9 +658,9 @@ if (maintenanceUnderway == false)
 			</tr>
 
 			<tr>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescription")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClassDescription")%></nobr></td>
 				<td class="value"><input type="text" name="reportbucketdesc" size="20" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(reportBucketDesc)%>'/></td>
-				<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.SlidingWindowSize")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.SlidingWindowSize")%></nobr></td>
 				<td class="value"><input type="text" name="reportinterval" size="5" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Integer.toString(interval))%>'/></td>
 			</tr>
 			<tr>
@@ -671,13 +671,13 @@ if (maintenanceUnderway == false)
 	if (reportConnection.length() > 0)
 	{
 %>
-					<a name="MainButton"><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Go")%>" onClick="javascript:Go()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ExecuteThisQuery")%>"/></a>
+					<a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Go")%>" onClick="javascript:Go()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.ExecuteThisQuery")%>"/></a>
 <%
 	}
 	else
 	{
 %>
-					<a name="MainButton"><input type="button" value="<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Continue")%>"/></a>
+					<a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Continue")%>"/></a>
 <%
 	}
 %>
@@ -758,10 +758,10 @@ if (maintenanceUnderway == false)
 
 		<table class="displaytable">
 		    <tr class="headerrow">
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClass")%></nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytecount");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.HighestBandwidth")%></nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.StartTime")%></nobr></a></td>
-			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("endtime");'><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EndTime")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClass")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytecount");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.HighestBandwidth")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.StartTime")%></nobr></a></td>
+			<td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("endtime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.EndTime")%></nobr></a></td>
 		    </tr>
 <%
 			zz = 0;
@@ -807,13 +807,13 @@ if (maintenanceUnderway == false)
 		if (startRow == 0)
 		{
 %>
-				<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%>
+				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PreviousPage")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%></a>
+				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Previous")%></a>
 <%
 		}
 %>
@@ -822,20 +822,20 @@ if (maintenanceUnderway == false)
 		if (hasMoreRows == false)
 		{
 %>
-				<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%>
+				<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%>
 <%
 		}
 		else
 		{
 %>
-				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NextPage")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%></a>
+				<a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Next")%></a>
 <%
 		}
 %>
 				</nobr>
 			</td>
-			<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Rows")%></nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
-			<td class="description"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.RowsPerPage")%></nobr></td>
+			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.Rows")%></nobr></td><td class="value"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></td>
+			<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.RowsPerPage")%></nobr></td>
 			<td class="value">
 				<input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
 			</td>
@@ -850,7 +850,7 @@ if (maintenanceUnderway == false)
 	else
 	{
 %>
-		<table class="displaytable"><tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PleaseSelectAConnection")%></td></tr></table>
+		<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PleaseSelectAConnection")%></td></tr></table>
 <%
 	}
 %>
@@ -862,7 +862,7 @@ else
 %>
 		<table class="displaytable">
 			<tr><td class="separator" colspan="1"><hr/></td></tr>
-			<tr><td class="message"><%=Messages.getString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PleaseTryAgainLater")%></td></tr>
+			<tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.PleaseTryAgainLater")%></td></tr>
 		</table>
 <%
 }
