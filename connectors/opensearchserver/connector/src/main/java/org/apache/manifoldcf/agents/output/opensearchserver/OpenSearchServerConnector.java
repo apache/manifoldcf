@@ -28,6 +28,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Locale;
 
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
@@ -86,6 +93,13 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   /** Forward to the javascript to check the specification parameters for the job */
   private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
 
+  /** Connection expiration interval */
+  private static final long EXPIRATION_INTERVAL = 60000L;
+
+  private ClientConnectionManager connectionManager = null;
+  private HttpClient client = null;
+  private long expirationTime = -1L;
+
   // Private data
 
   private String specsCacheOutpuDescription;
@@ -94,6 +108,73 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   public OpenSearchServerConnector() {
     specsCacheOutpuDescription = null;
     specsCache = null;
+  }
+
+  @Override
+  public void connect(ConfigParams configParams)
+  {
+    super.connect(configParams);
+  }
+  
+  protected HttpClient getSession()
+    throws ManifoldCFException
+  {
+    if (client == null)
+    {
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+      connectionManager = localConnectionManager;
+      DefaultHttpClient localClient = new DefaultHttpClient(connectionManager);
+      // No retries
+      localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+      client = localClient;
+    }
+    expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
+    return client;
+  }
+
+  protected void closeSession()
+  {
+    if (connectionManager != null)
+    {
+      connectionManager.shutdown();
+      connectionManager = null;
+    }
+    client = null;
+    expirationTime = -1L;
+  }
+  
+  @Override
+  public void disconnect()
+    throws ManifoldCFException
+  {
+    super.disconnect();
+    closeSession();
+  }
+  
+  
+  @Override
+  public void poll()
+    throws ManifoldCFException
+  {
+    super.poll();
+    if (connectionManager != null)
+    {
+      if (System.currentTimeMillis() > expirationTime)
+      {
+        closeSession();
+      }
+    }
   }
 
   @Override
@@ -304,13 +385,16 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
       RepositoryDocument document, String authorityNameString,
       IOutputAddActivity activities) throws ManifoldCFException,
       ServiceInterruption {
+    HttpClient client = getSession();
     OpenSearchServerConfig config = getConfigParameters(null);
     Integer count = addInstance(config);
     synchronized (count) {
       InputStream inputStream = document.getBinaryStream();
       try {
         long startTime = System.currentTimeMillis();
-        OpenSearchServerIndex oi = new OpenSearchServerIndex(documentURI,
+        OpenSearchServerIndex oi = new OpenSearchServerIndex(
+            client,
+            documentURI,
             inputStream, config);
         activities.recordActivity(startTime,
             OPENSEARCHSERVER_INDEXATION_ACTIVITY, document.getBinaryLength(),
@@ -328,8 +412,11 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   public void removeDocument(String documentURI, String outputDescription,
       IOutputRemoveActivity activities) throws ManifoldCFException,
       ServiceInterruption {
+    HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    OpenSearchServerDelete od = new OpenSearchServerDelete(documentURI,
+    OpenSearchServerDelete od = new OpenSearchServerDelete(
+        client,
+        documentURI,
         getConfigParameters(null));
     activities.recordActivity(startTime, OPENSEARCHSERVER_DELETION_ACTIVITY,
         null, documentURI, od.getResult().name(), od.getResultDescription());
@@ -337,7 +424,9 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
 
   @Override
   public String check() throws ManifoldCFException {
+    HttpClient client = getSession();
     OpenSearchServerSchema oss = new OpenSearchServerSchema(
+        client,
         getConfigParameters(null));
     return oss.getResult().name() + " " + oss.getResultDescription();
   }
@@ -345,8 +434,10 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   @Override
   public void noteJobComplete(IOutputNotifyActivity activities)
       throws ManifoldCFException, ServiceInterruption {
+    HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
     OpenSearchServerAction oo = new OpenSearchServerAction(
+        client,
         CommandEnum.optimize, getConfigParameters(null));
     activities.recordActivity(startTime, OPENSEARCHSERVER_OPTIMIZE_ACTIVITY,
         null, oo.getCallUrlSnippet(), oo.getResult().name(),

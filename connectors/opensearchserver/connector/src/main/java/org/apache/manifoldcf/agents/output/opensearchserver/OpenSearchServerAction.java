@@ -17,6 +17,7 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -27,9 +28,9 @@ public class OpenSearchServerAction extends OpenSearchServerConnection {
     optimize, reload;
   }
 
-  public OpenSearchServerAction(CommandEnum cmd, OpenSearchServerConfig config)
+  public OpenSearchServerAction(HttpClient client, CommandEnum cmd, OpenSearchServerConfig config)
       throws ManifoldCFException {
-    super(config);
+    super(client, config);
     StringBuffer url = getApiUrl("action");
     url.append("&action=");
     url.append(cmd.name());

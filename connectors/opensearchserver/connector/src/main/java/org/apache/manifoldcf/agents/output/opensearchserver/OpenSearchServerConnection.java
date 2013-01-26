@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URLEncoder;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -35,33 +36,17 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.Header;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
-
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.w3c.dom.Document;
@@ -86,8 +71,6 @@ public class OpenSearchServerConnection {
 
   private Document xmlResponse;
 
-  private ClientConnectionManager connectionManager;
-  
   private HttpClient httpClient;
   
   protected String xPathStatus = "/response/entry[@key='Status']/text()";
@@ -99,7 +82,8 @@ public class OpenSearchServerConnection {
 
   private Result result;
 
-  protected OpenSearchServerConnection(OpenSearchServerConfig config) {
+  protected OpenSearchServerConnection(HttpClient client, OpenSearchServerConfig config) {
+    this.httpClient = client;
     result = Result.UNKNOWN;
     response = null;
     xmlResponse = null;
@@ -109,24 +93,6 @@ public class OpenSearchServerConnection {
     indexName = config.getIndexName();
     userName = config.getUserName();
     apiKey = config.getApiKey();
-    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-    localConnectionManager.setMaxTotal(1);
-    connectionManager = localConnectionManager;
-    DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager);
-    // No retries
-    localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
-      {
-	public boolean retryRequest(
-	  IOException exception,
-	  int executionCount,
-          HttpContext context)
-	{
-	  return false;
-	}
-     
-      });
-
-    httpClient = localHttpClient;
   }
 
   protected final String urlEncode(String t) throws ManifoldCFException {
@@ -155,21 +121,110 @@ public class OpenSearchServerConnection {
     return url;
   }
 
-  protected void call(HttpRequestBase method) throws ManifoldCFException {
-    try {
-      HttpResponse resp = httpClient.execute(method);
-      if (!checkResultCode(resp.getStatusLine().getStatusCode()))
-        throw new ManifoldCFException(getResultDescription());
-      response = getResponseBodyAsString(resp.getEntity());
-    } catch (HttpException e) {
+  protected static class CallThread extends Thread
+  {
+    protected final HttpClient client;
+    protected final HttpRequestBase method;
+    protected int resultCode = -1;
+    protected String response = null;
+    protected Throwable exception = null;
+    
+    public CallThread(HttpClient client, HttpRequestBase method)
+    {
+      this.client = client;
+      this.method = method;
+      setDaemon(true);
+    }
+    
+    @Override
+    public void run()
+    {
+      try
+      {
+        try
+        {
+          HttpResponse resp = client.execute(method);
+          resultCode = resp.getStatusLine().getStatusCode();
+          response = getResponseBodyAsString(resp.getEntity());
+        }
+        finally
+        {
+          method.abort();
+        }
+      }
+      catch (java.net.SocketTimeoutException e)
+      {
+        exception = e;
+      }
+      catch (InterruptedIOException e)
+      {
+        // Just exit
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public int getResultCode()
+    {
+      return resultCode;
+    }
+    
+    public String getResponse()
+    {
+      return response;
+    }
+    
+    public Throwable getException()
+    {
+      return exception;
+    }
+  }
+  
+  protected void call(HttpRequestBase method) throws ManifoldCFException
+  {
+    CallThread ct = new CallThread(httpClient, method);
+    try
+    {
+      ct.start();
+      try
+      {
+        ct.join();
+        Throwable t = ct.getException();
+        if (t != null)
+        {
+          if (t instanceof HttpException)
+            throw (HttpException)t;
+          else if (t instanceof IOException)
+            throw (IOException)t;
+          else if (t instanceof RuntimeException)
+            throw (RuntimeException)t;
+          else if (t instanceof Error)
+            throw (Error)t;
+          else
+            throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
+        }
+        
+        if (!checkResultCode(ct.getResultCode()))
+          throw new ManifoldCFException(getResultDescription());
+        response = ct.getResponse();
+      }
+      catch (InterruptedException e)
+      {
+        ct.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+    }
+    catch (HttpException e)
+    {
       setResult(Result.ERROR, e.getMessage());
       throw new ManifoldCFException(e);
-    } catch (IOException e) {
+    }
+    catch (IOException e)
+    {
       setResult(Result.ERROR, e.getMessage());
       throw new ManifoldCFException(e);
-    } finally {
-      if (method != null)
-        method.abort();
     }
   }
 

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-624: Add indexing via subsidiary thread to OpenSearchServer
+connector.
+(Karl Wright)
+
 CONNECTORS-606: Add indexing via subsidiary thread to ElasticSearch
 connector.
 (Karl Wright)
