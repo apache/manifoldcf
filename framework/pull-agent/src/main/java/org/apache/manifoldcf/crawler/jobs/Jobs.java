@@ -246,6 +246,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   protected ICacheManager cacheManager;
   protected ScheduleManager scheduleManager;
   protected HopFilterManager hopFilterManager;
+  protected ForcedParamManager forcedParamManager;
 
   protected IOutputConnectionManager outputMgr;
   protected IRepositoryConnectionManager connectionMgr;
@@ -262,6 +263,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     this.threadContext = threadContext;
     scheduleManager = new ScheduleManager(threadContext,database);
     hopFilterManager = new HopFilterManager(threadContext,database);
+    forcedParamManager = new ForcedParamManager(threadContext,database);
+    
     cacheManager = CacheManagerFactory.make(threadContext);
 
     outputMgr = OutputConnectionManagerFactory.make(threadContext);
@@ -311,6 +314,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       // Handle related tables
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
+      forcedParamManager.install(getTableName(),idField);
 
       // Index management
       IndexDescription statusIndex = new IndexDescription(false,new String[]{statusField,idField,priorityField});
@@ -357,6 +361,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     beginTransaction();
     try
     {
+      forcedParamManager.deinstall();
       hopFilterManager.deinstall();
       scheduleManager.deinstall();
       performDrop(null);
@@ -602,6 +607,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     {
       scheduleManager.deleteRows(id);
       hopFilterManager.deleteRows(id);
+      forcedParamManager.deleteRows(id);
       ArrayList params = new ArrayList();
       String query = buildConjunctionClause(params,new ClauseDescription[]{
         new UnitaryClause(idField,id)});
@@ -743,6 +749,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
               performUpdate(values," WHERE "+query,params,null);
               scheduleManager.deleteRows(id);
               hopFilterManager.deleteRows(id);
+              forcedParamManager.deleteRows(id);
             }
             else
             {
@@ -760,7 +767,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
             scheduleManager.writeRows(id,jobDescription);
             // Write hop filter rows
             hopFilterManager.writeRows(id,jobDescription);
-
+            // Write forced params
+            forcedParamManager.writeRows(id,jobDescription);
+            
             cacheManager.invalidateKeys(ch);
             break;
           }
@@ -2639,6 +2648,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       // Fill in schedules for jobs
       scheduleManager.getRows(returnValues,idList,params);
       hopFilterManager.getRows(returnValues,idList,params);
+      forcedParamManager.getRows(returnValues,idList,params);
     }
     catch (NumberFormatException e)
     {
