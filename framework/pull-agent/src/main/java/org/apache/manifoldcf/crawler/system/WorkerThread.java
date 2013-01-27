@@ -1652,6 +1652,7 @@ public class WorkerThread extends Thread
         job.getConnectionName(),documentIdentifierHash,
         version,outputVersion,
         connection.getACLAuthority(),
+        job.getForcedMetadata(),
         data,currentTime,
         documentURI,
         ingestLogger);

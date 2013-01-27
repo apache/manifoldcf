@@ -358,6 +358,48 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    return documentIngest(outputConnectionName,
+      identifierClass,
+      identifierHash,
+      documentVersion,
+      outputVersion,
+      authorityName,
+      new HashMap<String,Set<String>>(),
+      data,
+      ingestTime,
+      documentURI,
+      activities);
+  }
+  
+  /** Ingest a document.
+  * This ingests the document, and notes it.  If this is a repeat ingestion of the document, this
+  * method also REMOVES ALL OLD METADATA.  When complete, the index will contain only the metadata
+  * described by the RepositoryDocument object passed to this method.
+  * ServiceInterruption is thrown if the document ingestion must be rescheduled.
+  *@param outputConnectionName is the name of the output connection associated with this action.
+  *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
+  *@param identifierHash is the hashed document identifier.
+  *@param documentVersion is the document version.
+  *@param outputVersion is the output version string constructed from the output specification by the output connector.
+  *@param authorityName is the name of the authority associated with the document, if any.
+  *@param forcedParameters are the indexing parameters related to the job itself.
+  *@param data is the document data.  The data is closed after ingestion is complete.
+  *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
+  *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
+  *@param activities is an object providing a set of methods that the implementer can use to perform the operation.
+  *@return true if the ingest was ok, false if the ingest is illegal (and should not be repeated).
+  */
+  public boolean documentIngest(String outputConnectionName,
+    String identifierClass, String identifierHash,
+    String documentVersion,
+    String outputVersion,
+    String authorityName,
+    Map<String,Set<String>> forcedParameters,
+    RepositoryDocument data,
+    long ingestTime, String documentURI,
+    IOutputActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
     IOutputConnection connection = connectionManager.load(outputConnectionName);
 
     String docKey = makeKey(identifierClass,identifierHash);
