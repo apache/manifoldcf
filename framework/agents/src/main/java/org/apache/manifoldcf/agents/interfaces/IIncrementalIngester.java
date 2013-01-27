@@ -158,9 +158,9 @@ public interface IIncrementalIngester
   *@param identifierClass is the name of the space in which the identifier hash should be interpreted.
   *@param identifierHash is the hashed document identifier.
   *@param documentVersion is the document version.
+  *@param parameterVersion is the forced parameter version.
   *@param outputVersion is the output version string constructed from the output specification by the output connector.
   *@param authorityName is the name of the authority associated with the document, if any.
-  *@param forcedParameters are the indexing parameters related to the job itself.
   *@param data is the document data.  The data is closed after ingestion is complete.
   *@param ingestTime is the time at which the ingestion took place, in milliseconds since epoch.
   *@param documentURI is the URI of the document, which will be used as the key of the document in the index.
@@ -171,8 +171,8 @@ public interface IIncrementalIngester
     String identifierClass, String identifierHash,
     String documentVersion,
     String outputVersion,
+    String parameterVersion,
     String authorityName,
-    Map<String,Set<String>> forcedParameters,
     RepositoryDocument data,
     long ingestTime, String documentURI,
     IOutputActivity activities)
