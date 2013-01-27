@@ -233,7 +233,7 @@ public class RepositoryDocument
     addField(fieldName,new Reader[]{fieldData});
   }
 
-  /** Remove a multivalue character field.
+  /** Add/Remove a multivalue character field.
   *@param fieldName is the field name.
   *@param fieldData is the multi-valued data (as a an array of Strings).  Null means
   * to remove the entry from the document.

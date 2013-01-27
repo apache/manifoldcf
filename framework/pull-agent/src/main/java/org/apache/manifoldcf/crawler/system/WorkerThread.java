@@ -137,6 +137,7 @@ public class WorkerThread extends Thread
             // Universal data, from the job
             String connectionName = job.getConnectionName();
             String outputName = job.getOutputConnectionName();
+            String newParameterVersion = packParameters(job.getForcedMetadata());
             DocumentSpecification spec = job.getSpecification();
             OutputSpecification outputSpec = job.getOutputSpecification();
             int jobType = job.getType();
@@ -447,6 +448,9 @@ public class WorkerThread extends Thread
                                 String oldOutputVersion = oldDocStatus.getOutputVersion();
                                 if (oldOutputVersion == null)
                                   oldOutputVersion = "";
+                                String oldParameterVersion = oldDocStatus.getParameterVersion();
+                                if (oldParameterVersion == null)
+                                  oldParameterVersion = "";
 
                                 // Start the comparison processing
                                 if (newDocVersion.length() == 0)
@@ -456,7 +460,8 @@ public class WorkerThread extends Thread
                                 }
                                 else if (oldDocVersion.equals(newDocVersion) &&
                                   oldAuthorityName.equals(newAuthorityName) &&
-                                  oldOutputVersion.equals(newOutputVersion))
+                                  oldOutputVersion.equals(newOutputVersion) &&
+                                  oldParameterVersion.equals(newParameterVersion))
                                 {
                                   // The old logic was as follows:
                                   //
@@ -515,7 +520,7 @@ public class WorkerThread extends Thread
 
                         // First, make the things we will need for all subsequent steps.
                         ProcessActivity activity = new ProcessActivity(threadContext,queueTracker,jobManager,ingester,
-                          currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion);
+                          currentTime,job,connection,connector,connMgr,legalLinkTypes,ingestLogger,abortSet,outputVersion,newParameterVersion);
                         try
                         {
 
@@ -1164,6 +1169,48 @@ public class WorkerThread extends Thread
     }
   }
 
+  protected static String packParameters(Map<String,Set<String>> forcedParameters)
+  {
+    StringBuilder sb = new StringBuilder();
+    String[] paramNames = new String[forcedParameters.size()];
+    int i = 0;
+    for (String paramName : forcedParameters.keySet())
+    {
+      paramNames[i++] = paramName;
+    }
+    java.util.Arrays.sort(paramNames);
+    for (String paramName : paramNames)
+    {
+      Set<String> values = forcedParameters.get(paramName);
+      String[] paramValues = new String[values.size()];
+      i = 0;
+      for (String paramValue : values)
+      {
+        paramValues[i++] = paramValue;
+      }
+      java.util.Arrays.sort(paramValues);
+      for (String paramValue : paramValues)
+      {
+        pack(sb,paramName,'+');
+        pack(sb,paramValue,'+');
+      }
+    }
+    return sb.toString();
+  }
+  
+  protected static void pack(StringBuilder sb, String value, char delim)
+  {
+    for (int i = 0; i < value.length(); i++)
+    {
+      char x = value.charAt(i);
+      if (x == delim || x == '\\')
+      {
+        sb.append('\\');
+      }
+      sb.append(x);
+    }
+    sb.append(delim);
+  }
 
   /** The maximum number of adds that happen in a single transaction */
   protected static final int MAX_ADDS_IN_TRANSACTION = 20;
@@ -1370,21 +1417,21 @@ public class WorkerThread extends Thread
   protected static class ProcessActivity implements IProcessActivity
   {
     // Member variables
-    protected IThreadContext threadContext;
-    protected IJobManager jobManager;
-    protected IIncrementalIngester ingester;
-    protected boolean ingestAllowed;
-    protected long currentTime;
-    protected IJobDescription job;
-    protected IRepositoryConnection connection;
-    protected IRepositoryConnector connector;
-    protected IRepositoryConnectionManager connMgr;
-    protected String[] legalLinkTypes;
-    protected OutputActivity ingestLogger;
-    protected QueueTracker queueTracker;
-    protected HashMap abortSet;
-    protected String outputVersion;
-
+    protected final IThreadContext threadContext;
+    protected final IJobManager jobManager;
+    protected final IIncrementalIngester ingester;
+    protected final long currentTime;
+    protected final IJobDescription job;
+    protected final IRepositoryConnection connection;
+    protected final IRepositoryConnector connector;
+    protected final IRepositoryConnectionManager connMgr;
+    protected final String[] legalLinkTypes;
+    protected final OutputActivity ingestLogger;
+    protected final QueueTracker queueTracker;
+    protected final HashMap abortSet;
+    protected final String outputVersion;
+    protected final String parameterVersion;
+    
     // We submit references in bulk, because that's way more efficient.
     protected HashMap referenceList = new HashMap();
 
@@ -1403,7 +1450,7 @@ public class WorkerThread extends Thread
     */
     public ProcessActivity(IThreadContext threadContext, QueueTracker queueTracker, IJobManager jobManager, IIncrementalIngester ingester,
       long currentTime, IJobDescription job, IRepositoryConnection connection, IRepositoryConnector connector, IRepositoryConnectionManager connMgr,
-      String[] legalLinkTypes, OutputActivity ingestLogger, HashMap abortSet, String outputVersion)
+      String[] legalLinkTypes, OutputActivity ingestLogger, HashMap abortSet, String outputVersion, String parameterVersion)
     {
       this.threadContext = threadContext;
       this.queueTracker = queueTracker;
@@ -1418,6 +1465,7 @@ public class WorkerThread extends Thread
       this.ingestLogger = ingestLogger;
       this.abortSet = abortSet;
       this.outputVersion = outputVersion;
+      this.parameterVersion = parameterVersion;
     }
 
     /** Clean up any dangling information, before abandoning this process activity object */
@@ -1447,6 +1495,7 @@ public class WorkerThread extends Thread
     *@param originationTime is the time, in ms since epoch, that the document originated.  Pass null if none or unknown.
     *@param prereqEventNames are the names of the prerequisite events which this document requires prior to processing.  Pass null if none.
     */
+    @Override
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
       String[] dataNames, Object[][] dataValues, Long originationTime, String[] prereqEventNames)
       throws ManifoldCFException
@@ -1545,6 +1594,7 @@ public class WorkerThread extends Thread
     *@param dataValues are the values that correspond to the data names in the dataNames parameter.  May be null only if dataNames is null.
     *@param originationTime is the time, in ms since epoch, that the document originated.  Pass null if none or unknown.
     */
+    @Override
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
       String[] dataNames, Object[][] dataValues, Long originationTime)
       throws ManifoldCFException
@@ -1563,6 +1613,7 @@ public class WorkerThread extends Thread
     *@param dataNames is the list of carry-down data from the parent to the child.  May be null.  Each name is limited to 255 characters!
     *@param dataValues are the values that correspond to the data names in the dataNames parameter.  May be null only if dataNames is null.
     */
+    @Override
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType,
       String[] dataNames, Object[][] dataValues)
       throws ManifoldCFException
@@ -1579,6 +1630,7 @@ public class WorkerThread extends Thread
     * reference.  This must be one of the strings returned by the IRepositoryConnector method
     * "getRelationshipTypes()".  May be null.
     */
+    @Override
     public void addDocumentReference(String localIdentifier, String parentIdentifier, String relationshipType)
       throws ManifoldCFException
     {
@@ -1590,6 +1642,7 @@ public class WorkerThread extends Thread
     *@param localIdentifier is the local document identifier to add (for the connector that
     * fetched the document).
     */
+    @Override
     public void addDocumentReference(String localIdentifier)
       throws ManifoldCFException
     {
@@ -1601,6 +1654,7 @@ public class WorkerThread extends Thread
     *@param dataName is the name of the data items to retrieve.
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
+    @Override
     public String[] retrieveParentData(String localIdentifier, String dataName)
       throws ManifoldCFException
     {
@@ -1612,6 +1666,7 @@ public class WorkerThread extends Thread
     *@param dataName is the name of the data items to retrieve.
     *@return an array containing the unique data values passed from ALL parents.  Note that these are in no particular order, and there will not be any duplicates.
     */
+    @Override
     public CharacterInput[] retrieveParentDataAsFiles(String localIdentifier, String dataName)
       throws ManifoldCFException
     {
@@ -1623,6 +1678,7 @@ public class WorkerThread extends Thread
     *@param documentIdentifier is the document identifier.
     *@param version is the document version.
     */
+    @Override
     public void recordDocument(String documentIdentifier, String version)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1638,6 +1694,7 @@ public class WorkerThread extends Thread
     *       also the unique key in the index).
     *@param data is the document data.  The data is closed after ingestion is complete.
     */
+    @Override
     public void ingestDocument(String documentIdentifier, String version, String documentURI, RepositoryDocument data)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1647,10 +1704,25 @@ public class WorkerThread extends Thread
 
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
 
+      Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
+      
+      // Modify the repository document with forced parameters.
+      for (String paramName : forcedMetadata.keySet())
+      {
+        Set<String> values = forcedMetadata.get(paramName);
+        String[] paramValues = new String[values.size()];
+        int j = 0;
+        for (String value : values)
+        {
+          paramValues[j++] = value;
+        }
+        data.addField(paramName,paramValues);
+      }
+        
       // First, we need to add into the metadata the stuff from the job description.
       ingester.documentIngest(job.getOutputConnectionName(),
         job.getConnectionName(),documentIdentifierHash,
-        version,outputVersion,
+        version,outputVersion,parameterVersion,
         connection.getACLAuthority(),
         data,currentTime,
         documentURI,
@@ -1663,6 +1735,7 @@ public class WorkerThread extends Thread
     *@param version is the version of the document, as reported by the getDocumentVersions() method of the
     *       corresponding repository connector.
     */
+    @Override
     public void deleteDocument(String documentIdentifier, String version)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1672,12 +1745,13 @@ public class WorkerThread extends Thread
         ingestDocument(documentIdentifier,version,null,null);
     }
 
-  /** Delete the current document from the search engine index.  This method does NOT keep track of version
-  * information for the document and thus can lead to "churn", whereby the same document is queued, versioned,
-  * and removed on subsequent crawls.  It therefore should be considered to be deprecated, in favor of
-  * deleteDocument(String localIdentifier, String version).
-  *@param documentIdentifier is the document's local identifier.
-  */
+    /** Delete the current document from the search engine index.  This method does NOT keep track of version
+    * information for the document and thus can lead to "churn", whereby the same document is queued, versioned,
+    * and removed on subsequent crawls.  It therefore should be considered to be deprecated, in favor of
+    * deleteDocument(String localIdentifier, String version).
+    *@param documentIdentifier is the document's local identifier.
+    */
+    @Override
     public void deleteDocument(String documentIdentifier)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1697,6 +1771,7 @@ public class WorkerThread extends Thread
     *@param lowerExpireBoundTime is the time in ms since epoch that the expire time should not fall BELOW, or null if none.
     *@param upperExpireBoundTime is the time in ms since epoch that the expire time should not rise ABOVE, or null if none.
     */
+    @Override
     public void setDocumentScheduleBounds(String localIdentifier,
       Long lowerRecrawlBoundTime, Long upperRecrawlBoundTime,
       Long lowerExpireBoundTime, Long upperExpireBoundTime)
@@ -1725,6 +1800,7 @@ public class WorkerThread extends Thread
     *@param localIdentifier is the document's local identifier.
     *@param originationTime is the document's origination time, or null if unknown.
     */
+    @Override
     public void setDocumentOriginationTime(String localIdentifier,
       Long originationTime)
       throws ManifoldCFException
@@ -1846,6 +1922,7 @@ public class WorkerThread extends Thread
     *       described in the resultCode field.  This field is not meant to be queried on.  May be null.
     *@param childIdentifiers is a set of child entity identifiers associated with this activity.  May be null.
     */
+    @Override
     public void recordActivity(Long startTime, String activityType, Long dataSize,
       String entityIdentifier, String resultCode, String resultDescription, String[] childIdentifiers)
       throws ManifoldCFException
@@ -1953,6 +2030,7 @@ public class WorkerThread extends Thread
     * itself being aborted.  If the connector should abort, this method will raise a properly-formed ServiceInterruption, which if thrown to the
     * caller, will signal that the current processing activity remains incomplete and must be retried when the job is resumed.
     */
+    @Override
     public void checkJobStillActive()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -1967,6 +2045,7 @@ public class WorkerThread extends Thread
     *@param eventName is the event name.
     *@return false if the event is already in the "pending" state.
     */
+    @Override
     public boolean beginEventSequence(String eventName)
       throws ManifoldCFException
     {
@@ -1980,6 +2059,7 @@ public class WorkerThread extends Thread
     * the sole right to complete it.  Otherwise, race conditions can develop which would be difficult to diagnose.
     *@param eventName is the event name.
     */
+    @Override
     public void completeEventSequence(String eventName)
       throws ManifoldCFException
     {
@@ -1992,6 +2072,7 @@ public class WorkerThread extends Thread
     * presumed that the reason for the requeue is because of sequencing issues synchronized around an underlying event.
     *@param localIdentifier is the document identifier to requeue
     */
+    @Override
     public void retryDocumentProcessing(String localIdentifier)
       throws ManifoldCFException
     {
@@ -2003,6 +2084,7 @@ public class WorkerThread extends Thread
     *@param mimeType is the mime type to check, not including any character set specification.
     *@return true if the mime type is indexable.
     */
+    @Override
     public boolean checkMimeTypeIndexable(String mimeType)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2013,6 +2095,7 @@ public class WorkerThread extends Thread
     *@param localFile is the local copy of the file to check.
     *@return true if the document is indexable.
     */
+    @Override
     public boolean checkDocumentIndexable(File localFile)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2023,6 +2106,7 @@ public class WorkerThread extends Thread
     *@param length is the length to check.
     *@return true if the document is indexable.
     */
+    @Override
     public boolean checkLengthIndexable(long length)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2034,6 +2118,7 @@ public class WorkerThread extends Thread
     *@param url is the URL of the document.
     *@return true if the file is indexable.
     */
+    @Override
     public boolean checkURLIndexable(String url)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -2044,6 +2129,7 @@ public class WorkerThread extends Thread
     *@param simpleString is the simple string.
     *@return a global string.
     */
+    @Override
     public String createGlobalString(String simpleString)
     {
       return ManifoldCF.createGlobalString(simpleString);
@@ -2053,6 +2139,7 @@ public class WorkerThread extends Thread
     *@param simpleString is the simple string.
     *@return a connection-specific string.
     */
+    @Override
     public String createConnectionSpecificString(String simpleString)
     {
       return ManifoldCF.createConnectionSpecificString(connection.getName(),simpleString);
@@ -2062,6 +2149,7 @@ public class WorkerThread extends Thread
     *@param simpleString is the simple string.
     *@return a job-specific string.
     */
+    @Override
     public String createJobSpecificString(String simpleString)
     {
       return ManifoldCF.createJobSpecificString(job.getID(),simpleString);
