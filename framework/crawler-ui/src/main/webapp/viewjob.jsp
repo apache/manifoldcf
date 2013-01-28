@@ -124,7 +124,8 @@
 		String[] relationshipTypes = RepositoryConnectorFactory.getRelationshipTypes(threadContext,connection.getClassName());
 		Map hopCountFilters = job.getHopCountFilters();
 		int hopcountMode = job.getHopcountMode();
-
+		Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
+		
 		//threadContext.save("OutputSpecification",job.getOutputSpecification());
 		//threadContext.save("OutputConnection",outputConnection);
 		//threadContext.save("DocumentSpecification",job.getSpecification());
@@ -504,7 +505,54 @@
 				j++;
 			}
 		}
-
+		
+		if (forcedMetadata.size() == 0)
+		{
+%>
+			<tr><td class="message" colspan="4"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NoForcedMetadata")%></td></tr>
+<%
+		}
+		else
+		{
+%>
+			<tr>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ForcedMetadataColon")%></nobr></td>
+				<td class="value" colspan="3">
+<%
+			String[] paramNames = new String[forcedMetadata.size()];
+			int q = 0;
+			for (String paramName : forcedMetadata.keySet())
+			{
+				paramNames[q++] = paramName;
+			}
+			java.util.Arrays.sort(paramNames);
+			for (String paramName : paramNames)
+			{
+				Set<String> values = forcedMetadata.get(paramName);
+				String[] paramValues = new String[values.size()];
+				q = 0;
+				for (String paramValue : values)
+				{
+					paramValues[q++] = paramValue;
+				}
+				java.util.Arrays.sort(paramValues);
+				for (String paramValue : paramValues)
+				{
+					out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(paramName) + " = " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(paramValue));
+%>
+					<br/>
+<%
+				}
+			}
+%>
+				</td>
+			</tr>
+<%
+		}
+		
 		if (relationshipTypes != null && relationshipTypes.length > 0)
 		{
 %>
