@@ -292,7 +292,7 @@
 		postFormSetAnchor("forcedmetadata_tag");
 	}
 	
-	function DeleteForcedMetadata(k)
+	function DeleteForcedMetadata(n)
 	{
 		eval("document.editjob.forcedmetadata_"+n+"_op.value = 'Delete'");
 		if (n == 0)
@@ -553,8 +553,6 @@
 			<tr>
 				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ForcedMetadataColon")%></nobr></td>
 				<td class="boxcell" colspan="3">
-					<input type="hidden" name="forcedmetadata_op" value="Continue"/>
-					<input type="hidden" name="forcedmetadata_number" value=""/>
 					<table class="formtable">
 						<tr class="formheaderrow">
 							<td class="formcolumnheader"></td>

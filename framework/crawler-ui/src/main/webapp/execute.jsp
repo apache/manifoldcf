@@ -676,7 +676,7 @@
 						{
 							String prefix = "forcedmetadata_"+k;
 							x = variableContext.getParameter(prefix+"_op");
-							if (x != null && !x.equals("Delete"))
+							if (x == null || !x.equals("Delete"))
 							{
 								String paramName = variableContext.getParameter(prefix+"_name");
 								String paramValue = variableContext.getParameter(prefix+"_value");
