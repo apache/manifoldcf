@@ -666,6 +666,36 @@
 						job.addScheduleRecord(sr);
 					}
 
+					// Handle forced metadata
+					x = variableContext.getParameter("forcedmetadata_count");
+					if (x != null)
+					{
+						job.clearForcedMetadata();
+						int count = Integer.parseInt(x);
+						for (int k = 0; k < count; k++)
+						{
+							String prefix = "forcedmetadata_"+k;
+							x = variableContext.getParameter(prefix+"_op");
+							if (x != null && !x.equals("Delete"))
+							{
+								String paramName = variableContext.getParameter(prefix+"_name");
+								String paramValue = variableContext.getParameter(prefix+"_value");
+								if (paramValue == null)
+									paramValue = "";
+								job.addForcedMetadataValue(paramName,paramValue);
+							}
+						}
+						x = variableContext.getParameter("forcedmetadata_op");
+						if (x != null && x.equals("Add"))
+						{
+							String paramName = variableContext.getParameter("forcedmetadata_name");
+							String paramValue = variableContext.getParameter("forcedmetadata_value");
+							if (paramValue == null)
+								paramValue = "";
+							job.addForcedMetadataValue(paramName,paramValue);
+						}
+					}
+					
 					x = variableContext.getParameter("priority");
 					if (x != null)
 						job.setPriority(Integer.parseInt(x));

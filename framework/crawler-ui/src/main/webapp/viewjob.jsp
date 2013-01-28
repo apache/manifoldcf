@@ -505,7 +505,11 @@
 				j++;
 			}
 		}
-		
+%>
+			<tr>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+<%
 		if (forcedMetadata.size() == 0)
 		{
 %>

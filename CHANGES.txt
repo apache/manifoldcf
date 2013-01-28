@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-552: Add support for forced metadata in all jobs.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-624: Add indexing via subsidiary thread to OpenSearchServer
 connector.
 (Karl Wright)
