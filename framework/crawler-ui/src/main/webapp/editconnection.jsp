@@ -300,7 +300,7 @@
 		else
 		{
 %>
-		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab+" tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
 		}
 	  }
@@ -385,7 +385,7 @@
 		if (value == null)
 		{
 %>
-					<nobr>UNREGISTERED <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
 		}
 		else
@@ -500,7 +500,7 @@
 			Long value = (Long)map.get("value");
 %>
 					    <tr class='<%=((k % 2)==0)?"evenformrow":"oddformrow"%>'>
-						<td class="formcolumncell"><input type="button" value="Delete" alt='<%="Delete throttle "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)%>' onclick='<%="javascript:DeleteThrottle("+Integer.toString(k)+");"%>'/></td>
+						<td class="formcolumncell"><input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editconnection.Deletethrottle")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)%>' onclick='<%="javascript:DeleteThrottle("+Integer.toString(k)+");"%>'/></td>
 						<td class="formcolumncell">
 						    <input type="hidden" name='<%="throttle_"+Integer.toString(k)%>' value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)%>'/>
 						    <input type="hidden" name='<%="throttledesc_"+Integer.toString(k)%>' value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(desc)%>'/>
