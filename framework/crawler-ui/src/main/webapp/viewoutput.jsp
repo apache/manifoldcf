@@ -37,7 +37,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("Delete output connection '"+connectionName+"'?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewoutput.Deleteoutputconnection")%> '"+connectionName+"'<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewoutput.qmark")%>"))
 		{
 			document.viewconnection.op.value="Delete";
 			document.viewconnection.connname.value=connectionName;
@@ -47,7 +47,7 @@
 
 	function ReingestAll(connectionName)
 	{
-		if (confirm("This command will force all documents associated with output\nconnection '"+connectionName+"' to be recrawled the next time their associated\n jobs are started.  Do you want to continue?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewoutput.Thiscommandwillforce")%> '"+connectionName+"' <%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewoutput.toberecrawled")%>"))
 		{
 			document.viewconnection.op.value="ReingestAll";
 			document.viewconnection.connname.value=connectionName;
@@ -92,7 +92,7 @@
 		String className = connection.getClassName();
 		String connectorName = connectorManager.getDescription(className);
 		if (connectorName == null)
-			connectorName = className + "(uninstalled)";
+			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.uninstalled");
 		int maxCount = connection.getMaxConnections();
 		ConfigParams parameters = connection.getConfigParams();
 
@@ -106,7 +106,7 @@
 		{
 			IOutputConnector c = OutputConnectorFactory.grab(threadContext,className,parameters,maxCount);
 			if (c == null)
-				connectionStatus = "Connector is not installed.";
+				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.Connectorisnotinstalled");
 			else
 			{
 				try
@@ -121,7 +121,7 @@
 		}
 		catch (ManifoldCFException e)
 		{
-			connectionStatus = "Threw exception: '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
+			connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.Threwexception")+" '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
 %>
 		<table class="displaytable">

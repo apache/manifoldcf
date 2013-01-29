@@ -37,7 +37,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewconnection.DeleteConnection")%> '"+connectionName+"'?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewconnection.DeleteConnection")%> '"+connectionName+"'<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewconnection.qmark")%>"))
 		{
 			document.viewconnection.op.value="Delete";
 			document.viewconnection.connname.value=connectionName;

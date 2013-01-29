@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-625: Finish internationalization work for parts of the
+core crawler UI.
+(Karl Wright)
+
 CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
 (Minoru Osuka)
 
