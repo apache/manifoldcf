@@ -37,7 +37,7 @@
 
 	function Delete(jobID)
 	{
-		if (confirm("Warning: Deleting this job will remove all\nassociated documents from the index.\nDo you want to proceed?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewjob.DeleteJobConfirmation")%>"))
 		{
 			document.viewjob.op.value="Delete";
 			document.viewjob.jobid.value=jobID;
@@ -78,24 +78,27 @@
 	}
 	else
 	{
+		String naMessage = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Notapplicable");
 		String jobType = "";
-		String intervalString = "Not applicable";
-		String reseedIntervalString = "Not applicable";
-		String expirationIntervalString = "Not applicable";
+		String intervalString = naMessage;
+		String reseedIntervalString = naMessage;
+		String expirationIntervalString = naMessage;
 
 		switch (job.getType())
 		{
 		case IJobDescription.TYPE_CONTINUOUS:
-			jobType = "Rescan documents dynamically";
+			String infinityMessage = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Infinity");
+			String minutesMessage = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.minutes");
+			jobType = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Rescandocumentsdynamically");
 			Long recrawlInterval = job.getInterval();
 			Long reseedInterval = job.getReseedInterval();
 			Long expirationInterval = job.getExpiration();
-			intervalString = (recrawlInterval==null)?"Infinity":(new Long(recrawlInterval.longValue()/60000L).toString()+" minutes");
-			reseedIntervalString = (reseedInterval==null)?"Infinity":(new Long(reseedInterval.longValue()/60000L).toString()+" minutes");
-			expirationIntervalString = (expirationInterval==null)?"Infinity":(new Long(expirationInterval.longValue()/60000L).toString()+" minutes");
+			intervalString = (recrawlInterval==null)?infinityMessage:(new Long(recrawlInterval.longValue()/60000L).toString()+" "+minutesMessage);
+			reseedIntervalString = (reseedInterval==null)?infinityMessage:(new Long(reseedInterval.longValue()/60000L).toString()+" "+minutesMessage);
+			expirationIntervalString = (expirationInterval==null)?infinityMessage:(new Long(expirationInterval.longValue()/60000L).toString()+" "+minutesMessage);
 			break;
 		case IJobDescription.TYPE_SPECIFIED:
-			jobType = "Scan every document once";
+			jobType = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Scaneverydocumentonce");
 			break;
 		default:
 		}
@@ -104,13 +107,13 @@
 		switch (job.getStartMethod())
 		{
 		case IJobDescription.START_WINDOWBEGIN:
-			startMethod = "Start at beginning of schedule window";
+			startMethod = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Startatbeginningofschedulewindow");
 			break;
 		case IJobDescription.START_WINDOWINSIDE:
-			startMethod = "Start inside schedule window";
+			startMethod = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Startinsideschedulewindow");
 			break;
 		case IJobDescription.START_DISABLE:
-			startMethod = "Don't automatically start";
+			startMethod = Messages.getString(pageContext.getRequest().getLocale(),"viewjob.Dontautomaticallystart");
 			break;
 		default:
 			break;
@@ -213,7 +216,7 @@
 				<td class="value" colspan="3">
 <%
 					if (srDayOfWeek == null)
-						out.println("Any day of week");
+						out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Anydayoftheweek"));
 					else
 					{
 						StringBuffer sb = new StringBuffer();
@@ -224,7 +227,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Sundays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Sundays"));
 						}
 						if (srDayOfWeek.checkValue(1))
 						{
@@ -232,7 +235,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Mondays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Mondays"));
 						}
 						if (srDayOfWeek.checkValue(2))
 						{
@@ -240,7 +243,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Tuesdays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Tuesdays"));
 						}
 						if (srDayOfWeek.checkValue(3))
 						{
@@ -248,7 +251,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Wednesdays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Wednesdays"));
 						}
 						if (srDayOfWeek.checkValue(4))
 						{
@@ -256,7 +259,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Thursdays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Thursdays"));
 						}
 						if (srDayOfWeek.checkValue(5))
 						{
@@ -264,7 +267,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Fridays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Fridays"));
 						}
 						if (srDayOfWeek.checkValue(6))
 						{
@@ -272,7 +275,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("Saturdays");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Saturdays"));
 						}
 						out.println(sb.toString());
 					}
@@ -281,23 +284,23 @@
 					if (srHourOfDay == null)
 					{
 						if (srMinutesOfHour != null)
-							out.println(" on every hour ");
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.oneveryhour")+" ");
 						else
-							out.println(" at midnight ");
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.atmidnight")+" ");
 					}
 					else
 					{
-						out.println(" at ");
+						out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.at")+" ");
 						int k = 0;
 						while (k < 24)
 						{
 							int q = k;
 							String ampm;
 							if (k < 12)
-								ampm = "am";
+								ampm = Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.am");
 							else
 							{
-								ampm = "pm";
+								ampm = Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.pm");
 								q -= 12;
 							}
 							String hour;
@@ -312,7 +315,7 @@
 <%
 					if (srMinutesOfHour != null)
 					{
-						out.println(" plus ");
+						out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.plus")+" ");
 						int k = 0;
 						while (k < 60)
 						{
@@ -320,18 +323,18 @@
 								out.println(Integer.toString(k)+" ");
 							k++;
 						}
-						out.println(" minutes");
+						out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.minutes")+" ");
 					}
 %>
 <%
 					if (srMonthOfYear == null)
 					{
 						if (srDayOfMonth == null && srDayOfWeek == null && srHourOfDay == null && srMinutesOfHour == null)
-							out.println(" in January");
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.inJanuary"));
 					}
 					else
 					{
-						StringBuffer sb = new StringBuffer(" in ");
+						StringBuffer sb = new StringBuffer(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.in")+" ");
 						boolean firstTime = true;
 						if (srMonthOfYear.checkValue(0))
 						{
@@ -339,7 +342,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("January");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.January"));
 						}
 						if (srMonthOfYear.checkValue(1))
 						{
@@ -347,7 +350,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("February");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.February"));
 						}
 						if (srMonthOfYear.checkValue(2))
 						{
@@ -355,7 +358,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("March");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.March"));
 						}
 						if (srMonthOfYear.checkValue(3))
 						{
@@ -363,7 +366,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("April");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.April"));
 						}
 						if (srMonthOfYear.checkValue(4))
 						{
@@ -371,7 +374,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("May");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.May"));
 						}
 						if (srMonthOfYear.checkValue(5))
 						{
@@ -379,7 +382,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("June");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.June"));
 						}
 						if (srMonthOfYear.checkValue(6))
 						{
@@ -387,7 +390,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("July");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.July"));
 						}
 						if (srMonthOfYear.checkValue(7))
 						{
@@ -395,7 +398,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("August");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.August"));
 						}
 						if (srMonthOfYear.checkValue(8))
 						{
@@ -403,7 +406,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("September");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.September"));
 						}
 						if (srMonthOfYear.checkValue(9))
 						{
@@ -411,7 +414,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("October");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.October"));
 						}
 						if (srMonthOfYear.checkValue(10))
 						{
@@ -419,7 +422,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("November");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.November"));
 						}
 						if (srMonthOfYear.checkValue(11))
 						{
@@ -427,7 +430,7 @@
 								firstTime = false;
 							else
 								sb.append(",");
-							sb.append("December");
+							sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.December"));
 						}
 						out.println(sb.toString());
 					}
@@ -436,11 +439,11 @@
 					if (srDayOfMonth == null)
 					{
 						if (srDayOfWeek == null && srHourOfDay == null && srMinutesOfHour == null)
-							out.println(" on the 1st of the month");
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.onthe1stofthemonth"));
 					}
 					else
 					{
-						StringBuffer sb = new StringBuffer(" on the ");
+						StringBuffer sb = new StringBuffer(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.onthe")+" ");
 						int k = 0;
 						boolean firstTime = true;
 						while (k < 31)
@@ -454,24 +457,24 @@
 								sb.append(Integer.toString(k+1));
 								int value = (k+1) % 10;
 								if (value == 1 && k != 10)
-									sb.append("st");
+									sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.st"));
 								else if (value == 2 && k != 11)
-									sb.append("nd");
+									sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.nd"));
 								else if (value == 3 && k != 12)
-									sb.append("rd");
+									sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.rd"));
 								else
-									sb.append("th");
+									sb.append(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.th"));
 							}
 							k++;
 						}
-						sb.append(" of the month");
+						sb.append(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ofthemonth"));
 						out.println(sb.toString());
 					}
 %>
 <%
 					if (srYear != null)
 					{
-						StringBuffer sb = new StringBuffer(" in year(s) ");
+						StringBuffer sb = new StringBuffer(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.inyears")+" ");
 						Iterator iter = srYear.getValues();
 						boolean firstTime = true;
 						while (iter.hasNext())
@@ -491,12 +494,15 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTimeColon")%></td><td class="value" colspan="3">
+				<td class="description">
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTimeColon")%>
+				</td>
+				<td class="value" colspan="3">
 <%
 					if (srDuration == null)
-						out.println("No limit");
+						out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nolimit"));
 					else
-						out.println(new Long(srDuration.longValue()/60000L).toString() + " minutes");
+						out.println(new Long(srDuration.longValue()/60000L).toString() + " "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.minutes"));
 %>
 				</td>
 			</tr>
@@ -571,8 +577,12 @@
 				Long value = (Long)hopCountFilters.get(relationshipType);
 %>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumHopCountForLinkType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr></td>
-				<td class="value" colspan="3"><%=((value==null)?"Unlimited":value.toString())%></td>
+				<td class="description" colspan="1">
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumHopCountForLinkType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr>
+				</td>
+				<td class="value" colspan="3">
+					<%=((value==null)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Unlimited"):value.toString())%>
+				</td>
 			</tr>
 			
 <%
@@ -582,8 +592,16 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.HopCountModeColon")%></nobr></td>
-				<td class="value" colspan="3"><nobr><%=(hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"Delete unreachable documents":""%><%=(hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"No deletes, for now":""%><%=(hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?"No deletes, forever":""%></nobr></td>
+				<td class="description" colspan="1">
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.HopCountModeColon")%></nobr>
+				</td>
+				<td class="value" colspan="3">
+					<nobr>
+						<%=(hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Deleteunreachabledocuments"):""%>
+						<%=(hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nodeletesfornow"):""%>
+						<%=(hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nodeletesforever"):""%>
+					</nobr>
+				</td>
 			</tr>
 <%
 
