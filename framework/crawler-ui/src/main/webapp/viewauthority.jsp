@@ -37,7 +37,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("Delete connection '"+connectionName+"'?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewauthority.DeleteConnection")%> '"+connectionName+"'?"))
 		{
 			document.viewconnection.op.value="Delete";
 			document.viewconnection.connname.value=connectionName;
@@ -81,7 +81,7 @@
 		String className = connection.getClassName();
 		String connectorName = connectorManager.getDescription(className);
 		if (connectorName == null)
-			connectorName = className + "(uninstalled)";
+			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.uninstalled");
 		int maxCount = connection.getMaxConnections();
 		ConfigParams parameters = connection.getConfigParams();
 
@@ -96,7 +96,7 @@
 			IAuthorityConnector c = AuthorityConnectorFactory.grab(threadContext,className,parameters,maxCount);
 			if (c == null)
 			{
-				connectionStatus = "Connector is not installed.";
+				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.Connectorisnotinstalled");
 			}
 			else
 			{
@@ -112,7 +112,7 @@
 		}
 		catch (ManifoldCFException e)
 		{
-			connectionStatus = "Threw exception: '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
+			connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.Threwexception")+" '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
 %>
 		<table class="displaytable">
