@@ -82,7 +82,7 @@
 		String className = connection.getClassName();
 		String connectorName = connectorManager.getDescription(className);
 		if (connectorName == null)
-			connectorName = className + "(uninstalled)";
+			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.uninstalled");
 		String authorityName = connection.getACLAuthority();
 		if (authorityName == null)
 			authorityName = Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.NoneGlobalAuthority");
@@ -100,7 +100,7 @@
 		{
 			IRepositoryConnector c = RepositoryConnectorFactory.grab(threadContext,className,parameters,maxCount);
 			if (c == null)
-				connectionStatus = "Connector is not installed.";
+				connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Connectorisnotinstalled");
 			else
 			{
 				try
@@ -115,7 +115,7 @@
 		}
 		catch (ManifoldCFException e)
 		{
-			connectionStatus = "Threw exception: '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
+			connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewconnection.Threwexception")+" '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
 %>
 		<table class="displaytable">
@@ -144,9 +144,9 @@
 				<td class="boxcell" colspan="3">
 					<table class="formtable">
 						<tr class="formheaderrow">
-							<td class="formcolumnheader"><nobr>Bin regular expression</nobr></td>
-							<td class="formcolumnheader"><nobr>Description</nobr></td>
-							<td class="formcolumnheader"><nobr>Max avg fetches/min</nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Binregularexpression")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Description")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Maxavgfetches")%></nobr></td>
 						</tr>
 <%
 		int j = 0;
@@ -204,7 +204,7 @@
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="Refresh"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a>
+		<tr><td class="message" colspan="4"><a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a>
 		</td></tr>
 		</table>
 
