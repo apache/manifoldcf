@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
+(Minoru Osuka)
+
 CONNECTORS-552: Add support for forced metadata in all jobs.
 (Maciej Li¿ewski, Karl Wright)
 
