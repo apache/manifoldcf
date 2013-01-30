@@ -7,9 +7,6 @@ CONNECTORS-625: Finish internationalization work for parts of the
 core crawler UI.
 (Karl Wright)
 
-CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
-(Minoru Osuka)
-
 CONNECTORS-552: Add support for forced metadata in all jobs.
 (Maciej Li¿ewski, Karl Wright)
 
@@ -25,6 +22,9 @@ CONNECTORS-394: Fully internationalize crawler UI.
 (Karl Wright)
 
 ======================= Release 1.1 =====================
+
+CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
+(Minoru Osuka)
 
 CONNECTORS-623: The stream_size and stream_name can be sent to Solr now.
 (Shinichiro Abe)
