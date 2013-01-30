@@ -34,6 +34,7 @@ import org.apache.http.Header;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.system.Logging;
@@ -151,11 +152,17 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
   }
 
-  public ElasticSearchIndex(HttpClient client, String documentURI, RepositoryDocument document, 
-      InputStream inputStream, ElasticSearchConfig config) throws ManifoldCFException
+  public ElasticSearchIndex(HttpClient client, ElasticSearchConfig config)
   {
     super(config, client);
-    
+  }
+  
+  /** Do the indexing.
+  *@return false to indicate that the document was rejected.
+  */
+  public boolean execute(String documentURI, RepositoryDocument document, 
+      InputStream inputStream) throws ManifoldCFException, ServiceInterruption
+  {
     String idField;
     try
     {
@@ -169,12 +176,14 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());
     put.setEntity(new IndexRequestEntity(document, inputStream));
-    call(put);
+    if (call(put) == false)
+      return false;
     if ("true".equals(checkJson(jsonStatus)))
-      return;
+      return true;
     String error = checkJson(jsonException);
     setResult(Result.ERROR, error);
     Logging.connectors.error(getResponse());
+    return true;
   }
 
 }

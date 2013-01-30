@@ -23,14 +23,19 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 
 public class ElasticSearchDelete extends ElasticSearchConnection
 {
 
-  public ElasticSearchDelete(HttpClient client, String documentURI, ElasticSearchConfig config)
-      throws ManifoldCFException
+  public ElasticSearchDelete(HttpClient client, ElasticSearchConfig config)
   {
     super(config, client);
+  }
+  
+  public void execute(String documentURI)
+      throws ManifoldCFException, ServiceInterruption
+  {
     try
     {
       String idField = java.net.URLEncoder.encode(documentURI,"utf-8");

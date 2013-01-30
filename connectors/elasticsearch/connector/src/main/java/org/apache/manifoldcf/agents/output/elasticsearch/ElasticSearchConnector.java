@@ -368,14 +368,19 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchConfig config = getConfigParameters(null);
     InputStream inputStream = document.getBinaryStream();
     long startTime = System.currentTimeMillis();
-    ElasticSearchIndex oi = new ElasticSearchIndex(client, documentURI, 
-        document, inputStream, config);
-    activities.recordActivity(startTime, ELASTICSEARCH_INDEXATION_ACTIVITY,
-      document.getBinaryLength(), documentURI, oi.getResult().name(),
-      oi.getResultDescription());
-    if (oi.getResult() != Result.OK)
-      return DOCUMENTSTATUS_REJECTED;
-    return DOCUMENTSTATUS_ACCEPTED;
+    ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
+    try
+    {
+      oi.execute(documentURI, document, inputStream);
+      if (oi.getResult() != Result.OK)
+        return DOCUMENTSTATUS_REJECTED;
+      return DOCUMENTSTATUS_ACCEPTED;
+    }
+    finally
+    {
+      activities.recordActivity(startTime, ELASTICSEARCH_INDEXATION_ACTIVITY,
+        document.getBinaryLength(), documentURI, oi.getResult().name(), oi.getResultDescription());
+    }
   }
 
   @Override
@@ -385,22 +390,35 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    ElasticSearchDelete od = new ElasticSearchDelete(client, documentURI,
-        getConfigParameters(null));
-    activities.recordActivity(startTime, ELASTICSEARCH_DELETION_ACTIVITY, null,
-        documentURI, od.getResult().name(), od.getResultDescription());
+    ElasticSearchDelete od = new ElasticSearchDelete(client, getConfigParameters(null));
+    try
+    {
+      od.execute(documentURI);
+    }
+    finally
+    {
+      activities.recordActivity(startTime, ELASTICSEARCH_DELETION_ACTIVITY, null,
+          documentURI, od.getResult().name(), od.getResultDescription());
+    }
   }
 
   @Override
   public String check() throws ManifoldCFException
   {
     HttpClient client = getSession();
-    ElasticSearchAction oss = new ElasticSearchAction(client, CommandEnum._status,
-      getConfigParameters(null), true);
-    String resultName = oss.getResult().name();
-    if (resultName.equals("OK"))
-      return super.check();
-    return resultName + " " + oss.getResultDescription();
+    ElasticSearchAction oss = new ElasticSearchAction(client, getConfigParameters(null));
+    try
+    {
+      oss.execute(CommandEnum._status, true);
+      String resultName = oss.getResult().name();
+      if (resultName.equals("OK"))
+        return super.check();
+      return resultName + " " + oss.getResultDescription();
+    }
+    catch (ServiceInterruption e)
+    {
+      return "Transient exception: "+e.getMessage();
+    }
   }
 
   @Override
@@ -409,11 +427,17 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    ElasticSearchAction oo = new ElasticSearchAction(client, CommandEnum._optimize,
-        getConfigParameters(null), false);
-    activities.recordActivity(startTime, ELASTICSEARCH_OPTIMIZE_ACTIVITY, null,
-        oo.getCallUrlSnippet(), oo.getResult().name(),
-        oo.getResultDescription());
+    ElasticSearchAction oo = new ElasticSearchAction(client, getConfigParameters(null));
+    try
+    {
+      oo.execute(CommandEnum._optimize, false);
+    }
+    finally
+    {
+      activities.recordActivity(startTime, ELASTICSEARCH_OPTIMIZE_ACTIVITY, null,
+          oo.getCallUrlSnippet(), oo.getResult().name(),
+          oo.getResultDescription());
+    }
   }
 
 }

@@ -56,9 +56,12 @@ import org.apache.http.HttpException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 
 public class ElasticSearchConnection
 {
+  protected ElasticSearchConfig config;
+  
   private HttpClient client;
   
   private String serverLocation;
@@ -83,6 +86,7 @@ public class ElasticSearchConnection
 
   protected ElasticSearchConnection(ElasticSearchConfig config, HttpClient client)
   {
+    this.config = config;
     this.client = client;
     result = Result.UNKNOWN;
     response = null;
@@ -176,7 +180,11 @@ public class ElasticSearchConnection
     }
   }
   
-  protected void call(HttpRequestBase method) throws ManifoldCFException
+  /** Call ElasticSearch.
+  *@return false if there was a "rejection".
+  */
+  protected boolean call(HttpRequestBase method)
+    throws ManifoldCFException, ServiceInterruption
   {
     CallThread ct = new CallThread(client, method);
     try
@@ -200,9 +208,8 @@ public class ElasticSearchConnection
             throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
         }
         
-        if (!checkResultCode(ct.getResultCode()))
-          throw new ManifoldCFException(getResultDescription());
         response = ct.getResponse();
+        return handleResultCode(ct.getResultCode(), response);
       }
       catch (InterruptedException e)
       {
@@ -212,16 +219,67 @@ public class ElasticSearchConnection
     }
     catch (HttpException e)
     {
-      setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
+      handleHttpException(e);
+      return false;
     }
     catch (IOException e)
     {
-      setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
+      handleIOException(e);
+      return false;
     }
   }
 
+  private boolean handleResultCode(int code, String response)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (code == 200)
+    {
+      setResult(Result.OK, null);
+      return true;
+    }
+    else if (code == 404)
+    {
+      setResult(Result.ERROR, response);
+      throw new ManifoldCFException("Server/page not found");
+    }
+    else if (code >= 400 && code < 500)
+    {
+      setResult(Result.ERROR, response);
+      return false;
+    }
+    else if (code >= 500 && code < 600)
+    {
+      setResult(Result.ERROR, "Server exception: "+response);
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Server exception: "+response,
+        new ManifoldCFException(response),
+        currentTime + 300000L,
+        currentTime + 20L * 60000L,
+        -1,
+        false);
+    }
+    setResult(Result.UNKNOWN, response);
+    throw new ManifoldCFException("Unexpected HTTP result code: "+code+": "+response);
+  }
+
+  private void handleHttpException(HttpException e)
+    throws ManifoldCFException, ServiceInterruption {
+    setResult(Result.ERROR, e.getMessage());
+    throw new ManifoldCFException(e);
+  }
+  
+  private void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption {
+    setResult(Result.ERROR, e.getMessage());
+    long currentTime = System.currentTimeMillis();
+    // All IO exceptions are treated as service interruptions, retried for an hour
+    throw new ServiceInterruption("IO exception: "+e.getMessage(),e,
+        currentTime + 60000L,
+        currentTime + 1L * 60L * 60000L,
+        -1,
+        true);
+  }
+    
   private static String getResponseBodyAsString(HttpEntity entity)
     throws IOException, HttpException {
     InputStream is = entity.getContent();
@@ -292,24 +350,6 @@ public class ElasticSearchConnection
     return response;
   }
 
-  private boolean checkResultCode(int code)
-  {
-    switch (code)
-    {
-    case 0:
-      setResult(Result.UNKNOWN, null);
-      return false;
-    case 200:
-      setResult(Result.OK, null);
-      return true;
-    case 404:
-      setResult(Result.ERROR, "Server/page not found");
-      return false;
-    default:
-      setResult(Result.ERROR, null);
-      return false;
-    }
-  }
 
   public Result getResult()
   {

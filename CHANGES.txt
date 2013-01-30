@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-629: Revamp error handling in ElasticSearch connector.
+(Andrew Clegg, Karl Wright)
+
 CONNECTORS-625: Finish internationalization work for parts of the
 core crawler UI.
 (Karl Wright)
