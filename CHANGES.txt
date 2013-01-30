@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
+(Minoru Osuka)
+
 CONNECTORS-623: The stream_size and stream_name can be sent to Solr now.
 (Shinichiro Abe)
 
