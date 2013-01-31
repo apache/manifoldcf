@@ -79,7 +79,7 @@
             <crawlerWarPath>../dependency/mcf-crawler-ui-${project.version}.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service-${project.version}.war</authorityserviceWarPath>
             <apiWarPath>../dependency/mcf-api-service-${project.version}.war</apiWarPath>
-            <combinedWarPath>../dependency/mcf-combined-service-${project.version}.war</apiWarPath>
+            <combinedWarPath>../dependency/mcf-combined-service-${project.version}.war</combinedWarPath>
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
