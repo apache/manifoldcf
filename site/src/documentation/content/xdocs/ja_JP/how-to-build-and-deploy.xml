@@ -239,12 +239,12 @@
         <section>
           <title>Preparation</title>
           <p>Before you begin, you will need to install Maven (if you haven't already) and prepare by downloading the necessary materials to support the LGPL connector builds, just as you would for the Ant
-              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  The script <em>mvn-bootstrap[.sh|.bat]</em> will do this for you.
-              This script takes no arguments, but does require internet access in order to download LGPL jars that are required by the Maven build.</p>
-              <p>Notice that if you have downloaded the source code of the 0.5-incubating release, before building with Maven, you also need to execute the following command from the root folder of the project:</p>
-              <source>
-mvn install:install-file -Dfile=lib/commons-httpclient.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient-mcf -Dversion=3.1  -Dpackaging=jar
-              </source>
+              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  To do that, please do the following:</p>
+          <ol>
+              <li>Populate your <em>lib</em> directory with the jars necessary.  You can do this either by downloading and unpacking an appropriate lib distribution, or by executing the appropriate Ant commands.
+                  The command <em>ant download-xerces download-xmlsec download-opensaml</em> should be sufficient.</li>
+              <li>Run the script <em>mvn-bootstrap[.sh|.bat]</em>. This script takes no arguments.</li>
+          </ol>
         </section>
         <section>
           <title>How to build</title>
