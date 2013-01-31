@@ -26,6 +26,9 @@ CONNECTORS-394: Fully internationalize crawler UI.
 
 ======================= Release 1.1 =====================
 
+CONNECTORS-630: Work around SolrJ paramname encoding bug.
+(David Morana, Karl Wright)
+
 CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
 (Minoru Osuka)
 

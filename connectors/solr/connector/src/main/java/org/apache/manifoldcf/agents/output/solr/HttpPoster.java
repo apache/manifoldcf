@@ -663,10 +663,29 @@ public class HttpPoster
     return new String[0];
   }
 
+  /** Preprocess field name.
+  * SolrJ has a bug where it does not URL-escape field names.  This causes carnage for
+  * ManifoldCF, because it results in IllegalArgumentExceptions getting thrown deep in SolrJ.
+  * See CONNECTORS-630.
+  * In order to get around this, we need to URL-encode argument names, at least until the underlying
+  * SolrJ issue is fixed.
+  */
+  protected static String preEncode(String fieldName)
+  {
+    try
+    {
+      return java.net.URLEncoder.encode(fieldName, "utf-8");
+    }
+    catch (IOException e)
+    {
+      throw new RuntimeException("Could not find utf-8 encoding!");
+    }
+  }
+  
   /** Write a field */
   protected static void writeField(ModifiableSolrParams out, String fieldName, String[] fieldValues)
   {
-    out.add(fieldName, fieldValues);
+    out.add(preEncode(fieldName), fieldValues);
   }
   
   /** Write a field */
@@ -683,7 +702,7 @@ public class HttpPoster
   /** Write a field */
   protected static void writeField(ModifiableSolrParams out, String fieldName, String fieldValue)
   {
-    out.add(fieldName, fieldValue);
+    out.add(preEncode(fieldName), fieldValue);
   }
 
   /** Output an acl level */
