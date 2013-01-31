@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-632: Get mvn-bootstrap scripts working again as
+intended.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-629: Revamp error handling in ElasticSearch connector.
 (Andrew Clegg, Karl Wright)
 
