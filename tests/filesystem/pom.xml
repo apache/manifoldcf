@@ -59,6 +59,13 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>${project.groupId}</groupId>
+                  <artifactId>mcf-combined-service</artifactId>
+                  <version>${project.version}</version>
+                  <type>war</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
                   <artifactId>mcf-crawler-ui</artifactId>
                   <version>${project.version}</version>
                   <type>war</type>
