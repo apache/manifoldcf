@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-637: Interpret null mime types and extensions reasonably
+in ElasticSearch connector.
+(Andrew Clegg, Karl Wright)
+
 CONNECTORS-631: Support Znode path by Solr Output Connection.
 (Minoru Osuka)
 

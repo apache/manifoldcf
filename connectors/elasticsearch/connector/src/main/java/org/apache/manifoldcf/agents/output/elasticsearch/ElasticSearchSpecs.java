@@ -156,11 +156,15 @@ public class ElasticSearchSpecs extends ElasticSearchParam
 
   public boolean checkExtension(String extension)
   {
+    if (extension == null)
+      return false;
     return extensionSet.contains(extension);
   }
 
   public boolean checkMimeType(String mimeType)
   {
+    if (mimeType == null)
+      return false;
     return mimeTypeSet.contains(mimeType);
   }
 }
