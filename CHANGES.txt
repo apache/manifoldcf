@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-631: Support Znode path by Solr Output Connection.
+(Minoru Osuka)
+
 CONNECTORS-632: Get mvn-bootstrap scripts working again as
 intended.
 (Maciej Li¿ewski, Karl Wright)

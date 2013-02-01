@@ -280,7 +280,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             zookeeperString.append(cn.getAttributeValue(SolrConfig.ATTR_HOST)).append(":").append(cn.getAttributeValue(SolrConfig.ATTR_PORT));
           }
         }
-        String zookeeperHost = zookeeperString.toString();
+        
+        String znodePath = params.getParameter(SolrConfig.PARAM_ZOOKEEPER_ZNODE_PATH);
+        if (znodePath == null)
+          znodePath = "";
+        
+        String zookeeperHost = zookeeperString.toString() + znodePath;
         
         // Get collection
         String collection = params.getParameter(SolrConfig.PARAM_COLLECTION);
@@ -777,6 +782,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.commitwithin.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.znodepath.value != \"\" && editconnection.znodepath.value.substring(0,1) != \"/\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ZnodePathMustStartWithACharacter")+"\");\n"+
+"    editconnection.znodepath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -864,6 +875,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CommitWithinValueMustBeAnInteger")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.Commits")+"\");\n"+
 "    editconnection.commitwithin.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.znodepath.value != \"\" && editconnection.znodepath.value.substring(0,1) != \"/\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.ZnodePathMustStartWithACharacter")+"\");\n"+
+"    editconnection.znodepath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  return true;\n"+
@@ -975,6 +992,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (core == null)
       core = "";
 
+    String znodePath = parameters.getParameter(SolrConfig.PARAM_ZOOKEEPER_ZNODE_PATH);
+    if (znodePath == null)
+    	znodePath = "";
+    
     String collection = parameters.getParameter(SolrConfig.PARAM_COLLECTION);
     if (collection == null)
       collection = "collection1";
@@ -1319,6 +1340,13 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "  </tr>\n"+
 "  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ZnodePath") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"znodepath\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(znodePath)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.CollectionName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"collection\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(collection)+"\"/>\n"+
@@ -1370,6 +1398,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       }
       out.print(
 "<input type=\"hidden\" name=\"count_zookeeper\" value=\""+k+"\"/>\n"+
+"<input type=\"hidden\" name=\"znodepath\" value=\""+znodePath+"\"/>\n"+
 "<input type=\"hidden\" name=\"zkclienttimeout\" value=\""+zkClientTimeout+"\"/>\n"+
 "<input type=\"hidden\" name=\"zkconnecttimeout\" value=\""+zkConnectTimeout+"\"/>\n"
       );
@@ -1682,6 +1711,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (socketTimeout != null)
       parameters.setParameter(SolrConfig.PARAM_SOCKET_TIMEOUT,socketTimeout);
 
+    String znodePath = variableContext.getParameter("znodepath");
+    if (znodePath != null)
+      parameters.setParameter(SolrConfig.PARAM_ZOOKEEPER_ZNODE_PATH,znodePath);
+    
     String zkClientTimeout = variableContext.getParameter("zkclienttimeout");
     if (zkClientTimeout != null)
       parameters.setParameter(SolrConfig.PARAM_ZOOKEEPER_CLIENT_TIMEOUT,zkClientTimeout);

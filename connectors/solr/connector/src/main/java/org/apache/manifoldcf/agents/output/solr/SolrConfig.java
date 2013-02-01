@@ -44,6 +44,9 @@ public class SolrConfig
   /** Zookeeper port */
   public static final String ATTR_PORT = "port";
   
+  /** Zookeeper znode path */
+  public static final String PARAM_ZOOKEEPER_ZNODE_PATH = "ZooKeeper znode path";
+  
   /** ZooKeeper client timeout */
   public static final String PARAM_ZOOKEEPER_CLIENT_TIMEOUT = "ZooKeeper client timeout";
   /** ZooKeeper connect timeout */
