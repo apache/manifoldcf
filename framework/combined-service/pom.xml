@@ -61,6 +61,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-crawler-ui</artifactId>
+      <version>${project.version}</version>
+	  <type>war</type>
+    </dependency>
+
     <!-- web dependencies -->
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -173,4 +180,34 @@
 
   </dependencies>
 
+  <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <configuration>
+            <overlays>
+              <overlay>
+                <groupId>org.apache.manifoldcf</groupId>
+                <artifactId>mcf-crawler-ui</artifactId>
+                <type>war</type>
+                <includes>
+                  <include>*.jsp</include>
+                </includes>
+                <targetPath>/</targetPath>
+              </overlay>
+              <overlay>
+                <groupId>org.apache.manifoldcf</groupId>
+                <artifactId>mcf-crawler-ui</artifactId>
+                <type>war</type>
+                <includes>
+                  <include>WEB-INF/jsp/*</include>
+                </includes>
+                <targetPath>/</targetPath>
+              </overlay>
+            </overlays>
+          </configuration>
+        </plugin>
+      </plugins>
+    </build>
 </project>
