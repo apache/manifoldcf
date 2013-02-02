@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-615: Add ability to exclude content based on regexp
+to RSS connector.
+(David Morana, Karl Wright)
+
 CONNECTORS-637: Interpret null mime types and extensions reasonably
 in ElasticSearch connector.
 (Andrew Clegg, Karl Wright)

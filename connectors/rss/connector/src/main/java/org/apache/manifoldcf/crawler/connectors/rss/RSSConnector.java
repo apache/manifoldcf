@@ -58,28 +58,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   public static final String _rcsid = "@(#)$Id: RSSConnector.java 994959 2010-09-08 10:04:42Z kwright $";
 
 
-  /** Robots usage parameter */
-  public static final String robotsUsageParameter = "Robots usage";
-  /** Email parameter */
-  public static final String emailParameter = "Email address";
-  /** Max kilobytes per second per server */
-  public static final String bandwidthParameter = "KB per second";
-  /** Max simultaneous open connections per server */
-  public static final String maxOpenParameter = "Max server connections";
-  /** Max fetches per minute per server */
-  public static final String maxFetchesParameter = "Max fetches per minute";
-  /** The throttle group name */
-  public static final String throttleGroupParameter = "Throttle group";
-  /** Proxy host name */
-  public static final String proxyHostParameter = "Proxy host";
-  /** Proxy port */
-  public static final String proxyPortParameter = "Proxy port";
-  /** Proxy auth domain */
-  public static final String proxyAuthDomainParameter = "Proxy authentication domain";
-  /** Proxy auth username */
-  public static final String proxyAuthUsernameParameter = "Proxy authentication user name";
-  /** Proxy auth password */
-  public static final String proxyAuthPasswordParameter = "Proxy authentication password";
 
   // Usage flag values
   protected static final int ROBOTS_NONE = 0;
@@ -174,26 +152,26 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       String x;
 
-      String emailAddress = params.getParameter(emailParameter);
+      String emailAddress = params.getParameter(RSSConfig.PARAMETER_EMAIL);
       if (emailAddress == null)
         throw new ManifoldCFException("Missing email address");
       userAgent = "Mozilla/5.0 (ApacheManifoldCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
       from = emailAddress;
 
-      String robotsUsageString = params.getParameter(robotsUsageParameter);
+      String robotsUsageString = params.getParameter(RSSConfig.PARAMETER_ROBOTSUSAGE);
       robotsUsage = ROBOTS_ALL;
-      if (robotsUsageString == null || robotsUsageString.length() == 0 || robotsUsageString.equals("all"))
+      if (robotsUsageString == null || robotsUsageString.length() == 0 || robotsUsageString.equals(RSSConfig.VALUE_ALL))
         robotsUsage = ROBOTS_ALL;
-      else if (robotsUsageString.equals("none"))
+      else if (robotsUsageString.equals(RSSConfig.VALUE_NONE))
         robotsUsage = ROBOTS_NONE;
-      else if (robotsUsageString.equals("data"))
+      else if (robotsUsageString.equals(RSSConfig.VALUE_DATA))
         robotsUsage = ROBOTS_DATA;
 
-      proxyHost = params.getParameter(proxyHostParameter);
-      String proxyPortString = params.getParameter(proxyPortParameter);
-      proxyAuthDomain = params.getParameter(proxyAuthDomainParameter);
-      proxyAuthUsername = params.getParameter(proxyAuthUsernameParameter);
-      proxyAuthPassword = params.getObfuscatedParameter(proxyAuthPasswordParameter);
+      proxyHost = params.getParameter(RSSConfig.PARAMETER_PROXYHOST);
+      String proxyPortString = params.getParameter(RSSConfig.PARAMETER_PROXYPORT);
+      proxyAuthDomain = params.getParameter(RSSConfig.PARAMETER_PROXYAUTHDOMAIN);
+      proxyAuthUsername = params.getParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME);
+      proxyAuthPassword = params.getObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD);
 
       proxyPort = -1;
       if (proxyPortString != null && proxyPortString.length() > 0)
@@ -213,7 +191,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       maxOpenConnectionsPerServer = 10;
       minimumMillisecondsPerFetchPerServer = 0L;
 
-      x = params.getParameter(bandwidthParameter);
+      x = params.getParameter(RSSConfig.PARAMETER_BANDWIDTH);
       if (x != null && x.length() > 0)
       {
         try
@@ -228,7 +206,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
       }
 
-      x = params.getParameter(maxOpenParameter);
+      x = params.getParameter(RSSConfig.PARAMETER_MAXOPEN);
       if (x != null && x.length() > 0)
       {
         try
@@ -241,7 +219,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
       }
 
-      x = params.getParameter(maxFetchesParameter);
+      x = params.getParameter(RSSConfig.PARAMETER_MAXFETCHES);
       if (x != null && x.length() > 0)
       {
         try
@@ -295,7 +273,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     super.connect(configParams);
 
     // Do the necessary bookkeeping around connection counting
-    throttleGroupName = params.getParameter(throttleGroupParameter);
+    throttleGroupName = params.getParameter(RSSConfig.PARAMETER_THROTTLEGROUP);
     if (throttleGroupName == null)
       throttleGroupName = "";
 
@@ -1645,37 +1623,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.emailParameter);
+    String email = parameters.getParameter(RSSConfig.PARAMETER_EMAIL);
     if (email == null)
       email = "";
-    String robotsUsage = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter);
+    String robotsUsage = parameters.getParameter(RSSConfig.PARAMETER_ROBOTSUSAGE);
     if (robotsUsage == null)
-      robotsUsage = "all";
-    String bandwidth = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.bandwidthParameter);
+      robotsUsage = RSSConfig.VALUE_ALL;
+    String bandwidth = parameters.getParameter(RSSConfig.PARAMETER_BANDWIDTH);
     if (bandwidth == null)
       bandwidth = "64";
-    String connections = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxOpenParameter);
+    String connections = parameters.getParameter(RSSConfig.PARAMETER_MAXOPEN);
     if (connections == null)
       connections = "2";
-    String fetches = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter);
+    String fetches = parameters.getParameter(RSSConfig.PARAMETER_MAXFETCHES);
     if (fetches == null)
       fetches = "12";
-    String throttleGroup = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter);
+    String throttleGroup = parameters.getParameter(RSSConfig.PARAMETER_THROTTLEGROUP);
     if (throttleGroup == null)
       throttleGroup = "";
-    String proxyHost = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyHostParameter);
+    String proxyHost = parameters.getParameter(RSSConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
       proxyHost = "";
-    String proxyPort = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyPortParameter);
+    String proxyPort = parameters.getParameter(RSSConfig.PARAMETER_PROXYPORT);
     if (proxyPort == null)
       proxyPort = "";
-    String proxyAuthDomain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter);
+    String proxyAuthDomain = parameters.getParameter(RSSConfig.PARAMETER_PROXYAUTHDOMAIN);
     if (proxyAuthDomain == null)
       proxyAuthDomain = "";
-    String proxyAuthUsername = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter);
+    String proxyAuthUsername = parameters.getParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME);
     if (proxyAuthUsername == null)
       proxyAuthUsername = "";
-    String proxyAuthPassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter);
+    String proxyAuthPassword = parameters.getObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD);
     if (proxyAuthPassword == null)
       proxyAuthPassword = "";
       
@@ -1708,9 +1686,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.RobotsTxtUsageColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"robotsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.DontLookAtRobotsTxt") + "</option>\n"+
-"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
-"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
+"        <option value=\"none\" "+(robotsUsage.equals(RSSConfig.VALUE_NONE)?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.DontLookAtRobotsTxt") + "</option>\n"+
+"        <option value=\"data\" "+(robotsUsage.equals(RSSConfig.VALUE_DATA)?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
+"        <option value=\"all\" "+(robotsUsage.equals(RSSConfig.VALUE_ALL)?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -1816,37 +1794,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   {
     String email = variableContext.getParameter("email");
     if (email != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.emailParameter,email);
+      parameters.setParameter(RSSConfig.PARAMETER_EMAIL,email);
     String robotsUsage = variableContext.getParameter("robotsusage");
     if (robotsUsage != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter,robotsUsage);
+      parameters.setParameter(RSSConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
     String bandwidth = variableContext.getParameter("bandwidth");
     if (bandwidth != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.bandwidthParameter,bandwidth);
+      parameters.setParameter(RSSConfig.PARAMETER_BANDWIDTH,bandwidth);
     String connections = variableContext.getParameter("connections");
     if (connections != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxOpenParameter,connections);
+      parameters.setParameter(RSSConfig.PARAMETER_MAXOPEN,connections);
     String fetches = variableContext.getParameter("fetches");
     if (fetches != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter,fetches);
+      parameters.setParameter(RSSConfig.PARAMETER_MAXFETCHES,fetches);
     String throttleGroup = variableContext.getParameter("throttlegroup");
     if (throttleGroup != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter,throttleGroup);
+      parameters.setParameter(RSSConfig.PARAMETER_THROTTLEGROUP,throttleGroup);
     String proxyHost = variableContext.getParameter("proxyhost");
     if (proxyHost != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyHostParameter,proxyHost);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYHOST,proxyHost);
     String proxyPort = variableContext.getParameter("proxyport");
     if (proxyPort != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyPortParameter,proxyPort);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYPORT,proxyPort);
     String proxyAuthDomain = variableContext.getParameter("proxyauthdomain");
     if (proxyAuthDomain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter,proxyAuthDomain);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYAUTHDOMAIN,proxyAuthDomain);
     String proxyAuthUsername = variableContext.getParameter("proxyauthusername");
     if (proxyAuthUsername != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter,proxyAuthUsername);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME,proxyAuthUsername);
     String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
     if (proxyAuthPassword != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter,proxyAuthPassword);
+      parameters.setObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
 
     return null;
   }
@@ -1915,6 +1893,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     tabsArray.add(Messages.getString(locale,"RSSConnector.URLs"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Canonicalization"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.URLMappings"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Exclusions"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.TimeValues"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Security"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Metadata"));
@@ -2044,24 +2023,31 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     int feedRefetchValue = 60;
     int minFeedRefetchValue = 15;
     Integer badFeedRefetchValue = null;
-    
+    String exclusions = "";
+
     // Now, loop through paths
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("feed"))
+      if (sn.getType().equals(RSSConfig.NODE_FEED))
       {
-        String rssURL = sn.getAttributeValue("url");
+        String rssURL = sn.getAttributeValue(RSSConfig.ATTR_URL);
         if (rssURL != null)
         {
           sb.append(rssURL).append("\n");
         }
       }
-      else if (sn.getType().equals("map"))
+      else if (sn.getType().equals(RSSConfig.NODE_EXCLUDES))
       {
-        String match = sn.getAttributeValue("match");
-        String map = sn.getAttributeValue("map");
+        exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
+      }
+      else if (sn.getType().equals(RSSConfig.NODE_MAP))
+      {
+        String match = sn.getAttributeValue(RSSConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(RSSConfig.ATTR_MAP);
         if (match != null)
         {
           regexp.add(match);
@@ -2070,24 +2056,24 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           matchStrings.add(map);
         }
       }
-      else if (sn.getType().equals("feedtimeout"))
+      else if (sn.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         feedTimeoutValue = Integer.parseInt(value);
       }
-      else if (sn.getType().equals("feedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_FEEDRESCAN))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         feedRefetchValue = Integer.parseInt(value);
       }
-      else if (sn.getType().equals("minfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         minFeedRefetchValue = Integer.parseInt(value);
       }
-      else if (sn.getType().equals("badfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         badFeedRefetchValue = new Integer(value);
       }
     }
@@ -2111,6 +2097,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       out.print(
 "<input type=\"hidden\" name=\"rssurls\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sb.toString())+"\"/>\n"
+      );
+    }
+
+    // Exclusions tab
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Exclusions")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Exclude") + "</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\"exclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"exclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusions)+"\"/>\n"
       );
     }
 
@@ -2141,28 +2149,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (q < ds.getChildCount())
       {
         SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals("urlspec"))
+        if (specNode.getType().equals(RSSConfig.NODE_URLSPEC))
         {
           // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue("regexp");
-          String description = specNode.getAttributeValue("description");
+          String regexpString = specNode.getAttributeValue(RSSConfig.ATTR_REGEXP);
+          String description = specNode.getAttributeValue(RSSConfig.ATTR_DESCRIPTION);
           if (description == null)
             description = "";
-          String allowReorder = specNode.getAttributeValue("reorder");
+          String allowReorder = specNode.getAttributeValue(RSSConfig.ATTR_REORDER);
           if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = "no";
-          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+            allowReorder = RSSConfig.VALUE_NO;
+          String allowJavaSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
           if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = "no";
-          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+            allowJavaSessionRemoval = RSSConfig.VALUE_NO;
+          String allowASPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
           if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = "no";
-          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+            allowASPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowPHPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
           if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = "no";
-          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+            allowPHPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowBVSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = "no";
+            allowBVSessionRemoval = RSSConfig.VALUE_NO;
           out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2229,28 +2237,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (q < ds.getChildCount())
       {
         SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals("urlspec"))
+        if (specNode.getType().equals(RSSConfig.NODE_URLSPEC))
         {
           // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue("regexp");
-          String description = specNode.getAttributeValue("description");
+          String regexpString = specNode.getAttributeValue(RSSConfig.ATTR_REGEXP);
+          String description = specNode.getAttributeValue(RSSConfig.ATTR_DESCRIPTION);
           if (description == null)
             description = "";
-          String allowReorder = specNode.getAttributeValue("reorder");
+          String allowReorder = specNode.getAttributeValue(RSSConfig.ATTR_REORDER);
           if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = "no";
-          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+            allowReorder = RSSConfig.VALUE_NO;
+          String allowJavaSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
           if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = "no";
-          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+            allowJavaSessionRemoval = RSSConfig.VALUE_NO;
+          String allowASPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
           if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = "no";
-          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+            allowASPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowPHPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
           if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = "no";
-          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+            allowPHPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowBVSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = "no";
+            allowBVSessionRemoval = RSSConfig.VALUE_NO;
           out.print(
 "<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
@@ -2387,16 +2395,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Dechromed content tab
-    String dechromedMode = "none";
-    String chromedMode = "use";
+    String dechromedMode = RSSConfig.VALUE_NONE;
+    String chromedMode = RSSConfig.VALUE_USE;
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("dechromedmode"))
-        dechromedMode = sn.getAttributeValue("mode");
-      else if (sn.getType().equals("chromedmode"))
-        chromedMode = sn.getAttributeValue("mode");
+      if (sn.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
+        dechromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
+      else if (sn.getType().equals(RSSConfig.NODE_CHROMEDMODE))
+        chromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
     }
     if (tabName.equals(Messages.getString(locale,"RSSConnector.DechromedContent")))
     {
@@ -2404,25 +2412,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"1\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals("none")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoDechromedContent")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals(RSSConfig.VALUE_NONE)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoDechromedContent")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals(RSSConfig.VALUE_DESCRIPTION)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInContentField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals(RSSConfig.VALUE_CONTENT)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInContentField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.UseChromedContentIfNoDechromedContentFound")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals(RSSConfig.VALUE_USE)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.UseChromedContentIfNoDechromedContentFound")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals(RSSConfig.VALUE_SKIP)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"metadata\" "+(chromedMode.equals("metadata")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoContentMetadataOnly")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"metadata\" "+(chromedMode.equals(RSSConfig.VALUE_METADATA)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoContentMetadataOnly")+"</nobr></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -2451,11 +2459,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(RSSConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
           String accessOpName = "accessop"+accessDescription;
-          String token = sn.getAttributeValue("token");
+          String token = sn.getAttributeValue(RSSConfig.ATTR_TOKEN);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
@@ -2506,10 +2514,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(RSSConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue("token");
+          String token = sn.getAttributeValue(RSSConfig.ATTR_TOKEN);
           out.print(
 "<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
@@ -2534,12 +2542,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(RSSConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
           String metadataOpName = "metadataop"+metadataDescription;
-          String name = sn.getAttributeValue("name");
-          String value = sn.getAttributeValue("value");
+          String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
+          String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
@@ -2601,11 +2609,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(RSSConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
-          String name = sn.getAttributeValue("name");
-          String value = sn.getAttributeValue("value");
+          String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
+          String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
           out.print(
 "<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
@@ -2643,7 +2651,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("map"))
+        if (sn.getType().equals(RSSConfig.NODE_MAP))
           ds.removeChild(j);
         else
           j++;
@@ -2659,9 +2667,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (map == null)
           map = "";
         // Add to the documentum specification
-        SpecificationNode node = new SpecificationNode("map");
-        node.setAttribute("match",match);
-        node.setAttribute("map",map);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_MAP);
+        node.setAttribute(RSSConfig.ATTR_MATCH,match);
+        node.setAttribute(RSSConfig.ATTR_MAP,map);
         ds.addChild(ds.getChildCount(),node);
 
         j++;
@@ -2677,7 +2685,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("feed"))
+        if (sn.getType().equals(RSSConfig.NODE_FEED))
           ds.removeChild(i);
         else
           i++;
@@ -2698,8 +2706,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 break;
               if (nextString.length() == 0)
                 continue;
-              SpecificationNode node = new SpecificationNode("feed");
-              node.setAttribute("url",nextString);
+              SpecificationNode node = new SpecificationNode(RSSConfig.NODE_FEED);
+              node.setAttribute(RSSConfig.ATTR_URL,nextString);
               ds.addChild(ds.getChildCount(),node);
             }
           }
@@ -2728,7 +2736,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("urlspec"))
+        if (sn.getType().equals(RSSConfig.NODE_URLSPEC))
           ds.removeChild(j);
         else
           j++;
@@ -2757,20 +2765,20 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           String aspSession = variableContext.getParameter("urlregexpasp_"+Integer.toString(j));
           String phpSession = variableContext.getParameter("urlregexpphp_"+Integer.toString(j));
           String bvSession = variableContext.getParameter("urlregexpbv_"+Integer.toString(j));
-          SpecificationNode newSn = new SpecificationNode("urlspec");
-          newSn.setAttribute("regexp",regexp);
+          SpecificationNode newSn = new SpecificationNode(RSSConfig.NODE_URLSPEC);
+          newSn.setAttribute(RSSConfig.ATTR_REGEXP,regexp);
           if (regexpDescription != null && regexpDescription.length() > 0)
-            newSn.setAttribute("description",regexpDescription);
+            newSn.setAttribute(RSSConfig.VALUE_DESCRIPTION,regexpDescription);
           if (reorder != null && reorder.length() > 0)
-            newSn.setAttribute("reorder",reorder);
+            newSn.setAttribute(RSSConfig.ATTR_REORDER,reorder);
           if (javaSession != null && javaSession.length() > 0)
-            newSn.setAttribute("javasessionremoval",javaSession);
+            newSn.setAttribute(RSSConfig.ATTR_JAVASESSIONREMOVAL,javaSession);
           if (aspSession != null && aspSession.length() > 0)
-            newSn.setAttribute("aspsessionremoval",aspSession);
+            newSn.setAttribute(RSSConfig.ATTR_ASPSESSIONREMOVAL,aspSession);
           if (phpSession != null && phpSession.length() > 0)
-            newSn.setAttribute("phpsessionremoval",phpSession);
+            newSn.setAttribute(RSSConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
           if (bvSession != null && bvSession.length() > 0)
-            newSn.setAttribute("bvsessionremoval",bvSession);
+            newSn.setAttribute(RSSConfig.ATTR_BVSESSIONREMOVAL,bvSession);
           ds.addChild(ds.getChildCount(),newSn);
         }
         j++;
@@ -2786,24 +2794,44 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         String bvSession = variableContext.getParameter("urlregexpbv");
 
         // Add a new node at the end
-        SpecificationNode newSn = new SpecificationNode("urlspec");
-        newSn.setAttribute("regexp",regexp);
+        SpecificationNode newSn = new SpecificationNode(RSSConfig.NODE_URLSPEC);
+        newSn.setAttribute(RSSConfig.ATTR_REGEXP,regexp);
         if (regexpDescription != null && regexpDescription.length() > 0)
-          newSn.setAttribute("description",regexpDescription);
+          newSn.setAttribute(RSSConfig.VALUE_DESCRIPTION,regexpDescription);
         if (reorder != null && reorder.length() > 0)
-          newSn.setAttribute("reorder",reorder);
+          newSn.setAttribute(RSSConfig.ATTR_REORDER,reorder);
         if (javaSession != null && javaSession.length() > 0)
-          newSn.setAttribute("javasessionremoval",javaSession);
+          newSn.setAttribute(RSSConfig.ATTR_JAVASESSIONREMOVAL,javaSession);
         if (aspSession != null && aspSession.length() > 0)
-          newSn.setAttribute("aspsessionremoval",aspSession);
+          newSn.setAttribute(RSSConfig.ATTR_ASPSESSIONREMOVAL,aspSession);
         if (phpSession != null && phpSession.length() > 0)
-          newSn.setAttribute("phpsessionremoval",phpSession);
+          newSn.setAttribute(RSSConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
         if (bvSession != null && bvSession.length() > 0)
-          newSn.setAttribute("bvsessionremoval",bvSession);
+          newSn.setAttribute(RSSConfig.ATTR_BVSESSIONREMOVAL,bvSession);
         ds.addChild(ds.getChildCount(),newSn);
       }
     }
-    
+
+    // Get the exclusions
+    String exclusions = variableContext.getParameter("exclusions");
+    if (exclusions != null)
+    {
+      // Delete existing exclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(RSSConfig.NODE_EXCLUDES))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(RSSConfig.NODE_EXCLUDES);
+      cn.setValue(exclusions);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
     // Read the feed timeout, if present
     String feedTimeoutValue = variableContext.getParameter("feedtimeout");
     if (feedTimeoutValue != null && feedTimeoutValue.length() > 0)
@@ -2812,13 +2840,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("feedtimeout"))
+        if (sn.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("feedtimeout");
-      node.setAttribute("value",feedTimeoutValue);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_FEEDTIMEOUT);
+      node.setAttribute(RSSConfig.ATTR_VALUE,feedTimeoutValue);
       ds.addChild(ds.getChildCount(),node);
     }
 
@@ -2830,13 +2858,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("feedrescan"))
+        if (sn.getType().equals(RSSConfig.NODE_FEEDRESCAN))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("feedrescan");
-      node.setAttribute("value",feedRefetchValue);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_FEEDRESCAN);
+      node.setAttribute(RSSConfig.ATTR_VALUE,feedRefetchValue);
       ds.addChild(ds.getChildCount(),node);
     }
 
@@ -2848,13 +2876,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("minfeedrescan"))
+        if (sn.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("minfeedrescan");
-      node.setAttribute("value",minFeedRefetchValue);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_MINFEEDRESCAN);
+      node.setAttribute(RSSConfig.ATTR_VALUE,minFeedRefetchValue);
       ds.addChild(ds.getChildCount(),node);
     }
     
@@ -2867,15 +2895,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (k < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(k);
-        if (sn.getType().equals("badfeedrescan"))
+        if (sn.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
           ds.removeChild(k);
         else
           k++;
       }
       if (badFeedRefetchValue != null && badFeedRefetchValue.length() > 0)
       {
-        SpecificationNode node = new SpecificationNode("badfeedrescan");
-        node.setAttribute("value",badFeedRefetchValue);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_BADFEEDRESCAN);
+        node.setAttribute(RSSConfig.ATTR_VALUE,badFeedRefetchValue);
         ds.addChild(ds.getChildCount(),node);
       }
     }
@@ -2888,13 +2916,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("dechromedmode"))
+        if (sn.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("dechromedmode");
-      node.setAttribute("mode",dechromedMode);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_DECHROMEDMODE);
+      node.setAttribute(RSSConfig.ATTR_MODE,dechromedMode);
       ds.addChild(ds.getChildCount(),node);
     }
     
@@ -2906,13 +2934,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("chromedmode"))
+        if (sn.getType().equals(RSSConfig.NODE_CHROMEDMODE))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("chromedmode");
-      node.setAttribute("mode",chromedMode);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_CHROMEDMODE);
+      node.setAttribute(RSSConfig.ATTR_MODE,chromedMode);
       ds.addChild(ds.getChildCount(),node);
     }
     
@@ -2923,9 +2951,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       // Add a match to the end
       String match = variableContext.getParameter("rssmatch");
       String map = variableContext.getParameter("rssmap");
-      SpecificationNode node = new SpecificationNode("map");
-      node.setAttribute("match",match);
-      node.setAttribute("map",map);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_MAP);
+      node.setAttribute(RSSConfig.ATTR_MATCH,match);
+      node.setAttribute(RSSConfig.ATTR_MAP,map);
       ds.addChild(ds.getChildCount(),node);
     }
     else if (rssop != null && rssop.equals("Delete"))
@@ -2935,7 +2963,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("map"))
+        if (sn.getType().equals(RSSConfig.NODE_MAP))
         {
           if (index == 0)
           {
@@ -2956,7 +2984,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(RSSConfig.NODE_ACCESS))
           ds.removeChild(i);
         else
           i++;
@@ -2977,8 +3005,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
         // Get the stuff we need
         String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
-        SpecificationNode node = new SpecificationNode("access");
-        node.setAttribute("token",accessSpec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_ACCESS);
+        node.setAttribute(RSSConfig.ATTR_TOKEN,accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
@@ -2987,8 +3015,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       if (op != null && op.equals("Add"))
       {
         String accessspec = variableContext.getParameter("spectoken");
-        SpecificationNode node = new SpecificationNode("access");
-        node.setAttribute("token",accessspec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_ACCESS);
+        node.setAttribute(RSSConfig.ATTR_TOKEN,accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
@@ -3001,7 +3029,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(RSSConfig.NODE_METADATA))
           ds.removeChild(i);
         else
           i++;
@@ -3023,9 +3051,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         // Get the stuff we need
         String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
         String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
-        SpecificationNode node = new SpecificationNode("metadata");
-        node.setAttribute("name",metaNameSpec);
-        node.setAttribute("value",metaValueSpec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_METADATA);
+        node.setAttribute(RSSConfig.ATTR_NAME,metaNameSpec);
+        node.setAttribute(RSSConfig.ATTR_VALUE,metaValueSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
@@ -3036,9 +3064,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         String metaNameSpec = variableContext.getParameter("specmetaname");
         String metaValueSpec = variableContext.getParameter("specmetavalue");
         
-        SpecificationNode node = new SpecificationNode("metadata");
-        node.setAttribute("name",metaNameSpec);
-        node.setAttribute("value",metaValueSpec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_METADATA);
+        node.setAttribute(RSSConfig.ATTR_NAME,metaNameSpec);
+        node.setAttribute(RSSConfig.ATTR_VALUE,metaValueSpec);
         
         ds.addChild(ds.getChildCount(),node);
       }
@@ -3056,6 +3084,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
+    String exclusions = "";
+
     out.print(
 "<table class=\"displaytable\">\n"
     );
@@ -3064,7 +3094,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("feed"))
+      if (sn.getType().equals(RSSConfig.NODE_FEED))
       {
         if (seenAny == false)
         {
@@ -3076,8 +3106,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           seenAny = true;
         }
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("url"))+"</nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue(RSSConfig.ATTR_URL))+"</nobr><br/>\n"
         );
+      }
+      else if (sn.getType().equals(RSSConfig.NODE_EXCLUDES))
+      {
+        exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
       }
     }
 
@@ -3103,7 +3139,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("urlspec"))
+      if (sn.getType().equals(RSSConfig.NODE_URLSPEC))
       {
         if (l == 0)
         {
@@ -3123,25 +3159,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "        </tr>\n"
           );
         }
-        String regexpString = sn.getAttributeValue("regexp");
-        String description = sn.getAttributeValue("description");
+        String regexpString = sn.getAttributeValue(RSSConfig.ATTR_REGEXP);
+        String description = sn.getAttributeValue(RSSConfig.ATTR_DESCRIPTION);
         if (description == null)
           description = "";
-        String allowReorder = sn.getAttributeValue("reorder");
+        String allowReorder = sn.getAttributeValue(RSSConfig.ATTR_REORDER);
         if (allowReorder == null || allowReorder.length() == 0)
-          allowReorder = "no";
-        String allowJavaSessionRemoval = sn.getAttributeValue("javasessionremoval");
+          allowReorder = RSSConfig.VALUE_NO;
+        String allowJavaSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
         if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-          allowJavaSessionRemoval = "no";
-        String allowASPSessionRemoval = sn.getAttributeValue("aspsessionremoval");
+          allowJavaSessionRemoval = RSSConfig.VALUE_NO;
+        String allowASPSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
         if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-          allowASPSessionRemoval = "no";
-        String allowPHPSessionRemoval = sn.getAttributeValue("phpsessionremoval");
+          allowASPSessionRemoval = RSSConfig.VALUE_NO;
+        String allowPHPSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
         if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-          allowPHPSessionRemoval = "no";
-        String allowBVSessionRemoval = sn.getAttributeValue("bvsessionremoval");
+          allowPHPSessionRemoval = RSSConfig.VALUE_NO;
+        String allowBVSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
         if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-          allowBVSessionRemoval = "no";
+          allowBVSessionRemoval = RSSConfig.VALUE_NO;
         out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
@@ -3179,7 +3215,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("map"))
+      if (sn.getType().equals(RSSConfig.NODE_MAP))
       {
         if (seenAny == false)
         {
@@ -3190,8 +3226,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           );
           seenAny = true;
         }
-        String match = sn.getAttributeValue("match");
-        String map = sn.getAttributeValue("map");
+        String match = sn.getAttributeValue(RSSConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(RSSConfig.ATTR_MAP);
         out.print(
 "      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"</nobr>\n"
         );
@@ -3221,41 +3257,85 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       );
     }
     out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Exclude") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(exclusions);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"
+    );
+    out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     String feedTimeoutValue = "60";
     String feedRefetchValue = "60";
     String minFeedRefetchValue = "15";
     String badFeedRefetchValue = null;
-    String dechromedMode = "none";
-    String chromedMode = "use";
+    String dechromedMode = RSSConfig.VALUE_NONE;
+    String chromedMode = RSSConfig.VALUE_USE;
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("feedtimeout"))
+      if (sn.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
       {
-        feedTimeoutValue = sn.getAttributeValue("value");
+        feedTimeoutValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("feedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_FEEDRESCAN))
       {
-        feedRefetchValue = sn.getAttributeValue("value");
+        feedRefetchValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("minfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
       {
-        minFeedRefetchValue = sn.getAttributeValue("value");
+        minFeedRefetchValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("badfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
       {
-        badFeedRefetchValue = sn.getAttributeValue("value");
+        badFeedRefetchValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("dechromedmode"))
+      else if (sn.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
       {
-        dechromedMode = sn.getAttributeValue("mode");
+        dechromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
       }
-      else if (sn.getType().equals("chromedmode"))
+      else if (sn.getType().equals(RSSConfig.NODE_CHROMEDMODE))
       {
-        chromedMode = sn.getAttributeValue("mode");
+        chromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
       }
     }
     out.print(
@@ -3287,16 +3367,19 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.ChromedContent")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(chromedMode)+"</td>\n"+
 "  </tr>\n"+
-"\n"+
+"\n"
+    );
+    out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
+
     // Go through looking for access tokens
     seenAny = false;
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("access"))
+      if (sn.getType().equals(RSSConfig.NODE_ACCESS))
       {
         if (seenAny == false)
         {
@@ -3306,7 +3389,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           );
           seenAny = true;
         }
-        String token = sn.getAttributeValue("token");
+        String token = sn.getAttributeValue(RSSConfig.ATTR_TOKEN);
         out.print(
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
         );
@@ -3335,7 +3418,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("metadata"))
+      if (sn.getType().equals(RSSConfig.NODE_METADATA))
       {
         if (seenAny == false)
         {
@@ -3345,8 +3428,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           );
           seenAny = true;
         }
-        String name = sn.getAttributeValue("name");
-        String value = sn.getAttributeValue("value");
+        String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         out.print(
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"<br/>\n"
         );
@@ -5505,6 +5588,70 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
+  /** Read a string as a sequence of individual expressions, urls, etc.
+  */
+  protected static ArrayList stringToArray(String input)
+  {
+    ArrayList list = new ArrayList();
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(input);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            nextString.trim();
+            if (nextString.startsWith("#"))
+              continue;
+            list.add(nextString);
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      // Eat the exception and exit.
+    }
+    return list;
+  }
+
+  /** Compile all regexp entries in the passed in list, and add them to the output
+  * list.
+  */
+  protected static void compileList(ArrayList output, ArrayList input)
+    throws ManifoldCFException
+  {
+    int i = 0;
+    while (i < input.size())
+    {
+      String inputString = (String)input.get(i++);
+      try
+      {
+        output.add(Pattern.compile(inputString));
+      }
+      catch (PatternSyntaxException e)
+      {
+        throw new ManifoldCFException("Mapping regular expression '"+inputString+"' is illegal: "+e.getMessage(),e);
+      }
+    }
+  }
+
   /** Given the current parameters, find the correct robots object (or create
   * one if none found).
   */
@@ -5968,11 +6115,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected ArrayList metadata = new ArrayList();
     protected HashMap acls = new HashMap();
     protected CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
+    /** The arraylist of include patterns */
+    protected ArrayList includePatterns = new ArrayList();
+    /** The arraylist of exclude patterns */
+    protected ArrayList excludePatterns = new ArrayList();
 
     /** Constructor. */
     public Filter(DocumentSpecification spec, boolean warnOnBadSeed)
       throws ManifoldCFException
     {
+      String excludes = "";
+
       // To save allocation, preallocate the seeds map assuming that it will require 1.5x the number of nodes in the spec
       int initialSize = spec.getChildCount();
       if (initialSize == 0)
@@ -5985,10 +6138,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < spec.getChildCount())
       {
         SpecificationNode n = spec.getChild(i++);
-        if (n.getType().equals("map"))
+        if (n.getType().equals(RSSConfig.NODE_MAP))
         {
-          String match = n.getAttributeValue("match");
-          String map = n.getAttributeValue("map");
+          String match = n.getAttributeValue(RSSConfig.ATTR_MATCH);
+          String map = n.getAttributeValue(RSSConfig.ATTR_MAP);
           if (match != null && match.length() > 0)
           {
             Pattern p;
@@ -6005,66 +6158,72 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             mappings.add(new MappingRule(p,map));
           }
         }
-        else if (n.getType().equals("urlspec"))
+        else if (n.getType().equals(RSSConfig.NODE_EXCLUDES))
         {
-          String urlRegexp = n.getAttributeValue("regexp");
+          excludes = n.getValue();
+          if (excludes == null)
+            excludes = "";
+        }
+        else if (n.getType().equals(RSSConfig.NODE_URLSPEC))
+        {
+          String urlRegexp = n.getAttributeValue(RSSConfig.ATTR_REGEXP);
           if (urlRegexp == null)
             urlRegexp = "";
-          String reorder = n.getAttributeValue("reorder");
+          String reorder = n.getAttributeValue(RSSConfig.ATTR_REORDER);
           boolean reorderValue;
           if (reorder == null)
             reorderValue = false;
           else
           {
-            if (reorder.equals("yes"))
+            if (reorder.equals(RSSConfig.VALUE_YES))
               reorderValue = true;
             else
               reorderValue = false;
           }
 
-          String javaSession = n.getAttributeValue("javasessionremoval");
+          String javaSession = n.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
           boolean javaSessionValue;
           if (javaSession == null)
             javaSessionValue = false;
           else
           {
-            if (javaSession.equals("yes"))
+            if (javaSession.equals(RSSConfig.VALUE_YES))
               javaSessionValue = true;
             else
               javaSessionValue = false;
           }
 
-          String aspSession = n.getAttributeValue("aspsessionremoval");
+          String aspSession = n.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
           boolean aspSessionValue;
           if (aspSession == null)
             aspSessionValue = false;
           else
           {
-            if (aspSession.equals("yes"))
+            if (aspSession.equals(RSSConfig.VALUE_YES))
               aspSessionValue = true;
             else
               aspSessionValue = false;
           }
 
-          String phpSession = n.getAttributeValue("phpsessionremoval");
+          String phpSession = n.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
           boolean phpSessionValue;
           if (phpSession == null)
             phpSessionValue = false;
           else
           {
-            if (phpSession.equals("yes"))
+            if (phpSession.equals(RSSConfig.VALUE_YES))
               phpSessionValue = true;
             else
               phpSessionValue = false;
           }
 
-          String bvSession = n.getAttributeValue("bvsessionremoval");
+          String bvSession = n.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
           boolean bvSessionValue;
           if (bvSession == null)
             bvSessionValue = false;
           else
           {
-            if (bvSession.equals("yes"))
+            if (bvSession.equals(RSSConfig.VALUE_YES))
               bvSessionValue = true;
             else
               bvSessionValue = false;
@@ -6081,14 +6240,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
       }
 
+      compileList(excludePatterns,stringToArray(excludes));
+
       // Second pass.  Do the rest of the work,
       i = 0;
       while (i < spec.getChildCount())
       {
         SpecificationNode n = spec.getChild(i++);
-        if (n.getType().equals("feed"))
+        if (n.getType().equals(RSSConfig.NODE_FEED))
         {
-          String rssURL = n.getAttributeValue("url");
+          String rssURL = n.getAttributeValue(RSSConfig.ATTR_URL);
           if (rssURL != null && rssURL.length() > 0)
           {
             String canonicalURL = makeDocumentIdentifier(canonicalizationPolicies,null,rssURL);
@@ -6103,21 +6264,21 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("metadata"))
+        else if (n.getType().equals(RSSConfig.NODE_METADATA))
         {
-          String name = n.getAttributeValue("name");
-          String value = n.getAttributeValue("value");
+          String name = n.getAttributeValue(RSSConfig.ATTR_NAME);
+          String value = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (name != null && name.length() > 0 && value != null && value.length() > 0)
             metadata.add(new NameValue(name,value));
         }
-        else if (n.getType().equals("access"))
+        else if (n.getType().equals(RSSConfig.NODE_ACCESS))
         {
-          String token = n.getAttributeValue("token");
+          String token = n.getAttributeValue(RSSConfig.ATTR_TOKEN);
           acls.put(token,token);
         }
-        else if (n.getType().equals("feedrescan"))
+        else if (n.getType().equals(RSSConfig.NODE_FEEDRESCAN))
         {
-          String interval = n.getAttributeValue("value");
+          String interval = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (interval != null && interval.length() > 0)
           {
             try
@@ -6130,9 +6291,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("minfeedrescan"))
+        else if (n.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
         {
-          String interval = n.getAttributeValue("value");
+          String interval = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (interval != null && interval.length() > 0)
           {
             try
@@ -6145,9 +6306,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("badfeedrescan"))
+        else if (n.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
         {
-          String interval = n.getAttributeValue("value");
+          String interval = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (interval != null && interval.length() > 0)
           {
             try
@@ -6160,9 +6321,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("feedtimeout"))
+        else if (n.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
         {
-          String value = n.getAttributeValue("value");
+          String value = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (value != null && value.length() > 0)
           {
             try
@@ -6175,29 +6336,29 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("dechromedmode"))
+        else if (n.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
         {
-          String mode = n.getAttributeValue("mode");
+          String mode = n.getAttributeValue(RSSConfig.ATTR_MODE);
           if (mode != null && mode.length() > 0)
           {
-            if (mode.equals("none"))
+            if (mode.equals(RSSConfig.VALUE_NONE))
               dechromedContentMode = DECHROMED_NONE;
-            else if (mode.equals("description"))
+            else if (mode.equals(RSSConfig.VALUE_DESCRIPTION))
               dechromedContentMode = DECHROMED_DESCRIPTION;
-            else if (mode.equals("content"))
+            else if (mode.equals(RSSConfig.VALUE_CONTENT))
               dechromedContentMode = DECHROMED_CONTENT;
           }
         }
-        else if (n.getType().equals("chromedmode"))
+        else if (n.getType().equals(RSSConfig.NODE_CHROMEDMODE))
         {
-          String mode = n.getAttributeValue("mode");
+          String mode = n.getAttributeValue(RSSConfig.ATTR_MODE);
           if (mode != null && mode.length() > 0)
           {
-            if (mode.equals("use"))
+            if (mode.equals(RSSConfig.VALUE_USE))
               chromedContentMode = CHROMED_USE;
-            else if (mode.equals("skip"))
+            else if (mode.equals(RSSConfig.VALUE_SKIP))
               chromedContentMode = CHROMED_SKIP;
-            else if (mode.equals("metadata"))
+            else if (mode.equals(RSSConfig.VALUE_METADATA))
               chromedContentMode = CHROMED_METADATA_ONLY;
           }
         }
@@ -6285,7 +6446,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (seeds.get(url) != null)
         return true;
-      return mappings.isMatch(url);
+      if (mappings.isMatch(url) == false)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("RSS: Url '"+url+"' is illegal because it did not match a mapping rule");
+        return false;
+      }
+      // Now make sure it's not in the exclude list.
+      int i = 0;
+      while (i < excludePatterns.size())
+      {
+        Pattern p = (Pattern)excludePatterns.get(i);
+        Matcher m = p.matcher(url);
+        if (m.find())
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("RSS: Url '"+url+"' is illegal because exclude pattern '"+p.toString()+"' matched it");
+          return false;
+        }
+        i++;
+      }
+
+      return true;
     }
 
     /** Scan patterns and return the one that matches first.
