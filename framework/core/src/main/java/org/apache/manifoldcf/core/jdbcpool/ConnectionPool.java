@@ -40,6 +40,10 @@ public class ConnectionPool
   protected long[] connectionCleanupTimeouts;
   protected long expiration;
   
+  protected final static boolean debug = true;
+  
+  protected List<WrappedConnection> outstandingConnections = new ArrayList<WrappedConnection>();
+  
   /** Constructor */
   public ConnectionPool(String dbURL, String userName, String password, int maxConnections, long expiration)
   {
@@ -72,10 +76,22 @@ public class ConnectionPool
             throw new InterruptedException("Pool already closed");
           Connection rval = freeConnections[--freePointer];
           freeConnections[freePointer] = null;
-          return new WrappedConnection(this,rval);
+          WrappedConnection rval3 = new WrappedConnection(this,rval);
+          if (debug)
+            outstandingConnections.add(rval3);
+          return rval3;
         }
         if (activeConnections == freeConnections.length)
         {
+          // If properly configured, we really shouldn't be getting here.
+          if (debug)
+          {
+            Logging.db.warn("Out of db connections, list of outstanding ones follows.");
+            for (int i = 0; i < outstandingConnections.size(); i++)
+            {
+              outstandingConnections.get(i).printAllocationStackTrace();
+            }
+          }
           // Wait until kicked; we hope something will free up...
           this.wait();
           continue;
@@ -100,7 +116,15 @@ public class ConnectionPool
       if (rval2 == null)
         activeConnections--;
     }
-    return new WrappedConnection(this,rval2);
+    WrappedConnection rval4 = new WrappedConnection(this,rval2);
+    if (debug)
+    {
+      synchronized (this)
+      {
+        outstandingConnections.add(rval4);
+      }
+    }
+    return rval4;
   }
   
   /** Close down the pool.
@@ -158,11 +182,13 @@ public class ConnectionPool
     }
   }
   
-  public synchronized void releaseConnection(Connection connection)
+  public synchronized void releaseConnection(WrappedConnection connection)
   {
-    freeConnections[freePointer] = connection;
+    freeConnections[freePointer] = connection.getConnection();
     connectionCleanupTimeouts[freePointer] = System.currentTimeMillis() + expiration;
     freePointer++;
+    if (debug)
+      outstandingConnections.remove(connection);
     notifyAll();
   }
   

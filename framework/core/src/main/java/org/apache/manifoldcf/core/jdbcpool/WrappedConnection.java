@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.jdbcpool;
 
 import java.sql.*;
+import org.apache.manifoldcf.core.system.Logging;
 
 /** The class that represents a connection from a pool.
 */
@@ -28,12 +29,15 @@ public class WrappedConnection
 
   protected Connection connection;
   protected ConnectionPool owner;
+  /** Exception, to keep track of where the connection was allocated */
+  protected Exception instantiationException;
   
   /** Constructor */
   public WrappedConnection(ConnectionPool owner, Connection connection)
   {
     this.owner = owner;
     this.connection = connection;
+    this.instantiationException = new Exception("Possibly leaked db conneciton");
   }
   
   /** Get the JDBC connection object.
@@ -47,8 +51,14 @@ public class WrappedConnection
   */
   public void release()
   {
-    owner.releaseConnection(this.connection);
+    owner.releaseConnection(this);
     this.connection = null;
+  }
+  
+  /** Print allocation information */
+  public void printAllocationStackTrace()
+  {
+    Logging.db.warn("Found a possibly leaked db connection",instantiationException);
   }
 }
 
