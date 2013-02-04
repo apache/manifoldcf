@@ -109,6 +109,8 @@ public class ManifoldCF
   public static final String databaseHandleMaxcountProperty = "org.apache.manifoldcf.database.maxhandles";
   /** Database handle timeout property */
   public static final String databaseHandleTimeoutProperty = "org.apache.manifoldcf.database.handletimeout";
+  /** Connection tracking debug property */
+  public static final String databaseConnectionTrackingProperty = "org.apache.manifoldcf.database.connectiontracking";
 
   // Database performance monitoring properties
   /** Elapsed time a query can take before a warning is output to the log, in seconds */
