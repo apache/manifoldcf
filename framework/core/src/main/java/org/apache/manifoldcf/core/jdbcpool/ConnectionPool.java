@@ -66,6 +66,11 @@ public class ConnectionPool
   public WrappedConnection getConnection()
     throws SQLException, InterruptedException
   {
+    Exception instantiationException;
+    if (debug)
+      instantiationException = new Exception("Possibly leaked db connection");
+    else
+      instantiationException = null;
     while (true)
     {
       synchronized (this)
@@ -76,7 +81,7 @@ public class ConnectionPool
             throw new InterruptedException("Pool already closed");
           Connection rval = freeConnections[--freePointer];
           freeConnections[freePointer] = null;
-          WrappedConnection rval3 = new WrappedConnection(this,rval);
+          WrappedConnection rval3 = new WrappedConnection(this,rval,instantiationException);
           if (debug)
             outstandingConnections.add(rval3);
           return rval3;
@@ -89,7 +94,7 @@ public class ConnectionPool
             Logging.db.warn("Out of db connections, list of outstanding ones follows.");
             for (int i = 0; i < outstandingConnections.size(); i++)
             {
-              outstandingConnections.get(i).printAllocationStackTrace();
+              Logging.db.warn("Found a possibly leaked db connection",outstandingConnections.get(i).getInstantiationException());
             }
           }
           // Wait until kicked; we hope something will free up...
@@ -116,7 +121,7 @@ public class ConnectionPool
       if (rval2 == null)
         activeConnections--;
     }
-    WrappedConnection rval4 = new WrappedConnection(this,rval2);
+    WrappedConnection rval4 = new WrappedConnection(this,rval2,instantiationException);
     if (debug)
     {
       synchronized (this)

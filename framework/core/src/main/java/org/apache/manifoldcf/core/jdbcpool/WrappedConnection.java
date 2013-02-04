@@ -35,9 +35,15 @@ public class WrappedConnection
   /** Constructor */
   public WrappedConnection(ConnectionPool owner, Connection connection)
   {
+    this(owner,connection,null);
+  }
+  
+  /** Constructor */
+  public WrappedConnection(ConnectionPool owner, Connection connection, Exception instantiationException)
+  {
     this.owner = owner;
     this.connection = connection;
-    this.instantiationException = new Exception("Possibly leaked db conneciton");
+    this.instantiationException = instantiationException;
   }
   
   /** Get the JDBC connection object.
@@ -55,11 +61,13 @@ public class WrappedConnection
     this.connection = null;
   }
   
-  /** Print allocation information */
-  public void printAllocationStackTrace()
+  /** Get instantiation exception.
+  */
+  public Exception getInstantiationException()
   {
-    Logging.db.warn("Found a possibly leaked db connection",instantiationException);
+    return instantiationException;
   }
+  
 }
 
 
