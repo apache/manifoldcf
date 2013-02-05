@@ -90,10 +90,13 @@ public class ConnectionPool
           // If properly configured, we really shouldn't be getting here.
           if (debug)
           {
-            Logging.db.warn("Out of db connections, list of outstanding ones follows.");
-            for (WrappedConnection c : outstandingConnections)
+            synchronized (outstandingConnections)
             {
-              Logging.db.warn("Found a possibly leaked db connection",c.getInstantiationException());
+              Logging.db.warn("Out of db connections, list of outstanding ones follows.");
+              for (WrappedConnection c : outstandingConnections)
+              {
+                Logging.db.warn("Found a possibly leaked db connection",c.getInstantiationException());
+              }
             }
           }
           // Wait until kicked; we hope something will free up...
