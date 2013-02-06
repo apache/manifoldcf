@@ -21,20 +21,20 @@ package org.apache.manifoldcf.core.fuzzyml;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 
-/** This class represents a variable-length buffer for bytes.
+/** This class represents a variable-length buffer for characters.
 */
-public class ByteBuffer
+public class CharacterBuffer
 {
   protected static final int arraySize = 65536;
   protected static final int arrayShift = 16;
   
-  protected final List<byte[]> arrayOfArrays = new ArrayList<byte[]>();
-  protected int totalBytes = 0;
+  protected final List<char[]> arrayOfArrays = new ArrayList<char[]>();
+  protected int totalChars = 0;
   protected int currentIndex = -1;
-  protected byte[] currentBuffer = null;
+  protected char[] currentBuffer = null;
   
   /** Constructor */
-  public ByteBuffer()
+  public CharacterBuffer()
   {
   }
   
@@ -43,7 +43,7 @@ public class ByteBuffer
   public void clear()
   {
     arrayOfArrays.clear();
-    totalBytes = 0;
+    totalChars = 0;
     currentIndex = -1;
     currentBuffer = null;
   }
@@ -52,26 +52,26 @@ public class ByteBuffer
   */
   public int size()
   {
-    return totalBytes;
+    return totalChars;
   }
   
-  /** Add a byte to the buffer at the end.
+  /** Add a char to the buffer at the end.
   */
-  public void appendByte(byte b)
+  public void appendChar(char b)
   {
     if (currentIndex == arraySize || currentIndex == -1)
     {
-      currentBuffer = new byte[arraySize];
+      currentBuffer = new char[arraySize];
       arrayOfArrays.add(currentBuffer);
       currentIndex = 0;
     }
     currentBuffer[currentIndex++] = b;
-    totalBytes++;
+    totalChars++;
   }
   
   /** Read a byte from the buffer from the specified place.
   */
-  public byte readByte(int position)
+  public char readChar(int position)
   {
     int arrayNumber = position >> 16;
     int offset = position & (arraySize-1);
