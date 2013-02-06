@@ -22,8 +22,8 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
-/** This class represents the basic, outermost parse state. */
-public class TagParseState
+/** This class represents the basic, outermost tag parsing state. */
+public class TagParseState extends CharacterReceiver
 {
   protected static final int TAGPARSESTATE_NORMAL = 0;
   protected static final int TAGPARSESTATE_SAWLEFTBRACKET = 1;
@@ -67,8 +67,10 @@ public class TagParseState
   {
   }
 
-  /** Deal with a character.  No exceptions are allowed, since those would represent syntax errors, and we don't want those to cause difficulty. */
-  public void dealWithCharacter(char thisChar)
+  /** Deal with a character.  No exceptions are allowed, since those would represent
+  * syntax errors, and we don't want those to cause difficulty. */
+  @Override
+  public boolean dealWithCharacter(char thisChar)
     throws ManifoldCFException
   {
     // At this level we want basic lexical analysis - that is, we deal with identifying tags and comments, that's it.
@@ -361,6 +363,7 @@ public class TagParseState
     default:
       throw new ManifoldCFException("Invalid state: "+Integer.toString(currentState));
     }
+    return false;
   }
 
   protected void noteTag(String tagName, Map<String,String> attributes)
@@ -380,6 +383,7 @@ public class TagParseState
   {
   }
   
+  @Override
   public void finishUp()
     throws ManifoldCFException
   {
