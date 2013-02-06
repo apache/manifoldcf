@@ -60,6 +60,7 @@ public class BasicParseState
     mapLookup.put("lt","<");
     mapLookup.put("gt",">");
     mapLookup.put("quot","\"");
+    mapLookup.put("apos","'");
   }
 
   public BasicParseState()
