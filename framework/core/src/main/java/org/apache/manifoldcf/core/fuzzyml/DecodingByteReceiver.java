@@ -21,17 +21,20 @@ package org.apache.manifoldcf.core.fuzzyml;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
 
-/** This class represents a receiver for bytes.
-* Extenders of this class will accept an input stream,
-* and will read from it as requested a chunk at a time.
+/** This class represents a ByteReceiver that passes
+* decoded characters on to a supplied CharacterReceiver.
 */
-public abstract class ByteReceiver
+public class DecodingByteReceiver extends ByteReceiver
 {
-  protected InputStream inputStream = null;
+  protected final CharacterReceiver charReceiver;
+  protected final String charSet;
   
-  /** Constructor */
-  public ByteReceiver()
+  public DecodingByteReceiver(int chunkSize, String charSet, CharacterReceiver charReceiver)
+    throws IOException
   {
+    super();
+    this.charSet = charSet;
+    this.charReceiver = charReceiver;
   }
   
   /** Set the input stream.  The input stream must be
@@ -39,23 +42,34 @@ public abstract class ByteReceiver
   * The stream is expected to be closed by the caller, when
   * the operations are all done.
   */
+  @Override
   public void setInputStream(InputStream is)
     throws IOException
   {
-    this.inputStream = is;
+    super.setInputStream(is);
+    // Create a reader based on the encoding and the input stream
+    Reader reader = new InputStreamReader(is,charSet);
+    charReceiver.setReader(reader);
   }
-  
-  /** Read the byte stream and process a limited chunk of bytes,
+
+  /** Receive a byte stream and process up to chunksize bytes,
   *@return true if end reached.
   */
-  public abstract boolean dealWithBytes()
-    throws IOException, ManifoldCFException;
+  @Override
+  public boolean dealWithBytes()
+    throws IOException, ManifoldCFException
+  {
+    return charReceiver.dealWithCharacters();
+  }
   
   /** Finish up all processing.
   */
+  @Override
   public void finishUp()
     throws ManifoldCFException
   {
+    super.finishUp();
+    charReceiver.finishUp();
   }
 
 }

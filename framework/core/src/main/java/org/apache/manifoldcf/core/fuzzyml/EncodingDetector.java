@@ -20,32 +20,20 @@ package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
 
-/** This interface represents a receiver for bytes.
-* Implementers of this interface will accept documents a byte at a time,
-* AFTER an encoding has been set.
+/** This interface represents an encoding detector.
+* Implementers of this interface receive a starting encoding before
+* any other activity takes place, and then allow an updated encoding
+* to be retrieved once the activity is complete.
 */
-public abstract class EncodingDetector extends ByteReceiver
+public interface EncodingDetector
 {
-  protected String currentEncoding = null;
-  
-  /** Constructor */
-  public EncodingDetector(int chunkSize)
-  {
-    super(chunkSize);
-  }
 
   /** Accept a starting encoding value.
   */
-  public void setEncoding(String encoding)
-  {
-    currentEncoding = encoding;
-  }
+  public void setEncoding(String encoding);
   
   /** Read out the detected encoding, when finished.
   */
-  public String getEncoding()
-  {
-    return currentEncoding;
-  }
+  public String getEncoding();
   
 }

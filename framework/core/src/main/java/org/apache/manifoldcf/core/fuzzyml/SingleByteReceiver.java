@@ -21,39 +21,41 @@ package org.apache.manifoldcf.core.fuzzyml;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
 
-/** This interface represents a receiver for characters.
+/** This class represents a receiver for a series of single bytes.
 */
-public abstract class CharacterReceiver
+public abstract class SingleByteReceiver extends ByteReceiver
 {
-  protected Reader reader = null;
+  protected final byte[] byteBuffer;
   
-  /** Constructor.
-  */
-  public CharacterReceiver()
+  /** Constructor */
+  public SingleByteReceiver(int chunkSize)
   {
+    byteBuffer = new byte[chunkSize];
   }
   
-  /** Set the reader we'll be getting characters from.
-  * It is the caller's responsibility to close this when
-  * the caller has no further use for this CharacterReceiver.
+  /** Read the byte stream and process up to chunksize bytes,
+  *@return true if end reached.
   */
-  public void setReader(Reader reader)
-    throws IOException
+  @Override
+  public boolean dealWithBytes()
+    throws IOException, ManifoldCFException
   {
-    this.reader = reader;
+    int amt = inputStream.read(byteBuffer);
+    if (amt == -1)
+      return true;
+    for (int i = 0; i < amt; i++)
+    {
+      if (dealWithByte(byteBuffer[i]))
+        return true;
+    }
+    return false;
   }
   
-  /** Receive a set of characters; process one chunk worth.
-  *@return true if done.
+  /** Receive a byte.
+  *@return true to stop further processing.
   */
-  public abstract boolean dealWithCharacters()
-    throws IOException, ManifoldCFException;
-  
-  /** Finish up all processing.
-  */
-  public void finishUp()
-    throws ManifoldCFException
-  {
-  }
+  public abstract boolean dealWithByte(byte b)
+    throws ManifoldCFException;
+
 
 }

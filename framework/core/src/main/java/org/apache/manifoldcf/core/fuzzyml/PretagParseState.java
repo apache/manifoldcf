@@ -19,41 +19,41 @@
 package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import java.io.*;
+import org.apache.manifoldcf.core.system.Logging;
+import java.util.*;
 
-/** This interface represents a receiver for characters.
+/** This class represents the ability to parse <?...?> preamble tags.
 */
-public abstract class CharacterReceiver
+public class PretagParseState extends SingleCharacterReceiver
 {
-  protected Reader reader = null;
-  
-  /** Constructor.
+  protected final CharacterReceiver postPreambleReceiver;
+
+  /** Constructor.  Pass in the post-preamble character receiver.
+  * 
   */
-  public CharacterReceiver()
+  public PretagParseState(CharacterReceiver postPreambleReceiver)
   {
+    // Small buffer - preambles are short
+    super(1024);
+    this.postPreambleReceiver = postPreambleReceiver;
   }
-  
-  /** Set the reader we'll be getting characters from.
-  * It is the caller's responsibility to close this when
-  * the caller has no further use for this CharacterReceiver.
+
+  /** Receive a byte.
+  * @return true if done.
   */
-  public void setReader(Reader reader)
-    throws IOException
-  {
-    this.reader = reader;
-  }
-  
-  /** Receive a set of characters; process one chunk worth.
-  *@return true if done.
-  */
-  public abstract boolean dealWithCharacters()
-    throws IOException, ManifoldCFException;
-  
-  /** Finish up all processing.
-  */
-  public void finishUp()
+  @Override
+  public boolean dealWithCharacter(char c)
     throws ManifoldCFException
   {
+    // MHL
+    return true;
   }
+  
+  protected void notePretag(String tagName, Map<String,String> attributes)
+    throws ManifoldCFException
+  {
+    Logging.misc.debug(" Saw pretag '"+tagName+"'");
+  }
+
 
 }

@@ -21,39 +21,41 @@ package org.apache.manifoldcf.core.fuzzyml;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
 
-/** This interface represents a receiver for characters.
+/** This interface represents a receiver for a sequence of individual characters.
 */
-public abstract class CharacterReceiver
+public abstract class SingleCharacterReceiver extends CharacterReceiver
 {
-  protected Reader reader = null;
+  protected final char[] charBuffer;
   
   /** Constructor.
   */
-  public CharacterReceiver()
+  public SingleCharacterReceiver(int chunkSize)
   {
+    charBuffer = new char[chunkSize];
   }
   
-  /** Set the reader we'll be getting characters from.
-  * It is the caller's responsibility to close this when
-  * the caller has no further use for this CharacterReceiver.
-  */
-  public void setReader(Reader reader)
-    throws IOException
-  {
-    this.reader = reader;
-  }
-  
-  /** Receive a set of characters; process one chunk worth.
+  /** Receive a set of characters; process one chunksize worth.
   *@return true if done.
   */
-  public abstract boolean dealWithCharacters()
-    throws IOException, ManifoldCFException;
-  
-  /** Finish up all processing.
-  */
-  public void finishUp()
-    throws ManifoldCFException
+  @Override
+  public boolean dealWithCharacters()
+    throws IOException, ManifoldCFException
   {
+    int amt = reader.read(charBuffer);
+    if (amt == -1)
+      return true;
+    for (int i = 0; i < amt; i++)
+    {
+      if (dealWithCharacter(charBuffer[i]))
+        return true;
+    }
+    return false;
   }
-
+  
+  /** Receive a byte.
+  * @return true if done.
+  */
+  public abstract boolean dealWithCharacter(char c)
+    throws ManifoldCFException;
+  
 }

@@ -23,7 +23,7 @@ import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
 /** This class represents the basic, outermost tag parsing state. */
-public class TagParseState extends CharacterReceiver
+public class TagParseState extends SingleCharacterReceiver
 {
   protected static final int TAGPARSESTATE_NORMAL = 0;
   protected static final int TAGPARSESTATE_SAWLEFTBRACKET = 1;
@@ -65,6 +65,7 @@ public class TagParseState extends CharacterReceiver
 
   public TagParseState()
   {
+    super(65536);
   }
 
   /** Deal with a character.  No exceptions are allowed, since those would represent
@@ -383,13 +384,6 @@ public class TagParseState extends CharacterReceiver
   {
   }
   
-  @Override
-  public void finishUp()
-    throws ManifoldCFException
-  {
-    // Does nothing
-  }
-
   /** Decode body text */
   protected static String bodyDecode(String input)
   {
