@@ -21,6 +21,7 @@ package org.apache.manifoldcf.core.fuzzyml;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
+import java.io.*;
 
 /** This class represents the ability to parse <?...?> preamble tags.
 */
@@ -39,10 +40,10 @@ public class PretagParseState extends SingleCharacterReceiver
   protected static final int PRETAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE = 12;
   protected static final int PRETAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE = 13;
   protected static final int PRETAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE = 14;
-  protected static final int PRETAGPARSESTATE_POST = 15;
 
   protected int currentState = PRETAGPARSESTATE_NORMAL;
-
+  protected boolean passThrough = false;
+  
   protected StringBuilder currentTagNameBuffer = null;
   protected StringBuilder currentAttrNameBuffer = null;
   protected StringBuilder currentValueBuffer = null;
@@ -50,6 +51,7 @@ public class PretagParseState extends SingleCharacterReceiver
   protected String currentTagName = null;
   protected String currentAttrName = null;
   protected Map<String,String> currentAttrMap = null;
+  protected final CharacterBuffer charBuffer = new CharacterBuffer();
 
   protected static final Map<String,String> mapLookup = new HashMap<String,String>();
   static
@@ -71,13 +73,42 @@ public class PretagParseState extends SingleCharacterReceiver
     this.postPreambleReceiver = postPreambleReceiver;
   }
 
-  /** Receive a byte.
+  /** Receive a set of characters; process one chunk worth.
+  *@return true if done.
+  */
+  @Override
+  public boolean dealWithCharacters()
+    throws IOException, ManifoldCFException
+  {
+    if (passThrough)
+    {
+      if (postPreambleReceiver == null)
+        return true;
+      return postPreambleReceiver.dealWithCharacters();
+    }
+    return super.dealWithCharacters();
+  }
+
+  /** Receive a character.
   * @return true if done.
   */
   @Override
   public boolean dealWithCharacter(char c)
-    throws ManifoldCFException
+    throws IOException, ManifoldCFException
   {
+    c = Character.toLowerCase(c);
+    if (currentState == PRETAGPARSESTATE_NORMAL && isWhitespace(c))
+      return false;
+    if (currentState == PRETAGPARSESTATE_NORMAL && c != '<' ||
+      currentState == PRETAGPARSESTATE_SAWLEFTBRACKET && c != '?' && c != '!')
+    {
+      // Initialize the post preamble receiver with a wrapped reader
+      if (postPreambleReceiver == null)
+        return true;
+      postPreambleReceiver.setReader(new PrefixedReader(charBuffer,reader));
+      passThrough = true;
+      return false;
+    }
     // MHL
     return true;
   }
@@ -88,5 +119,10 @@ public class PretagParseState extends SingleCharacterReceiver
     Logging.misc.debug(" Saw pretag '"+tagName+"'");
   }
 
+  /** Is a character markup language whitespace? */
+  protected static boolean isWhitespace(char x)
+  {
+    return x <= ' ';
+  }
 
 }

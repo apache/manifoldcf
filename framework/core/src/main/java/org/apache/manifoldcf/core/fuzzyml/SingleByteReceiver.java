@@ -55,7 +55,7 @@ public abstract class SingleByteReceiver extends ByteReceiver
   *@return true to stop further processing.
   */
   public abstract boolean dealWithByte(byte b)
-    throws ManifoldCFException;
+    throws IOException, ManifoldCFException;
 
 
 }

@@ -56,6 +56,6 @@ public abstract class SingleCharacterReceiver extends CharacterReceiver
   * @return true if done.
   */
   public abstract boolean dealWithCharacter(char c)
-    throws ManifoldCFException;
+    throws IOException, ManifoldCFException;
   
 }

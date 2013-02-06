@@ -96,7 +96,7 @@ public class TagParseState extends SingleCharacterReceiver
       {
         currentState = TAGPARSESTATE_IN_TAG_NAME;
         currentTagNameBuffer = new StringBuilder();
-        if (!isHTMLWhitespace(thisChar))
+        if (!isWhitespace(thisChar))
           currentTagNameBuffer.append(thisCharLower);
       }
       break;
@@ -130,7 +130,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_IN_COMMENT;
       break;
     case TAGPARSESTATE_IN_TAG_NAME:
-      if (isHTMLWhitespace(thisChar))
+      if (isWhitespace(thisChar))
       {
         if (currentTagNameBuffer.length() > 0)
         {
@@ -178,7 +178,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentTagNameBuffer.append(thisCharLower);
       break;
     case TAGPARSESTATE_IN_ATTR_NAME:
-      if (isHTMLWhitespace(thisChar))
+      if (isWhitespace(thisChar))
       {
         if (currentAttrNameBuffer.length() > 0)
         {
@@ -253,7 +253,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         noteTag(currentTagName,currentAttrMap);
       }
-      else if (!isHTMLWhitespace(thisChar))
+      else if (!isWhitespace(thisChar))
       {
         currentAttrMap.put(currentAttrName,"");
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
@@ -267,7 +267,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE;
       else if (thisChar == '"')
         currentState = TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE;
-      else if (!isHTMLWhitespace(thisChar))
+      else if (!isWhitespace(thisChar))
       {
         currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE;
         currentValueBuffer.append(thisChar);
@@ -283,7 +283,7 @@ public class TagParseState extends SingleCharacterReceiver
       }
       break;
     case TAGPARSESTATE_IN_END_TAG_NAME:
-      if (isHTMLWhitespace(thisChar))
+      if (isWhitespace(thisChar))
       {
         if (currentTagNameBuffer != null && currentTagNameBuffer.length() > 0)
         {
@@ -334,7 +334,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentValueBuffer.append(thisChar);
       break;
     case TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE:
-      if (isHTMLWhitespace(thisChar))
+      if (isWhitespace(thisChar))
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
         currentAttrName = null;
@@ -440,8 +440,8 @@ public class TagParseState extends SingleCharacterReceiver
       return mapLookup.get(input);
   }
 
-  /** Is a character HTML whitespace? */
-  protected static boolean isHTMLWhitespace(char x)
+  /** Is a character markup language whitespace? */
+  protected static boolean isWhitespace(char x)
   {
     return x <= ' ';
   }
