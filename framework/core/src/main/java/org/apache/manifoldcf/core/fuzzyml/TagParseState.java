@@ -23,27 +23,27 @@ import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
 /** This class represents the basic, outermost parse state. */
-public class BasicParseState
+public class TagParseState
 {
-  protected static final int BASICPARSESTATE_NORMAL = 0;
-  protected static final int BASICPARSESTATE_SAWLEFTBRACKET = 1;
-  protected static final int BASICPARSESTATE_SAWEXCLAMATION = 2;
-  protected static final int BASICPARSESTATE_SAWDASH = 3;
-  protected static final int BASICPARSESTATE_IN_COMMENT = 4;
-  protected static final int BASICPARSESTATE_SAWCOMMENTDASH = 5;
-  protected static final int BASICPARSESTATE_SAWSECONDCOMMENTDASH = 6;
-  protected static final int BASICPARSESTATE_IN_TAG_NAME = 7;
-  protected static final int BASICPARSESTATE_IN_ATTR_NAME = 8;
-  protected static final int BASICPARSESTATE_IN_ATTR_VALUE = 9;
-  protected static final int BASICPARSESTATE_IN_TAG_SAW_SLASH = 10;
-  protected static final int BASICPARSESTATE_IN_END_TAG_NAME = 11;
-  protected static final int BASICPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE = 12;
-  protected static final int BASICPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE = 13;
-  protected static final int BASICPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE = 14;
-  protected static final int BASICPARSESTATE_IN_UNQUOTED_ATTR_VALUE = 15;
+  protected static final int TAGPARSESTATE_NORMAL = 0;
+  protected static final int TAGPARSESTATE_SAWLEFTBRACKET = 1;
+  protected static final int TAGPARSESTATE_SAWEXCLAMATION = 2;
+  protected static final int TAGPARSESTATE_SAWDASH = 3;
+  protected static final int TAGPARSESTATE_IN_COMMENT = 4;
+  protected static final int TAGPARSESTATE_SAWCOMMENTDASH = 5;
+  protected static final int TAGPARSESTATE_SAWSECONDCOMMENTDASH = 6;
+  protected static final int TAGPARSESTATE_IN_TAG_NAME = 7;
+  protected static final int TAGPARSESTATE_IN_ATTR_NAME = 8;
+  protected static final int TAGPARSESTATE_IN_ATTR_VALUE = 9;
+  protected static final int TAGPARSESTATE_IN_TAG_SAW_SLASH = 10;
+  protected static final int TAGPARSESTATE_IN_END_TAG_NAME = 11;
+  protected static final int TAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE = 12;
+  protected static final int TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE = 13;
+  protected static final int TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE = 14;
+  protected static final int TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE = 15;
 
 
-  protected int currentState = BASICPARSESTATE_NORMAL;
+  protected int currentState = TAGPARSESTATE_NORMAL;
 
   protected StringBuilder currentTagNameBuffer = null;
   protected StringBuilder currentAttrNameBuffer = null;
@@ -63,7 +63,7 @@ public class BasicParseState
     mapLookup.put("apos","'");
   }
 
-  public BasicParseState()
+  public TagParseState()
   {
   }
 
@@ -75,58 +75,58 @@ public class BasicParseState
     char thisCharLower = Character.toLowerCase(thisChar);
     switch (currentState)
     {
-    case BASICPARSESTATE_NORMAL:
+    case TAGPARSESTATE_NORMAL:
       if (thisChar == '<')
-        currentState = BASICPARSESTATE_SAWLEFTBRACKET;
+        currentState = TAGPARSESTATE_SAWLEFTBRACKET;
       else
         noteNormalCharacter(thisChar);
       break;
-    case BASICPARSESTATE_SAWLEFTBRACKET:
+    case TAGPARSESTATE_SAWLEFTBRACKET:
       if (thisChar == '!')
-        currentState = BASICPARSESTATE_SAWEXCLAMATION;
+        currentState = TAGPARSESTATE_SAWEXCLAMATION;
       else if (thisChar == '/')
       {
-        currentState = BASICPARSESTATE_IN_END_TAG_NAME;
+        currentState = TAGPARSESTATE_IN_END_TAG_NAME;
         currentTagNameBuffer = new StringBuilder();
       }
       else
       {
-        currentState = BASICPARSESTATE_IN_TAG_NAME;
+        currentState = TAGPARSESTATE_IN_TAG_NAME;
         currentTagNameBuffer = new StringBuilder();
         if (!isHTMLWhitespace(thisChar))
           currentTagNameBuffer.append(thisCharLower);
       }
       break;
-    case BASICPARSESTATE_SAWEXCLAMATION:
+    case TAGPARSESTATE_SAWEXCLAMATION:
       if (thisChar == '-')
-        currentState = BASICPARSESTATE_SAWDASH;
+        currentState = TAGPARSESTATE_SAWDASH;
       else
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
       break;
-    case BASICPARSESTATE_SAWDASH:
+    case TAGPARSESTATE_SAWDASH:
       if (thisChar == '-')
-        currentState = BASICPARSESTATE_IN_COMMENT;
+        currentState = TAGPARSESTATE_IN_COMMENT;
       else
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
       break;
-    case BASICPARSESTATE_IN_COMMENT:
+    case TAGPARSESTATE_IN_COMMENT:
       // We're in a comment.  All we should look for is the end of the comment.
       if (thisChar == '-')
-        currentState = BASICPARSESTATE_SAWCOMMENTDASH;
+        currentState = TAGPARSESTATE_SAWCOMMENTDASH;
       break;
-    case BASICPARSESTATE_SAWCOMMENTDASH:
+    case TAGPARSESTATE_SAWCOMMENTDASH:
       if (thisChar == '-')
-        currentState = BASICPARSESTATE_SAWSECONDCOMMENTDASH;
+        currentState = TAGPARSESTATE_SAWSECONDCOMMENTDASH;
       else
-        currentState = BASICPARSESTATE_IN_COMMENT;
+        currentState = TAGPARSESTATE_IN_COMMENT;
       break;
-    case BASICPARSESTATE_SAWSECONDCOMMENTDASH:
+    case TAGPARSESTATE_SAWSECONDCOMMENTDASH:
       if (thisChar == '>')
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
       else if (thisChar != '-')
-        currentState = BASICPARSESTATE_IN_COMMENT;
+        currentState = TAGPARSESTATE_IN_COMMENT;
       break;
-    case BASICPARSESTATE_IN_TAG_NAME:
+    case TAGPARSESTATE_IN_TAG_NAME:
       if (isHTMLWhitespace(thisChar))
       {
         if (currentTagNameBuffer.length() > 0)
@@ -135,7 +135,7 @@ public class BasicParseState
           currentTagName = currentTagNameBuffer.toString();
           currentTagNameBuffer = null;
           currentAttrMap = new HashMap<String,String>();
-          currentState = BASICPARSESTATE_IN_ATTR_NAME;
+          currentState = TAGPARSESTATE_IN_ATTR_NAME;
           currentAttrNameBuffer = new StringBuilder();
         }
       }
@@ -146,12 +146,12 @@ public class BasicParseState
           currentTagName = currentTagNameBuffer.toString();
           currentTagNameBuffer = null;
           currentAttrMap = new HashMap<String,String>();
-          currentState = BASICPARSESTATE_IN_TAG_SAW_SLASH;
+          currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
           noteTag(currentTagName,currentAttrMap);
         }
         else
         {
-          currentState = BASICPARSESTATE_NORMAL;
+          currentState = TAGPARSESTATE_NORMAL;
           currentTagNameBuffer = null;
         }
       }
@@ -167,14 +167,14 @@ public class BasicParseState
         {
           noteTag(currentTagName,currentAttrMap);
         }
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
         currentAttrMap = null;
       }
       else
         currentTagNameBuffer.append(thisCharLower);
       break;
-    case BASICPARSESTATE_IN_ATTR_NAME:
+    case TAGPARSESTATE_IN_ATTR_NAME:
       if (isHTMLWhitespace(thisChar))
       {
         if (currentAttrNameBuffer.length() > 0)
@@ -182,7 +182,7 @@ public class BasicParseState
           // Done with attr name!
           currentAttrName = currentAttrNameBuffer.toString();
           currentAttrNameBuffer = null;
-          currentState = BASICPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE;
+          currentState = TAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE;
         }
       }
       else if (thisChar == '=')
@@ -191,7 +191,7 @@ public class BasicParseState
         {
           currentAttrName = currentAttrNameBuffer.toString();
           currentAttrNameBuffer = null;
-          currentState = BASICPARSESTATE_IN_ATTR_VALUE;
+          currentState = TAGPARSESTATE_IN_ATTR_VALUE;
           currentValueBuffer = new StringBuilder();
         }
       }
@@ -208,7 +208,7 @@ public class BasicParseState
           currentAttrName = null;
         }
         noteTag(currentTagName,currentAttrMap);
-        currentState = BASICPARSESTATE_IN_TAG_SAW_SLASH;
+        currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
       }
       else if (thisChar == '>')
       {
@@ -222,7 +222,7 @@ public class BasicParseState
           currentAttrMap.put(currentAttrName,"");
           currentAttrName = null;
         }
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
         noteTag(currentTagName,currentAttrMap);
         currentTagName = null;
         currentAttrMap = null;
@@ -230,22 +230,22 @@ public class BasicParseState
       else
         currentAttrNameBuffer.append(thisCharLower);
       break;
-    case BASICPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE:
+    case TAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE:
       if (thisChar == '=')
       {
-        currentState = BASICPARSESTATE_IN_ATTR_VALUE;
+        currentState = TAGPARSESTATE_IN_ATTR_VALUE;
         currentValueBuffer = new StringBuilder();
       }
       else if (thisChar == '>')
       {
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
         noteTag(currentTagName,currentAttrMap);
         currentTagName = null;
         currentAttrMap = null;
       }
       else if (thisChar == '/')
       {
-        currentState = BASICPARSESTATE_IN_TAG_SAW_SLASH;
+        currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
         currentAttrMap.put(currentAttrName,"");
         currentAttrName = null;
         noteTag(currentTagName,currentAttrMap);
@@ -253,33 +253,33 @@ public class BasicParseState
       else if (!isHTMLWhitespace(thisChar))
       {
         currentAttrMap.put(currentAttrName,"");
-        currentState = BASICPARSESTATE_IN_ATTR_NAME;
+        currentState = TAGPARSESTATE_IN_ATTR_NAME;
         currentAttrNameBuffer = new StringBuilder();
         currentAttrNameBuffer.append(thisCharLower);
         currentAttrName = null;
       }
       break;
-    case BASICPARSESTATE_IN_ATTR_VALUE:
+    case TAGPARSESTATE_IN_ATTR_VALUE:
       if (thisChar == '\'')
-        currentState = BASICPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE;
+        currentState = TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE;
       else if (thisChar == '"')
-        currentState = BASICPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE;
+        currentState = TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE;
       else if (!isHTMLWhitespace(thisChar))
       {
-        currentState = BASICPARSESTATE_IN_UNQUOTED_ATTR_VALUE;
+        currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE;
         currentValueBuffer.append(thisChar);
       }
       break;
-    case BASICPARSESTATE_IN_TAG_SAW_SLASH:
+    case TAGPARSESTATE_IN_TAG_SAW_SLASH:
       if (thisChar == '>')
       {
         noteEndTag(currentTagName);
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
         currentAttrMap = null;
       }
       break;
-    case BASICPARSESTATE_IN_END_TAG_NAME:
+    case TAGPARSESTATE_IN_END_TAG_NAME:
       if (isHTMLWhitespace(thisChar))
       {
         if (currentTagNameBuffer != null && currentTagNameBuffer.length() > 0)
@@ -301,56 +301,56 @@ public class BasicParseState
           noteEndTag(currentTagName);
         }
         currentTagName = null;
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
       }
       else if (currentTagNameBuffer != null)
         currentTagNameBuffer.append(thisCharLower);
       break;
-    case BASICPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE:
+    case TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE:
       if (thisChar == '\'' || thisChar == '\n' || thisChar == '\r')
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
         currentAttrName = null;
         currentValueBuffer = null;
-        currentState = BASICPARSESTATE_IN_ATTR_NAME;
+        currentState = TAGPARSESTATE_IN_ATTR_NAME;
         currentAttrNameBuffer = new StringBuilder();
       }
       else
         currentValueBuffer.append(thisChar);
       break;
-    case BASICPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE:
+    case TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE:
       if (thisChar == '"' || thisChar == '\n' || thisChar == '\r')
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
         currentAttrName = null;
         currentValueBuffer = null;
-        currentState = BASICPARSESTATE_IN_ATTR_NAME;
+        currentState = TAGPARSESTATE_IN_ATTR_NAME;
         currentAttrNameBuffer = new StringBuilder();
       }
       else
         currentValueBuffer.append(thisChar);
       break;
-    case BASICPARSESTATE_IN_UNQUOTED_ATTR_VALUE:
+    case TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE:
       if (isHTMLWhitespace(thisChar))
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
         currentAttrName = null;
         currentValueBuffer = null;
-        currentState = BASICPARSESTATE_IN_ATTR_NAME;
+        currentState = TAGPARSESTATE_IN_ATTR_NAME;
         currentAttrNameBuffer = new StringBuilder();
       }
       else if (thisChar == '/')
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
         noteTag(currentTagName,currentAttrMap);
-        currentState = BASICPARSESTATE_IN_TAG_SAW_SLASH;
+        currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
       }
       else if (thisChar == '>')
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
         currentAttrName = null;
         currentValueBuffer = null;
-        currentState = BASICPARSESTATE_NORMAL;
+        currentState = TAGPARSESTATE_NORMAL;
         noteTag(currentTagName,currentAttrMap);
         currentTagName = null;
         currentAttrMap = null;
