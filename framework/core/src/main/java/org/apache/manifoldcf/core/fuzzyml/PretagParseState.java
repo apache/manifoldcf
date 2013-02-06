@@ -28,6 +28,39 @@ public class PretagParseState extends SingleCharacterReceiver
 {
   protected final CharacterReceiver postPreambleReceiver;
 
+  protected static final int PRETAGPARSESTATE_NORMAL = 0;
+  protected static final int PRETAGPARSESTATE_SAWLEFTBRACKET = 1;
+  protected static final int PRETAGPARSESTATE_SAWEXCLAMATION = 2;
+  protected static final int PRETAGPARSESTATE_SAWQUESTION = 3;
+  protected static final int PRETAGPARSESTATE_IN_TAG_SAW_QUESTION = 4;
+  protected static final int PRETAGPARSESTATE_IN_TAG_NAME = 7;
+  protected static final int PRETAGPARSESTATE_IN_ATTR_NAME = 8;
+  protected static final int PRETAGPARSESTATE_IN_ATTR_VALUE = 9;
+  protected static final int PRETAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE = 12;
+  protected static final int PRETAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE = 13;
+  protected static final int PRETAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE = 14;
+  protected static final int PRETAGPARSESTATE_POST = 15;
+
+  protected int currentState = PRETAGPARSESTATE_NORMAL;
+
+  protected StringBuilder currentTagNameBuffer = null;
+  protected StringBuilder currentAttrNameBuffer = null;
+  protected StringBuilder currentValueBuffer = null;
+
+  protected String currentTagName = null;
+  protected String currentAttrName = null;
+  protected Map<String,String> currentAttrMap = null;
+
+  protected static final Map<String,String> mapLookup = new HashMap<String,String>();
+  static
+  {
+    mapLookup.put("amp","&");
+    mapLookup.put("lt","<");
+    mapLookup.put("gt",">");
+    mapLookup.put("quot","\"");
+    mapLookup.put("apos","'");
+  }
+
   /** Constructor.  Pass in the post-preamble character receiver.
   * 
   */
