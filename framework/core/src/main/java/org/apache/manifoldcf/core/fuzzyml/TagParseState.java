@@ -57,12 +57,13 @@ public class TagParseState extends SingleCharacterReceiver
   protected static final int TAGPARSESTATE_IN_QTAG_NAME = 16;
   protected static final int TAGPARSESTATE_IN_QTAG_ATTR_NAME = 17;
   protected static final int TAGPARSESTATE_IN_QTAG_SAW_QUESTION = 18;
-  
-  // These still need to be added to the case statement
   protected static final int TAGPARSESTATE_IN_QTAG_ATTR_VALUE = 19;
   protected static final int TAGPARSESTATE_IN_QTAG_ATTR_LOOKING_FOR_VALUE = 20;
   protected static final int TAGPARSESTATE_IN_QTAG_SINGLE_QUOTES_ATTR_VALUE = 21;
   protected static final int TAGPARSESTATE_IN_QTAG_DOUBLE_QUOTES_ATTR_VALUE = 22;
+  protected static final int TAGPARSESTATE_IN_QTAG_UNQUOTED_ATTR_VALUE = 23;
+  
+  // These still need to be added to the case statement
 
   protected int currentState = TAGPARSESTATE_NORMAL;
 
@@ -106,6 +107,7 @@ public class TagParseState extends SingleCharacterReceiver
         if (noteNormalCharacter(thisChar))
           return true;
       break;
+  
     case TAGPARSESTATE_SAWLEFTBRACKET:
       if (thisChar == '!')
         currentState = TAGPARSESTATE_SAWEXCLAMATION;
@@ -127,6 +129,7 @@ public class TagParseState extends SingleCharacterReceiver
           currentTagNameBuffer.append(thisChar);
       }
       break;
+
     case TAGPARSESTATE_SAWEXCLAMATION:
       if (thisChar == '-')
         currentState = TAGPARSESTATE_SAWDASH;
@@ -139,23 +142,27 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentState = TAGPARSESTATE_NORMAL;
       break;
+
     case TAGPARSESTATE_IN_COMMENT:
       // We're in a comment.  All we should look for is the end of the comment.
       if (thisChar == '-')
         currentState = TAGPARSESTATE_SAWCOMMENTDASH;
       break;
+
     case TAGPARSESTATE_SAWCOMMENTDASH:
       if (thisChar == '-')
         currentState = TAGPARSESTATE_SAWSECONDCOMMENTDASH;
       else
         currentState = TAGPARSESTATE_IN_COMMENT;
       break;
+
     case TAGPARSESTATE_SAWSECONDCOMMENTDASH:
       if (thisChar == '>')
         currentState = TAGPARSESTATE_NORMAL;
       else if (thisChar != '-')
         currentState = TAGPARSESTATE_IN_COMMENT;
       break;
+
     case TAGPARSESTATE_IN_QTAG_NAME:
       if (isWhitespace(thisChar))
       {
@@ -177,7 +184,8 @@ public class TagParseState extends SingleCharacterReceiver
           currentTagNameBuffer = null;
           currentAttrList = new ArrayList<AttrNameValue>();
           currentState = TAGPARSESTATE_IN_QTAG_SAW_QUESTION;
-          // Wait until we see end > to signal tag end though
+          if (noteQTag(currentTagName,currentAttrList))
+            return true;
         }
         else
         {
@@ -205,6 +213,7 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentTagNameBuffer.append(thisChar);
       break;
+
     case TAGPARSESTATE_IN_TAG_NAME:
       if (isWhitespace(thisChar))
       {
@@ -255,6 +264,7 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentTagNameBuffer.append(thisChar);
       break;
+
     case TAGPARSESTATE_IN_ATTR_NAME:
       if (isWhitespace(thisChar))
       {
@@ -313,6 +323,39 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentAttrNameBuffer.append(thisChar);
       break;
+
+    case TAGPARSESTATE_IN_QTAG_ATTR_LOOKING_FOR_VALUE:
+      if (thisChar == '=')
+      {
+        currentState = TAGPARSESTATE_IN_QTAG_ATTR_VALUE;
+        currentValueBuffer = new StringBuilder();
+      }
+      else if (thisChar == '>')
+      {
+        currentState = TAGPARSESTATE_NORMAL;
+        if (noteQTag(currentTagName,currentAttrList))
+          return true;
+        currentTagName = null;
+        currentAttrList = null;
+      }
+      else if (thisChar == '?')
+      {
+        currentState = TAGPARSESTATE_IN_QTAG_SAW_QUESTION;
+        currentAttrList.add(new AttrNameValue(currentAttrName,""));
+        currentAttrName = null;
+        if (noteQTag(currentTagName,currentAttrList))
+          return true;
+      }
+      else if (!isWhitespace(thisChar))
+      {
+        currentAttrList.add(new AttrNameValue(currentAttrName,""));
+        currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
+        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer.append(thisChar);
+        currentAttrName = null;
+      }
+      break;
+
     case TAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE:
       if (thisChar == '=')
       {
@@ -344,6 +387,19 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
       }
       break;
+
+    case TAGPARSESTATE_IN_QTAG_ATTR_VALUE:
+      if (thisChar == '\'')
+        currentState = TAGPARSESTATE_IN_QTAG_SINGLE_QUOTES_ATTR_VALUE;
+      else if (thisChar == '"')
+        currentState = TAGPARSESTATE_IN_QTAG_DOUBLE_QUOTES_ATTR_VALUE;
+      else if (!isWhitespace(thisChar))
+      {
+        currentState = TAGPARSESTATE_IN_QTAG_UNQUOTED_ATTR_VALUE;
+        currentValueBuffer.append(thisChar);
+      }
+      break;
+      
     case TAGPARSESTATE_IN_ATTR_VALUE:
       if (thisChar == '\'')
         currentState = TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE;
@@ -355,16 +411,17 @@ public class TagParseState extends SingleCharacterReceiver
         currentValueBuffer.append(thisChar);
       }
       break;
+
     case TAGPARSESTATE_IN_QTAG_SAW_QUESTION:
       if (thisChar == '>')
       {
-        if (noteQTag(currentTagName,currentAttrList))
-          return true;
+        // No end-tag notification for this one
         currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
         currentAttrList = null;
       }
       break;
+
     case TAGPARSESTATE_IN_TAG_SAW_SLASH:
       if (thisChar == '>')
       {
@@ -375,6 +432,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrList = null;
       }
       break;
+
     case TAGPARSESTATE_IN_END_TAG_NAME:
       if (isWhitespace(thisChar))
       {
@@ -403,6 +461,20 @@ public class TagParseState extends SingleCharacterReceiver
       else if (currentTagNameBuffer != null)
         currentTagNameBuffer.append(thisChar);
       break;
+
+    case TAGPARSESTATE_IN_QTAG_SINGLE_QUOTES_ATTR_VALUE:
+      if (thisChar == '\'' || thisChar == '\n' || thisChar == '\r')
+      {
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        currentAttrName = null;
+        currentValueBuffer = null;
+        currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
+        currentAttrNameBuffer = new StringBuilder();
+      }
+      else
+        currentValueBuffer.append(thisChar);
+      break;
+
     case TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE:
       if (thisChar == '\'' || thisChar == '\n' || thisChar == '\r')
       {
@@ -415,6 +487,20 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentValueBuffer.append(thisChar);
       break;
+
+    case TAGPARSESTATE_IN_QTAG_DOUBLE_QUOTES_ATTR_VALUE:
+      if (thisChar == '"' || thisChar == '\n' || thisChar == '\r')
+      {
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        currentAttrName = null;
+        currentValueBuffer = null;
+        currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
+        currentAttrNameBuffer = new StringBuilder();
+      }
+      else
+        currentValueBuffer.append(thisChar);
+      break;
+
     case TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE:
       if (thisChar == '"' || thisChar == '\n' || thisChar == '\r')
       {
@@ -427,6 +513,38 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentValueBuffer.append(thisChar);
       break;
+
+    case TAGPARSESTATE_IN_QTAG_UNQUOTED_ATTR_VALUE:
+      if (isWhitespace(thisChar))
+      {
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        currentAttrName = null;
+        currentValueBuffer = null;
+        currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
+        currentAttrNameBuffer = new StringBuilder();
+      }
+      else if (thisChar == '?')
+      {
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        if (noteTag(currentTagName,currentAttrList))
+          return true;
+        currentState = TAGPARSESTATE_IN_QTAG_SAW_QUESTION;
+      }
+      else if (thisChar == '>')
+      {
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        currentAttrName = null;
+        currentValueBuffer = null;
+        currentState = TAGPARSESTATE_NORMAL;
+        if (noteTag(currentTagName,currentAttrList))
+          return true;
+        currentTagName = null;
+        currentAttrList = null;
+      }
+      else
+        currentValueBuffer.append(thisChar);
+      break;
+
     case TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE:
       if (isWhitespace(thisChar))
       {
@@ -457,6 +575,7 @@ public class TagParseState extends SingleCharacterReceiver
       else
         currentValueBuffer.append(thisChar);
       break;
+
     default:
       throw new ManifoldCFException("Invalid state: "+Integer.toString(currentState));
     }
