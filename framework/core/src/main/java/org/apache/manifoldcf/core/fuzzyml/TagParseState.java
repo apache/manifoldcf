@@ -35,6 +35,13 @@ import java.util.*;
 * Each of these, save the comment, has supporting protected methods that will be
 * called by the parsing engine.  Overriding these methods will allow an extending
 * class to perform higher-level data extraction and parsing.
+*
+* Of these, the messiest is the <! ... > construct, since there can be multiple nested
+* btags, cdata-like escapes, and qtags inside.  Ideally the parser should produce a
+* sequence of preparsed tokens from these tags.  Since they can be nested, keeping
+* track of the depth is also essential, so we do that with a btag depth counter.
+* Thus, in this case, it is not the state that matters, but the btag depth, to determine
+* if the parser is operating inside a btag.
 */
 public class TagParseState extends SingleCharacterReceiver
 {
@@ -71,6 +78,9 @@ public class TagParseState extends SingleCharacterReceiver
 
   protected int currentState = TAGPARSESTATE_NORMAL;
 
+  /** The btag depth, which indicates btag behavior when > 0. */
+  protected int bTagDepth = 0;
+  
   protected StringBuilder currentTagNameBuffer = null;
   protected StringBuilder currentAttrNameBuffer = null;
   protected StringBuilder currentValueBuffer = null;
@@ -107,15 +117,59 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_NORMAL:
       if (thisChar == '<')
         currentState = TAGPARSESTATE_SAWLEFTANGLE;
-      else if (thisChar == '>')
+      else if (bTagDepth > 0 && thisChar == '>')
       {
+        // Output current token, if any
+        if (currentTagNameBuffer != null && currentTagNameBuffer.length() > 0)
+        {
+          currentTagName = currentTagNameBuffer.toString();
+          if (noteBTagToken(currentTagName))
+            return true;
+          currentTagName = null;
+          currentTagNameBuffer = null;
+        }
         if (noteEndBTag())
+          return true;
+        bTagDepth--;
+      }
+      else if (bTagDepth == 0)
+      {
+        if (noteNormalCharacter(thisChar))
           return true;
       }
       else
       {
-        if (noteNormalCharacter(thisChar))
-          return true;
+        // In btag; accumulate tokens
+        if (isPunctuation(thisChar))
+        {
+          if (currentTagNameBuffer != null && currentTagNameBuffer.length() > 0)
+          {
+            currentTagName = currentTagNameBuffer.toString();
+            if (noteBTagToken(currentTagName))
+              return true;
+            currentTagNameBuffer = null;
+            currentTagName = null;
+          }
+          if (noteBTagToken(new StringBuilder().append(thisChar).toString()))
+            return true;
+        }
+        else if (isWhitespace(thisChar))
+        {
+          if (currentTagNameBuffer != null && currentTagNameBuffer.length() > 0)
+          {
+            currentTagName = currentTagNameBuffer.toString();
+            if (noteBTagToken(currentTagName))
+              return true;
+            currentTagNameBuffer = null;
+            currentTagName = null;
+          }
+        }
+        else
+        {
+          if (currentTagNameBuffer == null)
+            currentTagNameBuffer = new StringBuilder();
+          currentTagNameBuffer.append(thisChar);
+        }
       }
       break;
   
@@ -163,17 +217,30 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_IN_QTAG_NAME;
         currentTagNameBuffer = new StringBuilder();
       }
-      else if (thisChar == '/')
+      else if (bTagDepth == 0 && thisChar == '/')
       {
         currentState = TAGPARSESTATE_IN_END_TAG_NAME;
         currentTagNameBuffer = new StringBuilder();
       }
-      else
+      else if (bTagDepth == 0)
       {
         currentState = TAGPARSESTATE_IN_TAG_NAME;
         currentTagNameBuffer = new StringBuilder();
         if (!isWhitespace(thisChar))
           currentTagNameBuffer.append(thisChar);
+      }
+      else
+      {
+        // in btag, saw left angle, nothing recognizable after - must be a token
+        if (noteBTagToken("<"))
+          return true;
+        if (!isWhitespace(thisChar))
+        {
+          // Add char to current token buffer.
+          currentTagNameBuffer = new StringBuilder();
+          currentTagNameBuffer.append(thisChar);
+        }
+        currentState = TAGPARSESTATE_NORMAL;
       }
       break;
 
@@ -187,6 +254,7 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else
       {
+        bTagDepth++;
         currentState = TAGPARSESTATE_IN_BANG_TOKEN;
         currentTagNameBuffer = new StringBuilder();
         if (!isWhitespace(thisChar))
@@ -783,6 +851,15 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
   
+  /** This method gets called for every token inside a btag.
+  *@return true to halt further processing.
+  */
+  protected boolean noteBTagToken(String token)
+    throws ManifoldCFException
+  {
+    return false;
+  }
+  
   /** This method gets called for every character that is not part of a tag etc.
   * Override this method to intercept such characters.
   *@return true to halt further processing.
@@ -864,6 +941,13 @@ public class TagParseState extends SingleCharacterReceiver
   protected static boolean isWhitespace(char x)
   {
     return x <= ' ';
+  }
+
+  /** Is a character markup language punctuation? */
+  protected static boolean isPunctuation(char x)
+  {
+    return x == '%' || x == '|' || x == '&' || x == '!' || x == '^' || x == ',' || x == ';' || x == '[' || x == ']' ||
+      x == '(' || x == ')' || x == ':' || x == '/' || x == '\\' || x == '+' || x == '=';
   }
 
 }
