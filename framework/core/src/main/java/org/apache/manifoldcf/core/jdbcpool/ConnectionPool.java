@@ -192,14 +192,8 @@ public class ConnectionPool
     {
       if (connectionCleanupTimeouts[i] <= currentTime)
       {
-        try
-        {
-          freeConnections[i].close();
-        }
-        catch (SQLException e)
-        {
-          Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
-        }
+        Connection c = freeConnections[i];
+        freeConnections[i] = null;
         freePointer--;
         if (freePointer == i)
         {
@@ -211,6 +205,15 @@ public class ConnectionPool
           connectionCleanupTimeouts[i] = connectionCleanupTimeouts[freePointer];
           freeConnections[freePointer] = null;
         }
+        try
+        {
+         c.close();
+        }
+        catch (SQLException e)
+        {
+          Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
+        }
+        freePointer--;
       }
       else
         i++;
