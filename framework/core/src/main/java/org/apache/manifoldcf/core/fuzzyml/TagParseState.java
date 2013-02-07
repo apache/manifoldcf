@@ -39,7 +39,7 @@ import java.util.*;
 public class TagParseState extends SingleCharacterReceiver
 {
   protected static final int TAGPARSESTATE_NORMAL = 0;
-  protected static final int TAGPARSESTATE_SAWLEFTBRACKET = 1;
+  protected static final int TAGPARSESTATE_SAWLEFTANGLE = 1;
   protected static final int TAGPARSESTATE_SAWEXCLAMATION = 2;
   protected static final int TAGPARSESTATE_SAWDASH = 3;
   protected static final int TAGPARSESTATE_IN_COMMENT = 4;
@@ -62,8 +62,12 @@ public class TagParseState extends SingleCharacterReceiver
   protected static final int TAGPARSESTATE_IN_QTAG_SINGLE_QUOTES_ATTR_VALUE = 21;
   protected static final int TAGPARSESTATE_IN_QTAG_DOUBLE_QUOTES_ATTR_VALUE = 22;
   protected static final int TAGPARSESTATE_IN_QTAG_UNQUOTED_ATTR_VALUE = 23;
-  
-  // These still need to be added to the case statement
+  protected static final int TAGPARSESTATE_IN_BRACKET_TOKEN = 24;
+  protected static final int TAGPARSESTATE_NEED_FINAL_BRACKET = 25;
+  protected static final int TAGPARSESTATE_IN_BANG_TOKEN = 26;
+  protected static final int TAGPARSESTATE_IN_CDATA_BODY = 27;
+  protected static final int TAGPARSESTATE_SAWRIGHTBRACKET = 28;
+  protected static final int TAGPARSESTATE_SAWSECONDRIGHTBRACKET = 29;
 
   protected int currentState = TAGPARSESTATE_NORMAL;
 
@@ -102,13 +106,56 @@ public class TagParseState extends SingleCharacterReceiver
     {
     case TAGPARSESTATE_NORMAL:
       if (thisChar == '<')
-        currentState = TAGPARSESTATE_SAWLEFTBRACKET;
+        currentState = TAGPARSESTATE_SAWLEFTANGLE;
+      else if (thisChar == '>')
+      {
+        if (noteEndBTag())
+          return true;
+      }
       else
+      {
         if (noteNormalCharacter(thisChar))
           return true;
+      }
       break;
   
-    case TAGPARSESTATE_SAWLEFTBRACKET:
+    case TAGPARSESTATE_IN_CDATA_BODY:
+      if (thisChar == ']')
+        currentState = TAGPARSESTATE_SAWRIGHTBRACKET;
+      else
+      {
+        if (noteEscapedCharacter(thisChar))
+          return true;
+      }
+      break;
+
+    case TAGPARSESTATE_SAWRIGHTBRACKET:
+      if (thisChar == ']')
+        currentState = TAGPARSESTATE_SAWSECONDRIGHTBRACKET;
+      else
+      {
+        if (noteEscapedCharacter(']'))
+          return true;
+        if (noteEscapedCharacter(thisChar))
+          return true;
+      }
+      break;
+
+    case TAGPARSESTATE_SAWSECONDRIGHTBRACKET:
+      if (thisChar == '>')
+        currentState = TAGPARSESTATE_NORMAL;
+      else
+      {
+        if (noteEscapedCharacter(']'))
+          return true;
+        if (noteEscapedCharacter(']'))
+          return true;
+        if (noteEscapedCharacter(thisChar))
+          return true;
+      }
+      break;
+      
+    case TAGPARSESTATE_SAWLEFTANGLE:
       if (thisChar == '!')
         currentState = TAGPARSESTATE_SAWEXCLAMATION;
       else if (thisChar == '?')
@@ -133,9 +180,20 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_SAWEXCLAMATION:
       if (thisChar == '-')
         currentState = TAGPARSESTATE_SAWDASH;
+      else if (thisChar == '[')
+      {
+        currentState = TAGPARSESTATE_IN_BRACKET_TOKEN;
+        currentTagNameBuffer = new StringBuilder();
+      }
       else
-        currentState = TAGPARSESTATE_NORMAL;
+      {
+        currentState = TAGPARSESTATE_IN_BANG_TOKEN;
+        currentTagNameBuffer = new StringBuilder();
+        if (!isWhitespace(thisChar))
+          currentTagNameBuffer.append(thisChar);
+      }
       break;
+
     case TAGPARSESTATE_SAWDASH:
       if (thisChar == '-')
         currentState = TAGPARSESTATE_IN_COMMENT;
@@ -209,6 +267,70 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
         currentAttrList = null;
+      }
+      else
+        currentTagNameBuffer.append(thisChar);
+      break;
+
+    case TAGPARSESTATE_IN_BRACKET_TOKEN:
+      if (isWhitespace(thisChar))
+      {
+        if (currentTagNameBuffer.length() > 0)
+        {
+          // Done with the bracket token!
+          currentTagName = currentTagNameBuffer.toString();
+          currentTagNameBuffer = null;
+          currentState = TAGPARSESTATE_NEED_FINAL_BRACKET;
+        }
+      }
+      else if (thisChar == '[')
+      {
+        currentTagName = currentTagNameBuffer.toString();
+        currentTagNameBuffer = null;
+        currentState = TAGPARSESTATE_IN_CDATA_BODY;
+        if (noteEscaped(currentTagName))
+          return true;
+        currentTagName = null;
+      }
+      else
+        currentTagNameBuffer.append(thisChar);
+      break;
+
+    case TAGPARSESTATE_NEED_FINAL_BRACKET:
+      if (thisChar == '[')
+      {
+        if (noteEscaped(currentTagName))
+          return true;
+        currentTagName = null;
+        currentState = TAGPARSESTATE_IN_CDATA_BODY;
+      }
+      break;
+
+    case TAGPARSESTATE_IN_BANG_TOKEN:
+      if (isWhitespace(thisChar))
+      {
+        if (currentTagNameBuffer.length() > 0)
+        {
+          // Done with bang token
+          currentTagName = currentTagNameBuffer.toString();
+          currentTagNameBuffer = null;
+          if (noteBTag(currentTagName))
+            return true;
+          currentTagName = null;
+          currentState = TAGPARSESTATE_NORMAL;
+        }
+      }
+      else if (thisChar == '>')
+      {
+        // Also done, but signal end too.
+        currentTagName = currentTagNameBuffer.toString();
+        currentTagNameBuffer = null;
+        if (noteBTag(currentTagName))
+          return true;
+        currentTagName = null;
+        currentState = TAGPARSESTATE_NORMAL;
+        if (noteEndBTag())
+          return true;
       }
       else
         currentTagNameBuffer.append(thisChar);
@@ -640,14 +762,14 @@ public class TagParseState extends SingleCharacterReceiver
   }
   
   /** Called for the start of every cdata-like tag, e.g. <![ <token> [ ... ]]>
-  *@param token may be null!!!
+  *@param token may be empty!!!
   *@return true to halt further processing.
   */
   protected boolean noteEscaped(String token)
     throws ManifoldCFException
   {
     if (Logging.misc.isDebugEnabled())
-      Logging.misc.debug(" Saw escaped '"+((token==null)?null:token)+"'");
+      Logging.misc.debug(" Saw escaped block '"+token+"'");
     return false;
   }
   
@@ -657,7 +779,7 @@ public class TagParseState extends SingleCharacterReceiver
   protected boolean noteEndEscaped()
     throws ManifoldCFException
   {
-    Logging.misc.debug(" Saw end escaped");
+    Logging.misc.debug(" Saw end of escaped block");
     return false;
   }
   
@@ -666,6 +788,17 @@ public class TagParseState extends SingleCharacterReceiver
   *@return true to halt further processing.
   */
   protected boolean noteNormalCharacter(char thisChar)
+    throws ManifoldCFException
+  {
+    return false;
+  }
+
+  /** This method gets called for every character that is found within an
+  * escape block, e.g. CDATA.
+  * Override this method to intercept such characters.
+  *@return true to halt further processing.
+  */
+  protected boolean noteEscapedCharacter(char thisChar)
     throws ManifoldCFException
   {
     return false;
