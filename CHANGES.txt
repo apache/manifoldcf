@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-638: Idle-time leak of database connection handles,
+so that allocation is lost forever from the pool.
+(Erlend Garåsen, Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-615: Add ability to exclude content based on regexp
 to RSS connector.
 (David Morana, Karl Wright)
