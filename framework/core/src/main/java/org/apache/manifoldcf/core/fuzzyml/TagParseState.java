@@ -399,6 +399,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_NORMAL;
         if (noteEndBTag())
           return true;
+        bTagDepth--;
       }
       else
         currentTagNameBuffer.append(thisChar);
