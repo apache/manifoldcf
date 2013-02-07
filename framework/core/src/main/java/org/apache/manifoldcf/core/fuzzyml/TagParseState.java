@@ -22,7 +22,20 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.Logging;
 import java.util.*;
 
-/** This class represents the basic, outermost tag parsing state. */
+/** This class represents a basic xml/html tag parser.
+* It is capable of recognizing the following xml and html constructs:
+*
+* '<' <token> <attrs> '>' ... '</' <token> '>'
+* '<' <token> <attrs> '/>'
+* '<?' <token> <attrs>  '?>'
+* '<![' [<token>] '[' ... ']]>'
+* '<!' <token> ... '>'
+* '<!--' ... '-->'
+*
+* Each of these, save the comment, has supporting protected methods that will be
+* called by the parsing engine.  Overriding these methods will allow an extending
+* class to perform higher-level data extraction and parsing.
+*/
 public class TagParseState extends SingleCharacterReceiver
 {
   protected static final int TAGPARSESTATE_NORMAL = 0;
@@ -82,7 +95,8 @@ public class TagParseState extends SingleCharacterReceiver
       if (thisChar == '<')
         currentState = TAGPARSESTATE_SAWLEFTBRACKET;
       else
-        noteNormalCharacter(thisChar);
+        if (noteNormalCharacter(thisChar))
+          return true;
       break;
     case TAGPARSESTATE_SAWLEFTBRACKET:
       if (thisChar == '!')
@@ -150,7 +164,8 @@ public class TagParseState extends SingleCharacterReceiver
           currentTagNameBuffer = null;
           currentAttrMap = new HashMap<String,String>();
           currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
-          noteTag(currentTagName,currentAttrMap);
+          if (noteTag(currentTagName,currentAttrMap))
+            return true;
         }
         else
         {
@@ -168,7 +183,8 @@ public class TagParseState extends SingleCharacterReceiver
         }
         if (currentTagName != null)
         {
-          noteTag(currentTagName,currentAttrMap);
+          if (noteTag(currentTagName,currentAttrMap))
+            return true;
         }
         currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
@@ -210,7 +226,8 @@ public class TagParseState extends SingleCharacterReceiver
           currentAttrMap.put(currentAttrName,"");
           currentAttrName = null;
         }
-        noteTag(currentTagName,currentAttrMap);
+        if (noteTag(currentTagName,currentAttrMap))
+          return true;
         currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
       }
       else if (thisChar == '>')
@@ -226,7 +243,8 @@ public class TagParseState extends SingleCharacterReceiver
           currentAttrName = null;
         }
         currentState = TAGPARSESTATE_NORMAL;
-        noteTag(currentTagName,currentAttrMap);
+        if (noteTag(currentTagName,currentAttrMap))
+          return true;
         currentTagName = null;
         currentAttrMap = null;
       }
@@ -242,7 +260,8 @@ public class TagParseState extends SingleCharacterReceiver
       else if (thisChar == '>')
       {
         currentState = TAGPARSESTATE_NORMAL;
-        noteTag(currentTagName,currentAttrMap);
+        if (noteTag(currentTagName,currentAttrMap))
+          return true;
         currentTagName = null;
         currentAttrMap = null;
       }
@@ -251,7 +270,8 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
         currentAttrMap.put(currentAttrName,"");
         currentAttrName = null;
-        noteTag(currentTagName,currentAttrMap);
+        if (noteTag(currentTagName,currentAttrMap))
+          return true;
       }
       else if (!isWhitespace(thisChar))
       {
@@ -276,7 +296,8 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_IN_TAG_SAW_SLASH:
       if (thisChar == '>')
       {
-        noteEndTag(currentTagName);
+        if (noteEndTag(currentTagName))
+          return true;
         currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
         currentAttrMap = null;
@@ -301,7 +322,8 @@ public class TagParseState extends SingleCharacterReceiver
         }
         if (currentTagName != null)
         {
-          noteEndTag(currentTagName);
+          if (noteEndTag(currentTagName))
+            return true;
         }
         currentTagName = null;
         currentState = TAGPARSESTATE_NORMAL;
@@ -345,7 +367,8 @@ public class TagParseState extends SingleCharacterReceiver
       else if (thisChar == '/')
       {
         currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
-        noteTag(currentTagName,currentAttrMap);
+        if (noteTag(currentTagName,currentAttrMap))
+          return true;
         currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
       }
       else if (thisChar == '>')
@@ -354,7 +377,8 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_NORMAL;
-        noteTag(currentTagName,currentAttrMap);
+        if (noteTag(currentTagName,currentAttrMap))
+          return true;
         currentTagName = null;
         currentAttrMap = null;
       }
@@ -367,21 +391,93 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
 
-  protected void noteTag(String tagName, Map<String,String> attributes)
+  /** This method gets called for every tag.  Override this method to intercept tag begins.
+  *@return true to halt further processing.
+  */
+  protected boolean noteTag(String tagName, Map<String,String> attributes)
     throws ManifoldCFException
   {
-    Logging.misc.debug(" Saw tag '"+tagName+"'");
+    if (Logging.misc.isDebugEnabled())
+      Logging.misc.debug(" Saw tag '"+tagName+"'");
+    return false;
   }
 
-  protected void noteEndTag(String tagName)
+  /** This method gets called for every end tag.  Override this method to intercept tag ends.
+  *@return true to halt further processing.
+  */
+  protected boolean noteEndTag(String tagName)
     throws ManifoldCFException
   {
-    Logging.misc.debug(" Saw end tag '"+tagName+"'");
+    if (Logging.misc.isDebugEnabled())
+      Logging.misc.debug(" Saw end tag '"+tagName+"'");
+    return false;
   }
 
-  protected void noteNormalCharacter(char thisChar)
+  /** This method is called for every <? ... ?> construct, or 'qtag'.
+  * Override it to intercept such constructs.
+  *@return true to halt further processing.
+  */
+  protected boolean noteQTag(String tagName, Map<String,String> attributes)
     throws ManifoldCFException
   {
+    if (Logging.misc.isDebugEnabled())
+      Logging.misc.debug(" Saw QTag '"+tagName+"'");
+    return false;
+  }
+  
+  /** This method is called for every <! <token> ... > construct, or 'btag'.
+  * Override it to intercept these.
+  *@return true to halt further processing.
+  */
+  protected boolean noteBTag(String tagName)
+    throws ManifoldCFException
+  {
+    if (Logging.misc.isDebugEnabled())
+      Logging.misc.debug(" Saw BTag '"+tagName+"'");
+    return false;
+  }
+  
+  /** This method is called for the end of every btag, or any time
+  * there's a naked '>' in the document.  Override it if you want to intercept these.
+  *@return true to halt further processing.
+  */
+  protected boolean noteEndBTag()
+    throws ManifoldCFException
+  {
+    Logging.misc.debug(" Saw end BTag");
+    return false;
+  }
+  
+  /** Called for the start of every cdata-like tag, e.g. <![ <token> [ ... ]]>
+  *@param token may be null!!!
+  *@return true to halt further processing.
+  */
+  protected boolean noteEscaped(String token)
+    throws ManifoldCFException
+  {
+    if (Logging.misc.isDebugEnabled())
+      Logging.misc.debug(" Saw escaped '"+((token==null)?null:token)+"'");
+    return false;
+  }
+  
+  /** Called for the end of every cdata-like tag.
+  *@return true to halt further processing.
+  */
+  protected boolean noteEndEscaped()
+    throws ManifoldCFException
+  {
+    Logging.misc.debug(" Saw end escaped");
+    return false;
+  }
+  
+  /** This method gets called for every character that is not part of a tag etc.
+  * Override this method to intercept such characters.
+  *@return true to halt further processing.
+  */
+  protected boolean noteNormalCharacter(char thisChar)
+    throws ManifoldCFException
+  {
+    return false;
   }
   
   /** Decode body text */
