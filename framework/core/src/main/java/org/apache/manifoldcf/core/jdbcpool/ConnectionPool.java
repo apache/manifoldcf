@@ -195,6 +195,7 @@ public class ConnectionPool
         Connection c = freeConnections[i];
         freeConnections[i] = null;
         freePointer--;
+        activeConnections--;
         if (freePointer == i)
         {
           freeConnections[i] = null;
@@ -213,7 +214,6 @@ public class ConnectionPool
         {
           Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
         }
-        freePointer--;
       }
       else
         i++;
