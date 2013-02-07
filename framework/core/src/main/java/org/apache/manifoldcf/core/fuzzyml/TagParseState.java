@@ -54,7 +54,15 @@ public class TagParseState extends SingleCharacterReceiver
   protected static final int TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE = 13;
   protected static final int TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE = 14;
   protected static final int TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE = 15;
-
+  protected static final int TAGPARSESTATE_IN_QTAG_NAME = 16;
+  protected static final int TAGPARSESTATE_IN_QTAG_ATTR_NAME = 17;
+  protected static final int TAGPARSESTATE_IN_QTAG_SAW_QUESTION = 18;
+  
+  // These still need to be added to the case statement
+  protected static final int TAGPARSESTATE_IN_QTAG_ATTR_VALUE = 19;
+  protected static final int TAGPARSESTATE_IN_QTAG_ATTR_LOOKING_FOR_VALUE = 20;
+  protected static final int TAGPARSESTATE_IN_QTAG_SINGLE_QUOTES_ATTR_VALUE = 21;
+  protected static final int TAGPARSESTATE_IN_QTAG_DOUBLE_QUOTES_ATTR_VALUE = 22;
 
   protected int currentState = TAGPARSESTATE_NORMAL;
 
@@ -64,7 +72,7 @@ public class TagParseState extends SingleCharacterReceiver
 
   protected String currentTagName = null;
   protected String currentAttrName = null;
-  protected Map<String,String> currentAttrMap = null;
+  protected List<AttrNameValue> currentAttrList = null;
 
   protected static final Map<String,String> mapLookup = new HashMap<String,String>();
   static
@@ -88,7 +96,7 @@ public class TagParseState extends SingleCharacterReceiver
     throws ManifoldCFException
   {
     // At this level we want basic lexical analysis - that is, we deal with identifying tags and comments, that's it.
-    char thisCharLower = Character.toLowerCase(thisChar);
+    // We don't even attempt to map to lower case, that's how naive this is.
     switch (currentState)
     {
     case TAGPARSESTATE_NORMAL:
@@ -101,6 +109,11 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_SAWLEFTBRACKET:
       if (thisChar == '!')
         currentState = TAGPARSESTATE_SAWEXCLAMATION;
+      else if (thisChar == '?')
+      {
+        currentState = TAGPARSESTATE_IN_QTAG_NAME;
+        currentTagNameBuffer = new StringBuilder();
+      }
       else if (thisChar == '/')
       {
         currentState = TAGPARSESTATE_IN_END_TAG_NAME;
@@ -111,7 +124,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_IN_TAG_NAME;
         currentTagNameBuffer = new StringBuilder();
         if (!isWhitespace(thisChar))
-          currentTagNameBuffer.append(thisCharLower);
+          currentTagNameBuffer.append(thisChar);
       }
       break;
     case TAGPARSESTATE_SAWEXCLAMATION:
@@ -143,6 +156,55 @@ public class TagParseState extends SingleCharacterReceiver
       else if (thisChar != '-')
         currentState = TAGPARSESTATE_IN_COMMENT;
       break;
+    case TAGPARSESTATE_IN_QTAG_NAME:
+      if (isWhitespace(thisChar))
+      {
+        if (currentTagNameBuffer.length() > 0)
+        {
+          // Done with the tag name!
+          currentTagName = currentTagNameBuffer.toString();
+          currentTagNameBuffer = null;
+          currentAttrList = new ArrayList<AttrNameValue>();
+          currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
+          currentAttrNameBuffer = new StringBuilder();
+        }
+      }
+      else if (thisChar == '?')
+      {
+        if (currentTagNameBuffer.length() > 0)
+        {
+          currentTagName = currentTagNameBuffer.toString();
+          currentTagNameBuffer = null;
+          currentAttrList = new ArrayList<AttrNameValue>();
+          currentState = TAGPARSESTATE_IN_QTAG_SAW_QUESTION;
+          // Wait until we see end > to signal tag end though
+        }
+        else
+        {
+          currentState = TAGPARSESTATE_NORMAL;
+          currentTagNameBuffer = null;
+        }
+      }
+      else if (thisChar == '>')
+      {
+        if (currentTagNameBuffer.length() > 0)
+        {
+          currentTagName = currentTagNameBuffer.toString();
+          currentTagNameBuffer = null;
+          currentAttrList = new ArrayList<AttrNameValue>();
+        }
+        if (currentTagName != null)
+        {
+          if (noteQTag(currentTagName,currentAttrList))
+            return true;
+        }
+        currentState = TAGPARSESTATE_NORMAL;
+        currentTagName = null;
+        currentAttrList = null;
+      }
+      else
+        currentTagNameBuffer.append(thisChar);
+      break;
     case TAGPARSESTATE_IN_TAG_NAME:
       if (isWhitespace(thisChar))
       {
@@ -151,7 +213,7 @@ public class TagParseState extends SingleCharacterReceiver
           // Done with the tag name!
           currentTagName = currentTagNameBuffer.toString();
           currentTagNameBuffer = null;
-          currentAttrMap = new HashMap<String,String>();
+          currentAttrList = new ArrayList<AttrNameValue>();
           currentState = TAGPARSESTATE_IN_ATTR_NAME;
           currentAttrNameBuffer = new StringBuilder();
         }
@@ -162,9 +224,9 @@ public class TagParseState extends SingleCharacterReceiver
         {
           currentTagName = currentTagNameBuffer.toString();
           currentTagNameBuffer = null;
-          currentAttrMap = new HashMap<String,String>();
+          currentAttrList = new ArrayList<AttrNameValue>();
           currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
-          if (noteTag(currentTagName,currentAttrMap))
+          if (noteTag(currentTagName,currentAttrList))
             return true;
         }
         else
@@ -179,19 +241,19 @@ public class TagParseState extends SingleCharacterReceiver
         {
           currentTagName = currentTagNameBuffer.toString();
           currentTagNameBuffer = null;
-          currentAttrMap = new HashMap<String,String>();
+          currentAttrList = new ArrayList<AttrNameValue>();
         }
         if (currentTagName != null)
         {
-          if (noteTag(currentTagName,currentAttrMap))
+          if (noteTag(currentTagName,currentAttrList))
             return true;
         }
         currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
-        currentAttrMap = null;
+        currentAttrList = null;
       }
       else
-        currentTagNameBuffer.append(thisCharLower);
+        currentTagNameBuffer.append(thisChar);
       break;
     case TAGPARSESTATE_IN_ATTR_NAME:
       if (isWhitespace(thisChar))
@@ -223,10 +285,10 @@ public class TagParseState extends SingleCharacterReceiver
         }
         if (currentAttrName != null)
         {
-          currentAttrMap.put(currentAttrName,"");
+          currentAttrList.add(new AttrNameValue(currentAttrName,""));
           currentAttrName = null;
         }
-        if (noteTag(currentTagName,currentAttrMap))
+        if (noteTag(currentTagName,currentAttrList))
           return true;
         currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
       }
@@ -239,17 +301,17 @@ public class TagParseState extends SingleCharacterReceiver
         }
         if (currentAttrName != null)
         {
-          currentAttrMap.put(currentAttrName,"");
+          currentAttrList.add(new AttrNameValue(currentAttrName,""));
           currentAttrName = null;
         }
         currentState = TAGPARSESTATE_NORMAL;
-        if (noteTag(currentTagName,currentAttrMap))
+        if (noteTag(currentTagName,currentAttrList))
           return true;
         currentTagName = null;
-        currentAttrMap = null;
+        currentAttrList = null;
       }
       else
-        currentAttrNameBuffer.append(thisCharLower);
+        currentAttrNameBuffer.append(thisChar);
       break;
     case TAGPARSESTATE_IN_ATTR_LOOKING_FOR_VALUE:
       if (thisChar == '=')
@@ -260,25 +322,25 @@ public class TagParseState extends SingleCharacterReceiver
       else if (thisChar == '>')
       {
         currentState = TAGPARSESTATE_NORMAL;
-        if (noteTag(currentTagName,currentAttrMap))
+        if (noteTag(currentTagName,currentAttrList))
           return true;
         currentTagName = null;
-        currentAttrMap = null;
+        currentAttrList = null;
       }
       else if (thisChar == '/')
       {
         currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
-        currentAttrMap.put(currentAttrName,"");
+        currentAttrList.add(new AttrNameValue(currentAttrName,""));
         currentAttrName = null;
-        if (noteTag(currentTagName,currentAttrMap))
+        if (noteTag(currentTagName,currentAttrList))
           return true;
       }
       else if (!isWhitespace(thisChar))
       {
-        currentAttrMap.put(currentAttrName,"");
+        currentAttrList.add(new AttrNameValue(currentAttrName,""));
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
         currentAttrNameBuffer = new StringBuilder();
-        currentAttrNameBuffer.append(thisCharLower);
+        currentAttrNameBuffer.append(thisChar);
         currentAttrName = null;
       }
       break;
@@ -293,6 +355,16 @@ public class TagParseState extends SingleCharacterReceiver
         currentValueBuffer.append(thisChar);
       }
       break;
+    case TAGPARSESTATE_IN_QTAG_SAW_QUESTION:
+      if (thisChar == '>')
+      {
+        if (noteQTag(currentTagName,currentAttrList))
+          return true;
+        currentState = TAGPARSESTATE_NORMAL;
+        currentTagName = null;
+        currentAttrList = null;
+      }
+      break;
     case TAGPARSESTATE_IN_TAG_SAW_SLASH:
       if (thisChar == '>')
       {
@@ -300,7 +372,7 @@ public class TagParseState extends SingleCharacterReceiver
           return true;
         currentState = TAGPARSESTATE_NORMAL;
         currentTagName = null;
-        currentAttrMap = null;
+        currentAttrList = null;
       }
       break;
     case TAGPARSESTATE_IN_END_TAG_NAME:
@@ -329,12 +401,12 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_NORMAL;
       }
       else if (currentTagNameBuffer != null)
-        currentTagNameBuffer.append(thisCharLower);
+        currentTagNameBuffer.append(thisChar);
       break;
     case TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE:
       if (thisChar == '\'' || thisChar == '\n' || thisChar == '\r')
       {
-        currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
@@ -346,7 +418,7 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE:
       if (thisChar == '"' || thisChar == '\n' || thisChar == '\r')
       {
-        currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
@@ -358,7 +430,7 @@ public class TagParseState extends SingleCharacterReceiver
     case TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE:
       if (isWhitespace(thisChar))
       {
-        currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
@@ -366,21 +438,21 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else if (thisChar == '/')
       {
-        currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
-        if (noteTag(currentTagName,currentAttrMap))
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        if (noteTag(currentTagName,currentAttrList))
           return true;
         currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
       }
       else if (thisChar == '>')
       {
-        currentAttrMap.put(currentAttrName,attributeDecode(currentValueBuffer.toString()));
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_NORMAL;
-        if (noteTag(currentTagName,currentAttrMap))
+        if (noteTag(currentTagName,currentAttrList))
           return true;
         currentTagName = null;
-        currentAttrMap = null;
+        currentAttrList = null;
       }
       else
         currentValueBuffer.append(thisChar);
@@ -394,7 +466,7 @@ public class TagParseState extends SingleCharacterReceiver
   /** This method gets called for every tag.  Override this method to intercept tag begins.
   *@return true to halt further processing.
   */
-  protected boolean noteTag(String tagName, Map<String,String> attributes)
+  protected boolean noteTag(String tagName, List<AttrNameValue> attributes)
     throws ManifoldCFException
   {
     if (Logging.misc.isDebugEnabled())
@@ -417,7 +489,7 @@ public class TagParseState extends SingleCharacterReceiver
   * Override it to intercept such constructs.
   *@return true to halt further processing.
   */
-  protected boolean noteQTag(String tagName, Map<String,String> attributes)
+  protected boolean noteQTag(String tagName, List<AttrNameValue> attributes)
     throws ManifoldCFException
   {
     if (Logging.misc.isDebugEnabled())
