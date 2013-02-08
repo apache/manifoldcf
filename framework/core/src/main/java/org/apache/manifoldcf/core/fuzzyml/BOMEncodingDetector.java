@@ -27,7 +27,7 @@ import java.util.*;
 * Once a preliminary character encoding is determined, an EncodingAccepter is notified,
 * and further bytes are sent to a provided ByteReceiver.
 */
-public class BOMParseState extends SingleByteReceiver implements EncodingDetector
+public class BOMEncodingDetector extends SingleByteReceiver implements EncodingDetector
 {
   protected String encoding = null;
   protected final ByteReceiver overflowByteReceiver;
@@ -37,7 +37,7 @@ public class BOMParseState extends SingleByteReceiver implements EncodingDetecto
   * If no receiver is passed in, the detector will stop as soon as the
   * BOM is either seen, or not seen.
   */
-  public BOMParseState(ByteReceiver overflowByteReceiver)
+  public BOMEncodingDetector(ByteReceiver overflowByteReceiver)
   {
     super(8);
     this.overflowByteReceiver = overflowByteReceiver;
