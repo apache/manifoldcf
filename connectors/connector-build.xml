@@ -357,7 +357,7 @@
         </javadoc>
     </target>
 
-    <target name="doc" depends="doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
+    <target name="doc" depends="compile-stubs,doc-rmi,compile-wsdls,compile-xsds,has-RMI-check,precompile-check" if="canBuild" unless="hasRMI">
         <mkdir dir="dist/doc"/>
         <javadoc destdir="dist/doc" source="1.6">
             <classpath>
