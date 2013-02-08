@@ -143,7 +143,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>mcf-rss-connector</artifactId>
+      <artifactId>mcf-web-connector</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

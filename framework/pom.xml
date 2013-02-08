@@ -42,6 +42,7 @@
     <module>api-service</module>
     <module>crawler-ui</module>
     <module>script-engine</module>
+    <module>combined-service</module>
   </modules>
 
 </project>

@@ -79,7 +79,7 @@
     <!-- try installing manually from http://jcifs.samba.org if not available 
       in your repository -->
     <dependency>
-      <groupId>org.samba.jcifs</groupId>
+      <groupId>jcifs</groupId>
       <artifactId>jcifs</artifactId>
       <version>1.3.17</version>
     </dependency>

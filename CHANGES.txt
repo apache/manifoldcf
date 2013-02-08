@@ -7,6 +7,10 @@ CONNECTORS-638: Fix issue with database pool constriction due to
 connection expiration.
 (Erlend Garåsen, Maciej Li¿ewski, Karl Wright)
 
+CONNECTORS-632: Get mvn-bootstrap scripts working again as
+intended.
+(Maciej Li¿ewski, Karl Wright)
+
 ======================= Release 1.1 =====================
 
 CONNECTORS-630: Work around SolrJ paramname encoding bug.
