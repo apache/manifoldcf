@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.core.jdbcpool;
 
 import java.sql.*;
+import org.apache.manifoldcf.core.system.Logging;
 
 /** The class that represents a connection from a pool.
 */
@@ -28,12 +29,21 @@ public class WrappedConnection
 
   protected Connection connection;
   protected ConnectionPool owner;
+  /** Exception, to keep track of where the connection was allocated */
+  protected Exception instantiationException;
   
   /** Constructor */
   public WrappedConnection(ConnectionPool owner, Connection connection)
   {
+    this(owner,connection,null);
+  }
+  
+  /** Constructor */
+  public WrappedConnection(ConnectionPool owner, Connection connection, Exception instantiationException)
+  {
     this.owner = owner;
     this.connection = connection;
+    this.instantiationException = instantiationException;
   }
   
   /** Get the JDBC connection object.
@@ -47,9 +57,17 @@ public class WrappedConnection
   */
   public void release()
   {
-    owner.releaseConnection(this.connection);
+    owner.releaseConnection(this);
     this.connection = null;
   }
+  
+  /** Get instantiation exception.
+  */
+  public Exception getInstantiationException()
+  {
+    return instantiationException;
+  }
+  
 }
 
 

@@ -801,6 +801,7 @@ cd example
             <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
             <tr><td>org.apache.manifoldcf.database.maxhandles</td><td>No</td><td>Specifies the maximum number of database connection handles that will by pooled.  Recommended value is 200.</td></tr>
             <tr><td>org.apache.manifoldcf.database.handletimeout</td><td>No</td><td>Specifies the maximum time a handle is to live before it is presumed dead.  Recommend a value of 604800, which is the maximum allowable.</td></tr>
+            <tr><td>org.apache.manifoldcf.database.connectiontracking</td><td>No</td><td>True or false.  When "true", will track all allocated database connection handles, and will dump an allocation stack trace when the pool is exhausted.  Useful for diagnosing connection leaks.</td></tr>
             <tr><td>org.apache.manifoldcf.logconfigfile</td><td>No</td><td>Specifies location of logging configuration file.</td></tr>
             <tr><td>org.apache.manifoldcf.database.name</td><td>No</td><td>Describes database name for ManifoldCF; defaults to "dbname" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.database.username</td><td>No</td><td>Describes database user name for ManifoldCF; defaults to "manifoldcf" if not specified.</td></tr>
