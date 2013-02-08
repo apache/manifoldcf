@@ -49,7 +49,9 @@ public abstract class SingleCharacterReceiver extends CharacterReceiver
       for (int i = 0; i < amt; i++)
       {
         if (dealWithCharacter(charBuffer[i]))
-          return true;
+        {
+          return dealWithRemainder(charBuffer, i+1, amt-(i+1), reader);
+        }
       }
     }
   }
@@ -60,4 +62,18 @@ public abstract class SingleCharacterReceiver extends CharacterReceiver
   public abstract boolean dealWithCharacter(char c)
     throws IOException, ManifoldCFException;
   
+  /** Deal with the remainder of the input.
+  * This is called only when dealWithCharacter() returns true.
+  *@param buffer is the buffer of characters that should come first.
+  *@param offset is the offset within the buffer of the first character.
+  *@param len is the number of characters in the buffer.
+  *@param inputStream is the stream that should come after the characters in the buffer.
+  *@return true to abort, false if the end of the stream has been reached.
+  */
+  protected boolean dealWithRemainder(char[] buffer, int offset, int len, Reader reader)
+    throws IOException, ManifoldCFException
+  {
+    return true;
+  }
+
 }

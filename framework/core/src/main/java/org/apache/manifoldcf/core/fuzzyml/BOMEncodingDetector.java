@@ -20,6 +20,7 @@ package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
+import java.io.*;
 
 /** This class represents the parse state of the BOM (byte order mark) parser.
 * The byte order mark parser looks for a byte order mark at the start of a byte sequence,
@@ -120,6 +121,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       if (theByte == 0xff)
       {
         // UTF-16BE detected
+        mark();
         return establishEncoding("UTF-16BE");
       }
       else
@@ -136,6 +138,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       if (theByte == 0xbf)
       {
         // Encoding detected as utf-8
+        mark();
         return establishEncoding("UTF-8");
       }
       else
@@ -149,6 +152,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       else
       {
         // Encoding detected as UTF-16LE
+        mark();
         return establishEncoding("UTF-16LE");
       }
       break;
@@ -163,17 +167,21 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
     case BOM_SEEN_FFFE00:
       if (theByte == 0x00)
       {
+        mark();
         return establishEncoding("UTF-32LE");
       }
       else
       {
-        resetToMark();
+        // Leave mark alone.
         return establishEncoding("UTF-16LE");
       }
 
     case BOM_SEEN_0000FE:
       if (theByte == 0xff)
+      {
+        mark();
         return establishEncoding("UTF-32BE");
+      }
       else
         return replay();
       
@@ -190,21 +198,14 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
     throws ManifoldCFException
   {
     this.encoding = encoding;
-    return playFromCurrentPoint();
+    return true;
   }
   
   /** Set a "mark".
   */
   protected void mark()
   {
-    // MHL
-  }
-  
-  /** Reset the "stream" to the last saved mark.
-  */
-  protected void resetToMark()
-  {
-    // MHL
+    replayBuffer.clear();
   }
   
   /** Establish NO encoding, and replay from the current saved point to the child, if any.
@@ -212,8 +213,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
   protected boolean replay()
     throws ManifoldCFException
   {
-    resetToMark();
-    return playFromCurrentPoint();
+    return true;
   }
   
   /** Send stream from current point onward with the current encoding.
@@ -221,8 +221,30 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
   protected boolean playFromCurrentPoint()
     throws ManifoldCFException
   {
-    // MHL
+    mark();
     return true;
   }
   
+  /** Deal with the remainder of the input.
+  * This is called only when dealWithByte() returns true.
+  *@param buffer is the buffer of characters that should come first.
+  *@param offset is the offset within the buffer of the first character.
+  *@param len is the number of characters in the buffer.
+  *@param inputStream is the stream that should come after the characters in the buffer.
+  *@return true to abort, false if the end of the stream has been reached.
+  */
+  @Override
+  protected boolean dealWithRemainder(byte[] buffer, int offset, int len, InputStream inputStream)
+    throws IOException, ManifoldCFException
+  {
+    if (overflowByteReceiver == null)
+      return super.dealWithRemainder(buffer,offset,len,inputStream);
+    // Create a wrapped input stream with all the missing bytes
+    while (len > 0)
+    {
+      replayBuffer.appendByte(buffer[offset++]);
+    }
+    return overflowByteReceiver.dealWithBytes(new PrefixedInputStream(replayBuffer,inputStream));
+  }
+
 }

@@ -48,7 +48,9 @@ public abstract class SingleByteReceiver extends ByteReceiver
       for (int i = 0; i < amt; i++)
       {
         if (dealWithByte(byteBuffer[i]))
-          return true;
+        {
+          return dealWithRemainder(byteBuffer,i+1,amt-(i+1),inputStream);
+        }
       }
     }
   }
@@ -59,5 +61,18 @@ public abstract class SingleByteReceiver extends ByteReceiver
   public abstract boolean dealWithByte(byte b)
     throws IOException, ManifoldCFException;
 
-
+  /** Deal with the remainder of the input.
+  * This is called only when dealWithByte() returns true.
+  *@param buffer is the buffer of characters that should come first.
+  *@param offset is the offset within the buffer of the first character.
+  *@param len is the number of characters in the buffer.
+  *@param inputStream is the stream that should come after the characters in the buffer.
+  *@return true to abort, false if the end of the stream has been reached.
+  */
+  protected boolean dealWithRemainder(byte[] buffer, int offset, int len, InputStream inputStream)
+    throws IOException, ManifoldCFException
+  {
+    return true;
+  }
+  
 }
