@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.fuzzyml.*;
 import java.util.*;
 
 /** This class recognizes and interprets all meta tags */
@@ -33,14 +34,16 @@ public class MetaParseState extends ScriptParseState
   }
 
   @Override
-  protected void noteNonscriptTag(String tagName, Map attributes)
+  protected boolean noteNonscriptTag(String tagName, Map<String,String> attributes)
     throws ManifoldCFException
   {
-    super.noteNonscriptTag(tagName,attributes);
+    if (super.noteNonscriptTag(tagName,attributes))
+      return true;
     if (tagName.equals("meta"))
     {
       handler.noteMetaTag(attributes);
     }
+    return false;
   }
 
 }

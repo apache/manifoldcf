@@ -24,6 +24,8 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
+import org.apache.manifoldcf.core.fuzzyml.*;
+
 import org.xml.sax.Attributes;
 
 import org.apache.manifoldcf.core.common.XMLDoc;
@@ -6768,33 +6770,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         return;
       }
 
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("WEB: Document '"+documentURI+"' is text, with encoding '"+encoding+"'; link extraction starting");
-
       try
       {
-        // Create a reader for the described encoding, if that's possible
-        Reader r = new InputStreamReader(is,encoding);
-        try
-        {
-          // We read characters at a time, understanding the basic form of html.
-          // This code represents a basic bottom-up parser, which is the best thing since we really don't want to code up all the context we'd need
-          // to do a top-down parse.  So, there is a parse state, and the code walks through the document recognizing symbols and modifying the state.
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Document '"+documentURI+"' is text, with encoding '"+encoding+"'; link extraction starting");
 
-          FormParseState currentParseState = new FormParseState(handler);
-          while (true)
-          {
-            int x = r.read();
-            if (x == -1)
-              break;
-            currentParseState.dealWithCharacter((char)x);
-          }
-          currentParseState.finishUp();
-        }
-        finally
-        {
-          r.close();
-        }
+        // Instantiate the parser, and call the right method
+        Parser p = new Parser();
+        p.parseWithoutCharsetDetection(encoding,is,new FormParseState(handler));
       }
       catch (UnsupportedEncodingException e)
       {
