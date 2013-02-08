@@ -32,6 +32,21 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
   protected String encoding = null;
   protected final ByteReceiver overflowByteReceiver;
   
+  protected ByteBuffer replayBuffer = new ByteBuffer();
+  
+  protected final static int BOM_NOTHINGYET = 0;
+  protected final static int BOM_SEEN_EF = 1;
+  protected final static int BOM_SEEN_FF = 2;
+  protected final static int BOM_SEEN_FE = 3;
+  protected final static int BOM_SEEN_ZERO = 4;
+  protected final static int BOM_SEEN_EFBB = 5;
+  protected final static int BOM_SEEN_FFFE = 6;
+  protected final static int BOM_SEEN_0000 = 7;
+  protected final static int BOM_SEEN_FFFE00 = 8;
+  protected final static int BOM_SEEN_0000FE = 9;
+  
+  protected int currentState = BOM_NOTHINGYET;
+  
   /** Constructor.
   *@param overflowByteReceiver Pass in the receiver of all overflow bytes.
   * If no receiver is passed in, the detector will stop as soon as the
@@ -65,8 +80,149 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
   public boolean dealWithByte(byte b)
     throws ManifoldCFException
   {
+    replayBuffer.appendByte(b);
+    int theByte = 0xff & (int)b;
+    switch (currentState)
+    {
+
+    case BOM_NOTHINGYET:
+      if (theByte == 0xef)
+        currentState = BOM_SEEN_EF;
+      else if (theByte == 0xff)
+        currentState = BOM_SEEN_FF;
+      else if (theByte == 0xfe)
+        currentState = BOM_SEEN_FE;
+      else if (theByte == 0x00)
+        currentState = BOM_SEEN_ZERO;
+      else
+        return replay();
+      break;
+
+    case BOM_SEEN_EF:
+      if (theByte == 0xbb)
+        currentState = BOM_SEEN_EFBB;
+      else
+        return replay();
+      break;
+
+    case BOM_SEEN_FF:
+      if (theByte == 0xfe)
+      {
+        // Either UTF-16LE or UTF-32LE
+        mark();
+        currentState = BOM_SEEN_FFFE;
+      }
+      else
+        return replay();
+      break;
+
+    case BOM_SEEN_FE:
+      if (theByte == 0xff)
+      {
+        // UTF-16BE detected
+        return establishEncoding("UTF-16BE");
+      }
+      else
+        return replay();
+      
+    case BOM_SEEN_ZERO:
+      if (theByte == 0x00)
+        currentState = BOM_SEEN_0000;
+      else
+        return replay();
+      break;
+      
+    case BOM_SEEN_EFBB:
+      if (theByte == 0xbf)
+      {
+        // Encoding detected as utf-8
+        return establishEncoding("UTF-8");
+      }
+      else
+        return replay();
+
+    case BOM_SEEN_FFFE:
+      if (theByte == 0x00)
+      {
+        currentState = BOM_SEEN_FFFE00;
+      }
+      else
+      {
+        // Encoding detected as UTF-16LE
+        return establishEncoding("UTF-16LE");
+      }
+      break;
+
+    case BOM_SEEN_0000:
+      if (theByte == 0xfe)
+        currentState = BOM_SEEN_0000FE;
+      else
+        return replay();
+      break;
+
+    case BOM_SEEN_FFFE00:
+      if (theByte == 0x00)
+      {
+        return establishEncoding("UTF-32LE");
+      }
+      else
+      {
+        resetToMark();
+        return establishEncoding("UTF-16LE");
+      }
+
+    case BOM_SEEN_0000FE:
+      if (theByte == 0xff)
+        return establishEncoding("UTF-32BE");
+      else
+        return replay();
+      
+    default:
+      throw new ManifoldCFException("Unknown state: "+currentState);
+    }
+    
+    return false;
+  }
+
+  /** Establish the provided encoding, and send the rest to the child, if any.
+  */
+  protected boolean establishEncoding(String encoding)
+    throws ManifoldCFException
+  {
+    this.encoding = encoding;
+    return playFromCurrentPoint();
+  }
+  
+  /** Set a "mark".
+  */
+  protected void mark()
+  {
+    // MHL
+  }
+  
+  /** Reset the "stream" to the last saved mark.
+  */
+  protected void resetToMark()
+  {
+    // MHL
+  }
+  
+  /** Establish NO encoding, and replay from the current saved point to the child, if any.
+  */
+  protected boolean replay()
+    throws ManifoldCFException
+  {
+    resetToMark();
+    return playFromCurrentPoint();
+  }
+  
+  /** Send stream from current point onward with the current encoding.
+  */
+  protected boolean playFromCurrentPoint()
+    throws ManifoldCFException
+  {
     // MHL
     return true;
   }
-
+  
 }
