@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.1.1 =====================
 
+CONNECTORS-639: Maven execute of jetty-runner fails.
+(Maciej Li¿ewski)
+
 CONNECTORS-638: Fix issue with database pool constriction due to
 connection expiration.
 (Erlend Garåsen, Maciej Li¿ewski, Karl Wright)
