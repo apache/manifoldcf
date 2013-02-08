@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-639: Maven execute of jetty-runner fails.
+(Maciej Li¿ewski)
+
 CONNECTORS-638: Idle-time leak of database connection handles,
 so that allocation is lost forever from the pool.
 (Erlend Garåsen, Maciej Li¿ewski, Karl Wright)
