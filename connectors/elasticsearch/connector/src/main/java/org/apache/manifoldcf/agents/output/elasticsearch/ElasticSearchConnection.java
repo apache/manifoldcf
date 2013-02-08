@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URLEncoder;
 
 import org.apache.http.conn.ClientConnectionManager;
@@ -55,9 +56,12 @@ import org.apache.http.HttpException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 
 public class ElasticSearchConnection
 {
+  protected ElasticSearchConfig config;
+  
   private HttpClient client;
   
   private String serverLocation;
@@ -82,6 +86,7 @@ public class ElasticSearchConnection
 
   protected ElasticSearchConnection(ElasticSearchConfig config, HttpClient client)
   {
+    this.config = config;
     this.client = client;
     result = Result.UNKNOWN;
     response = null;
@@ -114,29 +119,167 @@ public class ElasticSearchConnection
     return url;
   }
 
-  protected void call(HttpRequestBase method) throws ManifoldCFException
+  protected static class CallThread extends Thread
   {
+    protected final HttpClient client;
+    protected final HttpRequestBase method;
+    protected int resultCode = -1;
+    protected String response = null;
+    protected Throwable exception = null;
+    
+    public CallThread(HttpClient client, HttpRequestBase method)
+    {
+      this.client = client;
+      this.method = method;
+      setDaemon(true);
+    }
+    
+    @Override
+    public void run()
+    {
+      try
+      {
+        try
+        {
+          HttpResponse resp = client.execute(method);
+          resultCode = resp.getStatusLine().getStatusCode();
+          response = getResponseBodyAsString(resp.getEntity());
+        }
+        finally
+        {
+          method.abort();
+        }
+      }
+      catch (java.net.SocketTimeoutException e)
+      {
+        exception = e;
+      }
+      catch (InterruptedIOException e)
+      {
+        // Just exit
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public int getResultCode()
+    {
+      return resultCode;
+    }
+    
+    public String getResponse()
+    {
+      return response;
+    }
+    
+    public Throwable getException()
+    {
+      return exception;
+    }
+  }
+  
+  /** Call ElasticSearch.
+  *@return false if there was a "rejection".
+  */
+  protected boolean call(HttpRequestBase method)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    CallThread ct = new CallThread(client, method);
     try
     {
-      HttpResponse resp = client.execute(method);
-      if (!checkResultCode(resp.getStatusLine().getStatusCode()))
-        throw new ManifoldCFException(getResultDescription());
-      response = getResponseBodyAsString(resp.getEntity());
-    } catch (HttpException e)
+      ct.start();
+      try
+      {
+        ct.join();
+        Throwable t = ct.getException();
+        if (t != null)
+        {
+          if (t instanceof HttpException)
+            throw (HttpException)t;
+          else if (t instanceof IOException)
+            throw (IOException)t;
+          else if (t instanceof RuntimeException)
+            throw (RuntimeException)t;
+          else if (t instanceof Error)
+            throw (Error)t;
+          else
+            throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
+        }
+        
+        response = ct.getResponse();
+        return handleResultCode(ct.getResultCode(), response);
+      }
+      catch (InterruptedException e)
+      {
+        ct.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+    }
+    catch (HttpException e)
     {
-      setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
-    } catch (IOException e)
+      handleHttpException(e);
+      return false;
+    }
+    catch (IOException e)
     {
-      setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
-    } finally
-    {
-      if (method != null)
-        method.abort();
+      handleIOException(e);
+      return false;
     }
   }
 
+  private boolean handleResultCode(int code, String response)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (code == 200 || code == 201)
+    {
+      setResult(Result.OK, null);
+      return true;
+    }
+    else if (code == 404)
+    {
+      setResult(Result.ERROR, response);
+      throw new ManifoldCFException("Server/page not found");
+    }
+    else if (code >= 400 && code < 500)
+    {
+      setResult(Result.ERROR, response);
+      return false;
+    }
+    else if (code >= 500 && code < 600)
+    {
+      setResult(Result.ERROR, "Server exception: "+response);
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Server exception: "+response,
+        new ManifoldCFException(response),
+        currentTime + 300000L,
+        currentTime + 20L * 60000L,
+        -1,
+        false);
+    }
+    setResult(Result.UNKNOWN, response);
+    throw new ManifoldCFException("Unexpected HTTP result code: "+code+": "+response);
+  }
+
+  private void handleHttpException(HttpException e)
+    throws ManifoldCFException, ServiceInterruption {
+    setResult(Result.ERROR, e.getMessage());
+    throw new ManifoldCFException(e);
+  }
+  
+  private void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption {
+    setResult(Result.ERROR, e.getMessage());
+    long currentTime = System.currentTimeMillis();
+    // All IO exceptions are treated as service interruptions, retried for an hour
+    throw new ServiceInterruption("IO exception: "+e.getMessage(),e,
+        currentTime + 60000L,
+        currentTime + 1L * 60L * 60000L,
+        -1,
+        true);
+  }
+    
   private static String getResponseBodyAsString(HttpEntity entity)
     throws IOException, HttpException {
     InputStream is = entity.getContent();
@@ -207,24 +350,6 @@ public class ElasticSearchConnection
     return response;
   }
 
-  private boolean checkResultCode(int code)
-  {
-    switch (code)
-    {
-    case 0:
-      setResult(Result.UNKNOWN, null);
-      return false;
-    case 200:
-      setResult(Result.OK, null);
-      return true;
-    case 404:
-      setResult(Result.ERROR, "Server/page not found");
-      return false;
-    default:
-      setResult(Result.ERROR, null);
-      return false;
-    }
-  }
 
   public Result getResult()
   {

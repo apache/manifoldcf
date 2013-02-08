@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.1.1 =====================
 
+CONNECTORS-606, CONNECTORS-629, CONNECTORS-634, CONNECTORS-637:
+Bring ElasticSearch connector up to spec.
+(Karl Wright)
+
 CONNECTORS-639: Maven execute of jetty-runner fails.
 (Maciej Li¿ewski)
 
