@@ -34,22 +34,24 @@ public abstract class SingleCharacterReceiver extends CharacterReceiver
     charBuffer = new char[chunkSize];
   }
   
-  /** Receive a set of characters; process one chunksize worth.
-  *@return true if done.
+  /** Receive a stream of characters.
+  *@return true if abort signalled, false if end of stream.
   */
   @Override
-  public boolean dealWithCharacters()
+  public final boolean dealWithCharacters(Reader reader)
     throws IOException, ManifoldCFException
   {
-    int amt = reader.read(charBuffer);
-    if (amt == -1)
-      return true;
-    for (int i = 0; i < amt; i++)
+    while (true)
     {
-      if (dealWithCharacter(charBuffer[i]))
-        return true;
+      int amt = reader.read(charBuffer);
+      if (amt == -1)
+        return false;
+      for (int i = 0; i < amt; i++)
+      {
+        if (dealWithCharacter(charBuffer[i]))
+          return true;
+      }
     }
-    return false;
   }
   
   /** Receive a byte.

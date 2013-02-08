@@ -33,22 +33,24 @@ public abstract class SingleByteReceiver extends ByteReceiver
     byteBuffer = new byte[chunkSize];
   }
   
-  /** Read the byte stream and process up to chunksize bytes,
-  *@return true if end reached.
+  /** Read a byte stream and process bytes.
+  *@return true if abort signalled, false if end of stream reached.
   */
   @Override
-  public boolean dealWithBytes()
+  public final boolean dealWithBytes(InputStream inputStream)
     throws IOException, ManifoldCFException
   {
-    int amt = inputStream.read(byteBuffer);
-    if (amt == -1)
-      return true;
-    for (int i = 0; i < amt; i++)
+    while (true)
     {
-      if (dealWithByte(byteBuffer[i]))
-        return true;
+      int amt = inputStream.read(byteBuffer);
+      if (amt == -1)
+        return false;
+      for (int i = 0; i < amt; i++)
+      {
+        if (dealWithByte(byteBuffer[i]))
+          return true;
+      }
     }
-    return false;
   }
   
   /** Receive a byte.

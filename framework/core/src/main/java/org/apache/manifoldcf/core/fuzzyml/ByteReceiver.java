@@ -27,31 +27,18 @@ import java.io.*;
 */
 public abstract class ByteReceiver
 {
-  protected InputStream inputStream = null;
-  
   /** Constructor */
   public ByteReceiver()
   {
   }
   
-  /** Set the input stream.  The input stream must be
-  * at the point where the bytes being received would start.
-  * The stream is expected to be closed by the caller, when
-  * the operations are all done.
+  /** Read a byte stream and process bytes.
+  *@return true if abort signalled, false if end of stream reached.
   */
-  public void setInputStream(InputStream is)
-    throws IOException
-  {
-    this.inputStream = is;
-  }
-  
-  /** Read the byte stream and process a limited chunk of bytes,
-  *@return true if end reached.
-  */
-  public abstract boolean dealWithBytes()
+  public abstract boolean dealWithBytes(InputStream is)
     throws IOException, ManifoldCFException;
   
-  /** Finish up all processing.
+  /** Finish up all processing.  Called ONLY if we haven't already aborted.
   */
   public void finishUp()
     throws ManifoldCFException

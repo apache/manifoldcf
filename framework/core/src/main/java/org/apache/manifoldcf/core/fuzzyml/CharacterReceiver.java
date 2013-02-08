@@ -25,31 +25,19 @@ import java.io.*;
 */
 public abstract class CharacterReceiver
 {
-  protected Reader reader = null;
-  
   /** Constructor.
   */
   public CharacterReceiver()
   {
   }
   
-  /** Set the reader we'll be getting characters from.
-  * It is the caller's responsibility to close this when
-  * the caller has no further use for this CharacterReceiver.
+  /** Receive a stream of characters.
+  *@return true if abort signalled, false if end of stream.
   */
-  public void setReader(Reader reader)
-    throws IOException
-  {
-    this.reader = reader;
-  }
-  
-  /** Receive a set of characters; process one chunk worth.
-  *@return true if done.
-  */
-  public abstract boolean dealWithCharacters()
+  public abstract boolean dealWithCharacters(Reader reader)
     throws IOException, ManifoldCFException;
   
-  /** Finish up all processing.
+  /** Finish up all processing.  Called ONLY if we haven't already aborted.
   */
   public void finishUp()
     throws ManifoldCFException

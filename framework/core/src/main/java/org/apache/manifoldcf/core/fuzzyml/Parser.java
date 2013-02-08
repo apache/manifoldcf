@@ -55,19 +55,8 @@ public class Parser
     // First go-around: use the BOM detector with nothing downstream, since we don't know the character set yet.
     BOMEncodingDetector bomEncodingDetector = new BOMEncodingDetector(null);
     bomEncodingDetector.setEncoding(startingCharset);
-    bomEncodingDetector.setInputStream(replayableInputStream);
-    try
-    {
-      while (true)
-      {
-        if (bomEncodingDetector.dealWithBytes())
-          break;
-      }
-    }
-    finally
-    {
+    if (bomEncodingDetector.dealWithBytes(replayableInputStream) == false)
       bomEncodingDetector.finishUp();
-    }
     
     // Update our notion of what the character set is
     startingCharset = bomEncodingDetector.getEncoding();
@@ -81,19 +70,8 @@ public class Parser
     xmlEncodingDetector.setEncoding(startingCharset);
     bomEncodingDetector = new BOMEncodingDetector(new DecodingByteReceiver(1024,startingCharset,xmlEncodingDetector));
     // Rerun the detection; this should finalize the value.
-    bomEncodingDetector.setInputStream(replayableInputStream);
-    try
-    {
-      while (true)
-      {
-        if (bomEncodingDetector.dealWithBytes())
-          break;
-      }
-    }
-    finally
-    {
+    if (bomEncodingDetector.dealWithBytes(replayableInputStream) == false)
       bomEncodingDetector.finishUp();
-    }
 
     // Get the final charset determination
     startingCharset = xmlEncodingDetector.getEncoding();
@@ -101,19 +79,8 @@ public class Parser
     replayableInputStream.restart(true);
     // Set up the whole chain and parse
     bomEncodingDetector = new BOMEncodingDetector(new DecodingByteReceiver(65536,startingCharset,characterReceiver));
-    bomEncodingDetector.setInputStream(replayableInputStream);
-    try
-    {
-      while (true)
-      {
-        if (bomEncodingDetector.dealWithBytes())
-          break;
-      }
-    }
-    finally
-    {
+    if (bomEncodingDetector.dealWithBytes(replayableInputStream) == false)
       bomEncodingDetector.finishUp();
-    }
   }
   
   /** Parse an input stream without character set detection.
@@ -127,21 +94,9 @@ public class Parser
     if (startingCharset == null)
       startingCharset = "utf-8";
     ByteReceiver byteReceiver = new DecodingByteReceiver(65536, startingCharset, characterReceiver);
-    // Set the input stream.
-    byteReceiver.setInputStream(inputStream);
-    try
-    {
-      // Process until done
-      while (true)
-      {
-        if (byteReceiver.dealWithBytes())
-          break;
-      }
-    }
-    finally
-    {
+    // Process to completion
+    if (byteReceiver.dealWithBytes(inputStream) == false)
       byteReceiver.finishUp();
-    }
   }
 
 }

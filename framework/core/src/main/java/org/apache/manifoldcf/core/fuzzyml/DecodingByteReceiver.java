@@ -30,36 +30,22 @@ public class DecodingByteReceiver extends ByteReceiver
   protected final String charSet;
   
   public DecodingByteReceiver(int chunkSize, String charSet, CharacterReceiver charReceiver)
-    throws IOException
   {
     super();
     this.charSet = charSet;
     this.charReceiver = charReceiver;
   }
   
-  /** Set the input stream.  The input stream must be
-  * at the point where the bytes being received would start.
-  * The stream is expected to be closed by the caller, when
-  * the operations are all done.
+  /** Read a byte stream and process bytes.
+  *@return true if abort signalled, false if end of stream reached.
   */
   @Override
-  public void setInputStream(InputStream is)
-    throws IOException
-  {
-    super.setInputStream(is);
-    // Create a reader based on the encoding and the input stream
-    Reader reader = new InputStreamReader(is,charSet);
-    charReceiver.setReader(reader);
-  }
-
-  /** Receive a byte stream and process up to chunksize bytes,
-  *@return true if end reached.
-  */
-  @Override
-  public boolean dealWithBytes()
+  public final boolean dealWithBytes(InputStream is)
     throws IOException, ManifoldCFException
   {
-    return charReceiver.dealWithCharacters();
+    // Create a reader based on the encoding and the input stream
+    Reader reader = new InputStreamReader(is,charSet);
+    return charReceiver.dealWithCharacters(reader);
   }
   
   /** Finish up all processing.
