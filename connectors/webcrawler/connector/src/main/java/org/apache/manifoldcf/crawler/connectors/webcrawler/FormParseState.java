@@ -162,7 +162,7 @@ public class FormParseState extends LinkParseState
           optionMap.put("type","select");
           optionMap.put("name",selectName);
           optionMap.put("multiple",selectMultiple);
-          optionMap.put("value",bodyDecode(optionValueText.toString()));
+          optionMap.put("value",optionValueText.toString());
           optionMap.put("selected",optionSelected);
           handler.noteFormInput(optionMap);
         }
