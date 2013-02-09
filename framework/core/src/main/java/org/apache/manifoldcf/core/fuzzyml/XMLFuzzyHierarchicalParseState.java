@@ -43,7 +43,11 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
 {
   /** The current context */
   protected XMLParsingContext currentContext = null;
-
+  /** The current value buffer */
+  protected StringBuilder characterBuffer = new StringBuilder();
+  /** Whether we're capturing escaped characters */
+  protected boolean captureEscaped = false;
+  
   /** Constructor.
   */
   public XMLFuzzyHierarchicalParseState(boolean lowerCaseAttributes, boolean lowerCaseTags,
@@ -78,7 +82,14 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteTagEx(String tagName, String nameSpace, String localName, Map<String,String> attributes)
     throws ManifoldCFException
   {
-    // MHL
+    if (characterBuffer.length() > 0)
+    {
+      if (currentContext != null)
+        currentContext.characters(characterBuffer.toString());
+      characterBuffer.setLength(0);
+    }
+    if (currentContext != null)
+      currentContext.startElement(nameSpace,localName,tagName,attributes);
     return false;
   }
 
@@ -88,7 +99,14 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteEndTagEx(String tagName, String nameSpace, String localName)
     throws ManifoldCFException
   {
-    // MHL
+    if (characterBuffer.length() > 0)
+    {
+      if (currentContext != null)
+        currentContext.characters(characterBuffer.toString());
+      characterBuffer.setLength(0);
+    }
+    if (currentContext != null)
+      currentContext.endElement(nameSpace,localName,tagName);
     return false;
   }
 
@@ -100,17 +118,19 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteNormalCharacter(char thisChar)
     throws ManifoldCFException
   {
-    // MHL
+    characterBuffer.append(thisChar);
     return false;
   }
 
   /** New version of the noteEscapedTag method.
   *@return true to halt further processing.
   */
+  @Override
   protected boolean noteEscapedEx(String token)
     throws ManifoldCFException
   {
-    // MHL
+    if (token.toLowerCase(Locale.ROOT).equals("cdata"))
+      captureEscaped = true;
     return false;
   }
   
@@ -123,7 +143,8 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteEscapedCharacter(char thisChar)
     throws ManifoldCFException
   {
-    // MHL
+    if (captureEscaped)
+      characterBuffer.append(thisChar);
     return false;
   }
 
@@ -134,8 +155,23 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteEndEscaped()
     throws ManifoldCFException
   {
-    // MHL
+    captureEscaped = false;
     return false;
+  }
+  
+  /** Called at the end of everything.
+  */
+  @Override
+  public void finishUp()
+    throws ManifoldCFException
+  {
+    if (characterBuffer.length() > 0)
+    {
+      if (currentContext != null)
+        currentContext.characters(characterBuffer.toString());
+      characterBuffer.setLength(0);
+    }
+    super.finishUp();
   }
   
 }

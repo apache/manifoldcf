@@ -825,6 +825,8 @@ public class TagParseState extends SingleCharacterReceiver
     if (ampBuffer.length() == 0 || (ampBuffer.length() == 1 && ampBuffer.charAt(0) == ';'))
     {
       // Length is zero; probably a mistake, so just output the whole thing
+      if (noteNormalCharacter('&'))
+        return true;
       if (dumpValues(ampBuffer.toString()))
         return true;
       return false;
