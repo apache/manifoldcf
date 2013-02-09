@@ -89,6 +89,13 @@ public class TagParseState extends SingleCharacterReceiver
   protected String currentAttrName = null;
   protected List<AttrNameValue> currentAttrList = null;
 
+  // Body decoding state
+
+  /** Whether we've seen an ampersand */
+  protected boolean inAmpersand = false;
+  /** Buffer of characters seen after ampersand. */
+  protected StringBuilder ampBuffer = new StringBuilder();
+
   protected static final Map<String,String> mapLookup = new HashMap<String,String>();
   static
   {
@@ -116,7 +123,14 @@ public class TagParseState extends SingleCharacterReceiver
     {
     case TAGPARSESTATE_NORMAL:
       if (thisChar == '<')
+      {
+        if (inAmpersand)
+        {
+          outputAmpBuffer();
+          inAmpersand = false;
+        }
         currentState = TAGPARSESTATE_SAWLEFTANGLE;
+      }
       else if (bTagDepth > 0 && thisChar == '>')
       {
         // Output current token, if any
@@ -134,8 +148,38 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else if (bTagDepth == 0)
       {
-        if (noteNormalCharacter(thisChar))
-          return true;
+        if (inAmpersand)
+        {
+          if (thisChar == ';')
+          {
+            // We append the semi so that the output function can make good decisions
+            ampBuffer.append(thisChar);
+            if (outputAmpBuffer())
+              return true;
+            inAmpersand = false;
+          }
+          else if (isWhitespace(thisChar))
+          {
+            // Interpret ampersand buffer.
+            if (outputAmpBuffer())
+              return true;
+            inAmpersand = false;
+            if (noteNormalCharacter(thisChar))
+              return true;
+          }
+          else
+            ampBuffer.append(thisChar);
+        }
+        else if (thisChar == '&')
+        {
+          inAmpersand = true;
+          ampBuffer.setLength(0);
+        }
+        else
+        {
+          if (noteNormalCharacter(thisChar))
+            return true;
+        }
       }
       else
       {
@@ -773,6 +817,45 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
 
+  /** Interpret ampersand buffer.
+  */
+  protected boolean outputAmpBuffer()
+    throws ManifoldCFException
+  {
+    if (ampBuffer.length() == 0 || (ampBuffer.length() == 1 && ampBuffer.charAt(0) == ';'))
+    {
+      // Length is zero; probably a mistake, so just output the whole thing
+      if (dumpValues(ampBuffer.toString()))
+        return true;
+      return false;
+    }
+    else
+    {
+      // Is it a known entity?
+      String entity = ampBuffer.toString();
+      if (entity.endsWith(";"))
+        entity = entity.substring(0,entity.length()-1);
+      String replacement = mapChunk(entity);
+      if (replacement != null)
+      {
+        if (dumpValues(replacement))
+          return true;
+      }
+      return false;
+    }
+  }
+  
+  protected boolean dumpValues(String value)
+    throws ManifoldCFException
+  {
+    for (int i = 0; i < value.length(); i++)
+    {
+      if (noteNormalCharacter(value.charAt(i)))
+        return true;
+    }
+    return false;
+  }
+  
   /** This method gets called for every tag.  Override this method to intercept tag begins.
   *@return true to halt further processing.
   */
@@ -880,12 +963,6 @@ public class TagParseState extends SingleCharacterReceiver
     throws ManifoldCFException
   {
     return false;
-  }
-  
-  /** Decode body text */
-  protected static String bodyDecode(String input)
-  {
-    return attributeDecode(input);
   }
   
   /** Decode an html attribute */
