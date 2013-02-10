@@ -16,34 +16,32 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.webcrawler;
+package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.fuzzyml.*;
-import java.util.*;
+import java.io.*;
 
-/** This class recognizes and interprets all meta tags */
-public class MetaParseState extends ScriptParseState
+/** This interface represents a receiver for characters.
+*/
+public abstract class CharacterReceiver
 {
-  protected IMetaTagHandler handler;
-
-  public MetaParseState(IMetaTagHandler handler)
+  /** Constructor.
+  */
+  public CharacterReceiver()
   {
-    super();
-    this.handler = handler;
   }
-
-  @Override
-  protected boolean noteNonscriptTag(String tagName, Map<String,String> attributes)
+  
+  /** Receive a stream of characters.
+  *@return true if abort signalled, false if end of stream.
+  */
+  public abstract boolean dealWithCharacters(Reader reader)
+    throws IOException, ManifoldCFException;
+  
+  /** Finish up all processing.  Called ONLY if we haven't already aborted.
+  */
+  public void finishUp()
     throws ManifoldCFException
   {
-    if (super.noteNonscriptTag(tagName,attributes))
-      return true;
-    if (tagName.equals("meta"))
-    {
-      handler.noteMetaTag(attributes);
-    }
-    return false;
   }
 
 }

@@ -21,8 +21,6 @@
 # Created: Wednesday, September 21 2011 by Alex Ott
 #
 
-mvn install:install-file -Dfile=lib/xercesImpl.jar -DgroupId=xerces -DartifactId=xercesImpl -Dversion=2.9.1-mcf-1  -Dpackaging=jar
-
 mvn install:install-file -Dfile=lib/opensaml.jar -DgroupId=org.opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
 mvn install:install-file -Dfile=lib/xmlsec.jar -DgroupId=xml-security -DartifactId=xmlsec -Dversion=1.4.1 -Dpackaging=jar
 

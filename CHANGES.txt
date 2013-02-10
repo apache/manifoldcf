@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-633: Remove dependency on custom version of xerces;
+extend the simple tag parser to be able to handle XML, and move it into
+core/fuzzyml for general use.
+(Karl Wright)
+
 CONNECTORS-639: Maven execute of jetty-runner fails.
 (Maciej Li¿ewski)
 

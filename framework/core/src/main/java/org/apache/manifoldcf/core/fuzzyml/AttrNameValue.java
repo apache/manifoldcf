@@ -16,34 +16,33 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.webcrawler;
+package org.apache.manifoldcf.core.fuzzyml;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.fuzzyml.*;
 import java.util.*;
 
-/** This class recognizes and interprets all meta tags */
-public class MetaParseState extends ScriptParseState
+/** This class represents a name/value pair from an
+* XML/HTML attribute.
+*/
+public class AttrNameValue
 {
-  protected IMetaTagHandler handler;
-
-  public MetaParseState(IMetaTagHandler handler)
+  protected final String name;
+  protected final String value;
+  
+  public AttrNameValue(String name, String value)
   {
-    super();
-    this.handler = handler;
+    this.name = name;
+    this.value = value;
   }
-
-  @Override
-  protected boolean noteNonscriptTag(String tagName, Map<String,String> attributes)
-    throws ManifoldCFException
+  
+  public String getName()
   {
-    if (super.noteNonscriptTag(tagName,attributes))
-      return true;
-    if (tagName.equals("meta"))
-    {
-      handler.noteMetaTag(attributes);
-    }
-    return false;
+    return name;
+  }
+  
+  public String getValue()
+  {
+    return value;
   }
 
 }

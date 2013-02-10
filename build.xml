@@ -3153,29 +3153,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xerces">
         <mkdir dir="lib"/>
-        <!-- Download and build patched version of xerces 2.9.1 -->
-        <mkdir dir="build/download"/>
-        <delete dir="build/download/xerces2-j"/>
-        <antcall target="checkout-source-via-svn">
-            <param name="root-dir" value="build/download"/>
-            <param name="svn-url" value="http://svn.apache.org/repos/asf/xerces/java/tags/Xerces-J_2_9_1"/>
-            <param name="dir-name" value="xerces2-j"/>
+        <property name="xerces-version" value="2.10.0"/>
+        <property name="xerces-package" value="xerces"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${xerces-package}"/><param name="artifact-version" value="${xerces-version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="xercesImpl"/>
+            <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- Apply mcf-specific features and fixes patch -->
-        <antcall target="patch-source">
-            <param name="root-dir" value="build/download"/>
-            <param name="diff-file" value="../../upstream-diffs/xerces2-j-2.9.1.mcf.patch"/>
-            <param name="dir-name" value="xerces2-j"/>
-        </antcall>
-        <!-- Build it -->
-        <exec dir="build/download/xerces2-j" executable="cmd" osfamily="windows" failifexecutionfails="true" failonerror="true">
-            <arg line="/c build.bat jar"/>
-        </exec>
-        <exec dir="build/download/xerces2-j" executable="/bin/sh" osfamily="unix" failifexecutionfails="true" failonerror="true">
-            <arg value="build.sh" />
-            <arg value="jar" />
-        </exec>
-        <copy todir="lib" file="build/download/xerces2-j/build/xercesImpl.jar"/>
     </target>
     
     <target name="download-xalan">
