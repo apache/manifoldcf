@@ -48,6 +48,10 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   /** Whether we're capturing escaped characters */
   protected boolean captureEscaped = false;
   
+  /** This is the maximum size of a chunk of characters getting sent to the characters() method.
+  */
+  protected final static int MAX_CHUNK_SIZE = 4096;
+  
   /** Constructor with default properties.
   */
   public XMLFuzzyHierarchicalParseState()
@@ -89,12 +93,7 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteTagEx(String tagName, String nameSpace, String localName, Map<String,String> attributes)
     throws ManifoldCFException
   {
-    if (characterBuffer.length() > 0)
-    {
-      if (currentContext != null)
-        currentContext.characters(characterBuffer.toString());
-      characterBuffer.setLength(0);
-    }
+    flushCharacterBuffer();
     if (currentContext != null)
       currentContext.startElement(nameSpace,localName,tagName,attributes);
     return false;
@@ -106,12 +105,7 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteEndTagEx(String tagName, String nameSpace, String localName)
     throws ManifoldCFException
   {
-    if (characterBuffer.length() > 0)
-    {
-      if (currentContext != null)
-        currentContext.characters(characterBuffer.toString());
-      characterBuffer.setLength(0);
-    }
+    flushCharacterBuffer();
     if (currentContext != null)
       currentContext.endElement(nameSpace,localName,tagName);
     return false;
@@ -125,10 +119,29 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   protected boolean noteNormalCharacter(char thisChar)
     throws ManifoldCFException
   {
-    characterBuffer.append(thisChar);
+    appendToCharacterBuffer(thisChar);
     return false;
   }
+  
+  protected void appendToCharacterBuffer(char thisChar)
+    throws ManifoldCFException
+  {
+    characterBuffer.append(thisChar);
+    if (characterBuffer.length() >= MAX_CHUNK_SIZE)
+      flushCharacterBuffer();
+  }
 
+  protected void flushCharacterBuffer()
+    throws ManifoldCFException
+  {
+    if (characterBuffer.length() > 0)
+    {
+      if (currentContext != null)
+        currentContext.characters(characterBuffer.toString());
+      characterBuffer.setLength(0);
+    }
+  }
+  
   /** New version of the noteEscapedTag method.
   *@return true to halt further processing.
   */
@@ -151,7 +164,7 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
     throws ManifoldCFException
   {
     if (captureEscaped)
-      characterBuffer.append(thisChar);
+      appendToCharacterBuffer(thisChar);
     return false;
   }
 
@@ -172,12 +185,7 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   public void finishUp()
     throws ManifoldCFException
   {
-    if (characterBuffer.length() > 0)
-    {
-      if (currentContext != null)
-        currentContext.characters(characterBuffer.toString());
-      characterBuffer.setLength(0);
-    }
+    flushCharacterBuffer();
     super.finishUp();
   }
   
