@@ -500,6 +500,65 @@ public class TagParseState extends SingleCharacterReceiver
         currentTagNameBuffer.append(thisChar);
       break;
 
+    case TAGPARSESTATE_IN_QTAG_ATTR_NAME:
+      if (isWhitespace(thisChar))
+      {
+        if (currentAttrNameBuffer.length() > 0)
+        {
+          // Done with attr name!
+          currentAttrName = currentAttrNameBuffer.toString();
+          currentAttrNameBuffer = null;
+          currentState = TAGPARSESTATE_IN_QTAG_ATTR_LOOKING_FOR_VALUE;
+        }
+      }
+      else if (thisChar == '=')
+      {
+        if (currentAttrNameBuffer.length() > 0)
+        {
+          currentAttrName = currentAttrNameBuffer.toString();
+          currentAttrNameBuffer = null;
+          currentState = TAGPARSESTATE_IN_QTAG_ATTR_VALUE;
+          currentValueBuffer = new StringBuilder();
+        }
+      }
+      else if (thisChar == '?')
+      {
+        if (currentAttrNameBuffer.length() > 0)
+        {
+          currentAttrName = currentAttrNameBuffer.toString();
+          currentAttrNameBuffer = null;
+        }
+        if (currentAttrName != null)
+        {
+          currentAttrList.add(new AttrNameValue(currentAttrName,""));
+          currentAttrName = null;
+        }
+        if (noteQTag(currentTagName,currentAttrList))
+          return true;
+        currentState = TAGPARSESTATE_IN_QTAG_SAW_QUESTION;
+      }
+      else if (thisChar == '>')
+      {
+        if (currentAttrNameBuffer.length() > 0)
+        {
+          currentAttrName = currentAttrNameBuffer.toString();
+          currentAttrNameBuffer = null;
+        }
+        if (currentAttrName != null)
+        {
+          currentAttrList.add(new AttrNameValue(currentAttrName,""));
+          currentAttrName = null;
+        }
+        currentState = TAGPARSESTATE_NORMAL;
+        if (noteQTag(currentTagName,currentAttrList))
+          return true;
+        currentTagName = null;
+        currentAttrList = null;
+      }
+      else
+        currentAttrNameBuffer.append(thisChar);
+      break;
+
     case TAGPARSESTATE_IN_ATTR_NAME:
       if (isWhitespace(thisChar))
       {
