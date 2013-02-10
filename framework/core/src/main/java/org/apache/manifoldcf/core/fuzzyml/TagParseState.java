@@ -1003,7 +1003,18 @@ public class TagParseState extends SingleCharacterReceiver
       // Treat as a decimal value
       try
       {
-        int value = Integer.parseInt(input.substring(1));
+        input = input.substring(1);
+        int value;
+        if (input.startsWith("x"))
+        {
+          // Hex
+          value = Integer.decode("0"+input);
+        }
+        else
+        {
+          // Decimal
+          value = Integer.parseInt(input);
+        }
         StringBuilder sb = new StringBuilder();
         sb.append((char)value);
         return sb.toString();
