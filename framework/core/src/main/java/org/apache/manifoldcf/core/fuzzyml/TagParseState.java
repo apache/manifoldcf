@@ -81,6 +81,12 @@ public class TagParseState extends SingleCharacterReceiver
   /** The btag depth, which indicates btag behavior when > 0. */
   protected int bTagDepth = 0;
   
+  /** This is the only buffer we actually accumulate stuff in.
+  */
+  protected StringBuilder accumBuffer = new StringBuilder();
+  
+  // The following are pointers to the accum buffer above, when allocated.
+  
   protected StringBuilder currentTagNameBuffer = null;
   protected StringBuilder currentAttrNameBuffer = null;
   protected StringBuilder currentValueBuffer = null;
@@ -211,7 +217,7 @@ public class TagParseState extends SingleCharacterReceiver
         else
         {
           if (currentTagNameBuffer == null)
-            currentTagNameBuffer = new StringBuilder();
+            currentTagNameBuffer = newBuffer();
           currentTagNameBuffer.append(thisChar);
         }
       }
@@ -259,17 +265,17 @@ public class TagParseState extends SingleCharacterReceiver
       else if (thisChar == '?')
       {
         currentState = TAGPARSESTATE_IN_QTAG_NAME;
-        currentTagNameBuffer = new StringBuilder();
+        currentTagNameBuffer = newBuffer();
       }
       else if (bTagDepth == 0 && thisChar == '/')
       {
         currentState = TAGPARSESTATE_IN_END_TAG_NAME;
-        currentTagNameBuffer = new StringBuilder();
+        currentTagNameBuffer = newBuffer();
       }
       else if (bTagDepth == 0)
       {
         currentState = TAGPARSESTATE_IN_TAG_NAME;
-        currentTagNameBuffer = new StringBuilder();
+        currentTagNameBuffer = newBuffer();
         if (!isWhitespace(thisChar))
           currentTagNameBuffer.append(thisChar);
       }
@@ -281,7 +287,7 @@ public class TagParseState extends SingleCharacterReceiver
         if (!isWhitespace(thisChar))
         {
           // Add char to current token buffer.
-          currentTagNameBuffer = new StringBuilder();
+          currentTagNameBuffer = newBuffer();
           currentTagNameBuffer.append(thisChar);
         }
         currentState = TAGPARSESTATE_NORMAL;
@@ -294,13 +300,13 @@ public class TagParseState extends SingleCharacterReceiver
       else if (thisChar == '[')
       {
         currentState = TAGPARSESTATE_IN_BRACKET_TOKEN;
-        currentTagNameBuffer = new StringBuilder();
+        currentTagNameBuffer = newBuffer();
       }
       else
       {
         bTagDepth++;
         currentState = TAGPARSESTATE_IN_BANG_TOKEN;
-        currentTagNameBuffer = new StringBuilder();
+        currentTagNameBuffer = newBuffer();
         if (!isWhitespace(thisChar))
           currentTagNameBuffer.append(thisChar);
       }
@@ -343,7 +349,7 @@ public class TagParseState extends SingleCharacterReceiver
           currentTagNameBuffer = null;
           currentAttrList = new ArrayList<AttrNameValue>();
           currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
-          currentAttrNameBuffer = new StringBuilder();
+          currentAttrNameBuffer = newBuffer();
         }
       }
       else if (thisChar == '?')
@@ -459,7 +465,7 @@ public class TagParseState extends SingleCharacterReceiver
           currentTagNameBuffer = null;
           currentAttrList = new ArrayList<AttrNameValue>();
           currentState = TAGPARSESTATE_IN_ATTR_NAME;
-          currentAttrNameBuffer = new StringBuilder();
+          currentAttrNameBuffer = newBuffer();
         }
       }
       else if (thisChar == '/')
@@ -518,7 +524,7 @@ public class TagParseState extends SingleCharacterReceiver
           currentAttrName = currentAttrNameBuffer.toString();
           currentAttrNameBuffer = null;
           currentState = TAGPARSESTATE_IN_QTAG_ATTR_VALUE;
-          currentValueBuffer = new StringBuilder();
+          currentValueBuffer = newBuffer();
         }
       }
       else if (thisChar == '?')
@@ -577,7 +583,7 @@ public class TagParseState extends SingleCharacterReceiver
           currentAttrName = currentAttrNameBuffer.toString();
           currentAttrNameBuffer = null;
           currentState = TAGPARSESTATE_IN_ATTR_VALUE;
-          currentValueBuffer = new StringBuilder();
+          currentValueBuffer = newBuffer();
         }
       }
       else if (thisChar == '/')
@@ -622,7 +628,7 @@ public class TagParseState extends SingleCharacterReceiver
       if (thisChar == '=')
       {
         currentState = TAGPARSESTATE_IN_QTAG_ATTR_VALUE;
-        currentValueBuffer = new StringBuilder();
+        currentValueBuffer = newBuffer();
       }
       else if (thisChar == '>')
       {
@@ -644,7 +650,7 @@ public class TagParseState extends SingleCharacterReceiver
       {
         currentAttrList.add(new AttrNameValue(currentAttrName,""));
         currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
         currentAttrNameBuffer.append(thisChar);
         currentAttrName = null;
       }
@@ -654,7 +660,7 @@ public class TagParseState extends SingleCharacterReceiver
       if (thisChar == '=')
       {
         currentState = TAGPARSESTATE_IN_ATTR_VALUE;
-        currentValueBuffer = new StringBuilder();
+        currentValueBuffer = newBuffer();
       }
       else if (thisChar == '>')
       {
@@ -676,7 +682,7 @@ public class TagParseState extends SingleCharacterReceiver
       {
         currentAttrList.add(new AttrNameValue(currentAttrName,""));
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
         currentAttrNameBuffer.append(thisChar);
         currentAttrName = null;
       }
@@ -763,7 +769,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
       }
       else
         currentValueBuffer.append(thisChar);
@@ -776,7 +782,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
       }
       else
         currentValueBuffer.append(thisChar);
@@ -789,7 +795,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
       }
       else
         currentValueBuffer.append(thisChar);
@@ -802,7 +808,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
       }
       else
         currentValueBuffer.append(thisChar);
@@ -815,7 +821,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_QTAG_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
       }
       else if (thisChar == '?')
       {
@@ -846,7 +852,7 @@ public class TagParseState extends SingleCharacterReceiver
         currentAttrName = null;
         currentValueBuffer = null;
         currentState = TAGPARSESTATE_IN_ATTR_NAME;
-        currentAttrNameBuffer = new StringBuilder();
+        currentAttrNameBuffer = newBuffer();
       }
       else if (thisChar == '/')
       {
@@ -876,6 +882,14 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
 
+  /** Allocate the buffer.
+  */
+  protected StringBuilder newBuffer()
+  {
+    accumBuffer.setLength(0);
+    return accumBuffer;
+  }
+  
   /** Interpret ampersand buffer.
   */
   protected boolean outputAmpBuffer()
