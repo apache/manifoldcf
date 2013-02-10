@@ -389,7 +389,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           //    sessionid="17ab96bd8ffbe8ca58a78657a918558e"
           //  />
           //</api>
-          XMLStream x = new XMLStream();
+          XMLStream x = new XMLStream(false);
           WikiLoginAPIContext c = new WikiLoginAPIContext(x,result);
           x.setContext(c);
           try {
@@ -541,7 +541,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           //    sessionid="17ab96bd8ffbe8ca58a78657a918558e"
           //  />
           //</api>
-          XMLStream x = new XMLStream();
+          XMLStream x = new XMLStream(false);
           WikiTokenLoginAPIContext c = new WikiTokenLoginAPIContext(x,result);
           x.setContext(c);
           try {
@@ -1890,7 +1890,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-    XMLStream x = new XMLStream();
+    XMLStream x = new XMLStream(false);
     WikiCheckAPIContext c = new WikiCheckAPIContext(x);
     x.setContext(c);
     try
@@ -2268,7 +2268,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-    XMLStream x = new XMLStream();
+    XMLStream x = new XMLStream(false);
     WikiListPagesAPIContext c = new WikiListPagesAPIContext(x,buffer,startPageTitle);
     x.setContext(c);
     try
@@ -2635,7 +2635,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-    XMLStream x = new XMLStream();
+    XMLStream x = new XMLStream(false);
     WikiGetDocURLsAPIContext c = new WikiGetDocURLsAPIContext(x,urls);
     x.setContext(c);
     try
@@ -2957,7 +2957,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-    XMLStream x = new XMLStream();
+    XMLStream x = new XMLStream(false);
     WikiGetTimestampAPIContext c = new WikiGetTimestampAPIContext(x,versions);
     x.setContext(c);
     try
@@ -3290,7 +3290,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           //    </namespaces>
           //  </query>
           //</api>
-          XMLStream x = new XMLStream();
+          XMLStream x = new XMLStream(false);
           WikiGetNamespacesAPIContext c = new WikiGetNamespacesAPIContext(x,namespaces);
           x.setContext(c);
           try
@@ -3710,7 +3710,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           //  </query>
           //</api>
 
-          XMLStream x = new XMLStream();
+          XMLStream x = new XMLStream(false);
           WikiGetDocInfoAPIContext c = new WikiGetDocInfoAPIContext(x);
           x.setContext(c);
           try

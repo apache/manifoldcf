@@ -14,8 +14,6 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-cmd /c mvn install:install-file -Dfile=lib/xercesImpl.jar -DgroupId=xerces -DartifactId=xercesImpl -Dversion=2.9.1-mcf-1  -Dpackaging=jar
-
 cmd /c mvn install:install-file -Dfile=lib/opensaml.jar -DgroupId=org.opensaml -DartifactId=opensaml -Dversion=1.0.1 -Dpackaging=jar
 cmd /c mvn install:install-file -Dfile=lib/xmlsec.jar -DgroupId=xml-security -DartifactId=xmlsec -Dversion=1.4.1 -Dpackaging=jar
 
