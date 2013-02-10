@@ -48,6 +48,13 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
   /** Whether we're capturing escaped characters */
   protected boolean captureEscaped = false;
   
+  /** Constructor with default properties.
+  */
+  public XMLFuzzyHierarchicalParseState()
+  {
+    this(true,true,true,true,true,true);
+  }
+  
   /** Constructor.
   */
   public XMLFuzzyHierarchicalParseState(boolean lowerCaseAttributes, boolean lowerCaseTags,
