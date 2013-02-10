@@ -243,6 +243,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
     while (len > 0)
     {
       replayBuffer.appendByte(buffer[offset++]);
+      len--;
     }
     return overflowByteReceiver.dealWithBytes(new PrefixedInputStream(replayBuffer,inputStream));
   }
