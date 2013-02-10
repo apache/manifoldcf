@@ -26,14 +26,6 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import org.apache.manifoldcf.core.fuzzyml.*;
 
-import org.xml.sax.Attributes;
-
-import org.apache.manifoldcf.core.common.XMLDoc;
-import org.apache.manifoldcf.agents.common.XMLStream;
-import org.apache.manifoldcf.agents.common.XMLContext;
-import org.apache.manifoldcf.agents.common.XMLStringContext;
-import org.apache.manifoldcf.agents.common.XMLFileContext;
-
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.CircularRedirectException;
@@ -6025,8 +6017,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       // from it presuming it is an RSS feed.
 
       String encoding = extractEncoding(contentType);
-      if (encoding == null)
-        encoding = "utf-8";
 
       InputStream is = cache.getData(documentURI);
       if (is == null)
@@ -6036,30 +6026,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
       try
       {
-        // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-        XMLStream x = new XMLStream();
+        // Parse the document.  This will cause various things to occur, within the instantiated XMLParsingContext class.
+        Parser p = new Parser();
+        XMLFuzzyHierarchicalParseState x = new XMLFuzzyHierarchicalParseState();
         OuterContextClass c = new OuterContextClass(x,documentURI,handler);
         x.setContext(c);
         try
         {
-          x.parse(is);
+          p.parseWithCharsetDetection(encoding,is,x);
           c.checkIfValidFeed();
         }
         finally
         {
           x.cleanup();
         }
-      }
-      catch (ManifoldCFException e)
-      {
-        // Ignore XML parsing errors.  These should probably have their own error code, but that requires a core change.
-        if (e.getMessage().indexOf("pars") >= 0)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: XML document '"+documentURI+"' was unparseable ("+e.getMessage()+"), skipping");
-          return;
-        }
-        throw e;
       }
       finally
       {
@@ -6087,7 +6067,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** This class handles the outermost XML context for the feed document. */
-  protected class OuterContextClass extends XMLContext
+  protected class OuterContextClass extends XMLParsingContext
   {
     /** Keep track of the number of valid feed signals we saw */
     protected int outerTagCount = 0;
@@ -6096,7 +6076,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** The link handler */
     protected IXMLHandler handler;
 
-    public OuterContextClass(XMLStream theStream, String documentURI, IXMLHandler handler)
+    public OuterContextClass(XMLFuzzyHierarchicalParseState theStream, String documentURI, IXMLHandler handler)
     {
       super(theStream);
       this.documentURI = documentURI;
@@ -6114,8 +6094,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     /** Handle the tag beginning to set the correct second-level parsing context */
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       if (localName.equals("rss"))
       {
@@ -6123,36 +6104,37 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         outerTagCount++;
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Parsed bottom-level XML for RSS document '"+documentURI+"'");
-        return new RSSContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new RSSContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
       else if (localName.equals("RDF"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
-        return new RDFContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new RDFContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
       else if (localName.equals("feed"))
       {
         // Basic feed detected
         outerTagCount++;
-        return new FeedContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new FeedContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
       else if (localName.equals("urlset") || localName.equals("sitemapindex"))
       {
         // Sitemap detected
         outerTagCount++;
-        return new UrlsetContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new UrlsetContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
 
       // The default action is to establish a new default context.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
     /** Handle the tag ending */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext context = theStream.getContext();
+      XMLParsingContext context = theStream.getContext();
       String tagName = context.getLocalname();
       if (tagName.equals("RDF"))
       {
@@ -6172,39 +6154,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   }
 
-  protected class RSSContextClass extends XMLContext
+  protected class RSSContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
     /** Link notification interface */
     protected IXMLHandler handler;
 
-    public RSSContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public RSSContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // Handle each channel
       if (localName.equals("channel"))
       {
         // Channel detected
-        return new RSSChannelContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new RSSChannelContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
 
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
       // If it's our channel tag, process global channel information
-      XMLContext context = theStream.getContext();
+      XMLParsingContext context = theStream.getContext();
       String tagName = context.getLocalname();
       if (tagName.equals("channel"))
       {
@@ -6215,7 +6199,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RSSChannelContextClass extends XMLContext
+  protected class RSSChannelContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6225,39 +6209,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** TTL value is set on a per-channel basis */
     protected String ttlValue = null;
 
-    public RSSChannelContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public RSSChannelContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new RSSItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new RSSItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("item"))
       {
         // It's an item.
@@ -6289,50 +6275,52 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RSSItemContextClass extends XMLContext
+  protected class RSSItemContextClass extends XMLParsingContext
   {
     protected String guidField = null;
     protected String linkField = null;
 
-    public RSSItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public RSSItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (localName.equals("link"))
       {
         // "link" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else if (localName.equals("guid"))
       {
         // "guid" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("guid"))
       {
-        guidField = ((XMLStringContext)theContext).getValue();
+        guidField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -6361,7 +6349,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RDFContextClass extends XMLContext
+  protected class RDFContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6371,39 +6359,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** ttl value */
     protected String ttlValue = null;
 
-    public RDFContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public RDFContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new RDFItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new RDFItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("item"))
       {
         // It's an item.
@@ -6431,40 +6421,42 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RDFItemContextClass extends XMLContext
+  protected class RDFItemContextClass extends XMLParsingContext
   {
     protected String linkField = null;
 
-    public RDFItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public RDFItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (localName.equals("link"))
       {
         // "link" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -6490,7 +6482,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class FeedContextClass extends XMLContext
+  protected class FeedContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6500,39 +6492,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** ttl value */
     protected String ttlValue = null;
 
-    public FeedContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public FeedContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else if (localName.equals("entry"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new FeedItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new FeedItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("entry"))
       {
         // It's an item.
@@ -6561,31 +6555,32 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class FeedItemContextClass extends XMLContext
+  protected class FeedItemContextClass extends XMLParsingContext
   {
     protected List<String> linkField = new ArrayList<String>();
 
-    public FeedItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public FeedItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
       if (localName.equals("link"))
       {
         // "link" tag
-        String ref = atts.getValue("href");
+        String ref = atts.get("href");
         if (ref != null && ref.length() > 0)
           linkField.add(ref);
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
@@ -6610,7 +6605,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class UrlsetContextClass extends XMLContext
+  protected class UrlsetContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6620,30 +6615,32 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** ttl value */
     protected String ttlValue = null;
 
-    public UrlsetContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public UrlsetContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "url", nothing else.
       if (localName.equals("url") || localName.equals("sitemap"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new UrlsetItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new UrlsetItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("url") || theTag.equals("sitemap"))
       {
@@ -6676,40 +6673,42 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class UrlsetItemContextClass extends XMLContext
+  protected class UrlsetItemContextClass extends XMLParsingContext
   {
     protected String linkField = null;
 
-    public UrlsetItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public UrlsetItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "loc", nothing else.
       if (localName.equals("loc"))
       {
         // "loc" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
+      XMLParsingContext theContext = theStream.getContext();
       String theTag = theContext.getLocalname();
       if (theTag.equals("loc"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
