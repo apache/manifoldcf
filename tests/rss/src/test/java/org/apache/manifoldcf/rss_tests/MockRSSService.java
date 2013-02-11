@@ -101,7 +101,11 @@ public class MockRSSService
         for (int i = 0 ; i < docsPerFeed ; i++)
         {
           res.getWriter().printf("    <item>\n");
-          res.getWriter().printf("      <link>http://localhost:8189/rss/gen.php?type=doc&#38;feed="+theFeed+"&#38;doc="+i+"</link>\n");
+          // Test CDATA feeds
+          if ((i % 2) == 0)
+            res.getWriter().printf("      <link>http://localhost:8189/rss/gen.php?type=doc&#38;feed="+theFeed+"&#38;doc="+i+"</link>\n");
+          else
+            res.getWriter().printf("      <link><![CDATA[http://localhost:8189/rss/gen.php?type=doc&feed="+theFeed+"&doc="+i+"]]></link>\n");
           res.getWriter().printf("      <title>Feed "+theFeed+" Document "+i+"</title>\n");
           res.getWriter().printf("    </item>\n");
         }
