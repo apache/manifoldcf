@@ -59,7 +59,10 @@ public class ReplayableInputStream extends InputStream
     if (theByte == -1)
       return theByte;
     if (doBuffering)
+    {
       bytes.appendByte((byte)theByte);
+      bytePosition++;
+    }
     return theByte;
   }
   
