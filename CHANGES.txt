@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-641: Add filename, mimetype, acls, and proper escaping
+to ElasticSearch connector.
+(Karl Wright)
+
 CONNECTORS-633: Remove dependency on custom version of xerces;
 extend the simple tag parser to be able to handle XML, and move it into
 core/fuzzyml for general use.

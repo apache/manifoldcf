@@ -42,6 +42,11 @@ import org.apache.manifoldcf.crawler.system.Logging;
 public class ElasticSearchIndex extends ElasticSearchConnection
 {
 
+  /** The allow attribute name */
+  protected final static String allowAttributeName = "allow_token_";
+  /** The deny attribute name */
+  protected final static String denyAttributeName = "deny_token_";
+
   private class IndexRequestEntity implements HttpEntity
   {
 
@@ -90,31 +95,18 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       {
         pw.print("{");
         Iterator<String> i = document.getFields();
-        boolean existentFields = false;
+        boolean needComma = false;
         while (i.hasNext()){
           String fieldName = i.next();
           String[] fieldValues = document.getFieldAsStrings(fieldName);
-          if(fieldValues.length>1){
-            for(int j=0; j<fieldValues.length; j++){
-              String fieldValue = fieldValues[j];
-              pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
-              if(j<fieldValues.length-1){
-                pw.print(",");
-              }
-              existentFields = true;
-            }
-          } else if(fieldValues.length==1){
-            String fieldValue = fieldValues[0];
-            pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
-            if(i.hasNext()){
-              pw.print(",");
-            }
-            existentFields = true;
-          }
+          needComma = writeField(pw, needComma, fieldName, fieldValues);
         }
-        
+
+        needComma = writeACLs(pw, needComma, "document", document.getACL(), document.getDenyACL());
+        needComma = writeACLs(pw, needComma, "share", document.getShareACL(), document.getShareDenyACL());
+
         if(inputStream!=null){
-          if(existentFields){
+          if(needComma){
             pw.print(",");
           }
           pw.print("\"type\" : \"attachment\",");
@@ -158,6 +150,31 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
   }
 
+  protected static boolean writeField(PrintWriter pw, boolean needComma,
+    String fieldName, String[] fieldValues)
+    throws IOException
+  {
+    for(int j=0; j<fieldValues.length; j++){
+      if (needComma)
+        pw.print(",");
+      String fieldValue = fieldValues[j];
+      pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
+      needComma = true;
+    }
+    return needComma;
+  }
+  
+  /** Output an acl level */
+  protected static boolean writeACLs(PrintWriter pw, boolean needComma,
+    String aclType, String[] acl, String[] denyAcl)
+    throws IOException
+  {
+    String metadataACLName = allowAttributeName + aclType;
+    needComma = writeField(pw,needComma,metadataACLName,acl);
+    String metadataDenyACLName = denyAttributeName + aclType;
+    return writeField(pw,needComma,metadataDenyACLName,denyAcl);
+  }
+
   protected static String jsonStringEscape(String value)
   {
     StringBuilder sb = new StringBuilder("\"");
@@ -172,6 +189,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     return sb.toString();
   }
   
+
   public ElasticSearchIndex(HttpClient client, ElasticSearchConfig config)
   {
     super(config, client);
