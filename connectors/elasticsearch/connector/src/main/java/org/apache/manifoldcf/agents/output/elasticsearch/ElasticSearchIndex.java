@@ -97,7 +97,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           if(fieldValues.length>1){
             for(int j=0; j<fieldValues.length; j++){
               String fieldValue = fieldValues[j];
-              pw.print("\""+fieldName+"\" : \""+fieldValue+"\"");
+              pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
               if(j<fieldValues.length-1){
                 pw.print(",");
               }
@@ -105,7 +105,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
             }
           } else if(fieldValues.length==1){
             String fieldValue = fieldValues[0];
-            pw.print("\""+fieldName+"\" : \""+fieldValue+"\"");
+            pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(fieldValue));
             if(i.hasNext()){
               pw.print(",");
             }
@@ -152,6 +152,20 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
   }
 
+  protected static String jsonStringEscape(String value)
+  {
+    StringBuilder sb = new StringBuilder("\"");
+    for (int i = 0; i < value.length(); i++)
+    {
+      char x = value.charAt(i);
+      if (x == '\"' || x == '\\' || x == '/')
+        sb.append('\\');
+      sb.append(x);
+    }
+    sb.append("\"");
+    return sb.toString();
+  }
+  
   public ElasticSearchIndex(HttpClient client, ElasticSearchConfig config)
   {
     super(config, client);
