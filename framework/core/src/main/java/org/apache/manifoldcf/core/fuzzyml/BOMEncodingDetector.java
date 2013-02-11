@@ -151,8 +151,8 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
       }
       else
       {
-        // Encoding detected as UTF-16LE
-        mark();
+        // Encoding detected as UTF-16LE.  Do NOT re-mark, we need this
+        // character for later.
         return establishEncoding("UTF-16LE");
       }
       break;
@@ -197,7 +197,7 @@ public class BOMEncodingDetector extends SingleByteReceiver implements EncodingD
   protected boolean establishEncoding(String encoding)
     throws ManifoldCFException
   {
-    this.encoding = encoding;
+    setEncoding(encoding);
     return true;
   }
   
