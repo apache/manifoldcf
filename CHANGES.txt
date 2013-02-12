@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-644: Restart button did not work.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-643: Fix spurious error report for Elastic Search deletions
 in Simple History.
 (Karl Wright)

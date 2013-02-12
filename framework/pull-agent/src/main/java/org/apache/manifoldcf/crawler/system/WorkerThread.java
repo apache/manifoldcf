@@ -332,11 +332,14 @@ public class WorkerThread extends Thread
                       // know that no documents were ingested.
                       // Therefore, active -> pending and activepurgatory -> pendingpurgatory
 
-                      Logging.jobs.warn("Pre-ingest service interruption reported for job "+
-                        job.getID()+" connection '"+job.getConnectionName()+"': "+
-                        e.getMessage());
+                      if (!e.jobInactiveAbort())
+                      {
+                        Logging.jobs.warn("Pre-ingest service interruption reported for job "+
+                          job.getID()+" connection '"+job.getConnectionName()+"': "+
+                          e.getMessage());
+                      }
 
-                      if (e.isAbortOnFail())
+                      if (!e.jobInactiveAbort() && e.isAbortOnFail())
                         abortOnFail = new ManifoldCFException("Repeated service interruptions - failure getting document version"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                         
                       // Mark the current documents to be recrawled at the
@@ -1341,7 +1344,7 @@ public class WorkerThread extends Thread
       throws ManifoldCFException, ServiceInterruption
     {
       if (jobManager.checkJobActive(job.getID()) == false)
-        throw new ServiceInterruption("Job no longer active",System.currentTimeMillis());
+        throw new ServiceInterruption("Job no longer active",System.currentTimeMillis(),true);
     }
 
     /** Begin an event sequence.
