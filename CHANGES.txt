@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-643: Fix spurious error report for Elastic Search deletions
+in Simple History.
+(Karl Wright)
+
 CONNECTORS-641: Add filename, mimetype, acls, and proper escaping
 to ElasticSearch connector.
 (Karl Wright)

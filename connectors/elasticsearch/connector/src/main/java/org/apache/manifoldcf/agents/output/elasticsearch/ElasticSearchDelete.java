@@ -24,6 +24,7 @@ import org.apache.http.client.methods.HttpDelete;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchDelete extends ElasticSearchConnection
 {
@@ -43,9 +44,12 @@ public class ElasticSearchDelete extends ElasticSearchConnection
           "/" + config.getIndexName() + "/" + config.getIndexType()
           + "/" + idField);
       call(method);
-      if ("ok".equals(jsonStatus))
+      if ("true".equals(checkJson(jsonStatus)))
         return;
+      // We thought we needed to delete, but ElasticSearch disagreed.
+      // Log the result as an error, but proceed anyway.
       setResult(Result.ERROR, checkJson(jsonException));
+      Logging.connectors.warn("ES: Delete failed: "+getResponse());
     }
     catch (java.io.UnsupportedEncodingException e)
     {

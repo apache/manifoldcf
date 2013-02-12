@@ -239,12 +239,12 @@ public class ElasticSearchConnection
     }
     else if (code == 404)
     {
-      setResult(Result.ERROR, response);
+      setResult(Result.ERROR, "Page not found: " + response);
       throw new ManifoldCFException("Server/page not found");
     }
     else if (code >= 400 && code < 500)
     {
-      setResult(Result.ERROR, response);
+      setResult(Result.ERROR, "HTTP code = "+code+", Response = "+response);
       return false;
     }
     else if (code >= 500 && code < 600)
@@ -258,7 +258,7 @@ public class ElasticSearchConnection
         -1,
         false);
     }
-    setResult(Result.UNKNOWN, response);
+    setResult(Result.UNKNOWN, "HTTP code = "+code+", Response = "+response);
     throw new ManifoldCFException("Unexpected HTTP result code: "+code+": "+response);
   }
 

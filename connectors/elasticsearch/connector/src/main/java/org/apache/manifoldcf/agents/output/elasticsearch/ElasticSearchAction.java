@@ -24,6 +24,7 @@ import org.apache.http.client.HttpClient;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchAction extends ElasticSearchConnection
 {
@@ -48,5 +49,6 @@ public class ElasticSearchAction extends ElasticSearchConnection
     if ("true".equals(checkJson(jsonStatus)))
       return;
     setResult(Result.ERROR, checkJson(jsonException));
+    Logging.connectors.warn("ES: Commit failed: "+getResponse());
   }
 }

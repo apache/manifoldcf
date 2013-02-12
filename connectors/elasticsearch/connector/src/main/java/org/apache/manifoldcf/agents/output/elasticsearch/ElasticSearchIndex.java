@@ -222,7 +222,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       return true;
     String error = checkJson(jsonException);
     setResult(Result.ERROR, error);
-    Logging.connectors.error(getResponse());
+    Logging.connectors.warn("ES: Index failed: "+getResponse());
     return true;
   }
 
