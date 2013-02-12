@@ -54,6 +54,7 @@
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>
     <xerces.version>2.10.0</xerces.version>
+    <xml-apis.version>1.4.01</xml-apis.version>
     <jtds.version>1.2.4</jtds.version>
     <servlet-api.version>2.5</servlet-api.version>
     <jstl.version>1.2</jstl.version>
