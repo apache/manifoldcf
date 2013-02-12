@@ -154,6 +154,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     String fieldName, String[] fieldValues)
     throws IOException
   {
+    if (fieldValues == null)
+      return needComma;
     for(int j=0; j<fieldValues.length; j++){
       if (needComma)
         pw.print(",");
