@@ -112,10 +112,10 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           pw.print("\"type\" : \"attachment\",");
           String contentType = document.getMimeType();
           if (contentType != null)
-            pw.print("\"_content_type\" : "+jsonStringEscape(contentType));
+            pw.print("\"_content_type\" : "+jsonStringEscape(contentType)+",");
           String fileName = document.getFileName();
           if (fileName != null)
-            pw.print("\"_name\" : "+jsonStringEscape(fileName));
+            pw.print("\"_name\" : "+jsonStringEscape(fileName)+",");
           pw.print("\"file\" : \"");
           Base64 base64 = new Base64();
           base64.encodeStream(inputStream, pw);
