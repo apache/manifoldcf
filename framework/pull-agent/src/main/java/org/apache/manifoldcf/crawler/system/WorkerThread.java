@@ -1707,19 +1707,22 @@ public class WorkerThread extends Thread
 
       String documentIdentifierHash = ManifoldCF.hash(documentIdentifier);
 
-      Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
-      
-      // Modify the repository document with forced parameters.
-      for (String paramName : forcedMetadata.keySet())
+      if (data != null)
       {
-        Set<String> values = forcedMetadata.get(paramName);
-        String[] paramValues = new String[values.size()];
-        int j = 0;
-        for (String value : values)
+        Map<String,Set<String>> forcedMetadata = job.getForcedMetadata();
+        
+        // Modify the repository document with forced parameters.
+        for (String paramName : forcedMetadata.keySet())
         {
-          paramValues[j++] = value;
+          Set<String> values = forcedMetadata.get(paramName);
+          String[] paramValues = new String[values.size()];
+          int j = 0;
+          for (String value : values)
+          {
+            paramValues[j++] = value;
+          }
+          data.addField(paramName,paramValues);
         }
-        data.addField(paramName,paramValues);
       }
         
       // First, we need to add into the metadata the stuff from the job description.

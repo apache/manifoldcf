@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-645: Handle null data properly in worker thread.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-644: Restart button did not work.
 (Erlend Garåsen, Karl Wright)
 
