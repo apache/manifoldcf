@@ -2303,8 +2303,16 @@
         <ant dir="tests/webcrawler" target="run-derby"/>
     </target>
 
+    <target name="run-webcrawler-tests-postgresql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <ant dir="tests/webcrawler" target="run-postgresql"/>
+    </target>
+
     <target name="run-webcrawler-loadtests-postgresql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
         <ant dir="tests/webcrawler" target="run-load-postgresql"/>
+    </target>
+
+    <target name="run-webcrawler-tests-mysql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <ant dir="tests/webcrawler" target="run-mysql"/>
     </target>
 
     <target name="run-webcrawler-loadtests-mysql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
@@ -2505,13 +2513,13 @@
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
+    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-webcrawler-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
     <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-ldap-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector,run-tests-mysql-elasticsearch-connector"/>
     <target name="run-tests-mysql-lgpl-connectors" depends="run-tests-mysql-jcifs-connector"/>
     <target name="run-tests-mysql-proprietary-connectors" depends="run-tests-mysql-documentum-connector,run-tests-mysql-filenet-connector,run-tests-mysql-livelink-connector,run-tests-mysql-memex-connector,run-tests-mysql-meridio-connector,run-tests-mysql-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
+    <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-webcrawler-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
 
     <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-ldap-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector,run-tests-HSQLDB-elasticsearch-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>

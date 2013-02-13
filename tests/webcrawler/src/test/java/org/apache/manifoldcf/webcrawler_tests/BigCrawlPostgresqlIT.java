@@ -23,13 +23,13 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class BigCrawlPostgresqlLT extends BasePostgresql
+public class BigCrawlPostgresqlIT extends BasePostgresql
 {
 
   protected BigCrawlTester tester;
   protected MockWebService webService = null;
   
-  public BigCrawlPostgresqlLT()
+  public BigCrawlPostgresqlIT()
   {
     tester = new BigCrawlTester(mcfInstance);
   }
