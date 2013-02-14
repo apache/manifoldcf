@@ -243,9 +243,7 @@ public class HttpPoster
     }
 
     String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
-    HttpSolrServer httpSolrServer = new HttpSolrServer(httpSolrServerUrl, localClient);
-    // For portability with older versions of Solr
-    httpSolrServer.setParser(new XMLResponseParser());
+    HttpSolrServer httpSolrServer = new ModifiedHttpSolrServer(httpSolrServerUrl, localClient, new XMLResponseParser());
     // Set the solrj instance we want to use
     solrServer = httpSolrServer;
   }
@@ -812,9 +810,10 @@ public class HttpPoster
               writeField(out,LITERAL+newFieldName,values);
             }
           }
-               
-          writeField(out,LITERAL+"stream_size",String.valueOf(length));
-          writeField(out,LITERAL+"stream_name",document.getFileName());
+             
+          // These are unnecessary now in the case of non-solrcloud setups, because we overrode the SolrJ posting method to use multipart.
+          //writeField(out,LITERAL+"stream_size",String.valueOf(length));
+          //writeField(out,LITERAL+"stream_name",document.getFileName());
           
           // Write the commitWithin parameter
           if (commitWithin != null)

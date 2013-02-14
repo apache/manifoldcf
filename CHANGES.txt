@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-623: A better fix, overriding the posting method for
+SolrJ and forcing multipart post.  Although still a hack, this should cause
+the behavior to work like MCF 1.0.1 now.
+(Karl Wright)
+
 CONNECTORS-645: Handle null data properly in worker thread.
 (Maciej Li¿ewski, Karl Wright)
 
