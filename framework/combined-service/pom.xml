@@ -199,6 +199,8 @@
                 <type>war</type>
                 <includes>
                   <include>*.jsp</include>
+                  <include>*.css</include>
+                  <include>*.png</include>
                 </includes>
                 <targetPath>/</targetPath>
               </overlay>
