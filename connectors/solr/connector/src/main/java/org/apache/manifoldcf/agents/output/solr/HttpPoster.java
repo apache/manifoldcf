@@ -815,6 +815,10 @@ public class HttpPoster
           //writeField(out,LITERAL+"stream_size",String.valueOf(length));
           //writeField(out,LITERAL+"stream_name",document.getFileName());
           
+          // General hint for Tika
+          if (document.getFileName() != null)
+            writeField(out,"resource.name",document.getFileName());
+          
           // Write the commitWithin parameter
           if (commitWithin != null)
             writeField(out,COMMITWITHIN_METADATA,commitWithin);

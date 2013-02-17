@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-647: Add the resource.name hint to the Solr output
+connector.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-623: A better fix, overriding the posting method for
 SolrJ and forcing multipart post.  Although still a hack, this should cause
 the behavior to work like MCF 1.0.1 now.
