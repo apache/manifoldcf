@@ -140,7 +140,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
           else if( SolrRequest.METHOD.POST == request.getMethod() ) {
 
             String url = baseUrl + path;
-            boolean isMultipart = ( streams != null && streams.size() > 1 );
+            boolean isMultipart = this.useMultiPartPost || ( streams != null && streams.size() > 1 );
 
             LinkedList<NameValuePair> postParams = new LinkedList<NameValuePair>();
             if (streams == null || isMultipart) {
@@ -158,7 +158,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
                 String[] vals = params.getParams(p);
                 if (vals != null) {
                   for (String v : vals) {
-                    if (this.useMultiPartPost || isMultipart) {
+                    if (isMultipart) {
                       parts.add(new FormBodyPart(p, new StringBody(v, Charset.forName("UTF-8"))));
                     } else {
                       postParams.add(new BasicNameValuePair(p, v));
