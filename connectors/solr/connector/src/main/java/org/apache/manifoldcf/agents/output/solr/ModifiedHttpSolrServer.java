@@ -167,7 +167,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
                 }
               }
 
-              if (isMultipart) {
+              if (isMultipart && streams != null) {
                 for (ContentStream content : streams) {
                   String contentType = content.getContentType();
                   if(contentType==null) {
