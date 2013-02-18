@@ -140,13 +140,22 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
           else if( SolrRequest.METHOD.POST == request.getMethod() ) {
 
             String url = baseUrl + path;
-            boolean isMultipart = this.useMultiPartPost || ( streams != null && streams.size() > 1 );
-
+            boolean hasNullStreamName = false;
+            if (streams != null) {
+              for (ContentStream cs : streams) {
+                if (cs.getName() == null) {
+                  hasNullStreamName = true;
+                  break;
+                }
+              }
+            }
+            boolean isMultipart = (this.useMultiPartPost || ( streams != null && streams.size() > 1 )) && !hasNullStreamName;
+            
             LinkedList<NameValuePair> postParams = new LinkedList<NameValuePair>();
             if (streams == null || isMultipart) {
               HttpPost post = new HttpPost(url);
               post.setHeader("Content-Charset", "UTF-8");
-              if (!this.useMultiPartPost && !isMultipart) {
+              if (!isMultipart) {
                 post.addHeader("Content-Type",
                     "application/x-www-form-urlencoded; charset=UTF-8");
               }
@@ -173,7 +182,8 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
                   if(contentType==null) {
                     contentType = "application/octet-stream"; // default
                   }
-                  parts.add(new FormBodyPart(content.getName(), 
+                  String contentName = content.getName();
+                  parts.add(new FormBodyPart(contentName, 
                        new InputStreamBody(
                            content.getStream(), 
                            contentType, 
