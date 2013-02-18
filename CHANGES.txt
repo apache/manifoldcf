@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-648: Revamp how tld's are used, for compatibility with
+Tomcat.
+(Jan Høydahl)
+
 CONNECTORS-647: Add the resource.name hint to the Solr output
 connector.
 (Maciej Li¿ewski, Karl Wright)

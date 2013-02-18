@@ -29,28 +29,6 @@
     <session-timeout>5</session-timeout>
   </session-config>
 
-  <jsp-config>
-    <taglib>
-    <taglib-uri>http://java.sun.com/jstl/core</taglib-uri>
-    <taglib-location>/WEB-INF/jsp/c.tld</taglib-location>
-    </taglib>
-
-    <taglib>
-    <taglib-uri>http://java.sun.com/jstl/fmt</taglib-uri>
-    <taglib-location>/WEB-INF/jsp/fmt.tld</taglib-location>
-    </taglib>
-
-    <taglib>
-    <taglib-uri>http://java.sun.com/jstl/xml</taglib-uri>
-    <taglib-location>/WEB-INF/jsp/x.tld</taglib-location>
-    </taglib>
-
-    <taglib>
-    <taglib-uri>http://java.sun.com/jstl/sql</taglib-uri>
-    <taglib-location>/WEB-INF/jsp/sql.tld</taglib-location>
-    </taglib>
-  </jsp-config>
-
   <context-param>
     <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
     <param-value>messages</param-value>
