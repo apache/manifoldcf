@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-650: Set a reasonable socket timeout for SharePoint
+and Meridio connectors.
+(Mark Lugert, Karl Wright)
+
 CONNECTORS-648: Revamp how tld's are used, for compatibility with
 Tomcat.
 (Jan Høydahl)

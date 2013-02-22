@@ -220,6 +220,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       BasicHttpParams params = new BasicHttpParams();
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
       params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
