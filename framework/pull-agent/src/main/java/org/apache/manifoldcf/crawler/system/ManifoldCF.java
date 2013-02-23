@@ -1572,8 +1572,30 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     return outputActivityName+" ("+outputConnectionName+")";
   }
+
+  private static final int IV_LENGTH = 16;
   
-  // API support
+  private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
+    ManifoldCFException
+  {
+    final String saltValue = getProperty(salt);
+
+    if (saltValue == null || saltValue.length() == 0)
+      throw new ManifoldCFException("Missing required SALT value");
+    
+    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+    KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+    SecretKey secretKey = factory.generateSecret(keySpec);
+
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
+    IvParameterSpec parameterSpec = new IvParameterSpec(iv);
+    cipher.init(mode, key, parameterSpec);
+    return cipher;
+  }
+  
+  
+  // ========================== API support ===========================
   
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
@@ -1621,6 +1643,576 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return sb.toString();
   }
+
+
+
+
+  /** Read jobs */
+  protected static boolean apiReadJobs(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription[] jobs = jobManager.getAllJobs();
+      int i = 0;
+      while (i < jobs.length)
+      {
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,jobs[i++]);
+        output.addChild(output.getChildCount(),jobNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read a job */
+  protected static boolean apiReadJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription job = jobManager.load(jobID);
+      if (job != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,job);
+        output.addChild(output.getChildCount(),jobNode);
+      }
+      else
+        return false;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read an output connection status */
+  protected static boolean apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        OutputConnectorFactory.release(connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** Read an authority connection status */
+  protected static boolean apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        AuthorityConnectorFactory.release(connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read a repository connection status */
+  protected static boolean apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        RepositoryConnectorFactory.release(connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read an output connection's info */
+  protected static boolean apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+
+      // Grab a connection handle, and call the test method
+      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        return connector.requestInfo(output,command);
+      }
+      finally
+      {
+        OutputConnectorFactory.release(connector);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read a repository connection's info */
+  protected static boolean apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Connection '"+connectionName+"' does not exist");
+        output.addChild(output.getChildCount(),error);
+        return false;
+      }
+
+      // Grab a connection handle, and call the test method
+      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        return connector.requestInfo(output,command);
+      }
+      finally
+      {
+        RepositoryConnectorFactory.release(connector);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** Get api job statuses */
+  protected static boolean apiReadJobStatuses(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus[] jobStatuses = jobManager.getAllStatus();
+      int i = 0;
+      while (i < jobStatuses.length)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,jobStatuses[i++]);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Get api job status */
+  protected static boolean apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status != null)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,status);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** Get api job status with no counts */
+  protected static boolean apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus status = jobManager.getStatus(jobID,false);
+      if (status != null)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,status);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Get output connections */
+  protected static boolean apiReadOutputConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+        formatOutputConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read output connection */
+  protected static boolean apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+        formatOutputConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+        return false;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** Get authority connections */
+  protected static boolean apiReadAuthorityConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+        formatAuthorityConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** Read authority connection */
+  protected static boolean apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+        formatAuthorityConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+        return false;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** Get repository connections */
+  protected static boolean apiReadRepositoryConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+        formatRepositoryConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+  
+  /** Read repository connection */
+  protected static boolean apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+        formatRepositoryConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+        return false;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** List output connectors */
+  protected static boolean apiReadOutputConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered output connectors
+    try
+    {
+      IOutputConnectorManager manager = OutputConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_OUTPUTCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** List authority connectors */
+  protected static boolean apiReadAuthorityConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered authority connectors
+    try
+    {
+      IAuthorityConnectorManager manager = AuthorityConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_AUTHORITYCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
+
+  /** List repository connectors */
+  protected static boolean apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered repository connectors
+    try
+    {
+      IConnectorManager manager = ConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_REPOSITORYCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return true;
+  }
   
   /** Execute specified read command.
   *@param tc is the thread context.
@@ -1633,44 +2225,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     if (path.equals("jobs"))
     {
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        IJobDescription[] jobs = jobManager.getAllJobs();
-        int i = 0;
-        while (i < jobs.length)
-        {
-          ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
-          formatJobDescription(jobNode,jobs[i++]);
-          output.addChild(output.getChildCount(),jobNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadJobs(tc,output);
     }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        IJobDescription job = jobManager.load(jobID);
-        if (job != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
-          formatJobDescription(jobNode,job);
-          output.addChild(output.getChildCount(),jobNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadJob(tc,output,jobID);
     }
     else if (path.startsWith("status/"))
     {
@@ -1689,120 +2249,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        try
-        {
-          IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-          IOutputConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-          
-          String results;
-          // Grab a connection handle, and call the test method
-          IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            results = connector.check();
-          }
-          catch (ManifoldCFException e)
-          {
-            results = e.getMessage();
-          }
-          finally
-          {
-            OutputConnectorFactory.release(connector);
-          }
-          
-          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-          response.setValue(results);
-          output.addChild(output.getChildCount(),response);
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadOutputConnectionStatus(tc,output,connectionName);
       }
       else if (connectionType.equals("authorityconnections"))
       {
-        try
-        {
-          IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-          IAuthorityConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-          
-          String results;
-          // Grab a connection handle, and call the test method
-          IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            results = connector.check();
-          }
-          catch (ManifoldCFException e)
-          {
-            results = e.getMessage();
-          }
-          finally
-          {
-            AuthorityConnectorFactory.release(connector);
-          }
-          
-          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-          response.setValue(results);
-          output.addChild(output.getChildCount(),response);
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadAuthorityConnectionStatus(tc,output,connectionName);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
-        try
-        {
-          IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-          IRepositoryConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-          
-          String results;
-          // Grab a connection handle, and call the test method
-          IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            results = connector.check();
-          }
-          catch (ManifoldCFException e)
-          {
-            results = e.getMessage();
-          }
-          finally
-          {
-            RepositoryConnectorFactory.release(connector);
-          }
-          
-          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-          response.setValue(results);
-          output.addChild(output.getChildCount(),response);
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadRepositoryConnectionStatus(tc,output,connectionName);
       }
       else
       {
@@ -1839,63 +2294,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        try
-        {
-          IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-          IOutputConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-
-          // Grab a connection handle, and call the test method
-          IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            return connector.requestInfo(output,command);
-          }
-          finally
-          {
-            OutputConnectorFactory.release(connector);
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadOutputConnectionInfo(tc,output,connectionName,command);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
-        try
-        {
-          IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-          IRepositoryConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-
-          // Grab a connection handle, and call the test method
-          IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            return connector.requestInfo(output,command);
-          }
-          finally
-          {
-            RepositoryConnectorFactory.release(connector);
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadRepositoryConnectionInfo(tc,output,connectionName,command);
       }
       else
       {
@@ -1907,284 +2310,56 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else if (path.equals("jobstatuses"))
     {
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        JobStatus[] jobStatuses = jobManager.getAllStatus();
-        int i = 0;
-        while (i < jobStatuses.length)
-        {
-          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-          formatJobStatus(jobStatusNode,jobStatuses[i++]);
-          output.addChild(output.getChildCount(),jobStatusNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadJobStatuses(tc,output);
     }
     else if (path.startsWith("jobstatuses/"))
     {
-      String jobID = path.substring("jobstatuses/".length());
-
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        JobStatus status = jobManager.getStatus(new Long(jobID));
-	if (status != null)
-        {
-          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-          formatJobStatus(jobStatusNode,status);
-          output.addChild(output.getChildCount(),jobStatusNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      Long jobID = new Long(path.substring("jobstatuses/".length()));
+      return apiReadJobStatus(tc,output,jobID);
     }
     else if (path.startsWith("jobstatusesnocounts/"))
     {
-      String jobID = path.substring("jobstatusesnocounts/".length());
-
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        JobStatus status = jobManager.getStatus(new Long(jobID),false);
-	if (status != null)
-        {
-          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-          formatJobStatus(jobStatusNode,status);
-          output.addChild(output.getChildCount(),jobStatusNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      Long jobID = new Long(path.substring("jobstatusesnocounts/".length()));
+      return apiReadJobStatusNoCounts(tc,output,jobID);
     }
     else if (path.equals("outputconnections"))
     {
-      try
-      {
-        IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-          formatOutputConnection(connectionNode,connections[i++]);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadOutputConnections(tc,output);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      try
-      {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-          formatOutputConnection(connectionNode,connection);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadOutputConnection(tc,output,connectionName);
     }
     else if (path.equals("authorityconnections"))
     {
-      try
-      {
-        IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-          formatAuthorityConnection(connectionNode,connections[i++]);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadAuthorityConnections(tc,output);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-      try
-      {
-        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-          formatAuthorityConnection(connectionNode,connection);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadAuthorityConnection(tc,output,connectionName);
     }
     else if (path.equals("repositoryconnections"))
     {
-      try
-      {
-        IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-          formatRepositoryConnection(connectionNode,connections[i++]);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadRepositoryConnections(tc,output);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-          formatRepositoryConnection(connectionNode,connection);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadRepositoryConnection(tc,output,connectionName);
     }
     else if (path.equals("outputconnectors"))
     {
-      // List registered output connectors
-      try
-      {
-        IOutputConnectorManager manager = OutputConnectorManagerFactory.make(tc);
-        IResultSet resultSet = manager.getConnectors();
-        int j = 0;
-        while (j < resultSet.getRowCount())
-        {
-          IResultRow row = resultSet.getRow(j++);
-          ConfigurationNode child = new ConfigurationNode(API_OUTPUTCONNECTORNODE);
-          String description = (String)row.getValue("description");
-          String className = (String)row.getValue("classname");
-          ConfigurationNode node;
-          if (description != null)
-          {
-            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
-            node.setValue(description);
-            child.addChild(child.getChildCount(),node);
-          }
-          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
-          node.setValue(className);
-          child.addChild(child.getChildCount(),node);
-
-          output.addChild(output.getChildCount(),child);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadOutputConnectors(tc,output);
     }
     else if (path.equals("authorityconnectors"))
     {
-      // List registered authority connectors
-      try
-      {
-        IAuthorityConnectorManager manager = AuthorityConnectorManagerFactory.make(tc);
-        IResultSet resultSet = manager.getConnectors();
-        int j = 0;
-        while (j < resultSet.getRowCount())
-        {
-          IResultRow row = resultSet.getRow(j++);
-          ConfigurationNode child = new ConfigurationNode(API_AUTHORITYCONNECTORNODE);
-          String description = (String)row.getValue("description");
-          String className = (String)row.getValue("classname");
-          ConfigurationNode node;
-          if (description != null)
-          {
-            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
-            node.setValue(description);
-            child.addChild(child.getChildCount(),node);
-          }
-          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
-          node.setValue(className);
-          child.addChild(child.getChildCount(),node);
-
-          output.addChild(output.getChildCount(),child);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadAuthorityConnectors(tc,output);
     }
     else if (path.equals("repositoryconnectors"))
     {
-      // List registered repository connectors
-      try
-      {
-        IConnectorManager manager = ConnectorManagerFactory.make(tc);
-        IResultSet resultSet = manager.getConnectors();
-        int j = 0;
-        while (j < resultSet.getRowCount())
-        {
-          IResultRow row = resultSet.getRow(j++);
-          ConfigurationNode child = new ConfigurationNode(API_REPOSITORYCONNECTORNODE);
-          String description = (String)row.getValue("description");
-          String className = (String)row.getValue("classname");
-          ConfigurationNode node;
-          if (description != null)
-          {
-            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
-            node.setValue(description);
-            child.addChild(child.getChildCount(),node);
-          }
-          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
-          node.setValue(className);
-          child.addChild(child.getChildCount(),node);
-
-          output.addChild(output.getChildCount(),child);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadRepositoryConnectors(tc,output);
     }   
     else
     {
@@ -2193,8 +2368,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       output.addChild(output.getChildCount(),error);
       return false;
     }
-    
-    return true;
   }
   
   // Write result codes
@@ -3663,27 +3836,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     
   }
 
-  private static final int IV_LENGTH = 16;
-  
-  private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
-    ManifoldCFException
-  {
-    final String saltValue = getProperty(salt);
-
-    if (saltValue == null || saltValue.length() == 0)
-      throw new ManifoldCFException("Missing required SALT value");
-    
-    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-    KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
-    SecretKey secretKey = factory.generateSecret(keySpec);
-
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
-    IvParameterSpec parameterSpec = new IvParameterSpec(iv);
-    cipher.init(mode, key, parameterSpec);
-    return cipher;
-  }
-  
   // End of connection API code
 
 }
