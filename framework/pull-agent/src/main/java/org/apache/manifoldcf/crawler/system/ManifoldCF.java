@@ -2214,6 +2214,194 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return true;
   }
   
+
+  /** History reports */
+  protected static boolean apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
+    Map<String,List<String>> queryParameters) throws ManifoldCFException
+  {
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
+    
+    // Look for filter criteria parameters...
+    
+    // Start time
+    List<String> startTimeList = queryParameters.get("starttime");
+    Long startTime;
+    if (startTimeList == null || startTimeList.size() == 0)
+      startTime = null;
+    else if (startTimeList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple start times specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      startTime = new Long(startTimeList.get(0));
+
+    // End time
+    List<String> endTimeList = queryParameters.get("endtime");
+    Long endTime;
+    if (endTimeList == null || endTimeList.size() == 0)
+      endTime = null;
+    else if (endTimeList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple end times specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      endTime = new Long(endTimeList.get(0));
+    
+    // Activities
+    List<String> activityList = queryParameters.get("activity");
+    String[] activities;
+    if (activityList == null)
+      activities = new String[0];
+    else
+      activities = activityList.toArray(new String[0]);
+    
+    // Entity match
+    RegExpCriteria entityMatch;
+    List<String> entityMatchList = queryParameters.get("entitymatch");
+    List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
+    if (entityMatchList != null && entityMatchInsensitiveList != null)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Either use entitymatch or entitymatch_insensitive, not both.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    boolean isInsensitiveEntityMatch;
+    if (entityMatchInsensitiveList != null)
+    {
+      entityMatchList = entityMatchInsensitiveList;
+      isInsensitiveEntityMatch = true;
+    }
+    else
+      isInsensitiveEntityMatch = false;
+    
+    if (entityMatchList == null || entityMatchList.size() == 0)
+      entityMatch = null;
+    else if (entityMatchList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple entity match regexps specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
+    
+    // Result code match
+    RegExpCriteria resultCodeMatch = null;
+    List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
+    List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
+    if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Either use resultcodematch or resultcodematch_insensitive, not both.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    boolean isInsensitiveResultCodeMatch;
+    if (entityMatchInsensitiveList != null)
+    {
+      resultCodeMatchList = resultCodeMatchInsensitiveList;
+      isInsensitiveResultCodeMatch = true;
+    }
+    else
+      isInsensitiveResultCodeMatch = false;
+    
+    if (resultCodeMatchList == null || resultCodeMatchList.size() == 0)
+      resultCodeMatch = null;
+    else if (resultCodeMatchList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple resultcode match regexps specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
+    
+    // Filter criteria
+    FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
+    
+    // Look for sort order parameters...
+    SortOrder sortOrder = new SortOrder();
+    List<String> sortColumnsList = queryParameters.get("sortcolumn");
+    List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+    if (sortColumnsList != null || sortColumnsDirList != null)
+    {
+      if (sortColumnsList == null || sortColumnsDirList == null)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("sortcolumn and sortcolumn_direction must have the same cardinality.");
+        output.addChild(output.getChildCount(),error);
+        return true;
+      }
+      for (int i = 0; i < sortColumnsList.size(); i++)
+      {
+        String column = sortColumnsList.get(i);
+        String dir = sortColumnsDirList.get(i);
+        int dirInt;
+        if (dir.equals("ascending"))
+          dirInt = SortOrder.SORT_ASCENDING;
+        else if (dir.equals("descending"))
+          dirInt = SortOrder.SORT_DESCENDING;
+        else
+        {
+          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+          error.setValue("sortcolumn_direction must be 'ascending' or 'descending'.");
+          output.addChild(output.getChildCount(),error);
+          return true;
+        }
+        sortOrder.addCriteria(column,dirInt);
+      }
+    }
+    
+    // Start row and row count
+    // MHL
+    
+    List<String> reportTypeList = queryParameters.get("report");
+    String reportType;
+    if (reportTypeList == null || reportTypeList.size() == 0)
+      reportType = "simple";
+    else if (reportTypeList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple report types specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      reportType = reportTypeList.get(0);
+
+    if (reportType.equals("simple"))
+    {
+    }
+    else if (reportType.equals("maxactivity"))
+    {
+    }
+    else if (reportType.equals("maxbandwidth"))
+    {
+    }
+    else if (reportType.equals("result"))
+    {
+    }
+    else
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Unknown report type '"+reportType+"'.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    // MHL
+    return true;
+  }
+  
   /** Execute specified read command.
   *@param tc is the thread context.
   *@param output is the output object, to be filled in.
@@ -2231,6 +2419,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       Long jobID = new Long(path.substring("jobs/".length()));
       return apiReadJob(tc,output,jobID);
+    }
+    else if (path.startsWith("repositoryconnectionhistory/"))
+    {
+      int firstSeparator = "repositoryconnectionhistory/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionHistory(tc,output,queryParameters);
     }
     else if (path.startsWith("status/"))
     {
