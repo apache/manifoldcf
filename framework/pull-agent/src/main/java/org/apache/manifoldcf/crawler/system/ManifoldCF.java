@@ -2220,8 +2220,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param path is the object path.
   *@return true if the resource exists, false otherwise.
   */
-  public static boolean executeReadCommand(IThreadContext tc, Configuration output, String path)
-    throws ManifoldCFException
+  public static boolean executeReadCommand(IThreadContext tc, Configuration output, String path,
+    Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {

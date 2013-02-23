@@ -43,37 +43,12 @@ public class APIServlet extends HttpServlet
     throws ServletException
   {
     super.init(config);
-/*
-    try
-    {
-      // Set up the environment
-      ManifoldCF.initializeEnvironment();
-      // Nothing more needs to be done at this point.
-    }
-    catch (ManifoldCFException e)
-    {
-      Logging.misc.error("Error starting API service: "+e.getMessage(),e);
-      throw new ServletException("Error starting API service: "+e.getMessage(),e);
-    }
-*/
   }
 
   /** The destroy method.
   */
   public void destroy()
   {
-/*
-    try
-    {
-      // Set up the environment
-      ManifoldCF.initializeEnvironment();
-      // Nothing more needs to be done.
-    }
-    catch (ManifoldCFException e)
-    {
-      Logging.misc.error("Error shutting down API service: "+e.getMessage(),e);
-    }
-*/
     super.destroy();
   }
 
@@ -84,14 +59,13 @@ public class APIServlet extends HttpServlet
   {
     try
     {
-      // Set up the environment
-      //ManifoldCF.initializeEnvironment();
-
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
       
       // Get the path info string.  This will furnish the command.
       String pathInfo = request.getPathInfo();
+      // Get query string.  This is used by some GET operations.
+      String queryString = request.getQueryString();
       
       if (pathInfo == null)
       {
@@ -100,7 +74,7 @@ public class APIServlet extends HttpServlet
       }
 
       // Perform the deletion
-      executeRead(tc,response,pathInfo);
+      executeRead(tc,response,pathInfo,queryString);
       
     }
     catch (ManifoldCFException e)
@@ -118,9 +92,6 @@ public class APIServlet extends HttpServlet
   {
     try
     {
-      // Set up the environment
-      //ManifoldCF.initializeEnvironment();
-
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
       
@@ -161,9 +132,6 @@ public class APIServlet extends HttpServlet
   {
     try
     {
-      // Set up the environment
-      //ManifoldCF.initializeEnvironment();
-
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
       
@@ -204,9 +172,6 @@ public class APIServlet extends HttpServlet
   {
     try
     {
-      // Set up the environment
-      //ManifoldCF.initializeEnvironment();
-
       // Mint a thread context
       IThreadContext tc = ThreadContextFactory.make();
       
@@ -235,7 +200,7 @@ public class APIServlet extends HttpServlet
   
   /** Perform a general "read" operation.
   */
-  protected static void executeRead(IThreadContext tc, HttpServletResponse response, String pathInfo)
+  protected static void executeRead(IThreadContext tc, HttpServletResponse response, String pathInfo, String queryString)
     throws ManifoldCFException, IOException
   {
     // Strip off leading "/"
@@ -256,12 +221,15 @@ public class APIServlet extends HttpServlet
       command = pathInfo.substring(index+1);
     }
 
+    // If query string exists, parse it
+    Map<String,List<String>> queryParameters = parseQueryString(queryString);
+    
     // Execute the request.
     // Since there are no input arguments, we can do this before we look at the protocol.
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    boolean exists = ManifoldCF.executeReadCommand(tc,output,command);
+    boolean exists = ManifoldCF.executeReadCommand(tc,output,command,queryParameters);
     
     // Output
     
@@ -610,6 +578,35 @@ public class APIServlet extends HttpServlet
     }
 
     // return code 200 assumed!
+  }
+  
+  protected static Map<String,List<String>> parseQueryString(String queryString)
+    throws UnsupportedEncodingException
+  {
+    if (queryString == null)
+      return null;
+    Map<String,List<String>> rval = new HashMap<String,List<String>>();
+    String[] terms = queryString.split("&");
+    for (String term : terms)
+    {
+      int index = queryString.indexOf("=");
+      if (index == -1)
+        addValue(rval,URLDecoder.decode(term,"utf-8"),"");
+      else
+        addValue(rval,URLDecoder.decode(term.substring(0,index),"utf-8"),URLDecoder.decode(term.substring(index+1),"utf-8"));
+    }
+    return rval;
+  }
+  
+  protected static void addValue(Map<String,List<String>> rval, String name, String value)
+  {
+    List<String> valueList = rval.get(name);
+    if (valueList == null)
+    {
+      valueList = new ArrayList<String>(1);
+      rval.put(name,valueList);
+    }
+    valueList.add(value);
   }
   
 }
