@@ -343,54 +343,9 @@ if (maintenanceUnderway == false)
 	String[] activityList = null;
 	if (reportConnection.length() > 0)
 	{
-		IRepositoryConnection thisConnection = connMgr.load(reportConnection);
-		if (thisConnection == null)
+		activityList = org.apache.manifoldcf.crawler.system.ManifoldCF.getActivitiesList(threadContext,reportConnection);
+		if (activityList == null)
 			reportConnection = "";
-		else
-		{
-			String[] outputActivityList = OutputConnectionManagerFactory.getAllOutputActivities(threadContext);
-			String[] connectorActivityList = RepositoryConnectorFactory.getActivitiesList(threadContext,thisConnection.getClassName());
-			String[] globalActivityList = IRepositoryConnectionManager.activitySet;
-			activityList = new String[outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
-			int k2 = 0;
-			int j;
-			if (outputActivityList != null)
-			{
-				j = 0;
-				while (j < outputActivityList.length)
-				{
-					activityList[k2++] = outputActivityList[j++];
-				}
-			}
-			if (connectorActivityList != null)
-			{
-				j = 0;
-				while (j < connectorActivityList.length)
-				{
-					activityList[k2++] = connectorActivityList[j++];
-				}
-			}
-			j = 0;
-			while (j < globalActivityList.length)
-			{
-				activityList[k2++] = globalActivityList[j++];
-			}
-			java.util.Arrays.sort(activityList);
-
-			selectedActivities = new HashMap();
-			String[] activitiesToNote;
-			j = 0;
-			if (reportActivities == null)
-				activitiesToNote = activityList;
-			else
-				activitiesToNote = reportActivities;
-
-			while (j < activitiesToNote.length)
-			{
-				String activity = activitiesToNote[j++];
-				selectedActivities.put(activity,activity);
-			}
-		}
 	}
 
 %>

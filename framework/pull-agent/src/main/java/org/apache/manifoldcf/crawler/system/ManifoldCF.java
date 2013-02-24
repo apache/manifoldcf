@@ -1573,6 +1573,46 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return outputActivityName+" ("+outputConnectionName+")";
   }
 
+  /** Get the activities list for a given repository connection.
+  */
+  public static String[] getActivitiesList(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
+  {
+    IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+    IRepositoryConnection thisConnection = connectionManager.load(connectionName);
+    if (thisConnection == null)
+      return null;
+    String[] outputActivityList = OutputConnectionManagerFactory.getAllOutputActivities(threadContext);
+    String[] connectorActivityList = RepositoryConnectorFactory.getActivitiesList(threadContext,thisConnection.getClassName());
+    String[] globalActivityList = IRepositoryConnectionManager.activitySet;
+    String[] activityList = new String[outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
+    int k2 = 0;
+    int j;
+    if (outputActivityList != null)
+    {
+      j = 0;
+      while (j < outputActivityList.length)
+      {
+        activityList[k2++] = outputActivityList[j++];
+      }
+    }
+    if (connectorActivityList != null)
+    {
+      j = 0;
+      while (j < connectorActivityList.length)
+      {
+        activityList[k2++] = connectorActivityList[j++];
+      }
+    }
+    j = 0;
+    while (j < globalActivityList.length)
+    {
+      activityList[k2++] = globalActivityList[j++];
+    }
+    java.util.Arrays.sort(activityList);
+    return activityList;
+  }
+  
   private static final int IV_LENGTH = 16;
   
   private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
