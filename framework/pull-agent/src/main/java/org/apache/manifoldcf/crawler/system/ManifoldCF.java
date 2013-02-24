@@ -1648,7 +1648,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
-  protected final static String API_RESULTSETNODE = "resultset";
   protected final static String API_ROWNODE = "row";
   protected final static String API_COLUMNNODE = "column";
   protected final static String API_ACTIVITYNODE = "activity";
@@ -2264,7 +2263,134 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  /** Queue reports */
+  protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
+    String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
+  {
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
 
+    // MHL
+    StatusFilterCriteria filterCriteria = null;
+    
+    // Look for sort order parameters...
+    SortOrder sortOrder = new SortOrder();
+    List<String> sortColumnsList = queryParameters.get("sortcolumn");
+    List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+    if (sortColumnsList != null || sortColumnsDirList != null)
+    {
+      if (sortColumnsList == null || sortColumnsDirList == null)
+      {
+        createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
+        return READRESULT_BADARGS;
+      }
+      for (int i = 0; i < sortColumnsList.size(); i++)
+      {
+        String column = sortColumnsList.get(i);
+        String dir = sortColumnsDirList.get(i);
+        int dirInt;
+        if (dir.equals("ascending"))
+          dirInt = SortOrder.SORT_ASCENDING;
+        else if (dir.equals("descending"))
+          dirInt = SortOrder.SORT_DESCENDING;
+        else
+        {
+          createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
+          return READRESULT_BADARGS;
+        }
+        sortOrder.addCriteria(column,dirInt);
+      }
+    }
+    
+    // Start row and row count
+    int startRow;
+    List<String> startRowList = queryParameters.get("startrow");
+    if (startRowList == null || startRowList.size() == 0)
+      startRow = 0;
+    else if (startRowList.size() > 1)
+    {
+      createErrorNode(output,"Multiple start rows specified.");
+      return READRESULT_BADARGS;
+    }
+    else
+      startRow = new Integer(startRowList.get(0)).intValue();
+    
+    int rowCount;
+    List<String> rowCountList = queryParameters.get("rowcount");
+    if (rowCountList == null || rowCountList.size() == 0)
+      rowCount = 20;
+    else if (rowCountList.size() > 1)
+    {
+      createErrorNode(output,"Multiple row counts specified.");
+      return READRESULT_BADARGS;
+    }
+    else
+      rowCount = new Integer(rowCountList.get(0)).intValue();
+
+    List<String> reportTypeList = queryParameters.get("report");
+    String reportType;
+    if (reportTypeList == null || reportTypeList.size() == 0)
+      reportType = "simple";
+    else if (reportTypeList.size() > 1)
+    {
+      createErrorNode(output,"Multiple report types specified.");
+      return READRESULT_BADARGS;
+    }
+    else
+      reportType = reportTypeList.get(0);
+
+    IJobManager jobManager = JobManagerFactory.make(tc);
+    
+    IResultSet result;
+    String[] resultColumns;
+    
+    if (reportType.equals("document"))
+    {
+      result = jobManager.genDocumentStatus(connectionName,filterCriteria,sortOrder,startRow,rowCount);
+      resultColumns = new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"};
+    }
+    else if (reportType.equals("status"))
+    {
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
+      }
+      else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+      {
+        createErrorNode(output,"Multiple idbucket regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+      
+      result = jobManager.genQueueStatus(connectionName,filterCriteria,sortOrder,idBucket,startRow,rowCount);
+      resultColumns = new String[]{"idbucket","inactive","processing","expiring","deleting",
+        "processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"};
+    }
+    else
+    {
+      createErrorNode(output,"Unknown report type '"+reportType+"'.");
+      return READRESULT_BADARGS;
+    }
+
+    createResultsetNode(output,result,resultColumns);
+    return READRESULT_FOUND;
+  }
+  
   /** History reports */
   protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
@@ -2608,8 +2734,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       return READRESULT_BADARGS;
     }
 
+    createResultsetNode(output,result,resultColumns);
+    return READRESULT_FOUND;
+  }
+  
+  /** Add a resultset node to the output. */
+  protected static void createResultsetNode(Configuration output, IResultSet result, String[] resultColumns)
+    throws ManifoldCFException
+  {
     // Go through result set and add results to output
-    ConfigurationNode resultSet = new ConfigurationNode(API_RESULTSETNODE);
     for (int i = 0; i < result.getRowCount(); i++)
     {
       IResultRow row = result.getRow(i);
@@ -2626,10 +2759,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         columnValue.setValue(valueToUse);
         rowValue.addChild(rowValue.getChildCount(),columnValue);
       }
-      resultSet.addChild(resultSet.getChildCount(),rowValue);
+      output.addChild(output.getChildCount(),rowValue);
     }
-    output.addChild(output.getChildCount(),resultSet);
-    return READRESULT_FOUND;
   }
   
   /** Read the activity list for a given connection name. */
@@ -2680,6 +2811,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int firstSeparator = "repositoryconnectionhistory/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
       return apiReadRepositoryConnectionHistory(tc,output,connectionName,queryParameters);
+    }
+    else if (path.startsWith("repositoryconnectionqueue/"))
+    {
+      int firstSeparator = "repositoryconnectionqueue/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionQueue(tc,output,connectionName,queryParameters);
     }
     else if (path.startsWith("status/"))
     {
