@@ -1572,8 +1572,70 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     return outputActivityName+" ("+outputConnectionName+")";
   }
+
+  /** Get the activities list for a given repository connection.
+  */
+  public static String[] getActivitiesList(IThreadContext threadContext, String connectionName)
+    throws ManifoldCFException
+  {
+    IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
+    IRepositoryConnection thisConnection = connectionManager.load(connectionName);
+    if (thisConnection == null)
+      return null;
+    String[] outputActivityList = OutputConnectionManagerFactory.getAllOutputActivities(threadContext);
+    String[] connectorActivityList = RepositoryConnectorFactory.getActivitiesList(threadContext,thisConnection.getClassName());
+    String[] globalActivityList = IRepositoryConnectionManager.activitySet;
+    String[] activityList = new String[outputActivityList.length + ((connectorActivityList==null)?0:connectorActivityList.length) + globalActivityList.length];
+    int k2 = 0;
+    int j;
+    if (outputActivityList != null)
+    {
+      j = 0;
+      while (j < outputActivityList.length)
+      {
+        activityList[k2++] = outputActivityList[j++];
+      }
+    }
+    if (connectorActivityList != null)
+    {
+      j = 0;
+      while (j < connectorActivityList.length)
+      {
+        activityList[k2++] = connectorActivityList[j++];
+      }
+    }
+    j = 0;
+    while (j < globalActivityList.length)
+    {
+      activityList[k2++] = globalActivityList[j++];
+    }
+    java.util.Arrays.sort(activityList);
+    return activityList;
+  }
   
-  // API support
+  private static final int IV_LENGTH = 16;
+  
+  private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
+    ManifoldCFException
+  {
+    final String saltValue = getProperty(salt);
+
+    if (saltValue == null || saltValue.length() == 0)
+      throw new ManifoldCFException("Missing required SALT value");
+    
+    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+    KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+    SecretKey secretKey = factory.generateSecret(keySpec);
+
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
+    IvParameterSpec parameterSpec = new IvParameterSpec(iv);
+    cipher.init(mode, key, parameterSpec);
+    return cipher;
+  }
+  
+  
+  // ========================== API support ===========================
   
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
@@ -1586,6 +1648,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
+  protected final static String API_ROWNODE = "row";
+  protected final static String API_COLUMNNODE = "column";
+  protected final static String API_ACTIVITYNODE = "activity";
   
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
@@ -1621,56 +1686,1310 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return sb.toString();
   }
+
+  // Read (GET) functions
+  
+  // Read result codes
+  public static final int READRESULT_NOTFOUND = 0;
+  public static final int READRESULT_FOUND = 1;
+  public static final int READRESULT_BADARGS = 2;
+
+  /** Read jobs */
+  protected static int apiReadJobs(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription[] jobs = jobManager.getAllJobs();
+      int i = 0;
+      while (i < jobs.length)
+      {
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,jobs[i++]);
+        output.addChild(output.getChildCount(),jobNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read a job */
+  protected static int apiReadJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription job = jobManager.load(jobID);
+      if (job != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,job);
+        output.addChild(output.getChildCount(),jobNode);
+      }
+      else
+      {
+        createErrorNode(output,"Job does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read an output connection status */
+  protected static int apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        OutputConnectorFactory.release(connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Read an authority connection status */
+  protected static int apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        AuthorityConnectorFactory.release(connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read a repository connection status */
+  protected static int apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+          
+      String results;
+      // Grab a connection handle, and call the test method
+      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        results = connector.check();
+      }
+      catch (ManifoldCFException e)
+      {
+        results = e.getMessage();
+      }
+      finally
+      {
+        RepositoryConnectorFactory.release(connector);
+      }
+          
+      ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
+      response.setValue(results);
+      output.addChild(output.getChildCount(),response);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read an output connection's info */
+  protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+
+      // Grab a connection handle, and call the test method
+      IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
+      }
+      finally
+      {
+        OutputConnectorFactory.release(connector);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read a repository connection's info */
+  protected static int apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+
+      // Grab a connection handle, and call the test method
+      IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
+      try
+      {
+        return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
+      }
+      finally
+      {
+        RepositoryConnectorFactory.release(connector);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Get api job statuses */
+  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus[] jobStatuses = jobManager.getAllStatus();
+      int i = 0;
+      while (i < jobStatuses.length)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,jobStatuses[i++]);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Get api job status */
+  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus status = jobManager.getStatus(jobID);
+      if (status != null)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,status);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Get api job status with no counts */
+  protected static int apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus status = jobManager.getStatus(jobID,false);
+      if (status != null)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,status);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Get output connections */
+  protected static int apiReadOutputConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+        formatOutputConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read output connection */
+  protected static int apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      IOutputConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
+        formatOutputConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Get authority connections */
+  protected static int apiReadAuthorityConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+        formatAuthorityConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Read authority connection */
+  protected static int apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      IAuthorityConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
+        formatAuthorityConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+      {
+        createErrorNode(output,"Authority connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Get repository connections */
+  protected static int apiReadRepositoryConnections(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection[] connections = connManager.getAllConnections();
+      int i = 0;
+      while (i < connections.length)
+      {
+        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+        formatRepositoryConnection(connectionNode,connections[i++]);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read repository connection */
+  protected static int apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      IRepositoryConnection connection = connectionManager.load(connectionName);
+      if (connection != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
+        formatRepositoryConnection(connectionNode,connection);
+        output.addChild(output.getChildCount(),connectionNode);
+      }
+      else
+      {
+        createErrorNode(output,"Repository connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** List output connectors */
+  protected static int apiReadOutputConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered output connectors
+    try
+    {
+      IOutputConnectorManager manager = OutputConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_OUTPUTCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** List authority connectors */
+  protected static int apiReadAuthorityConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered authority connectors
+    try
+    {
+      IAuthorityConnectorManager manager = AuthorityConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_AUTHORITYCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** List repository connectors */
+  protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered repository connectors
+    try
+    {
+      IConnectorManager manager = ConnectorManagerFactory.make(tc);
+      IResultSet resultSet = manager.getConnectors();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_REPOSITORYCONNECTORNODE);
+        String description = (String)row.getValue("description");
+        String className = (String)row.getValue("classname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
+        node.setValue(className);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+      
+  protected final static Map<String,Integer> docState;
+  static
+  {
+    docState = new HashMap<String,Integer>();
+    docState.put("neverprocessed",new Integer(IJobManager.DOCSTATE_NEVERPROCESSED));
+    docState.put("previouslyprocessed",new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED));
+    docState.put("outofscope",new Integer(IJobManager.DOCSTATE_OUTOFSCOPE));
+  }
+
+  protected final static Map<String,Integer> docStatus;
+  static
+  {
+    docStatus = new HashMap<String,Integer>();
+    docStatus.put("inactive",new Integer(IJobManager.DOCSTATUS_INACTIVE));
+    docStatus.put("processing",new Integer(IJobManager.DOCSTATUS_PROCESSING));
+    docStatus.put("expiring",new Integer(IJobManager.DOCSTATUS_EXPIRING));
+    docStatus.put("deleting",new Integer(IJobManager.DOCSTATUS_DELETING));
+    docStatus.put("readyforprocessing",new Integer(IJobManager.DOCSTATUS_READYFORPROCESSING));
+    docStatus.put("readyforexpiration",new Integer(IJobManager.DOCSTATUS_READYFOREXPIRATION));
+    docStatus.put("waitingforprocessing",new Integer(IJobManager.DOCSTATUS_WAITINGFORPROCESSING));
+    docStatus.put("waitingforexpiration",new Integer(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION));
+    docStatus.put("waitingforever",new Integer(IJobManager.DOCSTATUS_WAITINGFOREVER));
+    docStatus.put("hopcountexceeded",new Integer(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED));
+  }
+
+  /** Queue reports */
+  protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
+    String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
+  {
+    try
+    {
+      if (queryParameters == null)
+        queryParameters = new HashMap<String,List<String>>();
+
+      // Jobs (specified by id)
+      Long[] jobs;
+      List<String> jobList = queryParameters.get("job");
+      if (jobList == null)
+        jobs = new Long[0];
+      else
+      {
+        jobs = new Long[jobList.size()];
+        for (int i = 0; i < jobs.length; i++)
+        {
+          jobs[i] = new Long(jobList.get(i));
+        }
+      }
+
+      // Now time
+      long now;
+      List<String> nowList = queryParameters.get("now");
+      if (nowList == null || nowList.size() == 0)
+        now = System.currentTimeMillis();
+      else if (nowList.size() > 1)
+      {
+        createErrorNode(output,"Multiple values for now parameter");
+        return READRESULT_BADARGS;
+      }
+      else
+        now = new Long(nowList.get(0)).longValue();
+      
+      // Identifier match
+      RegExpCriteria idMatch;
+      List<String> idMatchList = queryParameters.get("idmatch");
+      List<String> idMatchInsensitiveList = queryParameters.get("idmatch_insensitive");
+      if (idMatchList != null && idMatchInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use idmatch or idmatch_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveIdMatch;
+      if (idMatchInsensitiveList != null)
+      {
+        idMatchList = idMatchInsensitiveList;
+        isInsensitiveIdMatch = true;
+      }
+      else
+        isInsensitiveIdMatch = false;
+      
+      if (idMatchList == null || idMatchList.size() == 0)
+        idMatch = null;
+      else if (idMatchList.size() > 1)
+      {
+        createErrorNode(output,"Multiple id match regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        idMatch = new RegExpCriteria(idMatchList.get(0),isInsensitiveIdMatch);
+
+      List<String> stateMatchList = queryParameters.get("statematch");
+      int[] matchStates;
+      if (stateMatchList == null)
+        matchStates = new int[0];
+      else
+      {
+        matchStates = new int[stateMatchList.size()];
+        for (int i = 0; i < matchStates.length; i++)
+        {
+          Integer value = docState.get(stateMatchList.get(i));
+          if (value == null)
+          {
+            createErrorNode(output,"Unrecognized state value: '"+stateMatchList.get(i)+"'");
+            return READRESULT_BADARGS;
+          }
+          matchStates[i] = value.intValue();
+        }
+      }
+      
+      List<String> statusMatchList = queryParameters.get("statusmatch");
+      int[] matchStatuses;
+      if (statusMatchList == null)
+        matchStatuses = new int[0];
+      else
+      {
+        matchStatuses = new int[statusMatchList.size()];
+        for (int i = 0; i < matchStatuses.length; i++)
+        {
+          Integer value = docStatus.get(statusMatchList.get(i));
+          if (value == null)
+          {
+            createErrorNode(output,"Unrecognized status value: '"+statusMatchList.get(i)+"'");
+            return READRESULT_BADARGS;
+          }
+          matchStatuses[i] = value.intValue();
+        }
+      }
+      
+      StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
+      
+      // Look for sort order parameters...
+      SortOrder sortOrder = new SortOrder();
+      List<String> sortColumnsList = queryParameters.get("sortcolumn");
+      List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+      if (sortColumnsList != null || sortColumnsDirList != null)
+      {
+        if (sortColumnsList == null || sortColumnsDirList == null)
+        {
+          createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
+          return READRESULT_BADARGS;
+        }
+        for (int i = 0; i < sortColumnsList.size(); i++)
+        {
+          String column = sortColumnsList.get(i);
+          String dir = sortColumnsDirList.get(i);
+          int dirInt;
+          if (dir.equals("ascending"))
+            dirInt = SortOrder.SORT_ASCENDING;
+          else if (dir.equals("descending"))
+            dirInt = SortOrder.SORT_DESCENDING;
+          else
+          {
+            createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
+            return READRESULT_BADARGS;
+          }
+          sortOrder.addCriteria(column,dirInt);
+        }
+      }
+      
+      // Start row and row count
+      int startRow;
+      List<String> startRowList = queryParameters.get("startrow");
+      if (startRowList == null || startRowList.size() == 0)
+        startRow = 0;
+      else if (startRowList.size() > 1)
+      {
+        createErrorNode(output,"Multiple start rows specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        startRow = new Integer(startRowList.get(0)).intValue();
+      
+      int rowCount;
+      List<String> rowCountList = queryParameters.get("rowcount");
+      if (rowCountList == null || rowCountList.size() == 0)
+        rowCount = 20;
+      else if (rowCountList.size() > 1)
+      {
+        createErrorNode(output,"Multiple row counts specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        rowCount = new Integer(rowCountList.get(0)).intValue();
+
+      List<String> reportTypeList = queryParameters.get("report");
+      String reportType;
+      if (reportTypeList == null || reportTypeList.size() == 0)
+        reportType = "simple";
+      else if (reportTypeList.size() > 1)
+      {
+        createErrorNode(output,"Multiple report types specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        reportType = reportTypeList.get(0);
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      
+      IResultSet result;
+      String[] resultColumns;
+      
+      if (reportType.equals("document"))
+      {
+        result = jobManager.genDocumentStatus(connectionName,filterCriteria,sortOrder,startRow,rowCount);
+        resultColumns = new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"};
+      }
+      else if (reportType.equals("status"))
+      {
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        
+        result = jobManager.genQueueStatus(connectionName,filterCriteria,sortOrder,idBucket,startRow,rowCount);
+        resultColumns = new String[]{"idbucket","inactive","processing","expiring","deleting",
+          "processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"};
+      }
+      else
+      {
+        createErrorNode(output,"Unknown report type '"+reportType+"'.");
+        return READRESULT_BADARGS;
+      }
+
+      createResultsetNode(output,result,resultColumns);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Get jobs for connection */
+  protected static int apiReadRepositoryConnectionJobs(IThreadContext tc, Configuration output,
+    String connectionName) throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription[] jobs = jobManager.findJobsForConnection(connectionName);
+      if (jobs == null)
+      {
+        createErrorNode(output,"Unknown connection '"+connectionName+"'");
+        return READRESULT_NOTFOUND;
+      }
+      int i = 0;
+      while (i < jobs.length)
+      {
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,jobs[i++]);
+        output.addChild(output.getChildCount(),jobNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** History reports */
+  protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
+    String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
+  {
+    try
+    {
+      if (queryParameters == null)
+        queryParameters = new HashMap<String,List<String>>();
+      
+      // Look for filter criteria parameters...
+      
+      // Start time
+      List<String> startTimeList = queryParameters.get("starttime");
+      Long startTime;
+      if (startTimeList == null || startTimeList.size() == 0)
+        startTime = null;
+      else if (startTimeList.size() > 1)
+      {
+        createErrorNode(output,"Multiple start times specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        startTime = new Long(startTimeList.get(0));
+
+      // End time
+      List<String> endTimeList = queryParameters.get("endtime");
+      Long endTime;
+      if (endTimeList == null || endTimeList.size() == 0)
+        endTime = null;
+      else if (endTimeList.size() > 1)
+      {
+        createErrorNode(output,"Multiple end times specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        endTime = new Long(endTimeList.get(0));
+      
+      // Activities
+      List<String> activityList = queryParameters.get("activity");
+      String[] activities;
+      if (activityList == null)
+        activities = new String[0];
+      else
+        activities = activityList.toArray(new String[0]);
+      
+      // Entity match
+      RegExpCriteria entityMatch;
+      List<String> entityMatchList = queryParameters.get("entitymatch");
+      List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
+      if (entityMatchList != null && entityMatchInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use entitymatch or entitymatch_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveEntityMatch;
+      if (entityMatchInsensitiveList != null)
+      {
+        entityMatchList = entityMatchInsensitiveList;
+        isInsensitiveEntityMatch = true;
+      }
+      else
+        isInsensitiveEntityMatch = false;
+      
+      if (entityMatchList == null || entityMatchList.size() == 0)
+        entityMatch = null;
+      else if (entityMatchList.size() > 1)
+      {
+        createErrorNode(output,"Multiple entity match regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
+      
+      // Result code match
+      RegExpCriteria resultCodeMatch;
+      List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
+      List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
+      if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use resultcodematch or resultcodematch_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveResultCodeMatch;
+      if (entityMatchInsensitiveList != null)
+      {
+        resultCodeMatchList = resultCodeMatchInsensitiveList;
+        isInsensitiveResultCodeMatch = true;
+      }
+      else
+        isInsensitiveResultCodeMatch = false;
+      
+      if (resultCodeMatchList == null || resultCodeMatchList.size() == 0)
+        resultCodeMatch = null;
+      else if (resultCodeMatchList.size() > 1)
+      {
+        createErrorNode(output,"Multiple resultcode match regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
+      
+      // Filter criteria
+      FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
+      
+      // Look for sort order parameters...
+      SortOrder sortOrder = new SortOrder();
+      List<String> sortColumnsList = queryParameters.get("sortcolumn");
+      List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+      if (sortColumnsList != null || sortColumnsDirList != null)
+      {
+        if (sortColumnsList == null || sortColumnsDirList == null)
+        {
+          createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
+          return READRESULT_BADARGS;
+        }
+        for (int i = 0; i < sortColumnsList.size(); i++)
+        {
+          String column = sortColumnsList.get(i);
+          String dir = sortColumnsDirList.get(i);
+          int dirInt;
+          if (dir.equals("ascending"))
+            dirInt = SortOrder.SORT_ASCENDING;
+          else if (dir.equals("descending"))
+            dirInt = SortOrder.SORT_DESCENDING;
+          else
+          {
+            createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
+            return READRESULT_BADARGS;
+          }
+          sortOrder.addCriteria(column,dirInt);
+        }
+      }
+      
+      // Start row and row count
+      int startRow;
+      List<String> startRowList = queryParameters.get("startrow");
+      if (startRowList == null || startRowList.size() == 0)
+        startRow = 0;
+      else if (startRowList.size() > 1)
+      {
+        createErrorNode(output,"Multiple start rows specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        startRow = new Integer(startRowList.get(0)).intValue();
+      
+      int rowCount;
+      List<String> rowCountList = queryParameters.get("rowcount");
+      if (rowCountList == null || rowCountList.size() == 0)
+        rowCount = 20;
+      else if (rowCountList.size() > 1)
+      {
+        createErrorNode(output,"Multiple row counts specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        rowCount = new Integer(rowCountList.get(0)).intValue();
+
+      List<String> reportTypeList = queryParameters.get("report");
+      String reportType;
+      if (reportTypeList == null || reportTypeList.size() == 0)
+        reportType = "simple";
+      else if (reportTypeList.size() > 1)
+      {
+        createErrorNode(output,"Multiple report types specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        reportType = reportTypeList.get(0);
+
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      
+      IResultSet result;
+      String[] resultColumns;
+      
+      if (reportType.equals("simple"))
+      {
+        result = connectionManager.genHistorySimple(connectionName,filterCriteria,sortOrder,startRow,rowCount);
+        resultColumns = new String[]{"starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime"};
+      }
+      else if (reportType.equals("maxactivity"))
+      {
+        long maxInterval = connectionManager.getMaxRows();
+        long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+        if (actualRows > maxInterval)
+        {
+          createErrorNode(output,"Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
+          return READRESULT_BADARGS;
+        }
+        
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
+        long interval;
+        List<String> intervalList = queryParameters.get("interval");
+        if (intervalList == null || intervalList.size() == 0)
+          interval = 300000L;
+        else if (intervalList.size() > 1)
+        {
+          createErrorNode(output,"Multiple intervals specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          interval = new Long(intervalList.get(0)).longValue();
+        
+        result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+        resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
+      }
+      else if (reportType.equals("maxbandwidth"))
+      {
+        long maxInterval = connectionManager.getMaxRows();
+        long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+        if (actualRows > maxInterval)
+        {
+          createErrorNode(output,"Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
+          return READRESULT_BADARGS;
+        }
+        
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        
+        long interval;
+        List<String> intervalList = queryParameters.get("interval");
+        if (intervalList == null || intervalList.size() == 0)
+          interval = 300000L;
+        else if (intervalList.size() > 1)
+        {
+          createErrorNode(output,"Multiple intervals specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          interval = new Long(intervalList.get(0)).longValue();
+
+        result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+        resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
+      }
+      else if (reportType.equals("result"))
+      {
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
+        BucketDescription resultCodeBucket;
+        List<String> resultCodeBucketList = queryParameters.get("resultcodebucket");
+        List<String> resultCodeBucketInsensitiveList = queryParameters.get("resultcodebucket_insensitive");
+        if (resultCodeBucketList != null && resultCodeBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use resultcodebucket or resultcodebucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveResultCodeBucket;
+        if (resultCodeBucketInsensitiveList != null)
+        {
+          resultCodeBucketList = resultCodeBucketInsensitiveList;
+          isInsensitiveResultCodeBucket = true;
+        }
+        else
+          isInsensitiveResultCodeBucket = false;
+        if (resultCodeBucketList == null || resultCodeBucketList.size() == 0)
+          resultCodeBucket = new BucketDescription("(.*)",false);
+        else if (resultCodeBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple resultcodebucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          resultCodeBucket = new BucketDescription(resultCodeBucketList.get(0),isInsensitiveResultCodeBucket);
+
+        result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
+        resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
+      }
+      else
+      {
+        createErrorNode(output,"Unknown report type '"+reportType+"'.");
+        return READRESULT_BADARGS;
+      }
+
+      createResultsetNode(output,result,resultColumns);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Add a resultset node to the output. */
+  protected static void createResultsetNode(Configuration output, IResultSet result, String[] resultColumns)
+    throws ManifoldCFException
+  {
+    // Go through result set and add results to output
+    for (int i = 0; i < result.getRowCount(); i++)
+    {
+      IResultRow row = result.getRow(i);
+      ConfigurationNode rowValue = new ConfigurationNode(API_ROWNODE);
+      for (String columnName : resultColumns)
+      {
+        ConfigurationNode columnValue = new ConfigurationNode(API_COLUMNNODE);
+        Object value = row.getValue(columnName);
+        String valueToUse;
+        if (value == null)
+          valueToUse = "";
+        else
+          valueToUse = value.toString();
+        columnValue.setValue(valueToUse);
+        rowValue.addChild(rowValue.getChildCount(),columnValue);
+      }
+      output.addChild(output.getChildCount(),rowValue);
+    }
+  }
+  
+  /** Read the activity list for a given connection name. */
+  protected static int apiReadRepositoryConnectionActivities(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      String[] activities = getActivitiesList(tc,connectionName);
+      if (activities == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+      for (String activity : activities)
+      {
+        ConfigurationNode node = new ConfigurationNode(API_ACTIVITYNODE);
+        node.setValue(activity);
+        output.addChild(output.getChildCount(),node);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
   
   /** Execute specified read command.
   *@param tc is the thread context.
   *@param output is the output object, to be filled in.
   *@param path is the object path.
-  *@return true if the resource exists, false otherwise.
+  *@return read status - either found, not found, or bad args
   */
-  public static boolean executeReadCommand(IThreadContext tc, Configuration output, String path)
-    throws ManifoldCFException
+  public static int executeReadCommand(IThreadContext tc, Configuration output, String path,
+    Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        IJobDescription[] jobs = jobManager.getAllJobs();
-        int i = 0;
-        while (i < jobs.length)
-        {
-          ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
-          formatJobDescription(jobNode,jobs[i++]);
-          output.addChild(output.getChildCount(),jobNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadJobs(tc,output);
     }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        IJobDescription job = jobManager.load(jobID);
-        if (job != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
-          formatJobDescription(jobNode,job);
-          output.addChild(output.getChildCount(),jobNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadJob(tc,output,jobID);
+    }
+    else if (path.startsWith("repositoryconnectionactivities/"))
+    {
+      int firstSeparator = "repositoryconnectionactivities/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionActivities(tc,output,connectionName);
+    }
+    else if (path.startsWith("repositoryconnectionhistory/"))
+    {
+      int firstSeparator = "repositoryconnectionhistory/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionHistory(tc,output,connectionName,queryParameters);
+    }
+    else if (path.startsWith("repositoryconnectionqueue/"))
+    {
+      int firstSeparator = "repositoryconnectionqueue/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionQueue(tc,output,connectionName,queryParameters);
+    }
+    else if (path.startsWith("repositoryconnectionjobs/"))
+    {
+      int firstSeparator = "repositoryconnectionjobs/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionJobs(tc,output,connectionName);
     }
     else if (path.startsWith("status/"))
     {
@@ -1678,10 +2997,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection name.");
-        output.addChild(output.getChildCount(),error);
-        return false;
+        createErrorNode(output,"Need connection name.");
+        return READRESULT_NOTFOUND;
       }
       
       String connectionType = path.substring(firstSeparator,secondSeparator);
@@ -1689,127 +3006,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        try
-        {
-          IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-          IOutputConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-          
-          String results;
-          // Grab a connection handle, and call the test method
-          IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            results = connector.check();
-          }
-          catch (ManifoldCFException e)
-          {
-            results = e.getMessage();
-          }
-          finally
-          {
-            OutputConnectorFactory.release(connector);
-          }
-          
-          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-          response.setValue(results);
-          output.addChild(output.getChildCount(),response);
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadOutputConnectionStatus(tc,output,connectionName);
       }
       else if (connectionType.equals("authorityconnections"))
       {
-        try
-        {
-          IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-          IAuthorityConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-          
-          String results;
-          // Grab a connection handle, and call the test method
-          IAuthorityConnector connector = AuthorityConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            results = connector.check();
-          }
-          catch (ManifoldCFException e)
-          {
-            results = e.getMessage();
-          }
-          finally
-          {
-            AuthorityConnectorFactory.release(connector);
-          }
-          
-          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-          response.setValue(results);
-          output.addChild(output.getChildCount(),response);
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadAuthorityConnectionStatus(tc,output,connectionName);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
-        try
-        {
-          IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-          IRepositoryConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-          
-          String results;
-          // Grab a connection handle, and call the test method
-          IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            results = connector.check();
-          }
-          catch (ManifoldCFException e)
-          {
-            results = e.getMessage();
-          }
-          finally
-          {
-            RepositoryConnectorFactory.release(connector);
-          }
-          
-          ConfigurationNode response = new ConfigurationNode(API_CHECKRESULTNODE);
-          response.setValue(results);
-          output.addChild(output.getChildCount(),response);
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadRepositoryConnectionStatus(tc,output,connectionName);
       }
       else
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Unknown connection type '"+connectionType+"'.");
-        output.addChild(output.getChildCount(),error);
-        return false;
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
+        return READRESULT_NOTFOUND;
       }
     }
     else if (path.startsWith("info/"))
@@ -1818,19 +3028,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection type and connection name.");
-        output.addChild(output.getChildCount(),error);
-        return false;
+        createErrorNode(output,"Need connection type and connection name.");
+        return READRESULT_NOTFOUND;
       }
 
       int thirdSeparator = path.indexOf("/",secondSeparator+1);
       if (thirdSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection name.");
-        output.addChild(output.getChildCount(),error);
-        return false;
+        createErrorNode(output,"Need connection name.");
+        return READRESULT_NOTFOUND;
       }
 
       String connectionType = path.substring(firstSeparator,secondSeparator);
@@ -1839,362 +3045,76 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        try
-        {
-          IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-          IOutputConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-
-          // Grab a connection handle, and call the test method
-          IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            return connector.requestInfo(output,command);
-          }
-          finally
-          {
-            OutputConnectorFactory.release(connector);
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadOutputConnectionInfo(tc,output,connectionName,command);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
-        try
-        {
-          IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-          IRepositoryConnection connection = connectionManager.load(connectionName);
-          if (connection == null)
-          {
-            ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-            error.setValue("Connection '"+connectionName+"' does not exist");
-            output.addChild(output.getChildCount(),error);
-            return false;
-          }
-
-          // Grab a connection handle, and call the test method
-          IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
-          try
-          {
-            return connector.requestInfo(output,command);
-          }
-          finally
-          {
-            RepositoryConnectorFactory.release(connector);
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiReadRepositoryConnectionInfo(tc,output,connectionName,command);
       }
       else
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Unknown connection type '"+connectionType+"'.");
-        output.addChild(output.getChildCount(),error);
-        return false;
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
+        return READRESULT_NOTFOUND;
       }
     }
     else if (path.equals("jobstatuses"))
     {
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        JobStatus[] jobStatuses = jobManager.getAllStatus();
-        int i = 0;
-        while (i < jobStatuses.length)
-        {
-          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-          formatJobStatus(jobStatusNode,jobStatuses[i++]);
-          output.addChild(output.getChildCount(),jobStatusNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadJobStatuses(tc,output);
     }
     else if (path.startsWith("jobstatuses/"))
     {
-      String jobID = path.substring("jobstatuses/".length());
-
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        JobStatus status = jobManager.getStatus(new Long(jobID));
-	if (status != null)
-        {
-          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-          formatJobStatus(jobStatusNode,status);
-          output.addChild(output.getChildCount(),jobStatusNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      Long jobID = new Long(path.substring("jobstatuses/".length()));
+      return apiReadJobStatus(tc,output,jobID);
     }
     else if (path.startsWith("jobstatusesnocounts/"))
     {
-      String jobID = path.substring("jobstatusesnocounts/".length());
-
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        JobStatus status = jobManager.getStatus(new Long(jobID),false);
-	if (status != null)
-        {
-          ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
-          formatJobStatus(jobStatusNode,status);
-          output.addChild(output.getChildCount(),jobStatusNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      Long jobID = new Long(path.substring("jobstatusesnocounts/".length()));
+      return apiReadJobStatusNoCounts(tc,output,jobID);
     }
     else if (path.equals("outputconnections"))
     {
-      try
-      {
-        IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-          formatOutputConnection(connectionNode,connections[i++]);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadOutputConnections(tc,output);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      try
-      {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        IOutputConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_OUTPUTCONNECTIONNODE);
-          formatOutputConnection(connectionNode,connection);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadOutputConnection(tc,output,connectionName);
     }
     else if (path.equals("authorityconnections"))
     {
-      try
-      {
-        IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-          formatAuthorityConnection(connectionNode,connections[i++]);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadAuthorityConnections(tc,output);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-      try
-      {
-        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        IAuthorityConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_AUTHORITYCONNECTIONNODE);
-          formatAuthorityConnection(connectionNode,connection);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadAuthorityConnection(tc,output,connectionName);
     }
     else if (path.equals("repositoryconnections"))
     {
-      try
-      {
-        IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection[] connections = connManager.getAllConnections();
-        int i = 0;
-        while (i < connections.length)
-        {
-          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-          formatRepositoryConnection(connectionNode,connections[i++]);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadRepositoryConnections(tc,output);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        IRepositoryConnection connection = connectionManager.load(connectionName);
-        if (connection != null)
-        {
-          // Fill the return object with job information
-          ConfigurationNode connectionNode = new ConfigurationNode(API_REPOSITORYCONNECTIONNODE);
-          formatRepositoryConnection(connectionNode,connection);
-          output.addChild(output.getChildCount(),connectionNode);
-        }
-        else
-          return false;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadRepositoryConnection(tc,output,connectionName);
     }
     else if (path.equals("outputconnectors"))
     {
-      // List registered output connectors
-      try
-      {
-        IOutputConnectorManager manager = OutputConnectorManagerFactory.make(tc);
-        IResultSet resultSet = manager.getConnectors();
-        int j = 0;
-        while (j < resultSet.getRowCount())
-        {
-          IResultRow row = resultSet.getRow(j++);
-          ConfigurationNode child = new ConfigurationNode(API_OUTPUTCONNECTORNODE);
-          String description = (String)row.getValue("description");
-          String className = (String)row.getValue("classname");
-          ConfigurationNode node;
-          if (description != null)
-          {
-            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
-            node.setValue(description);
-            child.addChild(child.getChildCount(),node);
-          }
-          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
-          node.setValue(className);
-          child.addChild(child.getChildCount(),node);
-
-          output.addChild(output.getChildCount(),child);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadOutputConnectors(tc,output);
     }
     else if (path.equals("authorityconnectors"))
     {
-      // List registered authority connectors
-      try
-      {
-        IAuthorityConnectorManager manager = AuthorityConnectorManagerFactory.make(tc);
-        IResultSet resultSet = manager.getConnectors();
-        int j = 0;
-        while (j < resultSet.getRowCount())
-        {
-          IResultRow row = resultSet.getRow(j++);
-          ConfigurationNode child = new ConfigurationNode(API_AUTHORITYCONNECTORNODE);
-          String description = (String)row.getValue("description");
-          String className = (String)row.getValue("classname");
-          ConfigurationNode node;
-          if (description != null)
-          {
-            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
-            node.setValue(description);
-            child.addChild(child.getChildCount(),node);
-          }
-          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
-          node.setValue(className);
-          child.addChild(child.getChildCount(),node);
-
-          output.addChild(output.getChildCount(),child);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadAuthorityConnectors(tc,output);
     }
     else if (path.equals("repositoryconnectors"))
     {
-      // List registered repository connectors
-      try
-      {
-        IConnectorManager manager = ConnectorManagerFactory.make(tc);
-        IResultSet resultSet = manager.getConnectors();
-        int j = 0;
-        while (j < resultSet.getRowCount())
-        {
-          IResultRow row = resultSet.getRow(j++);
-          ConfigurationNode child = new ConfigurationNode(API_REPOSITORYCONNECTORNODE);
-          String description = (String)row.getValue("description");
-          String className = (String)row.getValue("classname");
-          ConfigurationNode node;
-          if (description != null)
-          {
-            node = new ConfigurationNode(CONNECTORNODE_DESCRIPTION);
-            node.setValue(description);
-            child.addChild(child.getChildCount(),node);
-          }
-          node = new ConfigurationNode(CONNECTORNODE_CLASSNAME);
-          node.setValue(className);
-          child.addChild(child.getChildCount(),node);
-
-          output.addChild(output.getChildCount(),child);
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiReadRepositoryConnectors(tc,output);
     }   
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
-      return false;
+      createErrorNode(output,"Unrecognized resource.");
+      return READRESULT_NOTFOUND;
     }
-    
-    return true;
   }
   
   // Write result codes
@@ -2248,9 +3168,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return WRITERESULT_NOTFOUND;
     }
     return WRITERESULT_FOUND;
@@ -2473,9 +3391,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection name.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Need connection name.");
         return WRITERESULT_NOTFOUND;
       }
       
@@ -2496,17 +3412,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Unknown connection type '"+connectionType+"'.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
         return WRITERESULT_NOTFOUND;
       }
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return WRITERESULT_NOTFOUND;
     }
     return WRITERESULT_FOUND;
@@ -2575,9 +3487,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return false;
     }
     return true;
@@ -3663,27 +4573,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     
   }
 
-  private static final int IV_LENGTH = 16;
-  
-  private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
-    ManifoldCFException
-  {
-    final String saltValue = getProperty(salt);
-
-    if (saltValue == null || saltValue.length() == 0)
-      throw new ManifoldCFException("Missing required SALT value");
-    
-    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-    KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
-    SecretKey secretKey = factory.generateSecret(keySpec);
-
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    SecretKeySpec key = new SecretKeySpec(secretKey.getEncoded(), "AES");
-    IvParameterSpec parameterSpec = new IvParameterSpec(iv);
-    cipher.init(mode, key, parameterSpec);
-    return cipher;
-  }
-  
   // End of connection API code
 
 }
