@@ -2262,7 +2262,33 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return READRESULT_FOUND;
   }
-  
+
+      
+  protected final static Map<String,Integer> docState;
+  static
+  {
+    docState = new HashMap<String,Integer>();
+    docState.put("neverprocessed",new Integer(IJobManager.DOCSTATE_NEVERPROCESSED));
+    docState.put("previouslyprocessed",new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED));
+    docState.put("outofscope",new Integer(IJobManager.DOCSTATE_OUTOFSCOPE));
+  }
+
+  protected final static Map<String,Integer> docStatus;
+  static
+  {
+    docStatus = new HashMap<String,Integer>();
+    docStatus.put("inactive",new Integer(IJobManager.DOCSTATUS_INACTIVE));
+    docStatus.put("processing",new Integer(IJobManager.DOCSTATUS_PROCESSING));
+    docStatus.put("expiring",new Integer(IJobManager.DOCSTATUS_EXPIRING));
+    docStatus.put("deleting",new Integer(IJobManager.DOCSTATUS_DELETING));
+    docStatus.put("readyforprocessing",new Integer(IJobManager.DOCSTATUS_READYFORPROCESSING));
+    docStatus.put("readyforexpiration",new Integer(IJobManager.DOCSTATUS_READYFOREXPIRATION));
+    docStatus.put("waitingforprocessing",new Integer(IJobManager.DOCSTATUS_WAITINGFORPROCESSING));
+    docStatus.put("waitingforexpiration",new Integer(IJobManager.DOCSTATUS_WAITINGFOREXPIRATION));
+    docStatus.put("waitingforever",new Integer(IJobManager.DOCSTATUS_WAITINGFOREVER));
+    docStatus.put("hopcountexceeded",new Integer(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED));
+  }
+
   /** Queue reports */
   protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
@@ -2270,8 +2296,100 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
 
-    // MHL
-    StatusFilterCriteria filterCriteria = null;
+    // Jobs (specified by id)
+    Long[] jobs;
+    List<String> jobList = queryParameters.get("job");
+    if (jobList == null)
+      jobs = new Long[0];
+    else
+    {
+      jobs = new Long[jobList.size()];
+      for (int i = 0; i < jobs.length; i++)
+      {
+        jobs[i] = new Long(jobList.get(i));
+      }
+    }
+
+    // Now time
+    long now;
+    List<String> nowList = queryParameters.get("now");
+    if (nowList == null || nowList.size() == 0)
+      now = System.currentTimeMillis();
+    else if (nowList.size() > 1)
+    {
+      createErrorNode(output,"Multiple values for now parameter");
+      return READRESULT_BADARGS;
+    }
+    else
+      now = new Long(nowList.get(0)).longValue();
+    
+    // Identifier match
+    RegExpCriteria idMatch;
+    List<String> idMatchList = queryParameters.get("idmatch");
+    List<String> idMatchInsensitiveList = queryParameters.get("idmatch_insensitive");
+    if (idMatchList != null && idMatchInsensitiveList != null)
+    {
+      createErrorNode(output,"Either use idmatch or idmatch_insensitive, not both.");
+      return READRESULT_BADARGS;
+    }
+    boolean isInsensitiveIdMatch;
+    if (idMatchInsensitiveList != null)
+    {
+      idMatchList = idMatchInsensitiveList;
+      isInsensitiveIdMatch = true;
+    }
+    else
+      isInsensitiveIdMatch = false;
+    
+    if (idMatchList == null || idMatchList.size() == 0)
+      idMatch = null;
+    else if (idMatchList.size() > 1)
+    {
+      createErrorNode(output,"Multiple id match regexps specified.");
+      return READRESULT_BADARGS;
+    }
+    else
+      idMatch = new RegExpCriteria(idMatchList.get(0),isInsensitiveIdMatch);
+
+    List<String> stateMatchList = queryParameters.get("statematch");
+    int[] matchStates;
+    if (stateMatchList == null)
+      matchStates = new int[0];
+    else
+    {
+      matchStates = new int[stateMatchList.size()];
+      for (int i = 0; i < matchStates.length; i++)
+      {
+        Integer value = docState.get(stateMatchList.get(i));
+        if (value == null)
+        {
+          createErrorNode(output,"Unrecognized state value: '"+stateMatchList.get(i)+"'");
+          return READRESULT_BADARGS;
+        }
+        matchStates[i] = value.intValue();
+      }
+    }
+    
+    List<String> statusMatchList = queryParameters.get("statusmatch");
+    int[] matchStatuses;
+    if (statusMatchList == null)
+      matchStatuses = new int[0];
+    else
+    {
+      matchStatuses = new int[statusMatchList.size()];
+      for (int i = 0; i < matchStatuses.length; i++)
+      {
+        Integer value = docStatus.get(statusMatchList.get(i));
+        if (value == null)
+        {
+          createErrorNode(output,"Unrecognized status value: '"+statusMatchList.get(i)+"'");
+          return READRESULT_BADARGS;
+        }
+        matchStatuses[i] = value.intValue();
+      }
+    }
+    
+    StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
     
     // Look for sort order parameters...
     SortOrder sortOrder = new SortOrder();
@@ -2463,7 +2581,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
     
     // Result code match
-    RegExpCriteria resultCodeMatch = null;
+    RegExpCriteria resultCodeMatch;
     List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
     List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
     if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
