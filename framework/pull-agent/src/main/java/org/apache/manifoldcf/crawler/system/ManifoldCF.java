@@ -2412,9 +2412,32 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         return READRESULT_BADARGS;
       }
       
-      // MHL
-      BucketDescription idBucket = new BucketDescription("()",false);
-      
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
+      }
+      else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+      {
+        createErrorNode(output,"Multiple idbucket regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
       long interval;
       List<String> intervalList = queryParameters.get("interval");
       if (intervalList == null || intervalList.size() == 0)
@@ -2440,8 +2463,31 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         return READRESULT_BADARGS;
       }
       
-      // MHL
-      BucketDescription idBucket = new BucketDescription("()",false);
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
+      }
+      else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+      {
+        createErrorNode(output,"Multiple idbucket regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
       
       long interval;
       List<String> intervalList = queryParameters.get("interval");
@@ -2460,12 +2506,58 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else if (reportType.equals("result"))
     {
-      // MHL
-      BucketDescription resultCodeBucket = new BucketDescription("()",false);
-      
-      // MHL
-      BucketDescription idBucket = new BucketDescription("(.*)",false);
-      
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
+      }
+      else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+      {
+        createErrorNode(output,"Multiple idbucket regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
+      BucketDescription resultCodeBucket;
+      List<String> resultCodeBucketList = queryParameters.get("resultcodebucket");
+      List<String> resultCodeBucketInsensitiveList = queryParameters.get("resultcodebucket_insensitive");
+      if (resultCodeBucketList != null && resultCodeBucketInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use resultcodebucket or resultcodebucket_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveResultCodeBucket;
+      if (resultCodeBucketInsensitiveList != null)
+      {
+        resultCodeBucketList = resultCodeBucketInsensitiveList;
+        isInsensitiveResultCodeBucket = true;
+      }
+      else
+        isInsensitiveResultCodeBucket = false;
+      if (resultCodeBucketList == null || resultCodeBucketList.size() == 0)
+        resultCodeBucket = new BucketDescription("(.*)",false);
+      else if (resultCodeBucketList.size() > 1)
+      {
+        createErrorNode(output,"Multiple resultcodebucket regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        resultCodeBucket = new BucketDescription(resultCodeBucketList.get(0),isInsensitiveResultCodeBucket);
+
       result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
       resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
     }
