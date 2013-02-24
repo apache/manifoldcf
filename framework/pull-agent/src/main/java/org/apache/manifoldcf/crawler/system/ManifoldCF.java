@@ -1708,9 +1708,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
         return false;
       }
           
@@ -1751,9 +1749,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       IAuthorityConnection connection = connectionManager.load(connectionName);
       if (connection == null)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
         return false;
       }
           
@@ -1794,9 +1790,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
         return false;
       }
           
@@ -1837,9 +1831,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       IOutputConnection connection = connectionManager.load(connectionName);
       if (connection == null)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
         return false;
       }
 
@@ -1871,9 +1863,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       IRepositoryConnection connection = connectionManager.load(connectionName);
       if (connection == null)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Connection '"+connectionName+"' does not exist");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist");
         return false;
       }
 
@@ -2234,9 +2224,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       startTime = null;
     else if (startTimeList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple start times specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple start times specified.");
       return true;
     }
     else
@@ -2249,9 +2237,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       endTime = null;
     else if (endTimeList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple end times specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple end times specified.");
       return true;
     }
     else
@@ -2271,9 +2257,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
     if (entityMatchList != null && entityMatchInsensitiveList != null)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Either use entitymatch or entitymatch_insensitive, not both.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Either use entitymatch or entitymatch_insensitive, not both.");
       return true;
     }
     boolean isInsensitiveEntityMatch;
@@ -2289,9 +2273,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       entityMatch = null;
     else if (entityMatchList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple entity match regexps specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple entity match regexps specified.");
       return true;
     }
     else
@@ -2303,9 +2285,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
     if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Either use resultcodematch or resultcodematch_insensitive, not both.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Either use resultcodematch or resultcodematch_insensitive, not both.");
       return true;
     }
     boolean isInsensitiveResultCodeMatch;
@@ -2321,9 +2301,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       resultCodeMatch = null;
     else if (resultCodeMatchList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple resultcode match regexps specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple resultcode match regexps specified.");
       return true;
     }
     else
@@ -2340,9 +2318,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       if (sortColumnsList == null || sortColumnsDirList == null)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("sortcolumn and sortcolumn_direction must have the same cardinality.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
         return true;
       }
       for (int i = 0; i < sortColumnsList.size(); i++)
@@ -2356,9 +2332,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           dirInt = SortOrder.SORT_DESCENDING;
         else
         {
-          ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-          error.setValue("sortcolumn_direction must be 'ascending' or 'descending'.");
-          output.addChild(output.getChildCount(),error);
+          createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
           return true;
         }
         sortOrder.addCriteria(column,dirInt);
@@ -2372,9 +2346,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       startRow = 0;
     else if (startRowList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple start rows specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple start rows specified.");
       return true;
     }
     else
@@ -2386,9 +2358,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       rowCount = 20;
     else if (rowCountList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple row counts specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple row counts specified.");
       return true;
     }
     else
@@ -2400,9 +2370,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       reportType = "simple";
     else if (reportTypeList.size() > 1)
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Multiple report types specified.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Multiple report types specified.");
       return true;
     }
     else
@@ -2424,17 +2392,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
       if (actualRows > maxInterval)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
         return true;
       }
       
       // MHL
       BucketDescription idBucket = new BucketDescription("()",false);
       
-      // MHL
-      long interval = 300000L;
+      long interval;
+      List<String> intervalList = queryParameters.get("interval");
+      if (intervalList == null || intervalList.size() == 0)
+        interval = 300000L;
+      else if (intervalList.size() > 1)
+      {
+        createErrorNode(output,"Multiple intervals specified.");
+        return true;
+      }
+      else
+        interval = new Long(intervalList.get(0)).longValue();
       
       result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
       resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
@@ -2445,18 +2420,25 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
       if (actualRows > maxInterval)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
         return true;
       }
       
       // MHL
       BucketDescription idBucket = new BucketDescription("()",false);
       
-      // MHL
-      long interval = 300000L;
-      
+      long interval;
+      List<String> intervalList = queryParameters.get("interval");
+      if (intervalList == null || intervalList.size() == 0)
+        interval = 300000L;
+      else if (intervalList.size() > 1)
+      {
+        createErrorNode(output,"Multiple intervals specified.");
+        return true;
+      }
+      else
+        interval = new Long(intervalList.get(0)).longValue();
+
       result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
       resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
     }
@@ -2473,9 +2455,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unknown report type '"+reportType+"'.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unknown report type '"+reportType+"'.");
       return true;
     }
 
@@ -2533,9 +2513,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection name.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Need connection name.");
         return false;
       }
       
@@ -2556,9 +2534,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Unknown connection type '"+connectionType+"'.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
         return false;
       }
     }
@@ -2568,18 +2544,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection type and connection name.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Need connection type and connection name.");
         return false;
       }
 
       int thirdSeparator = path.indexOf("/",secondSeparator+1);
       if (thirdSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection name.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Need connection name.");
         return false;
       }
 
@@ -2597,9 +2569,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Unknown connection type '"+connectionType+"'.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
         return false;
       }
     }
@@ -2658,9 +2628,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }   
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return false;
     }
   }
@@ -2716,9 +2684,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return WRITERESULT_NOTFOUND;
     }
     return WRITERESULT_FOUND;
@@ -2941,9 +2907,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int secondSeparator = path.indexOf("/",firstSeparator);
       if (secondSeparator == -1)
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Need connection name.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Need connection name.");
         return WRITERESULT_NOTFOUND;
       }
       
@@ -2964,17 +2928,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else
       {
-        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-        error.setValue("Unknown connection type '"+connectionType+"'.");
-        output.addChild(output.getChildCount(),error);
+        createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
         return WRITERESULT_NOTFOUND;
       }
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return WRITERESULT_NOTFOUND;
     }
     return WRITERESULT_FOUND;
@@ -3043,9 +3003,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else
     {
-      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-      error.setValue("Unrecognized resource.");
-      output.addChild(output.getChildCount(),error);
+      createErrorNode(output,"Unrecognized resource.");
       return false;
     }
     return true;
