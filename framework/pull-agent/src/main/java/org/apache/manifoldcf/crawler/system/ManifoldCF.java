@@ -1608,6 +1608,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String API_CHECKRESULTNODE = "check_result";
   protected static final String API_JOBIDNODE = "job_id";
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
+  protected final static String API_RESULTSETNODE = "resultset";
+  protected final static String API_ROWNODE = "row";
+  protected final static String API_COLUMNNODE = "column";
   
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
@@ -2217,7 +2220,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** History reports */
   protected static boolean apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
-    Map<String,List<String>> queryParameters) throws ManifoldCFException
+    String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
@@ -2363,8 +2366,34 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     
     // Start row and row count
-    // MHL
+    int startRow;
+    List<String> startRowList = queryParameters.get("startrow");
+    if (startRowList == null || startRowList.size() == 0)
+      startRow = 0;
+    else if (startRowList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple start rows specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      startRow = new Integer(startRowList.get(0)).intValue();
     
+    int rowCount;
+    List<String> rowCountList = queryParameters.get("rowcount");
+    if (rowCountList == null || rowCountList.size() == 0)
+      rowCount = 20;
+    else if (rowCountList.size() > 1)
+    {
+      ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+      error.setValue("Multiple row counts specified.");
+      output.addChild(output.getChildCount(),error);
+      return true;
+    }
+    else
+      rowCount = new Integer(rowCountList.get(0)).intValue();
+
     List<String> reportTypeList = queryParameters.get("report");
     String reportType;
     if (reportTypeList == null || reportTypeList.size() == 0)
@@ -2379,17 +2408,68 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else
       reportType = reportTypeList.get(0);
 
+    IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+    
+    IResultSet result;
+    String[] resultColumns;
+    
     if (reportType.equals("simple"))
     {
+      result = connectionManager.genHistorySimple(connectionName,filterCriteria,sortOrder,startRow,rowCount);
+      resultColumns = new String[]{"starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime"};
     }
     else if (reportType.equals("maxactivity"))
     {
+      long maxInterval = connectionManager.getMaxRows();
+      long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+      if (actualRows > maxInterval)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
+        output.addChild(output.getChildCount(),error);
+        return true;
+      }
+      
+      // MHL
+      BucketDescription idBucket = new BucketDescription("()",false);
+      
+      // MHL
+      long interval = 300000L;
+      
+      result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+      resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
     }
     else if (reportType.equals("maxbandwidth"))
     {
+      long maxInterval = connectionManager.getMaxRows();
+      long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+      if (actualRows > maxInterval)
+      {
+        ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+        error.setValue("Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
+        output.addChild(output.getChildCount(),error);
+        return true;
+      }
+      
+      // MHL
+      BucketDescription idBucket = new BucketDescription("()",false);
+      
+      // MHL
+      long interval = 300000L;
+      
+      result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+      resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
     }
     else if (reportType.equals("result"))
     {
+      // MHL
+      BucketDescription resultCodeBucket = new BucketDescription("()",false);
+      
+      // MHL
+      BucketDescription idBucket = new BucketDescription("(.*)",false);
+      
+      result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
+      resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
     }
     else
     {
@@ -2398,7 +2478,28 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       output.addChild(output.getChildCount(),error);
       return true;
     }
-    // MHL
+
+    // Go through result set and add results to output
+    ConfigurationNode resultSet = new ConfigurationNode(API_RESULTSETNODE);
+    for (int i = 0; i < result.getRowCount(); i++)
+    {
+      IResultRow row = result.getRow(i);
+      ConfigurationNode rowValue = new ConfigurationNode(API_ROWNODE);
+      for (String columnName : resultColumns)
+      {
+        ConfigurationNode columnValue = new ConfigurationNode(API_COLUMNNODE);
+        Object value = row.getValue(columnName);
+        String valueToUse;
+        if (value == null)
+          valueToUse = "";
+        else
+          valueToUse = value.toString();
+        columnValue.setValue(valueToUse);
+        rowValue.addChild(rowValue.getChildCount(),columnValue);
+      }
+      resultSet.addChild(resultSet.getChildCount(),rowValue);
+    }
+    output.addChild(output.getChildCount(),resultSet);
     return true;
   }
   
@@ -2424,7 +2525,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       int firstSeparator = "repositoryconnectionhistory/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiReadRepositoryConnectionHistory(tc,output,queryParameters);
+      return apiReadRepositoryConnectionHistory(tc,output,connectionName,queryParameters);
     }
     else if (path.startsWith("status/"))
     {
