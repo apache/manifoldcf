@@ -73,9 +73,8 @@ public class APIServlet extends HttpServlet
         return;
       }
 
-      // Perform the deletion
+      // Perform the get
       executeRead(tc,response,pathInfo,queryString);
-      
     }
     catch (ManifoldCFException e)
     {
@@ -229,8 +228,8 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    boolean exists = ManifoldCF.executeReadCommand(tc,output,command,queryParameters);
-    
+    int readResult = ManifoldCF.executeReadCommand(tc,output,command,queryParameters);
+
     // Output
     
     String outputText = null;
@@ -256,10 +255,12 @@ public class APIServlet extends HttpServlet
       response.sendError(response.SC_BAD_REQUEST,"Unknown API protocol: "+protocol);
       return;
     }
-    
-    if (!exists)
+
+    if (readResult == ManifoldCF.READRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
-        
+    else if (readResult == ManifoldCF.READRESULT_BADARGS)
+      response.setStatus(response.SC_BAD_REQUEST);
+
     byte[] responseValue = outputText.getBytes("utf-8");
 
     // Set response mime type

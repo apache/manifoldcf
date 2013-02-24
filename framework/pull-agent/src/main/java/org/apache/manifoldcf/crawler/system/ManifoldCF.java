@@ -1647,11 +1647,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return sb.toString();
   }
 
-
-
+  // Read (GET) functions
+  
+  // Read result codes
+  public static final int READRESULT_NOTFOUND = 0;
+  public static final int READRESULT_FOUND = 1;
+  public static final int READRESULT_BADARGS = 2;
 
   /** Read jobs */
-  protected static boolean apiReadJobs(IThreadContext tc, Configuration output)
+  protected static int apiReadJobs(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
@@ -1670,11 +1674,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read a job */
-  protected static boolean apiReadJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJob(IThreadContext tc, Configuration output, Long jobID)
     throws ManifoldCFException
   {
     try
@@ -1689,17 +1693,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         output.addChild(output.getChildCount(),jobNode);
       }
       else
-        return false;
+      {
+        createErrorNode(output,"Job does not exist.");
+        return READRESULT_NOTFOUND;
+      }
     }
     catch (ManifoldCFException e)
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read an output connection status */
-  protected static boolean apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -1709,7 +1716,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connection == null)
       {
         createErrorNode(output,"Connection '"+connectionName+"' does not exist");
-        return false;
+        return READRESULT_NOTFOUND;
       }
           
       String results;
@@ -1736,11 +1743,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** Read an authority connection status */
-  protected static boolean apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -1750,7 +1757,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connection == null)
       {
         createErrorNode(output,"Connection '"+connectionName+"' does not exist");
-        return false;
+        return READRESULT_NOTFOUND;
       }
           
       String results;
@@ -1777,11 +1784,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read a repository connection status */
-  protected static boolean apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -1791,7 +1798,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connection == null)
       {
         createErrorNode(output,"Connection '"+connectionName+"' does not exist");
-        return false;
+        return READRESULT_NOTFOUND;
       }
           
       String results;
@@ -1818,11 +1825,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read an output connection's info */
-  protected static boolean apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+  protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
     throws ManifoldCFException
   {
     try
@@ -1832,14 +1839,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connection == null)
       {
         createErrorNode(output,"Connection '"+connectionName+"' does not exist");
-        return false;
+        return READRESULT_NOTFOUND;
       }
 
       // Grab a connection handle, and call the test method
       IOutputConnector connector = OutputConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
       try
       {
-        return connector.requestInfo(output,command);
+        return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
@@ -1850,11 +1857,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read a repository connection's info */
-  protected static boolean apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+  protected static int apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
     throws ManifoldCFException
   {
     try
@@ -1864,14 +1871,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (connection == null)
       {
         createErrorNode(output,"Connection '"+connectionName+"' does not exist");
-        return false;
+        return READRESULT_NOTFOUND;
       }
 
       // Grab a connection handle, and call the test method
       IRepositoryConnector connector = RepositoryConnectorFactory.grab(tc,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
       try
       {
-        return connector.requestInfo(output,command);
+        return connector.requestInfo(output,command)?READRESULT_FOUND:READRESULT_NOTFOUND;
       }
       finally
       {
@@ -1882,11 +1889,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** Get api job statuses */
-  protected static boolean apiReadJobStatuses(IThreadContext tc, Configuration output)
+  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
@@ -1905,11 +1912,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Get api job status */
-  protected static boolean apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID)
     throws ManifoldCFException
   {
     try
@@ -1927,11 +1934,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** Get api job status with no counts */
-  protected static boolean apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID)
     throws ManifoldCFException
   {
     try
@@ -1949,11 +1956,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Get output connections */
-  protected static boolean apiReadOutputConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadOutputConnections(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
@@ -1972,11 +1979,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read output connection */
-  protected static boolean apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -1991,17 +1998,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         output.addChild(output.getChildCount(),connectionNode);
       }
       else
-        return false;
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
     }
     catch (ManifoldCFException e)
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** Get authority connections */
-  protected static boolean apiReadAuthorityConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadAuthorityConnections(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
@@ -2020,11 +2030,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** Read authority connection */
-  protected static boolean apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -2039,17 +2049,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         output.addChild(output.getChildCount(),connectionNode);
       }
       else
-        return false;
+      {
+        createErrorNode(output,"Authority connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
     }
     catch (ManifoldCFException e)
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** Get repository connections */
-  protected static boolean apiReadRepositoryConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadRepositoryConnections(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
@@ -2068,11 +2081,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Read repository connection */
-  protected static boolean apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
     try
@@ -2087,17 +2100,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         output.addChild(output.getChildCount(),connectionNode);
       }
       else
-        return false;
+      {
+        createErrorNode(output,"Repository connection '"+connectionName+"' does not exist");
+        return READRESULT_NOTFOUND;
+      }
     }
     catch (ManifoldCFException e)
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** List output connectors */
-  protected static boolean apiReadOutputConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadOutputConnectors(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     // List registered output connectors
@@ -2130,11 +2146,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** List authority connectors */
-  protected static boolean apiReadAuthorityConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadAuthorityConnectors(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     // List registered authority connectors
@@ -2167,11 +2183,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
 
   /** List repository connectors */
-  protected static boolean apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     // List registered repository connectors
@@ -2204,12 +2220,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       createErrorNode(output,e);
     }
-    return true;
+    return READRESULT_FOUND;
   }
   
 
   /** History reports */
-  protected static boolean apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
+  protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
     if (queryParameters == null)
@@ -2225,7 +2241,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (startTimeList.size() > 1)
     {
       createErrorNode(output,"Multiple start times specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       startTime = new Long(startTimeList.get(0));
@@ -2238,7 +2254,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (endTimeList.size() > 1)
     {
       createErrorNode(output,"Multiple end times specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       endTime = new Long(endTimeList.get(0));
@@ -2258,7 +2274,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (entityMatchList != null && entityMatchInsensitiveList != null)
     {
       createErrorNode(output,"Either use entitymatch or entitymatch_insensitive, not both.");
-      return true;
+      return READRESULT_BADARGS;
     }
     boolean isInsensitiveEntityMatch;
     if (entityMatchInsensitiveList != null)
@@ -2274,7 +2290,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (entityMatchList.size() > 1)
     {
       createErrorNode(output,"Multiple entity match regexps specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
@@ -2286,7 +2302,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
     {
       createErrorNode(output,"Either use resultcodematch or resultcodematch_insensitive, not both.");
-      return true;
+      return READRESULT_BADARGS;
     }
     boolean isInsensitiveResultCodeMatch;
     if (entityMatchInsensitiveList != null)
@@ -2302,7 +2318,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (resultCodeMatchList.size() > 1)
     {
       createErrorNode(output,"Multiple resultcode match regexps specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
@@ -2319,7 +2335,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (sortColumnsList == null || sortColumnsDirList == null)
       {
         createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
-        return true;
+        return READRESULT_BADARGS;
       }
       for (int i = 0; i < sortColumnsList.size(); i++)
       {
@@ -2333,7 +2349,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         else
         {
           createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
-          return true;
+          return READRESULT_BADARGS;
         }
         sortOrder.addCriteria(column,dirInt);
       }
@@ -2347,7 +2363,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (startRowList.size() > 1)
     {
       createErrorNode(output,"Multiple start rows specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       startRow = new Integer(startRowList.get(0)).intValue();
@@ -2359,7 +2375,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (rowCountList.size() > 1)
     {
       createErrorNode(output,"Multiple row counts specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       rowCount = new Integer(rowCountList.get(0)).intValue();
@@ -2371,7 +2387,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (reportTypeList.size() > 1)
     {
       createErrorNode(output,"Multiple report types specified.");
-      return true;
+      return READRESULT_BADARGS;
     }
     else
       reportType = reportTypeList.get(0);
@@ -2393,7 +2409,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (actualRows > maxInterval)
       {
         createErrorNode(output,"Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
-        return true;
+        return READRESULT_BADARGS;
       }
       
       // MHL
@@ -2406,7 +2422,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else if (intervalList.size() > 1)
       {
         createErrorNode(output,"Multiple intervals specified.");
-        return true;
+        return READRESULT_BADARGS;
       }
       else
         interval = new Long(intervalList.get(0)).longValue();
@@ -2421,7 +2437,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (actualRows > maxInterval)
       {
         createErrorNode(output,"Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
-        return true;
+        return READRESULT_BADARGS;
       }
       
       // MHL
@@ -2434,7 +2450,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else if (intervalList.size() > 1)
       {
         createErrorNode(output,"Multiple intervals specified.");
-        return true;
+        return READRESULT_BADARGS;
       }
       else
         interval = new Long(intervalList.get(0)).longValue();
@@ -2456,7 +2472,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else
     {
       createErrorNode(output,"Unknown report type '"+reportType+"'.");
-      return true;
+      return READRESULT_BADARGS;
     }
 
     // Go through result set and add results to output
@@ -2480,16 +2496,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       resultSet.addChild(resultSet.getChildCount(),rowValue);
     }
     output.addChild(output.getChildCount(),resultSet);
-    return true;
+    return READRESULT_FOUND;
   }
   
   /** Execute specified read command.
   *@param tc is the thread context.
   *@param output is the output object, to be filled in.
   *@param path is the object path.
-  *@return true if the resource exists, false otherwise.
+  *@return read status - either found, not found, or bad args
   */
-  public static boolean executeReadCommand(IThreadContext tc, Configuration output, String path,
+  public static int executeReadCommand(IThreadContext tc, Configuration output, String path,
     Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
     if (path.equals("jobs"))
@@ -2514,7 +2530,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (secondSeparator == -1)
       {
         createErrorNode(output,"Need connection name.");
-        return false;
+        return READRESULT_NOTFOUND;
       }
       
       String connectionType = path.substring(firstSeparator,secondSeparator);
@@ -2535,7 +2551,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else
       {
         createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
-        return false;
+        return READRESULT_NOTFOUND;
       }
     }
     else if (path.startsWith("info/"))
@@ -2545,14 +2561,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       if (secondSeparator == -1)
       {
         createErrorNode(output,"Need connection type and connection name.");
-        return false;
+        return READRESULT_NOTFOUND;
       }
 
       int thirdSeparator = path.indexOf("/",secondSeparator+1);
       if (thirdSeparator == -1)
       {
         createErrorNode(output,"Need connection name.");
-        return false;
+        return READRESULT_NOTFOUND;
       }
 
       String connectionType = path.substring(firstSeparator,secondSeparator);
@@ -2570,7 +2586,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else
       {
         createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
-        return false;
+        return READRESULT_NOTFOUND;
       }
     }
     else if (path.equals("jobstatuses"))
@@ -2629,7 +2645,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else
     {
       createErrorNode(output,"Unrecognized resource.");
-      return false;
+      return READRESULT_NOTFOUND;
     }
   }
   
