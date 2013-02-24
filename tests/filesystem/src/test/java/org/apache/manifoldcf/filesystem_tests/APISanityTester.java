@@ -252,6 +252,9 @@ public class APISanityTester
     if (count != 5)
       throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
 
+    // Have a try to get the history records for the connection
+    result = instance.performAPIGetOperationViaNodes("repositoryconnectionhistory/File%20Connection?report=simple",200);
+
     // Now, delete the job.
     instance.deleteJobAPI(jobIDString);
 
