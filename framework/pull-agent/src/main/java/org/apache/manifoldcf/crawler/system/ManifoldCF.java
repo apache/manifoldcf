@@ -1651,6 +1651,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected final static String API_RESULTSETNODE = "resultset";
   protected final static String API_ROWNODE = "row";
   protected final static String API_COLUMNNODE = "column";
+  protected final static String API_ACTIVITYNODE = "activity";
   
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
@@ -2631,6 +2632,25 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  /** Read the activity list for a given connection name. */
+  protected static int apiReadRepositoryConnectionActivities(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    String[] activities = getActivitiesList(tc,connectionName);
+    if (activities == null)
+    {
+      createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
+      return READRESULT_NOTFOUND;
+    }
+    for (String activity : activities)
+    {
+      ConfigurationNode node = new ConfigurationNode(API_ACTIVITYNODE);
+      node.setValue(activity);
+      output.addChild(output.getChildCount(),node);
+    }
+    return READRESULT_FOUND;
+  }
+  
   /** Execute specified read command.
   *@param tc is the thread context.
   *@param output is the output object, to be filled in.
@@ -2648,6 +2668,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       Long jobID = new Long(path.substring("jobs/".length()));
       return apiReadJob(tc,output,jobID);
+    }
+    else if (path.startsWith("repositoryconnectionactivities/"))
+    {
+      int firstSeparator = "repositoryconnectionactivities/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionActivities(tc,output,connectionName);
     }
     else if (path.startsWith("repositoryconnectionhistory/"))
     {
