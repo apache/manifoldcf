@@ -2293,219 +2293,254 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
-    if (queryParameters == null)
-      queryParameters = new HashMap<String,List<String>>();
+    try
+    {
+      if (queryParameters == null)
+        queryParameters = new HashMap<String,List<String>>();
 
-    // Jobs (specified by id)
-    Long[] jobs;
-    List<String> jobList = queryParameters.get("job");
-    if (jobList == null)
-      jobs = new Long[0];
-    else
-    {
-      jobs = new Long[jobList.size()];
-      for (int i = 0; i < jobs.length; i++)
-      {
-        jobs[i] = new Long(jobList.get(i));
-      }
-    }
-
-    // Now time
-    long now;
-    List<String> nowList = queryParameters.get("now");
-    if (nowList == null || nowList.size() == 0)
-      now = System.currentTimeMillis();
-    else if (nowList.size() > 1)
-    {
-      createErrorNode(output,"Multiple values for now parameter");
-      return READRESULT_BADARGS;
-    }
-    else
-      now = new Long(nowList.get(0)).longValue();
-    
-    // Identifier match
-    RegExpCriteria idMatch;
-    List<String> idMatchList = queryParameters.get("idmatch");
-    List<String> idMatchInsensitiveList = queryParameters.get("idmatch_insensitive");
-    if (idMatchList != null && idMatchInsensitiveList != null)
-    {
-      createErrorNode(output,"Either use idmatch or idmatch_insensitive, not both.");
-      return READRESULT_BADARGS;
-    }
-    boolean isInsensitiveIdMatch;
-    if (idMatchInsensitiveList != null)
-    {
-      idMatchList = idMatchInsensitiveList;
-      isInsensitiveIdMatch = true;
-    }
-    else
-      isInsensitiveIdMatch = false;
-    
-    if (idMatchList == null || idMatchList.size() == 0)
-      idMatch = null;
-    else if (idMatchList.size() > 1)
-    {
-      createErrorNode(output,"Multiple id match regexps specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      idMatch = new RegExpCriteria(idMatchList.get(0),isInsensitiveIdMatch);
-
-    List<String> stateMatchList = queryParameters.get("statematch");
-    int[] matchStates;
-    if (stateMatchList == null)
-      matchStates = new int[0];
-    else
-    {
-      matchStates = new int[stateMatchList.size()];
-      for (int i = 0; i < matchStates.length; i++)
-      {
-        Integer value = docState.get(stateMatchList.get(i));
-        if (value == null)
-        {
-          createErrorNode(output,"Unrecognized state value: '"+stateMatchList.get(i)+"'");
-          return READRESULT_BADARGS;
-        }
-        matchStates[i] = value.intValue();
-      }
-    }
-    
-    List<String> statusMatchList = queryParameters.get("statusmatch");
-    int[] matchStatuses;
-    if (statusMatchList == null)
-      matchStatuses = new int[0];
-    else
-    {
-      matchStatuses = new int[statusMatchList.size()];
-      for (int i = 0; i < matchStatuses.length; i++)
-      {
-        Integer value = docStatus.get(statusMatchList.get(i));
-        if (value == null)
-        {
-          createErrorNode(output,"Unrecognized status value: '"+statusMatchList.get(i)+"'");
-          return READRESULT_BADARGS;
-        }
-        matchStatuses[i] = value.intValue();
-      }
-    }
-    
-    StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
-    
-    // Look for sort order parameters...
-    SortOrder sortOrder = new SortOrder();
-    List<String> sortColumnsList = queryParameters.get("sortcolumn");
-    List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
-    if (sortColumnsList != null || sortColumnsDirList != null)
-    {
-      if (sortColumnsList == null || sortColumnsDirList == null)
-      {
-        createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
-        return READRESULT_BADARGS;
-      }
-      for (int i = 0; i < sortColumnsList.size(); i++)
-      {
-        String column = sortColumnsList.get(i);
-        String dir = sortColumnsDirList.get(i);
-        int dirInt;
-        if (dir.equals("ascending"))
-          dirInt = SortOrder.SORT_ASCENDING;
-        else if (dir.equals("descending"))
-          dirInt = SortOrder.SORT_DESCENDING;
-        else
-        {
-          createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
-          return READRESULT_BADARGS;
-        }
-        sortOrder.addCriteria(column,dirInt);
-      }
-    }
-    
-    // Start row and row count
-    int startRow;
-    List<String> startRowList = queryParameters.get("startrow");
-    if (startRowList == null || startRowList.size() == 0)
-      startRow = 0;
-    else if (startRowList.size() > 1)
-    {
-      createErrorNode(output,"Multiple start rows specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      startRow = new Integer(startRowList.get(0)).intValue();
-    
-    int rowCount;
-    List<String> rowCountList = queryParameters.get("rowcount");
-    if (rowCountList == null || rowCountList.size() == 0)
-      rowCount = 20;
-    else if (rowCountList.size() > 1)
-    {
-      createErrorNode(output,"Multiple row counts specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      rowCount = new Integer(rowCountList.get(0)).intValue();
-
-    List<String> reportTypeList = queryParameters.get("report");
-    String reportType;
-    if (reportTypeList == null || reportTypeList.size() == 0)
-      reportType = "simple";
-    else if (reportTypeList.size() > 1)
-    {
-      createErrorNode(output,"Multiple report types specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      reportType = reportTypeList.get(0);
-
-    IJobManager jobManager = JobManagerFactory.make(tc);
-    
-    IResultSet result;
-    String[] resultColumns;
-    
-    if (reportType.equals("document"))
-    {
-      result = jobManager.genDocumentStatus(connectionName,filterCriteria,sortOrder,startRow,rowCount);
-      resultColumns = new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"};
-    }
-    else if (reportType.equals("status"))
-    {
-      BucketDescription idBucket;
-      List<String> idBucketList = queryParameters.get("idbucket");
-      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-      if (idBucketList != null && idBucketInsensitiveList != null)
-      {
-        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveIdBucket;
-      if (idBucketInsensitiveList != null)
-      {
-        idBucketList = idBucketInsensitiveList;
-        isInsensitiveIdBucket = true;
-      }
+      // Jobs (specified by id)
+      Long[] jobs;
+      List<String> jobList = queryParameters.get("job");
+      if (jobList == null)
+        jobs = new Long[0];
       else
-        isInsensitiveIdBucket = false;
-      if (idBucketList == null || idBucketList.size() == 0)
-        idBucket = new BucketDescription("()",false);
-      else if (idBucketList.size() > 1)
       {
-        createErrorNode(output,"Multiple idbucket regexps specified.");
+        jobs = new Long[jobList.size()];
+        for (int i = 0; i < jobs.length; i++)
+        {
+          jobs[i] = new Long(jobList.get(i));
+        }
+      }
+
+      // Now time
+      long now;
+      List<String> nowList = queryParameters.get("now");
+      if (nowList == null || nowList.size() == 0)
+        now = System.currentTimeMillis();
+      else if (nowList.size() > 1)
+      {
+        createErrorNode(output,"Multiple values for now parameter");
         return READRESULT_BADARGS;
       }
       else
-        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        now = new Long(nowList.get(0)).longValue();
       
-      result = jobManager.genQueueStatus(connectionName,filterCriteria,sortOrder,idBucket,startRow,rowCount);
-      resultColumns = new String[]{"idbucket","inactive","processing","expiring","deleting",
-        "processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"};
-    }
-    else
-    {
-      createErrorNode(output,"Unknown report type '"+reportType+"'.");
-      return READRESULT_BADARGS;
-    }
+      // Identifier match
+      RegExpCriteria idMatch;
+      List<String> idMatchList = queryParameters.get("idmatch");
+      List<String> idMatchInsensitiveList = queryParameters.get("idmatch_insensitive");
+      if (idMatchList != null && idMatchInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use idmatch or idmatch_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveIdMatch;
+      if (idMatchInsensitiveList != null)
+      {
+        idMatchList = idMatchInsensitiveList;
+        isInsensitiveIdMatch = true;
+      }
+      else
+        isInsensitiveIdMatch = false;
+      
+      if (idMatchList == null || idMatchList.size() == 0)
+        idMatch = null;
+      else if (idMatchList.size() > 1)
+      {
+        createErrorNode(output,"Multiple id match regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        idMatch = new RegExpCriteria(idMatchList.get(0),isInsensitiveIdMatch);
 
-    createResultsetNode(output,result,resultColumns);
+      List<String> stateMatchList = queryParameters.get("statematch");
+      int[] matchStates;
+      if (stateMatchList == null)
+        matchStates = new int[0];
+      else
+      {
+        matchStates = new int[stateMatchList.size()];
+        for (int i = 0; i < matchStates.length; i++)
+        {
+          Integer value = docState.get(stateMatchList.get(i));
+          if (value == null)
+          {
+            createErrorNode(output,"Unrecognized state value: '"+stateMatchList.get(i)+"'");
+            return READRESULT_BADARGS;
+          }
+          matchStates[i] = value.intValue();
+        }
+      }
+      
+      List<String> statusMatchList = queryParameters.get("statusmatch");
+      int[] matchStatuses;
+      if (statusMatchList == null)
+        matchStatuses = new int[0];
+      else
+      {
+        matchStatuses = new int[statusMatchList.size()];
+        for (int i = 0; i < matchStatuses.length; i++)
+        {
+          Integer value = docStatus.get(statusMatchList.get(i));
+          if (value == null)
+          {
+            createErrorNode(output,"Unrecognized status value: '"+statusMatchList.get(i)+"'");
+            return READRESULT_BADARGS;
+          }
+          matchStatuses[i] = value.intValue();
+        }
+      }
+      
+      StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
+      
+      // Look for sort order parameters...
+      SortOrder sortOrder = new SortOrder();
+      List<String> sortColumnsList = queryParameters.get("sortcolumn");
+      List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+      if (sortColumnsList != null || sortColumnsDirList != null)
+      {
+        if (sortColumnsList == null || sortColumnsDirList == null)
+        {
+          createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
+          return READRESULT_BADARGS;
+        }
+        for (int i = 0; i < sortColumnsList.size(); i++)
+        {
+          String column = sortColumnsList.get(i);
+          String dir = sortColumnsDirList.get(i);
+          int dirInt;
+          if (dir.equals("ascending"))
+            dirInt = SortOrder.SORT_ASCENDING;
+          else if (dir.equals("descending"))
+            dirInt = SortOrder.SORT_DESCENDING;
+          else
+          {
+            createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
+            return READRESULT_BADARGS;
+          }
+          sortOrder.addCriteria(column,dirInt);
+        }
+      }
+      
+      // Start row and row count
+      int startRow;
+      List<String> startRowList = queryParameters.get("startrow");
+      if (startRowList == null || startRowList.size() == 0)
+        startRow = 0;
+      else if (startRowList.size() > 1)
+      {
+        createErrorNode(output,"Multiple start rows specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        startRow = new Integer(startRowList.get(0)).intValue();
+      
+      int rowCount;
+      List<String> rowCountList = queryParameters.get("rowcount");
+      if (rowCountList == null || rowCountList.size() == 0)
+        rowCount = 20;
+      else if (rowCountList.size() > 1)
+      {
+        createErrorNode(output,"Multiple row counts specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        rowCount = new Integer(rowCountList.get(0)).intValue();
+
+      List<String> reportTypeList = queryParameters.get("report");
+      String reportType;
+      if (reportTypeList == null || reportTypeList.size() == 0)
+        reportType = "simple";
+      else if (reportTypeList.size() > 1)
+      {
+        createErrorNode(output,"Multiple report types specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        reportType = reportTypeList.get(0);
+
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      
+      IResultSet result;
+      String[] resultColumns;
+      
+      if (reportType.equals("document"))
+      {
+        result = jobManager.genDocumentStatus(connectionName,filterCriteria,sortOrder,startRow,rowCount);
+        resultColumns = new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"};
+      }
+      else if (reportType.equals("status"))
+      {
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        
+        result = jobManager.genQueueStatus(connectionName,filterCriteria,sortOrder,idBucket,startRow,rowCount);
+        resultColumns = new String[]{"idbucket","inactive","processing","expiring","deleting",
+          "processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"};
+      }
+      else
+      {
+        createErrorNode(output,"Unknown report type '"+reportType+"'.");
+        return READRESULT_BADARGS;
+      }
+
+      createResultsetNode(output,result,resultColumns);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Get jobs for connection */
+  protected static int apiReadRepositoryConnectionJobs(IThreadContext tc, Configuration output,
+    String connectionName) throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription[] jobs = jobManager.findJobsForConnection(connectionName);
+      if (jobs == null)
+      {
+        createErrorNode(output,"Unknown connection '"+connectionName+"'");
+        return READRESULT_NOTFOUND;
+      }
+      int i = 0;
+      while (i < jobs.length)
+      {
+        ConfigurationNode jobNode = new ConfigurationNode(API_JOBNODE);
+        formatJobDescription(jobNode,jobs[i++]);
+        output.addChild(output.getChildCount(),jobNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
     return READRESULT_FOUND;
   }
   
@@ -2513,346 +2548,353 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
-    if (queryParameters == null)
-      queryParameters = new HashMap<String,List<String>>();
-    
-    // Look for filter criteria parameters...
-    
-    // Start time
-    List<String> startTimeList = queryParameters.get("starttime");
-    Long startTime;
-    if (startTimeList == null || startTimeList.size() == 0)
-      startTime = null;
-    else if (startTimeList.size() > 1)
+    try
     {
-      createErrorNode(output,"Multiple start times specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      startTime = new Long(startTimeList.get(0));
-
-    // End time
-    List<String> endTimeList = queryParameters.get("endtime");
-    Long endTime;
-    if (endTimeList == null || endTimeList.size() == 0)
-      endTime = null;
-    else if (endTimeList.size() > 1)
-    {
-      createErrorNode(output,"Multiple end times specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      endTime = new Long(endTimeList.get(0));
-    
-    // Activities
-    List<String> activityList = queryParameters.get("activity");
-    String[] activities;
-    if (activityList == null)
-      activities = new String[0];
-    else
-      activities = activityList.toArray(new String[0]);
-    
-    // Entity match
-    RegExpCriteria entityMatch;
-    List<String> entityMatchList = queryParameters.get("entitymatch");
-    List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
-    if (entityMatchList != null && entityMatchInsensitiveList != null)
-    {
-      createErrorNode(output,"Either use entitymatch or entitymatch_insensitive, not both.");
-      return READRESULT_BADARGS;
-    }
-    boolean isInsensitiveEntityMatch;
-    if (entityMatchInsensitiveList != null)
-    {
-      entityMatchList = entityMatchInsensitiveList;
-      isInsensitiveEntityMatch = true;
-    }
-    else
-      isInsensitiveEntityMatch = false;
-    
-    if (entityMatchList == null || entityMatchList.size() == 0)
-      entityMatch = null;
-    else if (entityMatchList.size() > 1)
-    {
-      createErrorNode(output,"Multiple entity match regexps specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
-    
-    // Result code match
-    RegExpCriteria resultCodeMatch;
-    List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
-    List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
-    if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
-    {
-      createErrorNode(output,"Either use resultcodematch or resultcodematch_insensitive, not both.");
-      return READRESULT_BADARGS;
-    }
-    boolean isInsensitiveResultCodeMatch;
-    if (entityMatchInsensitiveList != null)
-    {
-      resultCodeMatchList = resultCodeMatchInsensitiveList;
-      isInsensitiveResultCodeMatch = true;
-    }
-    else
-      isInsensitiveResultCodeMatch = false;
-    
-    if (resultCodeMatchList == null || resultCodeMatchList.size() == 0)
-      resultCodeMatch = null;
-    else if (resultCodeMatchList.size() > 1)
-    {
-      createErrorNode(output,"Multiple resultcode match regexps specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
-    
-    // Filter criteria
-    FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
-    
-    // Look for sort order parameters...
-    SortOrder sortOrder = new SortOrder();
-    List<String> sortColumnsList = queryParameters.get("sortcolumn");
-    List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
-    if (sortColumnsList != null || sortColumnsDirList != null)
-    {
-      if (sortColumnsList == null || sortColumnsDirList == null)
+      if (queryParameters == null)
+        queryParameters = new HashMap<String,List<String>>();
+      
+      // Look for filter criteria parameters...
+      
+      // Start time
+      List<String> startTimeList = queryParameters.get("starttime");
+      Long startTime;
+      if (startTimeList == null || startTimeList.size() == 0)
+        startTime = null;
+      else if (startTimeList.size() > 1)
       {
-        createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
+        createErrorNode(output,"Multiple start times specified.");
         return READRESULT_BADARGS;
       }
-      for (int i = 0; i < sortColumnsList.size(); i++)
+      else
+        startTime = new Long(startTimeList.get(0));
+
+      // End time
+      List<String> endTimeList = queryParameters.get("endtime");
+      Long endTime;
+      if (endTimeList == null || endTimeList.size() == 0)
+        endTime = null;
+      else if (endTimeList.size() > 1)
       {
-        String column = sortColumnsList.get(i);
-        String dir = sortColumnsDirList.get(i);
-        int dirInt;
-        if (dir.equals("ascending"))
-          dirInt = SortOrder.SORT_ASCENDING;
-        else if (dir.equals("descending"))
-          dirInt = SortOrder.SORT_DESCENDING;
-        else
+        createErrorNode(output,"Multiple end times specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        endTime = new Long(endTimeList.get(0));
+      
+      // Activities
+      List<String> activityList = queryParameters.get("activity");
+      String[] activities;
+      if (activityList == null)
+        activities = new String[0];
+      else
+        activities = activityList.toArray(new String[0]);
+      
+      // Entity match
+      RegExpCriteria entityMatch;
+      List<String> entityMatchList = queryParameters.get("entitymatch");
+      List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
+      if (entityMatchList != null && entityMatchInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use entitymatch or entitymatch_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveEntityMatch;
+      if (entityMatchInsensitiveList != null)
+      {
+        entityMatchList = entityMatchInsensitiveList;
+        isInsensitiveEntityMatch = true;
+      }
+      else
+        isInsensitiveEntityMatch = false;
+      
+      if (entityMatchList == null || entityMatchList.size() == 0)
+        entityMatch = null;
+      else if (entityMatchList.size() > 1)
+      {
+        createErrorNode(output,"Multiple entity match regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
+      
+      // Result code match
+      RegExpCriteria resultCodeMatch;
+      List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
+      List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
+      if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
+      {
+        createErrorNode(output,"Either use resultcodematch or resultcodematch_insensitive, not both.");
+        return READRESULT_BADARGS;
+      }
+      boolean isInsensitiveResultCodeMatch;
+      if (entityMatchInsensitiveList != null)
+      {
+        resultCodeMatchList = resultCodeMatchInsensitiveList;
+        isInsensitiveResultCodeMatch = true;
+      }
+      else
+        isInsensitiveResultCodeMatch = false;
+      
+      if (resultCodeMatchList == null || resultCodeMatchList.size() == 0)
+        resultCodeMatch = null;
+      else if (resultCodeMatchList.size() > 1)
+      {
+        createErrorNode(output,"Multiple resultcode match regexps specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
+      
+      // Filter criteria
+      FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
+      
+      // Look for sort order parameters...
+      SortOrder sortOrder = new SortOrder();
+      List<String> sortColumnsList = queryParameters.get("sortcolumn");
+      List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+      if (sortColumnsList != null || sortColumnsDirList != null)
+      {
+        if (sortColumnsList == null || sortColumnsDirList == null)
         {
-          createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
+          createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
           return READRESULT_BADARGS;
         }
-        sortOrder.addCriteria(column,dirInt);
-      }
-    }
-    
-    // Start row and row count
-    int startRow;
-    List<String> startRowList = queryParameters.get("startrow");
-    if (startRowList == null || startRowList.size() == 0)
-      startRow = 0;
-    else if (startRowList.size() > 1)
-    {
-      createErrorNode(output,"Multiple start rows specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      startRow = new Integer(startRowList.get(0)).intValue();
-    
-    int rowCount;
-    List<String> rowCountList = queryParameters.get("rowcount");
-    if (rowCountList == null || rowCountList.size() == 0)
-      rowCount = 20;
-    else if (rowCountList.size() > 1)
-    {
-      createErrorNode(output,"Multiple row counts specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      rowCount = new Integer(rowCountList.get(0)).intValue();
-
-    List<String> reportTypeList = queryParameters.get("report");
-    String reportType;
-    if (reportTypeList == null || reportTypeList.size() == 0)
-      reportType = "simple";
-    else if (reportTypeList.size() > 1)
-    {
-      createErrorNode(output,"Multiple report types specified.");
-      return READRESULT_BADARGS;
-    }
-    else
-      reportType = reportTypeList.get(0);
-
-    IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-    
-    IResultSet result;
-    String[] resultColumns;
-    
-    if (reportType.equals("simple"))
-    {
-      result = connectionManager.genHistorySimple(connectionName,filterCriteria,sortOrder,startRow,rowCount);
-      resultColumns = new String[]{"starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime"};
-    }
-    else if (reportType.equals("maxactivity"))
-    {
-      long maxInterval = connectionManager.getMaxRows();
-      long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
-      if (actualRows > maxInterval)
-      {
-        createErrorNode(output,"Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
-        return READRESULT_BADARGS;
+        for (int i = 0; i < sortColumnsList.size(); i++)
+        {
+          String column = sortColumnsList.get(i);
+          String dir = sortColumnsDirList.get(i);
+          int dirInt;
+          if (dir.equals("ascending"))
+            dirInt = SortOrder.SORT_ASCENDING;
+          else if (dir.equals("descending"))
+            dirInt = SortOrder.SORT_DESCENDING;
+          else
+          {
+            createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
+            return READRESULT_BADARGS;
+          }
+          sortOrder.addCriteria(column,dirInt);
+        }
       }
       
-      BucketDescription idBucket;
-      List<String> idBucketList = queryParameters.get("idbucket");
-      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-      if (idBucketList != null && idBucketInsensitiveList != null)
+      // Start row and row count
+      int startRow;
+      List<String> startRowList = queryParameters.get("startrow");
+      if (startRowList == null || startRowList.size() == 0)
+        startRow = 0;
+      else if (startRowList.size() > 1)
       {
-        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveIdBucket;
-      if (idBucketInsensitiveList != null)
-      {
-        idBucketList = idBucketInsensitiveList;
-        isInsensitiveIdBucket = true;
-      }
-      else
-        isInsensitiveIdBucket = false;
-      if (idBucketList == null || idBucketList.size() == 0)
-        idBucket = new BucketDescription("()",false);
-      else if (idBucketList.size() > 1)
-      {
-        createErrorNode(output,"Multiple idbucket regexps specified.");
+        createErrorNode(output,"Multiple start rows specified.");
         return READRESULT_BADARGS;
       }
       else
-        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
-
-      long interval;
-      List<String> intervalList = queryParameters.get("interval");
-      if (intervalList == null || intervalList.size() == 0)
-        interval = 300000L;
-      else if (intervalList.size() > 1)
-      {
-        createErrorNode(output,"Multiple intervals specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        interval = new Long(intervalList.get(0)).longValue();
+        startRow = new Integer(startRowList.get(0)).intValue();
       
-      result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
-      resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
-    }
-    else if (reportType.equals("maxbandwidth"))
-    {
-      long maxInterval = connectionManager.getMaxRows();
-      long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
-      if (actualRows > maxInterval)
+      int rowCount;
+      List<String> rowCountList = queryParameters.get("rowcount");
+      if (rowCountList == null || rowCountList.size() == 0)
+        rowCount = 20;
+      else if (rowCountList.size() > 1)
       {
-        createErrorNode(output,"Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
+        createErrorNode(output,"Multiple row counts specified.");
         return READRESULT_BADARGS;
       }
+      else
+        rowCount = new Integer(rowCountList.get(0)).intValue();
+
+      List<String> reportTypeList = queryParameters.get("report");
+      String reportType;
+      if (reportTypeList == null || reportTypeList.size() == 0)
+        reportType = "simple";
+      else if (reportTypeList.size() > 1)
+      {
+        createErrorNode(output,"Multiple report types specified.");
+        return READRESULT_BADARGS;
+      }
+      else
+        reportType = reportTypeList.get(0);
+
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       
-      BucketDescription idBucket;
-      List<String> idBucketList = queryParameters.get("idbucket");
-      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-      if (idBucketList != null && idBucketInsensitiveList != null)
-      {
-        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveIdBucket;
-      if (idBucketInsensitiveList != null)
-      {
-        idBucketList = idBucketInsensitiveList;
-        isInsensitiveIdBucket = true;
-      }
-      else
-        isInsensitiveIdBucket = false;
-      if (idBucketList == null || idBucketList.size() == 0)
-        idBucket = new BucketDescription("()",false);
-      else if (idBucketList.size() > 1)
-      {
-        createErrorNode(output,"Multiple idbucket regexps specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+      IResultSet result;
+      String[] resultColumns;
       
-      long interval;
-      List<String> intervalList = queryParameters.get("interval");
-      if (intervalList == null || intervalList.size() == 0)
-        interval = 300000L;
-      else if (intervalList.size() > 1)
+      if (reportType.equals("simple"))
       {
-        createErrorNode(output,"Multiple intervals specified.");
-        return READRESULT_BADARGS;
+        result = connectionManager.genHistorySimple(connectionName,filterCriteria,sortOrder,startRow,rowCount);
+        resultColumns = new String[]{"starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime"};
+      }
+      else if (reportType.equals("maxactivity"))
+      {
+        long maxInterval = connectionManager.getMaxRows();
+        long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+        if (actualRows > maxInterval)
+        {
+          createErrorNode(output,"Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
+          return READRESULT_BADARGS;
+        }
+        
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
+        long interval;
+        List<String> intervalList = queryParameters.get("interval");
+        if (intervalList == null || intervalList.size() == 0)
+          interval = 300000L;
+        else if (intervalList.size() > 1)
+        {
+          createErrorNode(output,"Multiple intervals specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          interval = new Long(intervalList.get(0)).longValue();
+        
+        result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+        resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
+      }
+      else if (reportType.equals("maxbandwidth"))
+      {
+        long maxInterval = connectionManager.getMaxRows();
+        long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+        if (actualRows > maxInterval)
+        {
+          createErrorNode(output,"Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
+          return READRESULT_BADARGS;
+        }
+        
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        
+        long interval;
+        List<String> intervalList = queryParameters.get("interval");
+        if (intervalList == null || intervalList.size() == 0)
+          interval = 300000L;
+        else if (intervalList.size() > 1)
+        {
+          createErrorNode(output,"Multiple intervals specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          interval = new Long(intervalList.get(0)).longValue();
+
+        result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+        resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
+      }
+      else if (reportType.equals("result"))
+      {
+        BucketDescription idBucket;
+        List<String> idBucketList = queryParameters.get("idbucket");
+        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+        if (idBucketList != null && idBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveIdBucket;
+        if (idBucketInsensitiveList != null)
+        {
+          idBucketList = idBucketInsensitiveList;
+          isInsensitiveIdBucket = true;
+        }
+        else
+          isInsensitiveIdBucket = false;
+        if (idBucketList == null || idBucketList.size() == 0)
+          idBucket = new BucketDescription("()",false);
+        else if (idBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple idbucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
+        BucketDescription resultCodeBucket;
+        List<String> resultCodeBucketList = queryParameters.get("resultcodebucket");
+        List<String> resultCodeBucketInsensitiveList = queryParameters.get("resultcodebucket_insensitive");
+        if (resultCodeBucketList != null && resultCodeBucketInsensitiveList != null)
+        {
+          createErrorNode(output,"Either use resultcodebucket or resultcodebucket_insensitive, not both.");
+          return READRESULT_BADARGS;
+        }
+        boolean isInsensitiveResultCodeBucket;
+        if (resultCodeBucketInsensitiveList != null)
+        {
+          resultCodeBucketList = resultCodeBucketInsensitiveList;
+          isInsensitiveResultCodeBucket = true;
+        }
+        else
+          isInsensitiveResultCodeBucket = false;
+        if (resultCodeBucketList == null || resultCodeBucketList.size() == 0)
+          resultCodeBucket = new BucketDescription("(.*)",false);
+        else if (resultCodeBucketList.size() > 1)
+        {
+          createErrorNode(output,"Multiple resultcodebucket regexps specified.");
+          return READRESULT_BADARGS;
+        }
+        else
+          resultCodeBucket = new BucketDescription(resultCodeBucketList.get(0),isInsensitiveResultCodeBucket);
+
+        result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
+        resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
       }
       else
-        interval = new Long(intervalList.get(0)).longValue();
+      {
+        createErrorNode(output,"Unknown report type '"+reportType+"'.");
+        return READRESULT_BADARGS;
+      }
 
-      result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
-      resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
+      createResultsetNode(output,result,resultColumns);
     }
-    else if (reportType.equals("result"))
+    catch (ManifoldCFException e)
     {
-      BucketDescription idBucket;
-      List<String> idBucketList = queryParameters.get("idbucket");
-      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-      if (idBucketList != null && idBucketInsensitiveList != null)
-      {
-        createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveIdBucket;
-      if (idBucketInsensitiveList != null)
-      {
-        idBucketList = idBucketInsensitiveList;
-        isInsensitiveIdBucket = true;
-      }
-      else
-        isInsensitiveIdBucket = false;
-      if (idBucketList == null || idBucketList.size() == 0)
-        idBucket = new BucketDescription("()",false);
-      else if (idBucketList.size() > 1)
-      {
-        createErrorNode(output,"Multiple idbucket regexps specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
-
-      BucketDescription resultCodeBucket;
-      List<String> resultCodeBucketList = queryParameters.get("resultcodebucket");
-      List<String> resultCodeBucketInsensitiveList = queryParameters.get("resultcodebucket_insensitive");
-      if (resultCodeBucketList != null && resultCodeBucketInsensitiveList != null)
-      {
-        createErrorNode(output,"Either use resultcodebucket or resultcodebucket_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveResultCodeBucket;
-      if (resultCodeBucketInsensitiveList != null)
-      {
-        resultCodeBucketList = resultCodeBucketInsensitiveList;
-        isInsensitiveResultCodeBucket = true;
-      }
-      else
-        isInsensitiveResultCodeBucket = false;
-      if (resultCodeBucketList == null || resultCodeBucketList.size() == 0)
-        resultCodeBucket = new BucketDescription("(.*)",false);
-      else if (resultCodeBucketList.size() > 1)
-      {
-        createErrorNode(output,"Multiple resultcodebucket regexps specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        resultCodeBucket = new BucketDescription(resultCodeBucketList.get(0),isInsensitiveResultCodeBucket);
-
-      result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
-      resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
+      createErrorNode(output,e);
     }
-    else
-    {
-      createErrorNode(output,"Unknown report type '"+reportType+"'.");
-      return READRESULT_BADARGS;
-    }
-
-    createResultsetNode(output,result,resultColumns);
     return READRESULT_FOUND;
   }
   
@@ -2885,17 +2927,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionActivities(IThreadContext tc, Configuration output, String connectionName)
     throws ManifoldCFException
   {
-    String[] activities = getActivitiesList(tc,connectionName);
-    if (activities == null)
+    try
     {
-      createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
-      return READRESULT_NOTFOUND;
+      String[] activities = getActivitiesList(tc,connectionName);
+      if (activities == null)
+      {
+        createErrorNode(output,"Connection '"+connectionName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+      for (String activity : activities)
+      {
+        ConfigurationNode node = new ConfigurationNode(API_ACTIVITYNODE);
+        node.setValue(activity);
+        output.addChild(output.getChildCount(),node);
+      }
     }
-    for (String activity : activities)
+    catch (ManifoldCFException e)
     {
-      ConfigurationNode node = new ConfigurationNode(API_ACTIVITYNODE);
-      node.setValue(activity);
-      output.addChild(output.getChildCount(),node);
+      createErrorNode(output,e);
     }
     return READRESULT_FOUND;
   }
@@ -2935,6 +2984,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       int firstSeparator = "repositoryconnectionqueue/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
       return apiReadRepositoryConnectionQueue(tc,output,connectionName,queryParameters);
+    }
+    else if (path.startsWith("repositoryconnectionjobs/"))
+    {
+      int firstSeparator = "repositoryconnectionjobs/".length();
+      String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
+      return apiReadRepositoryConnectionJobs(tc,output,connectionName);
     }
     else if (path.startsWith("status/"))
     {
