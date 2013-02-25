@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-63: Add API support for history and queue reports.
+(Karl Wright)
+
 CONNECTORS-650: Set a reasonable socket timeout for SharePoint
 and Meridio connectors.
 (Mark Lugert, Karl Wright)
