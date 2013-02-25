@@ -99,14 +99,7 @@ public class VariableURL extends VariableBase
   {
     if (v == null)
       throw new ScriptException(composeMessage("Binary '+' operand cannot be null"));
-    try
-    {
-      return new VariableURL(encodedURL + "/" + URLEncoder.encode(v.getStringValue(),"utf-8").replace("+","%20"));
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ScriptException(composeMessage(e.getMessage()),e);
-    }
+    return new VariableURL(encodedURL + "/" + v.getURLPathValue());
   }
   
   @Override

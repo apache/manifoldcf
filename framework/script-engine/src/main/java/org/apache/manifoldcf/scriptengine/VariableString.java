@@ -19,12 +19,15 @@
 
 package org.apache.manifoldcf.scriptengine;
 
+import java.net.*;
+import java.io.*;
+
 /** Variable class representing an integer.
 */
 public class VariableString extends VariableBase
 {
   protected String value;
-  
+
   public VariableString(String value)
   {
     this.value = value;
@@ -74,6 +77,29 @@ public class VariableString extends VariableBase
     throws ScriptException
   {
     return true;
+  }
+
+  /** Check if the variable has a URL path value */
+  @Override
+  public boolean hasURLPathValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Get the variable's value as a URL path component */
+  @Override
+  public String getURLPathValue()
+    throws ScriptException
+  {
+    try
+    {
+      return URLEncoder.encode(value,"utf-8").replace("+","%20");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      throw new ScriptException(composeMessage(e.getMessage()),e);
+    }
   }
 
   /** Get the variable's script value */
