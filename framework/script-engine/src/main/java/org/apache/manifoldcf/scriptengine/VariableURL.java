@@ -130,7 +130,7 @@ public class VariableURL extends VariableBase
       if (argSide == null)
         argSide = v.getQueryArgumentValue();
       else
-        argSide = "&" + v.getQueryArgumentValue();
+        argSide += "&" + v.getQueryArgumentValue();
     }
     return new VariableURL(urlSide,argSide);
   }
