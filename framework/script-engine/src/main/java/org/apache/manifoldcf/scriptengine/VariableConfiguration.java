@@ -51,6 +51,14 @@ public class VariableConfiguration extends VariableBase
     }
   }
   
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()
@@ -70,6 +78,14 @@ public class VariableConfiguration extends VariableBase
     return sb.toString();
   }
   
+  /** Check if the variable has a Configuration value */
+  @Override
+  public boolean hasConfigurationValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's value as a Configuration object */
   @Override
   public Configuration getConfigurationValue()

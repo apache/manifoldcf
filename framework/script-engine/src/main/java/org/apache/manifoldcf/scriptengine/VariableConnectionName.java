@@ -49,6 +49,14 @@ public class VariableConnectionName extends VariableBase
     return ((VariableConnectionName)o).connectionName.equals(connectionName);
   }
 
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()
@@ -68,6 +76,14 @@ public class VariableConnectionName extends VariableBase
     return sb.toString();
   }
   
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's value as a string */
   @Override
   public String getStringValue()

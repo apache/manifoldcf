@@ -44,6 +44,14 @@ public class VariableBoolean extends VariableBase
     return ((VariableBoolean)o).value == value;
   }
 
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()
@@ -52,6 +60,14 @@ public class VariableBoolean extends VariableBase
     if (value)
       return "true";
     return "false";
+  }
+
+  /** Check if the variable has a boolean value */
+  @Override
+  public boolean hasBooleanValue()
+    throws ScriptException
+  {
+    return true;
   }
 
   /** Get the variable's value as a boolean */

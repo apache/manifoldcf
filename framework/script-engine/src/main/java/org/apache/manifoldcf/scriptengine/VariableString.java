@@ -44,6 +44,38 @@ public class VariableString extends VariableBase
     return ((VariableString)o).value.equals(value);
   }
 
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has an int value */
+  @Override
+  public boolean hasIntValue()
+    throws ScriptException
+  {
+    return true;
+  }
+  
+  /** Check if the variable has a double value */
+  @Override
+  public boolean hasDoubleValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()

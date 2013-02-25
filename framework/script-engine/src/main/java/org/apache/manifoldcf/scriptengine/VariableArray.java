@@ -65,6 +65,14 @@ public class VariableArray extends VariableBase
     return true;
   }
   
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()

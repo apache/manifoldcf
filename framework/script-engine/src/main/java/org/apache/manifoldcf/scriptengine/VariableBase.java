@@ -30,6 +30,78 @@ public class VariableBase implements Variable, VariableReference
   {
   }
   
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return false;
+  }
+
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return false;
+  }
+
+  /** Check if the variable has a Configuration value */
+  @Override
+  public boolean hasConfigurationValue()
+    throws ScriptException
+  {
+    return false;
+  }
+  
+  /** Check if the variable has a ConfigurationNode value */
+  @Override
+  public boolean hasConfigurationNodeValue()
+    throws ScriptException
+  {
+    return false;
+  }
+
+  /** Check if the variable has a boolean value */
+  @Override
+  public boolean hasBooleanValue()
+    throws ScriptException
+  {
+    return false;
+  }
+  
+  /** Check if the variable has an int value */
+  @Override
+  public boolean hasIntValue()
+    throws ScriptException
+  {
+    return false;
+  }
+  
+  /** Check if the variable has a double value */
+  @Override
+  public boolean hasDoubleValue()
+    throws ScriptException
+  {
+    return false;
+  }
+    
+  /** Check if the variable has a query argument value */
+  @Override
+  public boolean hasQueryArgumentValue()
+    throws ScriptException
+  {
+    return false;
+  }
+
+  /** Check if the variable has a URL path value */
+  @Override
+  public boolean hasURLPathValue()
+    throws ScriptException
+  {
+    return false;
+  }
+    
 
   /** Get the variable's script value */
   @Override
@@ -87,6 +159,22 @@ public class VariableBase implements Variable, VariableReference
     throw new ScriptException(composeMessage("Cannot convert variable to float"));
   }
 
+  /** Get the variable's value as a properly-encoded query argument */
+  @Override
+  public String getQueryArgumentValue()
+    throws ScriptException
+  {
+    throw new ScriptException(composeMessage("Cannot convert variable to query argument"));
+  }
+
+  /** Get the variable's value as a URL path component */
+  @Override
+  public String getURLPathValue()
+    throws ScriptException
+  {
+    throw new ScriptException(composeMessage("Cannot convert variable to URL path component"));
+  }
+    
   // Operations
   
   @Override

@@ -38,6 +38,14 @@ public class VariableConfigurationNode extends VariableBase
     configurationNode = node;
   }
   
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()
@@ -87,6 +95,14 @@ public class VariableConfigurationNode extends VariableBase
     }
     sb.append(" >>");
     return sb.toString();
+  }
+
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
   }
 
   /** Convert to a value */
