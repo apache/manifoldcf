@@ -32,6 +32,7 @@ public class VariableArray extends VariableBase
   {
   }
   
+  @Override
   public int hashCode()
   {
     int rval = 0;
@@ -44,6 +45,7 @@ public class VariableArray extends VariableBase
     return rval;
   }
 
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableArray))
@@ -64,6 +66,7 @@ public class VariableArray extends VariableBase
   }
   
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -84,6 +87,7 @@ public class VariableArray extends VariableBase
   }
   
   /** Get a named attribute of the variable; e.g. xxx.yyy */
+  @Override
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
@@ -94,6 +98,7 @@ public class VariableArray extends VariableBase
   }
   
   /** Get an indexed property of the variable */
+  @Override
   public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
@@ -106,6 +111,7 @@ public class VariableArray extends VariableBase
   }
   
   /** Insert an object into this variable at a position. */
+  @Override
   public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
@@ -121,6 +127,7 @@ public class VariableArray extends VariableBase
   }
 
   /** Delete an object from this variable at a position. */
+  @Override
   public void removeAt(Variable index)
     throws ScriptException
   {
@@ -141,7 +148,8 @@ public class VariableArray extends VariableBase
     {
       this.index = index;
     }
-    
+
+    @Override
     public void setReference(Variable v)
       throws ScriptException
     {
@@ -150,6 +158,7 @@ public class VariableArray extends VariableBase
       array.set(index,v);
     }
     
+    @Override
     public Variable resolve()
       throws ScriptException
     {
@@ -159,6 +168,7 @@ public class VariableArray extends VariableBase
     }
     
     /** Check if this reference is null */
+    @Override
     public boolean isNull()
     {
       return index < 0 || index >= array.size() || array.get(index) == null;

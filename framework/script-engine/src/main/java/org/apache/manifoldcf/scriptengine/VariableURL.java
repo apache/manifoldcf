@@ -36,11 +36,13 @@ public class VariableURL extends VariableBase
       this.encodedURL = this.encodedURL.substring(0,this.encodedURL.length()-1);
   }
   
+  @Override
   public int hashCode()
   {
     return encodedURL.hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableURL))
@@ -49,6 +51,7 @@ public class VariableURL extends VariableBase
   }
 
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -67,12 +70,14 @@ public class VariableURL extends VariableBase
   }
   
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
     return encodedURL;
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -88,6 +93,7 @@ public class VariableURL extends VariableBase
     }
   }
   
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -96,6 +102,7 @@ public class VariableURL extends VariableBase
     return new VariableBoolean(encodedURL.equals(v.getStringValue()));
   }
 
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {

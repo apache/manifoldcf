@@ -35,6 +35,7 @@ public class VariableResult extends VariableBase
   }
   
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -42,6 +43,7 @@ public class VariableResult extends VariableBase
   }
 
   /** Get the variable's value as an integer */
+  @Override
   public int getIntValue()
     throws ScriptException
   {
@@ -49,6 +51,7 @@ public class VariableResult extends VariableBase
   }
   
   /** Get a named attribute of the variable; e.g. xxx.yyy */
+  @Override
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {

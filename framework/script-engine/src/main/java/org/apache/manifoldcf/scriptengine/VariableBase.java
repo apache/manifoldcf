@@ -32,6 +32,7 @@ public class VariableBase implements Variable, VariableReference
   
 
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -39,6 +40,7 @@ public class VariableBase implements Variable, VariableReference
   }
 
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
@@ -46,6 +48,7 @@ public class VariableBase implements Variable, VariableReference
   }
   
   /** Get the variable's value as a Configuration object */
+  @Override
   public Configuration getConfigurationValue()
     throws ScriptException
   {
@@ -53,6 +56,7 @@ public class VariableBase implements Variable, VariableReference
   }
     
   /** Get the variable's value as a ConfigurationNode object */
+  @Override
   public ConfigurationNode getConfigurationNodeValue()
     throws ScriptException
   {
@@ -60,6 +64,7 @@ public class VariableBase implements Variable, VariableReference
   }
 
   /** Get the variable's value as a boolean */
+  @Override
   public boolean getBooleanValue()
     throws ScriptException
   {
@@ -67,6 +72,7 @@ public class VariableBase implements Variable, VariableReference
   }
   
   /** Get the variable's value as an integer */
+  @Override
   public int getIntValue()
     throws ScriptException
   {
@@ -74,6 +80,7 @@ public class VariableBase implements Variable, VariableReference
   }
   
   /** Get the variable's value as a double */
+  @Override
   public double getDoubleValue()
     throws ScriptException
   {
@@ -82,96 +89,112 @@ public class VariableBase implements Variable, VariableReference
 
   // Operations
   
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '+' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference minus(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '-' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference asterisk(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '*' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference slash(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '/' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference unaryMinus()
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Unary '-' operator illegal for this type"));
   }
   
+  @Override
   public VariableReference greaterAngle(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '>' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference lesserAngle(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '<' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '==' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference greaterAngleEquals(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '>=' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference lesserAngleEquals(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '<=' operator illegal for this type"));
   }
   
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '!=' operator illegal for this type"));
   }
   
+  @Override
   public VariableReference ampersand(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '&' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference pipe(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '|' operator illegal for this type"));
   }
 
+  @Override
   public VariableReference doubleAmpersand(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '&&' operator illegal for this type"));
   }
     
+  @Override
   public VariableReference doublePipe(Variable v)
     throws ScriptException
   {
     throw new ScriptException(composeMessage("Binary '||' operator illegal for this type"));
   }
   
+  @Override
   public VariableReference unaryExclamation()
     throws ScriptException
   {
@@ -181,6 +204,7 @@ public class VariableBase implements Variable, VariableReference
   // The following operations allow manipulation of a Configuration structure
 
   /** Get a named attribute of the variable; e.g. xxx.yyy */
+  @Override
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
@@ -199,6 +223,7 @@ public class VariableBase implements Variable, VariableReference
   }
   
   /** Insert an object into this variable at a position. */
+  @Override
   public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
@@ -206,6 +231,7 @@ public class VariableBase implements Variable, VariableReference
   }
 
   /** Delete an object from this variable at a position. */
+  @Override
   public void removeAt(Variable index)
     throws ScriptException
   {
@@ -216,6 +242,7 @@ public class VariableBase implements Variable, VariableReference
   // The following two operations correspond to <xxx> and xxx[index]
   
   /** Get an indexed property of the variable */
+  @Override
   public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
@@ -225,6 +252,7 @@ public class VariableBase implements Variable, VariableReference
   // As a variable reference, refer to self
   
   /** Set the reference */
+  @Override
   public void setReference(Variable object)
     throws ScriptException
   {
@@ -232,6 +260,7 @@ public class VariableBase implements Variable, VariableReference
   }
   
   /** Resolve the reference */
+  @Override
   public Variable resolve()
     throws ScriptException
   {
@@ -239,6 +268,7 @@ public class VariableBase implements Variable, VariableReference
   }
 
   /** Check if this reference is null */
+  @Override
   public boolean isNull()
   {
     return false;

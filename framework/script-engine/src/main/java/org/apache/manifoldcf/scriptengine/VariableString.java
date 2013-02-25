@@ -30,11 +30,13 @@ public class VariableString extends VariableBase
     this.value = value;
   }
 
+  @Override
   public int hashCode()
   {
     return value.hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableString))
@@ -43,6 +45,7 @@ public class VariableString extends VariableBase
   }
 
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -61,6 +64,7 @@ public class VariableString extends VariableBase
   }
 
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
@@ -68,6 +72,7 @@ public class VariableString extends VariableBase
   }
 
   /** Get the variable's value as an integer */
+  @Override
   public int getIntValue()
     throws ScriptException
   {
@@ -82,12 +87,14 @@ public class VariableString extends VariableBase
   }
   
   /** Get the variable's value as a double */
+  @Override
   public double getDoubleValue()
     throws ScriptException
   {
     return new Double(value).doubleValue();
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -96,6 +103,7 @@ public class VariableString extends VariableBase
     return new VariableString(value + v.getStringValue());
   }
   
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -104,6 +112,7 @@ public class VariableString extends VariableBase
     return new VariableBoolean(value.equals(v.getStringValue()));
   }
 
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {

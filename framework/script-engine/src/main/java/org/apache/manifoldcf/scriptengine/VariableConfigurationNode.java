@@ -39,6 +39,7 @@ public class VariableConfigurationNode extends VariableBase
   }
   
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -89,6 +90,7 @@ public class VariableConfigurationNode extends VariableBase
   }
 
   /** Convert to a value */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
@@ -105,6 +107,7 @@ public class VariableConfigurationNode extends VariableBase
   }
 
   /** Get a named attribute of the variable; e.g. xxx.yyy */
+  @Override
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
@@ -140,6 +143,7 @@ public class VariableConfigurationNode extends VariableBase
   }
   
   /** Get an indexed property of the variable */
+  @Override
   public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
@@ -152,6 +156,7 @@ public class VariableConfigurationNode extends VariableBase
   }
 
   /** Insert an object into this variable at a position. */
+  @Override
   public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
@@ -169,6 +174,7 @@ public class VariableConfigurationNode extends VariableBase
   }
 
   /** Delete an object from this variable at a position. */
+  @Override
   public void removeAt(Variable index)
     throws ScriptException
   {
@@ -181,6 +187,7 @@ public class VariableConfigurationNode extends VariableBase
   }
 
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -213,6 +220,7 @@ public class VariableConfigurationNode extends VariableBase
     {
     }
     
+    @Override
     public void setReference(Variable v)
       throws ScriptException
     {
@@ -225,6 +233,7 @@ public class VariableConfigurationNode extends VariableBase
       }
     }
     
+    @Override
     public Variable resolve()
       throws ScriptException
     {
@@ -234,6 +243,7 @@ public class VariableConfigurationNode extends VariableBase
       return new VariableString(value);
     }
     
+    @Override
     public boolean isNull()
     {
       return false;
@@ -250,6 +260,7 @@ public class VariableConfigurationNode extends VariableBase
       this.attributeName = attributeName;
     }
     
+    @Override
     public void setReference(Variable v)
       throws ScriptException
     {
@@ -262,6 +273,7 @@ public class VariableConfigurationNode extends VariableBase
       }
     }
 
+    @Override
     public Variable resolve()
       throws ScriptException
     {
@@ -271,6 +283,7 @@ public class VariableConfigurationNode extends VariableBase
       return new VariableString(attrValue);
     }
 
+    @Override
     public boolean isNull()
     {
       return (configurationNode.getAttributeValue(attributeName) == null);
@@ -287,6 +300,7 @@ public class VariableConfigurationNode extends VariableBase
       this.index = index;
     }
     
+    @Override
     public void setReference(Variable v)
       throws ScriptException
     {
@@ -297,6 +311,7 @@ public class VariableConfigurationNode extends VariableBase
       configurationNode.addChild(index,confNode);
     }
 
+    @Override
     public Variable resolve()
       throws ScriptException
     {
@@ -306,6 +321,7 @@ public class VariableConfigurationNode extends VariableBase
     }
 
     /** Check if this reference is null */
+    @Override
     public boolean isNull()
     {
       return index < 0 || index >= configurationNode.getChildCount();

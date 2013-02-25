@@ -35,11 +35,13 @@ public class VariableConnectionName extends VariableBase
     this.encodedConnectionName = encode(connectionName);
   }
 
+  @Override
   public int hashCode()
   {
     return connectionName.hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableConnectionName))
@@ -48,6 +50,7 @@ public class VariableConnectionName extends VariableBase
   }
 
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -66,12 +69,14 @@ public class VariableConnectionName extends VariableBase
   }
   
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
     return encodedConnectionName;
   }
 
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -80,6 +85,7 @@ public class VariableConnectionName extends VariableBase
     return new VariableBoolean(encodedConnectionName.equals(v.getStringValue()));
   }
 
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {

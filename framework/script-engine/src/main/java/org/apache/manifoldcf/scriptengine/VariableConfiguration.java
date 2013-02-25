@@ -52,6 +52,7 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -70,6 +71,7 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Get the variable's value as a Configuration object */
+  @Override
   public Configuration getConfigurationValue()
     throws ScriptException
   {
@@ -77,6 +79,7 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Get a named attribute of the variable; e.g. xxx.yyy */
+  @Override
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
@@ -99,6 +102,7 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Get an indexed property of the variable */
+  @Override
   public VariableReference getIndexed(Variable index)
     throws ScriptException
   {
@@ -111,6 +115,7 @@ public class VariableConfiguration extends VariableBase
   }
   
   /** Insert an object into this variable at a position. */
+  @Override
   public void insertAt(Variable v, Variable index)
     throws ScriptException
   {
@@ -128,6 +133,7 @@ public class VariableConfiguration extends VariableBase
   }
 
   /** Delete an object from this variable at a position. */
+  @Override
   public void removeAt(Variable index)
     throws ScriptException
   {
@@ -139,6 +145,7 @@ public class VariableConfiguration extends VariableBase
     configuration.removeChild(indexValue);
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -167,6 +174,7 @@ public class VariableConfiguration extends VariableBase
       this.index = index;
     }
     
+    @Override
     public void setReference(Variable v)
       throws ScriptException
     {
@@ -177,6 +185,7 @@ public class VariableConfiguration extends VariableBase
       configuration.addChild(index,confNode);
     }
     
+    @Override
     public Variable resolve()
       throws ScriptException
     {
@@ -186,6 +195,7 @@ public class VariableConfiguration extends VariableBase
     }
     
     /** Check if this reference is null */
+    @Override
     public boolean isNull()
     {
       return index < 0 || index >= configuration.getChildCount();
