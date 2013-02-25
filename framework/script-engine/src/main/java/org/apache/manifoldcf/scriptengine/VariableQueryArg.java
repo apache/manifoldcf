@@ -22,50 +22,35 @@ package org.apache.manifoldcf.scriptengine;
 import java.net.*;
 import java.io.*;
 
-/** Variable class representing a ManifoldCF API URL.  As the URL is glued together, the
-* individual path pieces are appropriately encoded.
+/** Variable class representing a ManifoldCF query argument, with a name
+* and a value.
 */
-public class VariableURL extends VariableBase
+public class VariableQueryArg extends VariableBase
 {
-  protected String encodedURL;
-  protected String encodedArgs;
+  protected final String name;
+  protected final String value;
   
-  public VariableURL(String baseURLValue)
+  public VariableQueryArg(String name, String value)
   {
-    this(baseURLValue,null);
-  }
-  
-  public VariableURL(String baseURLValue, String encodedArgsValue)
-  {
-    this.encodedURL = baseURLValue;
-    if (encodedURL.endsWith("/"))
-      this.encodedURL = this.encodedURL.substring(0,this.encodedURL.length()-1);
-    this.encodedArgs = encodedArgsValue;
+    if (value == null)
+      value = "";
+    this.name = name;
+    this.value = value;
   }
   
   @Override
   public int hashCode()
   {
-    return encodedURL.hashCode() + encodedArgs.hashCode();
+    return name.hashCode() + value.hashCode();
   }
   
   @Override
   public boolean equals(Object o)
   {
-    if (!(o instanceof VariableURL))
+    if (!(o instanceof VariableQueryArg))
       return false;
-    VariableURL other = (VariableURL)o;
-    if (!other.encodedURL.equals(encodedURL))
-      return false;
-    if (other.encodedArgs != null || encodedArgs != null)
-    {
-      if (other.encodedArgs == encodedArgs)
-        return true;
-      if (other.encodedArgs == null || encodedArgs == null)
-        return false;
-      return other.encodedArgs.equals(encodedArgs);
-    }
-    return true;
+    VariableQueryArg other = (VariableQueryArg)o;
+    return other.name.equals(name) && other.value.equals(value);
   }
 
   /** Check if the variable has a string value */
@@ -84,18 +69,31 @@ public class VariableURL extends VariableBase
     return true;
   }
 
+  /** Check if the variable has a query arg value */
+  @Override
+  public boolean hasQueryArgumentValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
   @Override
   public String getScriptValue()
     throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
-    String value = getStringValue();
-    sb.append("\"");
+    sb.append("new queryarg ").append(escapeValue(name)).append("=").append(escapeValue(value));
+    return sb.toString();
+  }
+  
+  protected static String escapeValue(String input)
+  {
+    StringBuilder sb = new StringBuilder("\"");
     int i = 0;
-    while (i < value.length())
+    while (i < input.length())
     {
-      char x = value.charAt(i++);
+      char x = input.charAt(i++);
       if (x == '\\' || x == '\"')
         sb.append('\\');
       sb.append(x);
@@ -109,30 +107,22 @@ public class VariableURL extends VariableBase
   public String getStringValue()
     throws ScriptException
   {
-    if (encodedArgs != null)
-      return encodedURL + "?" + encodedArgs;
-    else
-      return encodedURL;
+    try
+    {
+      return URLEncoder.encode(name,"utf-8").replace("+","%20") + "=" +
+        URLEncoder.encode(value,"utf-8").replace("+","%20");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      throw new ScriptException(composeMessage(e.getMessage()),e);
+    }
   }
 
   @Override
-  public VariableReference plus(Variable v)
+  public String getQueryArgumentValue()
     throws ScriptException
   {
-    if (v == null)
-      throw new ScriptException(composeMessage("Binary '+' operand cannot be null"));
-    String urlSide = encodedURL;
-    if (v.hasURLPathValue())
-      urlSide += "/" + v.getURLPathValue();
-    String argSide = encodedArgs;
-    if (v.hasQueryArgumentValue())
-    {
-      if (argSide == null)
-        argSide = v.getQueryArgumentValue();
-      else
-        argSide = "&" + v.getQueryArgumentValue();
-    }
-    return new VariableURL(urlSide,argSide);
+    return getStringValue();
   }
   
   @Override
