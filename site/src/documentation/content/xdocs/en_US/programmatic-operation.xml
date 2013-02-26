@@ -76,7 +76,7 @@
           <p></p>
           <p></p>
           <table>
-            <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format</th><th>Output format</th></tr>
+            <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format/query args</th><th>Output format</th></tr>
             <tr><td>outputconnectors</td><td>GET</td><td>List all registered output connectors</td><td>N/A</td><td>{"outputconnector":[<em>&lt;list_of_output_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authorityconnectors</td><td>GET</td><td>List all registered authority connectors</td><td>N/A</td><td>{"authorityconnector":[<em>&lt;list_of_authority_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>repositoryconnectors</td><td>GET</td><td>List all registered repository connectors</td><td>N/A</td><td>{"repositoryconnector":[<em>&lt;list_of_repository_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
@@ -111,9 +111,60 @@
             <tr><td>restart/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Stop and start a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>pause/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Pause a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>resume/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Resume a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+
+            <tr><td>repositoryconnectionhistory/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a history report</td><td><em>&lt;history_query_parameters&gt;</em></td><td>{"row":[{"column":[{"name":<em>&lt;col_name&gt;</em>,"value":<em>&lt;col_value&gt;</em>}, ...]}, ...]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnectionquery/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a queue report</td><td><em>&lt;queue_query_parameters&gt;</em></td><td>{"row":[{"column":[{"name":<em>&lt;col_name&gt;</em>,"value":<em>&lt;col_value&gt;</em>}, ...]}, ...]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnectionactivities/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a list of legal activities for a connection</td><td>N/A</td><td>{"activity":[<em>&lt;activity_name&gt;</em>, ...]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>repositoryconnectionjobs/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a list of jobs for a connection</td><td>N/A</td><td>{"job":[<em>&lt;list_of_job_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+
           </table>
           <p></p>
-          <p>Other resources having to do with reports have been planned, but not yet been implemented.</p>
+        </section>
+        <section>
+          <title>History query parameters</title>
+          <p></p>
+          <p>The history query parameters and their meanings are as follows:</p>
+          <table>
+            <tr><th>Parameter</th><th>Report type</th><th>Multivalued?</th><th>Meaning</th></tr>
+            <tr><td>report</td><td>All</td><td>No</td><td>The kind of history report desired; legal values are "simple", "maxactivity", "maxbandwidth", and "result"; defaults to "simple"</td></tr>
+            <tr><td>starttime</td><td>All</td><td>No</td><td>Starting time in ms since epoch; defaults to "0"</td></tr>
+            <tr><td>endtime</td><td>All</td><td>No</td><td>Ending time in ms since epoch; defaults to now</td></tr>
+            <tr><td>activity</td><td>All</td><td>Yes</td><td>Which activities you want to see</td></tr>
+            <tr><td>entitymatch</td><td>All</td><td>No</td><td>Regular expression matching entity identifier; defaults to ""</td></tr>
+            <tr><td>entitymatch_insensitive</td><td>All</td><td>No</td><td>Case insensitive version of entitymatch</td></tr>
+            <tr><td>resultcodematch</td><td>All</td><td>No</td><td>Regular expression match result code; defaults to ""</td></tr>
+            <tr><td>resultcodematch_insensitive</td><td>All</td><td>No</td><td>Case insensitive version of resultcodematch</td></tr>
+            <tr><td>sortcolumn</td><td>All</td><td>Yes</td><td>Result column to sort the result by</td></tr>
+            <tr><td>sortcolumn_direction</td><td>All</td><td>Yes</td><td>Direction to sort the corresponding column ("ascending" or "descending")</td></tr>
+            <tr><td>startrow</td><td>All</td><td>No</td><td>Starting row in resultset to return; defaults to 0</td></tr>
+            <tr><td>rowcount</td><td>All</td><td>No</td><td>Maximum number of rows to return; defaults to 20</td></tr>
+            <tr><td>idbucket</td><td>maxactivity, maxbandwidth, result</td><td>No</td><td>Regular expression selecting which part of the entity identifier to use as an aggregation key; defaults to "()"</td></tr>
+            <tr><td>idbucket_insensitive</td><td>maxactivity, maxbandwidth, result</td><td>No</td><td>Case insensitive version of idbucket</td></tr>
+            <tr><td>resultcodebucket</td><td>result</td><td>No</td><td>Regular expression selecting which part of the result code to use as an aggregation key; defaults to "(.*)"</td></tr>
+            <tr><td>resultcodebucket_insensitive</td><td>result</td><td>No</td><td>Case insensitive version of resultcodebucket</td></tr>
+            <tr><td>interval</td><td>maxactivity, maxbandwidth</td><td>No</td><td>Size of window in milliseconds for assessing rate; defaults to 300000</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>Queue query parameters</title>
+          <p></p>
+          <p>The queue query parameters and their meanings are as follows:</p>
+          <table>
+            <tr><th>Parameter</th><th>Report type</th><th>Multivalued?</th><th>Meaning</th></tr>
+            <tr><td>report</td><td>All</td><td>No</td><td>The kind of queue report desired; legal values are "document" or "status"; defaults to "document"</td></tr>
+            <tr><td>now</td><td>All</td><td>No</td><td>The time in milliseconds since epoch to perform the queue assessment relative to; defaults to current time</td></tr>
+            <tr><td>idmatch</td><td>All</td><td>No</td><td>Regular expression matching document identifier; defaults to ""</td></tr>
+            <tr><td>idmatch_insensitive</td><td>All</td><td>No</td><td>Case insensitive version of idmatch</td></tr>
+            <tr><td>statematch</td><td>All</td><td>Yes</td><td>State to match; valid values are "neverprocessed", "previouslyprocessed", "outofscope"</td></tr>
+            <tr><td>statusmatch</td><td>All</td><td>Yes</td><td>Status to match; valid values are "inactive", "processing", "expiring", "deleting", "readyforprocessing", "readyforexpiration", "waitingforprocessing", "waitingforexpiration", "waitingforever", and "hopcountexceeded"</td></tr>
+            <tr><td>sortcolumn</td><td>All</td><td>Yes</td><td>Result column to sort the result by</td></tr>
+            <tr><td>sortcolumn_direction</td><td>All</td><td>Yes</td><td>Direction to sort the corresponding column ("ascending" or "descending")</td></tr>
+            <tr><td>startrow</td><td>All</td><td>No</td><td>Starting row in resultset to return; defaults to 0</td></tr>
+            <tr><td>rowcount</td><td>All</td><td>No</td><td>Maximum number of rows to return; defaults to 20</td></tr>
+            <tr><td>idbucket</td><td>status</td><td>No</td><td>Regular expression selecting which part of the document identifier to use as an aggregation key; defaults to "()"</td></tr>
+            <tr><td>idbucket_insensitive</td><td>status</td><td>No</td><td>Case insensitive version of idbucket</td></tr>
+          </table>
           <p></p>
         </section>
         <section>
