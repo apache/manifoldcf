@@ -1650,6 +1650,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String API_CONNECTIONNAMENODE = "connection_name";
   protected final static String API_ROWNODE = "row";
   protected final static String API_COLUMNNODE = "column";
+  protected final static String API_NAMENODE = "name";
+  protected final static String API_VALUENODE = "value";
   protected final static String API_ACTIVITYNODE = "activity";
   
   // Connector nodes
@@ -2916,7 +2918,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           valueToUse = "";
         else
           valueToUse = value.toString();
-        columnValue.setValue(valueToUse);
+        ConfigurationNode nameNode = new ConfigurationNode(API_NAMENODE);
+        nameNode.setValue(columnName);
+        columnValue.addChild(columnValue.getChildCount(),nameNode);
+        ConfigurationNode valueNode = new ConfigurationNode(API_VALUENODE);
+        valueNode.setValue(valueToUse);
+        columnValue.addChild(columnValue.getChildCount(),valueNode);
         rowValue.addChild(rowValue.getChildCount(),columnValue);
       }
       output.addChild(output.getChildCount(),rowValue);
