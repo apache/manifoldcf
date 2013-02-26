@@ -2452,7 +2452,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       List<String> reportTypeList = queryParameters.get("report");
       String reportType;
       if (reportTypeList == null || reportTypeList.size() == 0)
-        reportType = "simple";
+        reportType = "document";
       else if (reportTypeList.size() > 1)
       {
         createErrorNode(output,"Multiple report types specified.");
