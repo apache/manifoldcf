@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-652: Add documentation for new script client and API
+features.
+(Karl Wright)
+
 CONNECTORS-651: Add query argument support to script client.
 (Karl Wright)
 
