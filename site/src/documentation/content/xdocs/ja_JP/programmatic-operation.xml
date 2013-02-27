@@ -145,6 +145,15 @@
             <tr><td>interval</td><td>maxactivity, maxbandwidth</td><td>No</td><td>Size of window in milliseconds for assessing rate; defaults to 300000</td></tr>
           </table>
           <p></p>
+          <p>Each report type has different return columns, as listed below:</p>
+          <p></p>
+          <table>
+            <tr><th>Report type</th><th>Return columns</th></tr>
+            <tr><td>simple</td><td>starttime, resultcode, resultdesc, identifier, activity, bytes, elapsedtime</td></tr>
+            <tr><td>maxactivity</td><td>starttime, endtime, activitycount, idbucket</td></tr>
+            <tr><td>maxbandwidth</td><td>starttime, endtime, bytecount, idbucket</td></tr>
+            <tr><td>result</td><td>idbucket, resultcodebucket, eventcount</td></tr>
+          </table>
         </section>
         <section>
           <title>Queue query parameters</title>
@@ -166,6 +175,13 @@
             <tr><td>idbucket_insensitive</td><td>status</td><td>No</td><td>Case insensitive version of idbucket</td></tr>
           </table>
           <p></p>
+          <p>Each report type has different return columns, as listed below:</p>
+          <p></p>
+          <table>
+            <tr><th>Report type</th><th>Return columns</th></tr>
+            <tr><td>document</td><td>identifier, job, state, status, scheduled, action, retrycount, retrylimit</td></tr>
+            <tr><td>status</td><td>idbucket, inactive, processing, expiring, deleting, processready, expireready, processwaiting, expirewaiting, waitingforever, hopcountexceeded</td></tr>
+          </table>
         </section>
         <section>
           <title>Output connector objects</title>
