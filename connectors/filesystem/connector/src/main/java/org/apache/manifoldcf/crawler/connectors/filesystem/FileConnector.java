@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 import java.util.*;
 import java.io.*;
 
@@ -309,19 +310,6 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
-  protected final static Map<String,String> mimeMap;
-  static {
-    mimeMap = new HashMap<String,String>();
-    mimeMap.put("txt","text/plain");
-    mimeMap.put("pdf","application/pdf");
-    mimeMap.put("doc","application/msword");
-    mimeMap.put("docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    mimeMap.put("ppt","application/vnd.ms-powerpoint");
-    mimeMap.put("pptx","application/vnd.openxmlformats-officedocument.presentationml.presentation");
-    mimeMap.put("xls","application/vnd.ms-excel");
-    mimeMap.put("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  }
-  
   /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
@@ -331,7 +319,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int dotIndex = fileName.lastIndexOf(".");
     if (dotIndex == -1)
       return null;
-    return mimeMap.get(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
+    return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
   }
 
   // UI support methods.

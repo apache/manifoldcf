@@ -24,6 +24,7 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -1525,8 +1526,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
                       data.setFileName(mapToFileName(documentIdentifier));
                       
-		      data.setMimeType(mapExtensionToMimeType(documentIdentifier));
-		      
+		      String contentType = mapExtensionToMimeType(documentIdentifier);
+		      if (contentType != null)
+                        data.setMimeType(contentType);
+                      
                       setDataACLs(data,acls,denyAcl);
 
                       setPathAttribute(data,sDesc,documentIdentifier);
@@ -1713,19 +1716,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
-  protected final static Map<String,String> mimeMap;
-  static {
-    mimeMap = new HashMap<String,String>();
-    mimeMap.put("txt","text/plain");
-    mimeMap.put("pdf","application/pdf");
-    mimeMap.put("doc","application/msword");
-    mimeMap.put("docx","application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    mimeMap.put("ppt","application/vnd.ms-powerpoint");
-    mimeMap.put("pptx","application/vnd.openxmlformats-officedocument.presentationml.presentation");
-    mimeMap.put("xls","application/vnd.ms-excel");
-    mimeMap.put("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  }
-  
   /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
@@ -1735,7 +1725,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     int dotIndex = fileName.lastIndexOf(".");
     if (dotIndex == -1)
       return null;
-    return mimeMap.get(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
+    return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1));
   }
 
   /** Map document identifier to file name */

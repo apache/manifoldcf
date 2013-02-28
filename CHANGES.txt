@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-654: Move extension to mimetype mapping to a 
+central location.
+(Mark Lugert, Karl Wright)
+
 CONNECTORS-653: Include filename in SharePoint connector.
 (Mark Lugert, Karl Wright)
 
