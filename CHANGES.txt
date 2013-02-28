@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-653: Include filename in SharePoint connector.
+(Mark Lugert, Karl Wright)
+
 CONNECTORS-652: Add documentation for new script client and API
 features.
 (Karl Wright)

@@ -1523,6 +1523,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       RepositoryDocument data = new RepositoryDocument();
                       data.setBinary( is, documentLength );
 
+                      data.setFileName(mapToFileName(documentIdentifier));
+                      
 		      data.setMimeType(mapExtensionToMimeType(documentIdentifier));
 		      
                       setDataACLs(data,acls,denyAcl);
@@ -1736,6 +1738,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return mimeMap.get(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
   }
 
+  /** Map document identifier to file name */
+  protected static String mapToFileName(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    return fileName;
+  }
+  
   protected static void setDataACLs(RepositoryDocument data, ArrayList acls, String denyAcl)
   {
     if (acls != null)
