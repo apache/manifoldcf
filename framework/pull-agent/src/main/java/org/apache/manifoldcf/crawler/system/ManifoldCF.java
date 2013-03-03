@@ -1694,7 +1694,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Read result codes
   public static final int READRESULT_NOTFOUND = 0;
   public static final int READRESULT_FOUND = 1;
-  public static final int READRESULT_BADARGS = 2;
 
   /** Read jobs */
   protected static int apiReadJobs(IThreadContext tc, Configuration output)
@@ -2295,226 +2294,196 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
-    try
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
+
+    // Jobs (specified by id)
+    Long[] jobs;
+    List<String> jobList = queryParameters.get("job");
+    if (jobList == null)
+      jobs = new Long[0];
+    else
     {
-      if (queryParameters == null)
-        queryParameters = new HashMap<String,List<String>>();
+      jobs = new Long[jobList.size()];
+      for (int i = 0; i < jobs.length; i++)
+      {
+        jobs[i] = new Long(jobList.get(i));
+      }
+    }
 
-      // Jobs (specified by id)
-      Long[] jobs;
-      List<String> jobList = queryParameters.get("job");
-      if (jobList == null)
-        jobs = new Long[0];
-      else
-      {
-        jobs = new Long[jobList.size()];
-        for (int i = 0; i < jobs.length; i++)
-        {
-          jobs[i] = new Long(jobList.get(i));
-        }
-      }
+    // Now time
+    long now;
+    List<String> nowList = queryParameters.get("now");
+    if (nowList == null || nowList.size() == 0)
+      now = System.currentTimeMillis();
+    else if (nowList.size() > 1)
+      throw new ManifoldCFException("Multiple values for now parameter");
+    else
+      now = new Long(nowList.get(0)).longValue();
+      
+    // Identifier match
+    RegExpCriteria idMatch;
+    List<String> idMatchList = queryParameters.get("idmatch");
+    List<String> idMatchInsensitiveList = queryParameters.get("idmatch_insensitive");
+    if (idMatchList != null && idMatchInsensitiveList != null)
+      throw new ManifoldCFException("Either use idmatch or idmatch_insensitive, not both.");
+    boolean isInsensitiveIdMatch;
+    if (idMatchInsensitiveList != null)
+    {
+      idMatchList = idMatchInsensitiveList;
+      isInsensitiveIdMatch = true;
+    }
+    else
+      isInsensitiveIdMatch = false;
+      
+    if (idMatchList == null || idMatchList.size() == 0)
+      idMatch = null;
+    else if (idMatchList.size() > 1)
+      throw new ManifoldCFException("Multiple id match regexps specified.");
+    else
+      idMatch = new RegExpCriteria(idMatchList.get(0),isInsensitiveIdMatch);
 
-      // Now time
-      long now;
-      List<String> nowList = queryParameters.get("now");
-      if (nowList == null || nowList.size() == 0)
-        now = System.currentTimeMillis();
-      else if (nowList.size() > 1)
+    List<String> stateMatchList = queryParameters.get("statematch");
+    int[] matchStates;
+    if (stateMatchList == null)
+      matchStates = new int[0];
+    else
+    {
+      matchStates = new int[stateMatchList.size()];
+      for (int i = 0; i < matchStates.length; i++)
       {
-        createErrorNode(output,"Multiple values for now parameter");
-        return READRESULT_BADARGS;
+        Integer value = docState.get(stateMatchList.get(i));
+        if (value == null)
+          throw new ManifoldCFException("Unrecognized state value: '"+stateMatchList.get(i)+"'");
+        matchStates[i] = value.intValue();
       }
-      else
-        now = new Long(nowList.get(0)).longValue();
+    }
       
-      // Identifier match
-      RegExpCriteria idMatch;
-      List<String> idMatchList = queryParameters.get("idmatch");
-      List<String> idMatchInsensitiveList = queryParameters.get("idmatch_insensitive");
-      if (idMatchList != null && idMatchInsensitiveList != null)
+    List<String> statusMatchList = queryParameters.get("statusmatch");
+    int[] matchStatuses;
+    if (statusMatchList == null)
+      matchStatuses = new int[0];
+    else
+    {
+      matchStatuses = new int[statusMatchList.size()];
+      for (int i = 0; i < matchStatuses.length; i++)
       {
-        createErrorNode(output,"Either use idmatch or idmatch_insensitive, not both.");
-        return READRESULT_BADARGS;
+        Integer value = docStatus.get(statusMatchList.get(i));
+        if (value == null)
+          throw new ManifoldCFException("Unrecognized status value: '"+statusMatchList.get(i)+"'");
+        matchStatuses[i] = value.intValue();
       }
-      boolean isInsensitiveIdMatch;
-      if (idMatchInsensitiveList != null)
-      {
-        idMatchList = idMatchInsensitiveList;
-        isInsensitiveIdMatch = true;
-      }
-      else
-        isInsensitiveIdMatch = false;
+    }
       
-      if (idMatchList == null || idMatchList.size() == 0)
-        idMatch = null;
-      else if (idMatchList.size() > 1)
+    StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
+      
+    // Look for sort order parameters...
+    SortOrder sortOrder = new SortOrder();
+    List<String> sortColumnsList = queryParameters.get("sortcolumn");
+    List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+    if (sortColumnsList != null || sortColumnsDirList != null)
+    {
+      if (sortColumnsList == null || sortColumnsDirList == null || sortColumnsList.size() != sortColumnsDirList.size())
+        throw new ManifoldCFException("sortcolumn and sortcolumn_direction must have the same cardinality.");
+      for (int i = 0; i < sortColumnsList.size(); i++)
       {
-        createErrorNode(output,"Multiple id match regexps specified.");
-        return READRESULT_BADARGS;
+        String column = sortColumnsList.get(i);
+        String dir = sortColumnsDirList.get(i);
+        int dirInt;
+        if (dir.equals("ascending"))
+          dirInt = SortOrder.SORT_ASCENDING;
+        else if (dir.equals("descending"))
+          dirInt = SortOrder.SORT_DESCENDING;
+        else
+          throw new ManifoldCFException("sortcolumn_direction must be 'ascending' or 'descending'.");
+        sortOrder.addCriteria(column,dirInt);
       }
-      else
-        idMatch = new RegExpCriteria(idMatchList.get(0),isInsensitiveIdMatch);
+    }
+      
+    // Start row and row count
+    int startRow;
+    List<String> startRowList = queryParameters.get("startrow");
+    if (startRowList == null || startRowList.size() == 0)
+      startRow = 0;
+    else if (startRowList.size() > 1)
+      throw new ManifoldCFException("Multiple start rows specified.");
+    else
+      startRow = new Integer(startRowList.get(0)).intValue();
+      
+    int rowCount;
+    List<String> rowCountList = queryParameters.get("rowcount");
+    if (rowCountList == null || rowCountList.size() == 0)
+      rowCount = 20;
+    else if (rowCountList.size() > 1)
+      throw new ManifoldCFException("Multiple row counts specified.");
+    else
+      rowCount = new Integer(rowCountList.get(0)).intValue();
 
-      List<String> stateMatchList = queryParameters.get("statematch");
-      int[] matchStates;
-      if (stateMatchList == null)
-        matchStates = new int[0];
-      else
-      {
-        matchStates = new int[stateMatchList.size()];
-        for (int i = 0; i < matchStates.length; i++)
-        {
-          Integer value = docState.get(stateMatchList.get(i));
-          if (value == null)
-          {
-            createErrorNode(output,"Unrecognized state value: '"+stateMatchList.get(i)+"'");
-            return READRESULT_BADARGS;
-          }
-          matchStates[i] = value.intValue();
-        }
-      }
-      
-      List<String> statusMatchList = queryParameters.get("statusmatch");
-      int[] matchStatuses;
-      if (statusMatchList == null)
-        matchStatuses = new int[0];
-      else
-      {
-        matchStatuses = new int[statusMatchList.size()];
-        for (int i = 0; i < matchStatuses.length; i++)
-        {
-          Integer value = docStatus.get(statusMatchList.get(i));
-          if (value == null)
-          {
-            createErrorNode(output,"Unrecognized status value: '"+statusMatchList.get(i)+"'");
-            return READRESULT_BADARGS;
-          }
-          matchStatuses[i] = value.intValue();
-        }
-      }
-      
-      StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
-      
-      // Look for sort order parameters...
-      SortOrder sortOrder = new SortOrder();
-      List<String> sortColumnsList = queryParameters.get("sortcolumn");
-      List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
-      if (sortColumnsList != null || sortColumnsDirList != null)
-      {
-        if (sortColumnsList == null || sortColumnsDirList == null)
-        {
-          createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
-          return READRESULT_BADARGS;
-        }
-        for (int i = 0; i < sortColumnsList.size(); i++)
-        {
-          String column = sortColumnsList.get(i);
-          String dir = sortColumnsDirList.get(i);
-          int dirInt;
-          if (dir.equals("ascending"))
-            dirInt = SortOrder.SORT_ASCENDING;
-          else if (dir.equals("descending"))
-            dirInt = SortOrder.SORT_DESCENDING;
-          else
-          {
-            createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
-            return READRESULT_BADARGS;
-          }
-          sortOrder.addCriteria(column,dirInt);
-        }
-      }
-      
-      // Start row and row count
-      int startRow;
-      List<String> startRowList = queryParameters.get("startrow");
-      if (startRowList == null || startRowList.size() == 0)
-        startRow = 0;
-      else if (startRowList.size() > 1)
-      {
-        createErrorNode(output,"Multiple start rows specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        startRow = new Integer(startRowList.get(0)).intValue();
-      
-      int rowCount;
-      List<String> rowCountList = queryParameters.get("rowcount");
-      if (rowCountList == null || rowCountList.size() == 0)
-        rowCount = 20;
-      else if (rowCountList.size() > 1)
-      {
-        createErrorNode(output,"Multiple row counts specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        rowCount = new Integer(rowCountList.get(0)).intValue();
+    List<String> reportTypeList = queryParameters.get("report");
+    String reportType;
+    if (reportTypeList == null || reportTypeList.size() == 0)
+      reportType = "document";
+    else if (reportTypeList.size() > 1)
+      throw new ManifoldCFException("Multiple report types specified.");
+    else
+      reportType = reportTypeList.get(0);
 
-      List<String> reportTypeList = queryParameters.get("report");
-      String reportType;
-      if (reportTypeList == null || reportTypeList.size() == 0)
-        reportType = "document";
-      else if (reportTypeList.size() > 1)
-      {
-        createErrorNode(output,"Multiple report types specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        reportType = reportTypeList.get(0);
-
-      IJobManager jobManager = JobManagerFactory.make(tc);
+    IJobManager jobManager = JobManagerFactory.make(tc);
       
-      IResultSet result;
-      String[] resultColumns;
+    IResultSet result;
+    String[] resultColumns;
       
-      if (reportType.equals("document"))
+    if (reportType.equals("document"))
+    {
+      try
       {
         result = jobManager.genDocumentStatus(connectionName,filterCriteria,sortOrder,startRow,rowCount);
-        resultColumns = new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"};
       }
-      else if (reportType.equals("status"))
+      catch (ManifoldCFException e)
       {
-        BucketDescription idBucket;
-        List<String> idBucketList = queryParameters.get("idbucket");
-        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-        if (idBucketList != null && idBucketInsensitiveList != null)
-        {
-          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-          return READRESULT_BADARGS;
-        }
-        boolean isInsensitiveIdBucket;
-        if (idBucketInsensitiveList != null)
-        {
-          idBucketList = idBucketInsensitiveList;
-          isInsensitiveIdBucket = true;
-        }
-        else
-          isInsensitiveIdBucket = false;
-        if (idBucketList == null || idBucketList.size() == 0)
-          idBucket = new BucketDescription("()",false);
-        else if (idBucketList.size() > 1)
-        {
-          createErrorNode(output,"Multiple idbucket regexps specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
-        
-        result = jobManager.genQueueStatus(connectionName,filterCriteria,sortOrder,idBucket,startRow,rowCount);
-        resultColumns = new String[]{"idbucket","inactive","processing","expiring","deleting",
-          "processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"};
+        createErrorNode(output,e);
+        return READRESULT_FOUND;
+      }
+      resultColumns = new String[]{"identifier","job","state","status","scheduled","action","retrycount","retrylimit"};
+    }
+    else if (reportType.equals("status"))
+    {
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+        throw new ManifoldCFException("Either use idbucket or idbucket_insensitive, not both.");
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
       }
       else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+        throw new ManifoldCFException("Multiple idbucket regexps specified.");
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        
+      try
       {
-        createErrorNode(output,"Unknown report type '"+reportType+"'.");
-        return READRESULT_BADARGS;
+        result = jobManager.genQueueStatus(connectionName,filterCriteria,sortOrder,idBucket,startRow,rowCount);
       }
+      catch (ManifoldCFException e)
+      {
+        createErrorNode(output,e);
+        return READRESULT_FOUND;
+      }
+      resultColumns = new String[]{"idbucket","inactive","processing","expiring","deleting",
+        "processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"};
+    }
+    else
+      throw new ManifoldCFException("Unknown report type '"+reportType+"'.");
 
-      createResultsetNode(output,result,resultColumns);
-    }
-    catch (ManifoldCFException e)
-    {
-      createErrorNode(output,e);
-    }
+    createResultsetNode(output,result,resultColumns);
     return READRESULT_FOUND;
   }
   
@@ -2550,353 +2519,306 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
   {
-    try
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
+      
+    // Look for filter criteria parameters...
+      
+    // Start time
+    List<String> startTimeList = queryParameters.get("starttime");
+    Long startTime;
+    if (startTimeList == null || startTimeList.size() == 0)
+      startTime = null;
+    else if (startTimeList.size() > 1)
+      throw new ManifoldCFException("Multiple start times specified.");
+    else
+      startTime = new Long(startTimeList.get(0));
+
+    // End time
+    List<String> endTimeList = queryParameters.get("endtime");
+    Long endTime;
+    if (endTimeList == null || endTimeList.size() == 0)
+      endTime = null;
+    else if (endTimeList.size() > 1)
+      throw new ManifoldCFException("Multiple end times specified.");
+    else
+      endTime = new Long(endTimeList.get(0));
+      
+    // Activities
+    List<String> activityList = queryParameters.get("activity");
+    String[] activities;
+    if (activityList == null)
+      activities = new String[0];
+    else
+      activities = activityList.toArray(new String[0]);
+      
+    // Entity match
+    RegExpCriteria entityMatch;
+    List<String> entityMatchList = queryParameters.get("entitymatch");
+    List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
+    if (entityMatchList != null && entityMatchInsensitiveList != null)
+      throw new ManifoldCFException("Either use entitymatch or entitymatch_insensitive, not both.");
+    boolean isInsensitiveEntityMatch;
+    if (entityMatchInsensitiveList != null)
     {
-      if (queryParameters == null)
-        queryParameters = new HashMap<String,List<String>>();
+      entityMatchList = entityMatchInsensitiveList;
+      isInsensitiveEntityMatch = true;
+    }
+    else
+      isInsensitiveEntityMatch = false;
       
-      // Look for filter criteria parameters...
+    if (entityMatchList == null || entityMatchList.size() == 0)
+      entityMatch = null;
+    else if (entityMatchList.size() > 1)
+      throw new ManifoldCFException("Multiple entity match regexps specified.");
+    else
+      entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
       
-      // Start time
-      List<String> startTimeList = queryParameters.get("starttime");
-      Long startTime;
-      if (startTimeList == null || startTimeList.size() == 0)
-        startTime = null;
-      else if (startTimeList.size() > 1)
+    // Result code match
+    RegExpCriteria resultCodeMatch;
+    List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
+    List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
+    if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
+      throw new ManifoldCFException("Either use resultcodematch or resultcodematch_insensitive, not both.");
+    boolean isInsensitiveResultCodeMatch;
+    if (entityMatchInsensitiveList != null)
+    {
+      resultCodeMatchList = resultCodeMatchInsensitiveList;
+      isInsensitiveResultCodeMatch = true;
+    }
+    else
+      isInsensitiveResultCodeMatch = false;
+      
+    if (resultCodeMatchList == null || resultCodeMatchList.size() == 0)
+      resultCodeMatch = null;
+    else if (resultCodeMatchList.size() > 1)
+      throw new ManifoldCFException("Multiple resultcode match regexps specified.");
+    else
+      resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
+      
+    // Filter criteria
+    FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
+      
+    // Look for sort order parameters...
+    SortOrder sortOrder = new SortOrder();
+    List<String> sortColumnsList = queryParameters.get("sortcolumn");
+    List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
+    if (sortColumnsList != null || sortColumnsDirList != null)
+    {
+      if (sortColumnsList == null || sortColumnsDirList == null || sortColumnsList.size() != sortColumnsDirList.size())
+        throw new ManifoldCFException("sortcolumn and sortcolumn_direction must have the same cardinality.");
+      for (int i = 0; i < sortColumnsList.size(); i++)
       {
-        createErrorNode(output,"Multiple start times specified.");
-        return READRESULT_BADARGS;
+        String column = sortColumnsList.get(i);
+        String dir = sortColumnsDirList.get(i);
+        int dirInt;
+        if (dir.equals("ascending"))
+          dirInt = SortOrder.SORT_ASCENDING;
+        else if (dir.equals("descending"))
+          dirInt = SortOrder.SORT_DESCENDING;
+        else
+          throw new ManifoldCFException("sortcolumn_direction must be 'ascending' or 'descending'.");
+        sortOrder.addCriteria(column,dirInt);
       }
-      else
-        startTime = new Long(startTimeList.get(0));
+    }
+      
+    // Start row and row count
+    int startRow;
+    List<String> startRowList = queryParameters.get("startrow");
+    if (startRowList == null || startRowList.size() == 0)
+      startRow = 0;
+    else if (startRowList.size() > 1)
+      throw new ManifoldCFException("Multiple start rows specified.");
+    else
+      startRow = new Integer(startRowList.get(0)).intValue();
+      
+    int rowCount;
+    List<String> rowCountList = queryParameters.get("rowcount");
+    if (rowCountList == null || rowCountList.size() == 0)
+      rowCount = 20;
+    else if (rowCountList.size() > 1)
+      throw new ManifoldCFException("Multiple row counts specified.");
+    else
+      rowCount = new Integer(rowCountList.get(0)).intValue();
 
-      // End time
-      List<String> endTimeList = queryParameters.get("endtime");
-      Long endTime;
-      if (endTimeList == null || endTimeList.size() == 0)
-        endTime = null;
-      else if (endTimeList.size() > 1)
-      {
-        createErrorNode(output,"Multiple end times specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        endTime = new Long(endTimeList.get(0));
-      
-      // Activities
-      List<String> activityList = queryParameters.get("activity");
-      String[] activities;
-      if (activityList == null)
-        activities = new String[0];
-      else
-        activities = activityList.toArray(new String[0]);
-      
-      // Entity match
-      RegExpCriteria entityMatch;
-      List<String> entityMatchList = queryParameters.get("entitymatch");
-      List<String> entityMatchInsensitiveList = queryParameters.get("entitymatch_insensitive");
-      if (entityMatchList != null && entityMatchInsensitiveList != null)
-      {
-        createErrorNode(output,"Either use entitymatch or entitymatch_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveEntityMatch;
-      if (entityMatchInsensitiveList != null)
-      {
-        entityMatchList = entityMatchInsensitiveList;
-        isInsensitiveEntityMatch = true;
-      }
-      else
-        isInsensitiveEntityMatch = false;
-      
-      if (entityMatchList == null || entityMatchList.size() == 0)
-        entityMatch = null;
-      else if (entityMatchList.size() > 1)
-      {
-        createErrorNode(output,"Multiple entity match regexps specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        entityMatch = new RegExpCriteria(entityMatchList.get(0),isInsensitiveEntityMatch);
-      
-      // Result code match
-      RegExpCriteria resultCodeMatch;
-      List<String> resultCodeMatchList = queryParameters.get("resultcodematch");
-      List<String> resultCodeMatchInsensitiveList = queryParameters.get("resultcodematch_insensitive");
-      if (resultCodeMatchList != null && resultCodeMatchInsensitiveList != null)
-      {
-        createErrorNode(output,"Either use resultcodematch or resultcodematch_insensitive, not both.");
-        return READRESULT_BADARGS;
-      }
-      boolean isInsensitiveResultCodeMatch;
-      if (entityMatchInsensitiveList != null)
-      {
-        resultCodeMatchList = resultCodeMatchInsensitiveList;
-        isInsensitiveResultCodeMatch = true;
-      }
-      else
-        isInsensitiveResultCodeMatch = false;
-      
-      if (resultCodeMatchList == null || resultCodeMatchList.size() == 0)
-        resultCodeMatch = null;
-      else if (resultCodeMatchList.size() > 1)
-      {
-        createErrorNode(output,"Multiple resultcode match regexps specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        resultCodeMatch = new RegExpCriteria(resultCodeMatchList.get(0),isInsensitiveResultCodeMatch);
-      
-      // Filter criteria
-      FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
-      
-      // Look for sort order parameters...
-      SortOrder sortOrder = new SortOrder();
-      List<String> sortColumnsList = queryParameters.get("sortcolumn");
-      List<String> sortColumnsDirList = queryParameters.get("sortcolumn_direction");
-      if (sortColumnsList != null || sortColumnsDirList != null)
-      {
-        if (sortColumnsList == null || sortColumnsDirList == null)
-        {
-          createErrorNode(output,"sortcolumn and sortcolumn_direction must have the same cardinality.");
-          return READRESULT_BADARGS;
-        }
-        for (int i = 0; i < sortColumnsList.size(); i++)
-        {
-          String column = sortColumnsList.get(i);
-          String dir = sortColumnsDirList.get(i);
-          int dirInt;
-          if (dir.equals("ascending"))
-            dirInt = SortOrder.SORT_ASCENDING;
-          else if (dir.equals("descending"))
-            dirInt = SortOrder.SORT_DESCENDING;
-          else
-          {
-            createErrorNode(output,"sortcolumn_direction must be 'ascending' or 'descending'.");
-            return READRESULT_BADARGS;
-          }
-          sortOrder.addCriteria(column,dirInt);
-        }
-      }
-      
-      // Start row and row count
-      int startRow;
-      List<String> startRowList = queryParameters.get("startrow");
-      if (startRowList == null || startRowList.size() == 0)
-        startRow = 0;
-      else if (startRowList.size() > 1)
-      {
-        createErrorNode(output,"Multiple start rows specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        startRow = new Integer(startRowList.get(0)).intValue();
-      
-      int rowCount;
-      List<String> rowCountList = queryParameters.get("rowcount");
-      if (rowCountList == null || rowCountList.size() == 0)
-        rowCount = 20;
-      else if (rowCountList.size() > 1)
-      {
-        createErrorNode(output,"Multiple row counts specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        rowCount = new Integer(rowCountList.get(0)).intValue();
+    List<String> reportTypeList = queryParameters.get("report");
+    String reportType;
+    if (reportTypeList == null || reportTypeList.size() == 0)
+      reportType = "simple";
+    else if (reportTypeList.size() > 1)
+      throw new ManifoldCFException("Multiple report types specified.");
+    else
+      reportType = reportTypeList.get(0);
 
-      List<String> reportTypeList = queryParameters.get("report");
-      String reportType;
-      if (reportTypeList == null || reportTypeList.size() == 0)
-        reportType = "simple";
-      else if (reportTypeList.size() > 1)
-      {
-        createErrorNode(output,"Multiple report types specified.");
-        return READRESULT_BADARGS;
-      }
-      else
-        reportType = reportTypeList.get(0);
-
-      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+    IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       
-      IResultSet result;
-      String[] resultColumns;
+    IResultSet result;
+    String[] resultColumns;
       
-      if (reportType.equals("simple"))
+    if (reportType.equals("simple"))
+    {
+      try
       {
         result = connectionManager.genHistorySimple(connectionName,filterCriteria,sortOrder,startRow,rowCount);
-        resultColumns = new String[]{"starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime"};
       }
-      else if (reportType.equals("maxactivity"))
+      catch (ManifoldCFException e)
       {
-        long maxInterval = connectionManager.getMaxRows();
-        long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
-        if (actualRows > maxInterval)
-        {
-          createErrorNode(output,"Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
-          return READRESULT_BADARGS;
-        }
-        
-        BucketDescription idBucket;
-        List<String> idBucketList = queryParameters.get("idbucket");
-        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-        if (idBucketList != null && idBucketInsensitiveList != null)
-        {
-          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-          return READRESULT_BADARGS;
-        }
-        boolean isInsensitiveIdBucket;
-        if (idBucketInsensitiveList != null)
-        {
-          idBucketList = idBucketInsensitiveList;
-          isInsensitiveIdBucket = true;
-        }
-        else
-          isInsensitiveIdBucket = false;
-        if (idBucketList == null || idBucketList.size() == 0)
-          idBucket = new BucketDescription("()",false);
-        else if (idBucketList.size() > 1)
-        {
-          createErrorNode(output,"Multiple idbucket regexps specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
-
-        long interval;
-        List<String> intervalList = queryParameters.get("interval");
-        if (intervalList == null || intervalList.size() == 0)
-          interval = 300000L;
-        else if (intervalList.size() > 1)
-        {
-          createErrorNode(output,"Multiple intervals specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          interval = new Long(intervalList.get(0)).longValue();
-        
-        result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
-        resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
+        createErrorNode(output,e);
+        return READRESULT_FOUND;
       }
-      else if (reportType.equals("maxbandwidth"))
-      {
-        long maxInterval = connectionManager.getMaxRows();
-        long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
-        if (actualRows > maxInterval)
-        {
-          createErrorNode(output,"Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
-          return READRESULT_BADARGS;
-        }
+      resultColumns = new String[]{"starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime"};
+    }
+    else if (reportType.equals("maxactivity"))
+    {
+      long maxInterval = connectionManager.getMaxRows();
+      long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+      if (actualRows > maxInterval)
+        throw new ManifoldCFException("Too many history rows specified for maxactivity report - actual is "+actualRows+", max is "+maxInterval+".");
         
-        BucketDescription idBucket;
-        List<String> idBucketList = queryParameters.get("idbucket");
-        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-        if (idBucketList != null && idBucketInsensitiveList != null)
-        {
-          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-          return READRESULT_BADARGS;
-        }
-        boolean isInsensitiveIdBucket;
-        if (idBucketInsensitiveList != null)
-        {
-          idBucketList = idBucketInsensitiveList;
-          isInsensitiveIdBucket = true;
-        }
-        else
-          isInsensitiveIdBucket = false;
-        if (idBucketList == null || idBucketList.size() == 0)
-          idBucket = new BucketDescription("()",false);
-        else if (idBucketList.size() > 1)
-        {
-          createErrorNode(output,"Multiple idbucket regexps specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
-        
-        long interval;
-        List<String> intervalList = queryParameters.get("interval");
-        if (intervalList == null || intervalList.size() == 0)
-          interval = 300000L;
-        else if (intervalList.size() > 1)
-        {
-          createErrorNode(output,"Multiple intervals specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          interval = new Long(intervalList.get(0)).longValue();
-
-        result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
-        resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
-      }
-      else if (reportType.equals("result"))
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+        throw new ManifoldCFException("Either use idbucket or idbucket_insensitive, not both.");
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
       {
-        BucketDescription idBucket;
-        List<String> idBucketList = queryParameters.get("idbucket");
-        List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
-        if (idBucketList != null && idBucketInsensitiveList != null)
-        {
-          createErrorNode(output,"Either use idbucket or idbucket_insensitive, not both.");
-          return READRESULT_BADARGS;
-        }
-        boolean isInsensitiveIdBucket;
-        if (idBucketInsensitiveList != null)
-        {
-          idBucketList = idBucketInsensitiveList;
-          isInsensitiveIdBucket = true;
-        }
-        else
-          isInsensitiveIdBucket = false;
-        if (idBucketList == null || idBucketList.size() == 0)
-          idBucket = new BucketDescription("()",false);
-        else if (idBucketList.size() > 1)
-        {
-          createErrorNode(output,"Multiple idbucket regexps specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
-
-        BucketDescription resultCodeBucket;
-        List<String> resultCodeBucketList = queryParameters.get("resultcodebucket");
-        List<String> resultCodeBucketInsensitiveList = queryParameters.get("resultcodebucket_insensitive");
-        if (resultCodeBucketList != null && resultCodeBucketInsensitiveList != null)
-        {
-          createErrorNode(output,"Either use resultcodebucket or resultcodebucket_insensitive, not both.");
-          return READRESULT_BADARGS;
-        }
-        boolean isInsensitiveResultCodeBucket;
-        if (resultCodeBucketInsensitiveList != null)
-        {
-          resultCodeBucketList = resultCodeBucketInsensitiveList;
-          isInsensitiveResultCodeBucket = true;
-        }
-        else
-          isInsensitiveResultCodeBucket = false;
-        if (resultCodeBucketList == null || resultCodeBucketList.size() == 0)
-          resultCodeBucket = new BucketDescription("(.*)",false);
-        else if (resultCodeBucketList.size() > 1)
-        {
-          createErrorNode(output,"Multiple resultcodebucket regexps specified.");
-          return READRESULT_BADARGS;
-        }
-        else
-          resultCodeBucket = new BucketDescription(resultCodeBucketList.get(0),isInsensitiveResultCodeBucket);
-
-        result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
-        resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
       }
       else
-      {
-        createErrorNode(output,"Unknown report type '"+reportType+"'.");
-        return READRESULT_BADARGS;
-      }
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+        throw new ManifoldCFException("Multiple idbucket regexps specified.");
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
 
-      createResultsetNode(output,result,resultColumns);
+      long interval;
+      List<String> intervalList = queryParameters.get("interval");
+      if (intervalList == null || intervalList.size() == 0)
+        interval = 300000L;
+      else if (intervalList.size() > 1)
+        throw new ManifoldCFException("Multiple intervals specified.");
+      else
+        interval = new Long(intervalList.get(0)).longValue();
+        
+      try
+      {
+        result = connectionManager.genHistoryActivityCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+      }
+      catch (ManifoldCFException e)
+      {
+        createErrorNode(output,e);
+        return READRESULT_FOUND;
+      }
+      resultColumns = new String[]{"starttime","endtime","activitycount","idbucket"};
     }
-    catch (ManifoldCFException e)
+    else if (reportType.equals("maxbandwidth"))
     {
-      createErrorNode(output,e);
+      long maxInterval = connectionManager.getMaxRows();
+      long actualRows = connectionManager.countHistoryRows(connectionName,filterCriteria);
+      if (actualRows > maxInterval)
+        throw new ManifoldCFException("Too many history rows specified for maxbandwidth report - actual is "+actualRows+", max is "+maxInterval+".");
+        
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+        throw new ManifoldCFException("Either use idbucket or idbucket_insensitive, not both.");
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
+      }
+      else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+        throw new ManifoldCFException("Multiple idbucket regexps specified.");
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+        
+      long interval;
+      List<String> intervalList = queryParameters.get("interval");
+      if (intervalList == null || intervalList.size() == 0)
+        interval = 300000L;
+      else if (intervalList.size() > 1)
+        throw new ManifoldCFException("Multiple intervals specified.");
+      else
+        interval = new Long(intervalList.get(0)).longValue();
+
+      try
+      {
+        result = connectionManager.genHistoryByteCount(connectionName,filterCriteria,sortOrder,idBucket,interval,startRow,rowCount);
+      }
+      catch (ManifoldCFException e)
+      {
+        createErrorNode(output,e);
+        return READRESULT_FOUND;
+      }
+      resultColumns = new String[]{"starttime","endtime","bytecount","idbucket"};
     }
+    else if (reportType.equals("result"))
+    {
+      BucketDescription idBucket;
+      List<String> idBucketList = queryParameters.get("idbucket");
+      List<String> idBucketInsensitiveList = queryParameters.get("idbucket_insensitive");
+      if (idBucketList != null && idBucketInsensitiveList != null)
+        throw new ManifoldCFException("Either use idbucket or idbucket_insensitive, not both.");
+      boolean isInsensitiveIdBucket;
+      if (idBucketInsensitiveList != null)
+      {
+        idBucketList = idBucketInsensitiveList;
+        isInsensitiveIdBucket = true;
+      }
+      else
+        isInsensitiveIdBucket = false;
+      if (idBucketList == null || idBucketList.size() == 0)
+        idBucket = new BucketDescription("()",false);
+      else if (idBucketList.size() > 1)
+        throw new ManifoldCFException("Multiple idbucket regexps specified.");
+      else
+        idBucket = new BucketDescription(idBucketList.get(0),isInsensitiveIdBucket);
+
+      BucketDescription resultCodeBucket;
+      List<String> resultCodeBucketList = queryParameters.get("resultcodebucket");
+      List<String> resultCodeBucketInsensitiveList = queryParameters.get("resultcodebucket_insensitive");
+      if (resultCodeBucketList != null && resultCodeBucketInsensitiveList != null)
+        throw new ManifoldCFException("Either use resultcodebucket or resultcodebucket_insensitive, not both.");
+      boolean isInsensitiveResultCodeBucket;
+      if (resultCodeBucketInsensitiveList != null)
+      {
+        resultCodeBucketList = resultCodeBucketInsensitiveList;
+        isInsensitiveResultCodeBucket = true;
+      }
+      else
+        isInsensitiveResultCodeBucket = false;
+      if (resultCodeBucketList == null || resultCodeBucketList.size() == 0)
+        resultCodeBucket = new BucketDescription("(.*)",false);
+      else if (resultCodeBucketList.size() > 1)
+        throw new ManifoldCFException("Multiple resultcodebucket regexps specified.");
+      else
+        resultCodeBucket = new BucketDescription(resultCodeBucketList.get(0),isInsensitiveResultCodeBucket);
+
+      try
+      {
+        result = connectionManager.genHistoryResultCodes(connectionName,filterCriteria,sortOrder,resultCodeBucket,idBucket,startRow,rowCount);
+      }
+      catch (ManifoldCFException e)
+      {
+        createErrorNode(output,e);
+        return READRESULT_FOUND;
+      }
+      resultColumns = new String[]{"idbucket","resultcodebucket","eventcount"};
+    }
+    else
+      throw new ManifoldCFException("Unknown report type '"+reportType+"'.");
+
+    createResultsetNode(output,result,resultColumns);
     return READRESULT_FOUND;
   }
   
@@ -3124,10 +3046,49 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
   }
   
-  // Write result codes
-  public static final int WRITERESULT_NOTFOUND = 0;
-  public static final int WRITERESULT_FOUND = 1;
-  public static final int WRITERESULT_CREATED = 2;
+  // Post result codes
+  public static final int POSTRESULT_NOTFOUND = 0;
+  public static final int POSTRESULT_FOUND = 1;
+  public static final int POSTRESULT_CREATED = 2;
+  
+  /** Post job.
+  */
+  protected static int apiPostJob(IThreadContext tc, Configuration output, Configuration input)
+    throws ManifoldCFException
+  {
+    ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
+    if (jobNode == null)
+      throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
+
+    // Turn the configuration node into a JobDescription
+    org.apache.manifoldcf.crawler.jobs.JobDescription job = new org.apache.manifoldcf.crawler.jobs.JobDescription();
+    processJobDescription(job,jobNode);
+      
+    if (job.getID() != null)
+      throw new ManifoldCFException("Input job cannot supply an ID field for create");
+      
+    try
+    {
+      Long jobID = new Long(IDFactory.make(tc));
+      job.setID(jobID);
+      job.setIsNew(true);
+        
+      // Save the job.
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.save(job);
+
+      ConfigurationNode idNode = new ConfigurationNode(API_JOBIDNODE);
+      idNode.setValue(jobID.toString());
+      output.addChild(output.getChildCount(),idNode);
+        
+      return POSTRESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return POSTRESULT_FOUND;
+  }
   
   /** Execute specified post command.
   *@param tc is the thread context.
@@ -3141,46 +3102,270 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   {
     if (path.equals("jobs"))
     {
-      ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
-      if (jobNode == null)
-        throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
-
-      // Turn the configuration node into a JobDescription
-      org.apache.manifoldcf.crawler.jobs.JobDescription job = new org.apache.manifoldcf.crawler.jobs.JobDescription();
-      processJobDescription(job,jobNode);
-      
-      if (job.getID() != null)
-        throw new ManifoldCFException("Input job cannot supply an ID field for create");
-      
-      try
-      {
-        Long jobID = new Long(IDFactory.make(tc));
-        job.setID(jobID);
-        job.setIsNew(true);
-        
-        // Save the job.
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.save(job);
-
-        ConfigurationNode idNode = new ConfigurationNode(API_JOBIDNODE);
-        idNode.setValue(jobID.toString());
-        output.addChild(output.getChildCount(),idNode);
-        
-        return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiPostJob(tc,output,input);
     }
     else
     {
       createErrorNode(output,"Unrecognized resource.");
-      return WRITERESULT_NOTFOUND;
+      return POSTRESULT_NOTFOUND;
+    }
+  }
+
+  // Write result codes
+  public static final int WRITERESULT_NOTFOUND = 0;
+  public static final int WRITERESULT_FOUND = 1;
+  public static final int WRITERESULT_CREATED = 2;
+  
+  /** Start a job.
+  */
+  protected static int apiWriteStartJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.manualStart(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+  
+  /** Abort a job.
+  */
+  protected static int apiWriteAbortJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.manualAbort(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+  
+  /** Restart a job.
+  */
+  protected static int apiWriteRestartJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.manualAbortRestart(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
     }
     return WRITERESULT_FOUND;
   }
 
+  /** Pause a job.
+  */
+  protected static int apiWritePauseJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.pauseJob(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Resume a job.
+  */
+  protected static int apiWriteResumeJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.restartJob(jobID);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+  
+  /** Write job.
+  */
+  protected static int apiWriteJob(IThreadContext tc, Configuration output, Configuration input, Long jobID)
+    throws ManifoldCFException
+  {
+    ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
+    if (jobNode == null)
+      throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
+
+    // Turn the configuration node into a JobDescription
+    org.apache.manifoldcf.crawler.jobs.JobDescription job = new org.apache.manifoldcf.crawler.jobs.JobDescription();
+    processJobDescription(job,jobNode);
+      
+    try
+    {
+      if (job.getID() == null)
+      {
+        job.setID(jobID);
+      }
+      else
+      {
+        if (!job.getID().equals(jobID))
+          throw new ManifoldCFException("Job identifier must agree within object and within path");
+      }
+        
+      job.setIsNew(false);
+        
+      // Save the job.
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.save(job);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Write output connection.
+  */
+  protected static int apiWriteOutputConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode connectionNode = findConfigurationNode(input,API_OUTPUTCONNECTIONNODE);
+    if (connectionNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
+      
+    // Turn the configuration node into an OutputConnection
+    org.apache.manifoldcf.agents.outputconnection.OutputConnection outputConnection = new org.apache.manifoldcf.agents.outputconnection.OutputConnection();
+    processOutputConnection(outputConnection,connectionNode);
+      
+    if (outputConnection.getName() == null)
+      outputConnection.setName(connectionName);
+    else
+    {
+      if (!outputConnection.getName().equals(connectionName))
+        throw new ManifoldCFException("Connection name in path and in object must agree");
+    }
+      
+    try
+    {
+      // Save the connection.
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      if (connectionManager.save(outputConnection))
+        return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+  
+  /** Write authority connection.
+  */
+  protected static int apiWriteAuthorityConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode connectionNode = findConfigurationNode(input,API_AUTHORITYCONNECTIONNODE);
+    if (connectionNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
+      
+    // Turn the configuration node into an OutputConnection
+    org.apache.manifoldcf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.manifoldcf.authorities.authority.AuthorityConnection();
+    processAuthorityConnection(authorityConnection,connectionNode);
+      
+    if (authorityConnection.getName() == null)
+      authorityConnection.setName(connectionName);
+    else
+    {
+      if (!authorityConnection.getName().equals(connectionName))
+        throw new ManifoldCFException("Connection name in path and in object must agree");
+    }
+      
+    try
+    {
+      // Save the connection.
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      if (connectionManager.save(authorityConnection))
+        return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+  
+  /** Write repository connection.
+  */
+  protected static int apiWriteRepositoryConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode connectionNode = findConfigurationNode(input,API_REPOSITORYCONNECTIONNODE);
+    if (connectionNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
+      
+    // Turn the configuration node into an OutputConnection
+    org.apache.manifoldcf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.manifoldcf.crawler.repository.RepositoryConnection();
+    processRepositoryConnection(repositoryConnection,connectionNode);
+      
+    if (repositoryConnection.getName() == null)
+      repositoryConnection.setName(connectionName);
+    else
+    {
+      if (!repositoryConnection.getName().equals(connectionName))
+        throw new ManifoldCFException("Connection name in path and in object must agree");
+    }
+
+    try
+    {
+      // Save the connection.
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      if (connectionManager.save(repositoryConnection))
+        return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Reset output connection.
+  */
+  protected static int apiWriteResetOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      signalOutputConnectionRedo(tc,connectionName);
+      return WRITERESULT_CREATED;
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+  
   /** Execute specified write command.
   *@param tc is the thread context.
   *@param output is the output object, to be filled in.
@@ -3194,203 +3379,47 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (path.startsWith("start/"))
     {
       Long jobID = new Long(path.substring("start/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.manualStart(jobID);
-        return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteStartJob(tc,output,jobID);
     }
     else if (path.startsWith("abort/"))
     {
       Long jobID = new Long(path.substring("abort/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.manualAbort(jobID);
-        return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteAbortJob(tc,output,jobID);
     }
     else if (path.startsWith("restart/"))
     {
       Long jobID = new Long(path.substring("restart/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.manualAbortRestart(jobID);
-        return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteRestartJob(tc,output,jobID);
     }
     else if (path.startsWith("pause/"))
     {
       Long jobID = new Long(path.substring("pause/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.pauseJob(jobID);
-        return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWritePauseJob(tc,output,jobID);
     }
     else if (path.startsWith("resume/"))
     {
       Long jobID = new Long(path.substring("resume/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.restartJob(jobID);
-        return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteResumeJob(tc,output,jobID);
     }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      
-      ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
-      if (jobNode == null)
-        throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
-
-      // Turn the configuration node into a JobDescription
-      org.apache.manifoldcf.crawler.jobs.JobDescription job = new org.apache.manifoldcf.crawler.jobs.JobDescription();
-      processJobDescription(job,jobNode);
-      
-      try
-      {
-        if (job.getID() == null)
-        {
-          job.setID(jobID);
-        }
-        else
-        {
-          if (!job.getID().equals(jobID))
-            throw new ManifoldCFException("Job identifier must agree within object and within path");
-        }
-        
-        job.setIsNew(false);
-        
-        // Save the job.
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.save(job);
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteJob(tc,output,input,jobID);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      
-      ConfigurationNode connectionNode = findConfigurationNode(input,API_OUTPUTCONNECTIONNODE);
-      if (connectionNode == null)
-        throw new ManifoldCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
-      
-      // Turn the configuration node into an OutputConnection
-      org.apache.manifoldcf.agents.outputconnection.OutputConnection outputConnection = new org.apache.manifoldcf.agents.outputconnection.OutputConnection();
-      processOutputConnection(outputConnection,connectionNode);
-      
-      if (outputConnection.getName() == null)
-        outputConnection.setName(connectionName);
-      else
-      {
-        if (!outputConnection.getName().equals(connectionName))
-          throw new ManifoldCFException("Connection name in path and in object must agree");
-      }
-      
-      try
-      {
-        // Save the connection.
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        if (connectionManager.save(outputConnection))
-          return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteOutputConnection(tc,output,input,connectionName);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-
-      ConfigurationNode connectionNode = findConfigurationNode(input,API_AUTHORITYCONNECTIONNODE);
-      if (connectionNode == null)
-        throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
-      
-      // Turn the configuration node into an OutputConnection
-      org.apache.manifoldcf.authorities.authority.AuthorityConnection authorityConnection = new org.apache.manifoldcf.authorities.authority.AuthorityConnection();
-      processAuthorityConnection(authorityConnection,connectionNode);
-      
-      if (authorityConnection.getName() == null)
-        authorityConnection.setName(connectionName);
-      else
-      {
-        if (!authorityConnection.getName().equals(connectionName))
-          throw new ManifoldCFException("Connection name in path and in object must agree");
-      }
-      
-      try
-      {
-        // Save the connection.
-        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        if (connectionManager.save(authorityConnection))
-          return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteAuthorityConnection(tc,output,input,connectionName);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-
-      ConfigurationNode connectionNode = findConfigurationNode(input,API_REPOSITORYCONNECTIONNODE);
-      if (connectionNode == null)
-        throw new ManifoldCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
-      
-      // Turn the configuration node into an OutputConnection
-      org.apache.manifoldcf.crawler.repository.RepositoryConnection repositoryConnection = new org.apache.manifoldcf.crawler.repository.RepositoryConnection();
-      processRepositoryConnection(repositoryConnection,connectionNode);
-      
-      if (repositoryConnection.getName() == null)
-        repositoryConnection.setName(connectionName);
-      else
-      {
-        if (!repositoryConnection.getName().equals(connectionName))
-          throw new ManifoldCFException("Connection name in path and in object must agree");
-      }
-
-      try
-      {
-        // Save the connection.
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        if (connectionManager.save(repositoryConnection))
-          return WRITERESULT_CREATED;
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiWriteRepositoryConnection(tc,output,input,connectionName);
     }
     else if (path.startsWith("reset/"))
     {
@@ -3407,15 +3436,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        try
-        {
-          signalOutputConnectionRedo(tc,connectionName);
-          return WRITERESULT_CREATED;
-        }
-        catch (ManifoldCFException e)
-        {
-          createErrorNode(output,e);
-        }
+        return apiWriteResetOutputConnection(tc,output,connectionName);
       }
       else
       {
@@ -3428,76 +3449,114 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       createErrorNode(output,"Unrecognized resource.");
       return WRITERESULT_NOTFOUND;
     }
-    return WRITERESULT_FOUND;
+  }
+  
+  // Delete result codes
+  public static final int DELETERESULT_NOTFOUND = 0;
+  public static final int DELETERESULT_FOUND = 1;
+
+  /** Delete a job.
+  */
+  protected static int apiDeleteJob(IThreadContext tc, Configuration output, Long jobID)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      jobManager.deleteJob(jobID);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+  
+  /** Delete output connection.
+  */
+  protected static int apiDeleteOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+
+  /** Delete authority connection.
+  */
+  protected static int apiDeleteAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+
+  /** Delete repository connection.
+  */
+  protected static int apiDeleteRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
   }
   
   /** Execute specified delete command.
   *@param tc is the thread context.
   *@param output is the output object, to be filled in.
   *@param path is the object path.
-  *@return true if the object exists, false otherwise.
+  *@return delete result code
   */
-  public static boolean executeDeleteCommand(IThreadContext tc, Configuration output, String path)
+  public static int executeDeleteCommand(IThreadContext tc, Configuration output, String path)
     throws ManifoldCFException
   {
     if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      try
-      {
-        IJobManager jobManager = JobManagerFactory.make(tc);
-        jobManager.deleteJob(jobID);
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiDeleteJob(tc,output,jobID);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      try
-      {
-        IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
-        connectionManager.delete(connectionName);
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiDeleteOutputConnection(tc,output,connectionName);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-      try
-      {
-        IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
-        connectionManager.delete(connectionName);
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiDeleteAuthorityConnection(tc,output,connectionName);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-      try
-      {
-        IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
-        connectionManager.delete(connectionName);
-      }
-      catch (ManifoldCFException e)
-      {
-        createErrorNode(output,e);
-      }
+      return apiDeleteRepositoryConnection(tc,output,connectionName);
     }
     else
     {
       createErrorNode(output,"Unrecognized resource.");
-      return false;
+      return DELETERESULT_NOTFOUND;
     }
-    return true;
   }
   
   // The following chunk of code is responsible for formatting a job description into a set of nodes, and for reading back a formatted job description.

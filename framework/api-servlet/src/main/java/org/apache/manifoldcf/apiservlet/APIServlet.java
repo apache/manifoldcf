@@ -258,8 +258,6 @@ public class APIServlet extends HttpServlet
 
     if (readResult == ManifoldCF.READRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
-    else if (readResult == ManifoldCF.READRESULT_BADARGS)
-      response.setStatus(response.SC_BAD_REQUEST);
 
     byte[] responseValue = outputText.getBytes("utf-8");
 
@@ -481,9 +479,9 @@ public class APIServlet extends HttpServlet
     }
 
     // This should return either 200 or SC_CREATED
-    if (writeResult == ManifoldCF.WRITERESULT_CREATED)
+    if (writeResult == ManifoldCF.POSTRESULT_CREATED)
       response.setStatus(response.SC_CREATED);
-    else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
+    else if (writeResult == ManifoldCF.POSTRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
     byte[] responseValue = outputText.getBytes("utf-8");
@@ -532,7 +530,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    boolean exists = ManifoldCF.executeDeleteCommand(tc,output,command);
+    int result = ManifoldCF.executeDeleteCommand(tc,output,command);
     
     // Output
     String outputText = null;
@@ -559,7 +557,7 @@ public class APIServlet extends HttpServlet
       return;
     }
     
-    if (!exists)
+    if (result == ManifoldCF.DELETERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
     
     byte[] responseValue = outputText.getBytes("utf-8");
