@@ -151,7 +151,23 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       String idAttributeName = params.getParameter(SolrConfig.PARAM_IDFIELD);
       if (idAttributeName == null || idAttributeName.length() == 0)
         idAttributeName = "id";
-      
+
+      String modifiedDateAttributeName = params.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
+      if (modifiedDateAttributeName == null || modifiedDateAttributeName.length() == 0)
+        modifiedDateAttributeName = null;
+
+      String createdDateAttributeName = params.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
+      if (createdDateAttributeName == null || createdDateAttributeName.length() == 0)
+        createdDateAttributeName = null;
+  
+      String fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
+      if (fileNameAttributeName == null || fileNameAttributeName.length() == 0)
+        fileNameAttributeName = null;
+
+      String mimeTypeAttributeName = params.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
+      if (mimeTypeAttributeName == null || mimeTypeAttributeName.length() == 0)
+        mimeTypeAttributeName = null;
+
       String commits = params.getParameter(SolrConfig.PARAM_COMMITS);
       if (commits == null || commits.length() == 0)
         commits = "true";
@@ -257,6 +273,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             connectTimeout,socketTimeout,
             updatePath,removePath,statusPath,realm,userID,password,
             allowAttributeName,denyAttributeName,idAttributeName,
+            modifiedDateAttributeName,createdDateAttributeName,
+            fileNameAttributeName,mimeTypeAttributeName,
             keystoreManager,maxDocumentLength,commitWithin);
           
         }
@@ -310,6 +328,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             zkClientTimeout,zkConnectTimeout,
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
+            modifiedDateAttributeName,createdDateAttributeName,
+            fileNameAttributeName,mimeTypeAttributeName,
             maxDocumentLength,commitWithin);
           
         }
@@ -1032,6 +1052,22 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     if (idField == null)
       idField = "id";
     
+    String modifiedDateField = parameters.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
+    if (modifiedDateField == null)
+      modifiedDateField = "";
+    
+    String createdDateField = parameters.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
+    if (createdDateField == null)
+      createdDateField = "";
+    
+    String fileNameField = parameters.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
+    if (fileNameField == null)
+      fileNameField = "";
+    
+    String mimeTypeField = parameters.getParameter(SolrConfig.PARAM_MIMETYPEFIELD);
+    if (mimeTypeField == null)
+      mimeTypeField = "";
+    
     String realm = parameters.getParameter(SolrConfig.PARAM_REALM);
     if (realm == null)
       realm = "";
@@ -1453,13 +1489,41 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "      <input name=\"idfield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ModifiedDateFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"modifieddatefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(modifiedDateField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.CreatedDateFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"createddatefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.FileNameFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"filenamefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.MimeTypeFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"mimetypefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"idfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"
+"<input type=\"hidden\" name=\"idfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"modifieddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(modifiedDateField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"createddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"
       );
     }
     
@@ -1738,6 +1802,22 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String idField = variableContext.getParameter("idfield");
     if (idField != null)
       parameters.setParameter(SolrConfig.PARAM_IDFIELD,idField);
+
+    String modifiedDateField = variableContext.getParameter("modifieddatefield");
+    if (modifiedDateField != null)
+      parameters.setParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD,modifiedDateField);
+
+    String createdDateField = variableContext.getParameter("createddatefield");
+    if (createdDateField != null)
+      parameters.setParameter(SolrConfig.PARAM_CREATEDDATEFIELD,createdDateField);
+
+    String fileNameField = variableContext.getParameter("filenamefield");
+    if (fileNameField != null)
+      parameters.setParameter(SolrConfig.PARAM_FILENAMEFIELD,fileNameField);
+
+    String mimeTypeField = variableContext.getParameter("mimetypefield");
+    if (mimeTypeField != null)
+      parameters.setParameter(SolrConfig.PARAM_MIMETYPEFIELD,mimeTypeField);
 
     String realm = variableContext.getParameter("realm");
     if (realm != null)

@@ -83,6 +83,14 @@ public class SolrConfig
   public static final String PARAM_STATUSPATH = "Server status handler";
   /** Id field */
   public static final String PARAM_IDFIELD = "Solr id field name";
+  /** Optional modified date field */
+  public static final String PARAM_MODIFIEDDATEFIELD = "Solr modified date field name";
+  /** Optional created date field */
+  public static final String PARAM_CREATEDDATEFIELD = "Solr created date field name";
+  /** Optional file name field */
+  public static final String PARAM_FILENAMEFIELD = "Solr filename field name";
+  /** Optional mime type field */
+  public static final String PARAM_MIMETYPEFIELD = "Solr mime type field name";
   /** Optional basic auth realm */
   public static final String PARAM_REALM = "Realm";
   /** Optional user ID */

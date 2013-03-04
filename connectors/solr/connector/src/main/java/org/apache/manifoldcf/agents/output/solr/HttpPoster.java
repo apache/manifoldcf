@@ -103,6 +103,10 @@ public class HttpPoster
   private String allowAttributeName;
   private String denyAttributeName;
   private String idAttributeName;
+  private String modifiedDateAttributeName;
+  private String createdDateAttributeName;
+  private String fileNameAttributeName;
+  private String mimeTypeAttributeName;
   
   // Document max length
   private Long maxDocumentLength;
@@ -125,6 +129,8 @@ public class HttpPoster
     int zkClientTimeout, int zkConnectTimeout,
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
+    String modifiedDateAttributeName, String createdDateAttributeName,
+    String fileNameAttributeName, String mimeTypeAttributeName,
     Long maxDocumentLength,
     String commitWithin)
     throws ManifoldCFException
@@ -139,6 +145,10 @@ public class HttpPoster
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
+    this.modifiedDateAttributeName = modifiedDateAttributeName;
+    this.createdDateAttributeName = createdDateAttributeName;
+    this.fileNameAttributeName = fileNameAttributeName;
+    this.mimeTypeAttributeName = mimeTypeAttributeName;
     
     this.maxDocumentLength = maxDocumentLength;
     
@@ -164,6 +174,8 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
+    String modifiedDateAttributeName, String createdDateAttributeName,
+    String fileNameAttributeName, String mimeTypeAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
     String commitWithin)
     throws ManifoldCFException
@@ -178,6 +190,10 @@ public class HttpPoster
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
+    this.modifiedDateAttributeName = modifiedDateAttributeName;
+    this.createdDateAttributeName = createdDateAttributeName;
+    this.fileNameAttributeName = fileNameAttributeName;
+    this.mimeTypeAttributeName = mimeTypeAttributeName;
     
     this.maxDocumentLength = maxDocumentLength;
 
@@ -782,7 +798,34 @@ public class HttpPoster
           
           // Write the id field
           writeField(out,LITERAL+idAttributeName,documentURI);
-
+          // Write the rest of the attributes
+          if (modifiedDateAttributeName != null)
+          {
+            Date date = document.getModifiedDate();
+            if (date != null)
+              // Write value
+              writeField(out,LITERAL+modifiedDateAttributeName,convertToISO(date));
+          }
+          if (createdDateAttributeName != null)
+          {
+            Date date = document.getCreatedDate();
+            if (date != null)
+              // Write value
+              writeField(out,LITERAL+createdDateAttributeName,convertToISO(date));
+          }
+          if (fileNameAttributeName != null)
+          {
+            String fileName = document.getFileName();
+            if (fileName != null)
+              writeField(out,LITERAL+fileNameAttributeName,fileName);
+          }
+          if (mimeTypeAttributeName != null)
+          {
+            String mimeType = document.getMimeType();
+            if (mimeType != null)
+              writeField(out,LITERAL+mimeTypeAttributeName,mimeType);
+          }
+          
           // Write the access token information
           writeACLs(out,"share",shareAcls,shareDenyAcls);
           writeACLs(out,"document",acls,denyAcls);
@@ -935,6 +978,12 @@ public class HttpPoster
     }
   }
 
+  protected static String convertToISO(Date date)
+  {
+    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
+    return df.format(date);
+  }
+  
   /** Killable thread that does deletions.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
   * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.
