@@ -3544,7 +3544,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 if (title != null)
                   rd.addField("title",title);
                 if (lastModified != null)
+                {
                   rd.addField("last-modified",lastModified);
+                  rd.setModifiedDate(parseISODate(lastModified));
+                }
 
                 if (allowACL != null && allowACL.length > 0) {
                   String[] denyACL = new String[]{
@@ -3653,6 +3656,19 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (!loginToAPI())
         break;
       loginAttempted = true;
+    }
+  }
+  
+  protected static Date parseISODate(String isoDateValue)
+  {
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ssZ");
+    try
+    {
+      return iso8601Format.parse(isoDateValue);
+    }
+    catch (java.text.ParseException e)
+    {
+      return null;
     }
   }
   
