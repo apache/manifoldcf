@@ -2,6 +2,8 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 1.2-dev =====================
+CONNECTORS-656: Add mimetype and/or filename support to CMIS connector
+(Piergiorgio Lucidi)
 
 CONNECTORS-655: Add mimetype and/or filename support to Alfresco connector
 (Piergiorgio Lucidi)

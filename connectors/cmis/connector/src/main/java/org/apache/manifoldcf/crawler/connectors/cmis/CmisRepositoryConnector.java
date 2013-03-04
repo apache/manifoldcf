@@ -1072,6 +1072,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         
         try {
           RepositoryDocument rd = new RepositoryDocument();
+          rd.setFileName(document.getContentStreamFileName());
+          rd.setMimeType(document.getContentStreamMimeType());
           
           //binary
           if(fileLength>0 && document.getContentStream()!=null){
