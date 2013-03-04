@@ -46,6 +46,8 @@ public class RepositoryDocument
   protected List<Security> directorySecurity = new ArrayList<Security>();
   protected String fileName = "docname";
   protected String contentMimeType = "application/octet-stream";
+  protected Date createdDate = null;
+  protected Date modifiedDate = null;
   
   /** Constructor.
   */
@@ -53,6 +55,38 @@ public class RepositoryDocument
   {
   }
 
+  /** Set the document's created date.  Use null to indicate that the date is unknown.
+  *@param date is the date.
+  */
+  public void setCreatedDate(Date date)
+  {
+    createdDate = date;
+  }
+  
+  /** Get the document's created date.  Returns null of the date is unknown.
+  *@return the date.
+  */
+  public Date getCreatedDate()
+  {
+    return createdDate;
+  }
+  
+  /** Set the document's last-modified date.  Use null to indicate that the date is unknown.
+  *@param date is the date.
+  */
+  public void setModifiedDate(Date date)
+  {
+    modifiedDate = date;
+  }
+  
+  /** Get the document's modified date.  Returns null of the date is unknown.
+  *@return the date.
+  */
+  public Date getModifiedDate()
+  {
+    return modifiedDate;
+  }
+  
   /** Set the document's mime type.
   *@param mimeType is the mime type.
   */
