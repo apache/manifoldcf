@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.alfresco.webservice.types.NamedValue;
@@ -35,6 +36,8 @@ public class PropertiesUtils {
 
   private static final String PROP_CONTENT_PREFIX_1 = "contentUrl";
   private static final String PROP_CONTENT_PREFIX_2 = "ContentData";
+  private static final String PROP_CONTENT_SEP = "|";
+  private static final String PROP_MIMETYPE_SEP = "=";
   
   public static String[] getPropertyValues(NamedValue[]  properties, String qname){
     String[] propertyValues = null;
@@ -132,6 +135,29 @@ public class PropertiesUtils {
       versionLabel = versionLabelList[0];
     }
     return versionLabel;
+  }
+  
+  /**
+   * This method returns the mimetype of the default content defined for the node.
+   * Notice that more than one binary can be defined in a custom model of Alfresco and also that 
+   * it could exist some contents that don't have a binary
+   * @param contentProperties
+   * @return mimetype of the default content property
+   */
+  public static String getMimeType(List<NamedValue> contentProperties){
+    if(contentProperties!=null && contentProperties.size()>0){
+      Iterator<NamedValue> i = contentProperties.iterator();
+      while(i.hasNext()){
+        NamedValue contentProperty = i.next();
+        if(Constants.PROP_CONTENT.equals(contentProperty.getName())){
+          String defaultContentPropertyValue = contentProperty.getValue();
+          String[] contentSplitted = StringUtils.split(defaultContentPropertyValue, PROP_CONTENT_SEP);
+          String[] mimeTypeSplitted = StringUtils.split(contentSplitted[1], PROP_MIMETYPE_SEP);
+          return mimeTypeSplitted[1];
+        }
+      }
+    }
+    return StringUtils.EMPTY;
   }
   
 }

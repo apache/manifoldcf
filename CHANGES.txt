@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-655: Add mimetype and/or filename support to Alfresco connector
+(Piergiorgio Lucidi)
+
 CONNECTORS-658: Add common metadata support (mimetype etc)
 to Livelink connector.
 (David Morana, Karl Wright)

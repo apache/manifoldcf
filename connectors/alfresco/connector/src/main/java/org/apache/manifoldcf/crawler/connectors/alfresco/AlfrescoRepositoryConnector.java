@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -812,11 +811,18 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         long fileLength = 0;
         try {
           //properties ingestion
-          RepositoryDocument rd = new RepositoryDocument();
+          RepositoryDocument rd = new RepositoryDocument();      
           PropertiesUtils.ingestProperties(rd, properties);
 
           // binaries ingestion - in Alfresco we could have more than one binary for each node (custom content models)
           List<NamedValue> contentProperties = PropertiesUtils.getContentProperties(properties);
+          
+          String fileName = PropertiesUtils.getPropertyValues(properties, Constants.PROP_NAME)[0];
+          String mimeType = PropertiesUtils.getMimeType(contentProperties);
+          
+          rd.setFileName(fileName);
+          rd.setMimeType(mimeType);
+          
           for (NamedValue contentProperty : contentProperties) {
             //we are ingesting all the binaries defined as d:content property in the Alfresco content model
             Content binary = ContentReader.read(username, password, session, predicate, contentProperty.getName());
