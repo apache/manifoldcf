@@ -3758,10 +3758,26 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return;
     }
     
+    // Add general data we need for the output connector
+    String mimeType = versInfo.getMimeType();
+    if (mimeType != null)
+      rd.setMimeType(mimeType);
+    String fileName = versInfo.getFileName();
+    if (fileName != null)
+      rd.setFileName(fileName);
+    Date creationDate = objInfo.getCreationDate();
+    if (creationDate != null)
+      rd.setCreatedDate(creationDate);
+    Date modifyDate = versInfo.getModifyDate();
+    if (modifyDate != null)
+      rd.setModifiedDate(modifyDate);
+    
     rd.addField(GENERAL_NAME_FIELD,objInfo.getName());
     rd.addField(GENERAL_DESCRIPTION_FIELD,objInfo.getComments());
-    rd.addField(GENERAL_CREATIONDATE_FIELD,objInfo.getCreationDate().toString());
-    rd.addField(GENERAL_MODIFYDATE_FIELD,versInfo.getModifyDate().toString());
+    if (creationDate != null)
+      rd.addField(GENERAL_CREATIONDATE_FIELD,creationDate.toString());
+    if (modifyDate != null)
+      rd.addField(GENERAL_MODIFYDATE_FIELD,modifyDate.toString());
     UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
     UserInformation creator = llc.getUserInformation(objInfo.getCreatorId().intValue());
     UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId().intValue());
@@ -4950,6 +4966,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return getVersionValue() != null;
     }
     
+    /** Get file name.
+    */
+    public String getFileName()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return elem.toString("FILENAME");
+    }
+
+    /** Get mime type.
+    */
+    public String getMimeType()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return elem.toString("MIMETYPE");
+    }
+
     /** Get modify date.
     */
     public Date getModifyDate()

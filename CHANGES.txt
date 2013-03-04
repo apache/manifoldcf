@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-658: Add common metadata support (mimetype etc)
+to Livelink connector.
+(David Morana, Karl Wright)
+
 CONNECTORS-654: Move extension to mimetype mapping to a 
 central location.
 (Mark Lugert, Karl Wright)
