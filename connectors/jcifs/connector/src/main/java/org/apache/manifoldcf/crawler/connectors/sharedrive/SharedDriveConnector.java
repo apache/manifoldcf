@@ -778,17 +778,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                       {
                         RepositoryDocument rd = new RepositoryDocument();
                         rd.setBinary(inputStream, tempFile.length());
-                        rd.setFileName(file.getName());
-                        String contentType = mapExtensionToMimeType(file.getName());
-                        if (contentType != null)
-                          rd.setMimeType(contentType);
-                        rd.addField("lastModified", new Date(file.lastModified()).toString());
-                        int index = 0;
-                        index = setDocumentSecurity(rd,version,index);
-                        index = setPathMetadata(rd,version,index);
-                        StringBuilder ingestURI = new StringBuilder();
-                        index = unpack(ingestURI,version,index,'+');
-                        activities.ingestDocument(documentIdentifier, version, ingestURI.toString(), rd);
+                        
+                        indexDocument(activities,rd,file,documentIdentifier,version);
                       }
                       finally
                       {
@@ -835,17 +826,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                   {
                     RepositoryDocument rd = new RepositoryDocument();
                     rd.setBinary(inputStream, fileLength(file));
-                    rd.setFileName(file.getName());
-                    String contentType = mapExtensionToMimeType(file.getName());
-                    if (contentType != null)
-                      rd.setMimeType(contentType);
-                    rd.addField("lastModified", new Date(file.lastModified()).toString());
-                    int index = 0;
-                    index = setDocumentSecurity(rd,version,index);
-                    index = setPathMetadata(rd,version,index);
-                    StringBuilder ingestURI = new StringBuilder();
-                    index = unpack(ingestURI,version,index,'+');
-                    activities.ingestDocument(documentIdentifier, versions[i], ingestURI.toString(), rd);
+                    
+                    indexDocument(activities,rd,file,documentIdentifier,version);
                   }
                   finally
                   {
@@ -981,6 +963,27 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       i++;
     }
 
+  }
+
+  protected static void indexDocument(IProcessActivity activities, RepositoryDocument rd, SmbFile file, String documentIdentifier, String version)
+    throws ManifoldCFException, ServiceInterruption, SmbException
+  {
+    String fileNameString = file.getName();
+    Date lastModifiedDate = new Date(file.lastModified());
+    String contentType = mapExtensionToMimeType(fileNameString);
+
+    rd.setFileName(fileNameString);
+    if (contentType != null)
+      rd.setMimeType(contentType);
+    rd.addField("lastModified", lastModifiedDate.toString());
+    rd.setModifiedDate(lastModifiedDate);
+
+    int index = 0;
+    index = setDocumentSecurity(rd,version,index);
+    index = setPathMetadata(rd,version,index);
+    StringBuilder ingestURI = new StringBuilder();
+    index = unpack(ingestURI,version,index,'+');
+    activities.ingestDocument(documentIdentifier, version, ingestURI.toString(), rd);
   }
 
   /** Map an extension to a mime type */
