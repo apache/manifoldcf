@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -1072,8 +1073,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         
         try {
           RepositoryDocument rd = new RepositoryDocument();
+          Date createdDate = document.getCreationDate().getTime();
+          Date modifiedDate = document.getLastModificationDate().getTime();
+          
           rd.setFileName(document.getContentStreamFileName());
           rd.setMimeType(document.getContentStreamMimeType());
+          rd.setCreatedDate(createdDate);
+          rd.setModifiedDate(modifiedDate);
           
           //binary
           if(fileLength>0 && document.getContentStream()!=null){
