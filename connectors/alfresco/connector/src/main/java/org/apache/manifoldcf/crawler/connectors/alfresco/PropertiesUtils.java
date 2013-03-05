@@ -18,7 +18,10 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,6 +42,15 @@ public class PropertiesUtils {
   private static final String PROP_CONTENT_SEP = "|";
   private static final String PROP_MIMETYPE_SEP = "=";
   
+  private final static ThreadLocal<SimpleDateFormat> ISO8601_DATE_FORMAT =
+      new ThreadLocal<SimpleDateFormat>() {
+             protected SimpleDateFormat initialValue() {
+                  return new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.mmm+hh:mm");
+              }
+       };
+
+  private static final String PROP_MODIFIED = Constants.createQNameString(Constants.NAMESPACE_CONTENT_MODEL, "modified");
+  
   public static String[] getPropertyValues(NamedValue[]  properties, String qname){
     String[] propertyValues = null;
     for(NamedValue property : properties){
@@ -53,7 +65,7 @@ public class PropertiesUtils {
     return propertyValues;
   }
   
-  public static void ingestProperties(RepositoryDocument rd, NamedValue[] properties) throws ManifoldCFException{
+  public static void ingestProperties(RepositoryDocument rd, NamedValue[] properties, List<NamedValue> contentProperties) throws ManifoldCFException, ParseException{
     for(NamedValue property : properties){
       if(property.getIsMultiValue()){
         String[] values = property.getValues();
@@ -66,6 +78,16 @@ public class PropertiesUtils {
         rd.addField(property.getName(), property.getValue());
       }
     }
+    
+    String fileName = PropertiesUtils.getPropertyValues(properties, Constants.PROP_NAME)[0];
+    String mimeType = PropertiesUtils.getMimeType(contentProperties);
+    Date createdDate = PropertiesUtils.getDatePropertyValue(properties, Constants.PROP_CREATED);
+    Date modifiedDate = PropertiesUtils.getDatePropertyValue(properties, PROP_MODIFIED);
+     
+    rd.setFileName(fileName);
+    rd.setMimeType(mimeType);
+    rd.setCreatedDate(createdDate);
+    rd.setModifiedDate(modifiedDate);
   }
   
   /**
@@ -158,6 +180,18 @@ public class PropertiesUtils {
       }
     }
     return StringUtils.EMPTY;
+  }
+  
+  /**
+   * 
+   * @param properties
+   * @return version label of the latest version of the node
+   * @throws ParseException 
+   */
+  public static Date getDatePropertyValue(NamedValue[] properties, String qname) throws ParseException{
+    String dateString = PropertiesUtils.getPropertyValues(properties, qname)[0];
+    //String finalDateString = dateString.replaceAll(ISO8601_REPLACE, ISO8601_REPLACE_TO);
+    return ISO8601_DATE_FORMAT.get().parse(dateString);
   }
   
 }

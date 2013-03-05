@@ -2,6 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 1.2-dev =====================
+CONNECTORS-659: Alfresco connector created date and modified date support
+(Piergiorgio Lucidi)
+
 CONNECTORS-656: Add mimetype and/or filename support to CMIS connector
 (Piergiorgio Lucidi)
 
