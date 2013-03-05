@@ -373,6 +373,22 @@ if (maintenanceUnderway == false)
 		activityList = org.apache.manifoldcf.crawler.system.ManifoldCF.getActivitiesList(threadContext,reportConnection);
 		if (activityList == null)
 			reportConnection = "";
+		else
+		{
+			selectedActivities = new HashMap();
+			String[] activitiesToNote;
+			int j = 0;
+			if (reportActivities == null)
+				activitiesToNote = activityList;
+			else
+				activitiesToNote = reportActivities;
+
+			while (j < activitiesToNote.length)
+			{
+				String activity = activitiesToNote[j++];
+				selectedActivities.put(activity,activity);
+			}
+		}
 	}
 
 %>
