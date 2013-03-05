@@ -980,7 +980,8 @@ public class HttpPoster
 
   protected static String convertToISO(Date date)
   {
-    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
+    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    df.setTimeZone(TimeZone.getTimeZone("GMT"));
     return df.format(date);
   }
   
