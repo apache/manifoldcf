@@ -27,6 +27,7 @@ import org.apache.manifoldcf.core.common.*;
 import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 
 import java.io.*;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -769,15 +770,23 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // Next, get the actual timestamp field for the file.
                   ArrayList metadataDescription = new ArrayList();
                   metadataDescription.add("Modified");
+                  metadataDescription.add("Created");
                   // The document path includes the library, with no leading slash, and is decoded.
                   int cutoff = decodedListPath.lastIndexOf("/");
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
                   Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
-                  String modifyDate = (String)values.get("Modified");
-                  if (modifyDate != null)
+                  String modifiedDate = (String)values.get("Modified");
+                  String createdDate = (String)values.get("Created");
+                  if (modifiedDate != null)
                   {
+                    // Item has a modified date so we presume it exists.
+                    
+                    Date modifiedDateValue = parseDate(modifiedDate);
+                    Date createdDateValue = parseDate(createdDate);
+                    
                     // Build version string
-                    String versionToken = modifyDate;
+                    String versionToken = modifiedDate;
+                    
                     // Revamped version string on 11/8/2006 to make parseability better
 
                     StringBuilder sb = new StringBuilder();
@@ -817,6 +826,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       sb.append('-');
                     if (foundAcls)
                     {
+                      packDate(sb,modifiedDateValue);
+                      packDate(sb,createdDateValue);
                       // The rest of this is unparseable
                       sb.append(versionToken);
                       sb.append(pathNameAttributeVersion);
@@ -914,13 +925,23 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // Next, get the actual timestamp field for the file.
                   ArrayList metadataDescription = new ArrayList();
                   metadataDescription.add("Last_x0020_Modified");
+                  metadataDescription.add("Modified");
+                  metadataDescription.add("Created");
                   // The document path includes the library, with no leading slash, and is decoded.
                   int cutoff = decodedLibPath.lastIndexOf("/");
                   String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
                   Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+
+                  String modifiedDate = (String)values.get("Modified");
+                  String createdDate = (String)values.get("Created");
+                  
                   String modifyDate = (String)values.get("Last_x0020_Modified");
                   if (modifyDate != null)
                   {
+                    // Item has a modified date, so we presume it exists
+                    Date modifiedDateValue = parseDate(modifiedDate);
+                    Date createdDateValue = parseDate(createdDate);
+
                     // Build version string
                     String versionToken = modifyDate;
                     // Revamped version string on 11/8/2006 to make parseability better
@@ -980,6 +1001,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       sb.append('-');
                     if (foundAcls)
                     {
+                      packDate(sb,modifiedDateValue);
+                      packDate(sb,createdDateValue);
                       // The rest of this is unparseable
                       sb.append(versionToken);
                       sb.append(pathNameAttributeVersion);
@@ -1050,6 +1073,49 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return rval;
   }
 
+  protected static void packDate(StringBuilder sb, Date dateValue)
+  {
+    if (dateValue != null)
+    {
+      sb.append("+");
+      pack(sb,new Long(dateValue.getTime()).toString(),'+');
+    }
+    else
+      sb.append("-");
+  }
+
+  protected static int unpackDate(String value, int index, Date theDate)
+  {
+    if (value.length() > index)
+    {
+      if (value.charAt(index++) == '+')
+      {
+        StringBuilder sb = new StringBuilder();
+        index = unpack(sb,value,index,'+');
+        if (sb.length() > 0)
+        {
+          theDate.setTime(new Long(sb.toString()).longValue());
+        }
+      }
+    }
+    return index;
+  }
+  
+  protected static Date parseDate(String dateTimeValue)
+  {
+    if (dateTimeValue == null)
+      return null;
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ssZ");
+    try
+    {
+      return iso8601Format.parse(dateTimeValue);
+    }
+    catch (java.text.ParseException e)
+    {
+      return null;
+    }
+  }
+  
   protected String[] lookupAccessTokensSorted(String encodedSitePath, String guid, Map<String,String[]> ACLmap)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -1238,6 +1304,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
               }
 
+              Date modifiedDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,modifiedDate);
+              if (modifiedDate.getTime() == 0L)
+                modifiedDate = null;
+              Date createdDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,createdDate);
+              if (createdDate.getTime() == 0L)
+                createdDate = null;
+              
               // Generate the URL we are going to use
               String itemUrl = fileBaseUrl + encodedItemPath;
               if (Logging.connectors.isDebugEnabled())
@@ -1251,6 +1326,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   RepositoryDocument data = new RepositoryDocument();
                   data.setBinary( is, 0L );
 
+                  if (modifiedDate != null)
+                    data.setModifiedDate(modifiedDate);
+                  if (createdDate != null)
+                    data.setCreatedDate(createdDate);
+                  
                   setDataACLs(data,acls,denyAcl);
                   
                   setPathAttribute(data,sDesc,documentIdentifier);
@@ -1394,7 +1474,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
               }
 
-
+              Date modifiedDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,modifiedDate);
+              if (modifiedDate.getTime() == 0L)
+                modifiedDate = null;
+              Date createdDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,createdDate);
+              if (createdDate.getTime() == 0L)
+                createdDate = null;
+              
               // Generate the URL we are going to use
               String fileUrl = fileBaseUrl + encodedDocumentPath;
               if (Logging.connectors.isDebugEnabled())
@@ -1534,6 +1622,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
                       setPathAttribute(data,sDesc,documentIdentifier);
                       
+                      if (modifiedDate != null)
+                        data.setModifiedDate(modifiedDate);
+                      if (createdDate != null)
+                        data.setCreatedDate(createdDate);
+
                       // Retrieve field values from SharePoint
                       if (metadataDescription.size() > 0)
                       {
