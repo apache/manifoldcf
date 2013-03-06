@@ -2,6 +2,12 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 1.2-dev =====================
+
+CONNECTORS-657: Add a standard way of handling created and modified dates
+throughout ManifoldCF, so that these can be dealt with consistently in
+an output connector.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-660: CMIS connector created date and modified date support
 (Piergiorgio Lucidi)
 
