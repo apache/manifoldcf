@@ -239,13 +239,14 @@ public class HttpPoster
     // No retries
     localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
       {
-	public boolean retryRequest(
-	  IOException exception,
-	  int executionCount,
+        @Override
+        public boolean retryRequest(
+          IOException exception,
+          int executionCount,
           HttpContext context)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
      
       });
     
@@ -980,8 +981,7 @@ public class HttpPoster
 
   protected static String convertToISO(Date date)
   {
-    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    df.setTimeZone(TimeZone.getTimeZone("GMT"));
+    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
     return df.format(date);
   }
   
