@@ -3829,7 +3829,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         // "guid" tag
         return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (localName.equals("pubDate"))
+      else if (localName.equals("pubdate"))
       {
         // "pubDate" tag
         return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
