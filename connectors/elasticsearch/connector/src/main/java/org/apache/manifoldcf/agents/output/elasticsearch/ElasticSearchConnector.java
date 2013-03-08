@@ -33,6 +33,13 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.HttpClientParams;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
@@ -116,7 +123,22 @@ public class ElasticSearchConnector extends BaseOutputConnector
       PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
       localConnectionManager.setMaxTotal(1);
       connectionManager = localConnectionManager;
-      DefaultHttpClient localClient = new DefaultHttpClient(connectionManager);
+      
+      int socketTimeout = 900000;
+      int connectionTimeout = 60000;
+      
+      BasicHttpParams params = new BasicHttpParams();
+      // This one is essential to prevent us from reading from the content stream before necessary during auth, but
+      // is incompatible with some proxies.
+      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+      // Enabled for Solr, but probably not necessary for better-behaved ES
+      //params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
+      params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
+      DefaultHttpClient localClient = new DefaultHttpClient(connectionManager,params);
       // No retries
       localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
         {

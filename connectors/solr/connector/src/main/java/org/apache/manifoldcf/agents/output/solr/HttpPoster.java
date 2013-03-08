@@ -44,6 +44,7 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
@@ -228,6 +229,9 @@ public class HttpPoster
     connectionManager = localConnectionManager;
           
     BasicHttpParams params = new BasicHttpParams();
+    // This one is essential to prevent us from reading from the content stream before necessary during auth, but
+    // is incompatible with some proxies.
+    params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
     params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
     params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
