@@ -3928,7 +3928,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         guidField = ((XMLStringParsingContext)theContext).getValue();
       }
-      else if (theTag.equals("pubDate"))
+      else if (theTag.equals("pubdate"))
       {
         pubDateField = ((XMLStringParsingContext)theContext).getValue();
       }
