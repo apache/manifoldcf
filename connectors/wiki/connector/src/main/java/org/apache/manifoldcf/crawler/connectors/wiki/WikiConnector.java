@@ -3661,7 +3661,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   protected static Date parseISODate(String isoDateValue)
   {
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ssZ");
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
     try
     {
       return iso8601Format.parse(isoDateValue);

@@ -1105,7 +1105,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     if (dateTimeValue == null)
       return null;
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ssZ");
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
     try
     {
       return iso8601Format.parse(dateTimeValue);

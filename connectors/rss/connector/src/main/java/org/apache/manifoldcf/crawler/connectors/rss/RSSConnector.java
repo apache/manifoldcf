@@ -4003,15 +4003,23 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
       if (linkField != null && linkField.length() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
         {
-          origDate = parseRSSDate(pubDateField);
+          origDateDate = parseRFC822Date(pubDateField);
           // Special for China Daily News
-          if (origDate == null)
-            origDate = parseChinaDate(pubDateField);
+          if (origDateDate == null)
+            origDateDate = parseChinaDate(pubDateField);
+          // Special for LL
+          if (origDateDate == null)
+            origDateDate = parseISO8601Date(pubDateField);
         }
-
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
+        
         String[] links = linkField.split(", ");
         int l = 0;
         while (l < links.length)
@@ -5263,7 +5271,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** Parse a China Daily News date */
-  protected static Long parseChinaDate(String dateValue)
+  protected static Date parseChinaDate(String dateValue)
   {
     dateValue = dateValue.trim();
     // Format: 2007/12/30 11:01
@@ -5338,13 +5346,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       c.set(Calendar.SECOND,value);
 
       c.set(Calendar.MILLISECOND,0);
-      return new Long(c.getTimeInMillis());
+      return new Date(c.getTimeInMillis());
     }
     catch (NumberFormatException e)
     {
       return null;
     }
 
+  }
+
+  /** Parse ISO8601 date.
+  */
+  protected static Date parseISO8601Date(String isoDateValue)
+  {
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    try
+    {
+      return iso8601Format.parse(isoDateValue);
+    }
+    catch (java.text.ParseException e)
+    {
+      return null;
+    }
   }
 
   /** Timezone mapping from RFC822 timezones to ones understood by Java */
@@ -5360,8 +5383,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     milTzMap.put("Y","GMT+12:00");
   }
 
-  /** Parse an RSS date */
-  protected static Long parseRSSDate(String dateValue)
+  /** Parse RFC822 date */
+  protected static Date parseRFC822Date(String dateValue)
   {
     dateValue = dateValue.trim();
     // See http://www.faqs.org/rfcs/rfc822.html for legal formats
@@ -5493,7 +5516,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       c.set(Calendar.SECOND,value);
 
       c.set(Calendar.MILLISECOND,0);
-      return new Long(c.getTimeInMillis());
+      return new Date(c.getTimeInMillis());
     }
     catch (NumberFormatException e)
     {
