@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-662: RSS connector now supports ISO8601 dates.
+(David Morana, Karl Wright)
+
 CONNECTORS-661: Turn on expect-continue for solr output.  Otherwise
 basic auth won't work.
 (Erlend Garåsen, Karl Wright)
