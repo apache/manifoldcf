@@ -4422,10 +4422,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (linkField != null && linkField.length() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDate = parseZuluDate(pubDateField);
+          origDateDate = parseISO8601Date(pubDateField);
 
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
+        
         String[] links = linkField.split(", ");
         int l = 0;
         while (l < links.length)
@@ -4819,9 +4825,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (linkField.size() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDate = parseZuluDate(pubDateField);
+          origDateDate = parseISO8601Date(pubDateField);
+
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
 
         for (String linkValue : linkField)
         {
@@ -5106,9 +5118,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (linkField != null && linkField.length() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDate = parseZuluDate(pubDateField);
+          origDateDate = parseISO8601Date(pubDateField);
+
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
 
         String[] links = linkField.split(", ");
         int l = 0;
@@ -5150,26 +5168,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  // Month map
-  protected static HashMap monthMap = new HashMap();
-  static
-  {
-    monthMap.put("jan",new Integer(1));
-    monthMap.put("feb",new Integer(2));
-    monthMap.put("mar",new Integer(3));
-    monthMap.put("apr",new Integer(4));
-    monthMap.put("may",new Integer(5));
-    monthMap.put("jun",new Integer(6));
-    monthMap.put("jul",new Integer(7));
-    monthMap.put("aug",new Integer(8));
-    monthMap.put("sep",new Integer(9));
-    monthMap.put("oct",new Integer(10));
-    monthMap.put("nov",new Integer(11));
-    monthMap.put("dec",new Integer(12));
-  }
-
-  /** Parse an RDF date */
-  protected static Long parseZuluDate(String dateValue)
+  /** Parse an ISO8601 date */
+  protected static Date parseISO8601Date(String dateValue)
   {
     dateValue = dateValue.trim();
     // Format: YYYY-MM-DDTHH:MM:SSZ
@@ -5260,7 +5260,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       c.set(Calendar.SECOND,value);
 
       c.set(Calendar.MILLISECOND,0);
-      return new Long(c.getTimeInMillis());
+      return new Date(c.getTimeInMillis());
     }
     catch (NumberFormatException e)
     {
@@ -5355,8 +5355,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   }
 
-  /** Parse ISO8601 date.
-  */
+  /**
   protected static Date parseISO8601Date(String isoDateValue)
   {
     java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -5369,8 +5368,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       return null;
     }
   }
-
+  */
+  
   /** Timezone mapping from RFC822 timezones to ones understood by Java */
+  
+  // Month map
+  protected static HashMap monthMap = new HashMap();
+  static
+  {
+    monthMap.put("jan",new Integer(1));
+    monthMap.put("feb",new Integer(2));
+    monthMap.put("mar",new Integer(3));
+    monthMap.put("apr",new Integer(4));
+    monthMap.put("may",new Integer(5));
+    monthMap.put("jun",new Integer(6));
+    monthMap.put("jul",new Integer(7));
+    monthMap.put("aug",new Integer(8));
+    monthMap.put("sep",new Integer(9));
+    monthMap.put("oct",new Integer(10));
+    monthMap.put("nov",new Integer(11));
+    monthMap.put("dec",new Integer(12));
+  }
+
   protected static final HashMap milTzMap;
   static
   {
