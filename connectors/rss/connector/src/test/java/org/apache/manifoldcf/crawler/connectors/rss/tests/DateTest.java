@@ -30,11 +30,15 @@ public class DateTest extends RSSConnector
   public void iso8601()
     throws Exception
   {
-    Date d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33.344Z");
+    Date d = RSSConnector.parseISO8601Date("96-11-15T01:32:33.344GMT");
+    assertNotNull(d);
+    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33.344Z");
     assertNotNull(d);
     d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33Z");
     assertNotNull(d);
-    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33+01");
+    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33+0100");
+    assertNotNull(d);
+    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33GMT-03:00");
     assertNotNull(d);
   }
 

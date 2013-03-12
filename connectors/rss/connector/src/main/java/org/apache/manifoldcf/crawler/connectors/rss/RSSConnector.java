@@ -5168,108 +5168,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  /** Parse an ISO8601 date */
-  protected static Date parseISO8601Date(String dateValue)
-  {
-    dateValue = dateValue.trim();
-    // Format: YYYY-MM-DDTHH:MM:SSZ
-    // 2007-11-11T05:00:00Z
-    int index = dateValue.indexOf("-");
-    if (index == -1)
-      return null;
-    String year = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf("-");
-    if (index == -1)
-      return null;
-    String month = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf("T");
-    String day;
-    String hour = "0";
-    String minute = "0";
-    String second = "0";
-    String timezone = "GMT";
-    if (index != -1)
-    {
-      day = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index == -1)
-        return null;
-      hour = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index != -1)
-      {
-        minute = dateValue.substring(0,index);
-        dateValue = dateValue.substring(index+1);
-        if (dateValue.endsWith("Z"))
-        {
-          index = dateValue.indexOf("Z");
-          if (index == -1)
-            return null;
-        }
-        else
-        {
-          index = dateValue.indexOf("+");
-          if (index == -1)
-            index = dateValue.indexOf("-");
-          if (index == -1)
-            return null;
-          timezone = "GMT"+dateValue.substring(index);
-        }
-        second = dateValue.substring(0,index);
-      }
-      else
-      {
-        minute = dateValue;
-      }
-    }
-    else
-    {
-      day = dateValue;
-    }
-
-    // Now construct a calendar object from this
-    TimeZone tz = TimeZone.getTimeZone(timezone);
-
-    Calendar c = new GregorianCalendar(tz);
-    try
-    {
-      int value = Integer.parseInt(year);
-      c.set(Calendar.YEAR,value);
-
-      value = Integer.parseInt(month);
-      c.set(Calendar.MONTH,value-1);
-
-      value = Integer.parseInt(day);
-      c.set(Calendar.DAY_OF_MONTH,value);
-
-      value = Integer.parseInt(hour);
-      c.set(Calendar.HOUR_OF_DAY,value);
-
-      value = Integer.parseInt(minute);
-      c.set(Calendar.MINUTE,value);
-
-      int index2 = second.indexOf(".");
-      if (index2 != -1)
-        second = second.substring(0,index2);
-
-      value = Integer.parseInt(second);
-      c.set(Calendar.SECOND,value);
-
-      c.set(Calendar.MILLISECOND,0);
-      return new Date(c.getTimeInMillis());
-    }
-    catch (NumberFormatException e)
-    {
-      return null;
-    }
-
-
-  }
-
   /** Parse a China Daily News date */
   protected static Date parseChinaDate(String dateValue)
   {
@@ -5355,20 +5253,34 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   }
 
-  /**
+  /** Parse ISO 8601 dates, and their common variants.
+  */
   protected static Date parseISO8601Date(String isoDateValue)
   {
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    // There are a number of variations on the basic format.
+    // We'll look for key characters to help is determine which is which.
+    StringBuilder isoFormatString = new StringBuilder("yy");
+    if (isoDateValue.length() > 2 && isoDateValue.charAt(2) != '-')
+      isoFormatString.append("yy");
+    isoFormatString.append("-MM-dd'T'HH:mm:ss");
+    if (isoDateValue.indexOf(".") != -1)
+      isoFormatString.append(".SSS");
+    if (isoDateValue.endsWith("Z"))
+      isoFormatString.append("'Z'");
+    else
+      isoFormatString.append("Z");      // RFC 822 time, including general time zones
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat(isoFormatString.toString());
     try
     {
       return iso8601Format.parse(isoDateValue);
     }
     catch (java.text.ParseException e)
     {
+      System.out.println("Date value: '"+isoDateValue+"'");
+      e.printStackTrace();
       return null;
     }
   }
-  */
   
   /** Timezone mapping from RFC822 timezones to ones understood by Java */
   
