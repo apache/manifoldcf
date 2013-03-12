@@ -25,6 +25,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import org.apache.manifoldcf.core.fuzzyml.*;
+import org.apache.manifoldcf.core.common.DateParser;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
@@ -4006,13 +4007,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
         {
-          origDateDate = parseRFC822Date(pubDateField);
+          origDateDate = DateParser.parseRFC822Date(pubDateField);
           // Special for China Daily News
           if (origDateDate == null)
-            origDateDate = parseChinaDate(pubDateField);
+            origDateDate = DateParser.parseChinaDate(pubDateField);
           // Special for LL
           if (origDateDate == null)
-            origDateDate = parseISO8601Date(pubDateField);
+            origDateDate = DateParser.parseISO8601Date(pubDateField);
         }
         Long origDate;
         if (origDateDate != null)
@@ -4424,7 +4425,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDateDate = parseISO8601Date(pubDateField);
+          origDateDate = DateParser.parseISO8601Date(pubDateField);
 
         Long origDate;
         if (origDateDate != null)
@@ -4827,7 +4828,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDateDate = parseISO8601Date(pubDateField);
+          origDateDate = DateParser.parseISO8601Date(pubDateField);
 
         Long origDate;
         if (origDateDate != null)
@@ -5120,7 +5121,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDateDate = parseISO8601Date(pubDateField);
+          origDateDate = DateParser.parseISO8601Date(pubDateField);
 
         Long origDate;
         if (origDateDate != null)
@@ -5168,293 +5169,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  /** Parse a China Daily News date */
-  protected static Date parseChinaDate(String dateValue)
-  {
-    dateValue = dateValue.trim();
-    // Format: 2007/12/30 11:01
-    int index;
-    index = dateValue.indexOf("/");
-    if (index == -1)
-      return null;
-    String year = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf("/");
-    if (index == -1)
-      return null;
-    String month = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf(" ");
-    String day;
-    String hour = null;
-    String minute = null;
-    String second = null;
-    if (index == -1)
-      day = dateValue;
-    else
-    {
-      day = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index == -1)
-        return null;
-      hour = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index != -1)
-      {
-        minute = dateValue.substring(0,index);
-        dateValue = dateValue.substring(index+1);
-        second = dateValue;
-      }
-      else
-        minute = dateValue;
-    }
-    TimeZone tz = TimeZone.getTimeZone("GMT");
-    Calendar c = new GregorianCalendar(tz);
-    try
-    {
-      int value = Integer.parseInt(year);
-      if (value < 1900)
-        value += 1900;
-      c.set(Calendar.YEAR,value);
-
-      value = Integer.parseInt(month);
-      c.set(Calendar.MONTH,value-1);
-
-      value = Integer.parseInt(day);
-      c.set(Calendar.DAY_OF_MONTH,value);
-
-      if (hour != null)
-        value = Integer.parseInt(hour);
-      else
-        value = 0;
-      c.set(Calendar.HOUR_OF_DAY,value);
-
-      if (minute != null)
-        value = Integer.parseInt(minute);
-      else
-        value = 0;
-      c.set(Calendar.MINUTE,value);
-
-      if (second != null)
-        value = Integer.parseInt(second);
-      else
-        value = 0;
-      c.set(Calendar.SECOND,value);
-
-      c.set(Calendar.MILLISECOND,0);
-      return new Date(c.getTimeInMillis());
-    }
-    catch (NumberFormatException e)
-    {
-      return null;
-    }
-
-  }
-
-  /** Parse ISO 8601 dates, and their common variants.
-  */
-  protected static Date parseISO8601Date(String isoDateValue)
-  {
-    // There are a number of variations on the basic format.
-    // We'll look for key characters to help is determine which is which.
-    StringBuilder isoFormatString = new StringBuilder("yy");
-    if (isoDateValue.length() > 2 && isoDateValue.charAt(2) != '-')
-      isoFormatString.append("yy");
-    isoFormatString.append("-MM-dd'T'HH:mm:ss");
-    if (isoDateValue.indexOf(".") != -1)
-      isoFormatString.append(".SSS");
-    if (isoDateValue.endsWith("Z"))
-      isoFormatString.append("'Z'");
-    else
-      isoFormatString.append("Z");      // RFC 822 time, including general time zones
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat(isoFormatString.toString());
-    try
-    {
-      return iso8601Format.parse(isoDateValue);
-    }
-    catch (java.text.ParseException e)
-    {
-      System.out.println("Date value: '"+isoDateValue+"'");
-      e.printStackTrace();
-      return null;
-    }
-  }
-  
-  /** Timezone mapping from RFC822 timezones to ones understood by Java */
-  
-  // Month map
-  protected static HashMap monthMap = new HashMap();
-  static
-  {
-    monthMap.put("jan",new Integer(1));
-    monthMap.put("feb",new Integer(2));
-    monthMap.put("mar",new Integer(3));
-    monthMap.put("apr",new Integer(4));
-    monthMap.put("may",new Integer(5));
-    monthMap.put("jun",new Integer(6));
-    monthMap.put("jul",new Integer(7));
-    monthMap.put("aug",new Integer(8));
-    monthMap.put("sep",new Integer(9));
-    monthMap.put("oct",new Integer(10));
-    monthMap.put("nov",new Integer(11));
-    monthMap.put("dec",new Integer(12));
-  }
-
-  protected static final HashMap milTzMap;
-  static
-  {
-    milTzMap = new HashMap();
-    milTzMap.put("Z","GMT");
-    milTzMap.put("UT","GMT");
-    milTzMap.put("A","GMT-01:00");
-    milTzMap.put("M","GMT-12:00");
-    milTzMap.put("N","GMT+01:00");
-    milTzMap.put("Y","GMT+12:00");
-  }
-
-  /** Parse RFC822 date */
-  protected static Date parseRFC822Date(String dateValue)
-  {
-    dateValue = dateValue.trim();
-    // See http://www.faqs.org/rfcs/rfc822.html for legal formats
-    // Format: [day of week,] day mo year hh24:mm:ss tz
-    int commaIndex = dateValue.indexOf(",");
-    String usable;
-    if (commaIndex == -1)
-      usable = dateValue;
-    else
-      usable = dateValue.substring(commaIndex+1).trim();
-    int index;
-
-    index = usable.indexOf(" ");
-    if (index == -1)
-      return null;
-    String day = usable.substring(0,index);
-    usable = usable.substring(index+1).trim();
-
-    index = usable.indexOf(" ");
-    if (index == -1)
-      return null;
-    String month = usable.substring(0,index).toLowerCase();
-    usable = usable.substring(index+1).trim();
-
-    String year;
-    String hour = null;
-    String minute = null;
-    String second = null;
-    String timezone = null;
-
-    index = usable.indexOf(" ");
-    if (index != -1)
-    {
-      year = usable.substring(0,index);
-      usable = usable.substring(index+1).trim();
-
-      index = usable.indexOf(":");
-      if (index == -1)
-        return null;
-      hour = usable.substring(0,index);
-      usable = usable.substring(index+1).trim();
-
-      index = usable.indexOf(":");
-      if (index != -1)
-      {
-        minute = usable.substring(0,index);
-        usable = usable.substring(index+1).trim();
-
-        index = usable.indexOf(" ");
-        if (index == -1)
-          second = usable;
-        else
-        {
-          second = usable.substring(0,index);
-          timezone = usable.substring(index+1).trim();
-        }
-      }
-      else
-      {
-        index = usable.indexOf(" ");
-        if (index == -1)
-          minute = usable;
-        else
-        {
-          minute = usable.substring(0,index);
-          timezone = usable.substring(index+1).trim();
-        }
-      }
-    }
-    else
-      year = usable;
-
-    // Now construct a calendar object from this
-    TimeZone tz;
-    if (timezone != null && timezone.length() > 0)
-    {
-      if (timezone.startsWith("+") || timezone.startsWith("-"))
-      {
-        if (timezone.indexOf(":") == -1 && timezone.length() > 3)
-          timezone = timezone.substring(0,timezone.length()-2) + ":" + timezone.substring(timezone.length()-2);
-        timezone = "GMT"+timezone;
-      }
-      else
-      {
-        // Map special timezones to java timezones
-        if (milTzMap.get(timezone) != null)
-          timezone = (String)milTzMap.get(timezone);
-      }
-
-    }
-    else
-      timezone = "GMT";
-
-
-    tz = TimeZone.getTimeZone(timezone);
-
-    Calendar c = new GregorianCalendar(tz);
-    try
-    {
-      int value = Integer.parseInt(year);
-      if (value < 1900)
-        value += 1900;
-      c.set(Calendar.YEAR,value);
-
-      Integer x = (Integer)monthMap.get(month);
-      if (x == null)
-        return null;
-      c.set(Calendar.MONTH,x.intValue()-1);
-
-      value = Integer.parseInt(day);
-      c.set(Calendar.DAY_OF_MONTH,value);
-
-      if (hour != null)
-        value = Integer.parseInt(hour);
-      else
-        value = 0;
-      c.set(Calendar.HOUR_OF_DAY,value);
-
-      if (minute != null)
-        value = Integer.parseInt(minute);
-      else
-        value = 0;
-      c.set(Calendar.MINUTE,value);
-
-      if (second != null)
-        value = Integer.parseInt(second);
-      else
-        value = 0;
-      c.set(Calendar.SECOND,value);
-
-      c.set(Calendar.MILLISECOND,0);
-      return new Date(c.getTimeInMillis());
-    }
-    catch (NumberFormatException e)
-    {
-      return null;
-    }
-
-  }
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".

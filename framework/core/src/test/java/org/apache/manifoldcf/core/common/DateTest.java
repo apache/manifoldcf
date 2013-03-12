@@ -16,29 +16,28 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.rss.tests;
+package org.apache.manifoldcf.core.common;
 
 import java.util.*;
-import org.apache.manifoldcf.crawler.connectors.rss.RSSConnector;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class DateTest extends RSSConnector
+public class DateTest
 {
 
   @Test
   public void iso8601()
     throws Exception
   {
-    Date d = RSSConnector.parseISO8601Date("96-11-15T01:32:33.344GMT");
+    Date d = DateParser.parseISO8601Date("96-11-15T01:32:33.344GMT");
     assertNotNull(d);
-    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33.344Z");
+    d = DateParser.parseISO8601Date("2012-11-15T01:32:33.344Z");
     assertNotNull(d);
-    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33Z");
+    d = DateParser.parseISO8601Date("2012-11-15T01:32:33Z");
     assertNotNull(d);
-    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33+0100");
+    d = DateParser.parseISO8601Date("2012-11-15T01:32:33+0100");
     assertNotNull(d);
-    d = RSSConnector.parseISO8601Date("2012-11-15T01:32:33GMT-03:00");
+    d = DateParser.parseISO8601Date("2012-11-15T01:32:33GMT-03:00");
     assertNotNull(d);
   }
 

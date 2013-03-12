@@ -46,6 +46,7 @@ public abstract class SingleLevelContext extends BaseProcessingContext
     this.nodeName = nodeName;
   }
 
+  @Override
   protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -56,6 +57,7 @@ public abstract class SingleLevelContext extends BaseProcessingContext
   
   protected abstract BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts);
   
+  @Override
   protected void endTag()
     throws ManifoldCFException, ServiceInterruption
   {

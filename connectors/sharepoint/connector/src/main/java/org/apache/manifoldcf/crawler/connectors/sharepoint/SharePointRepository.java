@@ -781,8 +781,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   {
                     // Item has a modified date so we presume it exists.
                     
-                    Date modifiedDateValue = parseDate(modifiedDate);
-                    Date createdDateValue = parseDate(createdDate);
+                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
                     
                     // Build version string
                     String versionToken = modifiedDate;
@@ -939,8 +939,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   if (modifyDate != null)
                   {
                     // Item has a modified date, so we presume it exists
-                    Date modifiedDateValue = parseDate(modifiedDate);
-                    Date createdDateValue = parseDate(createdDate);
+                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
 
                     // Build version string
                     String versionToken = modifyDate;
@@ -1099,21 +1099,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
     return index;
-  }
-  
-  protected static Date parseDate(String dateTimeValue)
-  {
-    if (dateTimeValue == null)
-      return null;
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    try
-    {
-      return iso8601Format.parse(dateTimeValue);
-    }
-    catch (java.text.ParseException e)
-    {
-      return null;
-    }
   }
   
   protected String[] lookupAccessTokensSorted(String encodedSitePath, String guid, Map<String,String[]> ACLmap)

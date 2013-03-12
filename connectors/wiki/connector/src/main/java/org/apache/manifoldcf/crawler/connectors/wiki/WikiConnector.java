@@ -23,9 +23,10 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 
+import org.apache.manifoldcf.core.common.*;
+
 import org.xml.sax.Attributes;
 
-import org.apache.manifoldcf.core.common.XMLDoc;
 import org.apache.manifoldcf.agents.common.XMLStream;
 import org.apache.manifoldcf.agents.common.XMLContext;
 import org.apache.manifoldcf.agents.common.XMLStringContext;
@@ -446,10 +447,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.result = result;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts) {
       return new WikiLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts, result);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException {
       token = ((WikiLoginAPIResultAPIContext)child).getToken();
@@ -475,6 +478,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.result = result;
     }
 
+    @Override
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
       throws ManifoldCFException, ServiceInterruption {
       if (qName.equals("login")) {
@@ -587,10 +591,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.result = result;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts) {
       return new WikiTokenLoginAPIResultAPIContext(theStream, namespaceURI, localName, qName, atts, result);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException {
     }
@@ -610,6 +616,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.result = result;
     }
 
+    @Override
     protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
       throws ManifoldCFException, ServiceInterruption {
       if (qName.equals("login")) {
@@ -1927,11 +1934,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,"api");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiCheckQueryContext(theStream,namespaceURI,localName,qName,atts);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -1961,11 +1970,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,namespaceURI,localName,qName,atts,"query");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiCheckAllPagesContext(theStream,namespaceURI,localName,qName,atts);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -1989,11 +2000,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,namespaceURI,localName,qName,atts,"allpages");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiCheckPContext(theStream,namespaceURI,localName,qName,atts);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2307,11 +2320,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.startPageTitle = startPageTitle;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiListPagesQueryContext(theStream,namespaceURI,localName,qName,atts,buffer,startPageTitle);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2346,11 +2361,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.startPageTitle = startPageTitle;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiListPagesAllPagesContext(theStream,namespaceURI,localName,qName,atts,buffer,startPageTitle);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2379,12 +2396,14 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.startPageTitle = startPageTitle;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       // When we recognize allpages, we need to look for <p> records.
       return new WikiListPagesPContext(theStream,namespaceURI,localName,qName,atts,buffer,startPageTitle);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2669,11 +2688,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.urls = urls;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocURLsQueryContext(theStream,namespaceURI,localName,qName,atts,urls);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2699,11 +2720,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.urls = urls;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocURLsPagesContext(theStream,namespaceURI,localName,qName,atts,urls);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2723,11 +2746,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.urls = urls;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocURLsPageContext(theStream,namespaceURI,localName,qName,atts,urls);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -2991,11 +3016,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.versions = versions;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetTimestampQueryContext(theStream,namespaceURI,localName,qName,atts,versions);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3020,11 +3047,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.versions = versions;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetTimestampPagesContext(theStream,namespaceURI,localName,qName,atts,versions);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3044,11 +3073,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.versions = versions;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetTimestampPageContext(theStream,namespaceURI,localName,qName,atts,versions);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3106,11 +3137,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,namespaceURI,localName,qName,atts,"revisions");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetTimestampRevContext(theStream,namespaceURI,localName,qName,atts);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3364,12 +3397,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.namespaces = namespaces;
     }
 
-
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetNamespacesQueryContext(theStream,namespaceURI,localName,qName,atts,namespaces);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3395,11 +3429,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.namespaces = namespaces;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetNamespacesNamespacesContext(theStream,namespaceURI,localName,qName,atts,namespaces);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3419,11 +3455,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.namespaces = namespaces;
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetNamespacesNsContext(theStream,namespaceURI,localName,qName,atts,namespaces);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3546,7 +3584,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 if (lastModified != null)
                 {
                   rd.addField("last-modified",lastModified);
-                  rd.setModifiedDate(parseISODate(lastModified));
+                  rd.setModifiedDate(DateParser.parseISO8601Date(lastModified));
                 }
 
                 if (allowACL != null && allowACL.length > 0) {
@@ -3656,19 +3694,6 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (!loginToAPI())
         break;
       loginAttempted = true;
-    }
-  }
-  
-  protected static Date parseISODate(String isoDateValue)
-  {
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    try
-    {
-      return iso8601Format.parse(isoDateValue);
-    }
-    catch (java.text.ParseException e)
-    {
-      return null;
     }
   }
   
@@ -3868,11 +3893,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,"api");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocInfoQueryContext(theStream,namespaceURI,localName,qName,atts);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -3950,11 +3977,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,namespaceURI,localName,qName,atts,"query");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocInfoPagesContext(theStream,namespaceURI,localName,qName,atts);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -4026,11 +4055,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,namespaceURI,localName,qName,atts,"pages");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocInfoPageContext(theStream,namespaceURI,localName,qName,atts);
     }
     
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {
@@ -4184,11 +4215,13 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       super(theStream,namespaceURI,localName,qName,atts,"revisions");
     }
 
+    @Override
     protected BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts)
     {
       return new WikiGetDocInfoRevContext(theStream,namespaceURI,localName,qName,atts);
     }
 
+    @Override
     protected void finishChild(BaseProcessingContext child)
       throws ManifoldCFException
     {

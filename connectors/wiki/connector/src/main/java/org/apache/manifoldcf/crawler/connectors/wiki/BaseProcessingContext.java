@@ -42,12 +42,14 @@ public abstract class BaseProcessingContext extends XMLContext
     super(theStream);
   }
 
+  @Override
   protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
     throws ManifoldCFException, ServiceInterruption
   {
     return super.beginTag(namespaceURI,localName,qName,atts);
   }
-    
+  
+  @Override
   protected void endTag()
     throws ManifoldCFException, ServiceInterruption
   {
