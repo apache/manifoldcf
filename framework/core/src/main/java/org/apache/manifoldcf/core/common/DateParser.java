@@ -55,6 +55,15 @@ public class DateParser
     }
   }
   
+  /** Format ISO8601 date.
+  */
+  public static String formatISO8601Date(Date dateValue)
+  {
+    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    df.setTimeZone(TimeZone.getTimeZone("GMT"));
+    return df.format(dateValue);
+  }
+  
   /** Timezone mapping from RFC822 timezones to ones understood by Java */
   
   // Month map

@@ -21,6 +21,7 @@ package org.apache.manifoldcf.agents.output.solr;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.common.XMLDoc;
+import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;
 
@@ -809,14 +810,14 @@ public class HttpPoster
             Date date = document.getModifiedDate();
             if (date != null)
               // Write value
-              writeField(out,LITERAL+modifiedDateAttributeName,convertToISO(date));
+              writeField(out,LITERAL+modifiedDateAttributeName,DateParser.formatISO8601Date(date));
           }
           if (createdDateAttributeName != null)
           {
             Date date = document.getCreatedDate();
             if (date != null)
               // Write value
-              writeField(out,LITERAL+createdDateAttributeName,convertToISO(date));
+              writeField(out,LITERAL+createdDateAttributeName,DateParser.formatISO8601Date(date));
           }
           if (fileNameAttributeName != null)
           {
@@ -983,12 +984,6 @@ public class HttpPoster
     }
   }
 
-  protected static String convertToISO(Date date)
-  {
-    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
-    return df.format(date);
-  }
-  
   /** Killable thread that does deletions.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
   * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.

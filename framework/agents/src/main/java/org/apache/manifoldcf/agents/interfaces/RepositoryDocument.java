@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.agents.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.common.DateParser;
 import java.util.*;
 import java.io.*;
 
@@ -41,6 +42,7 @@ public class RepositoryDocument
   protected Map<String,Object> fields = new HashMap<String,Object>();
   protected Map<String,String[]> stringFields = new HashMap<String,String[]>();
   protected Map<String,Reader[]> readerFields = new HashMap<String,Reader[]>();
+  protected Map<String,Date[]> dateFields = new HashMap<String,Date[]>();
   protected Security fileSecurity = new Security();
   protected Security shareSecurity = new Security();
   protected List<Security> directorySecurity = new ArrayList<Security>();
@@ -235,7 +237,44 @@ public class RepositoryDocument
     return binaryLength;
   }
 
-  /** Add a multivalue character field.
+  /** Add/remove a multivalue date field.
+  *@param fieldName is the field name.
+  *@param fieldData is the multi-valued data (an array of Dates).  Null means
+  * to remove the entry.
+  */
+  public void addField(String fieldName, Date[] fieldData)
+    throws ManifoldCFException
+  {
+    if (fieldData == null)
+    {
+      fields.remove(fieldName);
+      stringFields.remove(fieldName);
+      readerFields.remove(fieldName);
+      dateFields.remove(fieldName);
+    }
+    else
+    {
+      fields.put(fieldName,fieldData);
+      stringFields.remove(fieldName);
+      readerFields.remove(fieldName);
+      dateFields.put(fieldName,fieldData);
+    }
+  }
+  
+  /** Add/remove a date field.
+  *@param fieldName is the field name.
+  *@param fieldData is the single-valued data (a Date).  Null means "no value".
+  */
+  public void addField(String fieldName, Date fieldData)
+    throws ManifoldCFException
+  {
+    if (fieldData == null)
+      addField(fieldName, (Date[])null);
+    else
+      addField(fieldName,new Date[]{fieldData});
+  }
+
+  /** Add/remove a multivalue character field.
   *@param fieldName is the field name.
   *@param fieldData is the multi-valued data (as an array of Readers).  Null means
   * to remove the entry from the document.
@@ -248,23 +287,28 @@ public class RepositoryDocument
       fields.remove(fieldName);
       stringFields.remove(fieldName);
       readerFields.remove(fieldName);
+      dateFields.remove(fieldName);
     }
     else
     {
       fields.put(fieldName,fieldData);
       stringFields.remove(fieldName);
       readerFields.put(fieldName,fieldData);
+      dateFields.remove(fieldName);
     }
   }
 
-  /** Add a character field.
+  /** Add/remove a character field.
   *@param fieldName is the field name.
   *@param fieldData is the single-valued data (as a Reader).  Null means "no value".
   */
   public void addField(String fieldName, Reader fieldData)
     throws ManifoldCFException
   {
-    addField(fieldName,new Reader[]{fieldData});
+    if (fieldData == null)
+      addField(fieldName, (Reader[])null);
+    else
+      addField(fieldName,new Reader[]{fieldData});
   }
 
   /** Add/Remove a multivalue character field.
@@ -280,12 +324,14 @@ public class RepositoryDocument
       fields.remove(fieldName);
       stringFields.remove(fieldName);
       readerFields.remove(fieldName);
+      dateFields.remove(fieldName);
     }
     else
     {
       fields.put(fieldName,fieldData);
       readerFields.remove(fieldName);
       stringFields.put(fieldName,fieldData);
+      dateFields.remove(fieldName);
     }
   }
 
@@ -296,7 +342,10 @@ public class RepositoryDocument
   public void addField(String fieldName, String fieldData)
     throws ManifoldCFException
   {
-    addField(fieldName,new String[]{fieldData});
+    if (fieldData == null)
+      addField(fieldName,(String)null);
+    else
+      addField(fieldName,new String[]{fieldData});
   }
 
   /** Get a field.
@@ -310,7 +359,8 @@ public class RepositoryDocument
 
   /** Get a field as an array of strings.  If the data was originally in the form
   * of Readers, a one-time conversion is made to the String form, so that the same
-  * field can be fetched multiple times.
+  * field can be fetched multiple times.  If the data was originally in the form
+  * of Dates, then the dates are converted to standard ISO8601 format.
   *@param fieldName is the field name.
   *@return the field data.
   */
@@ -320,28 +370,39 @@ public class RepositoryDocument
     String[] stringFieldData = stringFields.get(fieldName);
     if (stringFieldData != null)
       return stringFieldData;
-    Reader[] oldValues = readerFields.get(fieldName);
-    if (oldValues == null)
-      return null;
-    
-    String[] newValues = new String[oldValues.length];
-    char[] buffer = new char[65536];
-    int i = 0;
-    while (i < newValues.length)
+    Date[] dateFieldData = dateFields.get(fieldName);
+    if (dateFieldData != null)
     {
-      Reader oldValue = oldValues[i];
-      StringBuilder newValue = new StringBuilder();
-      while (true)
+      String[] newValues = new String[dateFieldData.length];
+      for (int i = 0; i < dateFieldData.length; i++)
       {
-        int amt = oldValue.read(buffer);
-        if (amt == -1)
-          break;
-        newValue.append(buffer,0,amt);
+        newValues[i] = DateParser.formatISO8601Date(dateFieldData[i]);
       }
-      newValues[i++] = newValue.toString();
+      return newValues;
     }
-    stringFields.put(fieldName,newValues);
-    return newValues;
+    Reader[] oldValues = readerFields.get(fieldName);
+    if (oldValues != null)
+    {
+      String[] newValues = new String[oldValues.length];
+      char[] buffer = new char[65536];
+      for (int i = 0; i < newValues.length; i++)
+      {
+        Reader oldValue = oldValues[i];
+        StringBuilder newValue = new StringBuilder();
+        while (true)
+        {
+          int amt = oldValue.read(buffer);
+          if (amt == -1)
+            break;
+          newValue.append(buffer,0,amt);
+        }
+        newValues[i] = newValue.toString();
+      }
+      stringFields.put(fieldName,newValues);
+      return newValues;
+    }
+    else
+      return null;
   }
 
   /** Get a field as an array of Readers.  If the field was originally
@@ -354,21 +415,42 @@ public class RepositoryDocument
     Reader[] readerFieldData = readerFields.get(fieldName);
     if (readerFieldData != null)
       return readerFieldData;
-    String[] oldValues = stringFields.get(fieldName);
-    if (oldValues == null)
-      return null;
-    
-    Reader[] newValues = new Reader[oldValues.length];
-    int i = 0;
-    while (i < newValues.length)
+    Date[] dateFieldData = dateFields.get(fieldName);
+    if (dateFieldData != null)
     {
-      newValues[i] = new StringReader(oldValues[i]);
-      i++;
+      Reader[] newValues = new Reader[dateFieldData.length];
+      for (int i = 0; i < newValues.length; i++)
+      {
+        newValues[i] = new StringReader(DateParser.formatISO8601Date(dateFieldData[i]));
+      }
+      readerFields.put(fieldName,newValues);
+      return newValues;
     }
-    readerFields.put(fieldName,newValues);
-    return newValues;
+    String[] oldValues = stringFields.get(fieldName);
+    if (oldValues != null)
+    {
+      Reader[] newValues = new Reader[oldValues.length];
+      for (int i = 0; i < newValues.length; i++)
+      {
+        newValues[i] = new StringReader(oldValues[i]);
+      }
+      readerFields.put(fieldName,newValues);
+      return newValues;
+    }
+    else
+      return null;
   }
 
+  /** Get field as an array of Date objects.
+  * If the field was originally not a Date field, null is returned.
+  *@param fieldName is the field name.
+  *@return the field data.
+  */
+  public Date[] getFieldAsDates(String fieldName)
+  {
+    return dateFields.get(fieldName);
+  }
+  
   /** Get the number of fields.
   */
   public int fieldCount()
