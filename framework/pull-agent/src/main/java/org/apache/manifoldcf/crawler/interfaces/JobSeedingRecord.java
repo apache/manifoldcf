@@ -1,4 +1,4 @@
-/* $Id: JobStartRecord.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -19,24 +19,23 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 
-/** This class is a paper object which contains a job ID and a last job start time.
+/** This class is a paper object which contains a job ID and a last job start time (0 if none).
 */
-public class JobStartRecord extends JobRecord
+public class JobSeedingRecord extends JobRecord
 {
-  public static final String _rcsid = "@(#)$Id: JobStartRecord.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   /** The last synch time */
   protected final long synchTime;
-  /** The requestMinimum flag */
-  protected final boolean requestMinimum;
+  /** Whether this job was started or not */
+  protected boolean wasStarted = false;
 
   /** Constructor.
   */
-  public JobStartRecord(Long jobID, long synchTime, boolean requestMinimum)
+  public JobSeedingRecord(Long jobID, long synchTime)
   {
     super(jobID);
     this.synchTime = synchTime;
-    this.requestMinimum = requestMinimum;
   }
 
   /** Get the synch time.
@@ -47,12 +46,4 @@ public class JobStartRecord extends JobRecord
     return synchTime;
   }
 
-  /** Get the requestMinimum flag.
-  *@return the flag.
-  */
-  public boolean getRequestMinimum()
-  {
-    return requestMinimum;
-  }
-  
 }

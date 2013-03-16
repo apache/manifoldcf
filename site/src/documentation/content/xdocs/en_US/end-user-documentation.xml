@@ -284,15 +284,20 @@
                        status column.  Allowed actions you may see at one point or another include:</p>
                 <ul>
                     <li>Start (start the job)</li>
+                    <li>Start minimal (start the job, but do only the minimal work possible)</li>
                     <li>Abort(abort the job)</li>
                     <li>Pause (pause the job)</li>
                     <li>Resume (resume the job)</li>
                     <li>Restart (equivalent to aborting the job, and starting it all over again)</li>
+                    <li>Restart minimal (equivalent to aborting the job, and starting it all over again, doing only the minimal work possible)</li>
                 </ul>
                 <br/>
                 <p>The columns "Documents", "Active", and "Processed" have very specific means as far as documents in the job's queue are concerned.  The "Documents" column counts all the documents
                        that belong to the job.  The "Active" column counts all of the documents for that job that are queued up for processing.  The "Processed" column counts all documents that are on the
                        queue for the job that have been processed at least once in the past.</p>
+                <p>Using the "minimal" variant of the listed actions will perform the minimum possible amount of work, given the model that the connection type for the job uses.  In some
+                       cases, this will mean that additions and modifications are indexed, but deletions are not detected.  A complete job run is usually necessary to fully synchronize the target
+                       index with the repository contents.</p>
             </section>
             <section id="statusreports">
                 <title>Status Reports</title>

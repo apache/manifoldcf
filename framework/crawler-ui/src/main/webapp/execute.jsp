@@ -524,6 +524,7 @@
 							EnumeratedValues srHourOfDay = null;
 							EnumeratedValues srMinutesOfHour = null;
 							Long srDuration = null;
+							boolean srRequestMinimum = false;
 
 							y = variableContext.getParameterValues("dayofweek"+indexValue);
 							if (y != null)
@@ -581,12 +582,17 @@
 								else
 									srDuration = new Long(new Long(x).longValue()*60000L);
 							}
+							x = variableContext.getParameter("invocation"+indexValue);
+							if (x != null)
+							{
+								srRequestMinimum = x.equals("minimal");
+							}
 							
 							x = variableContext.getParameter("recordop"+j);
 							if (x == null || !x.equals("Remove Schedule"))
 							{
 								ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-									null,srDuration);
+									null,srDuration,srRequestMinimum);
 								job.addScheduleRecord(sr);
 							}
 							j++;
@@ -604,6 +610,7 @@
 						EnumeratedValues srHourOfDay = null;
 						EnumeratedValues srMinutesOfHour = null;
 						Long srDuration = null;
+						boolean srRequestMinimum = false;
 
 						y = variableContext.getParameterValues("dayofweek");
 						if (y != null)
@@ -661,8 +668,14 @@
 							else
 								srDuration = new Long(new Long(x).longValue() * 60000L);
 						}
+						x = variableContext.getParameter("invocation");
+						if (x != null)
+						{
+							srRequestMinimum = x.equals("minimal");
+						}
+
 						ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-							null,srDuration);
+							null,srDuration,srRequestMinimum);
 						job.addScheduleRecord(sr);
 					}
 
@@ -894,11 +907,11 @@
 		}
 		else if (op != null && type != null && type.equals("jobstatus"))
 		{
-			if (op.equals("Start"))
+			if (op.equals("Start") || op.equals("StartMinimal"))
 			{
 				// -- Start a job --
 				String jobID = variableContext.getParameter("jobid");
-				manager.manualStart(new Long(jobID));
+				manager.manualStart(new Long(jobID),op.equals("StartMinimal"));
 				// Forward to showjobstatus
 %>
 				<jsp:forward page="showjobstatus.jsp"/>
@@ -924,11 +937,11 @@
 				<jsp:forward page="showjobstatus.jsp"/>
 <%
 			}
-			else if (op.equals("Restart"))
+			else if (op.equals("Restart") || op.equals("RestartMinimal"))
 			{
 				// -- Restart a job --
 				String jobID = variableContext.getParameter("jobid");
-				manager.manualAbortRestart(new Long(jobID));
+				manager.manualAbortRestart(new Long(jobID),op.equals("RestartMinimal"));
 				// Forward to showjobstatus
 %>
 				<jsp:forward page="showjobstatus.jsp"/>

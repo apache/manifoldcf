@@ -75,6 +75,8 @@
 	EnumeratedValues minutesOfHour = null;
 	// Duration in minutes
 	Long duration = null;
+	// RequestMinimum flag
+	boolean requestMinimum = false;
 
 	// Priority
 	int priority = 5;
@@ -830,7 +832,7 @@
 %>
 		  <table class="displaytable">
 <%
-	    if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
+	    if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE && model != IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE_DELETE)
 	    {
 %>
 			<tr>
@@ -902,6 +904,7 @@
 		EnumeratedValues srYear = sr.getYear();
 		EnumeratedValues srHourOfDay = sr.getHourOfDay();
 		EnumeratedValues srMinutesOfHour = sr.getMinutesOfHour();
+		boolean srRequestMinimum = sr.getRequestMinimum();
 		String postFix = Integer.toString(l);
 		int k;
 
@@ -936,10 +939,10 @@
 						int q = k;
 						String ampm;
 						if (k < 12)
-							ampm = "am";
+							ampm = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.am");
 						else
 						{
-							ampm = "pm";
+							ampm = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.pm");
 							q -= 12;
 						}
 						String hour;
@@ -989,15 +992,15 @@
 						int value = (k+1) % 10;
 						String suffix;
 						if (value == 1 && k != 10)
-							suffix = "st";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.st");
 						else if (value == 2 && k != 11)
-							suffix = "nd";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.nd");
 						else if (value == 3 && k != 12)
-							suffix = "rd";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.rd");
 						else
-							suffix = "th";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.th");
 %>
-						<option value='<%=Integer.toString(k)%>' <%=(srDayOfMonth!=null&&srDayOfMonth.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix+" day of month"%></option>
+						<option value='<%=Integer.toString(k)%>' <%=(srDayOfMonth!=null&&srDayOfMonth.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.dayofmonth")%></option>
 <%
 						k++;
 					}
@@ -1006,8 +1009,16 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td>
+				<td class="value">
 					<input type="text" size="5" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
+				</td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></td>
+				<td class="value">
+					<select class="schedulepulldown" multiple="false" name='<%="invocation"+postFix%>' size="2">
+						<option value="complete" <%=(srRequestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
+						<option value="minimal" <%=srRequestMinimum?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
+					</select>
 				</td>
 			</tr>
 			<tr>
@@ -1047,10 +1058,10 @@
 						int q = k;
 						String ampm;
 						if (k < 12)
-							ampm = "am";
+							ampm = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.am");
 						else
 						{
-							ampm = "pm";
+							ampm = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.pm");
 							q -= 12;
 						}
 						String hour;
@@ -1100,15 +1111,15 @@
 						int value = (k+1) % 10;
 						String suffix;
 						if (value == 1 && k != 10)
-							suffix = "st";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.st");
 						else if (value == 2 && k != 11)
-							suffix = "nd";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.nd");
 						else if (value == 3 && k != 12)
-							suffix = "rd";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.rd");
 						else
-							suffix = "th";
+							suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.th");
 %>
-						<option value='<%=Integer.toString(k)%>' <%=(dayOfMonth!=null&&dayOfMonth.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix+" day of month"%></option>
+						<option value='<%=Integer.toString(k)%>' <%=(dayOfMonth!=null&&dayOfMonth.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.dayofmonth")%></option>
 <%
 						k++;
 					}
@@ -1117,8 +1128,16 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td><td colspan="3" class="value">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td>
+				<td class="value">
 					<input type="text" size="5" name="duration" value='<%=((duration==null)?"":duration.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
+				</td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></td>
+				<td class="value">
+					<select class="schedulepulldown" multiple="false" name="invocation" size="2">
+						<option value="complete" <%=(requestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
+						<option value="minimal" <%=requestMinimum?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
+					</select>
 				</td>
 			</tr>
 			<tr>
@@ -1150,6 +1169,7 @@
 		EnumeratedValues srYear = sr.getYear();
 		EnumeratedValues srHourOfDay = sr.getHourOfDay();
 		EnumeratedValues srMinutesOfHour = sr.getMinutesOfHour();
+		boolean srRequestMinimum = sr.getRequestMinimum();
 		String postFix = Integer.toString(l);
 
 		if (srDayOfWeek == null)
@@ -1243,6 +1263,7 @@
 		}
 %>
 		  <input type="hidden" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/>
+		  <input type="hidden" name='<%="invocation"+postFix%>' value='<%=srRequestMinimum?"minimal":"complete"%>'/>
 		  <input type="hidden" name='<%="year"+postFix%>' value="none"/>
 <%
 		l++;

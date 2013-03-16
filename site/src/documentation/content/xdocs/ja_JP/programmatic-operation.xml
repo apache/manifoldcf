@@ -30,7 +30,9 @@
     <section>
       <title>Programmatic Operation</title>
       <p></p>
-      <p>A certain subset of ManifoldCF users want to think of ManifoldCF as an engine that they can poke from whatever other system they are developing.  While ManifoldCF is not precisely a document indexing engine per se, it can certainly be controlled programmatically.  Right now, there are three principle ways of achieving this control.</p>
+      <p>A certain subset of ManifoldCF users want to think of ManifoldCF as an engine that they can poke from whatever other system they are developing.  While
+        ManifoldCF is not precisely a document indexing engine per se, it can certainly be controlled programmatically.  Right now, there are three principle ways of
+        achieving this control.</p>
       <p></p>
       <section>
         <title>Control by Servlet API</title>
@@ -46,17 +48,17 @@
           <p>http[s]://<em>&lt;server_and_port&gt;</em>/mcf-api-service/json/<em>&lt;resource&gt;</em></p>
           <p></p>
           <p>The servlet ignores request data, except when the PUT or POST verb is used.  In that case, the request data is presumed to be a JSON object.  The servlet
-            responds either with an error response code (either 400 or 500) with an appropriate explanatory message, or with a 200 (OK), 201 (CREATED), or 404 (NOT FOUND)
-            response code along with a response JSON object.</p>
+            responds either with an error response code (either 400 or 500) with an appropriate explanatory message, or with a 200 (OK), 201 (CREATED), or
+            404 (NOT FOUND) response code along with a response JSON object.</p>
           <p></p>
         </section>
         <section>
           <title>JSON equivalents for ManifoldCF</title>
           <p></p>
-          <p>ManifoldCF treats certain JSON forms as equivalent, for the purposes of readability.  For example, the array form <strong>"foo" : [ { ... } ]</strong> is treated equivalently to
-            <strong>"foo" : { }</strong>, whenever there is only one array element.  This gives a coder some flexibility as to how s/he encodes JSON in requests.  Please also be aware that
-            similar compressions will occur in the JSON responses from the API servlet, and your code must be able to deal with this possibility.  The following table
-            describes some of the equivalences:</p>
+          <p>ManifoldCF treats certain JSON forms as equivalent, for the purposes of readability.  For example, the array form <strong>"foo" : [ { ... } ]</strong> is
+            treated equivalently to <strong>"foo" : { }</strong>, whenever there is only one array element.  This gives a coder some flexibility as to how s/he encodes
+            JSON in requests.  Please also be aware that similar compressions will occur in the JSON responses from the API servlet, and your code must be able to deal
+            with this possibility.  The following table describes some of the equivalences:</p>
           <p></p>
           <p></p>
           <p></p>
@@ -107,8 +109,10 @@
             <tr><td>jobstatuses/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job's status</td><td>N/A</td><td>{"jobstatus":<em>&lt;job_status_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} </td></tr>
             <tr><td>jobstatusesnocounts/<em>&lt;job_id&gt;</em></td><td>GET</td><td>Get a specific job's status, returning '0' for all counts</td><td>N/A</td><td>{"jobstatus":<em>&lt;job_status_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} </td></tr>
             <tr><td>start/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Start a specified job manually</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>startminimal/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Start a specified job manually, minimal run requested</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>abort/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Abort a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>restart/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Stop and start a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>restartminimal/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Stop and start a specified job, minimal run requested</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>pause/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Pause a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>resume/<em>&lt;job_id&gt;</em></td><td>PUT</td><td>Resume a specified job</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
 
@@ -343,6 +347,7 @@
             <tr><td>"year"</td><td>The optional year enumeration object</td></tr>
             <tr><td>"hourofday"</td><td>The optional hour-of-the-day enumeration object</td></tr>
             <tr><td>"minutesofhour"</td><td>The optional minutes-of-the-hour enumeration object</td></tr>
+            <tr><td>"requestminimum"</td><td>Optional flag indicating whether the job run will be minimal or not ("true" means minimal)</td></tr>
           </table>
           <p></p>
           <p>Each enumeration object describes an array of integers using the form:</p>
@@ -434,16 +439,21 @@
       <section>
         <title>Control by direct code</title>
         <p></p>
-        <p>Control by direct java code is quite a reasonable thing to do.  The sources of the above commands should give a pretty clear idea how to proceed, if that's what you want to do.</p>
+        <p>Control by direct java code is quite a reasonable thing to do.  The sources of the above commands should give a pretty clear idea how to proceed, if that's what you
+          want to do.</p>
         <p></p>
         <p></p>
       </section>
       <section>
         <title>Caveats</title>
         <p></p>
-        <p>The above commands know nothing about the differences between connection types.  Instead, they deal with configuration and specification information in the form of XML documents.  Normally, these XML documents are hidden from a system integrator, unless they happen to look into the database with a tool such as psql.  But the API commands above often will require such XML documents to be included as part of the command execution.</p>
+        <p>The above commands know nothing about the differences between connection types.  Instead, they deal with configuration and specification information in the
+          form of XML documents.  Normally, these XML documents are hidden from a system integrator, unless they happen to look into the database with a tool such as
+          psql.  But the API commands above often will require such XML documents to be included as part of the command execution.</p>
         <p></p>
-        <p>This has one major consequence.  Any application that would manipulate connections and jobs directly cannot be connection-type independent - these applications must know the proper form of XML to submit to the command.  So, it is not possible to use these command APIs to write one's own UI wrapper, without sacrificing some of the repository independence that ManifoldCF by itself maintains.</p>
+        <p>This has one major consequence.  Any application that would manipulate connections and jobs directly cannot be connection-type independent - these
+          applications must know the proper form of XML to submit to the command.  So, it is not possible to use these command APIs to write one's own UI wrapper,
+          without sacrificing some of the repository independence that ManifoldCF by itself maintains.</p>
       </section>
     </section>
   </body>
