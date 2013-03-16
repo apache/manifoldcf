@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-663: Add support for minimal crawling.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-662: RSS connector now supports ISO8601 dates.
 (David Morana, Karl Wright)
 
