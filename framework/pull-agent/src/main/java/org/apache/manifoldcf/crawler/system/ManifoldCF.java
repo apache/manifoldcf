@@ -3118,13 +3118,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Start a job.
   */
-  protected static int apiWriteStartJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiWriteStartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum)
     throws ManifoldCFException
   {
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.manualStart(jobID);
+      jobManager.manualStart(jobID,requestMinimum);
       return WRITERESULT_CREATED;
     }
     catch (ManifoldCFException e)
@@ -3154,13 +3154,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Restart a job.
   */
-  protected static int apiWriteRestartJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiWriteRestartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum)
     throws ManifoldCFException
   {
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
-      jobManager.manualAbortRestart(jobID);
+      jobManager.manualAbortRestart(jobID,requestMinimum);
       return WRITERESULT_CREATED;
     }
     catch (ManifoldCFException e)
@@ -3379,7 +3379,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     if (path.startsWith("start/"))
     {
       Long jobID = new Long(path.substring("start/".length()));
-      return apiWriteStartJob(tc,output,jobID);
+      return apiWriteStartJob(tc,output,jobID,false);
+    }
+    else if (path.startsWith("startminimal/"))
+    {
+      Long jobID = new Long(path.substring("startminimal/".length()));
+      return apiWriteStartJob(tc,output,jobID,true);
     }
     else if (path.startsWith("abort/"))
     {
@@ -3389,7 +3394,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.startsWith("restart/"))
     {
       Long jobID = new Long(path.substring("restart/".length()));
-      return apiWriteRestartJob(tc,output,jobID);
+      return apiWriteRestartJob(tc,output,jobID,false);
+    }
+    else if (path.startsWith("restartminimal/"))
+    {
+      Long jobID = new Long(path.substring("restartminimal/".length()));
+      return apiWriteRestartJob(tc,output,jobID,true);
     }
     else if (path.startsWith("pause/"))
     {
@@ -3580,6 +3590,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_SCHEDULE = "schedule";
   protected static final String JOBNODE_LINKTYPE = "link_type";
   protected static final String JOBNODE_COUNT = "count";
+  protected static final String JOBNODE_REQUESTMINIMUM = "requestminimum";
   protected static final String JOBNODE_TIMEZONE = "timezone";
   protected static final String JOBNODE_DURATION = "duration";
   protected static final String JOBNODE_DAYOFWEEK = "dayofweek";
@@ -3732,6 +3743,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         // Create a schedule record.
         String timezone = null;
         Long duration = null;
+        boolean requestMinimum = false;
         EnumeratedValues dayOfWeek = null;
         EnumeratedValues monthOfYear = null;
         EnumeratedValues dayOfMonth = null;
@@ -3745,6 +3757,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         {
           ConfigurationNode scheduleField = child.findChild(q++);
           String fieldType = scheduleField.getType();
+          if (fieldType.equals(JOBNODE_REQUESTMINIMUM))
+          {
+            requestMinimum = scheduleField.getValue().equals("true");
+          }
           if (fieldType.equals(JOBNODE_TIMEZONE))
           {
             timezone = scheduleField.getValue();
@@ -3780,7 +3796,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           else
             throw new ManifoldCFException("Unrecognized field in schedule record: '"+fieldType+"'");
         }
-        ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration);
+        ScheduleRecord sr = new ScheduleRecord(dayOfWeek,monthOfYear,dayOfMonth,year,hourOfDay,minutesOfHour,timezone,duration,requestMinimum);
         // Add the schedule record to the job.
         jobDescription.addScheduleRecord(sr);
       }
@@ -3930,6 +3946,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ScheduleRecord sr = job.getScheduleRecord(j++);
       child = new ConfigurationNode(JOBNODE_SCHEDULE);
       ConfigurationNode recordChild;
+      
+      // requestminimum
+      recordChild = new ConfigurationNode(JOBNODE_REQUESTMINIMUM);
+      recordChild.setValue(sr.getRequestMinimum()?"true":"false");
+      child.addChild(child.getChildCount(),recordChild);
       
       // timezone
       if (sr.getTimezone() != null)

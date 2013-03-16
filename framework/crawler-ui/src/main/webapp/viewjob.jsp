@@ -139,7 +139,8 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NameColon")%></nobr></td><td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NameColon")%></nobr></td>
+				<td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
@@ -154,8 +155,10 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.PriorityColon")%></nobr></td><td class="value"><%=priority%></td>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StartMethodColon")%></nobr></td><td class="value"><%=startMethod%></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.PriorityColon")%></nobr></td>
+				<td class="value"><%=priority%></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StartMethodColon")%></nobr></td>
+				<td class="value"><%=startMethod%></td>
 			</tr>
 <%
 		if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
@@ -165,13 +168,16 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduleTypeColon")%></nobr></td><td class="value"><nobr><%=jobType%></nobr></td>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlIntervalColon")%></nobr></td><td class="value"><nobr><%=intervalString%></nobr>
-				</td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduleTypeColon")%></nobr></td>
+				<td class="value"><nobr><%=jobType%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlIntervalColon")%></nobr></td>
+				<td class="value"><nobr><%=intervalString%></nobr></td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ExpirationIntervalColon")%></nobr></td><td class="value"><nobr><%=expirationIntervalString%></nobr></td>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ReseedIntervalColon")%></nobr></td><td class="value"><nobr><%=reseedIntervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ExpirationIntervalColon")%></nobr></td>
+				<td class="value"><nobr><%=expirationIntervalString%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ReseedIntervalColon")%></nobr></td>
+				<td class="value"><nobr><%=reseedIntervalString%></nobr></td>
 			</tr>
 <%
 		}
@@ -195,6 +201,7 @@
 			{
 				ScheduleRecord sr = job.getScheduleRecord(j);
 				Long srDuration = sr.getDuration();
+				boolean srRequestMinimum = sr.getRequestMinimum();
 				EnumeratedValues srDayOfWeek = sr.getDayOfWeek();
 				EnumeratedValues srMonthOfYear = sr.getMonthOfYear();
 				EnumeratedValues srDayOfMonth = sr.getDayOfMonth();
@@ -330,7 +337,7 @@
 					if (srMonthOfYear == null)
 					{
 						if (srDayOfMonth == null && srDayOfWeek == null && srHourOfDay == null && srMinutesOfHour == null)
-							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.inJanuary"));
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ineverymonthofyear"));
 					}
 					else
 					{
@@ -489,15 +496,13 @@
 						out.println(sb.toString());
 					}
 %>
-
-
 				</td>
 			</tr>
 			<tr>
 				<td class="description">
 					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTimeColon")%>
 				</td>
-				<td class="value" colspan="3">
+				<td class="value">
 <%
 					if (srDuration == null)
 						out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nolimit"));
@@ -505,8 +510,18 @@
 						out.println(new Long(srDuration.longValue()/60000L).toString() + " "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.minutes"));
 %>
 				</td>
+				<td class="description">
+					<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.JobInvocationColon")%>
+				</td>
+				<td class="value">
+<%
+					if (srRequestMinimum)
+						out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Minimal"));
+					else
+						out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Complete"));
+%>
+				</td>
 			</tr>
-
 <%
 				j++;
 			}

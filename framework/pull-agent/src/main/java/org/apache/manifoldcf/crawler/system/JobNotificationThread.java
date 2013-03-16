@@ -66,7 +66,7 @@ public class JobNotificationThread extends Thread
           // Before we begin, conditionally reset
           resetManager.waitForReset(threadContext);
 
-          JobStartRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
+          JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity();
           try
           {
             HashMap connectionNames = new HashMap();
@@ -74,7 +74,7 @@ public class JobNotificationThread extends Thread
             int k = 0;
             while (k < jobsNeedingNotification.length)
             {
-              JobStartRecord jsr = jobsNeedingNotification[k++];
+              JobNotifyRecord jsr = jobsNeedingNotification[k++];
               Long jobID = jsr.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
               if (job != null)
@@ -144,7 +144,7 @@ public class JobNotificationThread extends Thread
             k = 0;
             while (k < jobsNeedingNotification.length)
             {
-              JobStartRecord jsr = jobsNeedingNotification[k++];
+              JobNotifyRecord jsr = jobsNeedingNotification[k++];
               Long jobID = jsr.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
               if (job != null)
@@ -170,7 +170,7 @@ public class JobNotificationThread extends Thread
             int i = 0;
             while (i < jobsNeedingNotification.length)
             {
-              JobStartRecord jsr = jobsNeedingNotification[i++];
+              JobNotifyRecord jsr = jobsNeedingNotification[i++];
               if (!jsr.wasStarted())
               {
                 // Clean up from failed start.

@@ -44,6 +44,13 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 		document.liststatuses.submit();
 	}
 
+	function StartMinimal(jobID)
+	{
+		document.liststatuses.op.value="StartMinimal";
+		document.liststatuses.jobid.value=jobID;
+		document.liststatuses.submit();
+	}
+
 	function Abort(jobID)
 	{
 		document.liststatuses.op.value="Abort";
@@ -54,6 +61,13 @@ boolean maintenanceUnderway = org.apache.manifoldcf.crawler.system.ManifoldCF.ch
 	function Restart(jobID)
 	{
 		document.liststatuses.op.value="Restart";
+		document.liststatuses.jobid.value=jobID;
+		document.liststatuses.submit();
+	}
+
+	function RestartMinimal(jobID)
+	{
+		document.liststatuses.op.value="RestartMinimal";
 		document.liststatuses.jobid.value=jobID;
 		document.liststatuses.submit();
 	}
@@ -117,66 +131,66 @@ if (maintenanceUnderway == false)
 		switch (status)
 		{
 		case JobStatus.JOBSTATUS_NOTYETRUN:
-			statusName = "Not yet run";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Notyetrun");
 			break;
 		case JobStatus.JOBSTATUS_RUNNING:
-			statusName = "Running";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Running");
 			break;
 		case JobStatus.JOBSTATUS_RUNNING_UNINSTALLED:
-			statusName = "Running, no connector";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Runningnoconnector");
 			break;
 		case JobStatus.JOBSTATUS_ABORTING:
-			statusName = "Aborting";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Aborting");
 			break;
 		case JobStatus.JOBSTATUS_RESTARTING:
-			statusName = "Restarting";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restarting");
 			break;
 		case JobStatus.JOBSTATUS_STOPPING:
-			statusName = "Stopping";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Stopping");
 			break;
 		case JobStatus.JOBSTATUS_RESUMING:
-			statusName = "Resuming";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resuming");
 			break;
 		case JobStatus.JOBSTATUS_PAUSED:
-			statusName = "Paused";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Paused");
 			break;
 		case JobStatus.JOBSTATUS_COMPLETED:
-			statusName = "Done";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Done");
 			break;
 		case JobStatus.JOBSTATUS_WINDOWWAIT:
-			statusName = "Waiting";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus,Waiting");
 			break;
 		case JobStatus.JOBSTATUS_STARTING:
-			statusName = "Starting up";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startingup");
 			break;
 		case JobStatus.JOBSTATUS_DESTRUCTING:
-			statusName = "Cleaning up";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Cleaningup");
 			break;
 		case JobStatus.JOBSTATUS_JOBENDCLEANUP:
-			statusName = "Terminating";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Terminating");
 			break;
 		case JobStatus.JOBSTATUS_JOBENDNOTIFICATION:
-			statusName = "End notification";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Endnotification");
 			break;
 		case JobStatus.JOBSTATUS_ERROR:
-			statusName = "Error: "+js.getErrorText();
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.ErrorColon")+" "+js.getErrorText();
 			break;
 		default:
-			statusName = "Unknown";
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Unknown");
 			break;
 		}
-		String startTime = "Not started";
+		String startTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Notstarted");
 		if (js.getStartTime() != -1L)
 			startTime = new Date(js.getStartTime()).toString();
-		String endTime = "Aborted";
+		String endTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Aborted");
 		if (js.getStartTime() == -1L)
-			endTime = "Never run";
+			endTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Neverrun");
 		else
 		{
 			if (js.getEndTime() == -1L)
 			{
 				if (status == JobStatus.JOBSTATUS_COMPLETED)
-					endTime = "Aborted";
+					endTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Aborted");
 				else
 					endTime = "";
 			}
@@ -192,7 +206,8 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_ERROR)
 		{
 %>
-				<a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%="Start job "+js.getJobID()%>'>Start</a>&nbsp;
+				<a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></nobr></a>&nbsp;
+				<a href='<%="javascript:StartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></nobr></a>&nbsp;
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -202,7 +217,8 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_STARTING)
 		{
 %>
-				<a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%="Restart job "+js.getJobID()%>'>Restart</a>&nbsp;
+				<a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></nobr></a>&nbsp;
+				<a href='<%="javascript:RestartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></nobr></a>&nbsp;
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -210,7 +226,7 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_WINDOWWAIT)
 		{
 %>
-				<a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%="Pause job "+js.getJobID()%>'>Pause</a>&nbsp;
+				<a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></nobr></a>&nbsp;
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -223,13 +239,13 @@ if (maintenanceUnderway == false)
 			status == JobStatus.JOBSTATUS_RESTARTING)
 		{
 %>
-				<a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%="Abort job "+js.getJobID()%>'>Abort</a>&nbsp;
+				<a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></nobr></a>&nbsp;
 <%
 		}
 		if (status == JobStatus.JOBSTATUS_PAUSED)
 		{
 %>
-				<a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%="Resume job "+js.getJobID()%>'>Resume</a>&nbsp;
+				<a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></nobr></a>&nbsp;
 <%
 		}
 %>

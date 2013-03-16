@@ -60,15 +60,17 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_PENDING = 0;
   public final static int STATUS_ACTIVE = 1;
   public final static int STATUS_COMPLETE = 2;
-  public final static int STATUS_PENDINGPURGATORY = 3;
-  public final static int STATUS_ACTIVEPURGATORY = 4;
-  public final static int STATUS_PURGATORY = 5;
-  public final static int STATUS_BEINGDELETED = 6;
-  public final static int STATUS_ACTIVENEEDRESCAN = 7;
-  public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 8;
-  public final static int STATUS_BEINGCLEANED = 9;
-  public final static int STATUS_ELIGIBLEFORDELETE = 10;
-  public final static int STATUS_HOPCOUNTREMOVED = 11;
+  public final static int STATUS_UNCHANGED = 3;
+  public final static int STATUS_PENDINGPURGATORY = 4;
+  public final static int STATUS_ACTIVEPURGATORY = 5;
+  public final static int STATUS_PURGATORY = 6;
+  public final static int STATUS_BEINGDELETED = 7;
+  public final static int STATUS_ACTIVENEEDRESCAN = 8;
+  public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 9;
+  public final static int STATUS_BEINGCLEANED = 10;
+  public final static int STATUS_ELIGIBLEFORDELETE = 11;
+  public final static int STATUS_HOPCOUNTREMOVED = 12;
+  
   // Action values
   public final static int ACTION_RESCAN = 0;
   public final static int ACTION_REMOVE = 1;
@@ -121,6 +123,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("P",new Integer(STATUS_PENDING));
     statusMap.put("A",new Integer(STATUS_ACTIVE));
     statusMap.put("C",new Integer(STATUS_COMPLETE));
+    statusMap.put("U",new Integer(STATUS_UNCHANGED));
     statusMap.put("G",new Integer(STATUS_PENDINGPURGATORY));
     statusMap.put("F",new Integer(STATUS_ACTIVEPURGATORY));
     statusMap.put("Z",new Integer(STATUS_PURGATORY));
@@ -533,6 +536,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_PENDINGPURGATORY),
         statusToString(STATUS_COMPLETE),
+        statusToString(STATUS_UNCHANGED),
         statusToString(STATUS_PURGATORY)})});
     performUpdate(map,"WHERE "+query,list,null);
 
@@ -583,6 +587,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(statusField,new Object[]{  
         statusToString(STATUS_PENDINGPURGATORY),
+        statusToString(STATUS_UNCHANGED),
         statusToString(STATUS_COMPLETE)})});
     performUpdate(map,"WHERE "+query,list,null);
 
@@ -592,6 +597,34 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     unconditionallyAnalyzeTables();
   }
 
+  /** Prepare for a "partial" job.  This is called ONLY when the job is inactive.
+  *
+  * This method maps all COMPLETE entries to UNCHANGED.  The purpose is to
+  * allow discovery to find the documents that need to be processed.  If they were
+  * marked as COMPLETE that would stop them from being queued.
+  *@param jobID is the job identifier.
+  */
+  public void preparePartialScan(Long jobID)
+    throws ManifoldCFException
+  {
+    // Map COMPLETE to UNCHANGED.
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_UNCHANGED));
+    // Do not reset priorities here!  They should all be blank at this point.
+    map.put(checkTimeField,new Long(0L));
+    map.put(checkActionField,actionToString(ACTION_RESCAN));
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_COMPLETE))});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+    // Do an analyze, otherwise our plans are going to be crap right off the bat
+    unconditionallyAnalyzeTables();
+  }
+  
   /** Prepare for an "incremental" job.  This is called ONLY when the job is inactive;
   * that is, there should be no ACTIVE or ACTIVEPURGATORY entries at all.
   *
@@ -603,7 +636,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void prepareIncrementalScan(Long jobID)
     throws ManifoldCFException
   {
-    // Delete PENDING and ACTIVE entries
+    // Map COMPLETE to PENDINGPURGATORY.
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     // Do not reset priorities here!  They should all be blank at this point.
@@ -614,7 +647,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_COMPLETE))});
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_COMPLETE),
+        statusToString(STATUS_UNCHANGED)})});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
@@ -1001,6 +1036,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       break;
 
     case STATUS_COMPLETE:
+    case STATUS_UNCHANGED:
     case STATUS_PURGATORY:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
@@ -1278,6 +1314,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     switch (currentStatus)
     {
     case STATUS_PURGATORY:
+    case STATUS_UNCHANGED:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
       map.put(checkTimeField,new Long(desiredExecuteTime));
@@ -1506,6 +1543,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "A";
     case STATUS_COMPLETE:
       return "C";
+    case STATUS_UNCHANGED:
+      return "U";
     case STATUS_PENDINGPURGATORY:
       return "G";
     case STATUS_ACTIVEPURGATORY:

@@ -54,6 +54,16 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
   }
 
+  /** Tell the world what model this connector uses for getDocumentIdentifiers().
+  * This must return a model value as specified above.
+  *@return the model type value.
+  */
+  @Override
+  public int getConnectorModel()
+  {
+    return MODEL_CHAINED_ADD_CHANGE;
+  }
+
   /** Return the list of relationship types that this connector recognizes.
   *@return the list.
   */

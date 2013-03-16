@@ -92,17 +92,23 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   public static final int STATUS_RESUMINGSEEDING = 17;               // In the process of resuming a paused or waited job, seeding process active too; will enter STATUS_ACTIVESEEDING when done.
   public static final int STATUS_ABORTING = 18;                          // Aborting (not yet aborted because documents still being processed)
   public static final int STATUS_STARTINGUP = 19;                        // Loading the queue (will go into ACTIVE if successful, or INACTIVE if not)
-  public static final int STATUS_ABORTINGSTARTINGUP = 20;        // Will abort once the queue loading is complete
-  public static final int STATUS_READYFORSTARTUP = 21;             // Job is marked for startup; startup thread has not taken it yet.
-  public static final int STATUS_READYFORDELETE = 22;             // Job is marked for delete; delete thread has not taken it yet.
-  public static final int STATUS_ABORTINGSEEDING = 23;            // Same as aborting, but seeding process is currently active also.
-  public static final int STATUS_ABORTINGFORRESTART = 24;       // Same as aborting, except after abort is complete startup will happen.
-  public static final int STATUS_ABORTINGFORRESTARTSEEDING = 25;  // Seeding version of aborting for restart
-  public static final int STATUS_ABORTINGSTARTINGUPFORRESTART = 26; // Starting up version of aborting for restart
-  public static final int STATUS_READYFORNOTIFY = 27;                   // Job is ready to be notified of completion
-  public static final int STATUS_NOTIFYINGOFCOMPLETION = 28;    // Notifying connector of terminating job (either aborted, or finished)
-  public static final int STATUS_DELETING = 29;                         // The job is deleting.
-  public static final int STATUS_DELETESTARTINGUP = 30;         // The delete is starting up.
+  public static final int STATUS_STARTINGUPMINIMAL = 20;           // Loading the queue for minimal job run (will go into ACTIVE if successful, or INACTIVE if not)
+  public static final int STATUS_ABORTINGSTARTINGUP = 21;        // Will abort once the queue loading is complete
+  public static final int STATUS_ABORTINGSTARTINGUPMINIMAL = 22;  // Will abort once the queue loading is complete
+  public static final int STATUS_READYFORSTARTUP = 23;             // Job is marked for minimal startup; startup thread has not taken it yet.
+  public static final int STATUS_READYFORSTARTUPMINIMAL = 24;   // Job is marked for startup; startup thread has not taken it yet.
+  public static final int STATUS_READYFORDELETE = 25;             // Job is marked for delete; delete thread has not taken it yet.
+  public static final int STATUS_ABORTINGSEEDING = 26;            // Same as aborting, but seeding process is currently active also.
+  public static final int STATUS_ABORTINGFORRESTART = 27;       // Same as aborting, except after abort is complete startup will happen.
+  public static final int STATUS_ABORTINGFORRESTARTMINIMAL = 28;  // Same as aborting, except after abort is complete startup will happen.
+  public static final int STATUS_ABORTINGFORRESTARTSEEDING = 29;  // Seeding version of aborting for restart
+  public static final int STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL = 30;  // Seeding version of aborting for restart
+  public static final int STATUS_ABORTINGSTARTINGUPFORRESTART = 31; // Starting up version of aborting for restart
+  public static final int STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL = 32; // Starting up version of aborting for restart
+  public static final int STATUS_READYFORNOTIFY = 33;                   // Job is ready to be notified of completion
+  public static final int STATUS_NOTIFYINGOFCOMPLETION = 34;    // Notifying connector of terminating job (either aborted, or finished)
+  public static final int STATUS_DELETING = 35;                         // The job is deleting.
+  public static final int STATUS_DELETESTARTINGUP = 36;         // The delete is starting up.
   
   // These statuses have to do with whether a job has an installed underlying connector or not.
   // There are two reasons to have a special state here: (1) if the behavior of the crawler differs, or (2) if the
@@ -113,13 +119,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   // But, since there is no indication in the jobs table of an uninstalled connector for such jobs, the code which starts
   // jobs up (or otherwise would enter any state that has a corresponding special state) must check to see if the underlying
   // connector exists before deciding what state to put the job into.
-  public static final int STATUS_ACTIVE_UNINSTALLED = 31;               // Active, but repository connector not installed
-  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 32;   // Active and seeding, but repository connector not installed
-  public static final int STATUS_ACTIVE_NOOUTPUT = 33;                  // Active, but output connector not installed
-  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 34;       // Active and seeding, but output connector not installed
-  public static final int STATUS_ACTIVE_NEITHER = 35;                     // Active, but neither repository connector nor output connector installed
-  public static final int STATUS_ACTIVESEEDING_NEITHER = 36;          // Active and seeding, but neither repository connector nor output connector installed
-  public static final int STATUS_DELETING_NOOUTPUT = 37;                // Job is being deleted but there's no output connector installed
+  public static final int STATUS_ACTIVE_UNINSTALLED = 37;               // Active, but repository connector not installed
+  public static final int STATUS_ACTIVESEEDING_UNINSTALLED = 38;   // Active and seeding, but repository connector not installed
+  public static final int STATUS_ACTIVE_NOOUTPUT = 39;                  // Active, but output connector not installed
+  public static final int STATUS_ACTIVESEEDING_NOOUTPUT = 40;       // Active and seeding, but output connector not installed
+  public static final int STATUS_ACTIVE_NEITHER = 41;                     // Active, but neither repository connector nor output connector installed
+  public static final int STATUS_ACTIVESEEDING_NEITHER = 42;          // Active and seeding, but neither repository connector nor output connector installed
+  public static final int STATUS_DELETING_NOOUTPUT = 43;                // Job is being deleted but there's no output connector installed
 
   // Type field values
   public static final int TYPE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
@@ -194,13 +200,18 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("Z",new Integer(STATUS_PAUSEDWAIT));
     statusMap.put("X",new Integer(STATUS_ABORTING));
     statusMap.put("B",new Integer(STATUS_STARTINGUP));
+    statusMap.put("b",new Integer(STATUS_STARTINGUPMINIMAL));
     statusMap.put("Q",new Integer(STATUS_ABORTINGSTARTINGUP));
+    statusMap.put("q",new Integer(STATUS_ABORTINGSTARTINGUPMINIMAL));
     statusMap.put("C",new Integer(STATUS_READYFORSTARTUP));
+    statusMap.put("c",new Integer(STATUS_READYFORSTARTUPMINIMAL));
     statusMap.put("E",new Integer(STATUS_READYFORDELETE));
     statusMap.put("V",new Integer(STATUS_DELETESTARTINGUP));
     statusMap.put("e",new Integer(STATUS_DELETING));
     statusMap.put("Y",new Integer(STATUS_ABORTINGFORRESTART));
+    statusMap.put("M",new Integer(STATUS_ABORTINGFORRESTARTMINIMAL));
     statusMap.put("T",new Integer(STATUS_ABORTINGSTARTINGUPFORRESTART));
+    statusMap.put("t",new Integer(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL));
 
     statusMap.put("a",new Integer(STATUS_ACTIVESEEDING));
     statusMap.put("x",new Integer(STATUS_ABORTINGSEEDING));
@@ -208,6 +219,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("w",new Integer(STATUS_ACTIVEWAITSEEDING));
     statusMap.put("z",new Integer(STATUS_PAUSEDWAITSEEDING));
     statusMap.put("y",new Integer(STATUS_ABORTINGFORRESTARTSEEDING));
+    statusMap.put("m",new Integer(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL));
 
     statusMap.put("H",new Integer(STATUS_ACTIVEWAITING));
     statusMap.put("h",new Integer(STATUS_ACTIVEWAITINGSEEDING));
@@ -842,11 +854,27 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
       performUpdate(map,"WHERE "+query,list,invKey);
 
+      // Starting up or aborting starting up goes back to just being ready
+      list.clear();
+      query = buildConjunctionClause(list,new ClauseDescription[]{
+        new MultiClause(statusField,new Object[]{
+          statusToString(STATUS_STARTINGUPMINIMAL),
+          statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)})});
+      map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
+      performUpdate(map,"WHERE "+query,list,invKey);
+
       // Aborting starting up for restart state goes to ABORTINGFORRESTART
       list.clear();
       query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTART))});
       map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
+      performUpdate(map,"WHERE "+query,list,invKey);
+
+      // Aborting starting up for restart state goes to ABORTINGFORRESTART
+      list.clear();
+      query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL))});
+      map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
       performUpdate(map,"WHERE "+query,list,invKey);
 
       // All seeding values return to pre-seeding values
@@ -884,6 +912,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDING))});
       map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
+      performUpdate(map,"WHERE "+query,list,invKey);
+      list.clear();
+      query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL))});
+      map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
       performUpdate(map,"WHERE "+query,list,invKey);
       list.clear();
       query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -1163,7 +1196,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     int status = stringToStatus(statusValue);
     // Any active state in the lifecycle will do: seeding, active, active_seeding
     return (status == STATUS_ACTIVE || status == STATUS_ACTIVESEEDING ||
-      status == STATUS_STARTINGUP);
+      status == STATUS_STARTINGUP || status == STATUS_STARTINGUPMINIMAL);
   }
 
   /** Reset delete startup worker thread status.
@@ -1209,6 +1242,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     String query;
 
+    list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_STARTINGUP))});
     map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
@@ -1216,7 +1250,15 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUP))});
+      new UnitaryClause(statusField,statusToString(STATUS_STARTINGUPMINIMAL))});
+    map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_ABORTINGSTARTINGUP),
+        statusToString(STATUS_ABORTINGSTARTINGUPMINIMAL)})});
     map.put(statusField,statusToString(STATUS_ABORTING));
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
 
@@ -1224,6 +1266,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTART))});
     map.put(statusField,statusToString(STATUS_ABORTINGFORRESTART));
+    performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
+
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(statusField,statusToString(STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL))});
+    map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
     performUpdate(map,"WHERE "+query,list,new StringSet(getJobStatusKey()));
 
   }
@@ -1278,6 +1326,11 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       performUpdate(map,"WHERE "+query,list,invKey);
       list.clear();
       query = buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(statusField,statusToString(STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL))});
+      map.put(statusField,statusToString(STATUS_ABORTINGFORRESTARTMINIMAL));
+      performUpdate(map,"WHERE "+query,list,invKey);
+      list.clear();
+      query = buildConjunctionClause(list,new ClauseDescription[]{
         new UnitaryClause(statusField,statusToString(STATUS_PAUSEDSEEDING))});
       map.put(statusField,statusToString(STATUS_PAUSED));
       performUpdate(map,"WHERE "+query,list,invKey);
@@ -1329,15 +1382,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   * when the job enters the "active" state.)
   *@param jobID is the job identifier.
   *@param windowEnd is the window end time, if any
+  *@param requestMinimum is true if a minimal job run is requested
   */
-  public void startJob(Long jobID, Long windowEnd)
+  public void startJob(Long jobID, Long windowEnd, boolean requestMinimum)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,jobID)});
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_READYFORSTARTUP));
+    map.put(statusField,statusToString(requestMinimum?STATUS_READYFORSTARTUPMINIMAL:STATUS_READYFORSTARTUP));
     map.put(endTimeField,null);
     // Make sure error is removed (from last time)
     map.put(errorField,null);
@@ -1488,6 +1542,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       switch (status)
       {
       case STATUS_STARTINGUP:
+      case STATUS_STARTINGUPMINIMAL:
         if (connectionMgr.checkConnectorExists((String)row.getValue(connectionNameField)))
         {
           if (outputMgr.checkConnectorExists((String)row.getValue(outputNameField)))
@@ -1504,10 +1559,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         }
         break;
       case STATUS_ABORTINGSTARTINGUP:
+      case STATUS_ABORTINGSTARTINGUPMINIMAL:
         newStatus = STATUS_ABORTING;
         break;
       case STATUS_ABORTINGSTARTINGUPFORRESTART:
         newStatus = STATUS_ABORTINGFORRESTART;
+        break;
+      case STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
+        newStatus = STATUS_ABORTINGFORRESTARTMINIMAL;
         break;
       default:
         // Complain!
@@ -1600,6 +1659,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       case STATUS_ABORTINGFORRESTARTSEEDING:
         newStatus = STATUS_ABORTINGFORRESTART;
         break;
+      case STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
+        newStatus = STATUS_ABORTINGFORRESTARTMINIMAL;
+        break;
       default:
         throw new ManifoldCFException("Unexpected job status encountered: "+Integer.toString(status));
       }
@@ -1677,7 +1739,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       throw new ManifoldCFException("Job does not exist: "+jobID);
     IResultRow row = set.getRow(0);
     int status = stringToStatus(row.getValue(statusField).toString());
-    if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING || status == STATUS_ABORTINGSTARTINGUP)
+    if (status == STATUS_ABORTING || status == STATUS_ABORTINGSEEDING ||
+      status == STATUS_ABORTINGSTARTINGUP || status == STATUS_ABORTINGSTARTINGUPMINIMAL)
       return false;
     int newStatus;
     switch (status)
@@ -1686,7 +1749,12 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_ABORTINGSTARTINGUPFORRESTART:
       newStatus = STATUS_ABORTINGSTARTINGUP;
       break;
+    case STATUS_STARTINGUPMINIMAL:
+    case STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
+      newStatus = STATUS_ABORTINGSTARTINGUPMINIMAL;
+      break;
     case STATUS_READYFORSTARTUP:
+    case STATUS_READYFORSTARTUPMINIMAL:
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
     case STATUS_ACTIVE_NOOUTPUT:
@@ -1698,6 +1766,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_PAUSED:
     case STATUS_PAUSEDWAIT:
     case STATUS_ABORTINGFORRESTART:
+    case STATUS_ABORTINGFORRESTARTMINIMAL:
       newStatus = STATUS_ABORTING;
       break;
     case STATUS_ACTIVESEEDING:
@@ -1711,6 +1780,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_PAUSEDSEEDING:
     case STATUS_PAUSEDWAITSEEDING:
     case STATUS_ABORTINGFORRESTARTSEEDING:
+    case STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
       newStatus = STATUS_ABORTINGSEEDING;
       break;
     default:
@@ -1726,8 +1796,9 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
   /** Restart a job.  Finish off what's currently happening, and then start the job up again.
   *@param jobID is the job id.
+  *@param requestMinimum is true if the minimal job run is requested.
   */
-  public void abortRestartJob(Long jobID)
+  public void abortRestartJob(Long jobID, boolean requestMinimum)
     throws ManifoldCFException
   {
     // Get the current job status
@@ -1740,15 +1811,20 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       throw new ManifoldCFException("Job does not exist: "+jobID);
     IResultRow row = set.getRow(0);
     int status = stringToStatus(row.getValue(statusField).toString());
-    if (status == STATUS_ABORTINGFORRESTART || status == STATUS_ABORTINGFORRESTARTSEEDING || status == STATUS_ABORTINGSTARTINGUPFORRESTART)
+    if (status == STATUS_ABORTINGFORRESTART || status == STATUS_ABORTINGFORRESTARTSEEDING ||
+      status == STATUS_ABORTINGSTARTINGUPFORRESTART ||
+      status == STATUS_ABORTINGFORRESTARTMINIMAL || status == STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL ||
+      status == STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL)
       return;
     int newStatus;
     switch (status)
     {
     case STATUS_STARTINGUP:
-      newStatus = STATUS_ABORTINGSTARTINGUPFORRESTART;
+    case STATUS_STARTINGUPMINIMAL:
+      newStatus = requestMinimum?STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:STATUS_ABORTINGSTARTINGUPFORRESTART;
       break;
     case STATUS_READYFORSTARTUP:
+    case STATUS_READYFORSTARTUPMINIMAL:
     case STATUS_ACTIVE:
     case STATUS_ACTIVE_UNINSTALLED:
     case STATUS_ACTIVE_NOOUTPUT:
@@ -1759,7 +1835,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_PAUSINGWAITING:
     case STATUS_PAUSED:
     case STATUS_PAUSEDWAIT:
-      newStatus = STATUS_ABORTINGFORRESTART;
+      newStatus = requestMinimum?STATUS_ABORTINGFORRESTARTMINIMAL:STATUS_ABORTINGFORRESTART;
       break;
     case STATUS_ACTIVESEEDING:
     case STATUS_ACTIVESEEDING_UNINSTALLED:
@@ -1771,7 +1847,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_PAUSINGWAITINGSEEDING:
     case STATUS_PAUSEDSEEDING:
     case STATUS_PAUSEDWAITSEEDING:
-      newStatus = STATUS_ABORTINGFORRESTARTSEEDING;
+      newStatus = requestMinimum?STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:STATUS_ABORTINGFORRESTARTSEEDING;
       break;
     default:
       throw new ManifoldCFException("Job "+jobID+" is not restartable");
@@ -2061,6 +2137,13 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         map.put(errorField,null);
         map.put(windowEndField,null);
         break;
+      case STATUS_ABORTINGFORRESTARTMINIMAL:
+        map.put(statusField,statusToString(STATUS_READYFORSTARTUPMINIMAL));
+        map.put(endTimeField,null);
+        // Make sure error is removed (from last time)
+        map.put(errorField,null);
+        map.put(windowEndField,null);
+        break;
       case STATUS_PAUSING:
         map.put(statusField,statusToString(STATUS_PAUSED));
         break;
@@ -2295,14 +2378,24 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "X";
     case STATUS_ABORTINGFORRESTART:
       return "Y";
+    case STATUS_ABORTINGFORRESTARTMINIMAL:
+      return "M";
     case STATUS_STARTINGUP:
       return "B";
+    case STATUS_STARTINGUPMINIMAL:
+      return "b";
     case STATUS_ABORTINGSTARTINGUP:
       return "Q";
+    case STATUS_ABORTINGSTARTINGUPMINIMAL:
+      return "q";
     case STATUS_ABORTINGSTARTINGUPFORRESTART:
       return "T";
+    case STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
+      return "t";
     case STATUS_READYFORSTARTUP:
       return "C";
+    case STATUS_READYFORSTARTUPMINIMAL:
+      return "c";
     case STATUS_READYFORDELETE:
       return "E";
     case STATUS_DELETESTARTINGUP:
@@ -2321,6 +2414,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       return "z";
     case STATUS_ABORTINGFORRESTARTSEEDING:
       return "y";
+    case STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
+      return "m";
     case STATUS_ACTIVE_UNINSTALLED:
       return "R";
     case STATUS_ACTIVESEEDING_UNINSTALLED:

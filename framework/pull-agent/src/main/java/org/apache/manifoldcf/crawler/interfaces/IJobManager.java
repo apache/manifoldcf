@@ -671,6 +671,15 @@ public interface IJobManager
   * will not cease until complete.  If the job is already running, this operation will assure that
   * the job does not pause when its window ends.  The job can be manually paused, or manually aborted.
   *@param jobID is the ID of the job to start.
+  *@param requestMinimum is true if a minimal job run is requested.
+  */
+  public void manualStart(Long jobID, boolean requestMinimum)
+    throws ManifoldCFException;
+
+  /** Manually start a job.  The specified job will be run REGARDLESS of the timed windows, and
+  * will not cease until complete.  If the job is already running, this operation will assure that
+  * the job does not pause when its window ends.  The job can be manually paused, or manually aborted.
+  *@param jobID is the ID of the job to start.
   */
   public void manualStart(Long jobID)
     throws ManifoldCFException;
@@ -680,6 +689,14 @@ public interface IJobManager
   *@param jobID is the job to abort.
   */
   public void manualAbort(Long jobID)
+    throws ManifoldCFException;
+
+  /** Manually restart a running job.  The job will be stopped and restarted.  Any schedule affinity will be lost,
+  * until the job finishes on its own.
+  *@param jobID is the job to abort.
+  *@param requestMinimum is true if a minimal job run is requested.
+  */
+  public void manualAbortRestart(Long jobID, boolean requestMinimum)
     throws ManifoldCFException;
 
   /** Manually restart a running job.  The job will be stopped and restarted.  Any schedule affinity will be lost,
@@ -732,7 +749,7 @@ public interface IJobManager
   *@return jobs that are active and are running in adaptive mode.  These will be seeded
   * based on what the connector says should be added to the queue.
   */
-  public JobStartRecord[] getJobsReadyForSeeding(long currentTime)
+  public JobSeedingRecord[] getJobsReadyForSeeding(long currentTime)
     throws ManifoldCFException;
 
   /** Reset a seeding job back to "active" state.
@@ -744,7 +761,7 @@ public interface IJobManager
   /** Get the list of jobs that are ready for deletion.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobStartRecord[] getJobsReadyForDelete()
+  public JobDeleteRecord[] getJobsReadyForDelete()
     throws ManifoldCFException;
     
   /** Get the list of jobs that are ready for startup.
@@ -756,7 +773,7 @@ public interface IJobManager
   /** Find the list of jobs that need to have their connectors notified of job completion.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public JobStartRecord[] getJobsReadyForInactivity()
+  public JobNotifyRecord[] getJobsReadyForInactivity()
     throws ManifoldCFException;
 
   /** Inactivate a job, from the notification state.
@@ -791,22 +808,23 @@ public interface IJobManager
   public void prepareDeleteScan(Long jobID)
     throws ManifoldCFException;
 
-  /** Prepare for a full scan.
+  /** Prepare a job to be run.
+  * This method is called regardless of the details of the job; what differs is only the flags that are passed in.
+  * The code inside will determine the appropriate procedures.
+  * (This method replaces prepareFullScan() and prepareIncrementalScan(). )
   *@param jobID is the job id.
   *@param legalLinkTypes are the link types allowed for the job.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@param connectorModel is the model used by the connector for the job.
+  *@param continuousJob is true if the job is a continuous one.
+  *@param fromBeginningOfTime is true if the job is running starting from time 0.
+  *@param requestMinimum is true if the minimal amount of work is requested for the job run.
   */
-  public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
+  public void prepareJobScan(Long jobID, String[] legalLinkTypes, int hopcountMethod,
+    int connectorModel, boolean continuousJob, boolean fromBeginningOfTime,
+    boolean requestMinimum)
     throws ManifoldCFException;
-
-  /** Prepare for an incremental scan.
-  *@param jobID is the job id.
-  *@param legalLinkTypes are the link types allowed for the job.
-  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
-  */
-  public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-    throws ManifoldCFException;
-
+  
   /** Note job delete started.
   *@param jobID is the job id.
   *@param startTime is the job start time.

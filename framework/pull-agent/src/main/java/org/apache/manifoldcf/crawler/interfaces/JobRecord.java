@@ -1,4 +1,4 @@
-/* $Id: JobStartRecord.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -19,40 +19,45 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 
-/** This class is a paper object which contains a job ID and a last job start time.
+/** This class is a paper object which contains a job ID.
 */
-public class JobStartRecord extends JobRecord
+public class JobRecord
 {
-  public static final String _rcsid = "@(#)$Id: JobStartRecord.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  /** The last synch time */
-  protected final long synchTime;
-  /** The requestMinimum flag */
-  protected final boolean requestMinimum;
+  /** The job id. */
+  protected final Long jobID;
+  /** Whether this job was started or not */
+  protected boolean wasStarted = false;
 
   /** Constructor.
   */
-  public JobStartRecord(Long jobID, long synchTime, boolean requestMinimum)
+  public JobRecord(Long jobID)
   {
-    super(jobID);
-    this.synchTime = synchTime;
-    this.requestMinimum = requestMinimum;
+    this.jobID = jobID;
   }
 
-  /** Get the synch time.
-  *@return the time.
+  /** Get the job ID.
+  *@return the id.
   */
-  public long getSynchTime()
+  public Long getJobID()
   {
-    return synchTime;
+    return jobID;
   }
 
-  /** Get the requestMinimum flag.
-  *@return the flag.
+  /** Note that the job was started.
   */
-  public boolean getRequestMinimum()
+  public void noteStarted()
   {
-    return requestMinimum;
+    wasStarted = true;
   }
-  
+
+  /** Check whether job was started.
+  *@return true if started.
+  */
+  public boolean wasStarted()
+  {
+    return wasStarted;
+  }
+
 }
