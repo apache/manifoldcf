@@ -27,6 +27,10 @@ public class LLSession extends LLConnect
   {
     super(server,port,null,null);
   }
-  
+
+  public static void GetCARootCerts(String path, LLValue something)
+  {
+  }
+
 }
 

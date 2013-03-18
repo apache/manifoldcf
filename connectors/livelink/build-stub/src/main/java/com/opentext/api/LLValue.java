@@ -24,6 +24,9 @@ import java.util.*;
 */
 public class LLValue
 {
+  public static final int LL_TRUE = 1;
+  public static final int LL_FALSE = 0;
+  
   public LLValue()
   {
   }
