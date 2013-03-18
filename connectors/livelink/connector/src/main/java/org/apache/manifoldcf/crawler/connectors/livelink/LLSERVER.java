@@ -40,33 +40,83 @@ public class LLSERVER
 {
   public static final String _rcsid = "@(#)$Id: LLSERVER.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  private String LLServer;
-  private int LLPort;
-  private String LLUser;
-  private String LLPwd;
-  private LLValue LLConfig;
+  private final boolean useHttp;
+  private final boolean useSSL;
+  private final String LLServer;
+  private final int LLPort;
+  private final String LLUser;
+  private final String LLPwd;
+  private final String httpCgiPath;
+  private final String httpNtlmDomain;
+  private final String httpNtlmUser;
+  private final String httpNtlmPassword;
+  private final IKeystoreManager keystore;
+  
   private LLSession session;
 
 
-  public LLSERVER()
+  public LLSERVER(boolean useHttp, boolean useSSL, String server, int port, String user, String pwd,
+    String httpCgiPath, String httpNtlmDomain, String httpNtlmUser, String httpNtlmPassword,
+    IKeystoreManager keystoreManager)
   {
-
-    session = null;
-  }
-
-  public LLSERVER(String server, int port, String user, String pwd)
-  {
+    this.useHttp = useHttp;
+    this.useSSL = useSSL;
     LLServer = server;
     LLPort = port;
     LLUser = user;
     LLPwd = pwd;
+    this.httpCgiPath = httpCgiPath;
+    this.httpNtlmDomain = httpNtlmDomain;
+    this.httpNtlmUser = httpNtlmUser;
+    this.httpNtlmPassword = httpNtlmPassword;
+    this.keystore = keystoreManager;
 
     connect();
   }
 
   private void connect()
   {
-    session = new LLSession (this.LLServer, this.LLPort, "", this.LLUser, this.LLPwd, null);
+    
+    LLValue configuration;
+
+    if (useHttp)
+    {
+      boolean useNTLM;
+      String userNameAndDomain;
+
+      if (httpNtlmDomain != null)
+      {
+        useNTLM = true;
+        userNameAndDomain = httpNtlmUser + "@" + httpNtlmDomain;
+      }
+      else
+      {
+        useNTLM = false;
+        userNameAndDomain = httpNtlmUser;
+      }
+      configuration = new LLValue();
+      configuration.setAssoc();
+      configuration.add("Encoding","UTF-8");
+      configuration.add("LivelinkCGI", httpCgiPath);
+      if (useNTLM)
+      {
+        configuration.add("HTTPUserName", userNameAndDomain);
+        configuration.add("HTTPPassword", httpNtlmPassword);
+        configuration.add("EnableNTLM", LLValue.LL_TRUE);
+      }
+      else
+        configuration.add("EnableNTLM", LLValue.LL_FALSE);
+
+      if (useSSL)
+      {
+        configuration.add("HTTPS", LLValue.LL_TRUE);
+        // MHL to create temporary folder with trust certs
+      }
+    }
+    else
+      configuration = null;
+
+    session = new LLSession (this.LLServer, this.LLPort, "", this.LLUser, this.LLPwd, configuration);
   }
 
 
@@ -76,7 +126,7 @@ public class LLSERVER
   */
   public void disconnect()
   {
-
+    // MHL to delete temporary folder with trust certs
     session = null;
   }
 

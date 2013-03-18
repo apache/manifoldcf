@@ -69,6 +69,10 @@ public class LLValue
   public void add(String attributeName, int intValue)
   {
   }
+
+  public void add(String attributeName, String strValue)
+  {
+  }
   
   public boolean isTable()
   {

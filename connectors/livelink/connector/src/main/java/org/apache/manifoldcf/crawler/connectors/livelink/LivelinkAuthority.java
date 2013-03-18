@@ -46,11 +46,17 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   public static final String _rcsid = "@(#)$Id: LivelinkAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Data from the parameters
+  private String serverProtocol = null;
   private String serverName = null;
   private String serverPortString = null;
   private int serverPort = -1;
   private String serverUsername = null;
   private String serverPassword = null;
+  private String serverHTTPCgi = null;
+  private String serverHTTPNTLMDomain = null;
+  private String serverHTTPNTLMUsername = null;
+  private String serverHTTPNTLMPassword = null;
+  private IKeystoreManager serverHTTPSKeystore = null;
 
   // Data required for maintaining livelink connection
   private LAPI_USERS LLUsers = null;
@@ -179,7 +185,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       {
         try
         {
-          llServer = new LLSERVER(serverName,serverPort,serverUsername,serverPassword);
+          // Create the session
+          llServer = new LLSERVER(!serverProtocol.equals("internal"),serverProtocol.equals("https"),
+            serverName,serverPort,serverUsername,serverPassword,
+            serverHTTPCgi,serverHTTPNTLMDomain,serverHTTPNTLMUsername,serverHTTPNTLMPassword,
+            serverHTTPSKeystore);
 
           LLUsers = new LAPI_USERS(llServer.getLLSession());
           if (Logging.authorityConnectors.isDebugEnabled())
@@ -601,30 +611,39 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     throws ManifoldCFException, IOException
   {
     // LAPI parameters
+    String serverProtocol = parameters.getParameter(LiveLinkParameters.serverProtocol);
+    if (serverProtocol == null)
+      serverProtocol = "internal";
     String serverName = parameters.getParameter(LiveLinkParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
     String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
-    String serverDomain = parameters.getParameter(LiveLinkParameters.serverDomain);
-    if (serverDomain == null)
-      serverDomain = "";
     String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
     if (serverUserName == null)
       serverUserName = "";
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
-    String serverUseSSL = parameters.getParameter(LiveLinkParameters.serverSSL);
-    if (serverUseSSL == null)
-      serverUseSSL = "no";
-    String serverKeystore = parameters.getParameter(LiveLinkParameters.serverKeystore);
-    IKeystoreManager localServerKeystore;
-    if (serverKeystore == null)
-      localServerKeystore = KeystoreManagerFactory.make("");
+    String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
+    if (serverHTTPCgiPath == null)
+      serverHTTPCgiPath = "";
+    String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
+    if (serverHTTPNTLMDomain == null)
+      serverHTTPNTLMDomain = "";
+    String serverHTTPNTLMUserName = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
+    if (serverHTTPNTLMUserName == null)
+      serverHTTPNTLMUserName = "";
+    String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
+    if (serverHTTPNTLMPassword == null)
+      serverHTTPNTLMPassword = "";
+    String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+    IKeystoreManager localServerHTTPSKeystore;
+    if (serverHTTPSKeystore == null)
+      localServerHTTPSKeystore = KeystoreManagerFactory.make("");
     else
-      localServerKeystore = KeystoreManagerFactory.make("",serverKeystore);
+      localServerHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystore);
 
     // Cache parameters
     String cacheLifetime = parameters.getParameter(LiveLinkParameters.cacheLifetime);
@@ -660,10 +679,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     out.print(
 "<input name=\"serverconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
     );
-    if (serverKeystore != null)
+    if (serverHTTPSKeystore != null)
     {
       out.print(
-"<input type=\"hidden\" name=\"serverkeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverKeystore)+"\"/>\n"
+"<input type=\"hidden\" name=\"serverhttpskeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPSKeystore)+"\"/>\n"
       );
     }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
@@ -672,28 +691,53 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerName") + "</nobr></td>\n"+
+"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.ServerProtocol")+"</td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"serverprotocol\" size=\"2\">\n"+
+"        <option value=\"internal\" "+((serverProtocol.equals("internal"))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.internal")+"</option>\n"+
+"        <option value=\"http\" "+((serverProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
+"        <option value=\"https\" "+((serverProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerName")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerPort") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPort")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerDomain")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerUserName") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUserName")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerPassword") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPassword")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUseSSL")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"checkbox\" name=\"serverssl\" value=\"yes\""+(serverUseSSL.equals("yes")?" checked=\"\"":"")+"/><input type=\"hidden\" name=\"serverssl_present\" value=\"true\"/></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPCGIPath")+"</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMDomain")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfNTLMAuthDesired")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMUserName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerUserName")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUsername)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMPassword")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerPassword")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"password\" size=\"32\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"+
+"    </td>\n"+
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
@@ -705,7 +749,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "      <table class=\"displaytable\">\n"
       );
       // List the individual certificates in the store, with a delete button for each
-      String[] contents = localServerKeystore.getContents();
+      String[] contents = localServerHTTPSKeystore.getContents();
       if (contents.length == 0)
       {
         out.print(
@@ -718,7 +762,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         while (i < contents.length)
         {
           String alias = contents[i];
-          String description = localServerKeystore.getDescription(alias);
+          String description = localServerHTTPSKeystore.getDescription(alias);
           if (description.length() > 128)
             description = description.substring(0,125) + "...";
           out.print(
@@ -745,13 +789,15 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     {
       // Hiddens for Server tab
       out.print(
+"<input type=\"hidden\" name=\"serverprotocol\" value=\""+serverProtocol+"\"/>\n"+
 "<input type=\"hidden\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverssl\" value=\""+serverUseSSL+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverssl_present\" value=\"true\"/>\n"
+"<input type=\"hidden\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"
       );
     }
 
@@ -824,32 +870,36 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     throws ManifoldCFException
   {
     // Server parameters
+    String serverProtocol = variableContext.getParameter("serverprotocol");
+    if (serverProtocol != null)
+      parameters.setParameter(LiveLinkParameters.serverProtocol,serverProtocol);
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
       parameters.setParameter(LiveLinkParameters.serverName,serverName);
     String serverPort = variableContext.getParameter("serverport");
     if (serverPort != null)
       parameters.setParameter(LiveLinkParameters.serverPort,serverPort);
-    String serverDomain = variableContext.getParameter("serverdomain");
-    if (serverDomain != null)
-      parameters.setParameter(LiveLinkParameters.serverDomain,serverDomain);
     String serverUserName = variableContext.getParameter("serverusername");
     if (serverUserName != null)
       parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
       parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
-    String serverKeystoreValue = variableContext.getParameter("serverkeystoredata");
-    if (serverKeystoreValue != null)
-      parameters.setParameter(LiveLinkParameters.serverKeystore,serverKeystoreValue);
-    String serverSSLPresent = variableContext.getParameter("serverssl_present");
-    if (serverSSLPresent != null)
-    {
-      String serverSSL = variableContext.getParameter("serverssl");
-      if (serverSSL == null)
-        serverSSL = "no";
-      parameters.setParameter(LiveLinkParameters.serverSSL,serverSSL);
-    }
+    String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
+    if (serverHTTPCgiPath != null)
+      parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
+    String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
+    if (serverHTTPNTLMDomain != null)
+      parameters.setParameter(LiveLinkParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
+    String serverHTTPNTLMUserName = variableContext.getParameter("serverhttpntlmusername");
+    if (serverHTTPNTLMUserName != null)
+      parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
+    String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
+    if (serverHTTPNTLMPassword != null)
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,serverHTTPNTLMPassword);
+    String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
+    if (serverHTTPSKeystoreValue != null)
+      parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
 
     String serverConfigOp = variableContext.getParameter("serverconfigop");
     if (serverConfigOp != null)
@@ -857,23 +907,23 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       if (serverConfigOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("serverkeystorealias");
-        serverKeystoreValue = parameters.getParameter(LiveLinkParameters.serverKeystore);
+        serverHTTPSKeystoreValue = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
         IKeystoreManager mgr;
-        if (serverKeystoreValue != null)
-          mgr = KeystoreManagerFactory.make("",serverKeystoreValue);
+        if (serverHTTPSKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",serverHTTPSKeystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter(LiveLinkParameters.serverKeystore,mgr.getString());
+        parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
       }
       else if (serverConfigOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("servercertificate");
-        serverKeystoreValue = parameters.getParameter(LiveLinkParameters.serverKeystore);
+        serverHTTPSKeystoreValue = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
         IKeystoreManager mgr;
-        if (serverKeystoreValue != null)
-          mgr = KeystoreManagerFactory.make("",serverKeystoreValue);
+        if (serverHTTPSKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",serverHTTPSKeystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
@@ -902,7 +952,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         {
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter(LiveLinkParameters.serverKeystore,mgr.getString());
+        parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
       }
     }
 
@@ -959,7 +1009,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
         );
       }
-      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
+      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore") ||
+        param.length() > "truststore".length() && param.substring(param.length()-"truststore".length()).equalsIgnoreCase("truststore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
         out.print(

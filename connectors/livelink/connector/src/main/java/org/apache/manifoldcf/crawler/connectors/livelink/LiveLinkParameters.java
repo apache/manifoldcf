@@ -53,20 +53,26 @@ public class LiveLinkParameters
   public final static String viewCgiPath = "View CGI path";
   
   // These parameters are for LAPI
+  /** Connection options; choices are "internal", "http", "https" */
+  public final static String serverProtocol = "Server protocol";
   /** Server name */
   public final static String serverName = "Server name";
   /** Server port */
   public final static String serverPort = "Server port";
-  /** Server domain, if NTLM */
-  public final static String serverDomain = "Server domain";
   /** Server user */
   public final static String serverUsername = "Server user name";
   /** Server password */
   public final static String serverPassword = "Server password";
-  /** Use SSL flag */
-  public final static String serverSSL = "Server use SSL";
+  /** Server CGI path (path to use for viewing) */
+  public final static String serverHTTPCgiPath = "Server HTTP CGI path";
+  /** Server domain, if NTLM */
+  public final static String serverHTTPNTLMDomain = "Server HTTP NTLM domain";
+  /** Server HTTP user */
+  public final static String serverHTTPNTLMUsername = "Server HTTP NTLM user name";
+  /** Server password */
+  public final static String serverHTTPNTLMPassword = "Server HTTP NTLM password";
   /** Keystore for LAPI */
-  public final static String serverKeystore = "Server SSL truststore";
+  public final static String serverHTTPSKeystore = "Server HTTPS truststore";
   
   
   // These parameters are for the LiveLink Authority
