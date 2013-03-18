@@ -26,12 +26,23 @@ public class LiveLinkParameters
 {
   public static final String _rcsid = "@(#)$Id: LiveLinkParameters.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  // These parameters are for ingestion: picking up a document after we discover it through LAPI
   /** Ingestion CGI protocol */
   public final static String ingestProtocol = "Protocol";
   /** Ingestion CGI port **/
   public final static String ingestPort = "Port";
   /** Ingestion CGI path (path to fetch document from for ingestion) */
   public final static String ingestCgiPath = "CGI path";
+  /** NTLM username */
+  public final static String ingestNtlmUsername = "NTLM user name";
+  /** NTLM password */
+  public final static String ingestNtlmPassword = "NTLM password";
+  /** NTLM domain (set if NTLM desired) */
+  public final static String ingestNtlmDomain = "NTLM domain";
+  /** Livelink SSL keystore */
+  public final static String ingestKeystore = "Livelink SSL keystore";
+  
+  // These parameters are for viewing: constructing a URL the user can use to view the document
   /** View CGI protocol */
   public final static String viewProtocol = "View protocol";
   /** View CGI server name */
@@ -40,22 +51,25 @@ public class LiveLinkParameters
   public final static String viewPort = "View port";
   /** View CGI path (path to use for viewing) */
   public final static String viewCgiPath = "View CGI path";
+  
+  // These parameters are for LAPI
   /** Server name */
   public final static String serverName = "Server name";
   /** Server port */
   public final static String serverPort = "Server port";
+  /** Server domain, if NTLM */
+  public final static String serverDomain = "Server domain";
   /** Server user */
   public final static String serverUsername = "Server user name";
   /** Server password */
   public final static String serverPassword = "Server password";
-  /** NTLM username */
-  public final static String ntlmUsername = "NTLM user name";
-  /** NTLM password */
-  public final static String ntlmPassword = "NTLM password";
-  /** NTLM domain (set if NTLM desired) */
-  public final static String ntlmDomain = "NTLM domain";
-  /** Livelink SSL keystore */
-  public final static String livelinkKeystore = "Livelink SSL keystore";
+  /** Use SSL flag */
+  public final static String serverSSL = "Server use SSL";
+  /** Keystore for LAPI */
+  public final static String serverKeystore = "Server SSL truststore";
+  
+  
+  // These parameters are for the LiveLink Authority
   /** User name mapping description.  This replaces username regexp and username spec below. */
   public final static String userNameMapping = "Livelink user name map";
   /** Cache time in seconds */
