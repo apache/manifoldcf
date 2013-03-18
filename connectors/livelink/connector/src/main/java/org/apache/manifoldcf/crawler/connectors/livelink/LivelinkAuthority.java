@@ -691,6 +691,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerPassword") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUseSSL")+"</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"checkbox\" name=\"serverssl\" value=\"yes\""+(serverUseSSL.equals("yes")?" checked=\"\"":"")+"/><input type=\"hidden\" name=\"serverssl_present\" value=\"true\"/></td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       out.print(
@@ -745,7 +749,9 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"
+"<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverssl\" value=\""+serverUseSSL+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverssl_present\" value=\"true\"/>\n"
       );
     }
 
@@ -836,6 +842,14 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverKeystoreValue = variableContext.getParameter("serverkeystoredata");
     if (serverKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.serverKeystore,serverKeystoreValue);
+    String serverSSLPresent = variableContext.getParameter("serverssl_present");
+    if (serverSSLPresent != null)
+    {
+      String serverSSL = variableContext.getParameter("serverssl");
+      if (serverSSL == null)
+        serverSSL = "no";
+      parameters.setParameter(LiveLinkParameters.serverSSL,serverSSL);
+    }
 
     String serverConfigOp = variableContext.getParameter("serverconfigop");
     if (serverConfigOp != null)
