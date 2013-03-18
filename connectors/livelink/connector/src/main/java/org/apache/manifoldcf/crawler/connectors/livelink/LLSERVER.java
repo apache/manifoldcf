@@ -19,9 +19,13 @@
 package org.apache.manifoldcf.crawler.connectors.livelink;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.crawler.system.ManifoldCF;
+
+import java.io.*;
 
 import com.opentext.api.LLSession;
 import com.opentext.api.LLValue;
@@ -52,12 +56,14 @@ public class LLSERVER
   private final String httpNtlmPassword;
   private final IKeystoreManager keystore;
   
-  private LLSession session;
+  private LLSession session = null;
+  private File certFolder = null;
 
 
   public LLSERVER(boolean useHttp, boolean useSSL, String server, int port, String user, String pwd,
     String httpCgiPath, String httpNtlmDomain, String httpNtlmUser, String httpNtlmPassword,
     IKeystoreManager keystoreManager)
+    throws ManifoldCFException
   {
     this.useHttp = useHttp;
     this.useSSL = useSSL;
@@ -75,48 +81,105 @@ public class LLSERVER
   }
 
   private void connect()
+    throws ManifoldCFException
   {
-    
-    LLValue configuration;
-
-    if (useHttp)
+    try
     {
-      boolean useNTLM;
-      String userNameAndDomain;
+    
+      LLValue configuration;
 
-      if (httpNtlmDomain != null)
+      if (useHttp)
       {
-        useNTLM = true;
-        userNameAndDomain = httpNtlmUser + "@" + httpNtlmDomain;
+        boolean useNTLM;
+        String userNameAndDomain;
+
+        if (httpNtlmDomain != null)
+        {
+          useNTLM = true;
+          userNameAndDomain = httpNtlmUser + "@" + httpNtlmDomain;
+        }
+        else
+        {
+          useNTLM = false;
+          userNameAndDomain = httpNtlmUser;
+        }
+        configuration = new LLValue();
+        configuration.setAssoc();
+        configuration.add("Encoding","UTF-8");
+        configuration.add("LivelinkCGI", httpCgiPath);
+        if (useNTLM)
+        {
+          configuration.add("HTTPUserName", userNameAndDomain);
+          configuration.add("HTTPPassword", httpNtlmPassword);
+          configuration.add("EnableNTLM", LLValue.LL_TRUE);
+        }
+        else
+          configuration.add("EnableNTLM", LLValue.LL_FALSE);
+
+        if (useSSL)
+        {
+          configuration.add("HTTPS", LLValue.LL_TRUE);
+          // Create the place to put the certs
+          createCertFolder();
+          // Now, write the certs themselves
+          String[] aliases = keystore.getContents();
+          for (String alias : aliases)
+          {
+            java.security.cert.Certificate cert = keystore.getCertificate(alias);
+            byte[] certData = cert.getEncoded();
+            File fileName = new File(certFolder,alias + ".cer");
+            FileOutputStream fos = new FileOutputStream(fileName);
+            try
+            {
+              OutputStreamWriter osw = new OutputStreamWriter(fos,"ASCII");
+              try
+              {
+                String certBase64 = new Base64().encodeByteArray(certData);
+                osw.write(certBase64);
+              }
+              finally
+              {
+                osw.flush();
+              }
+            }
+            finally
+            {
+              fos.flush();
+              fos.close();
+            }
+          }
+        }
       }
       else
-      {
-        useNTLM = false;
-        userNameAndDomain = httpNtlmUser;
-      }
-      configuration = new LLValue();
-      configuration.setAssoc();
-      configuration.add("Encoding","UTF-8");
-      configuration.add("LivelinkCGI", httpCgiPath);
-      if (useNTLM)
-      {
-        configuration.add("HTTPUserName", userNameAndDomain);
-        configuration.add("HTTPPassword", httpNtlmPassword);
-        configuration.add("EnableNTLM", LLValue.LL_TRUE);
-      }
-      else
-        configuration.add("EnableNTLM", LLValue.LL_FALSE);
+        configuration = null;
 
-      if (useSSL)
-      {
-        configuration.add("HTTPS", LLValue.LL_TRUE);
-        // MHL to create temporary folder with trust certs
-      }
+      session = new LLSession (this.LLServer, this.LLPort, "", this.LLUser, this.LLPwd, configuration);
     }
-    else
-      configuration = null;
-
-    session = new LLSession (this.LLServer, this.LLPort, "", this.LLUser, this.LLPwd, configuration);
+    catch (IOException e)
+    {
+      releaseCertFolder();
+      throw new ManifoldCFException("IO Exception writing cert files: "+e.getMessage(),e);
+    }
+    catch (java.security.cert.CertificateEncodingException e)
+    {
+      releaseCertFolder();
+      throw new ManifoldCFException("Bad certificate: "+e.getMessage(),e);
+    }
+    catch (ManifoldCFException e)
+    {
+      releaseCertFolder();
+      throw e;
+    }
+    catch (Error e)
+    {
+      releaseCertFolder();
+      throw e;
+    }
+    catch (RuntimeException e)
+    {
+      releaseCertFolder();
+      throw e;
+    }
   }
 
 
@@ -126,10 +189,75 @@ public class LLSERVER
   */
   public void disconnect()
   {
-    // MHL to delete temporary folder with trust certs
+    releaseCertFolder();
     session = null;
   }
 
+  /** Create temporary session-bound cert directory.
+  */
+  protected void createCertFolder()
+    throws ManifoldCFException
+  {
+    String tempDirLocation = System.getProperty("java.io.tmpdir");
+    if (tempDirLocation == null)
+      throw new ManifoldCFException("Can't find temporary directory!");
+    File tempDir = new File(tempDirLocation);
+    // Start with current timestamp, and generate a hash, then look for collision
+    long currentFileID = System.currentTimeMillis();
+    long currentFileHash = (currentFileID << 5) ^ (currentFileID >> 3);
+    int raceConditionRepeat = 0;
+    while (raceConditionRepeat < 1000)
+    {
+      File tempCertDir = new File(tempDir,"llcrt_"+currentFileID+".d");
+      if (tempCertDir.mkdir())
+      {
+        certFolder = tempCertDir;
+        return;
+      }
+      if (tempCertDir.exists())
+      {
+        currentFileID++;
+        continue;
+      }
+      // Doesn't exist but couldn't create either.  COULD be a race condition; we'll only know if we retry
+      // lots and nothing changes.
+      raceConditionRepeat++;
+      Thread.yield();
+    }
+    throw new ManifoldCFException("Temporary directory appears to be unwritable");
+  }
+  
+  /** Release temporary session-bound cert directory.
+  */
+  protected void releaseCertFolder()
+  {
+    if (certFolder != null)
+    {
+      recursiveDelete(certFolder);
+      certFolder = null;
+    }
+  }
+
+  /** Recursive delete: for cleaning up company folder.
+  *@param directoryPath is the File describing the directory to be removed.
+  */
+  protected static void recursiveDelete(File directoryPath)
+  {
+    File[] children = directoryPath.listFiles();
+    if (children != null)
+    {
+      int i = 0;
+      while (i < children.length)
+      {
+        File x = children[i++];
+        if (x.isDirectory())
+          recursiveDelete(x);
+        else
+          x.delete();
+      }
+    }
+    directoryPath.delete();
+  }
 
   /**
   * Returns the server name where the Livelink
