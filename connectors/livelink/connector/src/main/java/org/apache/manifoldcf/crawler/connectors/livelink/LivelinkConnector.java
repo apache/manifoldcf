@@ -1436,10 +1436,31 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
+"function ServerDeleteCertificate(aliasName)\n"+
+"{\n"+
+"  editconnection.serverkeystorealias.value = aliasName;\n"+
+"  editconnection.serverconfigop.value = \"Delete\";\n"+
+"  postForm();\n"+
+"}\n"+
+"\n"+
+"function ServerAddCertificate()\n"+
+"{\n"+
+"  if (editconnection.servercertificate.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
+"    editconnection.servercertificate.focus();\n"+
+"  }\n"+
+"  else\n"+
+"  {\n"+
+"    editconnection.serverconfigop.value = \"Add\";\n"+
+"    postForm();\n"+
+"  }\n"+
+"}\n"+
+"\n"+
 "function IngestDeleteCertificate(aliasName)\n"+
 "{\n"+
 "  editconnection.ingestkeystorealias.value = aliasName;\n"+
-"  editconnection.configop.value = \"Delete\";\n"+
+"  editconnection.ingestconfigop.value = \"Delete\";\n"+
 "  postForm();\n"+
 "}\n"+
 "\n"+
@@ -1452,7 +1473,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  }\n"+
 "  else\n"+
 "  {\n"+
-"    editconnection.configop.value = \"Add\";\n"+
+"    editconnection.ingestconfigop.value = \"Add\";\n"+
 "    postForm();\n"+
 "  }\n"+
 "}\n"+
@@ -1539,6 +1560,34 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
+    
+    // LAPI parameters
+    String serverName = parameters.getParameter(LiveLinkParameters.serverName);
+    if (serverName == null)
+      serverName = "localhost";
+    String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
+    if (serverPort == null)
+      serverPort = "2099";
+    String serverDomain = parameters.getParameter(LiveLinkParameters.serverDomain);
+    if (serverDomain == null)
+      serverDomain = "";
+    String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
+    if (serverUserName == null)
+      serverUserName = "";
+    String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
+    if (serverPassword == null)
+      serverPassword = "";
+    String serverUseSSL = parameters.getParameter(LiveLinkParameters.serverSSL);
+    if (serverUseSSL == null)
+      serverUseSSL = "no";
+    String serverKeystore = parameters.getParameter(LiveLinkParameters.serverKeystore);
+    IKeystoreManager localServerKeystore;
+    if (serverKeystore == null)
+      localServerKeystore = KeystoreManagerFactory.make("");
+    else
+      localServerKeystore = KeystoreManagerFactory.make("",serverKeystore);
+
+    // Document access parameters
     String ingestProtocol = parameters.getParameter(LiveLinkParameters.ingestProtocol);
     if (ingestProtocol == null)
       ingestProtocol = "http";
@@ -1548,30 +1597,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String ingestCgiPath = parameters.getParameter(LiveLinkParameters.ingestCgiPath);
     if (ingestCgiPath == null)
       ingestCgiPath = "/livelink/livelink.exe";
-    String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
-    if (viewProtocol == null)
-      viewProtocol = "";
-    String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
-    if (viewServerName == null)
-      viewServerName = "";
-    String viewPort = parameters.getParameter(LiveLinkParameters.viewPort);
-    if (viewPort == null)
-      viewPort = "";
-    String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
-    if (viewCgiPath == null)
-      viewCgiPath = "";
-    String serverName = parameters.getParameter(LiveLinkParameters.serverName);
-    if (serverName == null)
-      serverName = "localhost";
-    String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
-    if (serverPort == null)
-      serverPort = "2099";
-    String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
-    if (serverUserName == null)
-      serverUserName = "";
-    String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
-    if (serverPassword == null)
-      serverPassword = "";
     String ingestNtlmUsername = parameters.getParameter(LiveLinkParameters.ingestNtlmUsername);
     if (ingestNtlmUsername == null)
       ingestNtlmUsername = "";
@@ -1587,10 +1612,32 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       localIngestKeystore = KeystoreManagerFactory.make("");
     else
       localIngestKeystore = KeystoreManagerFactory.make("",ingestKeystore);
-    out.print(
-"<input name=\"configop\" type=\"hidden\" value=\"Continue\"/>\n"
-    );
+    
+    // Document view parameters
+    String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
+    if (viewProtocol == null)
+      viewProtocol = "";
+    String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
+    if (viewServerName == null)
+      viewServerName = "";
+    String viewPort = parameters.getParameter(LiveLinkParameters.viewPort);
+    if (viewPort == null)
+      viewPort = "";
+    String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
+    if (viewCgiPath == null)
+      viewCgiPath = "";
+
     // The "Server" tab
+    // Always pass the whole keystore as a hidden.
+    out.print(
+"<input name=\"serverconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
+    if (serverKeystore != null)
+    {
+      out.print(
+"<input type=\"hidden\" name=\"serverkeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverKeystore)+"\"/>\n"
+      );
+    }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
     {
       out.print(
@@ -1605,6 +1652,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerDomain")+"</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUserName")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
 "  </tr>\n"+
@@ -1612,6 +1663,49 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPassword")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerSSLCertificateList")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"serverkeystorealias\" value=\"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localServerKeystore.getContents();
+      if (contents.length == 0)
+      {
+        out.print(
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.NoCertificatesPresent")+"</nobr></td></tr>\n"
+        );
+      }
+      else
+      {
+        int i = 0;
+        while (i < contents.length)
+        {
+          String alias = contents[i];
+          String description = localServerKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"        </tr>\n"
+          );
+          i++;
+        }
+      }
+      out.print(
+"      </table>\n"+
+"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
+"      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"servercertificate\" size=\"50\" type=\"file\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"
+      );
+      out.print(
 "</table>\n"
       );
     }
@@ -1621,6 +1715,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       out.print(
 "<input type=\"hidden\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"
       );
@@ -1628,6 +1723,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     // The "Document Access" tab
     // Always pass the whole keystore as a hidden.
+    out.print(
+"<input name=\"ingestconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
     if (ingestKeystore != null)
     {
       out.print(
@@ -1651,7 +1749,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchPort")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"ingestport\" value=\""+ingestPort+"\"/></td>\n"+
-"  </tr>\n"+
+"  </tr>\n"
+      );
+      out.print(
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchSSLCertificateList")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -1689,7 +1789,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "      <input type=\"button\" onclick='Javascript:IngestAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
 "      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"ingestcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
-"  </tr>\n"+
+"  </tr>\n"
+      );
+      out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchCGIPath")+"</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"ingestcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestCgiPath)+"\"/></td>\n"+
@@ -1785,21 +1888,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
-    String serverName = variableContext.getParameter("servername");
-    if (serverName != null)
-      parameters.setParameter(LiveLinkParameters.serverName,serverName);
-    String serverPort = variableContext.getParameter("serverport");
-    if (serverPort != null)
-      parameters.setParameter(LiveLinkParameters.serverPort,serverPort);
-    String ingestProtocol = variableContext.getParameter("ingestprotocol");
-    if (ingestProtocol != null)
-      parameters.setParameter(LiveLinkParameters.ingestProtocol,ingestProtocol);
-    String ingestPort = variableContext.getParameter("ingestport");
-    if (ingestPort != null)
-      parameters.setParameter(LiveLinkParameters.ingestPort,ingestPort);
-    String ingestCgiPath = variableContext.getParameter("ingestcgipath");
-    if (ingestCgiPath != null)
-      parameters.setParameter(LiveLinkParameters.ingestCgiPath,ingestCgiPath);
+    // View parameters
     String viewProtocol = variableContext.getParameter("viewprotocol");
     if (viewProtocol != null)
       parameters.setParameter(LiveLinkParameters.viewProtocol,viewProtocol);
@@ -1812,12 +1901,92 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String viewCgiPath = variableContext.getParameter("viewcgipath");
     if (viewCgiPath != null)
       parameters.setParameter(LiveLinkParameters.viewCgiPath,viewCgiPath);
+    
+    // Server parameters
+    String serverName = variableContext.getParameter("servername");
+    if (serverName != null)
+      parameters.setParameter(LiveLinkParameters.serverName,serverName);
+    String serverPort = variableContext.getParameter("serverport");
+    if (serverPort != null)
+      parameters.setParameter(LiveLinkParameters.serverPort,serverPort);
+    String serverDomain = variableContext.getParameter("serverdomain");
+    if (serverDomain != null)
+      parameters.setParameter(LiveLinkParameters.serverDomain,serverDomain);
     String serverUserName = variableContext.getParameter("serverusername");
     if (serverUserName != null)
       parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
       parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+    String serverKeystoreValue = variableContext.getParameter("serverkeystoredata");
+    if (serverKeystoreValue != null)
+      parameters.setParameter(LiveLinkParameters.serverKeystore,serverKeystoreValue);
+
+    String serverConfigOp = variableContext.getParameter("serverconfigop");
+    if (serverConfigOp != null)
+    {
+      if (serverConfigOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("serverkeystorealias");
+        serverKeystoreValue = parameters.getParameter(LiveLinkParameters.serverKeystore);
+        IKeystoreManager mgr;
+        if (serverKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",serverKeystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter(LiveLinkParameters.serverKeystore,mgr.getString());
+      }
+      else if (serverConfigOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("servercertificate");
+        serverKeystoreValue = parameters.getParameter(LiveLinkParameters.serverKeystore);
+        IKeystoreManager mgr;
+        if (serverKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",serverKeystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Eat this exception
+          }
+        }
+
+        if (certError != null)
+        {
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter(LiveLinkParameters.serverKeystore,mgr.getString());
+      }
+    }
+
+    // Ingest parameters
+    String ingestProtocol = variableContext.getParameter("ingestprotocol");
+    if (ingestProtocol != null)
+      parameters.setParameter(LiveLinkParameters.ingestProtocol,ingestProtocol);
+    String ingestPort = variableContext.getParameter("ingestport");
+    if (ingestPort != null)
+      parameters.setParameter(LiveLinkParameters.ingestPort,ingestPort);
+    String ingestCgiPath = variableContext.getParameter("ingestcgipath");
+    if (ingestCgiPath != null)
+      parameters.setParameter(LiveLinkParameters.ingestCgiPath,ingestCgiPath);
     String ingestNtlmDomain = variableContext.getParameter("ingestntlmdomain");
     if (ingestNtlmDomain != null)
       parameters.setParameter(LiveLinkParameters.ingestNtlmDomain,ingestNtlmDomain);
@@ -1831,10 +2000,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     if (ingestKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.ingestKeystore,ingestKeystoreValue);
 
-    String configOp = variableContext.getParameter("configop");
-    if (configOp != null)
+    String ingestConfigOp = variableContext.getParameter("ingestconfigop");
+    if (ingestConfigOp != null)
     {
-      if (configOp.equals("Delete"))
+      if (ingestConfigOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("ingestkeystorealias");
         ingestKeystoreValue = parameters.getParameter(LiveLinkParameters.ingestKeystore);
@@ -1846,7 +2015,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         mgr.remove(alias);
         parameters.setParameter(LiveLinkParameters.ingestKeystore,mgr.getString());
       }
-      else if (configOp.equals("Add"))
+      else if (ingestConfigOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("ingestcertificate");

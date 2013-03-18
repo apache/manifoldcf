@@ -489,6 +489,27 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
+"function ServerDeleteCertificate(aliasName)\n"+
+"{\n"+
+"  editconnection.serverkeystorealias.value = aliasName;\n"+
+"  editconnection.serverconfigop.value = \"Delete\";\n"+
+"  postForm();\n"+
+"}\n"+
+"\n"+
+"function ServerAddCertificate()\n"+
+"{\n"+
+"  if (editconnection.servercertificate.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
+"    editconnection.servercertificate.focus();\n"+
+"  }\n"+
+"  else\n"+
+"  {\n"+
+"    editconnection.serverconfigop.value = \"Add\";\n"+
+"    postForm();\n"+
+"  }\n"+
+"}\n"+
+"\n"+
 "function checkConfig()\n"+
 "{\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
@@ -579,52 +600,72 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String serverName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverName);
+    // LAPI parameters
+    String serverName = parameters.getParameter(LiveLinkParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
-    
-    String serverPort = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverPort);
+    String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
-    
-    String serverUserName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername);
+    String serverDomain = parameters.getParameter(LiveLinkParameters.serverDomain);
+    if (serverDomain == null)
+      serverDomain = "";
+    String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
     if (serverUserName == null)
       serverUserName = "";
-    
-    String serverPassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword);
+    String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
-    
+    String serverUseSSL = parameters.getParameter(LiveLinkParameters.serverSSL);
+    if (serverUseSSL == null)
+      serverUseSSL = "no";
+    String serverKeystore = parameters.getParameter(LiveLinkParameters.serverKeystore);
+    IKeystoreManager localServerKeystore;
+    if (serverKeystore == null)
+      localServerKeystore = KeystoreManagerFactory.make("");
+    else
+      localServerKeystore = KeystoreManagerFactory.make("",serverKeystore);
+
+    // Cache parameters
     String cacheLifetime = parameters.getParameter(LiveLinkParameters.cacheLifetime);
     if (cacheLifetime == null)
       cacheLifetime = "1";
-    
     String cacheLRUsize = parameters.getParameter(LiveLinkParameters.cacheLRUSize);
     if (cacheLRUsize == null)
       cacheLRUsize = "1000";    
 
-    org.apache.manifoldcf.crawler.connectors.livelink.MatchMap matchMap = null;
-    String usernameRegexp = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp);
-    String livelinkUserExpr = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec);
+    MatchMap matchMap = null;
+    String usernameRegexp = parameters.getParameter(LiveLinkParameters.userNameRegexp);
+    String livelinkUserExpr = parameters.getParameter(LiveLinkParameters.livelinkNameSpec);
     if (usernameRegexp != null && usernameRegexp.length() > 0 && livelinkUserExpr != null)
     {
       // Old-style configuration.  Convert to the new.
-      matchMap = new org.apache.manifoldcf.crawler.connectors.livelink.MatchMap();
+      matchMap = new MatchMap();
       matchMap.appendOldstyleMatchPair(usernameRegexp,livelinkUserExpr);
     }
     else
     {
       // New style configuration.
-      String userNameMapping = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping);
+      String userNameMapping = parameters.getParameter(LiveLinkParameters.userNameMapping);
       if (userNameMapping == null)
         userNameMapping = "^(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)$=$(2)\\\\$(1l)";
-      matchMap = new org.apache.manifoldcf.crawler.connectors.livelink.MatchMap(userNameMapping);
+      matchMap = new MatchMap(userNameMapping);
     }
 
     usernameRegexp = matchMap.getMatchString(0);
     livelinkUserExpr = matchMap.getReplaceString(0);
 
     // The "Server" tab
+    // Always pass the whole keystore as a hidden.
+    out.print(
+"<input name=\"serverconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
+    );
+    if (serverKeystore != null)
+    {
+      out.print(
+"<input type=\"hidden\" name=\"serverkeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverKeystore)+"\"/>\n"
+      );
+    }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
     {
       out.print(
@@ -639,6 +680,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerDomain")+"</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerUserName") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
 "  </tr>\n"+
@@ -646,6 +691,49 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.ServerPassword") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );
+      out.print(
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerSSLCertificateList")+"</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"hidden\" name=\"serverkeystorealias\" value=\"\"/>\n"+
+"      <table class=\"displaytable\">\n"
+      );
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localServerKeystore.getContents();
+      if (contents.length == 0)
+      {
+        out.print(
+"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.NoCertificatesPresent")+"</nobr></td></tr>\n"
+        );
+      }
+      else
+      {
+        int i = 0;
+        while (i < contents.length)
+        {
+          String alias = contents[i];
+          String description = localServerKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          out.print(
+"        <tr>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
+"        </tr>\n"
+          );
+          i++;
+        }
+      }
+      out.print(
+"      </table>\n"+
+"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
+"      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"servercertificate\" size=\"50\" type=\"file\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"
+      );
+      out.print(
 "</table>\n"
       );
     }
@@ -655,6 +743,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       out.print(
 "<input type=\"hidden\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverDomain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"
       );
@@ -728,34 +817,98 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
+    // Server parameters
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverName,serverName);
+      parameters.setParameter(LiveLinkParameters.serverName,serverName);
     String serverPort = variableContext.getParameter("serverport");
     if (serverPort != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverPort,serverPort);
+      parameters.setParameter(LiveLinkParameters.serverPort,serverPort);
+    String serverDomain = variableContext.getParameter("serverdomain");
+    if (serverDomain != null)
+      parameters.setParameter(LiveLinkParameters.serverDomain,serverDomain);
     String serverUserName = variableContext.getParameter("serverusername");
     if (serverUserName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverUsername,serverUserName);
+      parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.serverPassword,serverPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+    String serverKeystoreValue = variableContext.getParameter("serverkeystoredata");
+    if (serverKeystoreValue != null)
+      parameters.setParameter(LiveLinkParameters.serverKeystore,serverKeystoreValue);
+
+    String serverConfigOp = variableContext.getParameter("serverconfigop");
+    if (serverConfigOp != null)
+    {
+      if (serverConfigOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("serverkeystorealias");
+        serverKeystoreValue = parameters.getParameter(LiveLinkParameters.serverKeystore);
+        IKeystoreManager mgr;
+        if (serverKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",serverKeystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter(LiveLinkParameters.serverKeystore,mgr.getString());
+      }
+      else if (serverConfigOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("servercertificate");
+        serverKeystoreValue = parameters.getParameter(LiveLinkParameters.serverKeystore);
+        IKeystoreManager mgr;
+        if (serverKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",serverKeystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Eat this exception
+          }
+        }
+
+        if (certError != null)
+        {
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter(LiveLinkParameters.serverKeystore,mgr.getString());
+      }
+    }
+
+    // User name parameters
     String usernameRegexp = variableContext.getParameter("usernameregexp");
     String livelinkUserExpr = variableContext.getParameter("livelinkuserexpr");
     if (usernameRegexp != null && livelinkUserExpr != null)
     {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.userNameRegexp,null);
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.livelinkNameSpec,null);
+      parameters.setParameter(LiveLinkParameters.userNameRegexp,null);
+      parameters.setParameter(LiveLinkParameters.livelinkNameSpec,null);
 
-      org.apache.manifoldcf.crawler.connectors.livelink.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.livelink.MatchMap();
+      MatchMap matchMap = new MatchMap();
       matchMap.appendMatchPair(usernameRegexp,livelinkUserExpr);
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.livelink.LiveLinkParameters.userNameMapping,matchMap.toString());
+      parameters.setParameter(LiveLinkParameters.userNameMapping,matchMap.toString());
     }
 
+    // Cache parameters
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
       parameters.setParameter(LiveLinkParameters.cacheLifetime,cacheLifetime);
-
     String cacheLRUsize = variableContext.getParameter("cachelrusize");
     if (cacheLRUsize != null)
       parameters.setParameter(LiveLinkParameters.cacheLRUSize,cacheLRUsize);
