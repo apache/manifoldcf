@@ -45,10 +45,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 {
   public static final String _rcsid = "@(#)$Id: LivelinkAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  boolean hasConnected = false;
+  
   // Data from the parameters
   private String serverProtocol = null;
   private String serverName = null;
-  private String serverPortString = null;
   private int serverPort = -1;
   private String serverUsername = null;
   private String serverPassword = null;
@@ -119,65 +120,93 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
-
-    // First, create server object (llServer)
-    serverName = configParams.getParameter(LiveLinkParameters.serverName);
-    serverPortString = configParams.getParameter(LiveLinkParameters.serverPort);
-    serverUsername = configParams.getParameter(LiveLinkParameters.serverUsername);
-    serverPassword = configParams.getObfuscatedParameter(LiveLinkParameters.serverPassword);
-
-    // These have been deprecated
-    String userNamePattern = configParams.getParameter(LiveLinkParameters.userNameRegexp);
-    String userEvalExpression = configParams.getParameter(LiveLinkParameters.livelinkNameSpec);
-    String userNameMapping = configParams.getParameter(LiveLinkParameters.userNameMapping);
-    if ((userNameMapping == null || userNameMapping.length() == 0) && userNamePattern != null && userEvalExpression != null)
-    {
-      // Create a matchmap using the old system
-      matchMap = new MatchMap();
-      matchMap.appendOldstyleMatchPair(userNamePattern,userEvalExpression);
-    }
-    else
-    {
-      if (userNameMapping == null)
-        userNameMapping = "(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)=$(2)\\$(1l)";
-      matchMap = new MatchMap(userNameMapping);
-    }
-
-    if (serverPortString == null)
-      serverPort = 80;
-    else
-      serverPort = new Integer(serverPortString).intValue();
-
-    cacheLifetime = configParams.getParameter(LiveLinkParameters.cacheLifetime);
-    if (cacheLifetime == null)
-      cacheLifetime = "1";
-    cacheLRUsize = configParams.getParameter(LiveLinkParameters.cacheLRUSize);
-    if (cacheLRUsize == null)
-      cacheLRUsize = "1000";    
-
-
   }
 
-  protected void attemptToConnect()
+  protected void getSession()
     throws ManifoldCFException, ServiceInterruption
   {
-    try
+    if (!hasConnected)
     {
-      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
-      LRUsize = Integer.parseInt(this.cacheLRUsize);
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
-    }
+      // Server parameters
+      serverProtocol = params.getParameter(LiveLinkParameters.serverProtocol);
+      serverName = params.getParameter(LiveLinkParameters.serverName);
+      String serverPortString = params.getParameter(LiveLinkParameters.serverPort);
+      serverUsername = params.getParameter(LiveLinkParameters.serverUsername);
+      serverPassword = params.getObfuscatedParameter(LiveLinkParameters.serverPassword);
+      serverHTTPCgi = params.getParameter(LiveLinkParameters.serverHTTPCgiPath);
+      serverHTTPNTLMDomain = params.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
+      serverHTTPNTLMUsername = params.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
+      serverHTTPNTLMPassword = params.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
 
-    if (LLUsers == null)
-    {
+      // These have been deprecated
+      String userNamePattern = params.getParameter(LiveLinkParameters.userNameRegexp);
+      String userEvalExpression = params.getParameter(LiveLinkParameters.livelinkNameSpec);
+      String userNameMapping = params.getParameter(LiveLinkParameters.userNameMapping);
+      if ((userNameMapping == null || userNameMapping.length() == 0) && userNamePattern != null && userEvalExpression != null)
+      {
+        // Create a matchmap using the old system
+        matchMap = new MatchMap();
+        matchMap.appendOldstyleMatchPair(userNamePattern,userEvalExpression);
+      }
+      else
+      {
+        if (userNameMapping == null)
+          userNameMapping = "(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)=$(2)\\$(1l)";
+        matchMap = new MatchMap(userNameMapping);
+      }
+
+      // Server parameter processing
+
+      if (serverProtocol == null || serverProtocol.length() == 0)
+        serverProtocol = "internal";
+        
+      if (serverPortString == null)
+        serverPort = 2099;
+      else
+        serverPort = new Integer(serverPortString).intValue();
+        
+      if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
+        serverHTTPNTLMDomain = null;
+      if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
+      {
+        serverHTTPNTLMUsername = serverUsername;
+        if (serverHTTPNTLMPassword == null || serverHTTPNTLMPassword.length() == 0)
+          serverHTTPNTLMPassword = serverPassword;
+      }
+      else
+      {
+        if (serverHTTPNTLMUsername == null)
+          serverHTTPNTLMUsername = "";
+        if (serverHTTPNTLMPassword == null)
+          serverHTTPNTLMPassword = "";
+      }
+
+      // Set up server ssl if indicated
+      String serverHTTPSKeystoreData = params.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+      if (serverHTTPSKeystoreData != null)
+        serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
+
+      cacheLifetime = params.getParameter(LiveLinkParameters.cacheLifetime);
+      if (cacheLifetime == null)
+        cacheLifetime = "1";
+      cacheLRUsize = params.getParameter(LiveLinkParameters.cacheLRUSize);
+      if (cacheLRUsize == null)
+        cacheLRUsize = "1000";
+      
+      try
+      {
+        responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+        LRUsize = Integer.parseInt(this.cacheLRUsize);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+      }
 
       if (Logging.authorityConnectors.isDebugEnabled())
       {
         String passwordExists = (serverPassword!=null && serverPassword.length() > 0)?"password exists":"";
-        Logging.authorityConnectors.debug("Livelink: Livelink connection parameters: Server='"+serverName+"'; port='"+serverPortString+"'; user name='"+serverUsername+"'; "+passwordExists);
+        Logging.authorityConnectors.debug("Livelink: Livelink connection parameters: Server='"+serverName+"'; port='"+serverPort+"'; user name='"+serverUsername+"'; "+passwordExists);
       }
 
       int sanityRetryCount = FAILURE_RETRY_COUNT;
@@ -196,6 +225,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           {
             Logging.authorityConnectors.debug("Livelink: Livelink session created.");
           }
+          hasConnected = true;
           return;
         }
         catch (RuntimeException e)
@@ -218,8 +248,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     try
     {
       // Reestablish the session
-      LLUsers = null;
-      attemptToConnect();
+      hasConnected = false;
+      getSession();
       // Get user info for the crawl user, to make sure it works
       int sanityRetryCount = FAILURE_RETRY_COUNT;
       while (true)
@@ -261,15 +291,23 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     }
     LLUsers = null;
     matchMap = null;
+    
+    serverProtocol = null;
     serverName = null;
-    serverPortString = null;
     serverPort = -1;
     serverUsername = null;
     serverPassword = null;
-    
+    serverHTTPCgi = null;
+    serverHTTPNTLMDomain = null;
+    serverHTTPNTLMUsername = null;
+    serverHTTPNTLMPassword = null;
+    serverHTTPSKeystore = null;
+
     cacheLifetime = null;
     cacheLRUsize = null;
 
+    hasConnected = false;
+    
     super.disconnect();
   }
 
@@ -337,7 +375,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
     try
     {
-      attemptToConnect();
+      getSession();
 
       int sanityRetryCount = FAILURE_RETRY_COUNT;
       while (true)

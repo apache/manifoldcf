@@ -157,7 +157,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   private String ingestNtlmPassword = null;
 
   // SSL support for ingestion
-  private String ingestKeystoreData = null;
   private IKeystoreManager ingestKeystoreManager = null;
 
   // Connection management
@@ -319,9 +318,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       ingestNtlmUsername = params.getParameter(LiveLinkParameters.ingestNtlmUsername);
       ingestNtlmPassword = params.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
 
+      serverProtocol = params.getParameter(LiveLinkParameters.serverProtocol);
       String serverPortString = params.getParameter(LiveLinkParameters.serverPort);
       serverUsername = params.getParameter(LiveLinkParameters.serverUsername);
       serverPassword = params.getObfuscatedParameter(LiveLinkParameters.serverPassword);
+      serverHTTPCgi = params.getParameter(LiveLinkParameters.serverHTTPCgiPath);
+      serverHTTPNTLMDomain = params.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
+      serverHTTPNTLMUsername = params.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
+      serverHTTPNTLMPassword = params.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
 
       if (ingestProtocol == null || ingestProtocol.length() == 0)
         ingestProtocol = "http";
@@ -404,18 +408,43 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
       }
 
-      // First, create server object (llServer)
+      // Server parameter processing
 
+      if (serverProtocol == null || serverProtocol.length() == 0)
+        serverProtocol = "internal";
+      
       if (serverPortString == null)
         serverPort = 2099;
       else
         serverPort = new Integer(serverPortString).intValue();
+      
+      if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
+        serverHTTPNTLMDomain = null;
+      if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
+      {
+        serverHTTPNTLMUsername = serverUsername;
+        if (serverHTTPNTLMPassword == null || serverHTTPNTLMPassword.length() == 0)
+          serverHTTPNTLMPassword = serverPassword;
+      }
+      else
+      {
+        if (serverHTTPNTLMUsername == null)
+          serverHTTPNTLMUsername = "";
+        if (serverHTTPNTLMPassword == null)
+          serverHTTPNTLMPassword = "";
+      }
 
       // Set up connection manager
       PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
       localConnectionManager.setMaxTotal(1);
-      // Set up ssl if indicated
-      ingestKeystoreData = params.getParameter(LiveLinkParameters.ingestKeystore);
+      
+      // Set up server ssl if indicated
+      String serverHTTPSKeystoreData = params.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+      if (serverHTTPSKeystoreData != null)
+        serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
+
+      // Set up ingest ssl if indicated
+      String ingestKeystoreData = params.getParameter(LiveLinkParameters.ingestKeystore);
       if (ingestKeystoreData != null)
       {
         ingestKeystoreManager = KeystoreManagerFactory.make("",ingestKeystoreData);
@@ -628,14 +657,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     llServer = null;
     LLDocs = null;
     LLAttributes = null;
-    ingestKeystoreData = null;
     ingestKeystoreManager = null;
     ingestPortNumber = -1;
 
+    serverProtocol = null;
     serverName = null;
     serverPort = -1;
     serverUsername = null;
     serverPassword = null;
+    serverHTTPCgi = null;
+    serverHTTPNTLMDomain = null;
+    serverHTTPNTLMUsername = null;
+    serverHTTPNTLMPassword = null;
+    serverHTTPSKeystore = null;
 
     ingestPort = null;
     ingestProtocol = null;
@@ -1526,6 +1560,20 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.serverhttpcgipath.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheServerCgiPathToLivelink")+"\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
+"    editconnection.serverhttpcgipath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.serverhttpcgipath.value.substring(0,1) != \"/\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheServerCgiPathMustBeginWithACharacter")+"\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
+"    editconnection.serverhttpcgipath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.ingestcgipath.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheCrawlCgiPathToLivelink")+"\");\n"+
@@ -1588,7 +1636,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       serverPassword = "";
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
-      serverHTTPCgiPath = "";
+      serverHTTPCgiPath = "/livelink/livelink.exe";
     String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
     if (serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";

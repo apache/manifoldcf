@@ -134,8 +134,23 @@ public class LLSERVER
               OutputStreamWriter osw = new OutputStreamWriter(fos,"ASCII");
               try
               {
+                osw.write("-----BEGIN CERTIFICATE-----\n");
                 String certBase64 = new Base64().encodeByteArray(certData);
-                osw.write(certBase64);
+                int offset = 0;
+                while (offset < certBase64.length())
+                {
+                  int remainder = certBase64.length() - offset;
+                  if (remainder < 64)
+                  {
+                    osw.write(certBase64,offset,remainder);
+                    osw.write("\n");
+                    break;
+                  }
+                  osw.write(certBase64,offset,64);
+                  offset += 64;
+                  osw.write("\n");
+                }
+                osw.write("-----END CERTIFICATE-----\n");
               }
               finally
               {
