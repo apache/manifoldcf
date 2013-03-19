@@ -1105,6 +1105,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       String details = llServer.getErrors();
       throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
+    else if (e instanceof com.opentext.api.LLSSLNotAvailableException)
+    {
+      String details = llServer.getErrors();
+      throw new ManifoldCFException("Missing llssl.jar error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+    }
     else if (e instanceof com.opentext.api.LLIllegalOperationException)
     {
       // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.

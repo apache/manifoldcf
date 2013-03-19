@@ -6973,9 +6973,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       e instanceof com.opentext.api.LLWebAuthInitException
     )
     {
-
       String details = llServer.getErrors();
       throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+    }
+    else if (e instanceof com.opentext.api.LLSSLNotAvailableException)
+    {
+      String details = llServer.getErrors();
+      throw new ManifoldCFException("Missing llssl.jar error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
     else if (e instanceof com.opentext.api.LLIllegalOperationException)
     {
