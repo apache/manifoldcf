@@ -177,9 +177,9 @@
           <p>This connector needs OpenText's LAPI package in order to be run.  It is usually built against a set of stubs. The stubs, however, mimic the
               class structure of LAPI 9.7.1.  Later versions (such as 10.x) have a different class structure.  Therefore, you may need to rebuild ManifoldCF
               against your lapi.jar, in order for the connector to work properly.</p>
-          <p>If you need to supply your own lapi.jar at build time, copy it to the source directory <em>connectors/livelink/lib-proprietary</em>, and build using "ant build".
+          <p>If you need to supply your own lapi.jar and llssl.jar at build time, copy it to the source directory <em>connectors/livelink/lib-proprietary</em>, and build using "ant build".
               The lapi.jar will be copied into the right place in your <em>dist</em> directory automatically.</p>
-          <p>If you do not wish to build, simply copy your lapi.jar into the binary distribution's <em>connector-lib-proprietary</em>
+          <p>If you do not wish to build, simply copy your lapi.jar and llssl.jar into the binary distribution's <em>connector-lib-proprietary</em>
               directory, and uncomment the LiveLink-related connector lines in <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
