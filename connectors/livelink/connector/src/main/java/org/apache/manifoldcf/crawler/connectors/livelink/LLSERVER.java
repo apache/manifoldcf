@@ -107,12 +107,13 @@ public class LLSERVER
         configuration.setAssoc();
         configuration.add("Encoding","UTF-8");
         configuration.add("LivelinkCGI", httpCgiPath);
-        if (useNTLM)
+        if (userNameAndDomain != null && userNameAndDomain.length() > 0)
         {
           configuration.add("HTTPUserName", userNameAndDomain);
           configuration.add("HTTPPassword", httpNtlmPassword);
-          configuration.add("EnableNTLM", LLValue.LL_TRUE);
         }
+        if (useNTLM)
+          configuration.add("EnableNTLM", LLValue.LL_TRUE);
         else
           configuration.add("EnableNTLM", LLValue.LL_FALSE);
 
