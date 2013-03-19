@@ -66,12 +66,14 @@ public class LLValue
     return null;
   }
   
-  public void add(String attributeName, int intValue)
+  public int add(String attributeName, int intValue)
   {
+    return 0;
   }
 
-  public void add(String attributeName, String strValue)
+  public int add(String attributeName, String strValue)
   {
+    return 0;
   }
   
   public boolean isTable()
