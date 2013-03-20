@@ -6988,8 +6988,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       String details = llServer.getErrors();
       return assessRetry(sanityRetryCount,new ManifoldCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
-    else if (e instanceof com.opentext.api.LLIOException)
+    else if (e instanceof com.opentext.api.LLIOException || (e instanceof RuntimeException && e.getClass().getName().startsWith("com.opentext.api.")))
     {
+      // Catching obfuscated and unspecified opentext runtime exceptions now too - these come from llssl.jar.  We
+      // have to presume these are SSL connection errors; nothing else to go by unfortunately.  UGH.
+      
       // Treat this as a transient error; try again in 5 minutes, and only fail after 12 hours of trying
 
       // LAPI is returning errors that are not terribly explicit, and I don't have control over their wording, so check that server can be resolved by DNS,

@@ -1117,8 +1117,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       String details = llServer.getErrors();
       return assessRetry(sanityRetryCount,new ManifoldCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
-    else if (e instanceof com.opentext.api.LLIOException)
+    else if (e instanceof com.opentext.api.LLIOException || (e instanceof RuntimeException && e.getClass().getName().startsWith("com.opentext.api.")))
     {
+      // Catching obfuscated and unspecified opentext runtime exceptions now too - these come from llssl.jar.  We
+      // have to presume these are SSL connection errors; nothing else to go by unfortunately.  UGH.
+
       // LAPI is returning errors that are not terribly explicit, and I don't have control over their wording, so check that server can be resolved by DNS,
       // so that a better error message can be returned.
       try
