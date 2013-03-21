@@ -324,6 +324,11 @@ footer, searchbar, css etc.  As input, it takes XML of the form:
               </xsl:choose>
             </div>
           </xsl:if>
+          <xsl:if test="not($config/disable-trademark-footer = 'true')">
+            <div class="copyright">
+              <xsl:value-of select="$config/trademark-statement"/>
+            </div>
+          </xsl:if>
           <xsl:if test="$filename = 'index.html'">
             <div id="logos" >
               <xsl:if test="$config/disable-compliance-links/@align">
