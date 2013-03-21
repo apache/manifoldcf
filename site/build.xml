@@ -91,6 +91,12 @@
                 <include name="document-to-fo.xsl"/>
             </fileset>
         </copy>
+        <delete file="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/resources/stylesheets/helper-footerinfo.xsl"/>
+        <copy todir="tmp/forrest/plugins/org.apache.forrest.plugin.output.pdf/resources/stylesheets">
+            <fileset dir="pdf">
+                <include name="helper-footerinfo.xsl"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="build-dejavu-fonts" depends="dejavu-check" if="dejavuAvailable">
