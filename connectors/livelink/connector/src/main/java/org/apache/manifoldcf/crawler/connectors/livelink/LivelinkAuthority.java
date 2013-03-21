@@ -562,13 +562,13 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "{\n"+
 "  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberIsRequired") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberIsRequired") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.usernameregexp.value != \"\" && !isRegularExpression(editconnection.usernameregexp.value))\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionMustBeValidRegularExpression") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionMustBeValidRegularExpression") + "\");\n"+
 "    editconnection.usernameregexp.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -579,22 +579,22 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "{\n"+
 "  if (editconnection.servername.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterALivelinkServerName") + ");\n"+
-"    SelectTab(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterALivelinkServerName") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.servername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.serverport.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired") + ");\n"+
-"    SelectTab(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
 "    editconnection.serverport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.usernameregexp.value == \"\")\n"+
 "  {\n"+
-"    alert(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionCannotBeNull") + ");\n"+
-"    SelectTab(" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserMapping") + ");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserNameRegularExpressionCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.UserMapping") + "\");\n"+
 "    editconnection.usernameregexp.focus();\n"+
 "    return false;\n"+
 "  }\n"+
@@ -666,7 +666,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       serverPassword = "";
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
-      serverHTTPCgiPath = "";
+      serverHTTPCgiPath = "/livelink/livelink.exe";
     String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
     if (serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
@@ -805,7 +805,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
             description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Delete")+"\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -814,7 +814,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       }
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
+"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Add")+"\"/>&nbsp;\n"+
 "      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"servercertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"

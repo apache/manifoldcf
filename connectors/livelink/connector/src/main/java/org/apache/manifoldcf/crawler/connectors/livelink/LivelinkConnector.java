@@ -1786,7 +1786,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Delete")+"\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -1795,7 +1795,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
+"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Add")+"\"/>&nbsp;\n"+
 "      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"servercertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"
@@ -1900,7 +1900,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             description = description.substring(0,125) + "...";
           out.print(
 "        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:IngestDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"Delete\"/></td>\n"+
+"          <td class=\"value\"><input type=\"button\" onclick='Javascript:IngestDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Delete")+"\"/></td>\n"+
 "          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
 "        </tr>\n"
           );
@@ -1909,7 +1909,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       out.print(
 "      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:IngestAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\"Add\"/>&nbsp;\n"+
+"      <input type=\"button\" onclick='Javascript:IngestAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Add")+"\"/>&nbsp;\n"+
 "      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"ingestcertificate\" size=\"50\" type=\"file\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"

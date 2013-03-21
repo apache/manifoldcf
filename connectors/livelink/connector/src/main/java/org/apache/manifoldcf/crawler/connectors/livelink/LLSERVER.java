@@ -122,46 +122,49 @@ public class LLSERVER
           configuration.add("HTTPS", LLValue.LL_TRUE);
           // Create the place to put the certs
           createCertFolder();
-          // Now, write the certs themselves
-          String[] aliases = keystore.getContents();
-          for (String alias : aliases)
+          if (keystore != null)
           {
-            java.security.cert.Certificate cert = keystore.getCertificate(alias);
-            byte[] certData = cert.getEncoded();
-            File fileName = new File(certFolder,alias + ".cer");
-            FileOutputStream fos = new FileOutputStream(fileName);
-            try
+            // Now, write the certs themselves
+            String[] aliases = keystore.getContents();
+            for (String alias : aliases)
             {
-              OutputStreamWriter osw = new OutputStreamWriter(fos,"ASCII");
+              java.security.cert.Certificate cert = keystore.getCertificate(alias);
+              byte[] certData = cert.getEncoded();
+              File fileName = new File(certFolder,alias + ".cer");
+              FileOutputStream fos = new FileOutputStream(fileName);
               try
               {
-                osw.write("-----BEGIN CERTIFICATE-----\n");
-                String certBase64 = new Base64().encodeByteArray(certData);
-                int offset = 0;
-                while (offset < certBase64.length())
+                OutputStreamWriter osw = new OutputStreamWriter(fos,"ASCII");
+                try
                 {
-                  int remainder = certBase64.length() - offset;
-                  if (remainder < 64)
+                  osw.write("-----BEGIN CERTIFICATE-----\n");
+                  String certBase64 = new Base64().encodeByteArray(certData);
+                  int offset = 0;
+                  while (offset < certBase64.length())
                   {
-                    osw.write(certBase64,offset,remainder);
+                    int remainder = certBase64.length() - offset;
+                    if (remainder < 64)
+                    {
+                      osw.write(certBase64,offset,remainder);
+                      osw.write("\n");
+                      break;
+                    }
+                    osw.write(certBase64,offset,64);
+                    offset += 64;
                     osw.write("\n");
-                    break;
                   }
-                  osw.write(certBase64,offset,64);
-                  offset += 64;
-                  osw.write("\n");
+                  osw.write("-----END CERTIFICATE-----\n");
                 }
-                osw.write("-----END CERTIFICATE-----\n");
+                finally
+                {
+                  osw.flush();
+                }
               }
               finally
               {
-                osw.flush();
+                fos.flush();
+                fos.close();
               }
-            }
-            finally
-            {
-              fos.flush();
-              fos.close();
             }
           }
         }
