@@ -3397,7 +3397,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-opensaml">
         <!-- http://maven.alfresco.com/nexus/content/groups/public/opensaml/opensaml/1.1b/opensaml-1.1b.jar -->
         <!-- This dependency is for alfresco, so we use the jar alfresco has -->
-        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/3rd-party/lib/opensaml-1.0.1.jar" dest="lib/opensaml.jar"/>
+        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/COMMUNITYTAGS/V4.2c/root/projects/3rd-party/lib/opensaml-1.0.1.jar" dest="lib/opensaml.jar"/>
     </target>
     
     <target name="download-osgi">
@@ -3468,7 +3468,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-wss4j">
         <!-- This dependency is for alfresco, so download their patched jar from their svn -->
-        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/3rd-party/lib/wss4j-1.5.4-patched.jar" dest="lib/wss4j.jar"/>
+        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/COMMUNITYTAGS/V4.2c/root/projects/3rd-party/lib/wss4j-1.5.4-patched.jar" dest="lib/wss4j.jar"/>
     </target>
     
     <target name="download-xmlgraphics-commons">
@@ -3493,7 +3493,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-xmlsec">
         <!-- Alfresco dependency, so resolve it from alfresco svn -->
-        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/HEAD/root/projects/3rd-party/lib/xmlsec-1.4.1.jar" dest="lib/xmlsec.jar"/>
+        <get src="http://svn.alfresco.com/repos/alfresco-open-mirror/alfresco/COMMUNITYTAGS/V4.2c/root/projects/3rd-party/lib/xmlsec-1.4.1.jar" dest="lib/xmlsec.jar"/>
     </target>
     
     <target name="download-xml-apis">
