@@ -397,21 +397,23 @@ public class ManifoldCF
   }
 
   /** Recursive delete: for cleaning up company folder.
-  *@param directoryPath is the File describing the directory to be removed.
+  *@param directoryPath is the File describing the directory or file to be removed.
   */
-  protected static void recursiveDelete(File directoryPath)
+  public static void recursiveDelete(File directoryPath)
   {
-    File[] children = directoryPath.listFiles();
-    if (children != null)
+    if (!directoryPath.exists())
+      return;
+    if (directoryPath.isDirectory())
     {
-      int i = 0;
-      while (i < children.length)
+      File[] children = directoryPath.listFiles();
+      if (children != null)
       {
-        File x = children[i++];
-        if (x.isDirectory())
+        int i = 0;
+        while (i < children.length)
+        {
+          File x = children[i++];
           recursiveDelete(x);
-        else
-          x.delete();
+        }
       }
     }
     directoryPath.delete();
@@ -716,6 +718,39 @@ public class ManifoldCF
 
     IDBInterface master = DBInterfaceFactory.make(threadcontext,databaseName,databaseUsername,databasePassword);
     master.dropUserAndDatabase(masterUsername,masterPassword,null);
+  }
+
+  /** Create temporary directory.
+  */
+  public static File createTempDir(String prefix, String suffix)
+    throws ManifoldCFException
+  {
+    String tempDirLocation = System.getProperty("java.io.tmpdir");
+    if (tempDirLocation == null)
+      throw new ManifoldCFException("Can't find temporary directory!");
+    File tempDir = new File(tempDirLocation);
+    // Start with current timestamp, and generate a hash, then look for collision
+    long currentFileID = System.currentTimeMillis();
+    long currentFileHash = (currentFileID << 5) ^ (currentFileID >> 3);
+    int raceConditionRepeat = 0;
+    while (raceConditionRepeat < 1000)
+    {
+      File tempCertDir = new File(tempDir,prefix+currentFileHash+suffix);
+      if (tempCertDir.mkdir())
+      {
+        return tempCertDir;
+      }
+      if (tempCertDir.exists())
+      {
+        currentFileHash++;
+        continue;
+      }
+      // Doesn't exist but couldn't create either.  COULD be a race condition; we'll only know if we retry
+      // lots and nothing changes.
+      raceConditionRepeat++;
+      Thread.yield();
+    }
+    throw new ManifoldCFException("Temporary directory appears to be unwritable");
   }
 
   /** Add a file to the tracking system. */
@@ -1194,8 +1229,8 @@ public class ManifoldCF
   /** Class that tracks files that need to be cleaned up on exit */
   protected static class FileTrack implements IShutdownHook
   {
-    /** Key and value are both File objects */
-    protected Map<File,File> filesToDelete = new HashMap<File,File>();
+    /** Set of File objects */
+    protected Set<File> filesToDelete = new HashSet<File>();
 
     /** Constructor */
     public FileTrack()
@@ -1207,7 +1242,7 @@ public class ManifoldCF
     {
       synchronized (this)
       {
-        filesToDelete.put(f,f);
+        filesToDelete.add(f);
       }
     }
 
@@ -1216,12 +1251,12 @@ public class ManifoldCF
     {
       // Because we never reuse file names, it is OK to delete twice.
       // So the delete() can be outside the synchronizer.
-      f.delete();
+      recursiveDelete(f);
       synchronized (this)
       {
         filesToDelete.remove(f);
       }
-  }
+    }
 
     /** Delete all remaining files */
     public void doCleanup()
@@ -1229,10 +1264,10 @@ public class ManifoldCF
     {
       synchronized (this)
       {
-	Iterator iter = filesToDelete.keySet().iterator();
+	Iterator<File> iter = filesToDelete.iterator();
 	while (iter.hasNext())
 	{
-	  File f = (File)iter.next();
+	  File f = iter.next();
 	  f.delete();
 	}
 	filesToDelete.clear();

@@ -130,35 +130,11 @@ public class LLSERVER
             {
               java.security.cert.Certificate cert = keystore.getCertificate(alias);
               byte[] certData = cert.getEncoded();
-              File fileName = new File(certFolder,alias + ".cer");
+              File fileName = new File(certFolder,ManifoldCF.safeFileName(alias) + ".cer");
               FileOutputStream fos = new FileOutputStream(fileName);
               try
               {
-                OutputStreamWriter osw = new OutputStreamWriter(fos,"ASCII");
-                try
-                {
-                  osw.write("-----BEGIN CERTIFICATE-----\n");
-                  String certBase64 = new Base64().encodeByteArray(certData);
-                  int offset = 0;
-                  while (offset < certBase64.length())
-                  {
-                    int remainder = certBase64.length() - offset;
-                    if (remainder < 64)
-                    {
-                      osw.write(certBase64,offset,remainder);
-                      osw.write("\n");
-                      break;
-                    }
-                    osw.write(certBase64,offset,64);
-                    offset += 64;
-                    osw.write("\n");
-                  }
-                  osw.write("-----END CERTIFICATE-----\n");
-                }
-                finally
-                {
-                  osw.flush();
-                }
+                fos.write(certData);
               }
               finally
               {
@@ -217,33 +193,8 @@ public class LLSERVER
   protected void createCertFolder()
     throws ManifoldCFException
   {
-    String tempDirLocation = System.getProperty("java.io.tmpdir");
-    if (tempDirLocation == null)
-      throw new ManifoldCFException("Can't find temporary directory!");
-    File tempDir = new File(tempDirLocation);
-    // Start with current timestamp, and generate a hash, then look for collision
-    long currentFileID = System.currentTimeMillis();
-    long currentFileHash = (currentFileID << 5) ^ (currentFileID >> 3);
-    int raceConditionRepeat = 0;
-    while (raceConditionRepeat < 1000)
-    {
-      File tempCertDir = new File(tempDir,"llcrt_"+currentFileID+".d");
-      if (tempCertDir.mkdir())
-      {
-        certFolder = tempCertDir;
-        return;
-      }
-      if (tempCertDir.exists())
-      {
-        currentFileID++;
-        continue;
-      }
-      // Doesn't exist but couldn't create either.  COULD be a race condition; we'll only know if we retry
-      // lots and nothing changes.
-      raceConditionRepeat++;
-      Thread.yield();
-    }
-    throw new ManifoldCFException("Temporary directory appears to be unwritable");
+    certFolder = ManifoldCF.createTempDir("llcrt_",".d");
+    ManifoldCF.addFile(certFolder);
   }
   
   /** Release temporary session-bound cert directory.
@@ -252,30 +203,9 @@ public class LLSERVER
   {
     if (certFolder != null)
     {
-      recursiveDelete(certFolder);
+      ManifoldCF.deleteFile(certFolder);
       certFolder = null;
     }
-  }
-
-  /** Recursive delete: for cleaning up company folder.
-  *@param directoryPath is the File describing the directory to be removed.
-  */
-  protected static void recursiveDelete(File directoryPath)
-  {
-    File[] children = directoryPath.listFiles();
-    if (children != null)
-    {
-      int i = 0;
-      while (i < children.length)
-      {
-        File x = children[i++];
-        if (x.isDirectory())
-          recursiveDelete(x);
-        else
-          x.delete();
-      }
-    }
-    directoryPath.delete();
   }
 
   /**
