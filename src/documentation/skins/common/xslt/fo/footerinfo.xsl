@@ -41,6 +41,9 @@ with @role='pdf' is present, that is used instead.  Eg:
           select="//skinconfig/vendor"/>
 <xsl:text> All rights reserved.</xsl:text>
       </xsl:if>
+      <xsl:if test="not($pdfcredit) and not($config/disable-trademark-footer = 'true')">
+        <xsl:value-of select="//skinconfig/trademark-statement"/>
+      </xsl:if>
     </xsl:variable>
     <xsl:variable name="url" select="$pdfcredit/url"/>
     <fo:block-container font-style="italic" absolute-position="absolute"
