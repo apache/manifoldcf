@@ -319,9 +319,9 @@
       <title>Plug-ins</title>
       
       <section>
-        <title>Solr 3.x Plug-in</title>
+        <title>Plugin for Apache Solr 3.x</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Solr-3.x Plug-in 0.4, 2013 Feb 05)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for Apache Solr 3.x , version 0.4, 2013 Feb 05)</title>
           <p>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.4.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-0.4.CHANGES.txt">CHANGES.txt</a><br/>
@@ -348,9 +348,9 @@
       </section>
       
       <section>
-        <title>Solr 4.x Plug-in</title>
+        <title>Plugin for Apache Solr 4.x</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Solr-4.x Plug-in 0.4, 2013 Feb 5)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for Apache Solr 4.x, version 0.4, 2013 Feb 5)</title>
           <p>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.4.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-0.4.CHANGES.txt">CHANGES.txt</a><br/>
@@ -378,9 +378,9 @@
       </section>
       
       <section>
-        <title>SharePoint 2007 Plug-in</title>
+        <title>Plugin for SharePoint 2007</title>
         <section>
-          <title>Latest release (Apache ManifoldCF SharePoint 2007 Plug-in 0.4, 2013 Feb 5)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for SharePoint 2007, version 0.4, 2013 Feb 5)</title>
           <p>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4.CHANGES.txt">CHANGES.txt</a><br/>
@@ -412,9 +412,9 @@
       </section>
       
       <section>
-        <title>SharePoint 2010 Plug-in</title>
+        <title>Plugin for SharePoint 2010</title>
         <section>
-          <title>Latest release (Apache ManifoldCF SharePoint 2010 Plug-in 0.2, 2013 Feb 5)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for SharePoint 2010, version 0.2, 2013 Feb 5)</title>
           <p>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.2.KEYS">KEYS</a><br/>
             <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.2.CHANGES.txt">CHANGES.txt</a><br/>
