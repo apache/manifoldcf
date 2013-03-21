@@ -768,7 +768,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMUserName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerUserName")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUsername)+"\"/>\n"+
+"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
@@ -834,7 +834,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUsername)+"\"/>\n"+
+"<input type=\"hidden\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"
       );
     }
