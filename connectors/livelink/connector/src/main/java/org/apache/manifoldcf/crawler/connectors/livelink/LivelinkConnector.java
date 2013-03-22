@@ -422,16 +422,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         serverHTTPNTLMDomain = null;
       if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
       {
-        serverHTTPNTLMUsername = serverUsername;
-        if (serverHTTPNTLMPassword == null || serverHTTPNTLMPassword.length() == 0)
-          serverHTTPNTLMPassword = serverPassword;
-      }
-      else
-      {
-        if (serverHTTPNTLMUsername == null)
-          serverHTTPNTLMUsername = "";
-        if (serverHTTPNTLMPassword == null)
-          serverHTTPNTLMPassword = "";
+        serverHTTPNTLMUsername = null;
+        serverHTTPNTLMPassword = null;
       }
 
       // Set up connection manager

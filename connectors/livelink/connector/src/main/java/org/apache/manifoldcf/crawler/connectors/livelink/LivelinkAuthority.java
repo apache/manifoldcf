@@ -167,18 +167,12 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         
       if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
         serverHTTPNTLMDomain = null;
+      if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
+        serverHTTPNTLMDomain = null;
       if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
       {
-        serverHTTPNTLMUsername = serverUsername;
-        if (serverHTTPNTLMPassword == null || serverHTTPNTLMPassword.length() == 0)
-          serverHTTPNTLMPassword = serverPassword;
-      }
-      else
-      {
-        if (serverHTTPNTLMUsername == null)
-          serverHTTPNTLMUsername = "";
-        if (serverHTTPNTLMPassword == null)
-          serverHTTPNTLMPassword = "";
+        serverHTTPNTLMUsername = null;
+        serverHTTPNTLMPassword = null;
       }
 
       // Set up server ssl if indicated

@@ -85,7 +85,6 @@ public class LLSERVER
   {
     try
     {
-    
       LLValue configuration;
 
       if (useHttp)
@@ -93,7 +92,7 @@ public class LLSERVER
         boolean useNTLM;
         String userNameAndDomain;
 
-        if (httpNtlmDomain != null)
+        if (httpNtlmDomain != null && httpNtlmUser != null)
         {
           useNTLM = true;
           userNameAndDomain = httpNtlmUser + "@" + httpNtlmDomain;
@@ -107,7 +106,7 @@ public class LLSERVER
         configuration.setAssoc();
         configuration.add("Encoding","UTF-8");
         configuration.add("LivelinkCGI", httpCgiPath);
-        if (userNameAndDomain != null && userNameAndDomain.length() > 0)
+        if (userNameAndDomain != null)
         {
           configuration.add("HTTPUserName", userNameAndDomain);
           configuration.add("HTTPPassword", httpNtlmPassword);
