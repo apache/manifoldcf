@@ -143,6 +143,9 @@ public class LLSERVER
               }
             }
           }
+          LLValue rootCACertList = new LLValue();
+          LLSession.GetCARootCerts(certFolder.toString(),rootCACertList);
+          configuration.add("CARootCerts", rootCACertList);
         }
       }
       else

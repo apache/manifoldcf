@@ -75,6 +75,11 @@ public class LLValue
   {
     return 0;
   }
+
+  public int add(String attributeName, LLValue llValue)
+  {
+    return 0;
+  }
   
   public boolean isTable()
   {
