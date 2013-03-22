@@ -20,17 +20,7 @@ package com.opentext.api;
 
 /** Stub classes to get connector to build.
 */
-public class LLSession extends LLConnect
+public class LLSSLNotAvailableException extends LLIOException
 {
-
-  public LLSession(String server, int port, String something, String user, String password, LLValue whoknows)
-  {
-    super(server,port,null,null);
-  }
-
-  public static void GetCARootCerts(String path, LLValue something)
-  {
-  }
-
 }
 

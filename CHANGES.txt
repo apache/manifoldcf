@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-644: Add support for Livelink SSL connections via LAPI.
+(David Morana, Karl Wright)
+
 CONNECTORS-663: Add support for minimal crawling.
 (Maciej Li¿ewski, Karl Wright)
 
