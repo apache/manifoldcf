@@ -131,10 +131,34 @@ public class LLSERVER
               java.security.cert.Certificate cert = keystore.getCertificate(alias);
               byte[] certData = cert.getEncoded();
               File fileName = new File(certFolder,ManifoldCF.safeFileName(alias) + ".cer");
-              FileOutputStream fos = new FileOutputStream(fileName);
+              OutputStream fos = new FileOutputStream(fileName);
               try
               {
-                fos.write(certData);
+                Writer osw = new OutputStreamWriter(fos,"utf-8");
+                try
+                {
+                  String certBase64 = new Base64().encodeByteArray(certData);
+                  osw.write("-----BEGIN CERTIFICATE-----\n");
+                  int index = 0;
+                  while (true)
+                  {
+                    if (certBase64.length() - index > 64)
+                    {
+                      osw.write(certBase64.substring(index,index+64) + "\n");
+                      index += 64;
+                    }
+                    else
+                    {
+                      osw.write(certBase64.substring(index) + "\n");
+                      break;
+                    }
+                  }
+                  osw.write("-----END CERTIFICATE-----\n");
+                }
+                finally
+                {
+                  osw.flush();
+                }
               }
               finally
               {
