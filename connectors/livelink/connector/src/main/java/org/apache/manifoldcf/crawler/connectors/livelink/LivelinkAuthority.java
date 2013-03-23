@@ -760,13 +760,13 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMUserName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerUserName")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMUserName")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"text\" size=\"32\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMPassword")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerPassword")+"</nobr></td>\n"+
+"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMPassword")+"</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input type=\"password\" size=\"32\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"+
 "    </td>\n"+
