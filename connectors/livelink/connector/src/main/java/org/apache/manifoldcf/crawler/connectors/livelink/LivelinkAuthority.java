@@ -251,7 +251,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         try
         {
           LLValue userObject = new LLValue();
-          int status = LLUsers.GetUserInfo(serverUsername, userObject);
+          int status = LLUsers.GetUserInfo("Admin", userObject);
           // User Not Found is ok; the server user name may include the domain.
           if (status == 103101 || status == 401203)
             return super.check();
