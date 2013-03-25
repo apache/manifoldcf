@@ -167,8 +167,6 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         
       if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
         serverHTTPNTLMDomain = null;
-      if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
-        serverHTTPNTLMDomain = null;
       if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
       {
         serverHTTPNTLMUsername = null;
