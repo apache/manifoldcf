@@ -95,7 +95,7 @@ public class LLSERVER
         if (httpNtlmDomain != null && httpNtlmUser != null)
         {
           useNTLM = true;
-          userNameAndDomain = httpNtlmUser + "@" + httpNtlmDomain;
+          userNameAndDomain = httpNtlmDomain + "\\" + httpNtlmUser;
         }
         else
         {
