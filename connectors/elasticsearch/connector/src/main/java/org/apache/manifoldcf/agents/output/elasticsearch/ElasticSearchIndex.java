@@ -46,7 +46,13 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   protected final static String allowAttributeName = "allow_token_";
   /** The deny attribute name */
   protected final static String denyAttributeName = "deny_token_";
-
+  /** The no-security token */
+  protected final static String noSecurityToken = "__nosecurity__";
+  
+  /** Flag set as to whether null_value works in ES.  Right now it doesn't work,
+  * so we have to do everything in the connector. */
+  protected final static boolean useNullValue = false;
+  
   private class IndexRequestEntity implements HttpEntity
   {
 
@@ -172,9 +178,16 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     throws IOException
   {
     String metadataACLName = allowAttributeName + aclType;
-    needComma = writeField(pw,needComma,metadataACLName,acl);
+    if (acl != null && acl.length > 0)
+      needComma = writeField(pw,needComma,metadataACLName,acl);
+    else if (!useNullValue)
+      needComma = writeField(pw,needComma,metadataACLName,new String[]{noSecurityToken});
     String metadataDenyACLName = denyAttributeName + aclType;
-    return writeField(pw,needComma,metadataDenyACLName,denyAcl);
+    if (denyAcl != null && denyAcl.length > 0)
+      needComma = writeField(pw,needComma,metadataDenyACLName,denyAcl);
+    else if (!useNullValue)
+      needComma = writeField(pw,needComma,metadataDenyACLName,new String[]{noSecurityToken});
+    return needComma;
   }
 
   protected static String jsonStringEscape(String value)
