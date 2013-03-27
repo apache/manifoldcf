@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-666: Ant build broken
+(Piergiorgio Lucidi)
+
 CONNECTORS-644: Add support for Livelink SSL connections via LAPI.
 (David Morana, Karl Wright)
 
