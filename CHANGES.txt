@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-665: Update Solr connector type end-user documentation.
+(Karl Wright)
+
 CONNECTORS-667: Fix livelink authority caching to work properly with
 new SSL connection support.
 (David Morana, Karl Wright)
