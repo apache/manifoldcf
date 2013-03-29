@@ -315,42 +315,57 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
-    // Construct a cache description object
-    ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,serverName,serverPort,
-      serverUsername,serverPassword,responseLifetime,LRUsize);
-    
-    // Enter the cache
-    ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
     try
     {
-      ICacheCreateHandle createHandle = cacheManager.enterCreateSection(ch);
+      // We need the session so that the cache parameters are available
+      getSession();
+
+      // Construct a cache description object
+      ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
+        serverProtocol,serverName,serverPort,
+        serverUsername,serverPassword,
+        serverHTTPCgi,serverHTTPNTLMDomain,serverHTTPNTLMUsername,serverHTTPNTLMPassword,
+        serverHTTPSKeystore,
+        responseLifetime,LRUsize);
+      
+      // Enter the cache
+      ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
       try
       {
-        // Lookup the object
-        AuthorizationResponse response = (AuthorizationResponse)cacheManager.lookupObject(createHandle,objectDescription);
-        if (response != null)
+        ICacheCreateHandle createHandle = cacheManager.enterCreateSection(ch);
+        try
+        {
+          // Lookup the object
+          AuthorizationResponse response = (AuthorizationResponse)cacheManager.lookupObject(createHandle,objectDescription);
+          if (response != null)
+            return response;
+          // Create the object.
+          response = getAuthorizationResponseUncached(userName);
+          // Save it in the cache
+          cacheManager.saveObject(createHandle,objectDescription,response);
+          // And return it...
           return response;
-        // Create the object.
-        response = getAuthorizationResponseUncached(userName);
-        // Save it in the cache
-        cacheManager.saveObject(createHandle,objectDescription,response);
-        // And return it...
-        return response;
+        }
+        finally
+        {
+          cacheManager.leaveCreateSection(createHandle);
+        }
       }
       finally
       {
-        cacheManager.leaveCreateSection(createHandle);
+        cacheManager.leaveCache(ch);
       }
     }
-    finally
+    catch (ServiceInterruption e)
     {
-      cacheManager.leaveCache(ch);
+      Logging.authorityConnectors.warn("Livelink: Server seems to be down: "+e.getMessage(),e);
+      return unreachableResponse;
     }
   }
   
   /** Uncached method to get access tokens for a user name. */
   protected AuthorizationResponse getAuthorizationResponseUncached(String userName)
-    throws ManifoldCFException
+    throws ManifoldCFException, ServiceInterruption
   {
     // First, do what's necessary to map the user name that comes in to a reasonable
     // Livelink domain\\user combination.
@@ -368,131 +383,121 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       Logging.authorityConnectors.debug("Livelink: Livelink user name = '"+domainAndUser+"'");
     }
 
-    try
+    int sanityRetryCount = FAILURE_RETRY_COUNT;
+    while (true)
     {
-      getSession();
-
-      int sanityRetryCount = FAILURE_RETRY_COUNT;
-      while (true)
+      try
       {
-        try
+        ArrayList list = new ArrayList();
+
+        // Find out if the specified user is a member of the Guest group, or is a member
+        // of the System group.
+        // Get information about the current user.  This is how we will determine if the
+        // user exists, and also what permissions s/he has.
+        LLValue userObject = new LLValue();
+        int status = LLUsers.GetUserInfo(domainAndUser, userObject);
+        if (status == 103101 || status == 401203)
         {
-          ArrayList list = new ArrayList();
-
-          // Find out if the specified user is a member of the Guest group, or is a member
-          // of the System group.
-          // Get information about the current user.  This is how we will determine if the
-          // user exists, and also what permissions s/he has.
-          LLValue userObject = new LLValue();
-          int status = LLUsers.GetUserInfo(domainAndUser, userObject);
-          if (status == 103101 || status == 401203)
-          {
-            if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' does not exist");
-            return userNotFoundResponse;
-          }
-
-          if (status != 0)
-          {
-            Logging.authorityConnectors.warn("Livelink: User '"+domainAndUser+"' GetUserInfo error # "+Integer.toString(status)+" "+llServer.getErrors());
-            // The server is probably down.
-            return unreachableResponse;
-          }
-
-          int deleted = userObject.toInteger("Deleted");
-          if (deleted == 1)
-          {
-            if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' has been deleted");
-            // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
-            return userNotFoundResponse;
-          }
-          int privs = userObject.toInteger("UserPrivileges");
-          if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD)
-            list.add("GUEST");
-          if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
-            list.add("SYSTEM");
-
-          LLValue childrenObjects = new LLValue();
-          status = LLUsers.ListRights(LAPI_USERS.USER, domainAndUser, childrenObjects);
-          if (status == 103101 || status == 401203)
-          {
-            if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Livelink: Livelink error looking up user rights for '"+domainAndUser+"' - user does not exist");
-            return userNotFoundResponse;
-          }
-
-          if (status != 0)
-          {
-            // If the user doesn't exist, return null.  Right now, not sure how to figure out the
-            // right error code, so just stuff it in the log.
-            Logging.authorityConnectors.warn("Livelink: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
-            // An error code at this level has to indicate a suddenly unreachable authority
-            return unreachableResponse;
-          }
-
-          // Go through the individual objects, and get their IDs.  These id's will be the access tokens
-          int size;
-
-          if (childrenObjects.isRecord())
-            size = 1;
-          else if (childrenObjects.isTable())
-            size = childrenObjects.size();
-          else
-            size = 0;
-
-          // We need also to add in support for the special rights objects.  These are:
-          // -1: RIGHT_WORLD
-          // -2: RIGHT_SYSTEM
-          // -3: RIGHT_OWNER
-          // -4: RIGHT_GROUP
-          //
-          // RIGHT_WORLD means guest access.
-          // RIGHT_SYSTEM is "Public Access".
-          // RIGHT_OWNER is access by the owner of the object.
-          // RIGHT_GROUP is access by a member of the base group containing the owner
-          //
-          // These objects are returned by the corresponding GetObjectRights() call made during
-          // the ingestion process.  We have to figure out how to map these to things that are
-          // the equivalent of acls.
-
-          // Idea:
-          // 1) RIGHT_WORLD is based on some property of the user.
-          // 2) RIGHT_SYSTEM is based on some property of the user.
-          // 3) RIGHT_OWNER and RIGHT_GROUP are managed solely in the ingestion side of the world.
-
-          // NOTE:  It turns out that -1 and -2 are in fact returned as part of the list of
-          // rights requested above.  They get mapped to special keywords already in the above
-          // code, so it *may* be reasonable to filter them from here.  It's not a real problem because
-          // it's effectively just a duplicate of what we are doing.
-
-          int j = 0;
-          while (j < size)
-          {
-            int token = childrenObjects.toInteger(j, "ID");
-            list.add(Integer.toString(token));
-            j++;
-          }
-          String[] rval = new String[list.size()];
-          j = 0;
-          while (j < rval.length)
-          {
-            rval[j] = (String)list.get(j);
-            j++;
-          }
-
-          return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);
+          if (Logging.authorityConnectors.isDebugEnabled())
+            Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' does not exist");
+          return userNotFoundResponse;
         }
-        catch (RuntimeException e)
+
+        if (status != 0)
         {
-          sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount);
+          Logging.authorityConnectors.warn("Livelink: User '"+domainAndUser+"' GetUserInfo error # "+Integer.toString(status)+" "+llServer.getErrors());
+          // The server is probably down.
+          return unreachableResponse;
         }
+
+        int deleted = userObject.toInteger("Deleted");
+        if (deleted == 1)
+        {
+          if (Logging.authorityConnectors.isDebugEnabled())
+            Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' has been deleted");
+          // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
+          return userNotFoundResponse;
+        }
+        int privs = userObject.toInteger("UserPrivileges");
+        if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD)
+          list.add("GUEST");
+        if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
+          list.add("SYSTEM");
+
+        LLValue childrenObjects = new LLValue();
+        status = LLUsers.ListRights(LAPI_USERS.USER, domainAndUser, childrenObjects);
+        if (status == 103101 || status == 401203)
+        {
+          if (Logging.authorityConnectors.isDebugEnabled())
+            Logging.authorityConnectors.debug("Livelink: Livelink error looking up user rights for '"+domainAndUser+"' - user does not exist");
+          return userNotFoundResponse;
+        }
+
+        if (status != 0)
+        {
+          // If the user doesn't exist, return null.  Right now, not sure how to figure out the
+          // right error code, so just stuff it in the log.
+          Logging.authorityConnectors.warn("Livelink: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
+          // An error code at this level has to indicate a suddenly unreachable authority
+          return unreachableResponse;
+        }
+
+        // Go through the individual objects, and get their IDs.  These id's will be the access tokens
+        int size;
+
+        if (childrenObjects.isRecord())
+          size = 1;
+        else if (childrenObjects.isTable())
+          size = childrenObjects.size();
+        else
+          size = 0;
+
+        // We need also to add in support for the special rights objects.  These are:
+        // -1: RIGHT_WORLD
+        // -2: RIGHT_SYSTEM
+        // -3: RIGHT_OWNER
+        // -4: RIGHT_GROUP
+        //
+        // RIGHT_WORLD means guest access.
+        // RIGHT_SYSTEM is "Public Access".
+        // RIGHT_OWNER is access by the owner of the object.
+        // RIGHT_GROUP is access by a member of the base group containing the owner
+        //
+        // These objects are returned by the corresponding GetObjectRights() call made during
+        // the ingestion process.  We have to figure out how to map these to things that are
+        // the equivalent of acls.
+
+        // Idea:
+        // 1) RIGHT_WORLD is based on some property of the user.
+        // 2) RIGHT_SYSTEM is based on some property of the user.
+        // 3) RIGHT_OWNER and RIGHT_GROUP are managed solely in the ingestion side of the world.
+
+        // NOTE:  It turns out that -1 and -2 are in fact returned as part of the list of
+        // rights requested above.  They get mapped to special keywords already in the above
+        // code, so it *may* be reasonable to filter them from here.  It's not a real problem because
+        // it's effectively just a duplicate of what we are doing.
+
+        int j = 0;
+        while (j < size)
+        {
+          int token = childrenObjects.toInteger(j, "ID");
+          list.add(Integer.toString(token));
+          j++;
+        }
+        String[] rval = new String[list.size()];
+        j = 0;
+        while (j < rval.length)
+        {
+          rval[j] = (String)list.get(j);
+          j++;
+        }
+
+        return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);
       }
-    }
-    catch (ServiceInterruption e)
-    {
-      Logging.authorityConnectors.warn("Livelink: Server seems to be down: "+e.getMessage(),e);
-      return unreachableResponse;
+      catch (RuntimeException e)
+      {
+        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount);
+      }
     }
   }
 
@@ -1167,13 +1172,19 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   protected static class AuthorizationResponseDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
   {
     /** The user name associated with the access tokens */
-    protected String userName;
+    protected final String userName;
     
     // The server connection parameters
-    protected String serverName;
-    protected int serverPort;
-    protected String serverUsername;
-    protected String serverPassword;
+    protected final String serverProtocol;
+    protected final String serverName;
+    protected final int serverPort;
+    protected final String serverUsername;
+    protected final String serverPassword;
+    protected final String serverHTTPCgi;
+    protected final String serverHTTPNTLMDomain;
+    protected final String serverHTTPNTLMUsername;
+    protected final String serverHTTPNTLMPassword;
+    protected final String serverHTTPSKeystore;
 
     protected long responseLifetime;
     
@@ -1181,15 +1192,28 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     protected long expirationTime = -1;
     
     /** Constructor. */
-    public AuthorizationResponseDescription(String userName, String serverName, int serverPort,
-      String serverUsername, String serverPassword, long responseLifetime, int LRUsize)
+    public AuthorizationResponseDescription(String userName,
+      String serverProtocol,
+      String serverName, int serverPort,
+      String serverUsername, String serverPassword,
+      String serverHTTPCgi, String serverHTTPNTLMDomain, String serverHTTPNTLMUsername, String serverHTTPNTLMPassword,
+      IKeystoreManager serverHTTPSKeystore,
+      long responseLifetime, int LRUsize)
+      throws ManifoldCFException
     {
       super("LiveLinkAuthority",LRUsize);
       this.userName = userName;
+      
+      this.serverProtocol = serverProtocol;
       this.serverName = serverName;
       this.serverPort = serverPort;
       this.serverUsername = serverUsername;
       this.serverPassword = serverPassword;
+      this.serverHTTPCgi = (serverHTTPCgi==null)?"":serverHTTPCgi;
+      this.serverHTTPNTLMDomain = (serverHTTPNTLMDomain==null)?"":serverHTTPNTLMDomain;
+      this.serverHTTPNTLMUsername = (serverHTTPNTLMUsername==null)?"":serverHTTPNTLMUsername;
+      this.serverHTTPNTLMPassword = (serverHTTPNTLMPassword==null)?"":serverHTTPNTLMPassword;
+      this.serverHTTPSKeystore = serverHTTPSKeystore.getString();
       this.responseLifetime = responseLifetime;
     }
 
@@ -1202,8 +1226,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     /** Get the critical section name, used for synchronizing the creation of the object */
     public String getCriticalSectionName()
     {
-      return getClass().getName() + "-" + userName + "-" + serverName +
-        "-" + Integer.toString(serverPort) + "-" + serverUsername + "-" + serverPassword;
+      return getClass().getName() + "-" + userName + "-" + serverProtocol + "-" + serverName +
+        "-" + Integer.toString(serverPort) + "-" + serverUsername + "-" + serverPassword +
+        "-" + serverHTTPCgi + "-" + serverHTTPNTLMDomain + "-" + serverHTTPNTLMUsername +
+        "-" + serverHTTPNTLMPassword + "-" + serverHTTPSKeystore;
     }
 
     /** Return the object expiration interval */
@@ -1216,8 +1242,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
     public int hashCode()
     {
-      return userName.hashCode() + serverName.hashCode() + new Integer(serverPort).hashCode() +
-        serverUsername.hashCode() + serverPassword.hashCode();
+      return userName.hashCode() +
+        serverProtocol.hashCode() + serverName.hashCode() + new Integer(serverPort).hashCode() +
+        serverUsername.hashCode() + serverPassword.hashCode() +
+        serverHTTPCgi.hashCode() + serverHTTPNTLMDomain.hashCode() + serverHTTPNTLMUsername.hashCode() +
+        serverHTTPNTLMPassword.hashCode() + serverHTTPSKeystore.hashCode();
     }
     
     public boolean equals(Object o)
@@ -1225,8 +1254,12 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       if (!(o instanceof AuthorizationResponseDescription))
         return false;
       AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
-      return ard.userName.equals(userName) && ard.serverName.equals(serverName) && ard.serverPort == serverPort &&
-        ard.serverUsername.equals(serverUsername) && ard.serverPassword.equals(serverPassword);
+      return ard.userName.equals(userName) &&
+        ard.serverProtocol.equals(serverProtocol) && ard.serverName.equals(serverName) && ard.serverPort == serverPort &&
+        ard.serverUsername.equals(serverUsername) && ard.serverPassword.equals(serverPassword) &&
+        ard.serverHTTPCgi.equals(serverHTTPCgi) && ard.serverHTTPNTLMDomain.equals(serverHTTPNTLMDomain) &&
+        ard.serverHTTPNTLMUsername.equals(serverHTTPNTLMUsername) && ard.serverHTTPNTLMPassword.equals(serverHTTPNTLMPassword) &&
+        ard.serverHTTPSKeystore.equals(serverHTTPSKeystore);
     }
     
   }

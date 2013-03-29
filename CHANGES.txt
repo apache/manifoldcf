@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-667: Fix livelink authority caching to work properly with
+new SSL connection support.
+(David Morana, Karl Wright)
+
 CONNECTORS-666: Ant build broken
 (Piergiorgio Lucidi)
 
