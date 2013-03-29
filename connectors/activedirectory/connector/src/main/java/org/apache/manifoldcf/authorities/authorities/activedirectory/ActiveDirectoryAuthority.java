@@ -249,6 +249,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
+    // This sets up parameters we need to construct the response description
+    getSession();
+
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
       dCConnectionParameters,dCRules,this.responseLifetime,this.LRUsize);

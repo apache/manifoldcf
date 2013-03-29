@@ -629,6 +629,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     if (Logging.authorityConnectors.isDebugEnabled())
       Logging.authorityConnectors.debug("DCTM: Inside AuthorityConnector.getAuthorizationResponse for user '"+strUserNamePassedIn+"'");
 
+    // We need this in order to be able to properly construct an AuthorizationResponseDescription.
+    getSession();
+    
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
       domain,caseInsensitive,useSystemAcls,responseLifetime,LRUsize);
