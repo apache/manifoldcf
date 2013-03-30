@@ -29,7 +29,7 @@
                    with all required services running and desired connection types properly registered.  If you think you need to know how to do that yourself, please visit the "Developer Resources" page.
             </p>
             <p>Most of this manual describes how to use the ManifoldCF user interface.  On a standard ManifoldCF deployment, you would reach that interface by giving your browser
-                  a URL something like this: <code>http://my-server-name:8080/acf-crawler-ui</code>.  This will, of course, differ from system to system.  Please contact your system administrator
+                  a URL something like this: <code>http://my-server-name:8345/mcf-crawler-ui</code>.  This will, of course, differ from system to system.  Please contact your system administrator
                   to find out what URL is appropriate for your environment.
             </p>
             <p>The ManifoldCF UI has been tested with Firefox and various incarnations of Internet Explorer.  If you use another browser, there is a small chance that the UI
@@ -637,33 +637,52 @@
             <section id="livelinkauthority">
                 <title>OpenText LiveLink Authority Connection</title>
                 <p>A LiveLink authority connection is needed to enforce security for documents retrieved from LiveLink repositories.</p>
-                <p>In order to function, this connection type needs to be provided with 
-                    information about the name of the LiveLink server, and credentials appropriate for retrieving a user's ACLs from that machine.  Since LiveLink operates with its own list of users, you
-                    may also want to specify a rule-based mapping between an Active Directory user and the corresponding LiveLink user.  The authority type allows you to specify such a mapping using
+                <p>In order to function, this connection type needs to be provided with information about the name of the LiveLink server, and credentials appropriate
+                    for retrieving a user's ACLs from that machine.  Since LiveLink operates with its own list of users, you may also want to specify a rule-based
+                    mapping between an Active Directory user and the corresponding LiveLink user.  The authority type allows you to specify such a mapping using
                     regular expressions.</p>
-                <p>A LiveLink authority connection has two special tabs you will need to configure: the "Server" tab, and the "User Mapping" tab.</p>
+                <p>A LiveLink authority connection has three special tabs you will need to configure: the "Server" tab, the "User Mapping" tab, and the "Cache" tab.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-server.PNG" alt="LiveLink Authority, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink credentials.</p>
+                <p>Select the manner you want the connection to use to communicate with LiveLink.  Your options are:</p>
+                <ul>
+                  <li>Internal (native LiveLink protocol)</li>
+                  <li>HTTP (communication with LiveLink through the IIS web server)</li>
+                  <li>HTTPS (communication with LiveLink through IIS using SSL)</li>
+                </ul>
+                <p>Also, you need to enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink server credentials.  If you have selected communication
+                    using HTTP or HTTPS, you must provide a relative CGI path to your LiveLink.  You may also need to provide web server credentials.  Basic authentication
+                    and older forms of NTLM are supported.  In order to use NTLM, specify a non-blank server domain name in the "Server HTTP domain" field, plus a non-
+                    qualified user name and password.  If basic authentication is desired, leave the "Server HTTP domain" field blank, and provide basic auth credentials in the
+                    "Server HTTP NTLM user name" and "Server HTTP NTLM password" fields.  For no web server authentication, leave these fields all blank.</p>
+                <p>For communication using HTTPS, you will also need to upload your authority certificate(s) on the "Server" tab, to tell the connection which certificates to
+                    trust.  Upload your certificate using the browse button, and then click the "Add" button to add it to the trust store.</p>
                 <p>The "User Mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-user-mapping.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its LiveLink equivalent.
-                       The mapping consists of a match expression, which is a regular expression where parentheses ("("
-                       and ")") mark sections you are interested in, and a replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
-                       mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an AD username of
-                    <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name <code>subdomain\myusername</code>.</p>
+                       The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
+                       replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
+                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first
+                       match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
+                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert
+                      an Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name
+                      <code>subdomain\myusername</code>.</p>
+                <p>The "Cache" tab allows you to configure how the authority connection keeps an individual user's information around:</p>
+                <br/><br/>
+                <figure src="images/en_US/livelink-authority-cache.PNG" alt="LiveLink Authority, Cache tab" width="80%"/>
+                <br/><br/>
+                <p>Here you set the time a user's information is kept around (the "Cache lifetime" field), and how many simultaneous users have their information cached
+                      (the "Cache LRU size" field).</p>
                 <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-status.PNG" alt="LiveLink Authority Status" width="80%"/>
                 <br/><br/>
-                <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the LiveLink server would not accept connections, which
-                    is leading to an error status message instead of "Connection working".</p>
+                <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the LiveLink server would
+                    not accept connections, which is leading to an error status message instead of "Connection working".</p>
             </section>
             
             <section id="documentumauthority">
@@ -812,8 +831,8 @@
                      and ")") mark sections you are interested in, and a replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
                      substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
                      mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-              <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an AD username of
-                  <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name <code>subdomain\myusername</code>.</p>
+              <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an
+                   Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the CMIS user name <code>subdomain\myusername</code>.</p>
               <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
               <br/><br/>
               <figure src="images/en_US/cmis-authority-connection-configuration-save.png" alt="CMIS Authority, saving configuration" width="80%"/>
@@ -1587,48 +1606,65 @@
             
             <section id="livelinkrepository">
                 <title>OpenText LiveLink Repository Connection</title>
-                <p>The OpenText LiveLink connection type allows you to index content from LiveLink repositories.  LiveLink has a rich variety of different document types and metadata, which include
-                    basic documents, as well as compound documents, folders, workspaces, and projects.  A LiveLink connection is able to discover documents contained within all of these constructs.</p>
-                <p>Documents described by LiveLink connections are typically secured by a LiveLink authority.  If you have not yet created a LiveLink authority, but would like your
-                    documents to be secured, please follow the direction in the section titled "OpenText LiveLink Authority Connection".</p>
-                <p>A LiveLink connection has the following special tabs: "Server", "Document Access", and "Document View".  The "Server" tab allows you to select a LiveLink server to connect to, and also to provide
-                    appropriate credentials.  The "Document Access" tab describes the location of the LiveLink web interface, relative to the server, that will be used to fetch document content from LiveLink.
-                    The "Document View" tab affects how URLs to the fetched documents are constructed, for viewing results of searches.</p>
+                <p>The LiveLink connection type allows you to index content from LiveLink repositories.  LiveLink has a rich variety of different document types and metadata,
+                    which include basic documents, as well as compound documents, folders, workspaces, and projects.  A LiveLink connection is able to discover documents
+                    contained within all of these constructs.</p>
+                <p>Documents described by LiveLink connections are typically secured by a LiveLink authority.  If you have not yet created a LiveLink authority, but would
+                    like your documents to be secured, please follow the direction in the section titled "OpenText LiveLink Authority Connection".</p>
+                <p>A LiveLink connection has the following special tabs: "Server", "Document Access", and "Document View".  The "Server" tab allows you to select a
+                    LiveLink server to connect to, and also to provide appropriate credentials.  The "Document Access" tab describes the location of the LiveLink web interface,
+                    relative to the server, that will be used to fetch document content from LiveLink. The "Document View" tab affects how URLs to the fetched documents
+                    are constructed, for viewing results of searches.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-server.PNG" alt="LiveLink Connection, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Enter the LiveLink server name, port, and credentials.</p>
+                <p>Select the manner you want the connection to use to communicate with LiveLink.  Your options are:</p>
+                <ul>
+                  <li>Internal (native LiveLink protocol)</li>
+                  <li>HTTP (communication with LiveLink through the IIS web server)</li>
+                  <li>HTTPS (communication with LiveLink through IIS using SSL)</li>
+                </ul>
+                <p>Also, you need to enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink server credentials.  If you have selected communication
+                    using HTTP or HTTPS, you must provide a relative CGI path to your LiveLink.  You may also need to provide web server credentials.  Basic authentication
+                    and older forms of NTLM are supported.  In order to use NTLM, specify a non-blank server domain name in the "Server HTTP domain" field, plus a non-
+                    qualified user name and password.  If basic authentication is desired, leave the "Server HTTP domain" field blank, and provide basic auth credentials in the
+                    "Server HTTP NTLM user name" and "Server HTTP NTLM password" fields.  For no web server authentication, leave these fields all blank.</p>
+                <p>For communication using HTTPS, you will also need to upload your authority certificate(s) on the "Server" tab, to tell the connection which certificates to
+                    trust.  Upload your certificate using the browse button, and then click the "Add" button to add it to the trust store.</p>
                 <p>The "Document Access" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-document-access.PNG" alt="LiveLink Connection, Document Access tab" width="80%"/>
                 <br/><br/>
-                <p>The server name is presumed to be the same as is on the "Server" tab.  Select the desired protocol.  If your LiveLink server is using a non-standard HTTP port for the specified protocol, enter the 
-                    port number.  If your LiveLink server is using NTLM authentication, enter an AD user name, password, and domain.  If your LiveLink is using HTTPS, browse locally for the appropriate
-                    certificate authority certificate, and click "Add" to upload that certificate to the connection's trust store.  (You may also use the server's certificate, but that is less resilient because the
-                    server's certificate may be changed periodically.)</p>
+                <p>The server name is presumed to be the same as is on the "Server" tab.  Select the desired protocol for document retrieval.  If your LiveLink server
+                    is using a non-standard HTTP port for the specified protocol for document retrieval, enter the port number.  If your LiveLink server is using NTLM
+                    authentication to access documents, enter an Active Directory user name, password, and domain.  If your LiveLink is using HTTPS, browse locally
+                    for the appropriate certificate authority certificate, and click "Add" to upload that certificate to the connection's trust store.  (You may also use the server's
+                    certificate, but that is less resilient because the server's certificate may be changed periodically.)</p>
                 <p>The "Document View" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-document-view.PNG" alt="LiveLink Connection, Document Viewtab" width="80%"/>
                 <br/><br/>
-                <p>If you want each document's view URL to be the same as its access URL, you can leave this tab unchanged.  If you want to direct users to a different CGI path when they view search results,
-                    you can specify that here.</p>
+                <p>If you want each document's view URL to be the same as its access URL, you can leave this tab unchanged.  If you want to direct users to a different
+                    CGI path when they view search results, you can specify that here.</p>
                 <p>When you are done, click the "Save" button.  You will see a summary screen that looks something like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-status.PNG" alt="LiveLink Connection Status" width="80%"/>
                 <br/><br/>
-                <p>Make note of and correct any reported connection errors.  In this example, the connection has been correctly set up, so the connection status is "Connection working".</p>
+                <p>Make note of and correct any reported connection errors.  In this example, the connection has been correctly set up, so the connection status is
+                    "Connection working".</p>
                 <p></p>
                 <p>A job created to use a LiveLink connection has the following additional tabs associated with it: "Paths", "Filters", "Security", and "Metadata".</p>
                 <p>The "Paths" tab allows you to manage a list of LiveLink paths that act as starting points for indexing content:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-job-paths.PNG" alt="LiveLink Job, Paths tab" width="80%"/>
                 <br/><br/>
-                <p>Build each path by selecting from the available dropdown, and clicking the "+" button.  When your path is complete, click the "Add" button to add the path to the list of starting points.</p>
-                <p>The "Filters" tab controls the criteria the LiveLink job will use to include or exclude content.  The filters are basically a list of rules.  Each rule has a document match field,
-                    and a matching action ("Include" or "Exclude").  When a LiveLink connection encounters a document, it evaluates the rules from top to bottom.
-                    If the rule matches, then it will be included or excluded from the job's document set depending on what you have selected for the matching action. A rule's match field specifies a
-                    character match, where "*" will match any number of characters, and "?" will match any single character.</p>
+                <p>Build each path by selecting from the available dropdown, and clicking the "+" button.  When your path is complete, click the "Add" button to add the path
+                    to the list of starting points.</p>
+                <p>The "Filters" tab controls the criteria the LiveLink job will use to include or exclude content.  The filters are basically a list of rules.  Each rule has a
+                    document match field, and a matching action ("Include" or "Exclude").  When a LiveLink connection encounters a document, it evaluates the rules from
+                    top to bottom.  If the rule matches, then it will be included or excluded from the job's document set depending on what you have selected for the
+                    matching action. A rule's match field specifies a character match, where "*" will match any number of characters, and "?" will match any single character.</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-job-filters.PNG" alt="LiveLink Job, Filters tab" width="80%"/>
                 <br/><br/>
@@ -1638,21 +1674,23 @@
                 <figure src="images/en_US/livelink-job-security.PNG" alt="LiveLink Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>If you disable security, you can add your own access tokens to all
-                    jobs in the document set as they are indexed.  The format of the access tokens you would enter depends on the governing authority associated with the job's repository connection.
-                    Enter a token and click the "Add" button to add it to the list.</p>
+                    jobs in the document set as they are indexed.  The format of the access tokens you would enter depends on the governing authority associated with the
+                    job's repository connection. Enter a token and click the "Add" button to add it to the list.</p>
                 <p>The "Metadata" tab allows you to select what specific metadata values from LiveLink you want to pass to the index:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-job-metadata.PNG" alt="LiveLink Job, Metadata tab" width="80%"/>
                 <br/><br/>
-                <p>If you want to pass all available LiveLink metadata to the index, then click the "All metadata" radio button.  Otherwise, you need to build LiveLink metadata paths and add them to the metadata list.
-                    Select the next metadata path segment, and click the appropriate "+" button to add it to the path.  You may add folder information, or a metadata category, at any point.</p>
-                <p>Once you have drilled down to a metadata category, you can select the metadata attributes to include, or check the "All attributes in this category" checkbox.  When you are done, click the
-                    "Add" button to add the metadata attributes that you want to include in the index.</p>
-                <p>You can also use the "Metadata" tab to have the connection send path data along with each document, as a piece of document metadata.  To enable this feature, enter the name of the metadata
-                    attribute you want this information to be sent into the "Path attribute name" field.  Then, add the rules you want to the list of rules.  Each rule has a match expression, which is a regular expression where
-                    parentheses ("(" and ")") mark sections you are interested in.  These sections are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                    substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
-                    mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
+                <p>If you want to pass all available LiveLink metadata to the index, then click the "All metadata" radio button.  Otherwise, you need to build LiveLink
+                    metadata paths and add them to the metadata list. Select the next metadata path segment, and click the appropriate "+" button to add it to the path.
+                    You may add folder information, or a metadata category, at any point.</p>
+                <p>Once you have drilled down to a metadata category, you can select the metadata attributes to include, or check the "All attributes in this category"
+                    checkbox.  When you are done, click the "Add" button to add the metadata attributes that you want to include in the index.</p>
+                <p>You can also use the "Metadata" tab to have the connection send path data along with each document, as a piece of document metadata.  To enable
+                    this feature, enter the name of the metadata attribute you want this information to be sent into the "Path attribute name" field.  Then, add the rules you
+                    want to the list of rules.  Each rule has a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are
+                    interested in.  These sections are called "groups" in regular expression parlance.  The replace string consists of constant text plus
+                    substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the
+                    first match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
                 <p>For example, suppose you had a rule which had ".*/(.*)/(.*)/.*" as a match expression, and "$(1) $(2)" as the replace string.  If presented with the path
                     <code>Project/Folder_1/Folder_2/Filename</code>, it would output the string <code>Folder_1 Folder_2</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
