@@ -47,6 +47,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** How to create a connection for a DC, keyed by DC name */
   private Map<String,DCConnectionParameters> dCConnectionParameters = null;
   
+  private boolean hasSessionParameters = false;
   private String cacheLifetime = null;
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
@@ -110,11 +111,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     dCRules = new ArrayList<DCRule>();
     dCConnectionParameters = new HashMap<String,DCConnectionParameters>();
     // For backwards compatibility, look at old-style parameters
-    String domainControllerName = configParams.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
-    String userName = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
-    String password = configParams.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
-    String authentication = configParams.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
-    String userACLsUsername = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
+    String domainControllerName = params.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
+    String userName = params.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
+    String password = params.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
+    String authentication = params.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
+    String userACLsUsername = params.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
     if (domainControllerName != null)
     {
       // Map the old-style parameters into the new-style structures.
@@ -126,9 +127,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     {
       // New-style parameters.  Read from the config info.
       int i = 0;
-      while (i < configParams.getChildCount())
+      while (i < params.getChildCount())
       {
-        ConfigNode cn = configParams.getChild(i++);
+        ConfigNode cn = params.getChild(i++);
         if (cn.getType().equals(ActiveDirectoryConfig.NODE_DOMAINCONTROLLER))
         {
           // Domain controller name is the actual key...
@@ -144,10 +145,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       }
     }
     
-    cacheLifetime = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
+    cacheLifetime = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
       cacheLifetime = "1";
-    cacheLRUsize = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
+    cacheLRUsize = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
     if (cacheLRUsize == null)
       cacheLRUsize = "1000";    
   }
@@ -176,7 +177,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException
   {
     // Set up the basic session...
-    getSession();
+    getSessionParameters();
     // Clear the DC session info, so we're forced to redo it
     for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
     {
@@ -195,7 +196,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   protected LdapContext createDCSession(String domainController)
     throws ManifoldCFException
   {
-    getSession();
+    getSessionParameters();
     DCConnectionParameters parms = dCConnectionParameters.get(domainController);
     // Find the session in the hash, if it exists
     DCSessionInfo session = sessionInfo.get(domainController);
@@ -228,6 +229,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
+
     // Close all connections
     for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
     {
@@ -250,7 +253,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException
   {
     // This sets up parameters we need to construct the response description
-    getSession();
+    getSessionParameters();
 
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
@@ -687,22 +690,24 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
 
   // Protected methods
 
-  /** Basic "session" setup.  This does not set up sessions with any DC's, but only validates the incoming scalar
-  * parameters.  Setting up sessions with specific DC's requires other method calls in addition to this one.
+  /** Get parameters needed for caching.
   */
-  protected void getSession()
+  protected void getSessionParameters()
     throws ManifoldCFException
   {
-    try
+    if (!hasSessionParameters)
     {
-      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
-      LRUsize = Integer.parseInt(this.cacheLRUsize);
+      try
+      {
+        responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+        LRUsize = Integer.parseInt(this.cacheLRUsize);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+      }
+      hasSessionParameters = true;
     }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
-    }
-    
   }
   
   
