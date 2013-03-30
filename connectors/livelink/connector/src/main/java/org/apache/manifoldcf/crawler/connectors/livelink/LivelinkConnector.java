@@ -117,8 +117,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected final static String GENERAL_CREATOR = "general_creator";
   protected final static String GENERAL_MODIFIER = "general_modifier";
 
+  // Signal that we have set up connection parameters properly
+  private boolean hasSessionParameters = false;
   // Signal that we have set up a connection properly
-  private boolean hasBeenSetup = false;
+  private boolean hasConnected = false;
+  // Session expiration time
+  private long expirationTime = -1L;
+  // Idle session expiration interval
+  private final static long expirationInterval = 300000L;
 
   // Data required for maintaining livelink connection
   private LAPI_DOCUMENTS LLDocs = null;
@@ -297,10 +303,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     return new HttpHost(llServer.getHost(),ingestPortNumber,ingestProtocol);
   }
 
-  protected void getSession()
-    throws ManifoldCFException, ServiceInterruption
+  protected void getSessionParameters()
+    throws ManifoldCFException
   {
-    if (hasBeenSetup == false)
+    if (hasSessionParameters == false)
     {
       // Do the initial setup part (what used to be part of connect() itself)
 
@@ -408,6 +414,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
       }
 
+      // Set up ingest ssl if indicated
+      String ingestKeystoreData = params.getParameter(LiveLinkParameters.ingestKeystore);
+      if (ingestKeystoreData != null)
+        ingestKeystoreManager = KeystoreManagerFactory.make("",ingestKeystoreData);
+
+
       // Server parameter processing
 
       if (serverProtocol == null || serverProtocol.length() == 0)
@@ -425,21 +437,35 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         serverHTTPNTLMUsername = null;
         serverHTTPNTLMPassword = null;
       }
-
-      // Set up connection manager
-      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
-      localConnectionManager.setMaxTotal(1);
       
       // Set up server ssl if indicated
       String serverHTTPSKeystoreData = params.getParameter(LiveLinkParameters.serverHTTPSKeystore);
       if (serverHTTPSKeystoreData != null)
         serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
 
+      // View parameters
+      if (viewServerName == null || viewServerName.length() == 0)
+        viewServerName = serverName;
+
+      viewBasePath = viewProtocol+"://"+viewServerName+viewPortString+viewCgiPath;
+
+      hasSessionParameters = true;
+    }
+  }
+  
+  protected void getSession()
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSessionParameters();
+    if (hasConnected == false)
+    {
+      // Set up connection manager
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+
       // Set up ingest ssl if indicated
-      String ingestKeystoreData = params.getParameter(LiveLinkParameters.ingestKeystore);
-      if (ingestKeystoreData != null)
+      if (ingestKeystoreManager != null)
       {
-        ingestKeystoreManager = KeystoreManagerFactory.make("",ingestKeystoreData);
         SSLSocketFactory myFactory = new SSLSocketFactory(ingestKeystoreManager.getSecureSocketFactory(),
           new BrowserCompatHostnameVerifier());
         Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
@@ -499,12 +525,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             else
               throw (Error)thr;
           }
-          if (viewServerName == null || viewServerName.length() == 0)
-            viewServerName = llServer.getHost();
-
-          viewBasePath = viewProtocol+"://"+viewServerName+viewPortString+viewCgiPath;
-          hasBeenSetup = true;
-          return;
+          hasConnected = true;
+          break;
         }
         catch (InterruptedException e)
         {
@@ -517,6 +539,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
       }
     }
+    expirationTime = System.currentTimeMillis() + expirationInterval;
   }
 
   // All methods below this line will ONLY be called if a connect() call succeeded
@@ -553,7 +576,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     try
     {
       // Destroy saved session setup and repeat it
-      hasBeenSetup = false;
+      hasConnected = false;
       getSession();
 
       // Now, set up trial of ingestion connection
@@ -633,8 +656,29 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public void poll()
     throws ManifoldCFException
   {
-    if (connectionManager != null)
-      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
+    if (!hasConnected)
+      return;
+
+    long currentTime = System.currentTimeMillis();
+    if (currentTime >= expirationTime)
+    {
+      hasConnected = false;
+      expirationTime = -1L;
+
+      // Shutdown livelink connection
+      if (llServer != null)
+      {
+        llServer.disconnect();
+        llServer = null;
+      }
+      
+      // Shutdown pool
+      if (connectionManager != null)
+      {
+        connectionManager.shutdown();
+        connectionManager = null;
+      }
+    }
   }
 
   /** Close the connection.  Call this before discarding the repository connector.
@@ -643,10 +687,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
+    hasConnected = false;
+    expirationTime = -1L;
     if (llServer != null)
+    {
       llServer.disconnect();
-    hasBeenSetup = false;
-    llServer = null;
+      llServer = null;
+    }
     LLDocs = null;
     LLAttributes = null;
     ingestKeystoreManager = null;
@@ -679,8 +727,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     ingestNtlmPassword = null;
 
     if (connectionManager != null)
+    {
       connectionManager.shutdown();
-    connectionManager = null;
+      connectionManager = null;
+    }
 
     super.disconnect();
   }
