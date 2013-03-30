@@ -56,6 +56,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   protected String domain = null;
   protected String webtopBaseURL = null;
 
+  protected boolean hasSessionParameters = false;
   protected IDocumentum session = null;
   protected long lastSessionFetch = -1L;
 
@@ -98,12 +99,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
   }
 
-  /** Get a DFC session.  This will be done every time it is needed.
+  /** Establish session parameters.
   */
-  protected void getSession()
-    throws ManifoldCFException, ServiceInterruption
+  protected void getSessionParameters()
+    throws ManifoldCFException
   {
-    if (session == null)
+    if (!hasSessionParameters)
     {
       // Perform basic parameter checking, and debug output.
       if (docbaseName == null || docbaseName.length() < 1)
@@ -132,6 +133,18 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       else
         Logging.connectors.debug("DCTM: Domain = '" + domain + "'");
 
+      hasSessionParameters = true;
+    }
+  }
+  
+  /** Get a DFC session.  This will be done every time it is needed.
+  */
+  protected void getSession()
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSessionParameters();
+    if (session == null)
+    {
       long currentTime;
       GetSessionThread t = new GetSessionThread();
       try
@@ -646,6 +659,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
     if (session != null)
     {
       DestroySessionThread t = new DestroySessionThread();

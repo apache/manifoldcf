@@ -62,6 +62,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     /** Cache manager. */
   protected ICacheManager cacheManager = null;
 
+  // Set if we have set up session parameters necessary for caching
+  protected boolean hasSessionParameters = false;
   // This is the DFC session; it may be null, or it may be set.
   protected IDocumentum session = null;
   protected long lastSessionFetch = -1L;
@@ -129,23 +131,23 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     }
   }
 
-  /** Get a DFC session.  This will be done every time it is needed.
+  /** Get session parameters.
   */
-  protected void getSession()
+  protected void getSessionParameters()
     throws ManifoldCFException
   {
-    try
+    if (!hasSessionParameters)
     {
-      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
-      LRUsize = Integer.parseInt(this.cacheLRUsize);
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
-    }
+      try
+      {
+        responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+        LRUsize = Integer.parseInt(this.cacheLRUsize);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+      }
 
-    if (session == null)
-    {
       // This is the stuff that used to be in connect()
       if (docbaseName == null || docbaseName.length() < 1)
         throw new ManifoldCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
@@ -182,7 +184,18 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         Logging.authorityConnectors.debug("DCTM: Use system acls enabled");
       }
 
-
+      hasSessionParameters = true;
+    }
+  }
+  
+  /** Get a DFC session.  This will be done every time it is needed.
+  */
+  protected void getSession()
+    throws ManifoldCFException
+  {
+    getSessionParameters();
+    if (session == null)
+    {
       // This actually sets up the connection
       GetSessionThread t = new GetSessionThread();
       try
@@ -630,7 +643,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       Logging.authorityConnectors.debug("DCTM: Inside AuthorityConnector.getAuthorizationResponse for user '"+strUserNamePassedIn+"'");
 
     // We need this in order to be able to properly construct an AuthorizationResponseDescription.
-    getSession();
+    getSessionParameters();
     
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
@@ -945,6 +958,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
     if (session != null)
     {
       DestroySessionThread t = new DestroySessionThread();
