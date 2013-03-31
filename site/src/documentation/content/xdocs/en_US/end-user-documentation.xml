@@ -196,15 +196,17 @@
             <section id="jobs">
                 <title>Creating Jobs</title>
                 <p>A "job" in ManifoldCF is a description of a set of documents.  The Framework's job is to fetch this set of documents come from a specific repository connection, and
-                       send them to a specific output connection.  The repository connection that is associated with the job will determine exactly how this set of documents is described, and to some
-                       degree how they are indexed.  The output connection associated with the job can also affect how each document is indexed.</p>
-                <p>Every job is expected to be run more than once.  Each time a job is run, it is responsible not only for sending new or changed documents to the output connection, but also for
-                       notifying the output connection of any documents that are no longer part of the set.  Note that there are two ways for a document to no longer be part of the included set of documents:
-                       Either the document may have been deleted from the repository, or the document may no longer be included in the allowed set of documents.  The Framework handles each case properly.</p>
-                <p>Deleting a job causes the output connection to be notified of deletion for all documents belonging to that job.  This makes sense because the job represents the set of documents, which would
-                       otherwise be orphaned when the job was removed.  (Some users make the assumption that a ManifoldCF job represents nothing more than a task, which is an incorrect
-                       assumption.)</p>
-                <p>Note that the Framework allows jobs that describe overlapping sets of documents to be defined.  Documents that exist in more than one job are treated in the following special ways:</p>
+                       send them to a specific output connection.  The repository connection that is associated with the job will determine exactly how this set of documents is described,
+                       and to some degree how they are indexed.  The output connection associated with the job can also affect how each document is indexed.</p>
+                <p>Every job is expected to be run more than once.  Each time a job is run, it is responsible not only for sending new or changed documents to the output connection,
+                       but also for notifying the output connection of any documents that are no longer part of the set.  Note that there are two ways for a document to no longer be part
+                       of the included set of documents: Either the document may have been deleted from the repository, or the document may no longer be included in the allowed set
+                       of documents.  The Framework handles each case properly.</p>
+                <p>Deleting a job causes the output connection to be notified of deletion for all documents belonging to that job.  This makes sense because the job represents the set
+                       of documents, which would otherwise be orphaned when the job was removed.  (Some users make the assumption that a ManifoldCF job represents nothing more
+                       than a task, which is an incorrect assumption.)</p>
+                <p>Note that the Framework allows jobs that describe overlapping sets of documents to be defined.  Documents that exist in more than one job are treated in the
+                       following special ways:</p>
                 <ul>
                     <li>When a job is deleted, the output connection is notified of deletion of documents belonging to that job only if they don't belong to another job</li>
                     <li>The version of the document sent to the output connection depends on which job was run last</li>
@@ -221,33 +223,34 @@
                     <li>Adding the job's new, changed, or deleted starting points to the queue ("seeding")</li>
                     <li>Fetching documents, discovering new documents, and detecting deletions, while reseeding periodically</li>
                 </ol>
-                <p>Note that continuous jobs <b>cannot</b> remove no-longer-included documents from the queue.  They can only remove documents that have been deleted from the repository.</p>
-                <p>A job can independently be configured to start when explicitly started by a user, or to run on a user-specified schedule.  If a job is set up to run on a schedule, it can be made to
-                      start only at the beginning of a schedule window, or to start again within any remaining schedule window when the previous job run completes.</p>
+                <p>Note that continuous jobs <b>cannot</b> remove no-longer-included documents from the queue.  They can only remove documents that have been deleted from
+                     the repository.</p>
+                <p>A job can independently be configured to start when explicitly started by a user, or to run on a user-specified schedule.  If a job is set up to run on a schedule, it
+                       can be made to start only at the beginning of a schedule window, or to start again within any remaining schedule window when the previous job run completes.</p>
                 <p>There is no restriction in ManifoldCF as to how many jobs many running at any given time.</p>
                 <p>You create a job by first clicking on the "List All Jobs" link on the left-side menu.  The following screen will appear:</p>
                 <br/><br/>
                 <figure src="images/en_US/list-jobs.PNG" alt="List Jobs" width="80%"/>
                 <br/><br/>
-                <p>You may view, edit, or delete any existing jobs by clicking on the appropriate link.  You may also create a new job that is a copy of an existing job.  But to create a brand-new job,
-                       click the "Add a new job" link at the bottom.  You will then see the following page:</p>
+                <p>You may view, edit, or delete any existing jobs by clicking on the appropriate link.  You may also create a new job that is a copy of an existing job.  But to create
+                       a brand-new job, click the "Add a new job" link at the bottom.  You will then see the following page:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-name.PNG" alt="Add New Job, name tab" width="80%"/>
                 <br/><br/>
-                <p>Give your job a name.  Note that job names do <b>not</b> have to be unique, although it is probably less confusing to have a different name for each one.  Then, click the
-                       "Connection" tab:</p>
+                <p>Give your job a name.  Note that job names do <b>not</b> have to be unique, although it is probably less confusing to have a different name for each one.  Then,
+                       click the "Connection" tab:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-connection.PNG" alt="Add New Job, connection tab" width="80%"/>
                 <br/><br/>
-                <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the job is saved
-                       the first time.</p>
+                <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the
+                       job is saved the first time.</p>
                 <p>You also have the opportunity to modify the job's priority and start method at this time.  The priority
-                       controls how important this job's documents are, relative to documents from any other job.  The higher the number, the more important it is considered for that job's documents to be
-                       fetched first.  The start method is as previously described; you get a choice of manual start, starting on the beginning of a scheduling window, or starting whenever possible within
-                       a scheduling window.</p>
+                       controls how important this job's documents are, relative to documents from any other job.  The higher the number, the more important it is considered for that job's
+                       documents to be fetched first.  The start method is as previously described; you get a choice of manual start, starting on the beginning of a scheduling window, or
+                       starting whenever possible within a scheduling window.</p>
                 <p>Make your selections, and click "Continue".  The rest of the job's tabs will now appear, and a
-                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create or update your job.  If you click "Cancel" instead, the new job
-                       will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create or update your job.  If
+                       you click "Cancel" instead, the new job will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>All jobs have a "Scheduling" tab.  The scheduling tab allows you to set up schedule-related configuration information:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-scheduling.PNG" alt="Add New Job, scheduling tab" width="80%"/>
@@ -261,17 +264,29 @@
                 </ul>
                 <br/>
                 <p>The last three parameters only make sense if a job is a continuously running one, as the UI indicates.</p>
-                <p>The other thing you can do on this time is to define an appropriate set of scheduling records.  Each scheduling record defines some related set of intervals during which the job can run.  The
-                       intervals are determined by the starting time (which is defined by the day of week, month, day, hour, and minute pulldowns), and the maximum run time in minutes, which determines
-                       when the interval ends.  It is, of course, possible to select multiple values for each of the pulldowns, in which case you be describing a starting time that had to match at least <b>one</b>
-                       of the selected values for <b>each</b> of the specified fields.</p>
+                <p>The other thing you can do on this time is to define an appropriate set of scheduling records.  Each scheduling record defines some related set of intervals during
+                       which the job can run.  The intervals are determined by the starting time (which is defined by the day of week, month, day, hour, and minute pulldowns), and the
+                       maximum run time in minutes, which determines when the interval ends.  It is, of course, possible to select multiple values for each of the pulldowns, in which case
+                       you be describing a starting time that had to match at least <b>one</b> of the selected values for <b>each</b> of the specified fields.</p>
                 <p>Once you have selected the schedule values you want, click the "Add Scheduled Time" button:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-scheduling-with-record.PNG" alt="Add New Job, scheduling tab with record" width="80%"/>
                 <br/><br/>
                 <p>The example shows a schedule where crawls are run on Saturday and Sunday nights at 2 AM, and run for no more than 4 hours.</p>
                 <p>The rest of the job tabs depend on the types of the connections you selected.  Please refer to the section of the manual
-                       describing the appropriate connection types corresponding to your chosen repository and output connections for a description of the job tabs that will appear for those connections.</p>
+                       describing the appropriate connection types corresponding to your chosen repository and output connections for a description of the job tabs that will appear for
+                       those connections.</p>
+                <p>All jobs also have a "Forced Metadata" tab.  This allows you to specify metadata values that are specific to those documents indexed by the job, which can be
+                       very useful in categorizing documents within a search engine.  The "Forced Metadata" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-job-forced-metadata.PNG" alt="Add New Job, forced metadata tab" width="80%"/>
+                <br/><br/>
+                <p>Enter the name of the metadata parameter you want to include in the "Parameter name" column, and the value in the "Parameter value" column, and click the
+                      "Add" button.  For example:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-job-forced-metadata-example.PNG" alt="Add New Job, forced metadata tab with example" width="80%"/>
+                <br/><br/>
+                <p>You may add multiple parameter values, or delete values you do not want by clicking the appropriate "Delete" button.</p>
             </section>
             <section id="executing">
                 <title>Executing Jobs</title>

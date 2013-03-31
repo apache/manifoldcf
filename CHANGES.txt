@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-672: Update end-user documentation to include
+Forced Metadata tab.
+(Karl Wright)
+
 CONNECTORS-669: UI did not allow empty connection name to be
 changed, for either authority or repository connections.
 (Karl Wright)
