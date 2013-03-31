@@ -912,25 +912,25 @@
                 <br/><br/>
                 <figure src="images/en_US/rss-configure-bandwidth.PNG" alt="RSS Connection, Bandwidth tab" width="80%"/>
                 <br/><br/>
-                <p>This tab allows you to control the <b>maximum</b> rate at which the connection fetches data, on a per-server basis, as well as the <b>maximum</b> fetches per minute,
-                       also per-server.  Finally, the maximum number of socket connections made per server at any one time is also controllable by this tab.</p>
-                <p>The screen shot displays parameters that are
-                       considered reasonably polite.  The default values for this table are all blank, meaning that, by default, there is no throttling whatsoever!  Please do not make the mistake
-                       of crawling other people's sites without adequate politeness parameters in place.</p>
-                <p>The "Throttle group" parameter allows you to treat multiple RSS-type connections together, for the purposes of throttling.  All RSS-type connections that have the same
-                       throttle group name will use the same pool for throttling purposes.</p>
+                <p>This tab allows you to control the <b>maximum</b> rate at which the connection fetches data, on a per-server basis, as well as the <b>maximum</b> fetches
+                       per minute, also per-server.  Finally, the maximum number of socket connections made per server at any one time is also controllable by this tab.</p>
+                <p>The screen shot displays parameters that are considered reasonably polite.  The default values for this table are all blank, meaning that, by default, there is no
+                       throttling whatsoever!  Please do not make the mistake of crawling other people's sites without adequate politeness parameters in place.</p>
+                <p>The "Throttle group" parameter allows you to treat multiple RSS-type connections together, for the purposes of throttling.  All RSS-type connections that
+                       have the same throttle group name will use the same pool for throttling purposes.</p>
                 <p>The "Bandwidth" tab is related to the throttles that you can set on the "Throttling" tab in the following ways:</p>
                 <br/>
                 <ul>
                     <li>The "Bandwidth" tab sets the <b>maximum</b> values, while the "Throttling" tab sets the <b>average</b> values.</li>
-                    <li>The "Bandwidth" tab does not affect how documents are scheduled in the queue; it simply blocks documents until it is safe to go ahead, which will use up a crawler thread
-                           for the entire period that both the wait and the fetch take place.  The "Throttling" tab affects how often documents are scheduled, so it does not waste threads.</li>
+                    <li>The "Bandwidth" tab does not affect how documents are scheduled in the queue; it simply blocks documents until it is safe to go ahead, which will use up a
+                          crawler thread for the entire period that both the wait and the fetch take place.  The "Throttling" tab affects how often documents are scheduled, so it does
+                          not waste threads.</li>
                 </ul>
                 <br/>
                 <p>Because of the above, we suggest that you configure your RSS connection using <b>both</b> the "Bandwidth" <b>and</b> the "Throttling" tabs.  Select maximum
                        values on the "Bandwidth" tab, and corresponding average values estimates on the "Throttling" tab.  Remember that a document identifier for an RSS connection is the
-                       document's URL, and the bin name for that URL is the server name.  Also, please note that the "Maximum number of connections per JVM" field's default value of 10 is
-                       unlikely to be correct for connections of the RSS type; you should have at least one available connection per worker thread, for best performance.  Since the
+                       document's URL, and the bin name for that URL is the server name.  Also, please note that the "Maximum number of connections per JVM" field's default value
+                       of 10 is unlikely to be correct for connections of the RSS type; you should have at least one available connection per worker thread, for best performance.  Since the
                        default number of worker threads is 30, you should set this parameter to at least a value of 30 for normal operation.</p>
                 <p>The "Proxy" tab allows you to specify a proxy that you want to crawl through.  The RSS connection type supports proxies that are secured with all forms of the NTLM
                        authentication method.  This is quite typical of large organizations.  The tab looks like this:</p>
@@ -944,8 +944,8 @@
                 <figure src="images/en_US/rss-status.PNG" alt="RSS Status" width="80%"/>
                 <br/><br/>
                 <p></p>
-                <p>Jobs created using connections of the RSS type have the following additional tabs: "URLs", "Canonicalization", "Mappings", "Time Values", "Security", "Metadata", and
-                       "Dechromed Content".  The URLs tab is where you describe the feeds that are part of the job.  It looks like this:</p>
+                <p>Jobs created using connections of the RSS type have the following additional tabs: "URLs", "Canonicalization", "URL mappings", "Exclusions", "Time Values",
+                       "Security", "Metadata", and "Dechromed Content".  The URLs tab is where you describe the feeds that are part of the job.  It looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/rss-job-urls.PNG" alt="RSS job, URLs tab" width="80%"/>
                 <br/><br/>
@@ -976,6 +976,12 @@
                        <code>http://Server/Folder_1/Filename</code>, it would output the string <code>http://Folder_1/Filename</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
                 <p>To add a rule, fill in the match expression and output string, and click the "Add" button.</p>
+                <p>The "Exclusions" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/rss-job-exclusions.PNG" alt="RSS job, Exclusions tab" width="80%"/>
+                <br/><br/>
+                <p>Here you can enter a set of regular expressions, one per line, which describe which document URLs to exclude from the job.  This can be very helpful if you
+                     are crawling RSS feeds that include a variety of content where you only want to index a subset of the content.</p>
                 <p>The "Time Values" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/rss-job-time-values.PNG" alt="RSS job, Time Values tab" width="80%"/>

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-670: Update end-user documentation for RSS connector.
+(Karl Wright)
+
 CONNECTORS-642: Add Elastic Search plugin.
 (Simon Willnauer, Piergiorgio Lucidi, Karl Wright)
 
