@@ -297,7 +297,7 @@
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NameColon")%></nobr></td><td class="value" colspan="4">
 <%
 	    // If the connection doesn't exist yet, we are allowed to change the name.
-	    if (connection == null)
+	    if (isNew)
 	    {
 %>
 					<input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
