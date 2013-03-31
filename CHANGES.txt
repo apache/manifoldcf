@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-673: Update end-user documentation for the Active
+Directory authority.
+(Karl Wright)
+
 CONNECTORS-672: Update end-user documentation to include
 Forced Metadata tab.
 (Karl Wright)

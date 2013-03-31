@@ -602,23 +602,26 @@
                 <title>Active Directory Authority Connection</title>
                 <p>An active directory authority connection is essential for enforcing security for documents from Windows shares, Microsoft SharePoint, and IBM FileNet repositories.
                        This connection type needs to be provided with information about how to log into an appropriate Windows domain controller, with a user that has sufficient privileges to
-                       be able to look up any user's ID and group relationships.  While the connection type has some known limitations, it should function well for most straightforward Windows
-                       security architecture situations.  The cases in which it may not be adequate include:</p>
+                       be able to look up any user's ID and group relationships.</p>
                 <br/>
-                <ul>
-                    <li>when child domains are present</li>
-                    <li>when the expected number of requests per second is fairly high</li>
-                </ul>
-                <br/>
-                <p>An active directory authority connection type has a single special tab in the authority connection editing screen: the "Domain Controller" tab:</p>
+                <p>An Active Directory authority connection type has two special tabs in the authority connection editing screen: "Domain Controller", and "Cache".  The "Domain Controller"
+                       tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/ad-configure-dc.PNG" alt="AD Configuration, Domain Controller tab" width="80%"/>
                 <br/><br/>
-                <p>Fill in the requested values.  Note that the "Administrative user name" field usually requires no domain suffix, but depending on the details of how the domain
-                       controller is configured, may sometimes only accept the "name@domain" format.</p>
-                <p>When you are done, click the "Save" button.  When you do, a connection
-                       summary and status screen will be presented, which
-                       may look something like this:</p>
+                <p>As you can see, the Active Directory authority allows you to configure multiple connections to different, but presumably related, domain controllers.  The choice of
+                       which domain controller will be accessed is determined by traversing the list of configured domain controllers from top to bottom, and finding the first one that
+                       matches the domain suffix field specified.  Note that a blank value for the domain suffix will match <strong>all</strong> users.</p>
+                <p>To add a domain controller to the end of the list, fill in the requested values.  Note that the "Administrative user name" field usually requires no domain suffix, but
+                       depending on the details of how the domain controller is configured, may sometimes only accept the "name@domain" format.  When you have completed your
+                       entry, click the "Add to end" button to add the domain controller rule to the end of the list.  Later, when other domain controllers are present in the list, you can
+                       click a different button at an appropriate spot to insert the domain controller record into the list where you want it to go.</p>
+                <p>The Active Directory authority connection type also has a "Cache" tab, for managing the caching of individual user responses:</p>
+                <br/><br/>
+                <figure src="images/en_US/ad-configure-cache.PNG" alt="AD Configuration, Cache tab" width="80%"/>
+                <br/><br/>
+                <p>Here you can control how many individual users will be cached, and for how long.</p>
+                <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented, which may look something like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/ad-status.PNG" alt="AD Status" width="80%"/>
                 <br/><br/>
