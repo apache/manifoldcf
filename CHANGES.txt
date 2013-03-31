@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-642: Add Elastic Search plugin.
+(Simon Willnauer, Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-668: Update end-user documentation for LiveLink
 connector and authority.
 (Karl Wright)

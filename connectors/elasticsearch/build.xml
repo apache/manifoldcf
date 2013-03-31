@@ -50,4 +50,11 @@
         </delete>
     </target>
 
+    <target name="integration">
+        <mkdir dir="dist/integration/elasticsearch"/>
+        <copy todir="dist/integration/elasticsearch">
+          <fileset dir="../../lib/elasticsearch"/>
+        </copy>
+    </target>
+
 </project>

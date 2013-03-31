@@ -3516,6 +3516,17 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
+    <target name="download-elasticsearch-plugin">
+        <mkdir dir="lib/elasticsearch"/>
+        <!-- Download and unpack binary artifact -->
+        <mkdir dir="build/download"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin"/>
+        <copy todir="lib/elasticsearch">
+            <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-0.1"/>
+        </copy>
+    </target>
+    
     <target name="download-sharepoint-plugins">
         <mkdir dir="lib/sharepoint-2007"/>
         <!-- Download and unpack binary artifact -->
@@ -3569,7 +3580,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="make-core-deps" depends="download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="make-core-deps" depends="download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
