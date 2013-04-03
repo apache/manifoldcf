@@ -352,8 +352,8 @@ public class WorkerThread extends Thread
                         // If either we are going to be requeuing beyond the fail time, OR
                         // the number of retries available has hit 0, THEN we treat this
                         // as either an "ignore" or a hard error.
-                        if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
-                          dd.getFailRetryCount() == 0)
+                        if (!e.jobInactiveAbort() && (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                          dd.getFailRetryCount() == 0))
                         {
                           // Treat this as a hard failure.
                           if (e.isAbortOnFail())
@@ -577,9 +577,13 @@ public class WorkerThread extends Thread
                               // They will therefore need to go into the PENDINGPURGATORY
                               // state.
 
-                              Logging.jobs.warn("Service interruption reported for job "+
-                                job.getID()+" connection '"+job.getConnectionName()+"': "+
-                                e.getMessage());
+                              if (!e.jobInactiveAbort())
+                                Logging.jobs.warn("Service interruption reported for job "+
+                                  job.getID()+" connection '"+job.getConnectionName()+"': "+
+                                  e.getMessage());
+
+                              if (!e.jobInactiveAbort() && e.isAbortOnFail())
+                                abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
 
                               // Mark the current documents to be recrawled in the
                               // time specified, except for the ones beyond their limits.
@@ -601,15 +605,14 @@ public class WorkerThread extends Thread
                                 if (fetchDocuments.contains(qd.getDocumentDescription().getDocumentIdentifierHash()))
                                 {
                                   DocumentDescription dd = qd.getDocumentDescription();
-                                  if (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
-                                    dd.getFailRetryCount() == 0)
+                                  // Check for hard failure.  But no hard failure possible of it's a job inactive abort.
+                                  if (!e.jobInactiveAbort() && (dd.getFailTime() != -1L && dd.getFailTime() < e.getRetryTime() ||
+                                    dd.getFailRetryCount() == 0))
                                   {
                                     // Treat this as a hard failure.
                                     if (e.isAbortOnFail())
                                     {
                                       rescanList.add(qd);
-                                      // The job when we are done updating all the tables
-                                      abortOnFail = new ManifoldCFException("Repeated service interruptions - failure processing document"+((e.getCause()!=null)?": "+e.getCause().getMessage():""),e.getCause());
                                     }
                                     else
                                     {
