@@ -390,6 +390,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
     unconditionallyAnalyzeTables();
+
+    TrackerClass.noteGlobalEvent("Restart");
   }
 
   /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.
@@ -407,6 +409,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
     performUpdate(map,"WHERE "+query,list,null);
+    
+    TrackerClass.noteJobEvent(jobID,"Map HOPCOUNTREMOVED to PENDING");
   }
 
   /** Delete all records for a job that have status HOPCOUNTREMOVED.
@@ -464,6 +468,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         statusToString(STATUS_ACTIVEPURGATORY),
         statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
     performUpdate(map,"WHERE "+query,list,null);
+        
+    TrackerClass.noteGlobalEvent("Reset document worker status");
   }
 
   /** Reset doc delete worker status.
@@ -479,6 +485,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
     performUpdate(map,"WHERE "+query,list,null);
+      
+    TrackerClass.noteGlobalEvent("Reset document delete worker status");
   }
 
   /** Reset doc cleaning worker status.
@@ -494,6 +502,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
     performUpdate(map,"WHERE "+query,list,null);
+      
+    TrackerClass.noteGlobalEvent("Reset document cleanup worker status");
   }
 
   /** Prepare for a job delete pass.  This will not be called
@@ -545,6 +555,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
 
+    TrackerClass.noteJobEvent(jobID,"Prepare delete scan");
   }
   
   /** Prepare for a "full scan" job.  This will not be called
@@ -595,6 +606,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,2,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
+        
+    TrackerClass.noteJobEvent(jobID,"Prepare full scan");
   }
 
   /** Prepare for a "partial" job.  This is called ONLY when the job is inactive.
@@ -654,6 +667,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
+      
+    TrackerClass.noteJobEvent(jobID,"Prepare incremental scan");
   }
 
   /** Delete ingested document identifiers (as part of deleting the owning job).
@@ -767,6 +782,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       // Leave doc priority unchanged.
       break;
     default:
+      TrackerClass.printForensics(recID, currentStatus);
       throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
     }
 
@@ -779,6 +795,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
+      
+    TrackerClass.noteRecordEvent(recID, newStatus, "Note completion");
   }
 
   /** Either mark a record as hopcountremoved, or set status to "rescan", depending on the
@@ -814,6 +832,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       // Leave doc priority unchanged.
       break;
     default:
+      TrackerClass.printForensics(recID, currentStatus);
       throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
     }
 
@@ -826,6 +845,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
+    TrackerClass.noteRecordEvent(recID, newStatus, "Update or hopcount remove");
     return rval;
   }
 
@@ -846,6 +866,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       newStatus = STATUS_ACTIVEPURGATORY;
       break;
     default:
+      TrackerClass.printForensics(id, currentStatus);
       throw new ManifoldCFException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
     }
 
@@ -856,6 +877,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordEvent(id, newStatus, "Make active");
   }
 
   /** Set the status on a record, including check time and priority.
@@ -887,6 +909,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordEvent(id, status, "Set status");
   }
 
   /** Set the status of a document to "being deleted".
@@ -901,6 +924,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordEvent(id, STATUS_BEINGDELETED, "Set deleting status");
   }
 
   /** Set the status of a document to be "no longer deleting" */
@@ -918,6 +942,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordEvent(id, STATUS_ELIGIBLEFORDELETE, "Set undeleting status");
   }
 
   /** Set the status of a document to "being cleaned".
@@ -932,6 +957,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordEvent(id, STATUS_BEINGCLEANED, "Set cleaning status");
   }
 
   /** Set the status of a document to be "no longer cleaning" */
@@ -949,6 +975,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordEvent(id, STATUS_PURGATORY, "Set uncleaning status");
   }
 
   /** Remove multiple records entirely.
@@ -1040,6 +1067,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_PURGATORY:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+      TrackerClass.noteRecordEvent(recordID, STATUS_PENDINGPURGATORY, "Update existing record initial");
       if (desiredExecuteTime == -1L)
         map.put(checkTimeField,new Long(0L));
       else
@@ -1130,6 +1158,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(1,0,0);
+    TrackerClass.noteRecordEvent(recordID, STATUS_PENDING, "Create initial");
   }
 
   /** Note the remaining documents that do NOT need to be queued.  These are noted so that the
@@ -1317,6 +1346,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     case STATUS_UNCHANGED:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+      TrackerClass.noteRecordEvent(recordID, STATUS_PENDINGPURGATORY, "Update existing");
       map.put(checkTimeField,new Long(desiredExecuteTime));
       map.put(checkActionField,actionToString(ACTION_RESCAN));
       map.put(failTimeField,null);
@@ -1334,6 +1364,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         // The document has been processed before, so it has to go into PENDINGPURGATORY.
         // Set the status and time both
         map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+        TrackerClass.noteRecordEvent(recordID, STATUS_PENDINGPURGATORY, "Update existing");
         map.put(checkTimeField,new Long(desiredExecuteTime));
         map.put(checkActionField,actionToString(ACTION_RESCAN));
         map.put(failTimeField,null);
@@ -1363,6 +1394,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         // Flip the state to the new one, and set the document priority at this time too - it will be preserved when the
         // processing is completed.
         map.put(statusField,statusToString(STATUS_ACTIVENEEDRESCAN));
+        TrackerClass.noteRecordEvent(recordID, STATUS_ACTIVENEEDRESCAN, "Update existing");
         map.put(checkTimeField,new Long(desiredExecuteTime));
         map.put(checkActionField,actionToString(ACTION_RESCAN));
         map.put(failTimeField,null);
@@ -1387,6 +1419,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         // Flip the state to the new one, and set the document priority at this time too - it will be preserved when the
         // processing is completed.
         map.put(statusField,statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
+        TrackerClass.noteRecordEvent(recordID, STATUS_ACTIVENEEDRESCANPURGATORY, "Update existing");
         map.put(checkTimeField,new Long(desiredExecuteTime));
         map.put(checkActionField,actionToString(ACTION_RESCAN));
         map.put(failTimeField,null);
@@ -1454,6 +1487,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(1,0,0);
+    TrackerClass.noteRecordEvent(recordID, STATUS_PENDING, "Create new");
+
   }
 
   // Methods to convert status strings to integers and back
