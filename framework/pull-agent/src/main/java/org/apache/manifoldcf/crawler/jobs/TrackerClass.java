@@ -22,6 +22,8 @@ package org.apache.manifoldcf.crawler.jobs;
 import java.util.*;
 import java.io.*;
 
+import org.apache.manifoldcf.crawler.system.Logging;
+
 /** Debugging class to keep track of recent modifications to the jobqueue table,
 * along with context as to where it occurred.  If a jobqueue state error occurs,
 * we can then print out all of the pertinent history and find the culprit.
@@ -36,7 +38,7 @@ public class TrackerClass
   protected final static Map<String,TransactionData> transactionData = new HashMap<String,TransactionData>();
   
   // Modification history
-  protected final static List<TransactionData> history = new ArrayList<TransactionData>();
+  protected final static List<HistoryRecord> history = new ArrayList<HistoryRecord>();
   
   // Place where we keep track of individual modifications
   private TrackerClass()
@@ -44,28 +46,31 @@ public class TrackerClass
   }
   
   /** Add a single record event, as yet uncommitted */
-  public static void noteRecordEvent(Long recordID, int newStatus, String description)
+  public static void noteRecordChange(Long recordID, int newStatus, String description)
   {
-    addEvent(new RecordEvent(recordID, newStatus, new Exception(description)));
+    if (Logging.diagnostics.isDebugEnabled())
+      addChange(new RecordChange(recordID, newStatus, description));
   }
   
   /** Add a global event, as yet uncommitted, which has the potential
   * to affect any record's state in a given job.
   */
-  public static void noteJobEvent(Long jobID, String description)
+  public static void noteJobChange(Long jobID, String description)
   {
-    addEvent(new JobEvent(jobID, new Exception(description)));
+    if (Logging.diagnostics.isDebugEnabled())
+      addChange(new JobChange(jobID, description));
   }
   
   /** Add a global event, as yet uncommitted, which has the potential
   * to affect the state of any record.
   */
-  public static void noteGlobalEvent(String description)
+  public static void noteGlobalChange(String description)
   {
-    addEvent(new GlobalEvent(new Exception(description)));
+    if (Logging.diagnostics.isDebugEnabled())
+      addChange(new GlobalChange(description));
   }
   
-  protected static void addEvent(HistoryRecord hr)
+  protected static void addChange(DataChange dc)
   {
     String threadName = Thread.currentThread().getName();
     TransactionData td;
@@ -78,33 +83,105 @@ public class TrackerClass
         transactionData.put(threadName,td);
       }
     }
-    td.addEvent(hr);
+    td.addChange(dc);
+  }
+  
+  /** Note that we are about to commit.
+  */
+  public static void notePrecommit()
+  {
+    if (!Logging.diagnostics.isDebugEnabled())
+      return;
+
+    long currentTime = System.currentTimeMillis();
+    String threadName = Thread.currentThread().getName();
+
+    TransactionData td;
+    synchronized (transactionData)
+    {
+      td = transactionData.get(threadName);
+    }
+    
+    if (td == null)
+      return;
+    
+    HistoryRecord hr = new PrecommitEvent(new Exception("Precommit stack trace"),currentTime,threadName,td);
+    
+    synchronized (history)
+    {
+      history.add(hr);
+    }
+  }
+  
+  /** Note a read status operation.
+  */
+  public static void noteRead(Long recordID)
+  {
+    if (!Logging.diagnostics.isDebugEnabled())
+      return;
+    
+    long currentTime = System.currentTimeMillis();
+    String threadName = Thread.currentThread().getName();
+
+    HistoryRecord hr = new ReadEvent(new Exception("Read stack trace"),currentTime,threadName,recordID);
+    
+    synchronized (history)
+    {
+      history.add(hr);
+    }
+  }
+
+  /** Note about to read status operation.
+  */
+  public static void notePreread(Long recordID)
+  {
+    if (!Logging.diagnostics.isDebugEnabled())
+      return;
+    
+    long currentTime = System.currentTimeMillis();
+    String threadName = Thread.currentThread().getName();
+
+    HistoryRecord hr = new PrereadEvent(new Exception("Pre-read stack trace"),currentTime,threadName,recordID);
+    
+    synchronized (history)
+    {
+      history.add(hr);
+    }
   }
   
   /** Note a commit operation.
   */
   public static void noteCommit()
   {
+    if (!Logging.diagnostics.isDebugEnabled())
+      return;
+    
     long currentTime = System.currentTimeMillis();
     String threadName = Thread.currentThread().getName();
+
     TransactionData td;
     synchronized (transactionData)
     {
       td = transactionData.get(threadName);
       transactionData.remove(threadName);
     }
+
     if (td == null)
       return;
+
+    HistoryRecord hr = new CommitEvent(new Exception("Commit stack trace"),currentTime,threadName,td);
+
     // Only keep stuff around for an hour
     long removalCutoff = currentTime - HISTORY_LENGTH;
     synchronized (history)
     {
-      history.add(td);
+      history.add(hr);
       // Clean out older records
+      // MHL - this logic is wrong
       while (history.size() > 0)
       {
-        TransactionData td2 = history.get(0);
-        if (td2.isFlushable(removalCutoff))
+        HistoryRecord oldRecord = history.get(0);
+        if (oldRecord.isFlushable(removalCutoff))
           history.remove(0);
         else
           break;
@@ -117,6 +194,9 @@ public class TrackerClass
   */
   public static void noteRollback()
   {
+    if (!Logging.diagnostics.isDebugEnabled())
+      return;
+
     String threadName = Thread.currentThread().getName();
     synchronized (transactionData)
     {
@@ -126,31 +206,27 @@ public class TrackerClass
   
   public static void printForensics(Long recordID, int existingStatus)
   {
-    synchronized (transactionData)
+    if (Logging.diagnostics.isDebugEnabled())
     {
-      synchronized (history)
+      synchronized (transactionData)
       {
-        System.err.println("---- Forensics for record "+recordID+", current status: "+existingStatus+" ----");
-        System.err.println("--Current stack trace--");
-        StringWriter sw = new StringWriter();
-        new Exception("Unexpected jobqueue status").printStackTrace(new PrintWriter(sw,true));
-        System.err.print(sw.toString());
-        System.err.println("--Active transactions--");
-        for (String threadName : transactionData.keySet())
+        synchronized (history)
         {
-          for (HistoryRecord hr : transactionData.get(threadName).getEvents())
+          Logging.diagnostics.debug("==== Forensics for record "+recordID+", current status: "+existingStatus+" ====");
+          Logging.diagnostics.debug("=== Current stack trace ===",new Exception("Forensics stack trace"));
+          Logging.diagnostics.debug("=== Active transactions ===");
+          for (String threadName : transactionData.keySet())
           {
-            if (hr.applies(recordID))
+            for (DataChange dc : transactionData.get(threadName).getChanges())
             {
-              System.err.println("Thread '"+threadName+"' was active:");
-              hr.print();
+              if (dc.applies(recordID))
+              {
+                Logging.diagnostics.debug("Thread '"+threadName+"' was doing things to this record: " + dc.getDescription());
+              }
             }
           }
-        }
-        System.err.println("--Pertinent History--");
-        for (TransactionData td : history)
-        {
-          for (HistoryRecord hr : td.getEvents())
+          Logging.diagnostics.debug("=== Pertinent History ===");
+          for (HistoryRecord hr : history)
           {
             if (hr.applies(recordID))
             {
@@ -160,100 +236,226 @@ public class TrackerClass
         }
       }
     }
-        
   }
   
   protected static class TransactionData
   {
-    protected final List<HistoryRecord> transactionEvents = new ArrayList<HistoryRecord>();
-    protected long timestamp;
+    protected final List<DataChange> changes = new ArrayList<DataChange>();
     
     public TransactionData()
     {
-      timestamp = System.currentTimeMillis();
     }
     
-    public void addEvent(HistoryRecord event)
+    public void addChange(DataChange change)
     {
-      transactionEvents.add(event);
+      changes.add(change);
     }
     
-    public List<HistoryRecord> getEvents()
+    public List<DataChange> getChanges()
     {
-      return transactionEvents;
+      return changes;
     }
     
-    public boolean isFlushable(long cutoffTime)
+    public boolean applies(Long recordID)
     {
-      return cutoffTime > timestamp;
+      for (DataChange dc : changes)
+      {
+        if (dc.applies(recordID))
+          return true;
+      }
+      return false;
     }
+  }
+  
+  protected abstract static class DataChange
+  {
+    protected final String description;
+    
+    public DataChange(String description)
+    {
+      this.description = description;
+    }
+    
+    public String getDescription()
+    {
+      return description;
+    }
+    
+    public abstract boolean applies(Long recordID);
+
   }
   
   protected abstract static class HistoryRecord
   {
-    protected long timestamp;
-    protected Exception trace;
+    protected final long timestamp;
+    protected final Exception trace;
+    protected final String threadName;
     
-    public HistoryRecord(Exception trace)
+    public HistoryRecord(Exception trace, long timestamp, String threadName)
     {
       this.trace = trace;
-      this.timestamp = System.currentTimeMillis();
+      this.timestamp = timestamp;
+      this.threadName = threadName;
     }
     
-    public void print()
+    public void print(String description)
     {
-      System.err.println("  at "+new Long(timestamp)+", location: ");
-      StringWriter sw = new StringWriter();
-      trace.printStackTrace(new PrintWriter(sw,true));
-      System.err.print(sw.toString());
+      Logging.diagnostics.debug("== "+description+" by '"+threadName+"' at "+new Long(timestamp)+" ==",trace);
     }
     
+    public boolean isFlushable(long timestamp)
+    {
+      return this.timestamp < timestamp;
+    }
+
     public abstract boolean applies(Long recordID);
     
+    public abstract void print();
+
   }
   
-  protected static class RecordEvent extends HistoryRecord
+  protected static class CommitEvent extends HistoryRecord
   {
-    protected Long recordID;
-    protected int newStatus;
+    protected final TransactionData transactionData;
     
-    public RecordEvent(Long recordID, int newStatus, Exception trace)
+    public CommitEvent(Exception trace, long timestamp, String threadName, TransactionData transactionData)
     {
-      super(trace);
-      this.recordID = recordID;
-      this.newStatus = newStatus;
+      super(trace,timestamp,threadName);
+      this.transactionData = transactionData;
     }
-    
+
     @Override
     public void print()
     {
-      System.err.println("Record "+recordID+" status modified to "+newStatus);
-      super.print();
+      super.print("Commit transaction");
+      Logging.diagnostics.debug("    Transaction includes:");
+      for (DataChange dc : transactionData.getChanges())
+      {
+        Logging.diagnostics.debug("      "+dc.getDescription());
+      }
     }
     
     @Override
     public boolean applies(Long recordID)
     {
-      return this.recordID.equals(recordID);
+      return transactionData.applies(recordID);
+    }
+    
+  }
+
+  protected static class PrecommitEvent extends HistoryRecord
+  {
+    protected final TransactionData transactionData;
+    
+    public PrecommitEvent(Exception trace, long timestamp, String threadName, TransactionData transactionData)
+    {
+      super(trace,timestamp,threadName);
+      this.transactionData = transactionData;
     }
 
+    @Override
+    public void print()
+    {
+      super.print("About to commit transaction");
+      Logging.diagnostics.debug("    Transaction includes:");
+      for (DataChange dc : transactionData.getChanges())
+      {
+        Logging.diagnostics.debug("      "+dc.getDescription());
+      }
+    }
+        
+    @Override
+    public boolean applies(Long recordID)
+    {
+      return transactionData.applies(recordID);
+    }
   }
   
-  protected static class JobEvent extends HistoryRecord
+  protected static class ReadEvent extends HistoryRecord
   {
-    protected Long jobID;
+    protected final Long recordID;
     
-    public JobEvent(Long jobID, Exception trace)
+    public ReadEvent(Exception trace, long timestamp, String threadName, Long recordID)
     {
-      super(trace);
-      this.jobID = jobID;
+      super(trace,timestamp,threadName);
+      this.recordID = recordID;
     }
     
     @Override
     public void print()
     {
-      System.err.println("All job related records modified for job "+jobID);
-      super.print();
+      super.print("Read status");
+    }
+    
+    @Override
+    public boolean applies(Long recordID)
+    {
+      return recordID.equals(this.recordID);
+    }
+  }
+
+  protected static class PrereadEvent extends HistoryRecord
+  {
+    protected final Long recordID;
+    
+    public PrereadEvent(Exception trace, long timestamp, String threadName, Long recordID)
+    {
+      super(trace,timestamp,threadName);
+      this.recordID = recordID;
+    }
+    
+    @Override
+    public void print()
+    {
+      super.print("About to read status");
+    }
+    
+    @Override
+    public boolean applies(Long recordID)
+    {
+      return recordID.equals(this.recordID);
+    }
+  }
+  
+  protected static class RecordChange extends DataChange
+  {
+    protected final Long recordID;
+    protected final int newStatus;
+    
+    public RecordChange(Long recordID, int newStatus, String description)
+    {
+      super(description);
+      this.recordID = recordID;
+      this.newStatus = newStatus;
+    }
+    
+    @Override
+    public String getDescription()
+    {
+      return "Record "+recordID+" status modified to "+newStatus+": "+super.getDescription();
+    }
+    
+    @Override
+    public boolean applies(Long recordID)
+    {
+      return recordID.equals(this.recordID);
+    }
+  }
+  
+  protected static class JobChange extends DataChange
+  {
+    protected final Long jobID;
+    
+    public JobChange(Long jobID, String description)
+    {
+      super(description);
+      this.jobID = jobID;
+    }
+    
+    @Override
+    public String getDescription()
+    {
+      return "All job related records modified for job "+jobID+": "+super.getDescription();
     }
     
     @Override
@@ -263,18 +465,17 @@ public class TrackerClass
     }
   }
   
-  protected static class GlobalEvent extends HistoryRecord
+  protected static class GlobalChange extends DataChange
   {
-    public GlobalEvent(Exception trace)
+    public GlobalChange(String description)
     {
-      super(trace);
+      super(description);
     }
     
     @Override
-    public void print()
+    public String getDescription()
     {
-      System.err.println("All records modified");
-      super.print();
+      return "All records modified: "+super.getDescription();
     }
 
     @Override

@@ -644,6 +644,7 @@ public class JobManager implements IJobManager
         hopCount.reset();
         // Clean up carrydown stuff
         carryDown.reset();
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         Logging.jobs.debug("Reset complete");
@@ -689,6 +690,7 @@ public class JobManager implements IJobManager
       try
       {
         jobQueue.resetDocumentWorkerStatus();
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         break;
@@ -737,6 +739,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc deleting status");
+    TrackerClass.notePrecommit();
     jobQueue.resetDocDeleteWorkerStatus();
     TrackerClass.noteCommit();
     Logging.jobs.debug("Reset complete");
@@ -748,6 +751,7 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc cleaning status");
+    TrackerClass.notePrecommit();
     jobQueue.resetDocCleanupWorkerStatus();
     TrackerClass.noteCommit();
     Logging.jobs.debug("Reset complete");
@@ -1003,7 +1007,8 @@ public class JobManager implements IJobManager
           rval[i++] = dd;
           jobQueue.setCleaningStatus(dd.getID());
         }
-        
+
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         
@@ -1268,6 +1273,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         
@@ -1834,6 +1840,7 @@ public class JobManager implements IJobManager
           jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue());
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         
@@ -2342,7 +2349,9 @@ public class JobManager implements IJobManager
 
             i++;
           }
+          TrackerClass.notePrecommit();
           database.performCommit();
+          TrackerClass.noteCommit();
           break;
         }
         catch (ManifoldCFException e)
@@ -2446,8 +2455,10 @@ public class JobManager implements IJobManager
           ArrayList list = new ArrayList();
           String query = database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobQueue.idField,dd.getID())});
+          TrackerClass.notePreread(dd.getID());
           IResultSet set = database.performQuery("SELECT "+jobQueue.statusField+" FROM "+jobQueue.getTableName()+" WHERE "+
             query+" FOR UPDATE",list,null,null);
+          TrackerClass.noteRead(dd.getID());
           if (set.getRowCount() > 0)
           {
             IResultRow row = set.getRow(0);
@@ -2458,6 +2469,7 @@ public class JobManager implements IJobManager
           }
           i++;
         }
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         break;
@@ -2597,8 +2609,10 @@ public class JobManager implements IJobManager
           ArrayList list = new ArrayList();
           String query = database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobQueue.idField,dd.getID())});
+          TrackerClass.notePreread(dd.getID());
           IResultSet set = database.performQuery("SELECT "+jobQueue.statusField+" FROM "+jobQueue.getTableName()+" WHERE "+
             query+" FOR UPDATE",list,null,null);
+          TrackerClass.noteRead(dd.getID());
           if (set.getRowCount() > 0)
           {
             IResultRow row = set.getRow(0);
@@ -2626,6 +2640,7 @@ public class JobManager implements IJobManager
         // Since hopcount inheritance and prerequisites came from the addDocument() method,
         // we don't delete them here.
         
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         return rval;
@@ -3009,6 +3024,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         break;
@@ -3219,6 +3235,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         break;
@@ -3317,6 +3334,7 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         break;
@@ -3555,6 +3573,7 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
           hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         
@@ -4188,6 +4207,7 @@ public class JobManager implements IJobManager
         if (reactivateRemovedHopcountRecords)
           jobQueue.reactivateHopcountRemovedRecords(jobID);
 
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         
@@ -5414,6 +5434,7 @@ public class JobManager implements IJobManager
   {
     // No special treatment needed for hopcount or carrydown, since these all get deleted at once
     // at the end of the job delete process.
+    TrackerClass.notePrecommit();
     jobQueue.prepareDeleteScan(jobID);
     TrackerClass.noteCommit();
   }
@@ -5507,6 +5528,7 @@ public class JobManager implements IJobManager
         }
 
         jobQueue.prepareFullScan(jobID);
+        TrackerClass.notePrecommit();
         database.performCommit();
         TrackerClass.noteCommit();
         break;
