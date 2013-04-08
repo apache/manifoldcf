@@ -647,11 +647,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static class InitializationThread extends Thread
   {
 
-    protected QueueTracker queueTracker;
+    protected final QueueTracker queueTracker;
 
     public InitializationThread(QueueTracker queueTracker)
     {
+      super();
       this.queueTracker = queueTracker;
+      setName("Initialization thread");
+      setDaemon(true);
     }
 
     public void run()

@@ -122,7 +122,8 @@ public class Base
   {
     output.append(
       "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"+
-      "  <property name=\"org.apache.manifoldcf.connectorsconfigurationfile\" value=\""+connectorFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"
+      "  <property name=\"org.apache.manifoldcf.connectorsconfigurationfile\" value=\""+connectorFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"+
+      "  <property name=\"org.apache.manifoldcf.diagnostics\" value=\"DEBUG\"/>\n"
     );
   }
   
