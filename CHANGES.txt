@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-649: Adopt httpclient 4.2.4.
+(Karl Wright)
+
 CONNECTORS-671: Trim end-user documentation images.
 (Karl Wright)
 
