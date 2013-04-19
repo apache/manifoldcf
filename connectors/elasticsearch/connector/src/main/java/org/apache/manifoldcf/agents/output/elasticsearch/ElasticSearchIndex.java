@@ -22,6 +22,7 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
@@ -96,7 +97,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     @Override
     public void writeTo(OutputStream out)
       throws IOException {
-      PrintWriter pw = new PrintWriter(out);
+      PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, "utf-8"));
       try
       {
         pw.print("{");
@@ -134,6 +135,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         throw new IOException(e.getMessage());
       } finally
       {
+        pw.flush();
         IOUtils.closeQuietly(pw);
       }
     }

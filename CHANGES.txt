@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-675: Fix for json UTF-8 encoding, elastic search
+connector.
+(Karl Wright)
+
 CONNECTORS-649: Adopt httpclient 4.2.4.
 (Karl Wright)
 
