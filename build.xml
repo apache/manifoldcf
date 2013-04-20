@@ -58,6 +58,7 @@
         <ant dir="framework" target="clean"/>
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
+        <ant dir="connectors/dropbox" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <ant dir="connectors/ldap" target="clean"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -108,6 +109,7 @@
         <ant dir="framework" target="clean"/>
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
+        <ant dir="connectors/dropbox" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <ant dir="connectors/ldap" target="clean"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -278,6 +280,8 @@
 
     <target name="setup-cmis-connector" depends="build-framework" if="downloaded"/>
     
+    <target name="setup-dropbox-connector" depends="build-framework" if="downloaded"/>
+    
     <target name="setup-alfresco-connector-tests" depends="build-tests-framework" if="downloaded"/>
 
     <target name="setup-cmis-connector-tests" depends="build-tests-framework" if="downloaded"/>
@@ -292,6 +296,10 @@
 
     <target name="build-cmis-connector" depends="setup-cmis-connector" if="downloaded">
         <ant dir="connectors/cmis" target="build"/>
+    </target>
+    
+    <target name="build-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
+        <ant dir="connectors/dropbox" target="build"/>
     </target>
     
     <target name="doc-alfresco-connector" depends="setup-alfresco-connector" if="downloaded">
@@ -1361,6 +1369,17 @@
             </and>
         </condition>
     </target>
+    
+    
+    <target name="calculate-dropbox-condition" depends="build-dropbox-connector">
+        <available file="connectors/dropbox/dist/lib" type="dir" property="dropbox.exists"/>
+        <condition property="dropbox.include">
+            <and>
+                <isset property="dropbox.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
 
     <target name="calculate-cmis-doc-condition" depends="doc-cmis-connector">
         <available file="connectors/cmis/dist/doc" type="dir" property="cmis-doc.exists"/>
@@ -1388,6 +1407,18 @@
         </antcall>
     </target>
 
+    <target name="deliver-dropbox-connector" depends="calculate-dropbox-condition" if="dropbox.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="dropbox"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="dropbox"/>
+            <param name="connector-label" value="dropbox"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.dropbox.DropboxRepositoryConnector"/>
+        </antcall>
+    </target>
+    
+    
     <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
         <antcall target="general-connector-doc-delivery">
             <param name="connector-name" value="cmis"/>
@@ -3526,6 +3557,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-0.1"/>
         </copy>
     </target>
+
+
+   <target name="download-dropbox-sdk">
+        <!-- Download and unpack sdk -->
+        <mkdir dir="build/download"/>
+        <get src="https://www.dropbox.com/static/developers/dropbox-java-sdk-1.5.3.zip" dest="build/download/dropbox-java-sdk-1.5.3.zip"/>
+        <unzip src="build/download/dropbox-java-sdk-1.5.3.zip" dest="build/download/dropbox-java-sdk-1.5.3"/>
+        <copy todir="lib/">
+            <filelist dir="build/download/dropbox-java-sdk-1.5.3/dropbox-java-sdk-1.5.3/lib/" files="json_simple-1.1.jar  dropbox-java-sdk-1.5.3.jar"/>
+        </copy>
+    </target>
+   
     
     <target name="download-sharepoint-plugins">
         <mkdir dir="lib/sharepoint-2007"/>
@@ -3609,6 +3652,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="make-deps" depends="download-proprietary-dependencies">
         <ant dir="connectors/alfresco" target="download-dependencies"/>
         <ant dir="connectors/cmis" target="download-dependencies"/>
+        <ant dir="connectors/dropbox" target="download-dependencies"/>
         <ant dir="connectors/activedirectory" target="download-dependencies"/>
         <ant dir="connectors/ldap" target="download-dependencies"/>
         <ant dir="connectors/documentum" target="download-dependencies"/>
@@ -3645,6 +3689,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="clean-deps" depends="download-proprietary-cleanup">
         <ant dir="connectors/alfresco" target="download-cleanup"/>
         <ant dir="connectors/cmis" target="download-cleanup"/>
+        <ant dir="connectors/dropbox" target="download-cleanup"/>        
         <ant dir="connectors/activedirectory" target="download-cleanup"/>
         <ant dir="connectors/ldap" target="download-cleanup"/>
         <ant dir="connectors/documentum" target="download-cleanup"/>

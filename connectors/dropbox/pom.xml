@@ -1,0 +1,137 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>org.apache.manifoldcf</groupId>
+        <artifactId>mcf-connectors</artifactId>
+        <version>1.2-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <packaging>jar</packaging>
+
+    <developers>
+        <developer>
+            <name>Andrew Janowczyk</name>
+            <organization>Searchbox</organization>
+            <organizationUrl>http://www.searchbox.com</organizationUrl>
+            <url>http://www.searchbox.com</url>
+        </developer>
+    </developers>
+
+    <artifactId>mcf-dropbox-connector</artifactId>
+    <name>ManifoldCF - Connectors - Dropbox</name>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
+        <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/connector/src/main/resources</directory>
+                <includes>
+                    <include>**/*.html</include>
+                    <include>**/*.js</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native2ascii-maven-plugin</artifactId>
+                <version>1.0-alpha-1</version>
+                <configuration>
+                    <dest>target/classes</dest>
+                    <src>connector/src/main/native2ascii</src>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>native2ascii-utf8</id>
+                        <goals>
+                            <goal>native2ascii</goal>
+                        </goals>
+                        <configuration>
+                            <encoding>UTF8</encoding>
+                            <includes>**/*.properties</includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*Postgresql*.java</exclude>
+                        <exclude>**/*MySQL*.java</exclude>
+                    </excludes>
+                    <forkMode>always</forkMode>
+                    <workingDirectory>target/test-output</workingDirectory>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.manifoldcf</groupId>
+            <artifactId>mcf-core</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.manifoldcf</groupId>
+            <artifactId>mcf-pull-agent</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.manifoldcf</groupId>
+            <artifactId>mcf-agents</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.manifoldcf</groupId>
+            <artifactId>mcf-ui-core</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.dropbox</groupId>
+            <artifactId>dropbox-java-sdk</artifactId>
+            <version>1.5.3</version>
+            <type>jar</type>
+        </dependency>
+    
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+</project>
