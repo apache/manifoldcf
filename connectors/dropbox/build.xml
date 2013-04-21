@@ -19,24 +19,11 @@
 
     <import file="../connector-build.xml"/>
 
-
-    <target name="download-dependencies">
-
-        <mkdir dir="build/download"/>
-        <get src="https://www.dropbox.com/static/developers/dropbox-java-sdk-1.5.3.zip" dest="build/download/dropbox-java-sdk-1.5.3.zip"/>
-        <unzip src="build/download/dropbox-java-sdk-1.5.3.zip" dest="build/download/dropbox-java-sdk-1.5.3"/>
-        <copy todir="lib/">
-            <filelist dir="build/download/dropbox-java-sdk-1.5.3/dropbox-java-sdk-1.5.3/lib/" files="json_simple-1.1.jar  dropbox-java-sdk-1.5.3.jar"/>
-        </copy>
-
-    </target>
-
-
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="dropbox*.jar"/>
-            <include name="json_*.jar"/>
+            <include name="json_simple*.jar"/>
             <include name="chemistry*.jar"/>
             <include name="saaj*.jar"/>
             <include name="stax*.jar"/>
@@ -57,7 +44,7 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="dropbox*.jar"/>
-                <include name="json_*.jar"/>
+                <include name="json_simple*.jar"/>
                 <include name="chemistry*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="stax*.jar"/>

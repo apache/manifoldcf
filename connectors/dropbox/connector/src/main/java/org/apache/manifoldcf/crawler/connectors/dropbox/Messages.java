@@ -1,4 +1,4 @@
-/* $Id: Messages.java 1295926 2012-03-01 21:56:27Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,8 +25,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
 {
-  public static final String DEFAULT_BUNDLE_NAME="com.searchbox.common";
-  public static final String DEFAULT_PATH_NAME="com.searchbox";
+  public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.crawler.connectors.dropbox.common";
+  public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.crawler.connectors.dropbox";
   
   /** Constructor - do no instantiate
   */

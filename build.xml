@@ -3558,17 +3558,23 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-
    <target name="download-dropbox-sdk">
-        <!-- Download and unpack sdk -->
-        <mkdir dir="build/download"/>
-        <get src="https://www.dropbox.com/static/developers/dropbox-java-sdk-1.5.3.zip" dest="build/download/dropbox-java-sdk-1.5.3.zip"/>
-        <unzip src="build/download/dropbox-java-sdk-1.5.3.zip" dest="build/download/dropbox-java-sdk-1.5.3"/>
-        <copy todir="lib/">
-            <filelist dir="build/download/dropbox-java-sdk-1.5.3/dropbox-java-sdk-1.5.3/lib/" files="json_simple-1.1.jar  dropbox-java-sdk-1.5.3.jar"/>
-        </copy>
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/dropbox"/>
+            <param name="artifact-version" value="1.5.3"/>
+            <param name="artifact-name" value="dropbox-java-sdk"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/googlecode/json-simple"/>
+            <param name="artifact-version" value="1.1"/>
+            <param name="artifact-name" value="json-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
-   
     
     <target name="download-sharepoint-plugins">
         <mkdir dir="lib/sharepoint-2007"/>
@@ -3623,7 +3629,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="make-core-deps" depends="download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="make-core-deps" depends="download-dropbox-sdk,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
