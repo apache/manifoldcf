@@ -22,20 +22,8 @@
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
-            <include name="dropbox*.jar"/>
+            <include name="dropbox-client*.jar"/>
             <include name="json_simple*.jar"/>
-            <include name="chemistry*.jar"/>
-            <include name="saaj*.jar"/>
-            <include name="stax*.jar"/>
-            <include name="streambuffer*.jar"/>
-            <include name="jaxb*.jar"/>
-            <include name="jaxws*.jar"/>
-            <include name="wstx-asl*.jar"/>
-            <include name="mimepull*.jar"/>
-            <include name="resolver*.jar"/>
-            <include name="org.osgi.core*.jar"/>
-            <include name="activation*.jar"/>
-            <include name="commons-lang*.jar"/>
         </fileset>
     </path>
 
@@ -45,17 +33,6 @@
             <fileset dir="../../lib">
                 <include name="dropbox*.jar"/>
                 <include name="json_simple*.jar"/>
-                <include name="chemistry*.jar"/>
-                <include name="saaj*.jar"/>
-                <include name="stax*.jar"/>
-                <include name="streambuffer*.jar"/>
-                <include name="jaxb*.jar"/>
-                <include name="jaxws*.jar"/>
-                <include name="wstx-asl*.jar"/>
-                <include name="mimepull*.jar"/>
-                <include name="resolver*.jar"/>
-                <include name="org.osgi.core*.jar"/>
-                <include name="activation*.jar"/>
             </fileset>
         </copy>
     </target>

@@ -124,8 +124,8 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>com.dropbox</groupId>
-            <artifactId>dropbox-java-sdk</artifactId>
+            <groupId>org.syncloud</groupId>
+            <artifactId>dropbox-client</artifactId>
             <version>1.5.3</version>
             <type>jar</type>
         </dependency>

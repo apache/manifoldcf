@@ -301,7 +301,11 @@
     <target name="build-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
         <ant dir="connectors/dropbox" target="build"/>
     </target>
-    
+
+    <target name="doc-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
+        <ant dir="connectors/dropbox" target="doc"/>
+    </target>
+
     <target name="doc-alfresco-connector" depends="setup-alfresco-connector" if="downloaded">
         <ant dir="connectors/alfresco" target="doc"/>
     </target>
@@ -1381,6 +1385,16 @@
         </condition>
     </target>
 
+    <target name="calculate-dropbox-doc-condition" depends="doc-dropbox-connector">
+        <available file="connectors/dropbox/dist/doc" type="dir" property="dropbox-doc.exists"/>
+        <condition property="dropbox-doc.include">
+            <and>
+                <isset property="dropbox-doc.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
     <target name="calculate-cmis-doc-condition" depends="doc-cmis-connector">
         <available file="connectors/cmis/dist/doc" type="dir" property="cmis-doc.exists"/>
         <condition property="cmis-doc.include">
@@ -1418,6 +1432,11 @@
         </antcall>
     </target>
     
+    <target name="deliver-dropbox-connector-doc" depends="calculate-dropbox-doc-condition" if="dropbox-doc.include">
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="dropbox"/>
+        </antcall>
+    </target>
     
     <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
         <antcall target="general-connector-doc-delivery">
@@ -2567,8 +2586,8 @@
     <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
 
-    <target name="deliver-open-connectors" depends="deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
+    <target name="deliver-open-connectors" depends="deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors-doc" depends="deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
@@ -3558,13 +3577,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-   <target name="download-dropbox-sdk">
+   <target name="download-dropbox-client">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
-            <param name="project-path" value="com/dropbox"/>
+            <param name="project-path" value="org/syncloud"/>
             <param name="artifact-version" value="1.5.3"/>
-            <param name="artifact-name" value="dropbox-java-sdk"/>
+            <param name="artifact-name" value="dropbox-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
@@ -3629,7 +3648,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="make-core-deps" depends="download-dropbox-sdk,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="make-core-deps" depends="download-dropbox-client,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
