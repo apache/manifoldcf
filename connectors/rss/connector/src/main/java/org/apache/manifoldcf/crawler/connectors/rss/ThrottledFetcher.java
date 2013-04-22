@@ -1229,6 +1229,7 @@ public class ThrottledFetcher
     protected HttpResponse response = null;
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
+    protected InputStream bodyStream = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
 
@@ -1295,7 +1296,7 @@ public class ThrottledFetcher
               {
                 try
                 {
-                  InputStream bodyStream = response.getEntity().getContent();
+                  bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
                     bodyStream = new ThrottledInputstream(theConnection,server,bodyStream,minimumMillisecondsPerBytePerServer);
@@ -1336,6 +1337,17 @@ public class ThrottledFetcher
         }
         finally
         {
+          if (bodyStream != null)
+          {
+            try
+            {
+              bodyStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+            bodyStream = null;
+          }
           synchronized (this)
           {
             try

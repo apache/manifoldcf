@@ -2415,6 +2415,7 @@ public class ThrottledFetcher
     protected LoginCookies cookies = null;
     protected Throwable cookieException = null;
     protected XThreadInputStream threadStream = null;
+    protected InputStream bodyStream = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
     protected boolean abortThread = false;
@@ -2500,7 +2501,7 @@ public class ThrottledFetcher
               {
                 try
                 {
-                  InputStream bodyStream = response.getEntity().getContent();
+                  bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
                     bodyStream = new ThrottledInputstream(theConnection,bodyStream);
@@ -2541,6 +2542,17 @@ public class ThrottledFetcher
         }
         finally
         {
+          if (bodyStream != null)
+          {
+            try
+            {
+              bodyStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+            bodyStream = null;
+          }
           synchronized (this)
           {
             try

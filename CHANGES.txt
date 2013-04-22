@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-677: Close body streams where required.
+(Karl Wright)
+
 CONNECTORS-599: Upgrade to a new version of Derby which doesn't
 stall.
 (Karl Wright)

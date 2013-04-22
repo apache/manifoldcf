@@ -614,6 +614,7 @@ public class CommonsHTTPSender extends BasicHandler {
     protected HttpResponse response = null;
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
+    protected InputStream bodyStream = null;
     protected String charSet = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
@@ -676,7 +677,7 @@ public class CommonsHTTPSender extends BasicHandler {
                 try
                 {
                   HttpEntity entity = response.getEntity();
-                  InputStream bodyStream = entity.getContent();
+                  bodyStream = entity.getContent();
                   if (bodyStream != null)
                   {
                     threadStream = new XThreadInputStream(bodyStream);
@@ -717,6 +718,17 @@ public class CommonsHTTPSender extends BasicHandler {
         }
         finally
         {
+          if (bodyStream != null)
+          {
+            try
+            {
+              bodyStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+            bodyStream = null;
+          }
           synchronized (this)
           {
             try

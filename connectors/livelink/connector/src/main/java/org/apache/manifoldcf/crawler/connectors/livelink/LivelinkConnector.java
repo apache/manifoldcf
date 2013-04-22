@@ -7105,6 +7105,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected HttpResponse response = null;
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
+    protected InputStream bodyStream = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
     protected boolean abortThread = false;
@@ -7165,7 +7166,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               {
                 try
                 {
-                  InputStream bodyStream = response.getEntity().getContent();
+                  bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
                     threadStream = new XThreadInputStream(bodyStream);
@@ -7205,6 +7206,17 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         finally
         {
+          if (bodyStream != null)
+          {
+            try
+            {
+              bodyStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+            bodyStream = null;
+          }
           synchronized (this)
           {
             try
