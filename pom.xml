@@ -41,7 +41,7 @@
     <postgresql.version>9.1-901.jdbc4</postgresql.version>
     <mysql.version>5.1.18</mysql.version>
     <hsqldb.version>2.2.9</hsqldb.version>
-    <derby.version>10.8.2.2</derby.version>
+    <derby.version>10.10.1.1</derby.version>
     <jetty.version>7.5.4.v20111024</jetty.version>
     <commons-codec.version>1.5</commons-codec.version>
     <commons-io.version>2.1</commons-io.version>

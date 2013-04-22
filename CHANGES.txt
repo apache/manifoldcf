@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-599: Upgrade to a new version of Derby which doesn't
+stall.
+(Karl Wright)
+
 CONNECTORS-675: Fix for json UTF-8 encoding, elastic search
 connector.
 (Karl Wright)
