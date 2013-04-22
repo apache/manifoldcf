@@ -293,6 +293,12 @@ License: Common Development and Distribution License (CDDL) v1.0 (https://glassf
 This product includes a jstl-impl-1.2.jar.
 License: Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html)
 
+This product includes a dropbox-client-1.5.3.jar.
+License: MIT license (???).
+
+This product includes a json-simple-1.1.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
 

@@ -232,7 +232,7 @@ public class XThreadInputStream extends InputStream
   public void close()
     throws IOException
   {
-    // MHL
+    // Do nothing; stream close is handled by the caller on the stuffer side
   }
 
 }

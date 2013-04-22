@@ -50,65 +50,63 @@ import org.json.simple.parser.ParseException;
  */
 public class DropboxSession {
 
-    private DropboxAPI<?> client;
-    private String cursor = null;
-    
+  private DropboxAPI<?> client;
+  private String cursor = null;
+  
 
-    DropboxSession(Map<String, String> parameters) {
-        AppKeyPair appKeyPair = new AppKeyPair(parameters.get(DropboxConfig.APP_KEY_PARAM), parameters.get(DropboxConfig.APP_SECRET_PARAM));
-        WebAuthSession session = new WebAuthSession(appKeyPair, WebAuthSession.AccessType.DROPBOX);
-        AccessTokenPair ac = new AccessTokenPair(parameters.get(DropboxConfig.KEY_PARAM), parameters.get(DropboxConfig.SECRET_PARAM));
-        session.setAccessTokenPair(ac);
-        client = new DropboxAPI<WebAuthSession>(session);
+  public DropboxSession(Map<String, String> parameters) {
+    AppKeyPair appKeyPair = new AppKeyPair(parameters.get(DropboxConfig.APP_KEY_PARAM), parameters.get(DropboxConfig.APP_SECRET_PARAM));
+    WebAuthSession session = new WebAuthSession(appKeyPair, WebAuthSession.AccessType.DROPBOX);
+    AccessTokenPair ac = new AccessTokenPair(parameters.get(DropboxConfig.KEY_PARAM), parameters.get(DropboxConfig.SECRET_PARAM));
+    session.setAccessTokenPair(ac);
+    client = new DropboxAPI<WebAuthSession>(session);
+  }
+
+  public Map<String, String> getRepositoryInfo() throws DropboxException {
+    Map<String, String> info = new HashMap<String, String>();
+
+    info.put("Country", client.accountInfo().country);
+    info.put("Display Name", client.accountInfo().displayName);
+    info.put("Referral Link", client.accountInfo().referralLink);
+    info.put("Quota", String.valueOf(client.accountInfo().quota));
+    info.put("Quota Normal", String.valueOf(client.accountInfo().quotaNormal));
+    info.put("Quota Shared", String.valueOf(client.accountInfo().quotaShared));
+    info.put("Uid", String.valueOf(client.accountInfo().uid));
+    return info;
+  }
+
+  public HashSet<String> getSeeds() throws DropboxException {
+    HashSet<String> ids = new HashSet<String>();
+    Boolean changed = false;
+    while (true) {
+      // Get /delta results from Dropbox
+      DropboxAPI.DeltaPage<DropboxAPI.Entry> page = client.delta(cursor);
+
+      if (page.reset) {
+        changed = true;
+      }
+      // Apply the entries one by one.
+      for (DeltaEntry<DropboxAPI.Entry> e : page.entries) {
+        ids.add(e.lcPath);
+        changed = true;
+      }
+      cursor = page.cursor;
+      if (!page.hasMore) {
+        break;
+      }
     }
+    return ids;
+  }
 
-    public Map<String, String> getRepositoryInfo() throws DropboxException {
-        Map<String, String> info = new HashMap<String, String>();
+  public DropboxAPI.Entry getObject(String id) throws DropboxException {
+    return client.metadata(id, 25000, null, true, null);
+  }
 
-        info.put("Country", client.accountInfo().country);
-        info.put("Display Name", client.accountInfo().displayName);
-        info.put("Referral Link", client.accountInfo().referralLink);
-        info.put("Quota", String.valueOf(client.accountInfo().quota));
-        info.put("Quota Normal", String.valueOf(client.accountInfo().quotaNormal));
-        info.put("Quota Shared", String.valueOf(client.accountInfo().quotaShared));
-        info.put("Uid", String.valueOf(client.accountInfo().uid));
-        return info;
-    }
-
-    HashSet<String> getSeeds() throws DropboxException {
-        HashSet<String> ids = new HashSet<String>();
-        Boolean changed = false;
-        while (true) {
-            // Get /delta results from Dropbox
-            DropboxAPI.DeltaPage<DropboxAPI.Entry> page = client.delta(cursor);
-
-            if (page.reset) {
-                changed = true;
-            }
-            // Apply the entries one by one.
-            for (DeltaEntry<DropboxAPI.Entry> e : page.entries) {
-                ids.add(e.lcPath);
-                changed = true;
-            }
-            cursor = page.cursor;
-            if (!page.hasMore) {
-                break;
-            }
-        }
-        return ids;
-    }
-
-    public DropboxAPI.Entry getObject(String id) throws DropboxException {
-        DropboxAPI.Entry entry = null;
-        try {
-            entry = client.metadata(id, 25000, null, true, null);
-        } catch (DropboxException e) {
-            System.out.println("Something went wrong: " + e);
-        }
-        return entry;
-    }
-
-    public DropboxInputStream getDropboxInputStream(String id) throws DropboxException {
-        return client.getFileStream(id, null);
-    }
+  public DropboxInputStream getDropboxInputStream(String id) throws DropboxException {
+    return client.getFileStream(id, null);
+  }
+  
+  public void close() {
+    // MHL
+  }
 }

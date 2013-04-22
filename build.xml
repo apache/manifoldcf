@@ -1427,7 +1427,7 @@
         </antcall>
         <antcall target="general-add-repository-connector">
             <param name="connector-name" value="dropbox"/>
-            <param name="connector-label" value="dropbox"/>
+            <param name="connector-label" value="DropBox"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.dropbox.DropboxRepositoryConnector"/>
         </antcall>
     </target>
