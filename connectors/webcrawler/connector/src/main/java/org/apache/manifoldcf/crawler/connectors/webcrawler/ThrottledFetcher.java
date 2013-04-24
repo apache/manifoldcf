@@ -755,15 +755,15 @@ public class ThrottledFetcher
   protected static class ThrottleBin
   {
     /** This is the bin name which this throttle belongs to. */
-    protected String binName;
+    protected final String binName;
     /** This is the reference count for this bin (which records active references) */
-    protected int refCount = 0;
+    protected volatile int refCount = 0;
     /** The inverse rate estimate of the first fetch, in ms/byte */
     protected double rateEstimate = 0.0;
     /** Flag indicating whether a rate estimate is needed */
-    protected boolean estimateValid = false;
+    protected volatile boolean estimateValid = false;
     /** Flag indicating whether rate estimation is in progress yet */
-    protected boolean estimateInProgress = false;
+    protected volatile boolean estimateInProgress = false;
     /** The start time of this series */
     protected long seriesStartTime = -1L;
     /** Total actual bytes read in this series; this includes fetches in progress */
