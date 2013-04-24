@@ -960,19 +960,19 @@ public class ThrottledFetcher
   protected class Server
   {
     /** The fqdn of the server */
-    protected String serverName;
+    protected final String serverName;
     /** This is the time of the next allowed fetch (in ms since epoch) */
     protected long nextFetchTime = 0L;
 
     // Bandwidth throttling variables
     /** Reference count for bandwidth variables */
-    protected int refCount = 0;
+    protected volatile int refCount = 0;
     /** The inverse rate estimate of the first fetch, in ms/byte */
     protected double rateEstimate = 0.0;
     /** Flag indicating whether a rate estimate is needed */
-    protected boolean estimateValid = false;
+    protected volatile boolean estimateValid = false;
     /** Flag indicating whether rate estimation is in progress yet */
-    protected boolean estimateInProgress = false;
+    protected volatile boolean estimateInProgress = false;
     /** The start time of this series */
     protected long seriesStartTime = -1L;
     /** Total actual bytes read in this series; this includes fetches in progress */
@@ -982,7 +982,7 @@ public class ThrottledFetcher
     protected Integer firstChunkLock = new Integer(0);
 
     /** Outstanding connection counter */
-    protected int outstandingConnections = 0;
+    protected volatile int outstandingConnections = 0;
 
     /** Constructor */
     public Server(String serverName)
