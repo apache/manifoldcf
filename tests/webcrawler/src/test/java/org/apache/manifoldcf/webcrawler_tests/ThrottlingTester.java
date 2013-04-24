@@ -67,11 +67,11 @@ public class ThrottlingTester
     cn.addChild(cn.getChildCount(),con);
     
     ConfigurationNode maxKB = new ConfigurationNode(WebcrawlerConfig.NODE_MAXKBPERSECOND);
-    maxKB.setAttribute(WebcrawlerConfig.ATTR_VALUE,"16");
+    maxKB.setAttribute(WebcrawlerConfig.ATTR_VALUE,"128");
     cn.addChild(cn.getChildCount(),maxKB);
     
     ConfigurationNode maxFetches = new ConfigurationNode(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
-    maxFetches.setAttribute(WebcrawlerConfig.ATTR_VALUE,"12");
+    maxFetches.setAttribute(WebcrawlerConfig.ATTR_VALUE,"120");
     cn.addChild(cn.getChildCount(),maxFetches);
     
     cp.addChild(cp.getChildCount(),cn);
