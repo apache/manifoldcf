@@ -48,7 +48,7 @@
     <commons-logging.version>1.1.1</commons-logging.version>
     <commons-collections.version>3.2.1</commons-collections.version>
     <commons-fileupload.version>1.2.2</commons-fileupload.version>
-    <httpcomponent.version>4.2.4</httpcomponent.version>
+    <httpcomponent.version>4.2.5</httpcomponent.version>
     <solr.version>4.1.0</solr.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
