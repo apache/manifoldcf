@@ -136,18 +136,9 @@ public class ThrottlingTester
 
     // Check to be sure we actually processed the right number of documents.
     JobStatus status = jobManager.getStatus(job.getID());
-    // Four levels deep from 10 site seeds: Each site seed has 1 + 10 + 100 + 1000 = 1111 documents, so 100 has 111100
-    if (status.getDocumentsProcessed() != 111100)
-    {
-      System.err.println("Sleeping for database inspection");
-      while (true)
-      {
-        if (1 < 0)
-          break;
-        Thread.sleep(10000L);
-      }
+    // Four levels deep from 100 site seeds: Each site seed has 1 + 10 + 100 + 1000 = 1111 documents, so 100 has 111100 total, and 11100 processed
+    if (status.getDocumentsProcessed() != 11100)
       throw new ManifoldCFException("Wrong number of documents processed - expected 111100, saw "+new Long(status.getDocumentsProcessed()).toString());
-    }
     
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
