@@ -1232,15 +1232,27 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       queryType += "ANALYZE ";
     IResultSet x = executeUncachedQuery(queryType+query,params,true,
       -1,null,null);
-    int k = 0;
-    while (k < x.getRowCount())
+    for (int k = 0; k < x.getRowCount(); k++)
     {
-      IResultRow row = x.getRow(k++);
+      IResultRow row = x.getRow(k);
       Iterator<String> iter = row.getColumns();
       String colName = (String)iter.next();
       Logging.db.warn(" Plan: "+row.getValue(colName).toString());
     }
     Logging.db.warn("");
+    if (query.indexOf("jobqueue") != -1)
+    {
+      // Dump jobqueue stats
+      x = executeUncachedQuery("select n_distinct, most_common_vals, most_common_freqs from pg_stats where tablename='jobqueue' and attname='status'",null,true,-1,null,null);
+      for (int k = 0; k < x.getRowCount(); k++)
+      {
+        IResultRow row = x.getRow(k);
+        Iterator<String> iter = row.getColumns();
+        String colName = (String)iter.next();
+        Logging.db.warn(" Stats: "+row.getValue(colName).toString());
+      }
+      Logging.db.warn("");
+    }
   }
 
   
