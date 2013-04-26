@@ -78,6 +78,7 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
 
       // Index management
       IndexDescription ownerIndex = new IndexDescription(false,new String[]{ownerField});
+      IndexDescription eventNameIndex = new IndexDescription(false,new String[]{eventNameField});
 
       // Get rid of indexes that shouldn't be there
       Map indexes = getTableIndexes(null,null);
@@ -89,6 +90,8 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
 
         if (ownerIndex != null && id.equals(ownerIndex))
           ownerIndex = null;
+        else if (eventNameIndex != null && id.equals(eventNameIndex))
+          eventNameIndex = null;
         else if (indexName.indexOf("_pkey") == -1)
           // This index shouldn't be here; drop it
           performRemoveIndex(indexName);
@@ -97,6 +100,8 @@ public class PrereqEventManager extends org.apache.manifoldcf.core.database.Base
       // Add the ones we didn't find
       if (ownerIndex != null)
         performAddIndex(null,ownerIndex);
+      if (eventNameIndex != null)
+        performAddIndex(null,eventNameIndex);
 
       break;
     }
