@@ -978,9 +978,6 @@ public class ThrottledFetcher
     /** Total actual bytes read in this series; this includes fetches in progress */
     protected long totalBytesRead = -1L;
 
-    /** This object is used to gate access while the first chunk is being read */
-    protected Integer firstChunkLock = new Integer(0);
-
     /** Outstanding connection counter */
     protected volatile int outstandingConnections = 0;
 
@@ -1102,19 +1099,16 @@ public class ThrottledFetcher
 
       long currentTime = System.currentTimeMillis();
 
-      synchronized (firstChunkLock)
+      synchronized (this)
       {
         while (estimateInProgress)
-          firstChunkLock.wait();
+          wait();
         if (estimateValid == false)
         {
           seriesStartTime = currentTime;
           estimateInProgress = true;
           // Add these bytes to the estimated total
-          synchronized (this)
-          {
-            totalBytesRead += (long)byteCount;
-          }
+          totalBytesRead += (long)byteCount;
           // Exit early; this thread isn't going to do any waiting
           //if (Logging.connectors.isTraceEnabled())
           //      Logging.connectors.trace("RSS: Read begin noted; gathering stats for '"+serverName+"'");
@@ -1161,11 +1155,21 @@ public class ThrottledFetcher
       {
         if (!finished)
         {
-          if (estimateInProgress)
-          {
-            estimateInProgress = false;
-            firstChunkLock.notifyAll();
-          }
+          abortRead();
+        }
+      }
+    }
+
+    /** Abort a read in progress.
+    */
+    public void abortRead()
+    {
+      synchronized (this)
+      {
+        if (estimateInProgress)
+        {
+          estimateInProgress = false;
+          notifyAll();
         }
       }
     }
@@ -1183,11 +1187,6 @@ public class ThrottledFetcher
       synchronized (this)
       {
         totalBytesRead = totalBytesRead + (long)actualCount - (long)originalCount;
-      }
-
-      // Only one thread should get here if it's the first chunk, but we synchronize to be sure
-      synchronized (firstChunkLock)
-      {
         if (estimateInProgress)
         {
           if (actualCount == 0)
@@ -1197,7 +1196,7 @@ public class ThrottledFetcher
             rateEstimate = ((double)(currentTime - seriesStartTime))/(double)actualCount;
           estimateValid = true;
           estimateInProgress = false;
-          firstChunkLock.notifyAll();
+          notifyAll();
         }
       }
 

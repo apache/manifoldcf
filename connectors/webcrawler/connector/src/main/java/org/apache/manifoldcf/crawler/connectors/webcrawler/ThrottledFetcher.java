@@ -769,9 +769,6 @@ public class ThrottledFetcher
     /** Total actual bytes read in this series; this includes fetches in progress */
     protected long totalBytesRead = -1L;
 
-    /** This object is used to gate access while the first chunk is being read */
-    protected Integer firstChunkLock = new Integer(0);
-
     /** Constructor. */
     public ThrottleBin(String binName)
     {
@@ -814,19 +811,16 @@ public class ThrottledFetcher
     {
       long currentTime = System.currentTimeMillis();
 
-      synchronized (firstChunkLock)
+      synchronized (this)
       {
         while (estimateInProgress)
-          firstChunkLock.wait();
+          wait();
         if (estimateValid == false)
         {
           seriesStartTime = currentTime;
           estimateInProgress = true;
           // Add these bytes to the estimated total
-          synchronized (this)
-          {
-            totalBytesRead += (long)byteCount;
-          }
+          totalBytesRead += (long)byteCount;
           // Exit early; this thread isn't going to do any waiting
           return;
         }
@@ -867,15 +861,25 @@ public class ThrottledFetcher
       {
         if (!finished)
         {
-          if (estimateInProgress)
-          {
-            estimateInProgress = false;
-            firstChunkLock.notifyAll();
-          }
+          abortRead();
         }
       }
     }
 
+    /** Abort a read in progress.
+    */
+    public void abortRead()
+    {
+      synchronized (this)
+      {
+        if (estimateInProgress)
+        {
+          estimateInProgress = false;
+          notifyAll();
+        }
+      }
+    }
+    
     /** Note the end of an individual read from the server.  Call this just after an individual read completes.
     * Pass the actual number of bytes read to the method.
     */
@@ -886,11 +890,6 @@ public class ThrottledFetcher
       synchronized (this)
       {
         totalBytesRead = totalBytesRead + (long)actualCount - (long)originalCount;
-      }
-
-      // Only one thread should get here if it's the first chunk, but we synchronize to be sure
-      synchronized (firstChunkLock)
-      {
         if (estimateInProgress)
         {
           if (actualCount == 0)
@@ -900,7 +899,7 @@ public class ThrottledFetcher
             rateEstimate = ((double)(currentTime - seriesStartTime))/(double)actualCount;
           estimateValid = true;
           estimateInProgress = false;
-          firstChunkLock.notifyAll();
+          notifyAll();
         }
       }
     }
@@ -1179,11 +1178,24 @@ public class ThrottledFetcher
       throws InterruptedException
     {
       // Consult with throttle bins
-      int i = 0;
-      while (i < throttleBinArray.length)
+      int lastOneDone = 0;
+      try
       {
-        throttleBinArray[i].beginRead(len,minMillisecondsPerByte[i]);
-        i++;
+        for (int i = 0; i < throttleBinArray.length; i++)
+        {
+          throttleBinArray[i].beginRead(len,minMillisecondsPerByte[i]);
+          lastOneDone = i + 1;
+        }
+      }
+      finally
+      {
+        if (lastOneDone != throttleBinArray.length)
+        {
+          for (int i = 0; i < lastOneDone; i++)
+          {
+            throttleBinArray[i].abortRead();
+          }
+        }
       }
     }
 
@@ -1191,11 +1203,9 @@ public class ThrottledFetcher
     public void endRead(int origLen, int actualAmt)
     {
       // Consult with throttle bins
-      int i = 0;
-      while (i < throttleBinArray.length)
+      for (int i = 0; i < throttleBinArray.length; i++)
       {
         throttleBinArray[i].endRead(origLen,actualAmt);
-        i++;
       }
     }
 
