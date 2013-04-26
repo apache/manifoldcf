@@ -1247,9 +1247,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       for (int k = 0; k < x.getRowCount(); k++)
       {
         IResultRow row = x.getRow(k);
-        Iterator<String> iter = row.getColumns();
-        String colName = (String)iter.next();
-        Logging.db.warn(" Stats: "+row.getValue(colName).toString());
+        Logging.db.warn(" Stats: n_distinct="+row.getValue("n_distinct").toString()+" most_common_vals="+row.getValue("most_common_vals").toString()+" most_common_freqs="+row.getValue("most_common_freqs").toString());
       }
       Logging.db.warn("");
     }
