@@ -340,9 +340,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
   @Override
   public boolean checkDocumentIndexable(String outputDescription, File localFile)
       throws ManifoldCFException, ServiceInterruption {
-    OpenSearchServerSpecs specs = getSpecsCache(outputDescription);
-    return specs
-        .checkExtension(FilenameUtils.getExtension(localFile.getName()));
+    return true;
   }
 
   @Override
@@ -352,6 +350,19 @@ public class OpenSearchServerConnector extends BaseOutputConnector {
     return specs.checkMimeType(mimeType);
   }
 
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are not worth indexing.
+  *@param outputDescription is the document's output version.
+  *@param url is the URL of the document.
+  *@return true if the file is indexable.
+  */
+  @Override
+  public boolean checkURLIndexable(String outputDescription, String url)
+    throws ManifoldCFException, ServiceInterruption {
+    OpenSearchServerSpecs specs = getSpecsCache(outputDescription);
+    return specs.checkExtension(FilenameUtils.getExtension(url));
+  }
+    
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {

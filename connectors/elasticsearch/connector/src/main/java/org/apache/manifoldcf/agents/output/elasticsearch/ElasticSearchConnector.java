@@ -342,9 +342,23 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public boolean checkDocumentIndexable(String outputDescription, File localFile)
       throws ManifoldCFException, ServiceInterruption
   {
+    // No filtering here; we don't look inside the file and don't know its extension.  That's done via the url
+    // filter
+    return true;
+  }
+  
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are not worth indexing.
+  *@param outputDescription is the document's output version.
+  *@param url is the URL of the document.
+  *@return true if the file is indexable.
+  */
+  @Override
+  public boolean checkURLIndexable(String outputDescription, String url)
+    throws ManifoldCFException, ServiceInterruption
+  {
     ElasticSearchSpecs specs = getSpecsCache(outputDescription);
-    return specs
-        .checkExtension(FilenameUtils.getExtension(localFile.getName()));
+    return specs.checkExtension(FilenameUtils.getExtension(url));
   }
 
   @Override

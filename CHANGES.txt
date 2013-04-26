@@ -3,6 +3,13 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-681: ElasticSearch and OpenSearchServer connectors
+both misused the File object passed to them in checkFileIndexable()
+in order to see if the extension was a supported one.  Instead they
+should have been checking the URL.  Added that code as well as changed
+the JCIFS connector to check indexability using the URL means.
+(konrad, Karl Wright)
+
 CONNECTORS-679: Web connector hangs during throttling.  Reason
 appears to be that it is possible to interrupt the beginRead() method
 after it goes into "obtain estimate" mode.  Added code to make it clean
