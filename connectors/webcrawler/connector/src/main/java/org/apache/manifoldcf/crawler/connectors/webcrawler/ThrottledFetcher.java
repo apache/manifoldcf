@@ -832,31 +832,48 @@ public class ThrottledFetcher
         }
       }
 
-      long waitTime = 0L;
-      synchronized (this)
+      // It is possible for the following code to get interrupted.  If that happens,
+      // we have to unstick the threads that are waiting on the estimate!
+      boolean finished = false;
+      try
       {
-        // Add these bytes to the estimated total
-        totalBytesRead += (long)byteCount;
+        long waitTime = 0L;
+        synchronized (this)
+        {
+          // Add these bytes to the estimated total
+          totalBytesRead += (long)byteCount;
 
-        // Estimate the time this read will take, and wait accordingly
-        long estimatedTime = (long)(rateEstimate * (double)byteCount);
+          // Estimate the time this read will take, and wait accordingly
+          long estimatedTime = (long)(rateEstimate * (double)byteCount);
 
-        // Figure out how long the total byte count should take, to meet the constraint
-        long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
+          // Figure out how long the total byte count should take, to meet the constraint
+          long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
 
-        // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
-        // current time.  But it can't be negative.
-        waitTime = (desiredEndTime - estimatedTime) - currentTime;
+          // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
+          // current time.  But it can't be negative.
+          waitTime = (desiredEndTime - estimatedTime) - currentTime;
+        }
+
+        if (waitTime > 0L)
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("WEB: Performing a read wait on bin '"+binName+"' of "+
+            new Long(waitTime).toString()+" ms.");
+          ManifoldCF.sleep(waitTime);
+        }
+        finished = true;
       }
-
-      if (waitTime > 0L)
+      finally
       {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("WEB: Performing a read wait on bin '"+binName+"' of "+
-          new Long(waitTime).toString()+" ms.");
-        ManifoldCF.sleep(waitTime);
+        if (!finished)
+        {
+          if (estimateInProgress)
+          {
+            estimateInProgress = false;
+            firstChunkLock.notifyAll();
+          }
+        }
       }
-
     }
 
     /** Note the end of an individual read from the server.  Call this just after an individual read completes.

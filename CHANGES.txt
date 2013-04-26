@@ -3,9 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
-CONNECTORS-679: Web connector hangs on some JVMs due to faulty
-optimizations.  Added volatile qualifiers for some of the key variables
-that seem to be involved in this, and a test.
+CONNECTORS-679: Web connector hangs during throttling.  Reason
+appears to be that it is possible to interrupt the beginRead() method
+after it goes into "obtain estimate" mode.  Added code to make it clean
+up in that case.  Also applied to RSS connector.
 (Erlend Garåsen, Karl Wright)
 
 CONNECTORS-677: Close body streams where required.
