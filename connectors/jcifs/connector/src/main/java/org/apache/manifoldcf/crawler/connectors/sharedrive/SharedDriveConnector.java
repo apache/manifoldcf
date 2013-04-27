@@ -594,8 +594,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             // is to fingerprint right here, in the version part of the world, but that's got a performance
             // downside, because it means that we'd have to suck over pretty much everything just to determine
             // what we wanted to ingest.
-            boolean ifIndexable = wouldFileBeIncluded(activities,newPath,ingestionURI,spec,true);
-            boolean ifNotIndexable = wouldFileBeIncluded(activities,newPath,ingestionURI,spec,false);
+            boolean ifIndexable = wouldFileBeIncluded(newPath,spec,true);
+            boolean ifNotIndexable = wouldFileBeIncluded(newPath,spec,false);
             if (ifIndexable == ifNotIndexable)
               sb.append("I");
             else
@@ -730,14 +730,13 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 RepositoryDocument rd = new RepositoryDocument();
                 String uri = prepareForIndexing(rd,file,version);
 
-                if (activities.checkMimeTypeIndexable(mapExtensionToMimeType(fileName)) &&
-                  activities.checkURLIndexable(uri))
+                if (activities.checkURLIndexable(uri))
                 {
 
                   // manipulate path to include the DFS alias, not the literal path
                   // String newPath = matchPrefix + fileName.substring(matchReplace.length());
                   String newPath = fileName;
-                  if (checkNeedFileData(activities, newPath, uri, spec))
+                  if (checkNeedFileData(newPath, spec))
                   {
                     if (Logging.connectors.isDebugEnabled())
                       Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
@@ -775,7 +774,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         os.close();
                       }
 
-                      if (checkIngest(tempFile, newPath, uri, spec, activities))
+                      if (checkIngest(tempFile, newPath, spec, activities))
                       {
                         if (Logging.connectors.isDebugEnabled())
                           Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
@@ -1445,7 +1444,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       if (!isDirectory)
       {
         long fileLength = fileLength(file);
-        if (!activities.checkLengthIndexable(fileLength))
+        if (!activities.checkLengthIndexable(fileLength) ||
+          !activities.checkMimeTypeIndexable(mapExtensionToMimeType(fileName)))
           return false;
         long maxFileLength = Long.MAX_VALUE;
         i = 0;
@@ -1613,13 +1613,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Pretend that a file is either indexable or not, and return whether or not it would be ingested.
   * This is only ever called for files.
   *@param fileName is the canonical file name.
-  *@param url is the file's url.
   *@param documentSpecification is the specification.
   *@param pretendIndexable should be set to true if the document's contents would be fingerprinted as "indexable",
   *       or false otherwise.
   *@return true if the file would be ingested given the parameters.
   */
-  protected boolean wouldFileBeIncluded(IFingerprintActivity activities, String fileName, String url, DocumentSpecification documentSpecification,
+  protected boolean wouldFileBeIncluded(String fileName, DocumentSpecification documentSpecification,
     boolean pretendIndexable)
     throws ManifoldCFException
   {
@@ -1754,10 +1753,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param documentSpecification is the document specification.
   *@return true if the file needs to be fingerprinted.
   */
-  protected boolean checkNeedFileData(IFingerprintActivity activities, String fileName, String url, DocumentSpecification documentSpecification)
+  protected boolean checkNeedFileData(String fileName, DocumentSpecification documentSpecification)
     throws ManifoldCFException
   {
-    return wouldFileBeIncluded(activities,fileName,url,documentSpecification,true) != wouldFileBeIncluded(activities,fileName,url,documentSpecification,false);
+    return wouldFileBeIncluded(fileName,documentSpecification,true) != wouldFileBeIncluded(fileName,documentSpecification,false);
   }
 
   /** Check if a file should be ingested, given a document specification and a local copy of the
@@ -1765,12 +1764,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   * file data by checkNeedFileData() will be checked by this method.
   *@param localFile is the file.
   *@param fileName is the JCIFS file name.
-  *@param url is the file's url.
   *@param documentSpecification is the specification.
   *@param activities are the activities available to determine indexability.
   *@return true if the file should be ingested.
   */
-  protected boolean checkIngest(File localFile, String fileName, String url, DocumentSpecification documentSpecification, IFingerprintActivity activities)
+  protected boolean checkIngest(File localFile, String fileName, DocumentSpecification documentSpecification, IFingerprintActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     if (Logging.connectors.isDebugEnabled())
