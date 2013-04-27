@@ -409,21 +409,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
     performUpdate(map,"WHERE "+query,list,null);
+    unconditionallyAnalyzeTables();
     
     TrackerClass.noteJobChange(jobID,"Map HOPCOUNTREMOVED to PENDING");
   }
 
-  /** Delete all records for a job that have status HOPCOUNTREMOVED.
-  */
-  public void deleteHopcountRemovedRecords(Long jobID)
-    throws ManifoldCFException
-  {
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
-    performDelete("WHERE "+query,list,null);
-  }
 
   /** Clear the failtimes for all documents associated with a job.
   * This method is called when the system detects that a significant delaying event has occurred,
@@ -468,6 +458,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         statusToString(STATUS_ACTIVEPURGATORY),
         statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
     performUpdate(map,"WHERE "+query,list,null);
+    unconditionallyAnalyzeTables();
         
     TrackerClass.noteGlobalChange("Reset document worker status");
   }
@@ -485,7 +476,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
     performUpdate(map,"WHERE "+query,list,null);
-      
+    unconditionallyAnalyzeTables();
+
     TrackerClass.noteGlobalChange("Reset document delete worker status");
   }
 
@@ -502,7 +494,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
     performUpdate(map,"WHERE "+query,list,null);
-      
+    unconditionallyAnalyzeTables();
+
     TrackerClass.noteGlobalChange("Reset document cleanup worker status");
   }
 
@@ -795,7 +788,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
-      
+    noteModifications(0,1,0);
     TrackerClass.noteRecordChange(recID, newStatus, "Note completion");
   }
 
@@ -845,6 +838,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
     TrackerClass.noteRecordChange(recID, newStatus, "Update or hopcount remove");
     return rval;
   }

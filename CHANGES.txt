@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.2-dev =====================
 
+CONNECTORS-678: Add missing noteModification() method calls, so
+that jobqueue is reanalyzed more frequently.
+(Karl Wright)
+
 CONNECTORS-681: ElasticSearch and OpenSearchServer connectors
 both misused the File object passed to them in checkFileIndexable()
 in order to see if the extension was a supported one.  Instead they

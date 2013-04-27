@@ -1245,7 +1245,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.reindex."+tableName,250000);
+        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.derby.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1302,7 +1302,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.analyze."+tableName,5000);
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.derby.analyze."+tableName,5000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else

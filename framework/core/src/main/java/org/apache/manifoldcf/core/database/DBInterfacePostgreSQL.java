@@ -1416,7 +1416,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.reindex."+tableName,250000);
+        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.postgres.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1461,7 +1461,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       lockManager.leaveWriteCriticalSection(tableStatisticsLock);
     }
     
-      // Analysis.
+    // Analysis.
     // Here we count tuple addition.
     eventCount = modifyCount + insertCount;
     tableStatisticsLock = statslockAnalyzePrefix+tableName;
@@ -1473,7 +1473,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.analyze."+tableName,5000);
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,5000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else
