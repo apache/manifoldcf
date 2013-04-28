@@ -803,6 +803,16 @@ public class ThrottledFetcher
 
     }
 
+    /** Abort the fetch.
+    */
+    public void abortFetch()
+    {
+      synchronized (this)
+      {
+        refCount--;
+      }
+    }
+    
     /** Note the start of an individual byte read of a specified size.  Call this method just before the
     * read request takes place.  Performs the necessary delay prior to reading specified number of bytes from the server.
     */
@@ -1240,13 +1250,13 @@ public class ThrottledFetcher
     public void beginFetch(String fetchType)
       throws ManifoldCFException
     {
+      this.fetchType = fetchType;
+      this.fetchCounter = 0L;
+      int lastCreated = 0;
       try
       {
-        this.fetchType = fetchType;
-        this.fetchCounter = 0L;
         // Find or create the needed throttle bins
-        int i = 0;
-        while (i < throttleBinArray.length)
+        for (int i = 0; i < throttleBinArray.length; i++)
         {
           // Access the bins as we need them, and drop them when ref count goes to zero
           String binName = connectionBinArray[i].getBinName();
@@ -1262,12 +1272,22 @@ public class ThrottledFetcher
             tb.beginFetch();
           }
           throttleBinArray[i] = tb;
-          i++;
+          lastCreated = i + 1;
         }
       }
       catch (InterruptedException e)
       {
         throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      finally
+      {
+        if (lastCreated != throttleBinArray.length)
+        {
+          for (int i = 0; i < lastCreated; i++)
+          {
+            throttleBinArray[i].abortFetch();
+          }
+        }
       }
     }
 
