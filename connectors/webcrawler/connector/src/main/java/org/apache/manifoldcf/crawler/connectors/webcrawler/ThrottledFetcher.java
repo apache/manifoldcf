@@ -1213,9 +1213,26 @@ public class ThrottledFetcher
     public void endRead(int origLen, int actualAmt)
     {
       // Consult with throttle bins
+      Throwable e = null;
       for (int i = 0; i < throttleBinArray.length; i++)
       {
-        throttleBinArray[i].endRead(origLen,actualAmt);
+        try
+        {
+          throttleBinArray[i].endRead(origLen,actualAmt);
+        }
+        catch (Throwable e2)
+        {
+          e = e2;
+        }
+      }
+      if (e != null)
+      {
+        if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        else if (e instanceof Error)
+          throw (Error)e;
+        else
+          throw new RuntimeException("Unknown exception: " + e.getMessage(),e);
       }
     }
 
