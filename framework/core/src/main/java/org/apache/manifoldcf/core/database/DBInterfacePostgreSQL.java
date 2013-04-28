@@ -1473,7 +1473,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,5000);
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,2000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else
