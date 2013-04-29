@@ -29,7 +29,7 @@ import org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig;
 import java.io.*;
 import java.util.*;
 
-/** This is a 10000-document crawl with throttling */
+/** This is a repeated 100-document crawl with throttling */
 public class ThrottlingTester
 {
   protected org.apache.manifoldcf.crawler.tests.ManifoldCFInstance instance;
@@ -97,8 +97,7 @@ public class ThrottlingTester
     job.setOutputConnectionName("Null Connection");
     job.setType(job.TYPE_SPECIFIED);
     job.setStartMethod(job.START_DISABLE);
-    job.setHopcountMode(job.HOPCOUNT_ACCURATE);
-    job.addHopCountFilter("link",new Long(2));
+    job.setHopcountMode(job.HOPCOUNT_NEVERDELETE);
 
     // Now, set up the document specification.
     DocumentSpecification ds = job.getSpecification();
@@ -106,7 +105,7 @@ public class ThrottlingTester
     // Set up 100 seeds
     SpecificationNode sn = new SpecificationNode(WebcrawlerConfig.NODE_SEEDS);
     StringBuilder sb = new StringBuilder();
-    for (int i = 0 ; i < 100 ; i++)
+    for (int i = 0 ; i < 10 ; i++)
     {
       sb.append("http://localhost:8191/web/gen.php?site="+i+"&level=0&item=0\n");
     }
@@ -128,21 +127,23 @@ public class ThrottlingTester
     // Save the job.
     jobManager.save(job);
 
-    // Now, start the job, and wait until it completes.
-    long startTime = System.currentTimeMillis();
-    jobManager.manualStart(job.getID());
-    instance.waitJobInactiveNative(jobManager,job.getID(),220000000L);
-    System.err.println("Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
+    for (int i = 0; i < 100; i++)
+    {
+      System.err.println("Iteration # "+i);
+      // Now, start the job, and wait until it completes.
+      long startTime = System.currentTimeMillis();
+      jobManager.manualStart(job.getID());
+      instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
+      System.err.println(" Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
-    // Check to be sure we actually processed the right number of documents.
-    JobStatus status = jobManager.getStatus(job.getID());
-    // Four levels deep from 100 site seeds: Each site seed has 1 + 10 + 100 + 1000 = 1111 documents, so 100 has 111100 total, and 11100 processed
-    if (status.getDocumentsProcessed() != 11100)
-      throw new ManifoldCFException("Wrong number of documents processed - expected 111100, saw "+new Long(status.getDocumentsProcessed()).toString());
+      // Check to be sure we actually processed the right number of documents.
+      JobStatus status = jobManager.getStatus(job.getID());
+      System.err.println(" "+new Long(status.getDocumentsProcessed())+" documents processed");
+    }
     
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),18000000L);
+    instance.waitJobDeletedNative(jobManager,job.getID(),300000L);
       
     // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
   }

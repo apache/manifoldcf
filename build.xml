@@ -2307,6 +2307,10 @@
         <ant dir="tests/webcrawler" target="run-postgresql"/>
     </target>
 
+    <target name="run-webcrawler-loadtests-derby" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
+        <ant dir="tests/webcrawler" target="run-load-derby"/>
+    </target>
+
     <target name="run-webcrawler-loadtests-postgresql" depends="build-tests-framework,build-tests-webcrawler-connector,build-tests-nulloutput-connector,calculate-webcrawler-tests-condition" if="webcrawler-tests.include">
         <ant dir="tests/webcrawler" target="run-load-postgresql"/>
     </target>

@@ -23,13 +23,13 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a very basic sanity check */
-public class ThrottlingPostgresqlLT extends BasePostgresql
+public class ThrottlingDerbyLT extends BaseDerby
 {
 
   protected ThrottlingTester tester;
   protected MockWebService webService = null;
   
-  public ThrottlingPostgresqlLT()
+  public ThrottlingDerbyLT()
   {
     tester = new ThrottlingTester(mcfInstance);
   }
