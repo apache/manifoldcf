@@ -136,7 +136,7 @@ public class MockWebService
           // > 1024 characters
           res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
           res.getWriter().printf("This is the error message for a 401 page.");
-          for (int i = 0; i < 100; i++)
+          for (int i = 0; i < 1000; i++)
           {
             res.getWriter().printf(" Error message # "+i);
           }
