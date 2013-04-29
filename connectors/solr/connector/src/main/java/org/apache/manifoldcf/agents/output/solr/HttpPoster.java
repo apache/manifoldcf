@@ -397,7 +397,11 @@ public class HttpPoster
     if (code == 500)
     {
       long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Solr exception during "+context+" ("+e.code()+"): "+e.getMessage(),
+      
+      // Log the error
+      String message = "Solr exception during "+context+" ("+e.code()+"): "+e.getMessage();
+      Logging.ingest.warn(message,e);
+      throw new ServiceInterruption(message,
         e,
         currentTime + interruptionRetryTime,
         currentTime + 2L * 60L * 60000L,
@@ -434,20 +438,26 @@ public class HttpPoster
       if (e.getMessage().toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1 ||
         e.getMessage().toLowerCase(Locale.ROOT).indexOf("connection reset") != -1 ||
         e.getMessage().toLowerCase(Locale.ROOT).indexOf("target server failed to respond") != -1)
+      {
         // Treat it as a service interruption, but with a limited number of retries.
         // In that way we won't burden the user with a huge retry interval; it should
         // give up fairly quickly, and yet NOT give up if the error was merely transient
-        throw new ServiceInterruption("Server dropped connection during "+context+": "+e.getMessage(),
+        String message = "Server dropped connection during "+context+": "+e.getMessage();
+        Logging.ingest.warn(message,e);
+        throw new ServiceInterruption(message,
           e,
           currentTime + interruptionRetryTime,
           -1L,
           3,
           false);
+      }
       
       // Other socket exceptions are service interruptions - but if we keep getting them, it means 
       // that a socket timeout is probably set too low to accept this particular document.  So
       // we retry for a while, then skip the document.
-      throw new ServiceInterruption("Socket timeout exception during "+context+": "+e.getMessage(),
+      String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
+      Logging.ingest.warn(message2,e);
+      throw new ServiceInterruption(message2,
         e,
         currentTime + interruptionRetryTime,
         currentTime + 20L * 60000L,
@@ -456,7 +466,9 @@ public class HttpPoster
     }
     
     // Otherwise, no idea what the trouble is, so presume that retries might fix it.
-    throw new ServiceInterruption("IO exception during "+context+": "+e.getMessage(),
+    String message3 = "IO exception during "+context+": "+e.getMessage();
+    Logging.ingest.warn(message3,e);
+    throw new ServiceInterruption(message3,
       e,
       currentTime + interruptionRetryTime,
       currentTime + 2L * 60L * 60000L,
