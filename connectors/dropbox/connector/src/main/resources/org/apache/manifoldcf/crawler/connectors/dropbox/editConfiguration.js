@@ -55,12 +55,6 @@ function checkConfigForSave()
     editconnection.secret.focus();
     return false;
   }
-  if(editconnection.path.value == ""){
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.PathMustNotBeNull'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))");
-    editconnection.path.focus();
-    return false;
-  }
   return true;
 }
 //-->

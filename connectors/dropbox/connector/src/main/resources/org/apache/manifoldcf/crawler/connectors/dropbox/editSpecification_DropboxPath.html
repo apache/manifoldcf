@@ -14,8 +14,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<!--
-#if($TABNAME == $ResourceBundle.getString('DropboxRepositoryConnector.DROPBOXQuery'))
+#if($TABNAME == $ResourceBundle.getString('DropboxRepositoryConnector.DropboxPath'))
 
 <table class="displaytable">
   <tr>
@@ -26,12 +25,12 @@
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DROPBOXQueryColon'))
+        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DropboxPathColon'))
       </nobr>
     </td>
     <td class="value">
       <nobr>
-        <input type="text" size="120" name="dropboxQuery" value="$Encoder.attributeEscape($DROPBOXQUERY)" />
+        <input type="text" size="120" name="dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" />
       </nobr>
     </td>
   </tr>
@@ -39,8 +38,7 @@
 
 #else
 
-<input type="hidden" name="dropboxQuery" value="$Encoder.attributeEscape($DROPBOXQUERY)" />
+<input type="hidden" name="dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" />
 
 #end
 
--->

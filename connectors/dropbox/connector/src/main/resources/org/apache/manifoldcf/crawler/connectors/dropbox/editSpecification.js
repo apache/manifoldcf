@@ -19,9 +19,20 @@
 <!--
 function checkSpecification()
 {
-  // Does nothing right now.
-  return true;
+    return true;
 }
+ 
+ 
+ function checkSpecificationForSave
+ {
+ if(editconnection.path.value == ""){
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.PathMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))");
+    editconnection.path.focus();
+    return false;
+  }
+  return true;
+ }
  
 function SpecOp(n, opValue, anchorvalue)
 {

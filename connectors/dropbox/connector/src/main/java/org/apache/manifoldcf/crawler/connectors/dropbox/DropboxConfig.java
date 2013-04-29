@@ -49,9 +49,10 @@ public class DropboxConfig {
   public static final String REPOSITORY_ID_PARAM = "repositoryId";
   
   //default values
-  public static final String PATH_DEFAULT_VALUE = "NOT USED YET";
+  public static final String PATH_DEFAULT_VALUE = "/";
   public static final String REPOSITORY_ID_DEFAULT_VALUE = "dropbox";
   
-  public static final String DROPBOX_QUERY_PARAM = "dropboxQuery";
+  public static final String DROPBOX_PATH_PARAM = "dropboxpath";
+  public static final String DROPBOX_PATH_PARAM_DEFAULT_VALUE = "/";
   
 }

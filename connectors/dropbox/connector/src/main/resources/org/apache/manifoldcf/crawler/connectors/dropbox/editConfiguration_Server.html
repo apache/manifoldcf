@@ -68,16 +68,6 @@
       <input type="text" id="secret" name="secret" value="$Encoder.attributeEscape($SECRET)" />
     </td>
   </tr>
-  <tr>
-    <td class="description">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.PathColon'))
-      </nobr>
-    </td>
-    <td class="value">
-        <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
-    </td>
-  </tr>
 </table>
 
 #else
@@ -87,6 +77,5 @@
 <input type="hidden" name="app_secret" value="$Encoder.attributeEscape($APP_SECRET)" />
 <input type="hidden" name="key" value="$Encoder.attributeEscape($KEY)" />
 <input type="hidden" name="secret" value="$Encoder.attributeEscape($SECRET)" />
-<input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
 
 #end

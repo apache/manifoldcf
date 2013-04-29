@@ -51,9 +51,7 @@ import org.json.simple.parser.ParseException;
 public class DropboxSession {
 
   private DropboxAPI<?> client;
-  private String cursor = null;
   
-
   public DropboxSession(Map<String, String> parameters) {
     AppKeyPair appKeyPair = new AppKeyPair(parameters.get(DropboxConfig.APP_KEY_PARAM), parameters.get(DropboxConfig.APP_SECRET_PARAM));
     WebAuthSession session = new WebAuthSession(appKeyPair, WebAuthSession.AccessType.DROPBOX);
@@ -75,29 +73,24 @@ public class DropboxSession {
     return info;
   }
 
-  public HashSet<String> getSeeds() throws DropboxException {
-    HashSet<String> ids = new HashSet<String>();
-    Boolean changed = false;
-    while (true) {
-      // Get /delta results from Dropbox
-      DropboxAPI.DeltaPage<DropboxAPI.Entry> page = client.delta(cursor);
+    public HashSet<String> getSeeds(String path, int max_dirs) throws DropboxException {
+        HashSet<String> ids = new HashSet<String>();
 
-      if (page.reset) {
-        changed = true;
-      }
-      // Apply the entries one by one.
-      for (DeltaEntry<DropboxAPI.Entry> e : page.entries) {
-        ids.add(e.lcPath);
-        changed = true;
-      }
-      cursor = page.cursor;
-      if (!page.hasMore) {
-        break;
-      }
+        ids.add(path); //need to add root dir so that single files such as /file1 will still get read
+        
+        
+        DropboxAPI.Entry root_entry = client.metadata(path, max_dirs, null, true, null);
+        List<DropboxAPI.Entry> entries = root_entry.contents; //gets a list of the contents of the entire folder: subfolders + files
+
+        // Apply the entries one by one.
+        for (DropboxAPI.Entry e : entries) {
+            if (e.isDir) { //only add the directories as seeds, we'll add the files later
+                ids.add(e.path);
+            }
+        }
+        return ids;
     }
-    return ids;
-  }
-
+  
   public DropboxAPI.Entry getObject(String id) throws DropboxException {
     return client.metadata(id, 25000, null, true, null);
   }
