@@ -1,7 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.2-dev =====================
+======================= 1.3-dev =====================
+
+======================= Release 1.2 =====================
 
 CONNECTORS-678: Add missing noteModification() method calls, so
 that jobqueue is reanalyzed more frequently.
