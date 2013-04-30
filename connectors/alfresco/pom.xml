@@ -102,7 +102,9 @@
                 </goals>
                 <configuration>
                     <encoding>UTF8</encoding>
-                    <includes>**/*.properties</includes>
+                    <includes>
+                      <include>**/*.properties</include>
+                    </includes>
                 </configuration>
             </execution>
         </executions>
