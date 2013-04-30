@@ -50,6 +50,7 @@
     <module>wiki</module>
     <module>alfresco</module>
     <module>elasticsearch</module>
+    <module>dropbox</module>
   </modules>
 
 </project>

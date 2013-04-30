@@ -3,6 +3,9 @@ $Id$
 
 =======================  Release 1.2 =====================
 
+CONNECTORS-676: Include DropBox connector.
+(Andrew Janowczyk, Karl Wright)
+
 CONNECTORS-678: Add missing noteModification() method calls, so
 that jobqueue is reanalyzed more frequently.
 (Karl Wright)
