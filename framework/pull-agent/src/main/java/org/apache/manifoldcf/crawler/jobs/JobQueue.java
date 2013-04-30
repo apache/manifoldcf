@@ -603,6 +603,31 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     TrackerClass.noteJobChange(jobID,"Prepare full scan");
   }
 
+  /** For ADD_CHANGE_DELETE jobs where the specifications have been changed,
+  * we must reconsider every existing document.  So reconsider them all.
+  *@param jobID is the job identifier.
+  */
+  public void queueAllExisting(Long jobID)
+    throws ManifoldCFException
+  {
+    // Map COMPLETE to PENDINGPURGATORY
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    // Do not reset priorities here!  They should all be blank at this point.
+    map.put(checkTimeField,new Long(0L));
+    map.put(checkActionField,actionToString(ACTION_RESCAN));
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new UnitaryClause(statusField,statusToString(STATUS_COMPLETE))});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+    // Do an analyze, otherwise our plans are going to be crap right off the bat
+    unconditionallyAnalyzeTables();
+    }
+    
   /** Prepare for a "partial" job.  This is called ONLY when the job is inactive.
   *
   * This method maps all COMPLETE entries to UNCHANGED.  The purpose is to
