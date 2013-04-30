@@ -5459,7 +5459,9 @@ public class JobManager implements IJobManager
     // (1) If the connector has MODEL_ADD_CHANGE_DELETE, then
     // we let the connector run the show; there's no purge phase, and therefore the
     // documents are left in a COMPLETED state if they don't show up in the list
-    // of seeds that require the attention of the connector.
+    // of seeds that require the attention of the connector.  However, we do need to
+    // preload the queue with all the existing documents, if there was any change to the
+    // specification information (which will mean that fromBeginningOfTime is set).
     //
     // (2) If the connector has MODEL_ALL, then it's a full crawl no matter what, so
     // we do a full scan initialization.
@@ -5470,13 +5472,20 @@ public class JobManager implements IJobManager
 
     // Complete connector model is told everything, so no delete phase.
     if (connectorModel == IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
+    {
+      if (fromBeginningOfTime)
+        jobQueue.queueAllExisting(jobID);
       return;
+    }
     
     // If the connector model is complete via chaining, then we just need to make
     // sure discovery works to queue the changes.
     if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE_DELETE)
     {
-      jobQueue.preparePartialScan(jobID);
+      if (fromBeginningOfTime)
+        jobQueue.queueAllExisting(jobID);
+      else
+        jobQueue.preparePartialScan(jobID);
       return;
     }
     

@@ -3,6 +3,10 @@ $Id$
 
 =======================  Release 1.2 =====================
 
+CONNECTORS-685: Handle the case when connector model is
+ADD_CHANGE_DELETE and you change configuration data.
+(Maciej Li¿ewski, Karl Wright)
+
 CONNECTORS-676: Include DropBox connector.
 (Andrew Janowczyk, Karl Wright)
 
