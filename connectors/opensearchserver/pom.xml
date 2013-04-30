@@ -41,14 +41,14 @@
     <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
     <resources>
       <resource>
-        <directory>${basedir}/src/main/resources</directory>
+        <directory>${basedir}/connector/src/main/resources</directory>
         <includes>
           <include>**/*.html</include>
           <include>**/*.js</include>
         </includes>
       </resource>
       <resource>
-        <directory>${basedir}/src/main/native2ascii</directory>
+        <directory>${basedir}/connector/src/main/native2ascii</directory>
         <includes>
           <include>**/*.properties</include>
         </includes>
