@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 1.2 =====================
 
+CONNECTORS-586: Fix native2ascii incompatibility with Java 7.
+(Christian Ziech, Karl Wright)
+
 CONNECTORS-685: Handle the case when connector model is
 ADD_CHANGE_DELETE and you change configuration data.
 (Maciej Li¿ewski, Karl Wright)

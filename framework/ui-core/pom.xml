@@ -28,14 +28,19 @@
   <name>ManifoldCF - Framework - UI Core</name>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/native2ascii</directory>
+      </resource>
+    </resources> 
+
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>native2ascii-maven-plugin</artifactId>
-        <version>1.0-alpha-1</version>
+        <version>1.0-beta-1</version>
         <configuration>
-            <dest>target/classes</dest>
-            <src>src/main/native2ascii</src>
+            <workDir>target/classes</workDir>
         </configuration>
         <executions>
             <execution>
@@ -45,7 +50,9 @@
                 </goals>
                 <configuration>
                     <encoding>UTF8</encoding>
-                    <includes>**/*.properties</includes>
+                    <includes>
+                      <include>**/*.properties</include>
+                    </includes>
                 </configuration>
             </execution>
         </executions>
