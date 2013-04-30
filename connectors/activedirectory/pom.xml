@@ -30,14 +30,29 @@
   <build>
     <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
     <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/connector/src/main/resources</directory>
+        <includes>
+          <include>**/*.html</include>
+          <include>**/*.js</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/connector/src/main/native2ascii</directory>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+    </resources> 
+
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>native2ascii-maven-plugin</artifactId>
-        <version>1.0-alpha-1</version>
+        <version>1.0-beta-1</version>
         <configuration>
-            <dest>target/classes</dest>
-            <src>connector/src/main/native2ascii</src>
+            <workDir>target/classes</workDir>
         </configuration>
         <executions>
             <execution>
