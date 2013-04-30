@@ -105,7 +105,7 @@ public class ThrottlingTester
     // Set up 100 seeds
     SpecificationNode sn = new SpecificationNode(WebcrawlerConfig.NODE_SEEDS);
     StringBuilder sb = new StringBuilder();
-    for (int i = 0 ; i < 10 ; i++)
+    for (int i = 0 ; i < 50 ; i++)
     {
       sb.append("http://localhost:8191/web/gen.php?site="+i+"&level=0&item=0\n");
     }
@@ -133,7 +133,7 @@ public class ThrottlingTester
       // Now, start the job, and wait until it completes.
       long startTime = System.currentTimeMillis();
       jobManager.manualStart(job.getID());
-      instance.waitJobInactiveNative(jobManager,job.getID(),300000L);
+      instance.waitJobInactiveNative(jobManager,job.getID(),900000L);
       System.err.println(" Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
       // Check to be sure we actually processed the right number of documents.
@@ -143,7 +143,7 @@ public class ThrottlingTester
     
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),300000L);
+    instance.waitJobDeletedNative(jobManager,job.getID(),900000L);
       
     // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
   }
