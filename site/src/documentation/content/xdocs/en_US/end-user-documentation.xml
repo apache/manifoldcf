@@ -1628,6 +1628,54 @@
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
             </section>
             
+            <section id="dropboxrepository">
+              <title>Dropbox Repository Connection</title>
+              <p>The Dropbox Repository Connection type allows you to index content from <a href="https://www.dropbox.com/home">Dropbox</a>.</p>
+              <p>Each Dropbox Connection manages access to a single dropbox repository. This means that if you have multiple dropbox repositories (i.e. different users),
+                you need to create a specific connection for each dropbox repository and provide the associated authentication information.</p>
+              <br/>
+              <p>A Dropbox connection has the following configuration parameters on the repository connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-configuration.PNG" alt="Dropbox Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>As we can see there are 4 pieces of information which are needed to create a succesful connection. The application key and secret are given by dropbox 
+                when you register your application for a development license. This is typically done through the application developer <a href="https://www.dropbox.com/developers/apps">Dropbox website</a>.</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-create-application.PNG" alt="Dropbox create application" width="80%"/>
+              <br/><br/>
+              <p>For our purposes, we need to select "Core" as the application type as we'll be using REST services to communicate with dropbox. Also we select
+                "full access". This merits a small discussion. Typically an application which wants to store and retreive information does so from an application specific
+                folder. In this case, we assume that the user wants to have access to their files as is, and not copy them into a manifoldcf specific folder. As a result,
+                we have selected full access instead of "App folder".</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-application-secret-passwords.PNG" alt="Dropbox get key and secret passwords" width="80%"/>
+              <br/><br/>
+              <p> Afterwards we can see the app key and app secret which are the two pieces of information requested by the connector.</p>
+              <p>Now each user must confirm their acceptance of allowing your application to access their dropbox. This is done through a run-of-the-mill OAUTH
+                approach. After providing your application key and secret, the user is directed to a dropbox website asking them if they wish to grant permission to your
+                application. After they accept the request, dropbox provides a client key and secret. These are the last two pieces of information needed for the dropbox
+                connector. This process is covered in depth at the <a href="https://www.dropbox.com/developers/core/authentication">dropbox website</a>
+                which shows examples of how to generate the two needed client tokens. </p>
+              <br/>
+              <br/><br/>
+              <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-configuration-save.PNG" alt="Dropbox Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>When you configure a job to use the Dropbox repository connection an additional tab is presented. This is the "Dropbox Folder to Index" tab:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-job-dropbox-folder-to-index.PNG" alt="Dropbox Repository Connection, Dropbox Folder to Index" width="80%"/>
+              <br/><br/>
+              <p>The Dropbox Folder to Index tab allows you to specify the directory which the dropbox connector will index. Dropbox uses unix style paths, with
+                "/" indicating the root path (and thus the entire dropbox). For example if you want to just index the Photos directory, you would specify "/Photos". </p>
+              <p>Note that the Dropbox Connector during the ingestion process, for each result, when it find a folder node, it will ingest all the children of the folder node;
+                otherwise it will directly ingest the document.</p>
+              <p>When you are done, and you click the "Save" button, you will see a summary page looking something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-job-save.PNG" alt="CMIS Repository Connection, saving job" width="80%"/>
+              <br/><br/>
+            </section>
+            
             <section id="livelinkrepository">
                 <title>OpenText LiveLink Repository Connection</title>
                 <p>The LiveLink connection type allows you to index content from LiveLink repositories.  LiveLink has a rich variety of different document types and metadata,

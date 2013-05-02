@@ -133,7 +133,16 @@ public class ThrottlingTester
       // Now, start the job, and wait until it completes.
       long startTime = System.currentTimeMillis();
       jobManager.manualStart(job.getID());
-      instance.waitJobInactiveNative(jobManager,job.getID(),900000L);
+      try
+      {
+        instance.waitJobInactiveNative(jobManager,job.getID(),900000L);
+      }
+      catch (ManifoldCFException e)
+      {
+        System.err.println("Halting for inspection");
+        Thread.sleep(9000000L);
+        throw e;
+      }
       System.err.println(" Crawl required "+new Long(System.currentTimeMillis()-startTime).toString()+" milliseconds");
 
       // Check to be sure we actually processed the right number of documents.

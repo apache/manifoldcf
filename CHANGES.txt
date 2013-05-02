@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-683: Add Dropbox connector end-user documentation.
+(Andrew Janowczyk)
+
 ======================= Release 1.2 =====================
 
 CONNECTORS-586: Fix native2ascii incompatibility with Java 7.
