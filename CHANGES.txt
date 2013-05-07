@@ -3,10 +3,15 @@ $Id$
 
 ======================= 1.3-dev =====================
 
-CONNECTORS-683: Add Dropbox connector end-user documentation.
-(Andrew Janowczyk)
 
 ======================= Release 1.2 =====================
+
+CONNECTORS-682: Fix expect-continue issues with Solr when there is
+a Solr delay of more than 3 seconds.
+(Oleg Kalnichevski, Erlend Garåsen, Karl Wright)
+
+CONNECTORS-683: Add Dropbox connector end-user documentation.
+(Andrew Janowczyk)
 
 CONNECTORS-586: Fix native2ascii incompatibility with Java 7.
 (Christian Ziech, Karl Wright)
