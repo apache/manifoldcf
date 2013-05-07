@@ -233,6 +233,7 @@ public class HttpPoster
     // This one is essential to prevent us from reading from the content stream before necessary during auth, but
     // is incompatible with some proxies.
     params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+    params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
     params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
     params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);

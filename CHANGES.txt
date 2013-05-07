@@ -3,6 +3,13 @@ $Id$
 
 =======================  Release 1.2 =====================
 
+
+======================= Release 1.2 =====================
+
+CONNECTORS-682: Fix expect-continue issues with Solr when there is
+a Solr delay of more than 3 seconds.
+(Oleg Kalnichevski, Erlend Garåsen, Karl Wright)
+
 CONNECTORS-683: Add Dropbox connector end-user documentation.
 (Andrew Janowczyk)
 
