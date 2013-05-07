@@ -266,8 +266,7 @@ public class HttpPoster
     }
 
     String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
-    HttpSolrServer httpSolrServer = new HttpSolrServer(httpSolrServerUrl, localClient, new XMLResponseParser());
-    httpSolrServer.setUseMultiPartPost(true);
+    HttpSolrServer httpSolrServer = new ModifiedHttpSolrServer(httpSolrServerUrl, localClient, new XMLResponseParser());
     // Set the solrj instance we want to use
     solrServer = httpSolrServer;
   }

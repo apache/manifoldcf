@@ -6,10 +6,6 @@ $Id$
 
 ======================= Release 1.2 =====================
 
-CONNECTORS-674: Use Solrj 4.3.0, and get rid of our own hacked
-class, since it now should no longer be needed.
-(Ryan McKinley, Karl Wright)
-
 CONNECTORS-682: Fix expect-continue issues with Solr when there is
 a Solr delay of more than 3 seconds.
 (Oleg Kalnichevski, Erlend Garåsen, Karl Wright)
