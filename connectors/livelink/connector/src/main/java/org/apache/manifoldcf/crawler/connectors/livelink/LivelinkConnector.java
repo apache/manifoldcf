@@ -1132,100 +1132,138 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           {
             // We were able to get rights, so object still exists.
 
-            // I rearranged this on 11/7/2006 so that it would be more parseable, since
-            // we want to pull the transient information out of the version string where
-            // possible (so there is no mismatch between version checking and ingestion).
-
-            StringBuilder sb = new StringBuilder();
-
-            // On 1/17/2008 I changed the version generation code to NOT include metadata, view info, etc. for folders, since
-            // folders make absolutely no use of this info.
+            // Check to be sure the object is not owned by the recycle bin.
+            boolean recycleBin;
             if (!isFolder)
             {
-              if (includeAllMetadata)
+              Integer owner = value.getOwner();
+              if (owner == null)
+                recycleBin = false;
+              else
               {
-                // Find all the metadata associated with this object, and then
-                // find the set of category pathnames that correspond to it.
-                int[] catIDs = getObjectCategoryIDs(vol,objID);
-                String[] categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
-                // Sort!
-                java.util.Arrays.sort(categoryPaths);
-                // Build the metadata string piece now
-                packList(sb,categoryPaths,'+');
+                if (owner.intValue() >= 0)
+                  recycleBin = false;
+                else
+                {
+                  ObjectInformation ownerInfo = llc.getObjectInformation(0,-owner.intValue());
+                  if (ownerInfo == null)
+                    recycleBin = false;
+                  else
+                  {
+                    Integer subtype = ownerInfo.getSubType();
+                    if (subtype == null || subtype.intValue() != 3030)
+                      recycleBin = false;
+                    else
+                      recycleBin = true;
+                  }
+                }
+              }
+            }
+            else
+              recycleBin = false;
+            
+            if (!recycleBin)
+            {
+              // I rearranged this on 11/7/2006 so that it would be more parseable, since
+              // we want to pull the transient information out of the version string where
+              // possible (so there is no mismatch between version checking and ingestion).
+
+              StringBuilder sb = new StringBuilder();
+
+              // On 1/17/2008 I changed the version generation code to NOT include metadata, view info, etc. for folders, since
+              // folders make absolutely no use of this info.
+              if (!isFolder)
+              {
+                if (includeAllMetadata)
+                {
+                  // Find all the metadata associated with this object, and then
+                  // find the set of category pathnames that correspond to it.
+                  int[] catIDs = getObjectCategoryIDs(vol,objID);
+                  String[] categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
+                  // Sort!
+                  java.util.Arrays.sort(categoryPaths);
+                  // Build the metadata string piece now
+                  packList(sb,categoryPaths,'+');
+                }
+                else
+                  sb.append(metadataString);
+              }
+
+              String[] actualAcls;
+              String denyAcl;
+              if (acls != null && acls.length == 0)
+              {
+                // No forced acls.  Read the actual acls from livelink, as a set of rights.
+                // We need also to add in support for the special rights objects.  These are:
+                // -1: RIGHT_WORLD
+                // -2: RIGHT_SYSTEM
+                // -3: RIGHT_OWNER
+                // -4: RIGHT_GROUP
+                //
+                // RIGHT_WORLD means guest access.
+                // RIGHT_SYSTEM is "Public Access".
+                // RIGHT_OWNER is access by the owner of the object.
+                // RIGHT_GROUP is access by a member of the base group containing the owner
+                //
+                // These objects are returned by the GetObjectRights() call made above, and NOT
+                // returned by LLUser.ListObjects().  We have to figure out how to map these to
+                // things that are
+                // the equivalent of acls.
+
+                actualAcls = lookupTokens(rights, value);
+                java.util.Arrays.sort(actualAcls);
+                // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
+                // to be really really really sure.
+                denyAcl = denyToken;
+
+              }
+              else if (acls != null && acls.length > 0)
+              {
+                // Forced acls
+                actualAcls = acls;
+                denyAcl = defaultAuthorityDenyToken;
               }
               else
-                sb.append(metadataString);
-            }
+              {
+                // Security is OFF
+                actualAcls = acls;
+                denyAcl = null;
+              }
 
-            String[] actualAcls;
-            String denyAcl;
-            if (acls != null && acls.length == 0)
-            {
-              // No forced acls.  Read the actual acls from livelink, as a set of rights.
-              // We need also to add in support for the special rights objects.  These are:
-              // -1: RIGHT_WORLD
-              // -2: RIGHT_SYSTEM
-              // -3: RIGHT_OWNER
-              // -4: RIGHT_GROUP
-              //
-              // RIGHT_WORLD means guest access.
-              // RIGHT_SYSTEM is "Public Access".
-              // RIGHT_OWNER is access by the owner of the object.
-              // RIGHT_GROUP is access by a member of the base group containing the owner
-              //
-              // These objects are returned by the GetObjectRights() call made above, and NOT
-              // returned by LLUser.ListObjects().  We have to figure out how to map these to
-              // things that are
-              // the equivalent of acls.
+              // Now encode the acls.  If null, we write a special value.
+              if (actualAcls == null)
+                sb.append('-');
+              else
+              {
+                sb.append('+');
+                packList(sb,actualAcls,'+');
+                // This was added on 4/21/2008 to support forced acls working with the global default authority.
+                pack(sb,denyAcl,'+');
+              }
 
-              actualAcls = lookupTokens(rights, value);
-              java.util.Arrays.sort(actualAcls);
-              // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
-              // to be really really really sure.
-              denyAcl = denyToken;
+              // The date does not need to be parseable
+              sb.append(dt.toString());
 
-            }
-            else if (acls != null && acls.length > 0)
-            {
-              // Forced acls
-              actualAcls = acls;
-              denyAcl = defaultAuthorityDenyToken;
+              if (!isFolder)
+              {
+                // PathNameAttributeVersion comes completely from the spec, so we don't
+                // have to worry about it changing.  No need, therefore, to parse it during
+                // processDocuments.
+                sb.append("=").append(pathNameAttributeVersion);
+
+                // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.  Added 9/7/07.
+                sb.append("_").append(viewBasePath);
+              }
+
+              rval[i] = sb.toString();
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Successfully calculated version string for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+rval[i]+"'");
             }
             else
             {
-              // Security is OFF
-              actualAcls = acls;
-              denyAcl = null;
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Recycle bin object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
             }
-
-            // Now encode the acls.  If null, we write a special value.
-            if (actualAcls == null)
-              sb.append('-');
-            else
-            {
-              sb.append('+');
-              packList(sb,actualAcls,'+');
-              // This was added on 4/21/2008 to support forced acls working with the global default authority.
-              pack(sb,denyAcl,'+');
-            }
-
-            // The date does not need to be parseable
-            sb.append(dt.toString());
-
-            if (!isFolder)
-            {
-              // PathNameAttributeVersion comes completely from the spec, so we don't
-              // have to worry about it changing.  No need, therefore, to parse it during
-              // processDocuments.
-              sb.append("=").append(pathNameAttributeVersion);
-
-              // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.  Added 9/7/07.
-              sb.append("_").append(viewBasePath);
-            }
-
-            rval[i] = sb.toString();
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Livelink: Successfully calculated version string for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+rval[i]+"'");
           }
           else
           {
@@ -5704,6 +5742,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return new Integer(elem.toInteger("ParentId")); 
     }
 
+    /* Get owner.
+    */
+    public Integer getOwner()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("OWNER")); 
+    }
+
+    /** Get the subtype
+    */
+    public Integer getSubType()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getObjectValue();
+      if (elem == null)
+        return null;
+      return new Integer(elem.toInteger("SubType")); 
+    }
+        
     /** Get owner ID.
     */
     public Integer getOwnerId()
