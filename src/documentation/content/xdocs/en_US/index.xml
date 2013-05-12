@@ -29,25 +29,40 @@
   <body> 
     <section>
 	<title>What Is Apache ManifoldCF?</title>
-	<p>Apache ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint and EMC Documentum, to target repositories or indexes, such as Apache Solr, Open Search Server, or ElasticSearch.  Apache ManifoldCF also defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
-	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC connector, an RSS feed connector, a Wiki connector, and a general web connector.
-            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS , OpenSearchServer and ElasticSearch.  The complete repository compatibility list can be found in the release documentation <a href="release-documentation.html">here</a>.</p>
-	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
+	<p>Apache ManifoldCF is an effort to provide an open source framework for connecting source content repositories like Microsoft Sharepoint
+            and EMC Documentum, to target repositories or indexes, such as Apache Solr, Open Search Server, or ElasticSearch.  Apache ManifoldCF also
+            defines a security model for target repositories that permits them to enforce source-repository security policies.</p>
+	<p>Currently included connectors support FileNet P8 (IBM), Documentum (EMC), LiveLink (OpenText), Meridio (Autonomy), Windows shares
+            (Microsoft), and SharePoint (Microsoft).  Also included are a general CMIS connector, a generic file system connector, a general JDBC
+            connector, an RSS feed connector, a Wiki connector, a DropBox connector, and a general web connector.
+            Currently supported targets include Apache Solr, QBase (formerly MetaCarta) GTS , OpenSearchServer and ElasticSearch.  The complete repository
+            compatibility list can be found in the release documentation <a href="release-documentation.html">here</a>.</p>
+	<p>The original ManifoldCF code base was granted by MetaCarta, Inc., to the Apache Software Foundation in December 2009.  The MetaCarta effort
+            represented more than five years of successful development and testing in multiple, challenging enterprise environments.</p>
     </section>
 
     <section>
 	<title>Project status</title>
-	<p>Apache ManifoldCF 1.1.1 is available!  Download it <a href="download.html">here</a>.</p>
+	<p>Apache ManifoldCF 1.2 is available!  Download it <a href="download.html">here</a>.</p>
     </section>
 
     <section>
 	<title>A philosophical note about third-party repositories</title>
-	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in order to be built.  The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled; that is, you as a developer must supply the necessary third-party components before the connector will build.  While we have every intention of trying to reduce the number of affected connectors by means of clean-room development under the auspices of ASF, realistically the current situation will not change in any dramatic way very quickly.  The focus of this group remains primarily on providing solutions.</p>
-	<p>The required libraries, tools, and procedures for building each of these connectors are well documented in the Wiki pages for this project.</p>
+	<p>Many of the connectors included with ManifoldCF currently require third-party libraries, packages, or other licensed materials in
+            order to be built.  The code for these connectors can be distributed under Apache guidelines because they are conditionally compiled,
+            or compiled against stubs;
+            that is, you as a developer must supply the necessary third-party components before the connector will build.  While we have every
+            intention of trying to reduce the number of affected connectors by means of clean-room development under the auspices of ASF,
+            realistically the current situation will not change in any dramatic way very quickly.  The focus of this group remains primarily on
+            providing solutions.</p>
     </section>
 
     <section>
         <title>News</title>
+          <section>
+              <title>11 May 2013 - ManifoldCF 1.2 is released!</title>
+                <p>Developer community signs off on release 1.2.</p>
+          </section>
           <section>
               <title>13 Feb 2013 - ManifoldCF 1.1.1 is released!</title>
                 <p>Developer community signs off on point bugfix release.</p>
