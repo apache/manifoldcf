@@ -1002,7 +1002,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug("Livelink: Found a user: ID="+Integer.toString(childID));
 
-              activities.addSeedDocument("U0:"+Integer.toString(childID));
+              activities.addSeedDocument("F0:"+Integer.toString(childID));
             }
             break;
           }
@@ -2479,10 +2479,32 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int k;
 
     // Paths tab
+    boolean userWorkspaces = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("userworkspace"))
+      {
+        String value = sn.getAttributeValue("value");
+        if (value != null && value.equals("true"))
+          userWorkspaces = true;
+      }
+    }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"checkbox\" name=\"userworkspace\" value=\"true\""+(userWorkspaces?" checked=\"true\"":"")+"/>\n"+
+"      <input type=\"hidden\" name=\"userworkspace_present\" value=\"true\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       // Now, loop through paths
@@ -2614,7 +2636,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\"userworkspace\" value=\""+(userWorkspaces?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\"userworkspace_present\" value=\"true\"/>\n"
       );
     }
 
@@ -3207,6 +3231,24 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
+    String userWorkspacesPresent = variableContext.getParameter("userworkspace_present");
+    if (userWorkspacesPresent != null)
+    {
+      String value = variableContext.getParameter("userworkspace");
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("userworkspace"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode("userworkspace");
+      sn.setAttribute("value",value);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+    
     String xc = variableContext.getParameter("pathcount");
     if (xc != null)
     {
@@ -3702,6 +3744,35 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"
     );
     int i = 0;
+    boolean userWorkspaces = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("userworkspace"))
+      {
+        String value = sn.getAttributeValue("value");
+        if (value != null && value.equals("true"))
+          userWorkspaces = true;
+      }
+    }
+
+    out.print(
+"    <td class=\"description\"/>\n"+
+"      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\"/>\n"+
+"      "+(userWorkspaces?Messages.getBodyString(locale,"LivelinkConnector.Yes"):Messages.getBodyString(locale,"LivelinkConnector.No"))+"\n"+
+"    </td>\n"+
+"  </tr>"
+    );
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    out.print(
+"  <tr>"
+    );
+
+    i = 0;
     boolean seenAny = false;
     while (i < ds.getChildCount())
     {
