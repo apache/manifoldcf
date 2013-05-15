@@ -959,7 +959,64 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (doUserWorkspaces)
       {
         // Do ListUsers and enumerate the values.
-        // MHL
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          ListUsersThread t = new ListUsersThread();
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+
+            LLValue childrenDocs = t.getResponse();
+
+            int size = 0;
+
+            if (childrenDocs.isRecord())
+              size = 1;
+            if (childrenDocs.isTable())
+              size = childrenDocs.size();
+
+            // Do the scan
+            for (int j = 0; j < size; j++)
+            {
+              int childID = childrenDocs.toInteger(j, "ID");
+              
+              // Skip admin user
+              if (childID == 1000 || childID == 1001)
+                continue;
+              
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Found a user: ID="+Integer.toString(childID));
+
+              activities.addSeedDocument("U0:"+Integer.toString(childID));
+            }
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
       }
       
     }
@@ -5840,14 +5897,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class ListUsersThread extends Thread
   {
-    protected final IDQueue queue;
+    protected LLValue rval = null;
     protected Throwable exception = null;
 
-    public ListUsersThread(IDQueue queue)
+    public ListUsersThread()
     {
       super();
       setDaemon(true);
-      this.queue = queue;
     }
 
     public void run()
@@ -5873,18 +5929,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           throw new ManifoldCFException("Error retrieving user list: status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         
-        // Enumerate the list and stuff the id queue
-        LLValueEnumeration enumeration = userList.enumerateValues();
-        while (enumeration.hasMoreElements())
-        {
-          LLValue elem = (LLValue)enumeration.nextElement();
-          int objID =  elem.toInteger("ID");
-          if (objID == 1000 || objID == 1001)
-            // Skip administrator ID's
-            continue;
-          queue.add(new Integer(objID));
-        }
-        queue.done();
+        rval = userList;
       }
       catch (Throwable e)
       {
@@ -5897,6 +5942,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return exception;
     }
 
+    public LLValue getResponse()
+    {
+      return rval;
+    }
   }
 
   /** Thread we can abandon that gets user information for a userID.
