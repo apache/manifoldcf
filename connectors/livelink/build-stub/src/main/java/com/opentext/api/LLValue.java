@@ -91,7 +91,7 @@ public class LLValue
     return false;
   }
   
-  public Enumeration enumerateValues()
+  public LLValueEnumeration enumerateValues()
   {
     return null;
   }
