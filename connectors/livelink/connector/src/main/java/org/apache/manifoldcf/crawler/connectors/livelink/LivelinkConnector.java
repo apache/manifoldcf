@@ -922,8 +922,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
-    int i = 0;
-    while (i < spec.getChildCount())
+    boolean doUserWorkspaces = false;
+    for (int i = 0; i < spec.getChildCount(); i++)
     {
       SpecificationNode n = spec.getChild(i);
       if (n.getType().equals("startpoint"))
@@ -948,7 +948,20 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             path,"NOT FOUND",null,null);
         }
       }
-      i++;
+      else if (n.getType().equals("userworkspace"))
+      {
+        if (n.getAttributeValue("value").equals("true"))
+          doUserWorkspaces = true;
+        else if (n.getAttributeValue("value").equals("false"))
+          doUserWorkspaces = false;
+      }
+      
+      if (doUserWorkspaces)
+      {
+        // Do ListUsers and enumerate the values.
+        // MHL
+      }
+      
     }
 
   }
@@ -4734,7 +4747,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           return null;
 
         String[] rval = new String[children.size()];
-        Enumeration en = children.enumerateValues();
+        LLValueEnumeration en = children.enumerateValues();
 
         int j = 0;
         while (en.hasMoreElements())
@@ -4955,7 +4968,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (children == null)
           return null;
         String[] rval = new String[children.size()];
-        Enumeration en = children.enumerateValues();
+        LLValueEnumeration en = children.enumerateValues();
 
         int j = 0;
         while (en.hasMoreElements())
@@ -5823,7 +5836,69 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
-  
+  /** Thread we can abandon that lists all users (except admin).
+  */
+  protected class ListUsersThread extends Thread
+  {
+    protected final IDQueue queue;
+    protected Throwable exception = null;
+
+    public ListUsersThread(IDQueue queue)
+    {
+      super();
+      setDaemon(true);
+      this.queue = queue;
+    }
+
+    public void run()
+    {
+      try
+      {
+        LLValue userList = new LLValue();
+        int status = LLUsers.ListUsers(userList);
+
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Livelink: User list retrieved: status="+Integer.toString(status));
+        }
+
+        if (status < 0)
+        {
+          Logging.connectors.debug("Livelink: User list inaccessable ("+llServer.getErrors()+")");
+          return;
+        }
+
+        if (status != 0)
+        {
+          throw new ManifoldCFException("Error retrieving user list: status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+        }
+        
+        // Enumerate the list and stuff the id queue
+        LLValueEnumeration enumeration = userList.enumerateValues();
+        while (enumeration.hasMoreElements())
+        {
+          LLValue elem = (LLValue)enumeration.nextElement();
+          int objID =  elem.toInteger("ID");
+          if (objID == 1000 || objID == 1001)
+            // Skip administrator ID's
+            continue;
+          queue.add(new Integer(objID));
+        }
+        queue.done();
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+  }
+
   /** Thread we can abandon that gets user information for a userID.
   */
   protected class GetUserInfoThread extends Thread

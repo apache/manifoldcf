@@ -22,7 +22,7 @@ import java.util.Enumeration;
 
 /** Stub classes to get connector to build.
 */
-public class LLValueEnumeration
+public class LLValueEnumeration implements Enumeration
 {
   public LLValueEnumeration()
   {
