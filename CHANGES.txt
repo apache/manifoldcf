@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-689: Add ability to crawl user workspaces in LiveLink
+connector.
+(David Morana, Karl Wright)
 
 ======================= Release 1.2 =====================
 

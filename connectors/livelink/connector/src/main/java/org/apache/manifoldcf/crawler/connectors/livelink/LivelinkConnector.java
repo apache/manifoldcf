@@ -922,8 +922,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
-    int i = 0;
-    while (i < spec.getChildCount())
+    boolean doUserWorkspaces = false;
+    for (int i = 0; i < spec.getChildCount(); i++)
     {
       SpecificationNode n = spec.getChild(i);
       if (n.getType().equals("startpoint"))
@@ -948,7 +948,77 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             path,"NOT FOUND",null,null);
         }
       }
-      i++;
+      else if (n.getType().equals("userworkspace"))
+      {
+        if (n.getAttributeValue("value").equals("true"))
+          doUserWorkspaces = true;
+        else if (n.getAttributeValue("value").equals("false"))
+          doUserWorkspaces = false;
+      }
+      
+      if (doUserWorkspaces)
+      {
+        // Do ListUsers and enumerate the values.
+        int sanityRetryCount = FAILURE_RETRY_COUNT;
+        while (true)
+        {
+          ListUsersThread t = new ListUsersThread();
+          try
+          {
+            t.start();
+            t.join();
+            Throwable thr = t.getException();
+            if (thr != null)
+            {
+              if (thr instanceof RuntimeException)
+                throw (RuntimeException)thr;
+              else if (thr instanceof ManifoldCFException)
+              {
+                sanityRetryCount = assessRetry(sanityRetryCount,(ManifoldCFException)thr);
+                continue;
+              }
+              else
+                throw (Error)thr;
+            }
+
+            LLValue childrenDocs = t.getResponse();
+
+            int size = 0;
+
+            if (childrenDocs.isRecord())
+              size = 1;
+            if (childrenDocs.isTable())
+              size = childrenDocs.size();
+
+            // Do the scan
+            for (int j = 0; j < size; j++)
+            {
+              int childID = childrenDocs.toInteger(j, "ID");
+              
+              // Skip admin user
+              if (childID == 1000 || childID == 1001)
+                continue;
+              
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Livelink: Found a user: ID="+Integer.toString(childID));
+
+              activities.addSeedDocument("F0:"+Integer.toString(childID));
+            }
+            break;
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+          catch (RuntimeException e)
+          {
+            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            continue;
+          }
+        }
+      }
+      
     }
 
   }
@@ -2409,10 +2479,32 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int k;
 
     // Paths tab
+    boolean userWorkspaces = false;
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("userworkspace"))
+      {
+        String value = sn.getAttributeValue("value");
+        if (value != null && value.equals("true"))
+          userWorkspaces = true;
+      }
+    }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")))
     {
       out.print(
 "<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"+
+"      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      <input type=\"checkbox\" name=\"userworkspace\" value=\"true\""+(userWorkspaces?" checked=\"true\"":"")+"/>\n"+
+"      <input type=\"hidden\" name=\"userworkspace_present\" value=\"true\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       // Now, loop through paths
@@ -2544,7 +2636,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
       }
       out.print(
-"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
+"<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
+"<input type=\"hidden\" name=\"userworkspace\" value=\""+(userWorkspaces?"true":"false")+"\"/>\n"+
+"<input type=\"hidden\" name=\"userworkspace_present\" value=\"true\"/>\n"
       );
     }
 
@@ -3137,6 +3231,24 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
   {
+    String userWorkspacesPresent = variableContext.getParameter("userworkspace_present");
+    if (userWorkspacesPresent != null)
+    {
+      String value = variableContext.getParameter("userworkspace");
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals("userworkspace"))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode sn = new SpecificationNode("userworkspace");
+      sn.setAttribute("value",value);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+    
     String xc = variableContext.getParameter("pathcount");
     if (xc != null)
     {
@@ -3632,6 +3744,35 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"
     );
     int i = 0;
+    boolean userWorkspaces = false;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("userworkspace"))
+      {
+        String value = sn.getAttributeValue("value");
+        if (value != null && value.equals("true"))
+          userWorkspaces = true;
+      }
+    }
+
+    out.print(
+"    <td class=\"description\"/>\n"+
+"      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
+"    </td>\n"+
+"    <td class=\"value\"/>\n"+
+"      "+(userWorkspaces?Messages.getBodyString(locale,"LivelinkConnector.Yes"):Messages.getBodyString(locale,"LivelinkConnector.No"))+"\n"+
+"    </td>\n"+
+"  </tr>"
+    );
+    out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+    );
+    out.print(
+"  <tr>"
+    );
+
+    i = 0;
     boolean seenAny = false;
     while (i < ds.getChildCount())
     {
@@ -4734,7 +4875,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           return null;
 
         String[] rval = new String[children.size()];
-        Enumeration en = children.enumerateValues();
+        LLValueEnumeration en = children.enumerateValues();
 
         int j = 0;
         while (en.hasMoreElements())
@@ -4955,7 +5096,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (children == null)
           return null;
         String[] rval = new String[children.size()];
-        Enumeration en = children.enumerateValues();
+        LLValueEnumeration en = children.enumerateValues();
 
         int j = 0;
         while (en.hasMoreElements())
@@ -5823,7 +5964,61 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
   }
 
-  
+  /** Thread we can abandon that lists all users (except admin).
+  */
+  protected class ListUsersThread extends Thread
+  {
+    protected LLValue rval = null;
+    protected Throwable exception = null;
+
+    public ListUsersThread()
+    {
+      super();
+      setDaemon(true);
+    }
+
+    public void run()
+    {
+      try
+      {
+        LLValue userList = new LLValue();
+        int status = LLUsers.ListUsers(userList);
+
+        if (Logging.connectors.isDebugEnabled())
+        {
+          Logging.connectors.debug("Livelink: User list retrieved: status="+Integer.toString(status));
+        }
+
+        if (status < 0)
+        {
+          Logging.connectors.debug("Livelink: User list inaccessable ("+llServer.getErrors()+")");
+          return;
+        }
+
+        if (status != 0)
+        {
+          throw new ManifoldCFException("Error retrieving user list: status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
+        }
+        
+        rval = userList;
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException()
+    {
+      return exception;
+    }
+
+    public LLValue getResponse()
+    {
+      return rval;
+    }
+  }
+
   /** Thread we can abandon that gets user information for a userID.
   */
   protected class GetUserInfoThread extends Thread

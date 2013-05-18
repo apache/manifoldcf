@@ -18,36 +18,33 @@
 */
 package com.opentext.api;
 
+import java.util.Enumeration;
+
 /** Stub classes to get connector to build.
 */
-public class LAPI_USERS
+public class LLValueEnumeration implements Enumeration
 {
-  public final static int USER = 0;
-  public final static int PRIV_PERM_BYPASS = 256;
-  public final static int PRIV_PERM_WORLD = 2048;
-
-  public LAPI_USERS(LLConnect session)
+  public LLValueEnumeration()
   {
   }
   
-  public int ListRights(int user, String domainAndUser, LLValue retval)
+  public LLValueEnumeration(Enumeration e)
   {
-    return 0;
   }
   
-  public int GetUserInfo(String domainAndUser, LLValue retval)
+  public boolean hasMoreElements()
   {
-    return 0;
+    return false;
   }
   
-  public int GetUserByID(int user, LLValue retval)
+  public Object nextElement()
   {
-    return 0;
+    return null;
   }
   
-  public int ListUsers(LLValue rval)
+  public LLValue nextValue()
   {
-    return 0;
+    return null;
   }
 }
 
