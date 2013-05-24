@@ -74,8 +74,8 @@ public class ElasticSearchConnection
 
   private String response;
 
-  protected String jsonStatus = "\"ok\"";
-  protected String jsonException = "\"error\"";
+  protected final static String jsonStatus = "\"ok\"";
+  protected final static String jsonException = "\"error\"";
 
   public enum Result
   {
