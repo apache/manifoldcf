@@ -32,6 +32,9 @@ import org.apache.manifoldcf.agents.common.XMLContext;
 import org.apache.manifoldcf.agents.common.XMLStringContext;
 import org.apache.manifoldcf.agents.common.XMLFileContext;
 
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
@@ -43,6 +46,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.NameValuePair;
@@ -99,9 +103,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** The user-agent for this connector instance */
   protected String userAgent = null;
 
+  // Server login parameters
   protected String serverLogin = null;
   protected String serverPass = null;
   protected String serverDomain = null;
+  
+  // Basic auth parameters
+  protected String accessRealm = null;
+  protected String accessUser = null;
+  protected String accessPassword = null;
   
   /** Connection management */
   protected ClientConnectionManager connectionManager = null;
@@ -143,6 +153,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     serverLogin = params.getParameter(WikiConfig.PARAM_LOGIN);
     serverPass = params.getObfuscatedParameter(WikiConfig.PARAM_PASSWORD);
     serverDomain = params.getParameter(WikiConfig.PARAM_DOMAIN);
+    accessRealm = params.getParameter(WikiConfig.PARAM_ACCESSREALM);
+    accessUser = params.getParameter(WikiConfig.PARAM_ACCESSUSER);
+    accessPassword = params.getObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD);
   }
 
   protected void getSession()
@@ -173,11 +186,16 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       localConnectionManager.setMaxTotal(1);
       connectionManager = localConnectionManager;
 
+      int socketTimeout = 900000;
+      int connectionTimeout = 300000;
+
       BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+      params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
       params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
       params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
-      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,300000);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
       // No retries
@@ -192,6 +210,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
           }
        
         });
+
+      if (accessUser != null && accessUser.length() > 0 && accessPassword != null)
+      {
+        Credentials credentials = new UsernamePasswordCredentials(accessUser, accessPassword);
+        if (accessRealm != null && accessRealm.length() > 0)
+          localHttpClient.getCredentialsProvider().setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, accessRealm), credentials);
+        else
+          localHttpClient.getCredentialsProvider().setCredentials(AuthScope.ANY, credentials);
+      }
 
       httpClient = localHttpClient;
       
@@ -678,6 +705,9 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     serverLogin = null;
     serverPass = null;
     serverDomain = null;
+    accessUser = null;
+    accessPassword = null;
+    accessRealm = null;
     baseURL = null;
     userAgent = null;
 
@@ -963,6 +993,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (path == null)
       path = "/w";
 
+    // Server login parameters
+
     String login = parameters.getParameter(WikiConfig.PARAM_LOGIN);
     if (login == null) {
       login = "";
@@ -975,7 +1007,21 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (domain == null) {
       domain = "";
     }
+
+    // Basic auth parameters
     
+    String accessRealm = parameters.getParameter(WikiConfig.PARAM_ACCESSREALM);
+    if (accessRealm == null)
+      accessRealm = "";
+    
+    String accessUser = parameters.getParameter(WikiConfig.PARAM_ACCESSUSER);
+    if (accessUser == null)
+      accessUser = "";
+    
+    String accessPassword = parameters.getObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD);
+    if (accessPassword == null)
+      accessPassword = "";
+
     // Email tab
     if (tabName.equals(Messages.getString(locale,"WikiConnector.Email")))
     {
@@ -1026,6 +1072,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input name=\"serverpath\" type=\"text\" size=\"16\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.ServerLogin") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
@@ -1044,6 +1091,25 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "      <input name=\"serverdomain\" type=\"text\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain) + "\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.AccessUser") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"accessuser\" type=\"text\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessUser) + "\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.AccessPassword") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"accesspassword\" type=\"password\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessPassword) + "\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "WikiConnector.AccessRealm") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"accessrealm\" type=\"text\" size=\"16\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessRealm) + "\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -1057,7 +1123,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "<input type=\"hidden\" name=\"serverpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
 "<input type=\"hidden\" name=\"serverlogin\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(login) + "\"/>\n"+
 "<input type=\"hidden\" name=\"serverpass\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pass) + "\"/>\n"+
-"<input type=\"hidden\" name=\"serverdomain\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain) + "\"/>\n"
+"<input type=\"hidden\" name=\"serverdomain\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domain) + "\"/>\n"+
+"<input type=\"hidden\" name=\"accessuser\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessUser) + "\"/>\n"+
+"<input type=\"hidden\" name=\"accesspassword\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessPassword) + "\"/>\n"+
+"<input type=\"hidden\" name=\"accessrealm\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(accessRealm) + "\"/>\n"
       );
     }
 
@@ -1110,6 +1179,21 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String domain = variableContext.getParameter("serverdomain");
     if (domain != null) {
       parameters.setParameter(WikiConfig.PARAM_DOMAIN, domain);
+    }
+
+    String accessUser = variableContext.getParameter("accessuser");
+    if (accessUser != null) {
+      parameters.setParameter(WikiConfig.PARAM_ACCESSUSER, accessUser);
+    }
+
+    String accessPassword = variableContext.getParameter("accesspassword");
+    if (accessPassword != null) {
+      parameters.setObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD, accessPassword);
+    }
+
+    String accessRealm = variableContext.getParameter("accessrealm");
+    if (accessRealm != null) {
+      parameters.setParameter(WikiConfig.PARAM_ACCESSREALM, accessRealm);
     }
 
     return null;

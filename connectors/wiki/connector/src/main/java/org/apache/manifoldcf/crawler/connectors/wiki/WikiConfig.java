@@ -44,6 +44,11 @@ public class WikiConfig
   public static final String PARAM_PASSWORD = "serverpass";
   public static final String PARAM_DOMAIN = "serverdomain";
 
+  // Access credentials
+  public static final String PARAM_ACCESSREALM = "accessrealm";
+  public static final String PARAM_ACCESSUSER = "accessuser";
+  public static final String PARAM_ACCESSPASSWORD = "accesspassword";
+  
   // Document specification
 
   /** Namespace and title prefix */

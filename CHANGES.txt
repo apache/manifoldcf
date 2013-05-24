@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-692: Add support for basic auth in wiki connector.
+(TC Tobin-Campbell, Karl Wright)
+
 CONNECTORS-689: Add ability to crawl user workspaces in LiveLink
 connector.
 (David Morana, Karl Wright)
