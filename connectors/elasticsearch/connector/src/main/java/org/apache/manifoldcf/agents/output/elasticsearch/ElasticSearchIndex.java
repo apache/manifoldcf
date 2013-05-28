@@ -117,16 +117,17 @@ public class ElasticSearchIndex extends ElasticSearchConnection
             pw.print(",");
           }
           pw.print("\"type\" : \"attachment\",");
+          pw.print("\"file\" : {");
           String contentType = document.getMimeType();
           if (contentType != null)
             pw.print("\"_content_type\" : "+jsonStringEscape(contentType)+",");
           String fileName = document.getFileName();
           if (fileName != null)
             pw.print("\"_name\" : "+jsonStringEscape(fileName)+",");
-          pw.print("\"file\" : \"");
+          pw.print(" \"content\" : \"");
           Base64 base64 = new Base64();
           base64.encodeStream(inputStream, pw);
-          pw.print("\"");
+          pw.print("\"}");
         }
         
         pw.print("}");

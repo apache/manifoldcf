@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-690: For ElasticSearch connector, include _name and
+_content_type field within "file" portion of JSON, so it will work properly
+with the Mapper Attachment Plugin.
+(Richard Nichols, Karl Wright)
+
 CONNECTORS-692: Add support for basic auth in wiki connector.
 (TC Tobin-Campbell, Karl Wright)
 
