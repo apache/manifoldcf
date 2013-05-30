@@ -116,7 +116,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           if(needComma){
             pw.print(",");
           }
-          pw.print("\"type\" : \"attachment\",");
+          // I'm told this is not necessary: see CONNECTORS-690
+          //pw.print("\"type\" : \"attachment\",");
           pw.print("\"file\" : {");
           String contentType = document.getMimeType();
           if (contentType != null)
