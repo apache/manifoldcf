@@ -1435,6 +1435,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       out.print(
 "<input type=\"hidden\" name=\"count_zookeeper\" value=\""+k+"\"/>\n"+
 "<input type=\"hidden\" name=\"znodepath\" value=\""+znodePath+"\"/>\n"+
+"<input type=\"hidden\" name=\"collection\" value=\""+collection+"\"/>\n"+
 "<input type=\"hidden\" name=\"zkclienttimeout\" value=\""+zkClientTimeout+"\"/>\n"+
 "<input type=\"hidden\" name=\"zkconnecttimeout\" value=\""+zkConnectTimeout+"\"/>\n"
       );
