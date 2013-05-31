@@ -59,6 +59,7 @@
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
         <ant dir="connectors/dropbox" target="clean"/>
+        <ant dir="connectors/googledrive" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <ant dir="connectors/ldap" target="clean"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -110,6 +111,7 @@
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
         <ant dir="connectors/dropbox" target="clean"/>
+        <ant dir="connectors/googledrive" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <ant dir="connectors/ldap" target="clean"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -281,6 +283,8 @@
     <target name="setup-cmis-connector" depends="build-framework" if="downloaded"/>
     
     <target name="setup-dropbox-connector" depends="build-framework" if="downloaded"/>
+
+    <target name="setup-googledrive-connector" depends="build-framework" if="downloaded"/>
     
     <target name="setup-alfresco-connector-tests" depends="build-tests-framework" if="downloaded"/>
 
@@ -302,9 +306,20 @@
         <ant dir="connectors/dropbox" target="build"/>
     </target>
 
+
+    <target name="build-googledrive-connector" depends="setup-googledrive-connector" if="downloaded">
+        <ant dir="connectors/googledrive" target="build"/>
+    </target>
+
+
     <target name="doc-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
         <ant dir="connectors/dropbox" target="doc"/>
     </target>
+
+    <target name="doc-googledrive-connector" depends="setup-googledrive-connector" if="downloaded">
+        <ant dir="connectors/googledrive" target="doc"/>
+    </target>
+
 
     <target name="doc-alfresco-connector" depends="setup-alfresco-connector" if="downloaded">
         <ant dir="connectors/alfresco" target="doc"/>
@@ -1395,6 +1410,29 @@
         </condition>
     </target>
 
+
+    <target name="calculate-googledrive-condition" depends="build-googledrive-connector">
+        <available file="connectors/googledrive/dist/lib" type="dir" property="googledrive.exists"/>
+        <condition property="googledrive.include">
+            <and>
+                <isset property="googledrive.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="calculate-googledrive-doc-condition" depends="doc-googledrive-connector">
+        <available file="connectors/googledrive/dist/doc" type="dir" property="googledrive-doc.exists"/>
+        <condition property="googledrive-doc.include">
+            <and>
+                <isset property="googledrive-doc.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+
+
     <target name="calculate-cmis-doc-condition" depends="doc-cmis-connector">
         <available file="connectors/cmis/dist/doc" type="dir" property="cmis-doc.exists"/>
         <condition property="cmis-doc.include">
@@ -1437,6 +1475,24 @@
             <param name="connector-name" value="dropbox"/>
         </antcall>
     </target>
+
+    <target name="deliver-googledrive-connector" depends="calculate-googledrive-condition" if="googledrive.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="googledrive"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="googledrive"/>
+            <param name="connector-label" value="GoogleDrive"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.googledrive.GoogleDriveRepositoryConnector"/>
+        </antcall>
+    </target>
+
+    <target name="deliver-googledrive-connector-doc" depends="calculate-googledrive-doc-condition" if="googledrive-doc.include">
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="googledrive"/>
+        </antcall>
+    </target>
+
     
     <target name="deliver-cmis-connector-doc" depends="calculate-cmis-doc-condition" if="cmis-doc.include">
         <antcall target="general-connector-doc-delivery">
@@ -2590,8 +2646,8 @@
     <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
 
-    <target name="deliver-open-connectors" depends="deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
+    <target name="deliver-open-connectors" depends="deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors-doc" depends="deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
@@ -3599,6 +3655,54 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
+
+   <target name="download-google-api-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/apis"/>
+            <param name="artifact-version" value="v2-rev64-1.14.1-beta"/>
+            <param name="artifact-name" value="google-api-services-drive"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/http-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-http-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/http-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-http-client-jackson2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/oauth-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-oauth-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/jackson/core/"/>
+            <param name="artifact-version" value="2.1.3"/>
+            <param name="artifact-name" value="jackson-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall> 
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/api-client"/>
+            <param name="artifact-version" value="1.14.1-beta"/>
+            <param name="artifact-name" value="google-api-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+
+    </target>
+
     <target name="download-sharepoint-plugins">
         <mkdir dir="lib/sharepoint-2007"/>
         <!-- Download and unpack binary artifact -->
@@ -3652,7 +3756,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="make-core-deps" depends="download-dropbox-client,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    <target name="make-core-deps" depends="download-google-api-client,download-dropbox-client,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
@@ -3682,6 +3786,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/alfresco" target="download-dependencies"/>
         <ant dir="connectors/cmis" target="download-dependencies"/>
         <ant dir="connectors/dropbox" target="download-dependencies"/>
+        <ant dir="connectors/googledrive" target="download-dependencies"/>
         <ant dir="connectors/activedirectory" target="download-dependencies"/>
         <ant dir="connectors/ldap" target="download-dependencies"/>
         <ant dir="connectors/documentum" target="download-dependencies"/>
@@ -3719,6 +3824,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/alfresco" target="download-cleanup"/>
         <ant dir="connectors/cmis" target="download-cleanup"/>
         <ant dir="connectors/dropbox" target="download-cleanup"/>        
+        <ant dir="connectors/googledrive" target="download-cleanup"/>
         <ant dir="connectors/activedirectory" target="download-cleanup"/>
         <ant dir="connectors/ldap" target="download-cleanup"/>
         <ant dir="connectors/documentum" target="download-cleanup"/>

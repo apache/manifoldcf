@@ -51,6 +51,7 @@
     <module>alfresco</module>
     <module>elasticsearch</module>
     <module>dropbox</module>
+    <module>googledrive</module>
   </modules>
 
 </project>
