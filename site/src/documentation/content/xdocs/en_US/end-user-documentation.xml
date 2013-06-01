@@ -519,60 +519,93 @@
                        Solr, and click the "Add" button.  Leaving the "target" field blank will result in all metadata items of that name not being sent to Solr.</p>
             </section>
             
-            <section id="osssoutputconnector">
-            	<title>OpenSearchServer Output Connection</title>
-            	<p>The OpenSearchServer Output Connection allow ManifoldCF to submit documents to an OpenSearchServer instance, via the XML over HTTP API. The connector has been designed
+            <section id="opensearchserveroutputconnector">
+                <title>OpenSearchServer Output Connection</title>
+                <p>The OpenSearchServer Output Connection allow ManifoldCF to submit documents to an OpenSearchServer instance, via the XML over HTTP API. The connector has been designed
             	to be as easy to use as possible.</p>
-            	<p>After creating an OpenSearchServer ouput connection, you have to populate the parameters tab. Fill in the fields according your OpenSearchServer configuration. Each
+                <p>After creating an OpenSearchServer ouput connection, you have to populate the parameters tab. Fill in the fields according your OpenSearchServer configuration. Each
             	OpenSearchServer output connector instance works with one index. To work with muliple indexes, just create one output connector for each index.</p>
-            	<figure src="images/en_US/opensearchserver-connection-parameters.PNG" alt="OpenSearchServer, parameters tab" width="80%"/>
-            	<p>The parameters are:</p><br/>
-            	<ul>
-            		<li>Server location: An URL that references your OpenSearchServer instance. The default value (http://localhost:8080) is valid if your OpenSearchServer instance runs
-            		on the same server than the ManifoldCF instance.</li>
-            		<li>Index name: The connector will populate the index defined here.</li>
-            		<li>User name and API Key: The credentials required to connect to the OpenSearchServer instance. It can be left empty if no user has been created. The next figure shows
-            		where to find the user's informations in the OpenSearchServer user interface.</li>
-            	</ul>
-            	<figure src="images/en_US/opensearchserver-user.PNG" alt="OpenSearchServer, user configuration" width="80%"/>
-            	<p>Once you created a new job, having selected the OpenSearchServer output connector, you will have the OpenSearchServer tab. This tab let you:</p><br/>
-            	<ul>
-            		<li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
-            		<li>The allowed mime types. Warning it does not work with all repository connectors.</li>
-            		<li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
-            	</ul>
-            	<figure src="images/en_US/opensearchserver-job-parameters.PNG" alt="OpenSearchServer, job parameters" width="80%"/>
-            	<p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
-            	   index optimization. The targeted index is automatically optimized when the job is ending.</p>
-            	<figure src="images/en_US/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
-             	<p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
+                <figure src="images/en_US/opensearchserver-connection-parameters.PNG" alt="OpenSearchServer, parameters tab" width="80%"/>
+                <p>The parameters are:</p><br/>
+                <ul>
+                      <li>Server location: An URL that references your OpenSearchServer instance. The default value (http://localhost:8080) is valid if your OpenSearchServer instance runs
+                          on the same server than the ManifoldCF instance.</li>
+                      <li>Index name: The connector will populate the index defined here.</li>
+                      <li>User name and API Key: The credentials required to connect to the OpenSearchServer instance. It can be left empty if no user has been created. The next figure shows
+                          where to find the user's informations in the OpenSearchServer user interface.</li>
+                </ul>
+                <figure src="images/en_US/opensearchserver-user.PNG" alt="OpenSearchServer, user configuration" width="80%"/>
+                <p>Once you created a new job, having selected the OpenSearchServer output connector, you will have the OpenSearchServer tab. This tab let you:</p><br/>
+                <ul>
+                      <li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
+                      <li>The allowed mime types. Warning it does not work with all repository connectors.</li>
+                      <li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
+                </ul>
+                <figure src="images/en_US/opensearchserver-job-parameters.PNG" alt="OpenSearchServer, job parameters" width="80%"/>
+                <p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
+                    index optimization. The targeted index is automatically optimized when the job is ending.</p>
+                <figure src="images/en_US/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
+                <p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
             </section>
             
-            <section id="esssoutputconnector">
-            	<title>ElasticSearch Output Connection</title>
-            	<p>The ElasticSearch Output Connection allow ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
+            <section id="elasticsearchoutputconnector">
+                <title>ElasticSearch Output Connection</title>
+                <p>The ElasticSearch Output Connection allow ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
             	to be as easy to use as possible.</p>
-            	<p>After creating an ElasticSearch ouput connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
+                <p>After creating an ElasticSearch ouput connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
             	ElasticSearch output connector instance works with one index. To work with multiple indexes, just create one output connector for each index.</p>
-            	<figure src="images/en_US/elasticsearch-connection-parameters.png" alt="ElasticSearch, parameters tab" width="80%"/>
-            	<br />
-            	<p>The parameters are:</p>
-            	<ul>
-            		<li>Server location: An URL that references your ElasticSearch instance. The default value (http://localhost:9200) is valid if your ElasticSearch instance runs
-            		on the same server than the ManifoldCF instance.</li>
-            		<li>Index name: The connector will populate the index defined here.</li>
-            	</ul>
-            	<br /><p>Once you created a new job, having selected the ElasticSearch output connector, you will have the ElasticSearch tab. This tab let you:</p>
-            	<ul>
-            		<li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
-            		<li>The allowed mime types. Warning it does not work with all repository connectors.</li>
-            		<li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
-            	</ul>
-            	<figure src="images/en_US/elasticsearch-job-parameters.png" alt="ElasticSearch, job parameters" width="80%"/>
-            	<p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
-            	   index optimization. The targeted index is automatically optimized when the job is ending.</p>
-            	<figure src="images/en_US/elasticsearch-history-report.png" alt="ElasticSearch, history report" width="80%"/>
-             	<p>You may also refer to <a href="http://www.elasticsearch.org/guide">ElasticSearch's user documentation</a>.</p>
+                <figure src="images/en_US/elasticsearch-connection-parameters.png" alt="ElasticSearch, parameters tab" width="80%"/>
+                <br />
+                <p>The parameters are:</p>
+                <ul>
+                      <li>Server location: An URL that references your ElasticSearch instance. The default value (http://localhost:9200) is valid if your ElasticSearch instance runs
+                          on the same server than the ManifoldCF instance.</li>
+                      <li>Index name: The connector will populate the index defined here.</li>
+                </ul>
+                <br /><p>Once you created a new job, having selected the ElasticSearch output connector, you will have the ElasticSearch tab. This tab let you:</p>
+                <ul>
+                      <li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
+                      <li>The allowed mime types. Warning it does not work with all repository connectors.</li>
+                      <li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
+                </ul>
+                <figure src="images/en_US/elasticsearch-job-parameters.png" alt="ElasticSearch, job parameters" width="80%"/>
+                <p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
+                  index optimization. The targeted index is automatically optimized when the job is ending.</p>
+                <figure src="images/en_US/elasticsearch-history-report.png" alt="ElasticSearch, history report" width="80%"/>
+                <p>You may also refer to <a href="http://www.elasticsearch.org/guide">ElasticSearch's user documentation</a>.  Especially important is the
+                       need to configure the ElasticSearch index mapping <em>before</em> you try to index anything.  <strong>If you have not configured the ElasticSearch mapping properly, then the
+                       documents you send to ElasticSearch via ManifoldCF will not be parsed, and once you send a document to the index, you cannot fix this in ElasticSearch
+                       without discarding your index.</strong>  Specifically, you will want a mapping that enables the attachment plug-in, for example something like this:</p>
+                <source>
+{
+  "attachment" :
+  {
+    "properties" :
+    {
+      "file" :
+      {
+        "type" : "attachment",
+        "fields" :
+        {
+          "title" : { "store" : "yes" },
+          "keywords" : { "store" : "yes" },
+          "author" : { "store" : "yes" },
+          "content_type" : {"store" : "yes"},
+          "name" : {"store" : "yes"},
+          "date" : {"store" : "yes"},
+          "file" : { "term_vector":"with_positions_offsets", "store":"yes" }
+        }
+      }
+    }
+  }
+}
+                </source>
+                <p>Obviously, you would want your mapping to have details consistent with your particular indexing task.  You can change the mapping or inspect it using
+                       the <em>curl</em> tool, which you can download from <a href="http://curl.haxx.se">http://curl.haxx.se</a>.  For example, to inspect the mapping
+                       for a version of ElasticSearch running locally on port 9200:</p>
+                <source>
+curl -XGET http://localhost:9200/index/_mapping
+                </source>
             </section>
             
             <section id="gtsoutputconnector">
