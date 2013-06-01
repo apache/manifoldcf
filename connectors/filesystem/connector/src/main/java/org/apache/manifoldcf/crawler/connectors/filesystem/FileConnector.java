@@ -818,7 +818,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, IOException
   {
     out.print(
-"<table class=\"displaytable\">\n"
+"<table class=\"displaytable\">\n"+
+"  <tr>\n"+
+"  <td colspan=\"2\" class=\"message\">" + Messages.getAttributeString(locale,"FileConnector.Paths") + "</td>\n"+
+"  </tr>\n"
     );
 
     int i = 0;
