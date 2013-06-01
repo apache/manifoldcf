@@ -17,11 +17,9 @@
 * limitations under the License.
 */
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.apache.manifoldcf.crawler.connectors.dropbox;
+
+import org.apache.manifoldcf.core.common.*;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.exception.DropboxException;
@@ -674,20 +672,24 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       i++;
     }
     
-    HashSet<String> seeds = getSeeds(dropboxPath);
-    for (String seed : seeds) {
-      activities.addSeedDocument(seed);
-    }
-
-  }
-
-  protected HashSet<String> getSeeds(String path)
-    throws ManifoldCFException, ServiceInterruption {
     getSession();
-    GetSeedsThread t = new GetSeedsThread(path);
+    XThreadStringBuffer seedBuffer = new XThreadStringBuffer();
+    GetSeedsThread t = new GetSeedsThread(dropboxPath, seedBuffer);
     try {
       t.start();
+      
+      // Pick up the paths, and add them to the activities, before we join with the child thread.
+      while (true) {
+        // The only kind of exceptions this can throw are going to shut the process down.
+        String docPath = seedBuffer.fetch();
+        if (docPath ==  null)
+          break;
+        // Add the pageID to the queue
+        activities.addSeedDocument(docPath);
+      }
+
       t.join();
+
       Throwable thr = t.getException();
       if (thr != null) {
         if (thr instanceof DropboxException) {
@@ -705,35 +707,34 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     } catch (DropboxException e) {
       Logging.connectors.error("DROPBOX: Error adding seed documents: " + e.getMessage(), e);
       handleDropboxException(e);
+    } finally {
+      // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
+      seedBuffer.abandon();
     }
-    return t.getResponse();
   }
 
   protected class GetSeedsThread extends Thread {
 
     protected Throwable exception = null;
-    protected HashSet<String> response = null;
-    protected String path = null;
+    protected final String path;
+    protected final XThreadStringBuffer seedBuffer;
     
-    public GetSeedsThread(String path) {
+    public GetSeedsThread(String path, XThreadStringBuffer seedBuffer) {
       super();
-      this.path=path;
+      this.path = path;
+      this.seedBuffer = seedBuffer;
       setDaemon(true);
     }
 
     @Override
     public void run() {
       try {
-        response = session.getSeeds(path,25000); //upper limit on files to get supported by dropbox api in a single directory
+        session.getSeeds(seedBuffer,path,25000); //upper limit on files to get supported by dropbox api in a single directory
       } catch (Throwable e) {
         this.exception = e;
       }
     }
 
-    public HashSet<String> getResponse() {
-      return response;
-    }
-    
     public Throwable getException() {
       return exception;
     }

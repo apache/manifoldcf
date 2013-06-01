@@ -2145,7 +2145,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
 	HttpRequestBase executeMethod = getInitializedGetMethod(getListPagesURL(startPageTitle,namespace,prefix));
-        PageBuffer pageBuffer = new PageBuffer();
+        XThreadStringBuffer pageBuffer = new XThreadStringBuffer();
         ExecuteListPagesThread t = new ExecuteListPagesThread(httpClient,executeMethod,pageBuffer,startPageTitle);
         try
         {
@@ -2275,12 +2275,12 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected HttpClient client;
     protected HttpRequestBase executeMethod;
     protected Throwable exception = null;
-    protected PageBuffer pageBuffer;
+    protected XThreadStringBuffer pageBuffer;
     protected String lastPageTitle = null;
     protected String startPageTitle;
     protected boolean loginNeeded = false;
 
-    public ExecuteListPagesThread(HttpClient client, HttpRequestBase executeMethod, PageBuffer pageBuffer, String startPageTitle)
+    public ExecuteListPagesThread(HttpClient client, HttpRequestBase executeMethod, XThreadStringBuffer pageBuffer, String startPageTitle)
     {
       super();
       setDaemon(true);
@@ -2361,7 +2361,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *   </query-continue>
   * </api>
   */
-  protected static boolean parseListPagesResponse(InputStream is, PageBuffer buffer, String startPageTitle, ReturnString lastTitle)
+  protected static boolean parseListPagesResponse(InputStream is, XThreadStringBuffer buffer, String startPageTitle, ReturnString lastTitle)
     throws ManifoldCFException, ServiceInterruption
   {
     // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
@@ -2393,11 +2393,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesAPIContext extends SingleLevelContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     protected boolean loginNeeded = false;
     
-    public WikiListPagesAPIContext(XMLStream theStream, PageBuffer buffer, String startPageTitle)
+    public WikiListPagesAPIContext(XMLStream theStream, XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,"api");
       this.buffer = buffer;
@@ -2434,11 +2434,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesQueryContext extends SingleLevelErrorContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     
     public WikiListPagesQueryContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
-      PageBuffer buffer, String startPageTitle)
+      XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,namespaceURI,localName,qName,atts,"query");
       this.buffer = buffer;
@@ -2469,11 +2469,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesAllPagesContext extends SingleLevelContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     
     public WikiListPagesAllPagesContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
-      PageBuffer buffer, String startPageTitle)
+      XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,namespaceURI,localName,qName,atts,"allpages");
       this.buffer = buffer;
@@ -2506,11 +2506,11 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected static class WikiListPagesPContext extends BaseProcessingContext
   {
     protected String lastTitle = null;
-    protected PageBuffer buffer;
+    protected XThreadStringBuffer buffer;
     protected String startPageTitle;
     
     public WikiListPagesPContext(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts,
-      PageBuffer buffer, String startPageTitle)
+      XThreadStringBuffer buffer, String startPageTitle)
     {
       super(theStream,namespaceURI,localName,qName,atts);
       this.buffer = buffer;

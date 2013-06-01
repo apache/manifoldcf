@@ -16,12 +16,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.wiki;
+package org.apache.manifoldcf.core.common;
 
 import java.util.*;
 
-/** Thread-safe class that functions as a limited-size buffer of pageIDs */
-public class PageBuffer
+/** Thread-safe class that functions as a limited-size buffer of strings */
+public class XThreadStringBuffer
 {
   protected static int MAX_SIZE = 1024;
   
@@ -31,24 +31,25 @@ public class PageBuffer
   protected boolean abandoned = false;
   
   /** Constructor */
-  public PageBuffer()
+  public XThreadStringBuffer()
   {
   }
   
-  /** Add a page id to the buffer, and block if the buffer is full */
-  public synchronized void add(String pageID)
+  /** Add a string to the buffer, and block if the buffer is full */
+  public synchronized void add(String string)
     throws InterruptedException
   {
     while (buffer.size() == MAX_SIZE && !abandoned)
       wait();
     if (abandoned)
       return;
-    buffer.add(pageID);
+    buffer.add(string);
     // Notify threads that are waiting on there being stuff in the queue
     notifyAll();
   }
   
-  /** Signal that the buffer should be abandoned */
+  /** Signal that the buffer should be abandoned.
+  * Called by the receiving thread! */
   public synchronized void abandon()
   {
     abandoned = true;
@@ -56,8 +57,8 @@ public class PageBuffer
     notifyAll();
   }
   
-  /** Signal that the operation is complete, and that no more pageID's
-  * will be added.
+  /** Signal that the operation is complete, and that no more strings
+  * will be added.  Called by the sending thread!
   */
   public synchronized void signalDone()
   {
@@ -67,6 +68,7 @@ public class PageBuffer
   }
   
   /** Pull an id off the buffer, and wait if there's more to come.
+  * Called by the receiving thread!
   * Returns null if the operation is complete.
   */
   public synchronized String fetch()

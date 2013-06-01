@@ -1,8 +1,25 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+/* $Id$ */
+
+/**
+* Licensed to the Apache Software Foundation (ASF) under one or more
+* contributor license agreements. See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The ASF licenses this file to You under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 package org.apache.manifoldcf.crawler.connectors.googledrive;
+
+import org.apache.manifoldcf.core.common.*;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -20,12 +37,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import java.security.GeneralSecurityException;
 
 /**
  *
@@ -33,93 +53,129 @@ import java.util.logging.Logger;
  */
 public class GoogleDriveSession {
 
-    private static String APPNAME = "Searchbox Google drive Connector";
-    private Drive drive;
-    private static HttpTransport HTTP_TRANSPORT;
-    private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+  private static String APPNAME = "Searchbox Google drive Connector";
+  
+  private Drive drive;
+  private HttpTransport HTTP_TRANSPORT;
+  
+  private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+  
+  /** Constructor.  Create a session.
+  */
+  public GoogleDriveSession(Map<String, String> parameters)
+    throws IOException, GeneralSecurityException {
+    HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 
-    GoogleDriveSession(Map<String, String> parameters) {
-        try {
+    GoogleCredential credentials = new GoogleCredential.Builder().setClientSecrets(parameters.get("clientid"), parameters.get("clientsecret"))
+        .setJsonFactory(JSON_FACTORY).setTransport(HTTP_TRANSPORT).build().setRefreshToken(parameters.get("refreshtoken"));
 
-            HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            GoogleCredential credentials = new GoogleCredential.Builder().setClientSecrets(parameters.get("clientid"), parameters.get("clientsecret"))
-                    .setJsonFactory(JSON_FACTORY).setTransport(HTTP_TRANSPORT).build().setRefreshToken(parameters.get("refreshtoken"));
+    drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credentials).setApplicationName(APPNAME).build();
+  }
 
-            drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credentials).setApplicationName(APPNAME).build();
-        } catch (Exception ex) {
-            Logger.getLogger(GoogleDriveSession.class.getName()).log(Level.SEVERE, null, ex);
-        }
+  /** Obtain repository information.
+  */
+  public Map<String, String> getRepositoryInfo() throws IOException {
+    Map<String, String> info = new HashMap<String, String>();
+    info.put("Application Name", drive.getApplicationName());
+    info.put("Base URL", drive.getBaseUrl());
+    return info;
+  }
+
+  /** Get the list of matching root documents, e.g. seeds.
+  */
+  public void getSeeds(XThreadStringBuffer idBuffer, String googleDriveQuery)
+    throws IOException, InterruptedException {
+    Drive.Files.List request;
+
+    request = drive.files().list().setQ(googleDriveQuery);
+
+    do {
+      FileList files = request.execute();
+      for (File f : files.getItems()) {
+        idBuffer.add(f.getId());
+      }
+      request.setPageToken(files.getNextPageToken());
+    } while (request.getPageToken() != null
+        && request.getPageToken().length() > 0);
+  }
+
+  /** Get an individual document.
+  */
+  public File getObject(String id) throws IOException {
+    File file = drive.files().get(id).execute();
+    return file;
+  }
+
+  /** Get the list of child documents for a document.
+  */
+  public void getChildren(XThreadStringBuffer idBuffer, String nodeId)
+    throws IOException, InterruptedException {
+    Drive.Files.List request = drive.files().list().setQ("'" + nodeId + "' in parents");
+
+    do {
+      FileList files = request.execute();
+      for (File f : files.getItems()) {
+        idBuffer.add(f.getId());
+      }
+      request.setPageToken(files.getNextPageToken());
+    } while (request.getPageToken() != null
+        && request.getPageToken().length() > 0);
+  }
+
+
+  /** Get a stream representing the specified document.
+  */
+  public void getGoogleDriveOutputStream(XThreadInputStream inputStream, String documentURI) throws IOException {
+    // Create an object that implements outputstream but pushes everything through to the designated input stream
+    OutputStream outputStream = new XThreadOutputStream(inputStream);
+    try {
+      MediaHttpDownloader downloader =
+          new MediaHttpDownloader(HTTP_TRANSPORT, drive.getRequestFactory().getInitializer());
+      downloader.setDirectDownloadEnabled(false);
+      downloader.download(new GenericUrl(documentURI), outputStream);
+    } finally {
+      // Make sure it is closed and flushed
+      outputStream.close();
+    }
+  }
+  
+  protected static class XThreadOutputStream extends OutputStream {
+    protected final XThreadInputStream inputStream;
+    
+    byte[] byteBuffer = new byte[1];
+
+    public XThreadOutputStream(XThreadInputStream inputStream) {
+      this.inputStream = inputStream;
+    }
+    
+    @Override
+    public void write(int c)
+      throws IOException {
+      byteBuffer[0] = (byte)c;
+      try {
+        inputStream.stuffQueue(byteBuffer,0,1);
+      } catch (InterruptedException e) {
+        throw new InterruptedIOException(e.getMessage());
+      }
     }
 
-    public Map<String, String> getRepositoryInfo() throws IOException {
-        Map<String, String> info = new HashMap<String, String>();
-        info.put("Application Name", drive.getApplicationName());
-        info.put("Base URL", drive.getBaseUrl());
-        return info;
+    @Override
+    public void write(byte[] buffer, int pos, int amt)
+      throws IOException {
+      try {
+        inputStream.stuffQueue(buffer,pos,amt);
+      } catch (InterruptedException e) {
+        throw new InterruptedIOException(e.getMessage());
+      }
     }
-
-    HashSet<String> getSeeds(String googleDriveQuery) throws IOException {
-        HashSet<String> ids = new HashSet<String>();
-        Drive.Files.List request;
-
-        request = drive.files().list().setQ(googleDriveQuery);
-
-        do {
-            try {
-                FileList files = request.execute();
-                for (File f : files.getItems()) {
-                    ids.add(f.getId());
-                }
-                request.setPageToken(files.getNextPageToken());
-            } catch (IOException e) {
-                System.out.println("An error occurred: " + e);
-                request.setPageToken(null);
-            }
-        } while (request.getPageToken() != null
-                && request.getPageToken().length() > 0);
-        return ids;
+    
+    @Override
+    public void close()
+      throws IOException {
+      inputStream.doneStuffingQueue();
+      super.close();
     }
-
-    public File getObject(String id) throws IOException {
-        File file = drive.files().get(id).execute();
-        return file;
-    }
-
-    List<String> getChildren(String nodeId) throws IOException {
-        ArrayList<String> ids = new ArrayList<String>();
-        Drive.Files.List request = drive.files().list().setQ("'" + nodeId + "' in parents");
-
-        do {
-            try {
-                FileList files = request.execute();
-                for (File f : files.getItems()) {
-                    ids.add(f.getId());
-                }
-                request.setPageToken(files.getNextPageToken());
-            } catch (IOException e) {
-
-                request.setPageToken(null);
-            }
-        } while (request.getPageToken() != null
-                && request.getPageToken().length() > 0);
-        return ids;
-    }
-
-    String getUrl(File googleFile, String exportType) {
-        if (googleFile.containsKey("fileSize")) {
-            return googleFile.getDownloadUrl();
-        } else {
-            return googleFile.getExportLinks().get(exportType);
-        }
-    }
-
-    ByteArrayOutputStream getGoogleDriveOutputStream(String documentURI) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        MediaHttpDownloader downloader =
-                new MediaHttpDownloader(HTTP_TRANSPORT, drive.getRequestFactory().getInitializer());
-        downloader.setDirectDownloadEnabled(false);
-        downloader.download(new GenericUrl(documentURI), outputStream);
-        return outputStream;
-    }
+    
+    // MHL
+  }
 }
