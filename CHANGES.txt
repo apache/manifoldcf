@@ -15,6 +15,9 @@ CONNECTORS-689: Add ability to crawl user workspaces in LiveLink
 connector.
 (David Morana, Karl Wright)
 
+CONNECTORS-696: FileSystem Output Connector.
+(Minoru Osuka)
+
 ======================= Release 1.2 =====================
 
 CONNECTORS-682: Fix expect-continue issues with Solr when there is
