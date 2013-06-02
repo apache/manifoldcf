@@ -72,6 +72,12 @@ public class GoogleDriveSession {
     drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credentials).setApplicationName(APPNAME).build();
   }
 
+  /** Close session.
+  */
+  public void close() {
+    // MHL - figure out what is needed
+  }
+
   /** Obtain repository information.
   */
   public Map<String, String> getRepositoryInfo() throws IOException {
@@ -175,7 +181,5 @@ public class GoogleDriveSession {
       inputStream.doneStuffingQueue();
       super.close();
     }
-    
-    // MHL
   }
 }

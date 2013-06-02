@@ -24,8 +24,6 @@ import org.apache.manifoldcf.core.common.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +50,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Map.Entry;
+import java.security.GeneralSecurityException;
 
 /**
  *
@@ -144,43 +143,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void disconnect() throws ManifoldCFException {
     if (session != null) {
-      DestroySessionThread t = new DestroySessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException) {
-            throw (RemoteException) thr;
-          } else {
-            throw (Error) thr;
-          }
-        }
-        session = null;
-        lastSessionFetch = -1L;
-      } catch (InterruptedException e) {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-      } catch (RemoteException e) {
-        Throwable e2 = e.getCause();
-        if (e2 instanceof InterruptedException
-            || e2 instanceof InterruptedIOException) {
-
-          throw new ManifoldCFException(e2.getMessage(), e2,
-              ManifoldCFException.INTERRUPTED);
-        }
-
-        session = null;
-        lastSessionFetch = -1L;
-
-        // Treat this as a transient problem
-
-        Logging.connectors.warn(
-            "GOOGLEDRIVE: Transient remote exception closing session: "
-            + e.getMessage(), e);
-      }
-
+      session.close();
+      session = null;
+      lastSessionFetch = -1L;
     }
 
     clientid = null;
@@ -225,28 +190,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected class DestroySessionThread extends Thread {
-
-    protected Throwable exception = null;
-
-    public DestroySessionThread() {
-      super();
-      setDaemon(true);
-    }
-
-    public void run() {
-      try {
-        session = null;
-      } catch (Throwable e) {
-        this.exception = e;
-      }
-    }
-
-    public Throwable getException() {
-      return exception;
-    }
-  }
-
   protected class CheckConnectionThread extends Thread {
 
     protected Throwable exception = null;
@@ -260,7 +203,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       try {
         session.getRepositoryInfo();
       } catch (Throwable e) {
-        Logging.connectors.warn("GOOGLEDRIVE: Error checking repository: " + e.getMessage(), e);
         this.exception = e;
       }
     }
@@ -270,46 +212,37 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected void checkConnection() throws ManifoldCFException,
-      ServiceInterruption {
-    while (true) {
-      boolean noSession = (session == null);
-      getSession();
-      long currentTime;
-      CheckConnectionThread t = new CheckConnectionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException) {
-            throw (RemoteException) thr;
-          } else {
-            throw (Error) thr;
-          }
+  protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
+    getSession();
+    CheckConnectionThread t = new CheckConnectionThread();
+    try {
+      t.start();
+      t.join();
+      Throwable thr = t.getException();
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
         }
-        return;
-      } catch (InterruptedException e) {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-      } catch (RemoteException e) {
-        Throwable e2 = e.getCause();
-        if (e2 instanceof InterruptedException
-            || e2 instanceof InterruptedIOException) {
-          throw new ManifoldCFException(e2.getMessage(), e2,
-              ManifoldCFException.INTERRUPTED);
-        }
-        if (noSession) {
-          currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption(
-              "Transient error connecting to filenet service: "
-              + e.getMessage(), currentTime + 60000L);
-        }
-        session = null;
-        lastSessionFetch = -1L;
-        continue;
       }
+      return;
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Socket timeout: " + e.getMessage(), e);
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (IOException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Error checking repository: " + e.getMessage(), e);
+      handleIOException(e);
     }
   }
 
@@ -356,12 +289,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         t.join();
         Throwable thr = t.getException();
         if (thr != null) {
-          if (thr instanceof java.net.MalformedURLException) {
-            throw (java.net.MalformedURLException) thr;
-          } else if (thr instanceof NotBoundException) {
-            throw (NotBoundException) thr;
-          } else if (thr instanceof RemoteException) {
-            throw (RemoteException) thr;
+          if (thr instanceof IOException) {
+            throw (IOException) thr;
+          } else if (thr instanceof GeneralSecurityException) {
+            throw (GeneralSecurityException) thr;
           } else {
             throw (Error) thr;
           }
@@ -371,27 +302,19 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
-      } catch (java.net.MalformedURLException e) {
-        throw new ManifoldCFException(e.getMessage(), e);
-      } catch (NotBoundException e) {
-        // Transient problem: Server not available at the moment.
-        Logging.connectors.warn(
-            "GOOGLEDRIVE: Server not up at the moment: " + e.getMessage(), e);
-        currentTime = System.currentTimeMillis();
-        throw new ServiceInterruption(e.getMessage(), currentTime + 60000L);
-      } catch (RemoteException e) {
-        Throwable e2 = e.getCause();
-        if (e2 instanceof InterruptedException
-            || e2 instanceof InterruptedIOException) {
-          throw new ManifoldCFException(e2.getMessage(), e2,
-              ManifoldCFException.INTERRUPTED);
-        }
-        // Treat this as a transient problem
-        Logging.connectors.warn(
-            "GOOGLEDRIVE: Transient remote exception creating session: "
-            + e.getMessage(), e);
-        currentTime = System.currentTimeMillis();
-        throw new ServiceInterruption(e.getMessage(), currentTime + 60000L);
+      } catch (java.net.SocketTimeoutException e) {
+        Logging.connectors.warn("GOOGLEDRIVE: Socket timeout: " + e.getMessage(), e);
+        handleIOException(e);
+      } catch (InterruptedIOException e) {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+      } catch (GeneralSecurityException e) {
+        Logging.connectors.error("GOOGLEDRIVE: " +  "General security error initializing transport: " + e.getMessage(), e);
+        handleGeneralSecurityException(e);
+      } catch (IOException e) {
+        Logging.connectors.warn("GOOGLEDRIVE: IO error: " + e.getMessage(), e);
+        handleIOException(e);
       }
 
     }
@@ -416,12 +339,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         parameters.put(GoogleDriveConfig.CLIENT_ID_PARAM, clientid);
         parameters.put(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
         parameters.put(GoogleDriveConfig.REFRESH_TOKEN_PARAM, refreshtoken);
-        try {
-          session = new GoogleDriveSession(parameters);
-        } catch (Exception e) {
-          Logging.connectors.error("GOOGLEDRIVE: Error during the creation of the new session. Please check the endpoint parameters: " + e.getMessage(), e);
-          this.exception = e;
-        }
+        session = new GoogleDriveSession(parameters);
       } catch (Throwable e) {
         this.exception = e;
       }
@@ -440,39 +358,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
-      DestroySessionThread t = new DestroySessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException) {
-            throw (RemoteException) thr;
-          } else {
-            throw (Error) thr;
-          }
-        }
-        session = null;
-        lastSessionFetch = -1L;
-      } catch (InterruptedException e) {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-      } catch (RemoteException e) {
-        Throwable e2 = e.getCause();
-        if (e2 instanceof InterruptedException
-            || e2 instanceof InterruptedIOException) {
-          throw new ManifoldCFException(e2.getMessage(), e2,
-              ManifoldCFException.INTERRUPTED);
-        }
-        session = null;
-        lastSessionFetch = -1L;
-        // Treat this as a transient problem
-        Logging.connectors.warn(
-            "GOOGLEDRIVE: Transient remote exception closing session: "
-            + e.getMessage(), e);
-      }
-
+      session.close();
+      session = null;
+      lastSessionFetch = -1L;
     }
   }
 
@@ -859,12 +747,15 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding seed documents: " + e.getMessage(), e);
+      handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
     } catch (IOException e) {
-      Logging.connectors.error("GOOGLEDRIVE: Error adding seed documents: " + e.getMessage(), e);
+      Logging.connectors.warn("GOOGLEDRIVE: Error adding seed documents: " + e.getMessage(), e);
       handleIOException(e);
     } finally {
       // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
@@ -916,16 +807,19 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           throw (Error) thr;
         }
       }
-    } catch (InterruptedIOException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
     } catch (InterruptedException e) {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Socket timeout getting object: " + e.getMessage(), e);
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
     } catch (IOException e) {
-      Logging.connectors.error("GOOGLEDRIVE: Error getting object: " + e.getMessage(), e);
+      Logging.connectors.warn("GOOGLEDRIVE: Error getting object: " + e.getMessage(), e);
       handleIOException(e);
     }
     return t.getResponse();
@@ -985,10 +879,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   public void processDocuments(String[] documentIdentifiers, String[] versions,
       IProcessActivity activities, DocumentSpecification spec,
       boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
-    Logging.connectors.debug("GOOGLEDRIVE: Inside processDocuments");
-    int i = 0;
 
-    while (i < documentIdentifiers.length) {
+    Logging.connectors.debug("GOOGLEDRIVE: Inside processDocuments");
+        
+    for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
       String nodeId = documentIdentifiers[i];
       String version = versions[i];
@@ -1052,6 +946,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           t.interrupt();
           throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
+        } catch (java.net.SocketTimeoutException e) {
+          Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding child documents: " + e.getMessage(), e);
+          handleIOException(e);
         } catch (InterruptedIOException e) {
           t.interrupt();
           throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -1064,15 +961,18 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           childBuffer.abandon();
         }
 
-      } else { // its a file
+      } else {
+        // its a file
         if (!scanOnly[i]) {
           if (Logging.connectors.isDebugEnabled()) {
             Logging.connectors.debug("GOOGLEDRIVE: its a file");
           }
 
+          // We always direct to the PDF
           String documentURI = getUrl(googleFile, "application/pdf");
-          // MHL to get the actual file length!!
-          long fileLength = -1L;
+
+          // Get the file length
+          long fileLength = googleFile.getFileSize();
 
           //otherwise process
           RepositoryDocument rd = new RepositoryDocument();
@@ -1109,17 +1009,26 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               t.interrupt();
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
                 ManifoldCFException.INTERRUPTED);
+            } catch (java.net.SocketTimeoutException e) {
+              Logging.connectors.warn("GOOGLEDRIVE: Socket timeout reading document: " + e.getMessage(), e);
+              handleIOException(e);
             } catch (InterruptedIOException e) {
               t.interrupt();
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
                 ManifoldCFException.INTERRUPTED);
             } catch (IOException e) {
-              Logging.connectors.error("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
+              Logging.connectors.warn("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
               handleIOException(e);
             }
           } finally {
             try {
               is.close();
+            } catch (java.net.SocketTimeoutException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              Logging.connectors.warn(
+                  "GOOGLEDRIVE: SocketTimeoutException closing file input stream: "
+                  + e.getMessage(), e);
             } catch (InterruptedIOException e) {
               errorCode = "Interrupted error";
               errorDesc = e.getMessage();
@@ -1140,7 +1049,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
 
       }
-      i++;
     }
   }
 
@@ -1231,8 +1139,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       ServiceInterruption {
     getSession();
     String[] rval = new String[documentIdentifiers.length];
-    int i = 0;
-    while (i < rval.length) {
+    for (int i = 0; i < rval.length; i++) {
       File googleFile = getObject(documentIdentifiers[i]);
       if (!isDir(googleFile)) {
         String rev = googleFile.getModifiedDate().toStringRfc3339();
@@ -1246,7 +1153,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         //a google folder will always be processed
         rval[i] = StringUtils.EMPTY;
       }
-      i++;
     }
     return rval;
   }
@@ -1257,8 +1163,15 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   
   private static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
-    // MHL
-    throw new ManifoldCFException(e.getMessage(),e);
+    // MHL to deal with various kinds of IOException
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("GoogleDrive exception: "+e.getMessage(), e, currentTime + 300000L,
+      currentTime + 3 * 60 * 60000L,-1,false);
   }
-    
+  
+  private static void handleGeneralSecurityException(GeneralSecurityException e)
+    throws ManifoldCFException, ServiceInterruption {
+    // Permanent problem: can't initialize transport layer
+    throw new ManifoldCFException("GoogleDrive exception: "+e.getMessage(), e);
+  }
 }
