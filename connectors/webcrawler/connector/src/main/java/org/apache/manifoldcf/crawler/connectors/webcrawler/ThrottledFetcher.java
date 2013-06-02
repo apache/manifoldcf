@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.common.DeflateInputStream;
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
@@ -27,6 +28,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.ClientConnectionManager;
@@ -55,6 +57,7 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpHost;
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.client.params.ClientPNames;
@@ -1571,7 +1574,8 @@ public class ThrottledFetcher
       fetchMethod.setHeader(new BasicHeader("User-Agent",userAgent));
       fetchMethod.setHeader(new BasicHeader("From",from));
       fetchMethod.setHeader(new BasicHeader("Accept","*/*"));
-        
+      fetchMethod.setHeader(new BasicHeader("Accept-Encoding","gzip,deflate"));
+
       // Use a custom cookie store
       CookieStore cookieStore = new OurBasicCookieStore();
       // If we have any cookies to set, set them.
@@ -2565,10 +2569,36 @@ public class ThrottledFetcher
               {
                 try
                 {
+                  boolean gzip = false;
+                  boolean deflate = false;
+                  Header ceheader = response.getEntity().getContentEncoding();
+                  if (ceheader != null)
+                  {
+                    HeaderElement[] codecs = ceheader.getElements();
+                    for (int i = 0; i < codecs.length; i++)
+                    {
+                      if (codecs[i].getName().equalsIgnoreCase("gzip"))
+                      {
+                        // GZIP
+                        gzip = true;
+                        break;
+                      }
+                      else if (codecs[i].getName().equalsIgnoreCase("deflate"))
+                      {
+                        // Deflate
+                        deflate = true;
+                        break;
+                      }
+                    }
+                  }
                   bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
                     bodyStream = new ThrottledInputstream(theConnection,bodyStream);
+                    if (gzip)
+                      bodyStream = new GZIPInputStream(bodyStream);
+                    else if (deflate)
+                      bodyStream = new DeflateInputStream(bodyStream);
                     threadStream = new XThreadInputStream(bodyStream);
                   }
                   streamCreated = true;
