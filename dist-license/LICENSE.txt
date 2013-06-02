@@ -299,6 +299,27 @@ License: MIT license (http://opensource.org/licenses/MIT).
 This product includes a json-simple-1.1.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+This product includes a jackson-core-2.1.3.jar.
+License: Dual license; we choose to distribute under Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a google-api-client-1.14.1-beta.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a google-oauth-client-1.14.1-beta.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a google-api-services-drive-v2-rev64-1.14.1-beta.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a google-api-services-drive-v2-rev64-1.14.1-beta.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a google-http-client-1.14.1-beta.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a google-http-client-jackson2-1.14.1-beta.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
 

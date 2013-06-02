@@ -17,12 +17,10 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.crawler.connectors.dropbox;
+package org.apache.manifoldcf.crawler.connectors.googledrive;
 
 import org.apache.manifoldcf.core.common.*;
 
-import com.dropbox.client2.DropboxAPI;
-import com.dropbox.client2.exception.DropboxException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
@@ -36,7 +34,6 @@ import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
@@ -47,59 +44,65 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.log4j.Logger;
+import com.google.api.services.drive.model.File;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.util.Map.Entry;
+import java.security.GeneralSecurityException;
 
 /**
  *
  * @author andrew
  */
-public class DropboxRepositoryConnector extends BaseRepositoryConnector {
+public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
   protected final static String ACTIVITY_READ = "read document";
   public final static String ACTIVITY_FETCH = "fetch";
   protected static final String RELATIONSHIP_CHILD = "child";
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
-  private static final String DROPBOX_SERVER_TAB_PROPERTY = "DropboxRepositoryConnector.Server";
-  private static final String DROPBOX_PATH_TAB_PROPERTY = "DropboxRepositoryConnector.DropboxPath";
+  private static final String GOOGLEDRIVE_SERVER_TAB_PROPERTY = "GoogleDriveRepositoryConnector.Server";
+  private static final String GOOGLEDRIVE_QUERY_TAB_PROPERTY = "GoogleDriveRepositoryConnector.GoogleDriveQuery";
   // Template names
   /**
    * Forward to the javascript to check the configuration parameters
    */
-  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
+  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration_google_server.js";
   /**
    * Server tab template
    */
-  private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_Server.html";
+  private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_google_server.html";
   /**
    * Forward to the javascript to check the specification parameters for the
    * job
    */
-  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
+  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification_googledrive.js";
   /**
    * Forward to the template to edit the configuration parameters for the job
    */
-  private static final String EDIT_SPEC_FORWARD_DROPBOXPATH = "editSpecification_DropboxPath.html";
+  private static final String EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY = "editSpecification_googledriveQuery.html";
   /**
    * Forward to the HTML template to view the configuration parameters
    */
-  private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
+  private static final String VIEW_CONFIG_FORWARD = "viewConfiguration_googledrive.html";
   /**
    * Forward to the template to view the specification parameters for the job
    */
-    private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  private static final String VIEW_SPEC_FORWARD = "viewSpecification_googledrive.html";
   /**
    * Endpoint server name
    */
-  protected String server = "dropbox";
-  protected DropboxSession session = null;
+  protected String server = "googledrive";
+  protected GoogleDriveSession session = null;
   protected long lastSessionFetch = -1L;
   protected static final long timeToRelease = 300000L;
-  
-  protected String app_key = null;
-  protected String app_secret = null;
-  protected String key = null;
-  protected String secret = null;
+  protected String clientid = null;
+  protected String clientsecret = null;
+  protected String refreshtoken = null;
+  protected Map<String, String> parameters = new HashMap<String, String>();
 
-  public DropboxRepositoryConnector() {
+  public GoogleDriveRepositoryConnector() {
     super();
   }
 
@@ -145,18 +148,16 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       lastSessionFetch = -1L;
     }
 
-    app_key = null;
-    app_secret= null;
-    key = null;
-    secret = null;
-    
+    clientid = null;
+    clientsecret = null;
+    refreshtoken = null;
   }
 
   /**
-   * This method create a new DROPBOX session for a DROPBOX repository, if the
-   * repositoryId is not provided in the configuration, the connector will
-   * retrieve all the repositories exposed for this endpoint the it will start
-   * to use the first one.
+   * This method create a new GOOGLEDRIVE session for a GOOGLEDRIVE
+   * repository, if the repositoryId is not provided in the configuration, the
+   * connector will retrieve all the repositories exposed for this endpoint
+   * the it will start to use the first one.
    *
    * @param configParameters is the set of configuration parameters, which in
    * this case describe the target appliance, basic auth configuration, etc.
@@ -166,11 +167,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
 
-    app_key=params.getParameter(DropboxConfig.APP_KEY_PARAM);
-    app_secret=params.getParameter(DropboxConfig.APP_SECRET_PARAM);
-    key = params.getParameter(DropboxConfig.KEY_PARAM);
-    secret = params.getParameter(DropboxConfig.SECRET_PARAM);
-    
+    clientid = params.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
+    clientsecret = params.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
+    refreshtoken = params.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
   }
 
   /**
@@ -191,34 +190,6 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected void checkConnection()
-    throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    CheckConnectionThread t = new CheckConnectionThread();
-    try {
-      t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof DropboxException) {
-          throw (DropboxException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
-        }
-      }
-      return;
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (DropboxException e) {
-      Logging.connectors.warn("DROPBOX: Error checking repository: " + e.getMessage(), e);
-      handleDropboxException(e);
-    }
-  }
-  
   protected class CheckConnectionThread extends Thread {
 
     protected Throwable exception = null;
@@ -241,6 +212,40 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
+    getSession();
+    CheckConnectionThread t = new CheckConnectionThread();
+    try {
+      t.start();
+      t.join();
+      Throwable thr = t.getException();
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+      return;
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Socket timeout: " + e.getMessage(), e);
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (IOException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Error checking repository: " + e.getMessage(), e);
+      handleIOException(e);
+    }
+  }
+
   /**
    * Set up a session
    */
@@ -248,46 +253,100 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     if (session == null) {
       // Check for parameter validity
 
-      if (StringUtils.isEmpty(app_key)) {
-        throw new ManifoldCFException("Parameter " + DropboxConfig.APP_KEY_PARAM
-            + " required but not set");
-      }
-      
-      if (StringUtils.isEmpty(app_secret)) {
-        throw new ManifoldCFException("Parameter " + DropboxConfig.APP_SECRET_PARAM
-            + " required but not set");
-      }
-      
-      
-      if (StringUtils.isEmpty(key)) {
-        throw new ManifoldCFException("Parameter " + DropboxConfig.KEY_PARAM
+      if (StringUtils.isEmpty(clientid)) {
+        throw new ManifoldCFException("Parameter " + GoogleDriveConfig.CLIENT_ID_PARAM
             + " required but not set");
       }
 
       if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("DROPBOX: Username = '" + key + "'");
+        Logging.connectors.debug("GOOGLEDRIVE: Clientid = '" + clientid + "'");
       }
 
-      if (StringUtils.isEmpty(secret)) {
-        throw new ManifoldCFException("Parameter " + DropboxConfig.SECRET_PARAM
+      if (StringUtils.isEmpty(clientsecret)) {
+        throw new ManifoldCFException("Parameter " + GoogleDriveConfig.CLIENT_SECRET_PARAM
             + " required but not set");
       }
 
-      Logging.connectors.debug("DROPBOX: Password exists");
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("GOOGLEDRIVE: Clientsecret = '" + clientsecret + "'");
+      }
 
-      
-      // Create a session
-      Map<String, String> parameters = new HashMap<String, String>();
+      if (StringUtils.isEmpty(refreshtoken)) {
+        throw new ManifoldCFException("Parameter " + GoogleDriveConfig.REFRESH_TOKEN_PARAM
+            + " required but not set");
+      }
 
-      // user credentials
-      parameters.put(DropboxConfig.APP_KEY_PARAM, app_key);
-      parameters.put(DropboxConfig.APP_SECRET_PARAM, app_secret);
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("GOOGLEDRIVE: refreshtoken = '" + refreshtoken + "'");
+      }
 
-      parameters.put(DropboxConfig.KEY_PARAM, key);
-      parameters.put(DropboxConfig.SECRET_PARAM, secret);
 
-      session = new DropboxSession(parameters);
-      lastSessionFetch = System.currentTimeMillis();
+
+      long currentTime;
+      GetSessionThread t = new GetSessionThread();
+      try {
+        t.start();
+        t.join();
+        Throwable thr = t.getException();
+        if (thr != null) {
+          if (thr instanceof IOException) {
+            throw (IOException) thr;
+          } else if (thr instanceof GeneralSecurityException) {
+            throw (GeneralSecurityException) thr;
+          } else {
+            throw (Error) thr;
+          }
+
+        }
+      } catch (InterruptedException e) {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+      } catch (java.net.SocketTimeoutException e) {
+        Logging.connectors.warn("GOOGLEDRIVE: Socket timeout: " + e.getMessage(), e);
+        handleIOException(e);
+      } catch (InterruptedIOException e) {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+      } catch (GeneralSecurityException e) {
+        Logging.connectors.error("GOOGLEDRIVE: " +  "General security error initializing transport: " + e.getMessage(), e);
+        handleGeneralSecurityException(e);
+      } catch (IOException e) {
+        Logging.connectors.warn("GOOGLEDRIVE: IO error: " + e.getMessage(), e);
+        handleIOException(e);
+      }
+
+    }
+    lastSessionFetch = System.currentTimeMillis();
+  }
+
+  protected class GetSessionThread extends Thread {
+
+    protected Throwable exception = null;
+
+    public GetSessionThread() {
+      super();
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        // Create a session
+        parameters.clear();
+
+        // user credentials
+        parameters.put(GoogleDriveConfig.CLIENT_ID_PARAM, clientid);
+        parameters.put(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
+        parameters.put(GoogleDriveConfig.REFRESH_TOKEN_PARAM, refreshtoken);
+        session = new GoogleDriveSession(parameters);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public Throwable getException() {
+      return exception;
     }
   }
 
@@ -303,7 +362,6 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       session = null;
       lastSessionFetch = -1L;
     }
-
   }
 
   /**
@@ -335,33 +393,25 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    * @param parameters is the current set of configuration parameters
    */
   private static void fillInServerConfigurationMap(Map<String, String> newMap, ConfigParams parameters) {
-    
-    String app_key = parameters.getParameter(DropboxConfig.APP_KEY_PARAM);
-    String app_secret = parameters.getParameter(DropboxConfig.APP_SECRET_PARAM);
-    
-    String username = parameters.getParameter(DropboxConfig.KEY_PARAM);
-    String password = parameters.getParameter(DropboxConfig.SECRET_PARAM);
-    
-    if (app_key == null) {
-      app_key = StringUtils.EMPTY;
+    String clientid = parameters.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
+    String clientsecret = parameters.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
+    String refreshtoken = parameters.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
+
+    if (clientid == null) {
+      clientid = StringUtils.EMPTY;
     }
-    
-    if (app_secret == null) {
-      app_secret = StringUtils.EMPTY;
+    if (clientsecret == null) {
+      clientsecret = StringUtils.EMPTY;
     }
-    
-    if (username == null) {
-      username = StringUtils.EMPTY;
+
+
+    if (refreshtoken == null) {
+      refreshtoken = StringUtils.EMPTY;
     }
-    if (password == null) {
-      password = StringUtils.EMPTY;
-    }
-    
-    newMap.put(DropboxConfig.APP_KEY_PARAM, app_key);
-    newMap.put(DropboxConfig.APP_SECRET_PARAM, app_secret);
-    newMap.put(DropboxConfig.KEY_PARAM, username);
-    newMap.put(DropboxConfig.SECRET_PARAM, password);
-    
+
+    newMap.put(GoogleDriveConfig.CLIENT_ID_PARAM, clientid);
+    newMap.put(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
+    newMap.put(GoogleDriveConfig.REFRESH_TOKEN_PARAM, refreshtoken);
   }
 
   /**
@@ -378,7 +428,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-    Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     Map<String, String> paramMap = new HashMap<String, String>();
 
     // Fill in map from each tab
@@ -396,7 +446,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    * @throws ManifoldCFException
    */
   private static void outputResource(String resName, IHTTPOutput out,
-    Locale locale, Map<String, String> paramMap) throws ManifoldCFException {
+      Locale locale, Map<String, String> paramMap) throws ManifoldCFException {
     Messages.outputResourceWithVelocity(out, locale, resName, paramMap, true);
   }
 
@@ -416,10 +466,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
-    IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
-    throws ManifoldCFException, IOException {
+      IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
+      throws ManifoldCFException, IOException {
     // Add the Server tab
-    tabsArray.add(Messages.getString(locale, DROPBOX_SERVER_TAB_PROPERTY));
+    tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_SERVER_TAB_PROPERTY));
     // Map the parameters
     Map<String, String> paramMap = new HashMap<String, String>();
 
@@ -432,8 +482,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
   @Override
   public void outputConfigurationBody(IThreadContext threadContext,
-    IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
-    throws ManifoldCFException, IOException {
+      IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
+      throws ManifoldCFException, IOException {
 
     // Call the Velocity templates for each tab
 
@@ -466,47 +516,41 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String processConfigurationPost(IThreadContext threadContext,
-    IPostParameters variableContext, ConfigParams parameters)
-    throws ManifoldCFException {
+      IPostParameters variableContext, ConfigParams parameters)
+      throws ManifoldCFException {
 
-    
-    String app_key = variableContext.getParameter(DropboxConfig.APP_KEY_PARAM);
-    if (app_key != null) {
-      parameters.setParameter(DropboxConfig.APP_KEY_PARAM, app_key);
-    }
-    
-    String app_secret = variableContext.getParameter(DropboxConfig.APP_SECRET_PARAM);
-    if (app_secret != null) {
-      parameters.setParameter(DropboxConfig.APP_SECRET_PARAM, app_secret);
-    }
-    
-    String key = variableContext.getParameter(DropboxConfig.KEY_PARAM);
-    if (key != null) {
-      parameters.setParameter(DropboxConfig.KEY_PARAM, key);
+    String clientid = variableContext.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
+    if (clientid != null) {
+      parameters.setParameter(GoogleDriveConfig.CLIENT_ID_PARAM, clientid);
     }
 
-    String secret = variableContext.getParameter(DropboxConfig.SECRET_PARAM);
-    if (secret != null) {
-      parameters.setParameter(DropboxConfig.SECRET_PARAM, secret);
+    String clientsecret = variableContext.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
+    if (clientsecret != null) {
+      parameters.setParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
+    }
+
+    String refreshtoken = variableContext.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
+    if (refreshtoken != null) {
+      parameters.setParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM, refreshtoken);
     }
 
     return null;
   }
 
   /**
-   * Fill in specification Velocity parameter map for DROPBOXPath tab.
+   * Fill in specification Velocity parameter map for GOOGLEDRIVEQuery tab.
    */
-  private static void fillInDropboxPathSpecificationMap(Map<String, String> newMap, DocumentSpecification ds) {
+  private static void fillInGOOGLEDRIVEQuerySpecificationMap(Map<String, String> newMap, DocumentSpecification ds) {
     int i = 0;
-    String DropboxPath = DropboxConfig.DROPBOX_PATH_PARAM_DEFAULT_VALUE;
+    String GoogleDriveQuery = GoogleDriveConfig.GOOGLEDRIVE_QUERY_DEFAULT;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        DropboxPath = sn.getAttributeValue(DropboxConfig.DROPBOX_PATH_PARAM);
+        GoogleDriveQuery = sn.getAttributeValue(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM);
       }
       i++;
     }
-    newMap.put(DropboxConfig.DROPBOX_PATH_PARAM, DropboxPath);
+    newMap.put(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM, GoogleDriveQuery);
   }
 
   /**
@@ -521,12 +565,12 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
-    throws ManifoldCFException, IOException {
+      throws ManifoldCFException, IOException {
 
     Map<String, String> paramMap = new HashMap<String, String>();
 
     // Fill in the map with data from all tabs
-    fillInDropboxPathSpecificationMap(paramMap, ds);
+    fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
 
     outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
   }
@@ -547,9 +591,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
-    DocumentSpecification ds) throws ManifoldCFException {
-    String dropboxPath = variableContext.getParameter(DropboxConfig.DROPBOX_PATH_PARAM);
-    if (dropboxPath != null) {
+      DocumentSpecification ds) throws ManifoldCFException {
+    String cmisQuery = variableContext.getParameter(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM);
+    if (cmisQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
@@ -560,8 +604,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
         i++;
       }
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
-      node.setAttribute(DropboxConfig.DROPBOX_PATH_PARAM, dropboxPath);
-      variableContext.setParameter(DropboxConfig.DROPBOX_PATH_PARAM, dropboxPath);
+      node.setAttribute(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM, cmisQuery);
+      variableContext.setParameter(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM, cmisQuery);
       ds.addChild(ds.getChildCount(), node);
     }
     return null;
@@ -581,14 +625,14 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputSpecificationBody(IHTTPOutput out,
-    Locale locale, DocumentSpecification ds, String tabName) throws ManifoldCFException,
-    IOException {
+      Locale locale, DocumentSpecification ds, String tabName) throws ManifoldCFException,
+      IOException {
 
-    // Output DROPBOXPath tab
+    // Output GOOGLEDRIVEQuery tab
     Map<String, String> paramMap = new HashMap<String, String>();
     paramMap.put("TabName", tabName);
-    fillInDropboxPathSpecificationMap(paramMap, ds);
-    outputResource(EDIT_SPEC_FORWARD_DROPBOXPATH, out, locale, paramMap);
+    fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
+    outputResource(EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY, out, locale, paramMap);
   }
 
   /**
@@ -605,14 +649,14 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void outputSpecificationHeader(IHTTPOutput out,
-    Locale locale, DocumentSpecification ds, List<String> tabsArray)
-    throws ManifoldCFException, IOException {
-    tabsArray.add(Messages.getString(locale, DROPBOX_PATH_TAB_PROPERTY));
+      Locale locale, DocumentSpecification ds, List<String> tabsArray)
+      throws ManifoldCFException, IOException {
+    tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_QUERY_TAB_PROPERTY));
 
     Map<String, String> paramMap = new HashMap<String, String>();
 
     // Fill in the specification header map, using data from all tabs.
-    fillInDropboxPathSpecificationMap(paramMap, ds);
+    fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
 
     outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, paramMap);
   }
@@ -657,24 +701,23 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public void addSeedDocuments(ISeedingActivity activities,
-    DocumentSpecification spec, long startTime, long endTime, int jobMode)
-    throws ManifoldCFException, ServiceInterruption {
-    
-      
-    String dropboxPath = StringUtils.EMPTY;
+      DocumentSpecification spec, long startTime, long endTime, int jobMode)
+      throws ManifoldCFException, ServiceInterruption {
+
+    String googleDriveQuery = GoogleDriveConfig.GOOGLEDRIVE_QUERY_DEFAULT;
     int i = 0;
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        dropboxPath = sn.getAttributeValue(DropboxConfig.DROPBOX_PATH_PARAM);
+        googleDriveQuery = sn.getAttributeValue(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM);
         break;
       }
       i++;
     }
-    
+
     getSession();
     XThreadStringBuffer seedBuffer = new XThreadStringBuffer();
-    GetSeedsThread t = new GetSeedsThread(dropboxPath, seedBuffer);
+    GetSeedsThread t = new GetSeedsThread(googleDriveQuery, seedBuffer);
     try {
       t.start();
       
@@ -692,8 +735,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
       Throwable thr = t.getException();
       if (thr != null) {
-        if (thr instanceof DropboxException) {
-          throw (DropboxException) thr;
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         } else {
@@ -704,24 +747,31 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
-    } catch (DropboxException e) {
-      Logging.connectors.error("DROPBOX: Error adding seed documents: " + e.getMessage(), e);
-      handleDropboxException(e);
+    } catch (java.net.SocketTimeoutException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding seed documents: " + e.getMessage(), e);
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (IOException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Error adding seed documents: " + e.getMessage(), e);
+      handleIOException(e);
     } finally {
       // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
       seedBuffer.abandon();
     }
   }
-
+  
   protected class GetSeedsThread extends Thread {
 
     protected Throwable exception = null;
-    protected final String path;
+    protected final String googleDriveQuery;
     protected final XThreadStringBuffer seedBuffer;
     
-    public GetSeedsThread(String path, XThreadStringBuffer seedBuffer) {
+    public GetSeedsThread(String googleDriveQuery, XThreadStringBuffer seedBuffer) {
       super();
-      this.path = path;
+      this.googleDriveQuery = googleDriveQuery;
       this.seedBuffer = seedBuffer;
       setDaemon(true);
     }
@@ -729,7 +779,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     @Override
     public void run() {
       try {
-        session.getSeeds(seedBuffer,path,25000); //upper limit on files to get supported by dropbox api in a single directory
+        session.getSeeds(seedBuffer, googleDriveQuery);
       } catch (Throwable e) {
         this.exception = e;
       }
@@ -740,6 +790,70 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
+  protected File getObject(String nodeId)
+    throws ManifoldCFException, ServiceInterruption {
+    getSession();
+    GetObjectThread t = new GetObjectThread(nodeId);
+    try {
+      t.start();
+      t.join();
+      Throwable thr = t.getException();
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Socket timeout getting object: " + e.getMessage(), e);
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (IOException e) {
+      Logging.connectors.warn("GOOGLEDRIVE: Error getting object: " + e.getMessage(), e);
+      handleIOException(e);
+    }
+    return t.getResponse();
+  }
+  
+  protected class GetObjectThread extends Thread {
+
+    protected final String nodeId;
+    protected Throwable exception = null;
+    protected File response = null;
+
+    public GetObjectThread(String nodeId) {
+      super();
+      setDaemon(true);
+      this.nodeId = nodeId;
+    }
+
+    public void run() {
+      try {
+        response = session.getObject(nodeId);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public File getResponse() {
+      return response;
+    }
+    
+    public Throwable getException() {
+      return exception;
+    }
+  }
+  
   /**
    * Process a set of documents. This is the method that should cause each
    * document to be fetched, processed, and the results either added to the
@@ -763,392 +877,243 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   @SuppressWarnings("unchecked")
   @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions,
-    IProcessActivity activities, DocumentSpecification spec,
-    boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
-      
-    Logging.connectors.debug("DROPBOX: Inside processDocuments");
-      
+      IProcessActivity activities, DocumentSpecification spec,
+      boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
+
+    Logging.connectors.debug("GOOGLEDRIVE: Inside processDocuments");
+        
     for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
       String nodeId = documentIdentifiers[i];
+      String version = versions[i];
       if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("DROPBOX: Processing document identifier '"
+        Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
             + nodeId + "'");
       }
 
-      DropboxAPI.Entry dropboxObject = getObject(nodeId);
+      File googleFile = getObject(nodeId);
 
-      if(dropboxObject.isDeleted){
-        continue;
-      }
       String errorCode = "OK";
       String errorDesc = StringUtils.EMPTY;
+      if (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed()) {
+        //its deleted, move on
+        continue;
+      }
 
 
-      if (dropboxObject.isDir) {
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getTitle());
+      }
+
+      if ("application/vnd.google-apps.folder".equals(googleFile.getMimeType())) {
+        //if directory add its children
+
+        if (Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug("GOOGLEDRIVE: its a directory");
+        }
 
         // adding all the children + subdirs for a folder
 
-        List<DropboxAPI.Entry> children = dropboxObject.contents;
-        for (DropboxAPI.Entry child : children) {
-          activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
+        getSession();
+        XThreadStringBuffer childBuffer = new XThreadStringBuffer();
+        GetChildrenThread t = new GetChildrenThread(nodeId, childBuffer);
+        try {
+          t.start();
+          
+          // Pick up the paths, and add them to the activities, before we join with the child thread.
+          while (true) {
+            // The only kind of exceptions this can throw are going to shut the process down.
+            String child = childBuffer.fetch();
+            if (child ==  null)
+              break;
+            // Add the pageID to the queue
+            activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
+          }
+
+          t.join();
+
+          Throwable thr = t.getException();
+          if (thr != null) {
+            if (thr instanceof IOException) {
+              throw (IOException) thr;
+            } else if (thr instanceof RuntimeException) {
+              throw (RuntimeException) thr;
+            } else {
+              throw (Error) thr;
+            }
+          }
+        } catch (InterruptedException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        } catch (java.net.SocketTimeoutException e) {
+          Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding child documents: " + e.getMessage(), e);
+          handleIOException(e);
+        } catch (InterruptedIOException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        } catch (IOException e) {
+          Logging.connectors.warn("GOOGLEDRIVE: Error adding child documents: " + e.getMessage(), e);
+          handleIOException(e);
+        } finally {
+          // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
+          childBuffer.abandon();
         }
 
-      } else { // its a file
+      } else {
+        // its a file
+        if (!scanOnly[i]) {
+          if (Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug("GOOGLEDRIVE: its a file");
+          }
 
-        // content ingestion
-        // MHL to use stream thingy
+          // We always direct to the PDF
+          String documentURI = getUrl(googleFile, "application/pdf");
 
-        long fileLength = dropboxObject.bytes;
-        InputStream is = null;
+          // Get the file length
+          long fileLength = googleFile.getFileSize();
 
-        try {
+          //otherwise process
           RepositoryDocument rd = new RepositoryDocument();
 
-          //binary
-          if (fileLength > 0) {
-            is = getInputStream(nodeId);
-            rd.setBinary(is, fileLength);
+          for (Entry<String, Object> entry : googleFile.entrySet()) {
+            rd.addField(entry.getKey(), entry.getValue().toString());
           }
 
-          rd.addField("Modified", dropboxObject.modified);
-          rd.addField("Size", dropboxObject.size);
-          rd.addField("Path", dropboxObject.path);
-          rd.addField("Root", dropboxObject.root);
-          rd.addField("ClientMtime", dropboxObject.clientMtime);
-          rd.addField("mimeType", dropboxObject.mimeType);
-          rd.addField("rev", dropboxObject.rev);
-
-          //ingestion
-          String version = dropboxObject.rev;
-          if (StringUtils.isEmpty(version)) {
-            version = StringUtils.EMPTY;
-          }
-
-          //documentURI
-          String documentURI = dropboxObject.path;
-          activities.ingestDocument(nodeId, version, documentURI, rd);
-
-        } finally {
+          XThreadInputStream is = new XThreadInputStream();
           try {
-            if (is != null) {
-              is.close();
-            }
-          } catch (InterruptedIOException e) {
-            errorCode = "Interrupted error";
-            errorDesc = e.getMessage();
-            throw new ManifoldCFException(e.getMessage(), e,
+            rd.setBinary(is, fileLength);
+            
+            // Fire up the document reading thread
+            DocumentReadingThread t = new DocumentReadingThread(documentURI, is);
+            try {
+              t.start();
+              
+              // Can only index while background thread is running!
+              activities.ingestDocument(nodeId, version, documentURI, rd);
+
+              t.join();
+
+              Throwable thr = t.getException();
+              if (thr != null) {
+                if (thr instanceof IOException) {
+                  throw (IOException) thr;
+                } else if (thr instanceof RuntimeException) {
+                  throw (RuntimeException) thr;
+                } else {
+                  throw (Error) thr;
+                }
+              }
+            } catch (InterruptedException e) {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
                 ManifoldCFException.INTERRUPTED);
-          } catch (IOException e) {
-            errorCode = "IO ERROR";
-            errorDesc = e.getMessage();
-            Logging.connectors.warn(
-                "DROPBOX: IOException closing file input stream: "
-                + e.getMessage(), e);
+            } catch (java.net.SocketTimeoutException e) {
+              Logging.connectors.warn("GOOGLEDRIVE: Socket timeout reading document: " + e.getMessage(), e);
+              handleIOException(e);
+            } catch (InterruptedIOException e) {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                ManifoldCFException.INTERRUPTED);
+            } catch (IOException e) {
+              Logging.connectors.warn("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
+              handleIOException(e);
+            }
+          } finally {
+            try {
+              is.close();
+            } catch (java.net.SocketTimeoutException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              Logging.connectors.warn(
+                  "GOOGLEDRIVE: SocketTimeoutException closing file input stream: "
+                  + e.getMessage(), e);
+            } catch (InterruptedIOException e) {
+              errorCode = "Interrupted error";
+              errorDesc = e.getMessage();
+              throw new ManifoldCFException(e.getMessage(), e,
+                  ManifoldCFException.INTERRUPTED);
+            } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              Logging.connectors.warn(
+                  "GOOGLEDRIVE: IOException closing file input stream: "
+                  + e.getMessage(), e);
+            }
+
+            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+                fileLength, nodeId, errorCode, errorDesc, null);
           }
-
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileLength, nodeId, errorCode, errorDesc, null);
         }
+
+
       }
     }
   }
 
-  protected InputStream getInputStream(String nodeId)
-    throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    InputStream rval = null;
-    BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
-    try {
-      t.start();
-      rval = t.getSafeInputStream();
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (IOException e) {
-      handleIOException(e);
-    } catch (DropboxException e) {
-      Logging.connectors.error("DROPBOX: Error getting stream: " + e.getMessage(), e);
-      handleDropboxException(e);
-    }
-    return rval;
-  }
+  protected class DocumentReadingThread extends Thread {
 
-  protected DropboxAPI.Entry getObject(String nodeId)
-    throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    GetObjectThread t = new GetObjectThread(nodeId);
-    try {
-      t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof DropboxException) {
-          throw (DropboxException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
-        }
-      }
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (DropboxException e) {
-      Logging.connectors.error("DROPBOX: Error getting object: " + e.getMessage(), e);
-      handleDropboxException(e);
-    }
-    return t.getResponse();
-  }
-  
-  protected class GetObjectThread extends Thread {
-
-    protected final String nodeId;
     protected Throwable exception = null;
-    protected DropboxAPI.Entry response = null;
-
-    public GetObjectThread(String nodeId) {
+    protected final String fileURL;
+    protected final XThreadInputStream stream;
+    
+    public DocumentReadingThread(String fileURL, XThreadInputStream stream) {
       super();
+      this.fileURL = fileURL;
+      this.stream = stream;
       setDaemon(true);
-      this.nodeId = nodeId;
     }
 
+    @Override
     public void run() {
       try {
-        response = session.getObject(nodeId);
+        session.getGoogleDriveOutputStream(stream, fileURL);
       } catch (Throwable e) {
         this.exception = e;
       }
     }
 
-    public DropboxAPI.Entry getResponse() {
-      return response;
-    }
-    
     public Throwable getException() {
       return exception;
     }
   }
 
-  protected class BackgroundStreamThread extends Thread
-  {
-    protected final String nodeId;
-    
-    protected boolean abortThread = false;
-    protected Throwable responseException = null;
-    protected InputStream sourceStream = null;
-    protected XThreadInputStream threadStream = null;
-    
-    public BackgroundStreamThread(String nodeId)
-    {
-      super();
-      setDaemon(true);
-      this.nodeId = nodeId;
+  /** Get the URL of a file in google land.
+  */
+  protected static String getUrl(File googleFile, String exportType) {
+    if (googleFile.containsKey("fileSize")) {
+      return googleFile.getDownloadUrl();
+    } else {
+      return googleFile.getExportLinks().get(exportType);
     }
-
-    public void run()
-    {
-      try {
-        try {
-          synchronized (this) {
-            if (!abortThread) {
-              sourceStream = session.getDropboxInputStream(nodeId);
-              threadStream = new XThreadInputStream(sourceStream);
-              this.notifyAll();
-            }
-          }
-          
-          if (threadStream != null)
-          {
-            // Stuff the content until we are done
-            threadStream.stuffQueue();
-          }
-        } finally {
-          if (sourceStream != null)
-            sourceStream.close();
-        }
-      } catch (Throwable e) {
-        responseException = e;
-      }
-    }
-
-    public InputStream getSafeInputStream()
-      throws InterruptedException, IOException, DropboxException
-    {
-      // Must wait until stream is created, or until we note an exception was thrown.
-      while (true)
-      {
-        synchronized (this)
-        {
-          if (responseException != null)
-            throw new IllegalStateException("Check for response before getting stream");
-          checkException(responseException);
-          if (threadStream != null)
-            return threadStream;
-          wait();
-        }
-      }
-    }
-    
-    public void abort()
-    {
-      // This will be called during the finally
-      // block in the case where all is well (and
-      // the stream completed) and in the case where
-      // there were exceptions.
-      synchronized (this) {
-        if (threadStream != null) {
-          threadStream.abort();
-        }
-        abortThread = true;
-      }
-    }
-    
-    public void finishUp()
-      throws InterruptedException
-    {
-      join();
-    }
-    
-    protected synchronized void checkException(Throwable exception)
-      throws IOException, DropboxException
-    {
-      if (exception != null)
-      {
-        Throwable e = exception;
-        if (e instanceof DropboxException)
-          throw (DropboxException)e;
-        else if (e instanceof IOException)
-          throw (IOException)e;
-        else if (e instanceof RuntimeException)
-          throw (RuntimeException)e;
-        else if (e instanceof Error)
-          throw (Error)e;
-        else
-          throw new RuntimeException("Unhandled exception of type: "+e.getClass().getName(),e);
-      }
-    }
-
   }
 
-  /** This input stream wraps a background transaction thread, so that
-  * the thread is ended when the stream is closed.
-  */
-  private static class BackgroundInputStream extends InputStream {
-    
-    private BackgroundStreamThread streamThread = null;
-    private InputStream xThreadInputStream = null;
+  protected class GetChildrenThread extends Thread {
 
-    public BackgroundInputStream(BackgroundStreamThread streamThread, InputStream xThreadInputStream)
-    {
-      this.streamThread = streamThread;
-      this.xThreadInputStream = xThreadInputStream;
-    }
+    protected Throwable exception = null;
+    protected final String nodeId;
+    protected final XThreadStringBuffer childBuffer;
     
-    @Override
-    public int available()
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.available();
-      return super.available();
-    }
-    
-    @Override
-    public void close()
-      throws IOException
-    {
-      try
-      {
-        if (xThreadInputStream != null)
-        {
-          xThreadInputStream.close();
-          xThreadInputStream = null;
-        }
-      }
-      finally
-      {
-        if (streamThread != null)
-        {
-          streamThread.abort();
-          try
-          {
-            streamThread.finishUp();
-          }
-          catch (InterruptedException e)
-          {
-            throw new InterruptedIOException(e.getMessage());
-          }
-          streamThread = null;
-        }
-      }
-    }
-    
-    @Override
-    public void mark(int readlimit)
-    {
-      if (xThreadInputStream != null)
-        xThreadInputStream.mark(readlimit);
-      else
-        super.mark(readlimit);
-    }
-    
-    @Override
-    public void reset()
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        xThreadInputStream.reset();
-      else
-        super.reset();
-    }
-    
-    @Override
-    public boolean markSupported()
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.markSupported();
-      return super.markSupported();
-    }
-    
-    @Override
-    public long skip(long n)
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.skip(n);
-      return super.skip(n);
-    }
-    
-    @Override
-    public int read(byte[] b, int off, int len)
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.read(b,off,len);
-      return super.read(b,off,len);
+    public GetChildrenThread(String nodeId, XThreadStringBuffer childBuffer) {
+      super();
+      this.nodeId = nodeId;
+      this.childBuffer = childBuffer;
+      setDaemon(true);
     }
 
     @Override
-    public int read(byte[] b)
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.read(b);
-      return super.read(b);
+    public void run() {
+      try {
+        session.getChildren(childBuffer, nodeId);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
     }
-    
-    @Override
-    public int read()
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.read();
-      return -1;
+
+    public Throwable getException() {
+      return exception;
     }
-    
   }
 
   /**
@@ -1170,46 +1135,43 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String[] getDocumentVersions(String[] documentIdentifiers,
-    DocumentSpecification spec) throws ManifoldCFException, ServiceInterruption {
+      DocumentSpecification spec) throws ManifoldCFException,
+      ServiceInterruption {
+    getSession();
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
-      DropboxAPI.Entry dropboxObject = getObject(documentIdentifiers[i]);
-      if (!dropboxObject.isDir) {
-        if (dropboxObject.isDeleted) {
-          rval[i] = null;
-        } else if (StringUtils.isNotEmpty(dropboxObject.rev)) {
-          rval[i] = dropboxObject.rev;
+      File googleFile = getObject(documentIdentifiers[i]);
+      if (!isDir(googleFile)) {
+        String rev = googleFile.getModifiedDate().toStringRfc3339();
+        if (StringUtils.isNotEmpty(rev)) {
+          rval[i] = rev;
         } else {
-          //a document that doesn't contain versioning information will always be processed
+          //a google document that doesn't contain versioning information will always be processed
           rval[i] = StringUtils.EMPTY;
         }
       } else {
-        //a folder will always be processed
+        //a google folder will always be processed
         rval[i] = StringUtils.EMPTY;
       }
     }
     return rval;
   }
+
+  private boolean isDir(File f) {
+    return f.getMimeType().compareToIgnoreCase("application/vnd.google-apps.folder") == 0;
+  }
   
-  /** Handle a dropbox exception. */
-  protected static void handleDropboxException(DropboxException e)
+  private static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
-    // Right now I don't know enough, so throw Service Interruptions
+    // MHL to deal with various kinds of IOException
     long currentTime = System.currentTimeMillis();
-    throw new ServiceInterruption("Dropbox exception: "+e.getMessage(), e, currentTime + 300000L,
+    throw new ServiceInterruption("GoogleDrive exception: "+e.getMessage(), e, currentTime + 300000L,
       currentTime + 3 * 60 * 60000L,-1,false);
   }
   
-  /** Handle an IO exception. */
-  protected static void handleIOException(IOException e)
+  private static void handleGeneralSecurityException(GeneralSecurityException e)
     throws ManifoldCFException, ServiceInterruption {
-    if (e instanceof InterruptedIOException) {
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    }
-    long currentTime = System.currentTimeMillis();
-    throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L,
-      currentTime + 3 * 60 * 60000L,-1,false);
+    // Permanent problem: can't initialize transport layer
+    throw new ManifoldCFException("GoogleDrive exception: "+e.getMessage(), e);
   }
-  
 }

@@ -23,6 +23,8 @@
  */
 package org.apache.manifoldcf.crawler.connectors.dropbox;
 
+import org.apache.manifoldcf.core.common.*;
+
 import com.dropbox.client2.session.AppKeyPair;
 import java.util.Map;
 import com.dropbox.client2.session.WebAuthSession;
@@ -73,23 +75,22 @@ public class DropboxSession {
     return info;
   }
 
-    public HashSet<String> getSeeds(String path, int max_dirs) throws DropboxException {
-        HashSet<String> ids = new HashSet<String>();
+  public void getSeeds(XThreadStringBuffer idBuffer, String path, int max_dirs)
+    throws DropboxException, InterruptedException {
 
-        ids.add(path); //need to add root dir so that single files such as /file1 will still get read
+    idBuffer.add(path); //need to add root dir so that single files such as /file1 will still get read
         
         
-        DropboxAPI.Entry root_entry = client.metadata(path, max_dirs, null, true, null);
-        List<DropboxAPI.Entry> entries = root_entry.contents; //gets a list of the contents of the entire folder: subfolders + files
+    DropboxAPI.Entry root_entry = client.metadata(path, max_dirs, null, true, null);
+    List<DropboxAPI.Entry> entries = root_entry.contents; //gets a list of the contents of the entire folder: subfolders + files
 
-        // Apply the entries one by one.
-        for (DropboxAPI.Entry e : entries) {
-            if (e.isDir) { //only add the directories as seeds, we'll add the files later
-                ids.add(e.path);
-            }
-        }
-        return ids;
+    // Apply the entries one by one.
+    for (DropboxAPI.Entry e : entries) {
+      if (e.isDir) { //only add the directories as seeds, we'll add the files later
+        idBuffer.add(e.path);
+      }
     }
+  }
   
   public DropboxAPI.Entry getObject(String id) throws DropboxException {
     return client.metadata(id, 25000, null, true, null);

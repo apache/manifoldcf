@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-694: Add Google Drive connector.
+(Andrew Janowczyk, Karl Wright)
+
 CONNECTORS-690: For ElasticSearch connector, include _name and
 _content_type field within "file" portion of JSON, so it will work properly
 with the Mapper Attachment Plugin.
