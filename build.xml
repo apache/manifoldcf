@@ -1608,6 +1608,11 @@
             <param name="connector-label" value="File system"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"/>
         </antcall>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="filesystem"/>
+            <param name="connector-label" value="File system"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.filesystem.FileOutputConnector"/>
+        </antcall>
     </target>
     
     <target name="deliver-filesystem-connector-doc" depends="calculate-filesystem-doc-condition" if="filesystem-doc.include">
