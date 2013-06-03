@@ -24,8 +24,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -502,45 +504,50 @@ public class FileOutputConnector extends BaseOutputConnector {
       if (!path.toString().endsWith("/")) {
         path.append("/");
       }
-      path.append(uri.getAuthority().replaceAll(":", "_"));
+      try {
+        path.append(URLEncoder.encode(uri.getAuthority(), "UTF-8"));
+      } catch(UnsupportedEncodingException e) {
+        path.append(uri.getAuthority());
+      }
     } else {
       if (uri.getSchemeSpecificPart() != null) {
-        if (!path.toString().endsWith("/")) {
-          path.append("/");
+        for (String name : uri.getSchemeSpecificPart().split("/")) {
+          if (name.length() > 0) {
+            path.append("/");
+            try {
+              path.append(URLEncoder.encode(name, "UTF-8"));
+            } catch(UnsupportedEncodingException e) {
+              path.append(name);
+            }
+          }
         }
-        path.append(uri.getSchemeSpecificPart().replaceAll(":", "_"));
-      }
-    }
 
-    /*
-    if (uri.getUserInfo() != null) {
-      if (!path.toString().endsWith("/")) {
-        path.append("/");
-      }
-      path.append(uri.getUserInfo());
-    }
+        if (path.toString().endsWith("/")) {
+          path.append(".content");
+        }
 
-    if (uri.getHost() != null) {
-      if (!path.toString().endsWith("/")) {
-        path.append("/");
+        return path.toString();
       }
-      path.append(uri.getHost());
     }
-
-    if (uri.getPort() != -1) {
-      if (!path.toString().endsWith("/")) {
-        path.append("/");
-      }
-      path.append(uri.getPort());
-    }
-    */
 
     if (uri.getPath() != null) {
-      if (!uri.getPath().startsWith("/")) {
-        path.append("/");
+        if (uri.getPath().length() == 0) {
+          path.append("/");
+        } else if (uri.getPath().equals("/")) {
+          path.append(uri.getPath());
+        } else {
+          for (String name : uri.getPath().split("/")) {
+            if (name.length() > 0) {
+              path.append("/");
+              try {
+                path.append(URLEncoder.encode(name, "UTF-8"));
+              } catch(UnsupportedEncodingException e) {
+                path.append(name);
+              }
+            }
+          }
+        }
       }
-      path.append(uri.getPath());
-    }
 
     if (path.toString().endsWith("/")) {
       path.append(".content");
