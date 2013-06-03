@@ -1729,7 +1729,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-2.PNG" alt="googledrive enable drive api" width="80%"/>
               <br/><br/>
-              <p>Then going to the API Access link on the righthand side, we need to select create an OAutg 2.0 client ID:</p>
+              <p>Then going to the API Access link on the righthand side, we need to select create an OAuth 2.0 client ID:</p>
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-3.PNG" alt="googledrive create oauth client" width="80%"/>
               <br/><br/>
@@ -1738,7 +1738,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-4.PNG" alt="googledrive create client id" width="80%"/>
               <br/><br/>
-              <p>Afterwards we're presented with our Client ID and Client secrets needed for the connector(where the red boxes are):</p>
+              <p>Afterwards the connector requests our Client ID and Client secrets (where the red boxes are):</p>
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-5.PNG" alt="googledrive client id and secret" width="80%"/>
               <br/><br/>
@@ -1747,9 +1747,9 @@ curl -XGET http://localhost:9200/index/_mapping
                 For completeness, we present the needed steps below since they require some manual work.</p>
               <br/><br/>
               <ol>
-                  <li> Browse to here: https://accounts.google.com/o/oauth2/auth?scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&amp;state=%2Fprofile&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;response_type=code&amp;client_id=CLIENT_ID&amp;approval_prompt=force&amp;access_type=offline</li>
-                  <li> This returns a link (after acceptance) https://localhost/?state=/profile&amp;code=CODE</li>
-                  <li> Perform a POST: https://accounts.google.com/o/oauth2/token  with the following as the body: grant_type=authorization_code&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;client_secret=CLIENT_SECRET&amp;client_id=CLIENT_ID&amp;code=CODE</li>
+                  <li>Browse to here: https://accounts.google.com/o/oauth2/auth?scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&amp;state=%2Fprofile&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;response_type=code&amp;client_id=&lt;CLIENT_ID&gt;&amp;approval_prompt=force&amp;access_type=offline</li>
+                  <li>This returns a link (after acceptance), where a code is embedded in the URL: https://localhost/?state=/profile&amp;code=&lt;CODE&gt;</li>
+                  <li>Use a tool like <em>curl</em> (<a href="http://curl.haxx.se">http://curl.haxx.se</a>) to perform a POST to "https://accounts.google.com/o/oauth2/token", using the body: grant_type=authorization_code&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;client_secret=&lt;CLIENT_SECRET&gt;&amp;client_id=&lt;CLIENT_ID&gt;&amp;code=&lt;CODE&gt;</li>
               <li> The response is then a json response which contains the refresh_token.</li>
               </ol>
               <br/><br/>
