@@ -1719,41 +1719,40 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-connection-configuration.PNG" alt="googledrive Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
-              <p>As we can see there are 3 pieces of information which are needed to create a succesful connection. The Client ID and Client Secret given by Google Drive 
-                when you register your application for a development license. This is typically done through the <a href="https://code.google.com/apis/console/b/0/">Google APIs Console</a>.</p>
+              <p>As we can see there are 3 pieces of information which are needed to create a succesful connection. The Client ID and Client Secret given by
+                Google Drive when you register your application for a development license. This is typically done through
+                the <a href="https://code.google.com/apis/console/b/0/">Google APIs Console</a>.</p>
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-1.PNG" alt="googledrive create project" width="80%"/>
               <br/><br/>
-			  <p>Once having created a project, we must enable the Google Drive API</p>
-			  <br/><br/>
+              <p>Once having created a project, we must enable the Google Drive API:</p>
+              <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-2.PNG" alt="googledrive enable drive api" width="80%"/>
               <br/><br/>
-			  <p>Then going to the API Access link on the righthand side, we need to select create an OAutg 2.0 client ID:</p>
-			  <br/><br/>
+              <p>Then going to the API Access link on the righthand side, we need to select create an OAutg 2.0 client ID:</p>
+              <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-3.PNG" alt="googledrive create oauth client" width="80%"/>
               <br/><br/>
-			  
-			  <p>After filling in the necessary information, we need to select what type of application we'd like. For our purposes we need to select installed application</p>
-			  <br/><br/>
+              <p>After filling in the necessary information, we need to select what type of application we'd like. For our purposes we need to select
+                installed application:</p>
+              <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-4.PNG" alt="googledrive create client id" width="80%"/>
               <br/><br/>
-			  
-			  <p>Afterwards we're presented with our Client ID and Client secrets needed for the connector(where the red boxes are):</p>
-			  <br/><br/>
+              <p>Afterwards we're presented with our Client ID and Client secrets needed for the connector(where the red boxes are):</p>
+              <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-5.PNG" alt="googledrive client id and secret" width="80%"/>
               <br/><br/>
-			  
-             <p>Now each user must confirm their acceptance of allowing your application to access their google drive. This is done through a run-of-the-mill OAUTH
-                approach, but needs to be done before hand. Once the steps are completed, a long-life refresh token is presented, which is then used by the connector. For completeness, we present the needed steps below since they require some manual work.</p>
-				<br/><br/><p>
-				<ol>
-				<li> Browse to here: https://accounts.google.com/o/oauth2/auth?scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&state=%2Fprofile&redirect_uri=https%3A%2F%2Flocalhost&response_type=code&client_id=CLIENT_ID&approval_prompt=force&access_type=offline
-				<li> This returns a link (after acceptance) https://localhost/?state=/profile&code=CODE
-				<li> Perform a POST: https://accounts.google.com/o/oauth2/token  with the following as the body: grant_type=authorization_code&redirect_uri=https%3A%2F%2Flocalhost&client_secret=CLIENT_SECRET&client_id=CLIENT_ID&code=CODE
-				<li> The response is then a json response which contains the refresh_token.
-				</ol>
-				</p>
-			 <br/><br/>
+              <p>Now each user must confirm their acceptance of allowing your application to access their google drive. This is done through a run-of-the-mill OAUTH
+                approach, but needs to be done before hand. Once the steps are completed, a long-life refresh token is presented, which is then used by the connector.
+                For completeness, we present the needed steps below since they require some manual work.</p>
+              <br/><br/>
+              <ol>
+                  <li> Browse to here: https://accounts.google.com/o/oauth2/auth?scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&amp;state=%2Fprofile&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;response_type=code&amp;client_id=CLIENT_ID&amp;approval_prompt=force&amp;access_type=offline</li>
+                  <li> This returns a link (after acceptance) https://localhost/?state=/profile&amp;code=CODE</li>
+                  <li> Perform a POST: https://accounts.google.com/o/oauth2/token  with the following as the body: grant_type=authorization_code&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;client_secret=CLIENT_SECRET&amp;client_id=CLIENT_ID&amp;code=CODE</li>
+              <li> The response is then a json response which contains the refresh_token.</li>
+              </ol>
+              <br/><br/>
               <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-connection-configuration-save.PNG" alt="googledrive Repository Connection, saving configuration" width="80%"/>
@@ -1762,10 +1761,13 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-connection-job-googledrive-seed-query.PNG" alt="googledrive Repository Connection, seed query" width="80%"/>
               <br/><br/>
-              <p>This tab allows you to specify the query which will be used to seed documents for the indexing process. The query language is specified on the <a href="https://developers.google.com/drive/search-parameters">Drive Search Paramters</a> site. Directories which meet the seed query are fully crawled as the query on applies to seeds. The default query indexes the entire drive. Lastly, native Google documents such as spreadsheets and word documents are exported to PDF and then ingested.</p>
+              <p>This tab allows you to specify the query which will be used to seed documents for the indexing process. The query language is
+                specified on the <a href="https://developers.google.com/drive/search-parameters">Drive Search Paramters</a> site. Directories
+                which meet the seed query are fully crawled as the query on applies to seeds. The default query indexes the entire drive. Lastly, native Google
+                documents such as spreadsheets and word documents are exported to PDF and then ingested.</p>
             </section>
 			
-			<section id="livelinkrepository">
+            <section id="livelinkrepository">
                 <title>OpenText LiveLink Repository Connection</title>
                 <p>The LiveLink connection type allows you to index content from LiveLink repositories.  LiveLink has a rich variety of different document types and metadata,
                     which include basic documents, as well as compound documents, folders, workspaces, and projects.  A LiveLink connection is able to discover documents
