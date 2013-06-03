@@ -498,6 +498,21 @@ public class FileOutputConnector extends BaseOutputConnector {
       path.append(uri.getScheme());
     }
 
+    if (uri.getAuthority() != null) {
+      if (!path.toString().endsWith("/")) {
+        path.append("/");
+      }
+      path.append(uri.getAuthority().replaceAll(":", "_"));
+    } else {
+      if (uri.getSchemeSpecificPart() != null) {
+        if (!path.toString().endsWith("/")) {
+          path.append("/");
+        }
+        path.append(uri.getSchemeSpecificPart().replaceAll(":", "_"));
+      }
+    }
+
+    /*
     if (uri.getUserInfo() != null) {
       if (!path.toString().endsWith("/")) {
         path.append("/");
@@ -518,6 +533,7 @@ public class FileOutputConnector extends BaseOutputConnector {
       }
       path.append(uri.getPort());
     }
+    */
 
     if (uri.getPath() != null) {
       if (!uri.getPath().startsWith("/")) {
