@@ -50,7 +50,7 @@ public class DateParser
       int dashIndex = isoDateValue.lastIndexOf("-");
       int plusIndex = isoDateValue.lastIndexOf("+");
       if (colonIndex != -1 &&
-        ((dashIndex != -1 && colonIndex == dashIndex+3) || (plusIndex != -1 && colonIndex == plusIndex+3)))
+        ((dashIndex != -1 && colonIndex == dashIndex+3 && isNumeral(isoDateValue,dashIndex-1)) || (plusIndex != -1 && colonIndex == plusIndex+3 && isNumeral(isoDateValue,plusIndex-1))))
         isoDateValue = isoDateValue.substring(0,colonIndex) + isoDateValue.substring(colonIndex+1);
       isoFormatString.append("Z");      // RFC 822 time, including general time zones
     }
@@ -63,6 +63,11 @@ public class DateParser
     {
       return null;
     }
+  }
+  
+  protected static boolean isNumeral(String value, int index)
+  {
+    return index >= 0 && value.charAt(index) >= '0' && value.charAt(index) <= '9';
   }
   
   /** Format ISO8601 date.
