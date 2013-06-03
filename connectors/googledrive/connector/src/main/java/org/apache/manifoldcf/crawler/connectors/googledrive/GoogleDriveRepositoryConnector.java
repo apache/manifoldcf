@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Date;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -45,13 +46,13 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.log4j.Logger;
 import com.google.api.services.drive.model.File;
+import com.google.api.client.util.DateTime;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Map.Entry;
 import java.security.GeneralSecurityException;
-
 /**
  *
  * @author andrew
@@ -976,6 +977,25 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
           //otherwise process
           RepositoryDocument rd = new RepositoryDocument();
+
+          String mimeType = googleFile.getMimeType();
+          DateTime createdDate = googleFile.getCreatedDate();
+          DateTime modifiedDate = googleFile.getModifiedDate();
+          String extension = googleFile.getFileExtension();
+          String title = googleFile.getTitle();
+          
+          if (mimeType != null)
+            rd.setMimeType(mimeType);
+          if (createdDate != null)
+            rd.setCreatedDate(new Date(createdDate.getValue()));
+          if (modifiedDate != null)
+            rd.setModifiedDate(new Date(modifiedDate.getValue()));
+          if (extension != null)
+          {
+            if (title == null)
+              title = "";
+            rd.setFileName(title + "." + extension);
+          }
 
           for (Entry<String, Object> entry : googleFile.entrySet()) {
             rd.addField(entry.getKey(), entry.getValue().toString());

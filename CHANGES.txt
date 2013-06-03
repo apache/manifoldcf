@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-698: Add various required metadata values to the
+GoogleDrive connector.
+(Karl Wright)
+
 CONNECTORS-693: Support for gzip and deflate encoding for web
 connector.
 (Maciej Li¿ewski, Karl Wright)
