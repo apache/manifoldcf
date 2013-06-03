@@ -43,7 +43,17 @@ public class DateParser
     if (isoDateValue.endsWith("Z"))
       isoFormatString.append("'Z'");
     else
+    {
+      // We need to be able to parse either "-08:00" or "-0800".  The 'Z' specifier only handles
+      // -0800, unfortunately - see CONNECTORS-700.  So we have to do some hackery to remove the colon.
+      int colonIndex = isoDateValue.lastIndexOf(":");
+      int dashIndex = isoDateValue.lastIndexOf("-");
+      int plusIndex = isoDateValue.lastIndexOf("+");
+      if (colonIndex != -1 &&
+        ((dashIndex != -1 && colonIndex == dashIndex+3) || (plusIndex != -1 && colonIndex == plusIndex+3)))
+        isoDateValue = isoDateValue.substring(0,colonIndex) + isoDateValue.substring(colonIndex+1);
       isoFormatString.append("Z");      // RFC 822 time, including general time zones
+    }
     java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat(isoFormatString.toString());
     try
     {

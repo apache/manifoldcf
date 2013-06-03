@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-700: Fix ISO8601 date parsing to handle timezones with
+colons in them, e.g. -08:00
+(Stephane Gamard, Karl Wright)
+
 CONNECTORS-698: Add various required metadata values to the
 GoogleDrive connector.
 (Karl Wright)
