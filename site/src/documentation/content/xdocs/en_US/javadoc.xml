@@ -36,8 +36,10 @@
       <p><a href="../api/alfresco/index.html">Alfresco connector</a></p>
       <p><a href="../api/cmis/index.html">CMIS authority and connector</a></p>
       <p><a href="../api/documentum/index.html">Documentum authority, connector, and support processes</a></p>
+      <p><a href="../api/dropbox/index.html">Dropbox connector</a></p>
       <p><a href="../api/filenet/index.html">FileNet connector and support processes</a></p>
       <p><a href="../api/filesystem/index.html">File system connector</a></p>
+      <p><a href="../api/googledrive/index.html">GoogleDrive connector</a></p>
       <p><a href="../api/gts/index.html">qBase GTS output connector</a></p>
       <p><a href="../api/jcifs/index.html">CIFS connector</a></p>
       <p><a href="../api/jdbc/index.html">JDBC connector</a></p>

@@ -33,10 +33,13 @@
       <p>最新版のManifoldCFのJavadocは以下のリンクから参照することができます：</p>
       <p><a href="../api/framework/index.html">ManifoldCFフレームワーク</a></p>
       <p><a href="../api/activedirectory/index.html">Active Directory権限コネクタ</a></p>
+      <p><a href="../api/alfresco/index.html">Alfrescoコネクタ</a></p>
       <p><a href="../api/cmis/index.html">CMIS権限コネクタ</a></p>
       <p><a href="../api/documentum/index.html">Documentum権限コネクタ</a></p>
+      <p><a href="../api/dropbox/index.html">Dropboxコネクタ</a></p>
       <p><a href="../api/filenet/index.html">FileNetコネクタ</a></p>
       <p><a href="../api/filesystem/index.html">ファイルシステムコネクタ</a></p>
+      <p><a href="../api/googledrive/index.html">GoogleDriveコネクタ</a></p>
       <p><a href="../api/gts/index.html">qBase GTS出力コネクタ</a></p>
       <p><a href="../api/jcifs/index.html">CIFSコネクタ</a></p>
       <p><a href="../api/jdbc/index.html">JDBCコネクタ</a></p>
