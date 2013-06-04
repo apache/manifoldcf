@@ -705,7 +705,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
     } catch (DropboxException e) {
-      Logging.connectors.error("DROPBOX: Error adding seed documents: " + e.getMessage(), e);
+      Logging.connectors.warn("DROPBOX: Error adding seed documents: " + e.getMessage(), e);
       handleDropboxException(e);
     } finally {
       // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
@@ -770,123 +770,129 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       
     for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
+      String errorCode = "FAILED";
+      String errorDesc = StringUtils.EMPTY;
+      Long fileSize = null;
+      boolean doLog = false;
       String nodeId = documentIdentifiers[i];
       String version = versions[i];
-      if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("DROPBOX: Processing document identifier '"
-            + nodeId + "'");
-      }
-
-      DropboxAPI.Entry dropboxObject = getObject(nodeId);
-
-      if(dropboxObject.isDeleted){
-        continue;
-      }
       
-      if (dropboxObject.isDir) {
-
-        // adding all the children + subdirs for a folder
-
-        List<DropboxAPI.Entry> children = dropboxObject.contents;
-        for (DropboxAPI.Entry child : children) {
-          activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
+      try {
+        if (Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug("DROPBOX: Processing document identifier '"
+              + nodeId + "'");
         }
 
-      } else {
-        // its a file
-        String errorCode = "OK";
-        String errorDesc = StringUtils.EMPTY;
-
-        // content ingestion
-        RepositoryDocument rd = new RepositoryDocument();
-
-        // Length in bytes
-        long fileLength = dropboxObject.bytes;
-        //documentURI
-        String documentURI = dropboxObject.path;
-
-        if (dropboxObject.path != null)
-          rd.setFileName(dropboxObject.path);
-        if (dropboxObject.mimeType != null)
-          rd.setMimeType(dropboxObject.mimeType);
-        if (dropboxObject.modified != null)
-          rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
-        // There doesn't appear to be a created date...
-          
-        rd.addField("Modified", dropboxObject.modified);
-        rd.addField("Size", dropboxObject.size);
-        rd.addField("Path", dropboxObject.path);
-        rd.addField("Root", dropboxObject.root);
-        rd.addField("ClientMtime", dropboxObject.clientMtime);
-        rd.addField("mimeType", dropboxObject.mimeType);
-        rd.addField("rev", dropboxObject.rev);
-        
         getSession();
-        BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
+        GetObjectThread objt = new GetObjectThread(nodeId);
         try {
-          t.start();
-          InputStream is = t.getSafeInputStream();
-          try {
-            rd.setBinary(is, fileLength);
-            activities.ingestDocument(nodeId, version, documentURI, rd);
-          } finally {
-            is.close();
+          objt.start();
+          objt.join();
+          Throwable thr = objt.getException();
+          if (thr != null) {
+            if (thr instanceof DropboxException) {
+              throw (DropboxException) thr;
+            } else if (thr instanceof RuntimeException) {
+              throw (RuntimeException) thr;
+            } else {
+              throw (Error) thr;
+            }
           }
-          t.join();
         } catch (InterruptedException e) {
-          t.interrupt();
+          objt.interrupt();
           throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
-        } catch (InterruptedIOException e) {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-        } catch (IOException e) {
-          errorCode = "IO ERROR";
-          errorDesc = e.getMessage();
-          handleIOException(e);
         } catch (DropboxException e) {
-          Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
           errorCode = "DROPBOX ERROR";
           errorDesc = e.getMessage();
+          Logging.connectors.warn("DROPBOX: Error getting object: " + e.getMessage(), e);
           handleDropboxException(e);
-        } finally {
-          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-            fileLength, nodeId, errorCode, errorDesc, null);
         }
-      }
-    }
-  }
 
+        DropboxAPI.Entry dropboxObject = objt.getResponse();
 
-  protected DropboxAPI.Entry getObject(String nodeId)
-    throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    GetObjectThread t = new GetObjectThread(nodeId);
-    try {
-      t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof DropboxException) {
-          throw (DropboxException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
+        if(dropboxObject.isDeleted){
+          continue;
+        }
+        
+        if (dropboxObject.isDir) {
+
+          // adding all the children + subdirs for a folder
+
+          List<DropboxAPI.Entry> children = dropboxObject.contents;
+          for (DropboxAPI.Entry child : children) {
+            activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
+          }
+
         } else {
-          throw (Error) thr;
+          // its a file
+          doLog = true;
+          
+          // content ingestion
+          RepositoryDocument rd = new RepositoryDocument();
+
+          // Length in bytes
+          long fileLength = dropboxObject.bytes;
+          //documentURI
+          String documentURI = dropboxObject.path;
+
+          if (dropboxObject.path != null)
+            rd.setFileName(dropboxObject.path);
+          if (dropboxObject.mimeType != null)
+            rd.setMimeType(dropboxObject.mimeType);
+          if (dropboxObject.modified != null)
+            rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
+          // There doesn't appear to be a created date...
+            
+          rd.addField("Modified", dropboxObject.modified);
+          rd.addField("Size", dropboxObject.size);
+          rd.addField("Path", dropboxObject.path);
+          rd.addField("Root", dropboxObject.root);
+          rd.addField("ClientMtime", dropboxObject.clientMtime);
+          rd.addField("mimeType", dropboxObject.mimeType);
+          rd.addField("rev", dropboxObject.rev);
+          
+          getSession();
+          BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
+          try {
+            t.start();
+            InputStream is = t.getSafeInputStream();
+            try {
+              rd.setBinary(is, fileLength);
+              activities.ingestDocument(nodeId, version, documentURI, rd);
+            } finally {
+              is.close();
+            }
+            t.join();
+            errorCode = "OK";
+            fileSize = new Long(fileLength);
+          } catch (InterruptedException e) {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+              ManifoldCFException.INTERRUPTED);
+          } catch (InterruptedIOException e) {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+              ManifoldCFException.INTERRUPTED);
+          } catch (IOException e) {
+            errorCode = "IO ERROR";
+            errorDesc = e.getMessage();
+            handleIOException(e);
+          } catch (DropboxException e) {
+            Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
+            errorCode = "DROPBOX ERROR";
+            errorDesc = e.getMessage();
+            handleDropboxException(e);
+          }
         }
+      } finally {
+        activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+          fileSize, nodeId, errorCode, errorDesc, null);
       }
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (DropboxException e) {
-      Logging.connectors.error("DROPBOX: Error getting object: " + e.getMessage(), e);
-      handleDropboxException(e);
     }
-    return t.getResponse();
   }
-  
+
+
   protected class GetObjectThread extends Thread {
 
     protected final String nodeId;
@@ -1157,7 +1163,32 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     DocumentSpecification spec) throws ManifoldCFException, ServiceInterruption {
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
-      DropboxAPI.Entry dropboxObject = getObject(documentIdentifiers[i]);
+      getSession();
+      GetObjectThread objt = new GetObjectThread(documentIdentifiers[i]);
+      try {
+        objt.start();
+        objt.join();
+        Throwable thr = objt.getException();
+        if (thr != null) {
+          if (thr instanceof DropboxException) {
+            throw (DropboxException) thr;
+          } else if (thr instanceof RuntimeException) {
+            throw (RuntimeException) thr;
+          } else {
+            throw (Error) thr;
+          }
+        }
+      } catch (InterruptedException e) {
+        objt.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+          ManifoldCFException.INTERRUPTED);
+      } catch (DropboxException e) {
+        Logging.connectors.warn("DROPBOX: Error getting object: " + e.getMessage(), e);
+        handleDropboxException(e);
+      }
+
+      DropboxAPI.Entry dropboxObject = objt.getResponse();
+
       if (!dropboxObject.isDir) {
         if (dropboxObject.isDeleted) {
           rval[i] = null;
