@@ -771,6 +771,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
       String nodeId = documentIdentifiers[i];
+      String version = versions[i];
       if (Logging.connectors.isDebugEnabled()) {
         Logging.connectors.debug("DROPBOX: Processing document identifier '"
             + nodeId + "'");
@@ -781,10 +782,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       if(dropboxObject.isDeleted){
         continue;
       }
-      String errorCode = "OK";
-      String errorDesc = StringUtils.EMPTY;
-
-
+      
       if (dropboxObject.isDir) {
 
         // adding all the children + subdirs for a folder
@@ -794,86 +792,72 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
           activities.addDocumentReference(child.path, nodeId, RELATIONSHIP_CHILD);
         }
 
-      } else { // its a file
+      } else {
+        // its a file
+        String errorCode = "OK";
+        String errorDesc = StringUtils.EMPTY;
 
         // content ingestion
-        // MHL to use stream thingy
+        RepositoryDocument rd = new RepositoryDocument();
 
+        // Length in bytes
         long fileLength = dropboxObject.bytes;
-        InputStream is = null;
+        //documentURI
+        String documentURI = dropboxObject.path;
 
+        if (dropboxObject.path != null)
+          rd.setFileName(dropboxObject.path);
+        if (dropboxObject.mimeType != null)
+          rd.setMimeType(dropboxObject.mimeType);
+        if (dropboxObject.modified != null)
+          rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
+        // There doesn't appear to be a created date...
+          
+        rd.addField("Modified", dropboxObject.modified);
+        rd.addField("Size", dropboxObject.size);
+        rd.addField("Path", dropboxObject.path);
+        rd.addField("Root", dropboxObject.root);
+        rd.addField("ClientMtime", dropboxObject.clientMtime);
+        rd.addField("mimeType", dropboxObject.mimeType);
+        rd.addField("rev", dropboxObject.rev);
+        
+        getSession();
+        BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
         try {
-          RepositoryDocument rd = new RepositoryDocument();
-
-          //binary
-          if (fileLength > 0) {
-            is = getInputStream(nodeId);
-            rd.setBinary(is, fileLength);
-          }
-
-          rd.addField("Modified", dropboxObject.modified);
-          rd.addField("Size", dropboxObject.size);
-          rd.addField("Path", dropboxObject.path);
-          rd.addField("Root", dropboxObject.root);
-          rd.addField("ClientMtime", dropboxObject.clientMtime);
-          rd.addField("mimeType", dropboxObject.mimeType);
-          rd.addField("rev", dropboxObject.rev);
-
-          //ingestion
-          String version = dropboxObject.rev;
-          if (StringUtils.isEmpty(version)) {
-            version = StringUtils.EMPTY;
-          }
-
-          //documentURI
-          String documentURI = dropboxObject.path;
-          activities.ingestDocument(nodeId, version, documentURI, rd);
-
-        } finally {
+          t.start();
+          InputStream is = t.getSafeInputStream();
           try {
-            if (is != null) {
-              is.close();
-            }
-          } catch (InterruptedIOException e) {
-            errorCode = "Interrupted error";
-            errorDesc = e.getMessage();
-            throw new ManifoldCFException(e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-          } catch (IOException e) {
-            errorCode = "IO ERROR";
-            errorDesc = e.getMessage();
-            Logging.connectors.warn(
-                "DROPBOX: IOException closing file input stream: "
-                + e.getMessage(), e);
+            rd.setBinary(is, fileLength);
+            activities.ingestDocument(nodeId, version, documentURI, rd);
+          } finally {
+            is.close();
           }
-
+          t.join();
+        } catch (InterruptedException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        } catch (InterruptedIOException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        } catch (IOException e) {
+          errorCode = "IO ERROR";
+          errorDesc = e.getMessage();
+          handleIOException(e);
+        } catch (DropboxException e) {
+          Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
+          errorCode = "DROPBOX ERROR";
+          errorDesc = e.getMessage();
+          handleDropboxException(e);
+        } finally {
           activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-              fileLength, nodeId, errorCode, errorDesc, null);
+            fileLength, nodeId, errorCode, errorDesc, null);
         }
       }
     }
   }
 
-  protected InputStream getInputStream(String nodeId)
-    throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    InputStream rval = null;
-    BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
-    try {
-      t.start();
-      rval = t.getSafeInputStream();
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (IOException e) {
-      handleIOException(e);
-    } catch (DropboxException e) {
-      Logging.connectors.error("DROPBOX: Error getting stream: " + e.getMessage(), e);
-      handleDropboxException(e);
-    }
-    return rval;
-  }
 
   protected DropboxAPI.Entry getObject(String nodeId)
     throws ManifoldCFException, ServiceInterruption {

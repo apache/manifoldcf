@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-687: Fix the way documents are indexed via DropBox, so
+that dangling threads are not left unjoined, and all common metadata
+is set in RepositoryDocument.
+(Karl Wright)
+
 CONNECTORS-700: Fix ISO8601 date parsing to handle timezones with
 colons in them, e.g. -08:00
 (Stephane Gamard, Karl Wright)
