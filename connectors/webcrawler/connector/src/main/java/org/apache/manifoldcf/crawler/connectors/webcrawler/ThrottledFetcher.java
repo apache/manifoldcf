@@ -2076,7 +2076,7 @@ public class ThrottledFetcher
       int count = read(byteArray,0,1);
       if (count == -1)
         return count;
-      return (int)byteArray[0];
+      return ((int)byteArray[0]) & 0xff;
     }
 
     /** Read lots of bytes.
