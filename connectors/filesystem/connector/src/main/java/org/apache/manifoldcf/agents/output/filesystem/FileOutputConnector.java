@@ -500,37 +500,20 @@ public class FileOutputConnector extends BaseOutputConnector {
       path.append(uri.getScheme());
     }
 
-    if (uri.getAuthority() != null) {
+    if (uri.getHost() != null) {
       if (!path.toString().endsWith("/")) {
         path.append("/");
       }
-      try {
-        path.append(URLEncoder.encode(uri.getAuthority(), "UTF-8"));
-      } catch(UnsupportedEncodingException e) {
-        path.append(uri.getAuthority());
-      }
-    } else {
-      if (uri.getSchemeSpecificPart() != null) {
-        for (String name : uri.getSchemeSpecificPart().split("/")) {
-          if (name.length() > 0) {
-            path.append("/");
-            try {
-              path.append(URLEncoder.encode(name, "UTF-8"));
-            } catch(UnsupportedEncodingException e) {
-              path.append(name);
-            }
-          }
+      path.append(uri.getHost());
+      if (uri.getPort() != -1) {
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+          path.append("+");
+        } else {
+          path.append(":");
         }
-
-        if (path.toString().endsWith("/")) {
-          path.append(".content");
-        }
-
-        return path.toString();
+        path.append(uri.getPort());
       }
-    }
-
-    if (uri.getPath() != null) {
+      if (uri.getPath() != null) {
         if (uri.getPath().length() == 0) {
           path.append("/");
         } else if (uri.getPath().equals("/")) {
@@ -548,11 +531,24 @@ public class FileOutputConnector extends BaseOutputConnector {
           }
         }
       }
+    } else {
+      if (uri.getSchemeSpecificPart() != null) {
+        for (String name : uri.getSchemeSpecificPart().split("/")) {
+          if (name.length() > 0) {
+            path.append("/");
+            try {
+              path.append(URLEncoder.encode(name, "UTF-8"));
+            } catch(UnsupportedEncodingException e) {
+              path.append(name);
+            }
+          }
+        }
+      }
+    }
 
     if (path.toString().endsWith("/")) {
       path.append(".content");
     }
-
     return path.toString();
   }
 }
