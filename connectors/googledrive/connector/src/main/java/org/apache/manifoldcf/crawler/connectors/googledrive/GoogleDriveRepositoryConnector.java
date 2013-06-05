@@ -721,29 +721,22 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     GetSeedsThread t = new GetSeedsThread(googleDriveQuery, seedBuffer);
     try {
       t.start();
-      
-      // Pick up the paths, and add them to the activities, before we join with the child thread.
-      while (true) {
-        // The only kind of exceptions this can throw are going to shut the process down.
-        String docPath = seedBuffer.fetch();
-        if (docPath ==  null)
-          break;
-        // Add the pageID to the queue
-        activities.addSeedDocument(docPath);
-      }
-
-      t.join();
-
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof IOException) {
-          throw (IOException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
+      try {
+        // Pick up the paths, and add them to the activities, before we join with the child thread.
+        while (true) {
+          // The only kind of exceptions this can throw are going to shut the process down.
+          String docPath = seedBuffer.fetch();
+          if (docPath ==  null)
+            break;
+          // Add the pageID to the queue
+          activities.addSeedDocument(docPath);
         }
+      } finally {
+        t.abort();
       }
+
+      t.finishUp();
+
     } catch (InterruptedException e) {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -758,9 +751,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     } catch (IOException e) {
       Logging.connectors.warn("GOOGLEDRIVE: Error adding seed documents: " + e.getMessage(), e);
       handleIOException(e);
-    } finally {
-      // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
-      seedBuffer.abandon();
     }
   }
   
@@ -786,8 +776,24 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    public Throwable getException() {
-      return exception;
+    public void abort() {
+      seedBuffer.abandon();
+    }
+    
+    public void finishUp()
+      throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException)
+          throw (IOException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
+      }
     }
   }
 
@@ -885,146 +891,138 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         
     for (int i = 0; i < documentIdentifiers.length; i++) {
       long startTime = System.currentTimeMillis();
+      String errorCode = "FAILED";
+      String errorDesc = StringUtils.EMPTY;
+      Long fileSize = null;
+      boolean doLog = false;
       String nodeId = documentIdentifiers[i];
       String version = versions[i];
-      if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
-            + nodeId + "'");
-      }
+      
+      try {
+        if (Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
+              + nodeId + "'");
+        }
 
-      File googleFile = getObject(nodeId);
+        File googleFile = getObject(nodeId);
 
-      String errorCode = "OK";
-      String errorDesc = StringUtils.EMPTY;
-      if (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed()) {
-        //its deleted, move on
-        continue;
-      }
+        if (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed()) {
+          //its deleted, move on
+          continue;
+        }
 
-
-      if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getTitle());
-      }
-
-      if ("application/vnd.google-apps.folder".equals(googleFile.getMimeType())) {
-        //if directory add its children
 
         if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("GOOGLEDRIVE: its a directory");
+          Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getTitle());
         }
 
-        // adding all the children + subdirs for a folder
+        if ("application/vnd.google-apps.folder".equals(googleFile.getMimeType())) {
+          //if directory add its children
 
-        getSession();
-        XThreadStringBuffer childBuffer = new XThreadStringBuffer();
-        GetChildrenThread t = new GetChildrenThread(nodeId, childBuffer);
-        try {
-          t.start();
-          
-          // Pick up the paths, and add them to the activities, before we join with the child thread.
-          while (true) {
-            // The only kind of exceptions this can throw are going to shut the process down.
-            String child = childBuffer.fetch();
-            if (child ==  null)
-              break;
-            // Add the pageID to the queue
-            activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
-          }
-
-          t.join();
-
-          Throwable thr = t.getException();
-          if (thr != null) {
-            if (thr instanceof IOException) {
-              throw (IOException) thr;
-            } else if (thr instanceof RuntimeException) {
-              throw (RuntimeException) thr;
-            } else {
-              throw (Error) thr;
-            }
-          }
-        } catch (InterruptedException e) {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-        } catch (java.net.SocketTimeoutException e) {
-          Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding child documents: " + e.getMessage(), e);
-          handleIOException(e);
-        } catch (InterruptedIOException e) {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-        } catch (IOException e) {
-          Logging.connectors.warn("GOOGLEDRIVE: Error adding child documents: " + e.getMessage(), e);
-          handleIOException(e);
-        } finally {
-          // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
-          childBuffer.abandon();
-        }
-
-      } else {
-        // its a file
-        if (!scanOnly[i]) {
           if (Logging.connectors.isDebugEnabled()) {
-            Logging.connectors.debug("GOOGLEDRIVE: its a file");
+            Logging.connectors.debug("GOOGLEDRIVE: its a directory");
           }
 
-          // We always direct to the PDF
-          String documentURI = getUrl(googleFile, "application/pdf");
+          // adding all the children + subdirs for a folder
 
-          // Get the file length
-          long fileLength = googleFile.getFileSize();
-
-          //otherwise process
-          RepositoryDocument rd = new RepositoryDocument();
-
-          String mimeType = googleFile.getMimeType();
-          DateTime createdDate = googleFile.getCreatedDate();
-          DateTime modifiedDate = googleFile.getModifiedDate();
-          String extension = googleFile.getFileExtension();
-          String title = googleFile.getTitle();
-          
-          if (mimeType != null)
-            rd.setMimeType(mimeType);
-          if (createdDate != null)
-            rd.setCreatedDate(new Date(createdDate.getValue()));
-          if (modifiedDate != null)
-            rd.setModifiedDate(new Date(modifiedDate.getValue()));
-          if (extension != null)
-          {
-            if (title == null)
-              title = "";
-            rd.setFileName(title + "." + extension);
-          }
-
-          for (Entry<String, Object> entry : googleFile.entrySet()) {
-            rd.addField(entry.getKey(), entry.getValue().toString());
-          }
-
-          XThreadInputStream is = new XThreadInputStream();
+          getSession();
+          XThreadStringBuffer childBuffer = new XThreadStringBuffer();
+          GetChildrenThread t = new GetChildrenThread(nodeId, childBuffer);
           try {
-            rd.setBinary(is, fileLength);
+            t.start();
+            try {
+              // Pick up the paths, and add them to the activities, before we join with the child thread.
+              while (true) {
+                // The only kind of exceptions this can throw are going to shut the process down.
+                String child = childBuffer.fetch();
+                if (child ==  null)
+                  break;
+                // Add the pageID to the queue
+                activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
+              }
+            } finally {
+              t.abort();
+            }
+            t.finishUp();
+          } catch (InterruptedException e) {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+              ManifoldCFException.INTERRUPTED);
+          } catch (java.net.SocketTimeoutException e) {
+            Logging.connectors.warn("GOOGLEDRIVE: Socket timeout adding child documents: " + e.getMessage(), e);
+            handleIOException(e);
+          } catch (InterruptedIOException e) {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+              ManifoldCFException.INTERRUPTED);
+          } catch (IOException e) {
+            Logging.connectors.warn("GOOGLEDRIVE: Error adding child documents: " + e.getMessage(), e);
+            handleIOException(e);
+          }
+
+        } else {
+          // its a file
+          if (!scanOnly[i]) {
+            doLog = true;
+
+            if (Logging.connectors.isDebugEnabled()) {
+              Logging.connectors.debug("GOOGLEDRIVE: its a file");
+            }
+
+            // We always direct to the PDF
+            String documentURI = getUrl(googleFile, "application/pdf");
+
+            // Get the file length
+            long fileLength = googleFile.getFileSize();
+
+            //otherwise process
+            RepositoryDocument rd = new RepositoryDocument();
+
+            String mimeType = googleFile.getMimeType();
+            DateTime createdDate = googleFile.getCreatedDate();
+            DateTime modifiedDate = googleFile.getModifiedDate();
+            String extension = googleFile.getFileExtension();
+            String title = googleFile.getTitle();
             
+            if (mimeType != null)
+              rd.setMimeType(mimeType);
+            if (createdDate != null)
+              rd.setCreatedDate(new Date(createdDate.getValue()));
+            if (modifiedDate != null)
+              rd.setModifiedDate(new Date(modifiedDate.getValue()));
+            if (extension != null)
+            {
+              if (title == null)
+                title = "";
+              rd.setFileName(title + "." + extension);
+            }
+
+            for (Entry<String, Object> entry : googleFile.entrySet()) {
+              rd.addField(entry.getKey(), entry.getValue().toString());
+            }
+
             // Fire up the document reading thread
-            DocumentReadingThread t = new DocumentReadingThread(documentURI, is);
+            DocumentReadingThread t = new DocumentReadingThread(documentURI);
             try {
               t.start();
-              
-              // Can only index while background thread is running!
-              activities.ingestDocument(nodeId, version, documentURI, rd);
-
-              t.join();
-
-              Throwable thr = t.getException();
-              if (thr != null) {
-                if (thr instanceof IOException) {
-                  throw (IOException) thr;
-                } else if (thr instanceof RuntimeException) {
-                  throw (RuntimeException) thr;
-                } else {
-                  throw (Error) thr;
+              try {
+                InputStream is = t.getSafeInputStream();
+                try {
+                  // Can only index while background thread is running!
+                  rd.setBinary(is, fileLength);
+                  activities.ingestDocument(nodeId, version, documentURI, rd);
+                } finally {
+                  is.close();
                 }
+              } finally {
+                t.abort();
               }
+                
+              t.finishUp();
+
+              // No errors.  Record the fact that we made it.
+              errorCode = "OK";
+              fileSize = new Long(fileLength);
             } catch (InterruptedException e) {
               t.interrupt();
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -1037,37 +1035,17 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
                 ManifoldCFException.INTERRUPTED);
             } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
               Logging.connectors.warn("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
               handleIOException(e);
             }
-          } finally {
-            try {
-              is.close();
-            } catch (java.net.SocketTimeoutException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              Logging.connectors.warn(
-                  "GOOGLEDRIVE: SocketTimeoutException closing file input stream: "
-                  + e.getMessage(), e);
-            } catch (InterruptedIOException e) {
-              errorCode = "Interrupted error";
-              errorDesc = e.getMessage();
-              throw new ManifoldCFException(e.getMessage(), e,
-                  ManifoldCFException.INTERRUPTED);
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              Logging.connectors.warn(
-                  "GOOGLEDRIVE: IOException closing file input stream: "
-                  + e.getMessage(), e);
-            }
-
-            activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-                fileLength, nodeId, errorCode, errorDesc, null);
           }
         }
-
-
+      } finally {
+        if (doLog)
+          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+            fileSize, nodeId, errorCode, errorDesc, null);
       }
     }
   }
@@ -1078,10 +1056,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     protected final String fileURL;
     protected final XThreadInputStream stream;
     
-    public DocumentReadingThread(String fileURL, XThreadInputStream stream) {
+    public DocumentReadingThread(String fileURL) {
       super();
       this.fileURL = fileURL;
-      this.stream = stream;
+      this.stream = new XThreadInputStream();
       setDaemon(true);
     }
 
@@ -1094,9 +1072,36 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    public Throwable getException() {
-      return exception;
+    public InputStream getSafeInputStream() {
+      return stream;
     }
+    
+    public void abort()
+    {
+      // This will be called during the finally
+      // block in the case where all is well (and
+      // the stream completed) and in the case where
+      // there were exceptions.
+      stream.abort();
+    }
+    
+    public void finishUp()
+      throws InterruptedException, IOException
+    {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException)
+          throw (IOException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
+      }
+    }
+
   }
 
   /** Get the URL of a file in google land.
@@ -1131,8 +1136,24 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    public Throwable getException() {
-      return exception;
+    public void abort() {
+      childBuffer.abandon();
+    }
+    
+    public void finishUp()
+      throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException)
+          throw (IOException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
+      }
     }
   }
 

@@ -787,17 +787,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
         GetObjectThread objt = new GetObjectThread(nodeId);
         try {
           objt.start();
-          objt.join();
-          Throwable thr = objt.getException();
-          if (thr != null) {
-            if (thr instanceof DropboxException) {
-              throw (DropboxException) thr;
-            } else if (thr instanceof RuntimeException) {
-              throw (RuntimeException) thr;
-            } else {
-              throw (Error) thr;
-            }
-          }
+          objt.finishUp();
         } catch (InterruptedException e) {
           objt.interrupt();
           throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -826,68 +816,82 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
         } else {
           // its a file
-          doLog = true;
-          
-          // content ingestion
-          RepositoryDocument rd = new RepositoryDocument();
-
-          // Length in bytes
-          long fileLength = dropboxObject.bytes;
-          //documentURI
-          String documentURI = dropboxObject.path;
-
-          if (dropboxObject.path != null)
-            rd.setFileName(dropboxObject.path);
-          if (dropboxObject.mimeType != null)
-            rd.setMimeType(dropboxObject.mimeType);
-          if (dropboxObject.modified != null)
-            rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
-          // There doesn't appear to be a created date...
+          if (!scanOnly[i]) {
+            doLog = true;
             
-          rd.addField("Modified", dropboxObject.modified);
-          rd.addField("Size", dropboxObject.size);
-          rd.addField("Path", dropboxObject.path);
-          rd.addField("Root", dropboxObject.root);
-          rd.addField("ClientMtime", dropboxObject.clientMtime);
-          rd.addField("mimeType", dropboxObject.mimeType);
-          rd.addField("rev", dropboxObject.rev);
-          
-          getSession();
-          BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
-          try {
-            t.start();
-            InputStream is = t.getSafeInputStream();
+            // content ingestion
+            RepositoryDocument rd = new RepositoryDocument();
+
+            // Length in bytes
+            long fileLength = dropboxObject.bytes;
+            //documentURI
+            String documentURI = dropboxObject.path;
+
+            if (dropboxObject.path != null)
+              rd.setFileName(dropboxObject.path);
+            if (dropboxObject.mimeType != null)
+              rd.setMimeType(dropboxObject.mimeType);
+            if (dropboxObject.modified != null)
+              rd.setModifiedDate(com.dropbox.client2.RESTUtility.parseDate(dropboxObject.modified));
+            // There doesn't appear to be a created date...
+              
+            rd.addField("Modified", dropboxObject.modified);
+            rd.addField("Size", dropboxObject.size);
+            rd.addField("Path", dropboxObject.path);
+            rd.addField("Root", dropboxObject.root);
+            rd.addField("ClientMtime", dropboxObject.clientMtime);
+            rd.addField("mimeType", dropboxObject.mimeType);
+            rd.addField("rev", dropboxObject.rev);
+            
+            getSession();
+            BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
             try {
-              rd.setBinary(is, fileLength);
-              activities.ingestDocument(nodeId, version, documentURI, rd);
-            } finally {
-              is.close();
+              t.start();
+              try {
+                InputStream is = t.getSafeInputStream();
+                try {
+                  rd.setBinary(is, fileLength);
+                  activities.ingestDocument(nodeId, version, documentURI, rd);
+                } finally {
+                  is.close();
+                }
+              } finally {
+                // Abort, no matter what
+                t.abort();
+              }
+
+              // This does a join
+              t.finishUp();
+
+              // No errors.  Record the fact that we made it.
+              errorCode = "OK";
+              fileSize = new Long(fileLength);
+            } catch (InterruptedException e) {
+              // We were interrupted out of the join, most likely.  Before we abandon the thread,
+              // send a courtesy interrupt.
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                ManifoldCFException.INTERRUPTED);
+            } catch (InterruptedIOException e) {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                ManifoldCFException.INTERRUPTED);
+            } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              handleIOException(e);
+            } catch (DropboxException e) {
+              Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
+              errorCode = "DROPBOX ERROR";
+              errorDesc = e.getMessage();
+              handleDropboxException(e);
             }
-            t.join();
-            errorCode = "OK";
-            fileSize = new Long(fileLength);
-          } catch (InterruptedException e) {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-              ManifoldCFException.INTERRUPTED);
-          } catch (InterruptedIOException e) {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-              ManifoldCFException.INTERRUPTED);
-          } catch (IOException e) {
-            errorCode = "IO ERROR";
-            errorDesc = e.getMessage();
-            handleIOException(e);
-          } catch (DropboxException e) {
-            Logging.connectors.warn("DROPBOX: Error getting stream: " + e.getMessage(), e);
-            errorCode = "DROPBOX ERROR";
-            errorDesc = e.getMessage();
-            handleDropboxException(e);
           }
         }
       } finally {
-        activities.recordActivity(new Long(startTime), ACTIVITY_READ,
-          fileSize, nodeId, errorCode, errorDesc, null);
+        if (doLog)
+          activities.recordActivity(new Long(startTime), ACTIVITY_READ,
+            fileSize, nodeId, errorCode, errorDesc, null);
       }
     }
   }
@@ -910,6 +914,22 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
         response = session.getObject(nodeId);
       } catch (Throwable e) {
         this.exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, DropboxException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof DropboxException)
+          throw (DropboxException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
       }
     }
 
@@ -997,9 +1017,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
     
     public void finishUp()
-      throws InterruptedException
+      throws InterruptedException, IOException, DropboxException
     {
       join();
+      checkException(responseException);
     }
     
     protected synchronized void checkException(Throwable exception)
@@ -1021,124 +1042,6 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-  }
-
-  /** This input stream wraps a background transaction thread, so that
-  * the thread is ended when the stream is closed.
-  */
-  private static class BackgroundInputStream extends InputStream {
-    
-    private BackgroundStreamThread streamThread = null;
-    private InputStream xThreadInputStream = null;
-
-    public BackgroundInputStream(BackgroundStreamThread streamThread, InputStream xThreadInputStream)
-    {
-      this.streamThread = streamThread;
-      this.xThreadInputStream = xThreadInputStream;
-    }
-    
-    @Override
-    public int available()
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.available();
-      return super.available();
-    }
-    
-    @Override
-    public void close()
-      throws IOException
-    {
-      try
-      {
-        if (xThreadInputStream != null)
-        {
-          xThreadInputStream.close();
-          xThreadInputStream = null;
-        }
-      }
-      finally
-      {
-        if (streamThread != null)
-        {
-          streamThread.abort();
-          try
-          {
-            streamThread.finishUp();
-          }
-          catch (InterruptedException e)
-          {
-            throw new InterruptedIOException(e.getMessage());
-          }
-          streamThread = null;
-        }
-      }
-    }
-    
-    @Override
-    public void mark(int readlimit)
-    {
-      if (xThreadInputStream != null)
-        xThreadInputStream.mark(readlimit);
-      else
-        super.mark(readlimit);
-    }
-    
-    @Override
-    public void reset()
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        xThreadInputStream.reset();
-      else
-        super.reset();
-    }
-    
-    @Override
-    public boolean markSupported()
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.markSupported();
-      return super.markSupported();
-    }
-    
-    @Override
-    public long skip(long n)
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.skip(n);
-      return super.skip(n);
-    }
-    
-    @Override
-    public int read(byte[] b, int off, int len)
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.read(b,off,len);
-      return super.read(b,off,len);
-    }
-
-    @Override
-    public int read(byte[] b)
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.read(b);
-      return super.read(b);
-    }
-    
-    @Override
-    public int read()
-      throws IOException
-    {
-      if (xThreadInputStream != null)
-        return xThreadInputStream.read();
-      return -1;
-    }
-    
   }
 
   /**
@@ -1167,17 +1070,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       GetObjectThread objt = new GetObjectThread(documentIdentifiers[i]);
       try {
         objt.start();
-        objt.join();
-        Throwable thr = objt.getException();
-        if (thr != null) {
-          if (thr instanceof DropboxException) {
-            throw (DropboxException) thr;
-          } else if (thr instanceof RuntimeException) {
-            throw (RuntimeException) thr;
-          } else {
-            throw (Error) thr;
-          }
-        }
+        objt.finishUp();
       } catch (InterruptedException e) {
         objt.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
