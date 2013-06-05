@@ -18,15 +18,11 @@
 #if($TABNAME == $ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery'))
 
 <table class="displaytable">
-  <tr>
-    <td class="separator" colspan="3">
-      <hr />
-    </td>
-  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery'))
+        $Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQueryColon'))
       </nobr>
     </td>
     <td class="value">
@@ -39,6 +35,6 @@
 
 #else
 
-<input type="hidden" name="dropboxQuery" value="$Encoder.attributeEscape($GOOGLEDRIVEQUERY)" />
+<input type="hidden" name="googledriveQuery" value="$Encoder.attributeEscape($GOOGLEDRIVEQUERY)" />
 
 #end
