@@ -720,6 +720,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     GetSeedsThread t = new GetSeedsThread(googleDriveQuery);
     try {
       t.start();
+      boolean wasInterrupted = false;
       try {
         XThreadStringBuffer seedBuffer = t.getBuffer();
         // Pick up the paths, and add them to the activities, before we join with the child thread.
@@ -731,8 +732,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           // Add the pageID to the queue
           activities.addSeedDocument(docPath);
         }
+      } catch (InterruptedException e) {
+        wasInterrupted = true;
+        throw e;
+      } catch (ManifoldCFException e) {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          wasInterrupted = true;
+        throw e;
       } finally {
-        t.finishUp();
+        if (!wasInterrupted)
+          t.finishUp();
       }
     } catch (InterruptedException e) {
       t.interrupt();
@@ -927,6 +936,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           GetChildrenThread t = new GetChildrenThread(nodeId);
           try {
             t.start();
+            boolean wasInterrupted = false;
             try {
               XThreadStringBuffer childBuffer = t.getBuffer();
               // Pick up the paths, and add them to the activities, before we join with the child thread.
@@ -938,8 +948,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 // Add the pageID to the queue
                 activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
               }
+            } catch (InterruptedException e) {
+              wasInterrupted = true;
+              throw e;
+            } catch (ManifoldCFException e) {
+              if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                wasInterrupted = true;
+              throw e;
             } finally {
-              t.finishUp();
+              if (!wasInterrupted)
+                t.finishUp();
             }
           } catch (InterruptedException e) {
             t.interrupt();
@@ -1002,6 +1020,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             DocumentReadingThread t = new DocumentReadingThread(documentURI);
             try {
               t.start();
+              boolean wasInterrupted = false;
               try {
                 InputStream is = t.getSafeInputStream();
                 try {
@@ -1011,8 +1030,18 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 } finally {
                   is.close();
                 }
+              } catch (ManifoldCFException e) {
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                  wasInterrupted = true;
+                throw e;
+              } catch (java.net.SocketTimeoutException e) {
+                throw e;
+              } catch (InterruptedIOException e) {
+                wasInterrupted = true;
+                throw e;
               } finally {
-                t.finishUp();
+                if (!wasInterrupted)
+                  t.finishUp();
               }
 
               // No errors.  Record the fact that we made it.
@@ -1196,9 +1225,12 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   
   private static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
-    // MHL to deal with various kinds of IOException
+    if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    }
     long currentTime = System.currentTimeMillis();
-    throw new ServiceInterruption("GoogleDrive exception: "+e.getMessage(), e, currentTime + 300000L,
+    throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L,
       currentTime + 3 * 60 * 60000L,-1,false);
   }
   

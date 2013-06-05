@@ -676,6 +676,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     GetSeedsThread t = new GetSeedsThread(dropboxPath);
     try {
       t.start();
+      boolean wasInterrupted = false;
       try {
         XThreadStringBuffer seedBuffer = t.getBuffer();
 
@@ -688,8 +689,16 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
           // Add the pageID to the queue
           activities.addSeedDocument(docPath);
         }
+      } catch (InterruptedException e) {
+        wasInterrupted = true;
+        throw e;
+      } catch (ManifoldCFException e) {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          wasInterrupted = true;
+        throw e;
       } finally {
-        t.finishUp();
+        if (!wasInterrupted)
+          t.finishUp();
       }
     } catch (InterruptedException e) {
       t.interrupt();
@@ -852,6 +861,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
             BackgroundStreamThread t = new BackgroundStreamThread(nodeId);
             try {
               t.start();
+              boolean wasInterrupted = false;
               try {
                 InputStream is = t.getSafeInputStream();
                 try {
@@ -860,9 +870,19 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
                 } finally {
                   is.close();
                 }
+              } catch (java.net.SocketTimeoutException e) {
+                throw e;
+              } catch (InterruptedIOException e) {
+                wasInterrupted = true;
+                throw e;
+              } catch (ManifoldCFException e) {
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                  wasInterrupted = true;
+                throw e;
               } finally {
-                // This does a join
-                t.finishUp();
+                if (!wasInterrupted)
+                  // This does a join
+                  t.finishUp();
               }
 
               // No errors.  Record the fact that we made it.
@@ -874,6 +894,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
               t.interrupt();
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
                 ManifoldCFException.INTERRUPTED);
+            } catch (java.net.SocketTimeoutException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              handleIOException(e);
             } catch (InterruptedIOException e) {
               t.interrupt();
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -1111,7 +1135,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   /** Handle an IO exception. */
   protected static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
-    if (e instanceof InterruptedIOException) {
+    if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
     }
