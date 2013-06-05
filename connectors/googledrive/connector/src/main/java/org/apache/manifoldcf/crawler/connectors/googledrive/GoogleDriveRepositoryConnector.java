@@ -717,11 +717,11 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     }
 
     getSession();
-    XThreadStringBuffer seedBuffer = new XThreadStringBuffer();
-    GetSeedsThread t = new GetSeedsThread(googleDriveQuery, seedBuffer);
+    GetSeedsThread t = new GetSeedsThread(googleDriveQuery);
     try {
       t.start();
       try {
+        XThreadStringBuffer seedBuffer = t.getBuffer();
         // Pick up the paths, and add them to the activities, before we join with the child thread.
         while (true) {
           // The only kind of exceptions this can throw are going to shut the process down.
@@ -732,11 +732,8 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           activities.addSeedDocument(docPath);
         }
       } finally {
-        t.abort();
+        t.finishUp();
       }
-
-      t.finishUp();
-
     } catch (InterruptedException e) {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -760,10 +757,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     protected final String googleDriveQuery;
     protected final XThreadStringBuffer seedBuffer;
     
-    public GetSeedsThread(String googleDriveQuery, XThreadStringBuffer seedBuffer) {
+    public GetSeedsThread(String googleDriveQuery) {
       super();
       this.googleDriveQuery = googleDriveQuery;
-      this.seedBuffer = seedBuffer;
+      this.seedBuffer = new XThreadStringBuffer();
       setDaemon(true);
     }
 
@@ -776,12 +773,13 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    public void abort() {
-      seedBuffer.abandon();
+    public XThreadStringBuffer getBuffer() {
+      return seedBuffer;
     }
     
     public void finishUp()
       throws InterruptedException, IOException {
+      seedBuffer.abandon();
       join();
       Throwable thr = exception;
       if (thr != null) {
@@ -926,11 +924,11 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           // adding all the children + subdirs for a folder
 
           getSession();
-          XThreadStringBuffer childBuffer = new XThreadStringBuffer();
-          GetChildrenThread t = new GetChildrenThread(nodeId, childBuffer);
+          GetChildrenThread t = new GetChildrenThread(nodeId);
           try {
             t.start();
             try {
+              XThreadStringBuffer childBuffer = t.getBuffer();
               // Pick up the paths, and add them to the activities, before we join with the child thread.
               while (true) {
                 // The only kind of exceptions this can throw are going to shut the process down.
@@ -941,9 +939,8 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 activities.addDocumentReference(child, nodeId, RELATIONSHIP_CHILD);
               }
             } finally {
-              t.abort();
+              t.finishUp();
             }
-            t.finishUp();
           } catch (InterruptedException e) {
             t.interrupt();
             throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -1015,10 +1012,8 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                   is.close();
                 }
               } finally {
-                t.abort();
+                t.finishUp();
               }
-                
-              t.finishUp();
 
               // No errors.  Record the fact that we made it.
               errorCode = "OK";
@@ -1076,18 +1071,14 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       return stream;
     }
     
-    public void abort()
+    public void finishUp()
+      throws InterruptedException, IOException
     {
       // This will be called during the finally
       // block in the case where all is well (and
       // the stream completed) and in the case where
       // there were exceptions.
       stream.abort();
-    }
-    
-    public void finishUp()
-      throws InterruptedException, IOException
-    {
       join();
       Throwable thr = exception;
       if (thr != null) {
@@ -1120,10 +1111,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     protected final String nodeId;
     protected final XThreadStringBuffer childBuffer;
     
-    public GetChildrenThread(String nodeId, XThreadStringBuffer childBuffer) {
+    public GetChildrenThread(String nodeId) {
       super();
       this.nodeId = nodeId;
-      this.childBuffer = childBuffer;
+      this.childBuffer = new XThreadStringBuffer();
       setDaemon(true);
     }
 
@@ -1136,12 +1127,13 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    public void abort() {
-      childBuffer.abandon();
+    public XThreadStringBuffer getBuffer() {
+      return childBuffer;
     }
     
     public void finishUp()
       throws InterruptedException, IOException {
+      childBuffer.abandon();
       join();
       Throwable thr = exception;
       if (thr != null) {

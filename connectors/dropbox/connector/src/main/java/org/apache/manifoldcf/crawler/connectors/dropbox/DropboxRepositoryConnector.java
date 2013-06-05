@@ -673,32 +673,23 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
     
     getSession();
-    XThreadStringBuffer seedBuffer = new XThreadStringBuffer();
-    GetSeedsThread t = new GetSeedsThread(dropboxPath, seedBuffer);
+    GetSeedsThread t = new GetSeedsThread(dropboxPath);
     try {
       t.start();
-      
-      // Pick up the paths, and add them to the activities, before we join with the child thread.
-      while (true) {
-        // The only kind of exceptions this can throw are going to shut the process down.
-        String docPath = seedBuffer.fetch();
-        if (docPath ==  null)
-          break;
-        // Add the pageID to the queue
-        activities.addSeedDocument(docPath);
-      }
+      try {
+        XThreadStringBuffer seedBuffer = t.getBuffer();
 
-      t.join();
-
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof DropboxException) {
-          throw (DropboxException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
+        // Pick up the paths, and add them to the activities, before we join with the child thread.
+        while (true) {
+          // The only kind of exceptions this can throw are going to shut the process down.
+          String docPath = seedBuffer.fetch();
+          if (docPath ==  null)
+            break;
+          // Add the pageID to the queue
+          activities.addSeedDocument(docPath);
         }
+      } finally {
+        t.finishUp();
       }
     } catch (InterruptedException e) {
       t.interrupt();
@@ -707,9 +698,6 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     } catch (DropboxException e) {
       Logging.connectors.warn("DROPBOX: Error adding seed documents: " + e.getMessage(), e);
       handleDropboxException(e);
-    } finally {
-      // Make SURE buffer is dead, otherwise child thread may well hang waiting on it
-      seedBuffer.abandon();
     }
   }
 
@@ -719,10 +707,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     protected final String path;
     protected final XThreadStringBuffer seedBuffer;
     
-    public GetSeedsThread(String path, XThreadStringBuffer seedBuffer) {
+    public GetSeedsThread(String path) {
       super();
       this.path = path;
-      this.seedBuffer = seedBuffer;
+      this.seedBuffer = new XThreadStringBuffer();
       setDaemon(true);
     }
 
@@ -735,8 +723,25 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    public Throwable getException() {
-      return exception;
+    public XThreadStringBuffer getBuffer() {
+      return seedBuffer;
+    }
+    
+    public void finishUp()
+      throws InterruptedException, DropboxException {
+      seedBuffer.abandon();
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof DropboxException)
+          throw (DropboxException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
+      }
     }
   }
 
@@ -856,12 +861,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
                   is.close();
                 }
               } finally {
-                // Abort, no matter what
-                t.abort();
+                // This does a join
+                t.finishUp();
               }
-
-              // This does a join
-              t.finishUp();
 
               // No errors.  Record the fact that we made it.
               errorCode = "OK";
@@ -1002,7 +1004,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       }
     }
     
-    public void abort()
+    public void finishUp()
+      throws InterruptedException, IOException, DropboxException
     {
       // This will be called during the finally
       // block in the case where all is well (and
@@ -1014,12 +1017,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
         }
         abortThread = true;
       }
-    }
-    
-    public void finishUp()
-      throws InterruptedException, IOException, DropboxException
-    {
+
       join();
+
       checkException(responseException);
     }
     
