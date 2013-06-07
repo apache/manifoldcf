@@ -53,7 +53,7 @@ import java.security.GeneralSecurityException;
  */
 public class GoogleDriveSession {
 
-  private static String APPNAME = "Searchbox Google drive Connector";
+  private static String APPNAME = "ManifoldCF GoogleDrive Connector";
   
   private Drive drive;
   private HttpTransport HTTP_TRANSPORT;
