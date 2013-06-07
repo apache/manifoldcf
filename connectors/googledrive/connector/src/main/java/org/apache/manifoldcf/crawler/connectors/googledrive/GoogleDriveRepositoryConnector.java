@@ -126,7 +126,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   protected String clientid = null;
   protected String clientsecret = null;
   protected String refreshtoken = null;
-  protected Map<String, String> parameters = new HashMap<String, String>();
 
   public GoogleDriveRepositoryConnector() {
     super();
@@ -194,7 +193,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     super.connect(configParams);
 
     clientid = params.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
-    clientsecret = params.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
+    clientsecret = params.getObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     refreshtoken = params.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
   }
 
@@ -359,13 +358,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     public void run() {
       try {
         // Create a session
-        parameters.clear();
-
-        // user credentials
-        parameters.put(GoogleDriveConfig.CLIENT_ID_PARAM, clientid);
-        parameters.put(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
-        parameters.put(GoogleDriveConfig.REFRESH_TOKEN_PARAM, refreshtoken);
-        session = new GoogleDriveSession(parameters);
+        session = new GoogleDriveSession(clientid, clientsecret, refreshtoken);
       } catch (Throwable e) {
         this.exception = e;
       }
@@ -420,7 +413,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
    */
   private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
     String clientid = parameters.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
-    String clientsecret = parameters.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
+    String clientsecret = parameters.getObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     String refreshtoken = parameters.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
 
     if (clientid == null) {
@@ -539,7 +532,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     String clientsecret = variableContext.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     if (clientsecret != null) {
-      parameters.setParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
+      parameters.setObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
     }
 
     String refreshtoken = variableContext.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);

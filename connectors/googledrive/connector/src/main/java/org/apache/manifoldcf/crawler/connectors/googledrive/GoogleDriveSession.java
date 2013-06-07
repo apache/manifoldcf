@@ -62,12 +62,12 @@ public class GoogleDriveSession {
   
   /** Constructor.  Create a session.
   */
-  public GoogleDriveSession(Map<String, String> parameters)
+  public GoogleDriveSession(String clientId, String clientSecret, String refreshToken)
     throws IOException, GeneralSecurityException {
     HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 
-    GoogleCredential credentials = new GoogleCredential.Builder().setClientSecrets(parameters.get("clientid"), parameters.get("clientsecret"))
-        .setJsonFactory(JSON_FACTORY).setTransport(HTTP_TRANSPORT).build().setRefreshToken(parameters.get("refreshtoken"));
+    GoogleCredential credentials = new GoogleCredential.Builder().setClientSecrets(clientId, clientSecret)
+        .setJsonFactory(JSON_FACTORY).setTransport(HTTP_TRANSPORT).build().setRefreshToken(refreshToken);
 
     drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, credentials).setApplicationName(APPNAME).build();
   }
