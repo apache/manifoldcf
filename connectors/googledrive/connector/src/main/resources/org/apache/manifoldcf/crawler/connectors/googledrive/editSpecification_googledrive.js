@@ -17,9 +17,14 @@
 
 <script type="text/javascript">
 <!--
-function checkSpecification()
+function checkSpecificationForSave()
 {
-  // Does nothing right now.
+  if (editjob.googledrivequery.value == "") {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.SeedQueryCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.GoogleDriveQuery'))");
+    editjob.googledrivequery.focus();
+    return false;
+  }
   return true;
 }
  
@@ -28,5 +33,22 @@ function SpecOp(n, opValue, anchorvalue)
   eval("editjob."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);
 }
+
+function SpecDeleteToken(i)
+{
+  SpecOp("accessop_"+i,"Delete","token_"+i);
+}
+
+function SpecAddToken(i)
+{
+  if (editjob.spectoken.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.TypeInAnAccessToken'))");
+    editjob.spectoken.focus();
+    return;
+  }
+  SpecOp("accessop","Add","token_"+i);
+}
+
 //-->
 </script>

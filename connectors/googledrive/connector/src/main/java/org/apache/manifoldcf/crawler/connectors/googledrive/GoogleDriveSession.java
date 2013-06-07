@@ -84,6 +84,8 @@ public class GoogleDriveSession {
     Map<String, String> info = new HashMap<String, String>();
     info.put("Application Name", drive.getApplicationName());
     info.put("Base URL", drive.getBaseUrl());
+    // We need something that will actually cause a back-and-forth to the server!
+    drive.files().get("").execute();
     return info;
   }
 

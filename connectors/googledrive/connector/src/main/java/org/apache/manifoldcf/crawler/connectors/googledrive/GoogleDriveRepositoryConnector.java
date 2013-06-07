@@ -26,10 +26,13 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Date;
+import java.util.Set;
+import java.util.Iterator;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -62,10 +65,24 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   protected final static String ACTIVITY_READ = "read document";
   public final static String ACTIVITY_FETCH = "fetch";
   protected static final String RELATIONSHIP_CHILD = "child";
+  
+  /** Deny access token for default authority */
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+
+  // Nodes
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
+  private static final String JOB_QUERY_ATTRIBUTE = "query";
+  private static final String JOB_ACCESS_NODE_TYPE = "access";
+  private static final String JOB_TOKEN_ATTRIBUTE = "token";
+
+  // Configuration tabs
   private static final String GOOGLEDRIVE_SERVER_TAB_PROPERTY = "GoogleDriveRepositoryConnector.Server";
+  
+  // Specification tabs
   private static final String GOOGLEDRIVE_QUERY_TAB_PROPERTY = "GoogleDriveRepositoryConnector.GoogleDriveQuery";
-  // Template names
+  private static final String GOOGLEDRIVE_SECURITY_TAB_PROPERTY = "GoogleDriveRepositoryConnector.Security";
+  
+  // Template names for configuration
   /**
    * Forward to the javascript to check the configuration parameters
    */
@@ -74,23 +91,31 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
    * Server tab template
    */
   private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_google_server.html";
-  /**
-   * Forward to the javascript to check the specification parameters for the
-   * job
-   */
-  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification_googledrive.js";
-  /**
-   * Forward to the template to edit the configuration parameters for the job
-   */
-  private static final String EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY = "editSpecification_googledriveQuery.html";
+  
   /**
    * Forward to the HTML template to view the configuration parameters
    */
   private static final String VIEW_CONFIG_FORWARD = "viewConfiguration_googledrive.html";
+   
+  // Template names for specification
+  /**
+   * Forward to the javascript to check the specification parameters for the job
+   */
+  private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification_googledrive.js";
+  /**
+   * Forward to the template to edit the query for the job
+   */
+  private static final String EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY = "editSpecification_googledriveQuery.html";
+  /**
+   * Forward to the template to edit the security parameters for the job
+   */
+  private static final String EDIT_SPEC_FORWARD_SECURITY = "editSpecification_googledriveSecurity.html";
+  
   /**
    * Forward to the template to view the specification parameters for the job
    */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification_googledrive.html";
+  
   /**
    * Endpoint server name
    */
@@ -393,7 +418,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
    */
-  private static void fillInServerConfigurationMap(Map<String, String> newMap, ConfigParams parameters) {
+  private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
     String clientid = parameters.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
     String clientsecret = parameters.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     String refreshtoken = parameters.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
@@ -401,18 +426,18 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     if (clientid == null) {
       clientid = StringUtils.EMPTY;
     }
+    
     if (clientsecret == null) {
       clientsecret = StringUtils.EMPTY;
     }
-
 
     if (refreshtoken == null) {
       refreshtoken = StringUtils.EMPTY;
     }
 
-    newMap.put(GoogleDriveConfig.CLIENT_ID_PARAM, clientid);
-    newMap.put(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
-    newMap.put(GoogleDriveConfig.REFRESH_TOKEN_PARAM, refreshtoken);
+    newMap.put("CLIENTID", clientid);
+    newMap.put("CLIENTSECRET", clientsecret);
+    newMap.put("REFRESHTOKEN", refreshtoken);
   }
 
   /**
@@ -430,25 +455,12 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
-    outputResource(VIEW_CONFIG_FORWARD, out, locale, paramMap);
-  }
-
-  /**
-   * Read the content of a resource, replace the variable ${PARAMNAME} with
-   * the value and copy it to the out.
-   *
-   * @param resName
-   * @param out
-   * @throws ManifoldCFException
-   */
-  private static void outputResource(String resName, IHTTPOutput out,
-      Locale locale, Map<String, String> paramMap) throws ManifoldCFException {
-    Messages.outputResourceWithVelocity(out, locale, resName, paramMap, true);
+    Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
 
   /**
@@ -472,13 +484,13 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     // Add the Server tab
     tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_SERVER_TAB_PROPERTY));
     // Map the parameters
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
-    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_HEADER_FORWARD,paramMap);
   }
 
   @Override
@@ -486,16 +498,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException {
 
-    // Call the Velocity templates for each tab
 
-    // Server tab
-    Map<String, String> paramMap = new HashMap<String, String>();
+    // Call the Velocity templates for each tab
+    Map<String, Object> paramMap = new HashMap<String, Object>();
     // Set the tab name
     paramMap.put("TabName", tabName);
+
+    // Server tab
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, parameters);
-    outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);
-
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_SERVER,paramMap);
   }
 
   /**
@@ -541,17 +553,32 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   /**
    * Fill in specification Velocity parameter map for GOOGLEDRIVEQuery tab.
    */
-  private static void fillInGOOGLEDRIVEQuerySpecificationMap(Map<String, String> newMap, DocumentSpecification ds) {
-    int i = 0;
+  private static void fillInGOOGLEDRIVEQuerySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
     String GoogleDriveQuery = GoogleDriveConfig.GOOGLEDRIVE_QUERY_DEFAULT;
-    while (i < ds.getChildCount()) {
+    for (int i = 0; i < ds.getChildCount(); i++) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        GoogleDriveQuery = sn.getAttributeValue(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM);
+        GoogleDriveQuery = sn.getAttributeValue(JOB_QUERY_ATTRIBUTE);
       }
-      i++;
     }
-    newMap.put(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM, GoogleDriveQuery);
+    newMap.put("GOOGLEDRIVEQUERY", GoogleDriveQuery);
+  }
+
+  /**
+   * Fill in specification Velocity parameter map for GOOGLEDRIVESecurity tab.
+   */
+  private static void fillInGOOGLEDRIVESecuritySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
+    List<Map<String,String>> accessTokenList = new ArrayList<Map<String,String>>();
+    for (int i = 0; i < ds.getChildCount(); i++) {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
+        String token = sn.getAttributeValue(JOB_TOKEN_ATTRIBUTE);
+        Map<String,String> accessMap = new HashMap<String,String>();
+        accessMap.put("TOKEN",token);
+        accessTokenList.add(accessMap);
+      }
+    }
+    newMap.put("ACCESSTOKENS", accessTokenList);
   }
 
   /**
@@ -568,12 +595,13 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
       throws ManifoldCFException, IOException {
 
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the map with data from all tabs
     fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
+    fillInGOOGLEDRIVESecuritySpecificationMap(paramMap, ds);
 
-    outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out,locale,VIEW_SPEC_FORWARD,paramMap);
   }
 
   /**
@@ -593,8 +621,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
       DocumentSpecification ds) throws ManifoldCFException {
-    String cmisQuery = variableContext.getParameter(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM);
-    if (cmisQuery != null) {
+
+    String googleDriveQuery = variableContext.getParameter("googledrivequery");
+    if (googleDriveQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
@@ -605,10 +634,51 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         i++;
       }
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
-      node.setAttribute(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM, cmisQuery);
-      variableContext.setParameter(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM, cmisQuery);
+      node.setAttribute(JOB_QUERY_ATTRIBUTE, googleDriveQuery);
       ds.addChild(ds.getChildCount(), node);
     }
+    
+    String xc = variableContext.getParameter("tokencount");
+    if (xc != null) {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount()) {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(JOB_ACCESS_NODE_TYPE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount) {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete")) {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode(JOB_ACCESS_NODE_TYPE);
+        node.setAttribute(JOB_TOKEN_ATTRIBUTE,accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode(JOB_ACCESS_NODE_TYPE);
+        node.setAttribute(JOB_TOKEN_ATTRIBUTE,accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
     return null;
   }
 
@@ -630,10 +700,12 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       IOException {
 
     // Output GOOGLEDRIVEQuery tab
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
     fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
-    outputResource(EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY, out, locale, paramMap);
+    fillInGOOGLEDRIVESecuritySpecificationMap(paramMap, ds);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORWARD_GOOGLEDRIVEQUERY,paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORWARD_SECURITY,paramMap);
   }
 
   /**
@@ -652,14 +724,17 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   public void outputSpecificationHeader(IHTTPOutput out,
       Locale locale, DocumentSpecification ds, List<String> tabsArray)
       throws ManifoldCFException, IOException {
-    tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_QUERY_TAB_PROPERTY));
 
-    Map<String, String> paramMap = new HashMap<String, String>();
+    tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_QUERY_TAB_PROPERTY));
+    tabsArray.add(Messages.getString(locale, GOOGLEDRIVE_SECURITY_TAB_PROPERTY));
+
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the specification header map, using data from all tabs.
     fillInGOOGLEDRIVEQuerySpecificationMap(paramMap, ds);
+    fillInGOOGLEDRIVESecuritySpecificationMap(paramMap, ds);
 
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_HEADER_FORWARD,paramMap);
   }
 
   /**
@@ -710,7 +785,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        googleDriveQuery = sn.getAttributeValue(GoogleDriveConfig.GOOGLEDRIVE_QUERY_PARAM);
+        googleDriveQuery = sn.getAttributeValue(JOB_QUERY_ATTRIBUTE);
         break;
       }
       i++;
@@ -895,8 +970,9 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       boolean[] scanOnly) throws ManifoldCFException, ServiceInterruption {
 
     Logging.connectors.debug("GOOGLEDRIVE: Inside processDocuments");
-        
+
     for (int i = 0; i < documentIdentifiers.length; i++) {
+      // MHL for access tokens
       long startTime = System.currentTimeMillis();
       String errorCode = "FAILED";
       String errorDesc = StringUtils.EMPTY;
@@ -912,8 +988,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         }
 
         File googleFile = getObject(nodeId);
-
-        if (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed()) {
+        if (googleFile == null || (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed())) {
           //its deleted, move on
           continue;
         }
@@ -990,9 +1065,29 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             // Get the file length
             long fileLength = googleFile.getFileSize();
 
+            // Unpack the version string
+            ArrayList acls = new ArrayList();
+            StringBuilder denyAclBuffer = new StringBuilder();
+            int index = unpackList(acls,version,0,'+');
+            if (index < version.length() && version.charAt(index++) == '+') {
+              index = unpack(denyAclBuffer,version,index,'+');
+            }
+
             //otherwise process
             RepositoryDocument rd = new RepositoryDocument();
 
+            // Turn into acls and add into description
+            String[] aclArray = new String[acls.size()];
+            for (int j = 0; j < aclArray.length; j++) {
+              aclArray[j] = (String)acls.get(j);
+            }
+            rd.setACL(aclArray);
+            if (denyAclBuffer.length() > 0) {
+              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+              rd.setDenyACL(denyAclArray);
+            }
+
+            // Now do standard stuff
             String mimeType = googleFile.getMimeType();
             DateTime createdDate = googleFile.getCreatedDate();
             DateTime modifiedDate = googleFile.getModifiedDate();
@@ -1012,6 +1107,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               rd.setFileName(title + "." + extension);
             }
 
+            // Get general document metadata
             for (Entry<String, Object> entry : googleFile.entrySet()) {
               rd.addField(entry.getKey(), entry.getValue().toString());
             }
@@ -1199,22 +1295,63 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   public String[] getDocumentVersions(String[] documentIdentifiers,
       DocumentSpecification spec) throws ManifoldCFException,
       ServiceInterruption {
-    getSession();
+
+    // Forced acls
+    String[] acls = getAcls(spec);
+    // Sort it,
+    java.util.Arrays.sort(acls);
+
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
       File googleFile = getObject(documentIdentifiers[i]);
       if (!isDir(googleFile)) {
         String rev = googleFile.getModifiedDate().toStringRfc3339();
         if (StringUtils.isNotEmpty(rev)) {
-          rval[i] = rev;
+          StringBuilder sb = new StringBuilder();
+
+          // Acls
+          packList(sb,acls,'+');
+          if (acls.length > 0) {
+            sb.append('+');
+            pack(sb,defaultAuthorityDenyToken,'+');
+          }
+          else
+            sb.append('-');
+
+          sb.append(rev);
+          rval[i] = sb.toString();
         } else {
-          //a google document that doesn't contain versioning information will always be processed
-          rval[i] = StringUtils.EMPTY;
+          //a google document that doesn't contain versioning information will NEVER be processed.
+          // I don't know what this means, and whether it can ever occur.
+          rval[i] = null;
         }
       } else {
         //a google folder will always be processed
         rval[i] = StringUtils.EMPTY;
       }
+    }
+    return rval;
+  }
+
+  /** Grab forced acl out of document specification.
+  *@param spec is the document specification.
+  *@return the acls.
+  */
+  protected static String[] getAcls(DocumentSpecification spec) {
+    Set<String> map = new HashSet<String>();
+    for (int i = 0; i < spec.getChildCount(); i++) {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
+        String token = sn.getAttributeValue(JOB_TOKEN_ATTRIBUTE);
+        map.add(token);
+      }
+    }
+
+    String[] rval = new String[map.size()];
+    Iterator<String> iter = map.iterator();
+    int i = 0;
+    while (iter.hasNext()) {
+      rval[i++] = (String)iter.next();
     }
     return rval;
   }

@@ -17,23 +17,27 @@
 
 <table class="displaytable">
   <tr>
-    <td class="description" colspan="1">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.ParametersColon'))
-      </nobr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.ClientIDColon'))</nobr>
     </td>
-    <td class="value" colspan="3">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.CliendID'))$Encoder.bodyEscape($CLIENTID)
-      </nobr>
-      <br />
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.ClientSecret'))$Encoder.bodyEscape($CLIENTSECRET)
-      </nobr>
-      <br />
-       <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.RefreshToken'))$Encoder.bodyEscape($REFRESHTOKEN)
-      </nobr>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($CLIENTID)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.ClientSecretColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($CLIENTSECRET)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('GoogleDriveRepositoryConnector.RefreshTokenColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($REFRESHTOKEN)</nobr>
     </td>
   </tr>
 </table>

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-702: Add forced ACLs to GoogleDrive connector.  Also
+fixed a number of UI-related issues.
+(Karl Wright)
+
 CONNECTORS-684: Add Dropbox connector end-user documentation for
 Japanese.
 (Shinichiro Abe)
