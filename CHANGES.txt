@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-707: Treat special character "." as meaning "no extension",
+for ElasticSearch and OpenSearchServer output connectors.
+(TC Tobin-Campbell, Karl Wright)
+
 CONNECTORS-708: Make JDBC connector check mime type for indexability,
 if it is present.
 (Richard Nichols, Karl Wright)
