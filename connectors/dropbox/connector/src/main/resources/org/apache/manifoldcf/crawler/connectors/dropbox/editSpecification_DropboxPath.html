@@ -14,20 +14,16 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-#if($TABNAME == $ResourceBundle.getString('DropboxRepositoryConnector.DropboxPath'))
+#if($TabName == $ResourceBundle.getString('DropboxRepositoryConnector.DropboxPath'))
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DropboxPathColon'))
-      </nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DropboxPathColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>
-        <input type="text" size="120" name="dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" />
-      </nobr>
+      <nobr><input type="text" size="80" name="dropboxpath" value="$Encoder.attributeEscape($DROPBOXPATH)" /></nobr>
     </td>
   </tr>
 </table>

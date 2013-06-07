@@ -54,10 +54,10 @@ public class DropboxSession {
 
   private DropboxAPI<?> client;
   
-  public DropboxSession(Map<String, String> parameters) {
-    AppKeyPair appKeyPair = new AppKeyPair(parameters.get(DropboxConfig.APP_KEY_PARAM), parameters.get(DropboxConfig.APP_SECRET_PARAM));
+  public DropboxSession(String app_key, String app_secret, String key, String secret) {
+    AppKeyPair appKeyPair = new AppKeyPair(app_key, app_secret);
     WebAuthSession session = new WebAuthSession(appKeyPair, WebAuthSession.AccessType.DROPBOX);
-    AccessTokenPair ac = new AccessTokenPair(parameters.get(DropboxConfig.KEY_PARAM), parameters.get(DropboxConfig.SECRET_PARAM));
+    AccessTokenPair ac = new AccessTokenPair(key, secret);
     session.setAccessTokenPair(ac);
     client = new DropboxAPI<WebAuthSession>(session);
   }

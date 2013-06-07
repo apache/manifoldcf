@@ -18,10 +18,29 @@
 <table class="displaytable">
   <tr>
     <td class="description">
-      $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DropboxPathColon'))
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.DropboxPathColon'))</nobr>
     </td>
     <td class="value">
-      $Encoder.bodyEscape($DROPBOXPATH)
+      <nobr>$Encoder.bodyEscape($DROPBOXPATH)</nobr>
     </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+#if($ACCESSTOKENS.size() == 0)
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.NoAccessTokensPresent'))
+    </td>
+#else
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AccessTokensColon'))</nobr>
+    </td>
+    <td class="value">
+  #set($atcounter = 0)
+  #foreach($atoken in $ACCESSTOKENS)
+    <nobr>$Encoder.bodyEscape($atoken.get('TOKEN'))</nobr><br/>
+    #set($atcounter = $atcounter + 1)
+  #end
+    </td>
+#end
   </tr>
 </table>

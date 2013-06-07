@@ -19,25 +19,41 @@
 <!--
 function checkSpecification()
 {
-    return true;
+  return true;
 }
  
- 
- function checkSpecificationForSave
- {
- if(editconnection.path.value == ""){
+function checkSpecificationForSave()
+{
+  if(editjob.dropboxpath.value == "") {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.PathMustNotBeNull'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))");
-    editconnection.path.focus();
+    editjob.dropboxpath.focus();
     return false;
   }
   return true;
- }
+}
  
 function SpecOp(n, opValue, anchorvalue)
 {
   eval("editjob."+n+".value = \""+opValue+"\"");
   postFormSetAnchor(anchorvalue);
 }
+
+function SpecDeleteToken(i)
+{
+  SpecOp("accessop_"+i,"Delete","token_"+i);
+}
+
+function SpecAddToken(i)
+{
+  if (editjob.spectoken.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.TypeInAnAccessToken'))");
+    editjob.spectoken.focus();
+    return;
+  }
+  SpecOp("accessop","Add","token_"+i);
+}
+
 //-->
 </script>

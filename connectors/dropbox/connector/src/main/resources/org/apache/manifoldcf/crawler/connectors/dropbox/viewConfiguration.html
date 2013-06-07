@@ -17,27 +17,35 @@
 
 <table class="displaytable">
   <tr>
-    <td class="description" colspan="1">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.ParametersColon'))
-      </nobr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AppKeyColon'))</nobr>
     </td>
-    <td class="value" colspan="3">
-    <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AppKeyEquals'))$Encoder.bodyEscape($APP_KEY)
-      </nobr>
-      <br />
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AppSecretEquals'))$Encoder.bodyEscape($APP_SECRET)
-      </nobr>
-      <br />
-    <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.KeyEquals'))$Encoder.bodyEscape($KEY)
-      </nobr>
-      <br />
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.SecretEquals'))$Encoder.bodyEscape($SECRET)
-      </nobr>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($APP_KEY)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AppSecretColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>********</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.KeyColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($KEY)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.SecretColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>********</nobr>
     </td>
   </tr>
 </table>

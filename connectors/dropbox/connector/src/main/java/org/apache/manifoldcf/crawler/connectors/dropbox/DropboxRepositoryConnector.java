@@ -28,9 +28,12 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.Iterator;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -57,10 +60,23 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   protected final static String ACTIVITY_READ = "read document";
   public final static String ACTIVITY_FETCH = "fetch";
   protected static final String RELATIONSHIP_CHILD = "child";
+  
+  /** Deny access token for default authority */
+  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+
+  // Nodes and attributes
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
+  private static final String JOB_PATH_ATTRIBUTE = "path";
+  private static final String JOB_ACCESS_NODE_TYPE = "access";
+  private static final String JOB_TOKEN_ATTRIBUTE = "token";
+
+  // Tab properties
   private static final String DROPBOX_SERVER_TAB_PROPERTY = "DropboxRepositoryConnector.Server";
   private static final String DROPBOX_PATH_TAB_PROPERTY = "DropboxRepositoryConnector.DropboxPath";
+  private static final String DROPBOX_SECURITY_TAB_PROPERTY = "DropboxRepositoryConnector.Security";
+
   // Template names
+  
   /**
    * Forward to the javascript to check the configuration parameters
    */
@@ -69,6 +85,11 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    * Server tab template
    */
   private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_Server.html";
+  /**
+   * Forward to the HTML template to view the configuration parameters
+   */
+  private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
+  
   /**
    * Forward to the javascript to check the specification parameters for the
    * job
@@ -79,13 +100,14 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    */
   private static final String EDIT_SPEC_FORWARD_DROPBOXPATH = "editSpecification_DropboxPath.html";
   /**
-   * Forward to the HTML template to view the configuration parameters
+   * Forward to the template to edit the configuration parameters for the job
    */
-  private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
+  private static final String EDIT_SPEC_FORWARD_SECURITY = "editSpecification_Security.html";
   /**
    * Forward to the template to view the specification parameters for the job
    */
-    private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+
   /**
    * Endpoint server name
    */
@@ -167,9 +189,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     super.connect(configParams);
 
     app_key=params.getParameter(DropboxConfig.APP_KEY_PARAM);
-    app_secret=params.getParameter(DropboxConfig.APP_SECRET_PARAM);
+    app_secret=params.getObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM);
     key = params.getParameter(DropboxConfig.KEY_PARAM);
-    secret = params.getParameter(DropboxConfig.SECRET_PARAM);
+    secret = params.getObfuscatedParameter(DropboxConfig.SECRET_PARAM);
     
   }
 
@@ -277,16 +299,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
       
       // Create a session
-      Map<String, String> parameters = new HashMap<String, String>();
-
-      // user credentials
-      parameters.put(DropboxConfig.APP_KEY_PARAM, app_key);
-      parameters.put(DropboxConfig.APP_SECRET_PARAM, app_secret);
-
-      parameters.put(DropboxConfig.KEY_PARAM, key);
-      parameters.put(DropboxConfig.SECRET_PARAM, secret);
-
-      session = new DropboxSession(parameters);
+      session = new DropboxSession(app_key, app_secret, key, secret);
       lastSessionFetch = System.currentTimeMillis();
     }
   }
@@ -334,13 +347,13 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
    */
-  private static void fillInServerConfigurationMap(Map<String, String> newMap, ConfigParams parameters) {
+  private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
     
     String app_key = parameters.getParameter(DropboxConfig.APP_KEY_PARAM);
-    String app_secret = parameters.getParameter(DropboxConfig.APP_SECRET_PARAM);
+    String app_secret = parameters.getObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM);
     
     String username = parameters.getParameter(DropboxConfig.KEY_PARAM);
-    String password = parameters.getParameter(DropboxConfig.SECRET_PARAM);
+    String password = parameters.getObfuscatedParameter(DropboxConfig.SECRET_PARAM);
     
     if (app_key == null) {
       app_key = StringUtils.EMPTY;
@@ -357,10 +370,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
       password = StringUtils.EMPTY;
     }
     
-    newMap.put(DropboxConfig.APP_KEY_PARAM, app_key);
-    newMap.put(DropboxConfig.APP_SECRET_PARAM, app_secret);
-    newMap.put(DropboxConfig.KEY_PARAM, username);
-    newMap.put(DropboxConfig.SECRET_PARAM, password);
+    newMap.put("APP_KEY", app_key);
+    newMap.put("APP_SECRET", app_secret);
+    newMap.put("KEY", username);
+    newMap.put("SECRET", password);
     
   }
 
@@ -379,25 +392,12 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
-    outputResource(VIEW_CONFIG_FORWARD, out, locale, paramMap);
-  }
-
-  /**
-   * Read the content of a resource, replace the variable ${PARAMNAME} with
-   * the value and copy it to the out.
-   *
-   * @param resName
-   * @param out
-   * @throws ManifoldCFException
-   */
-  private static void outputResource(String resName, IHTTPOutput out,
-    Locale locale, Map<String, String> paramMap) throws ManifoldCFException {
-    Messages.outputResourceWithVelocity(out, locale, resName, paramMap, true);
+    Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
 
   /**
@@ -420,14 +420,15 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     throws ManifoldCFException, IOException {
     // Add the Server tab
     tabsArray.add(Messages.getString(locale, DROPBOX_SERVER_TAB_PROPERTY));
+
     // Map the parameters
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
-    outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_HEADER_FORWARD,paramMap);
   }
 
   @Override
@@ -438,12 +439,12 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     // Call the Velocity templates for each tab
 
     // Server tab
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
     // Set the tab name
     paramMap.put("TabName", tabName);
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, parameters);
-    outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_SERVER,paramMap);
 
   }
 
@@ -470,24 +471,24 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     throws ManifoldCFException {
 
     
-    String app_key = variableContext.getParameter(DropboxConfig.APP_KEY_PARAM);
+    String app_key = variableContext.getParameter("app_key");
     if (app_key != null) {
       parameters.setParameter(DropboxConfig.APP_KEY_PARAM, app_key);
     }
     
-    String app_secret = variableContext.getParameter(DropboxConfig.APP_SECRET_PARAM);
+    String app_secret = variableContext.getParameter("app_secret");
     if (app_secret != null) {
-      parameters.setParameter(DropboxConfig.APP_SECRET_PARAM, app_secret);
+      parameters.setObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM, app_secret);
     }
     
-    String key = variableContext.getParameter(DropboxConfig.KEY_PARAM);
+    String key = variableContext.getParameter("key");
     if (key != null) {
       parameters.setParameter(DropboxConfig.KEY_PARAM, key);
     }
 
-    String secret = variableContext.getParameter(DropboxConfig.SECRET_PARAM);
+    String secret = variableContext.getParameter("secret");
     if (secret != null) {
-      parameters.setParameter(DropboxConfig.SECRET_PARAM, secret);
+      parameters.setObfuscatedParameter(DropboxConfig.SECRET_PARAM, secret);
     }
 
     return null;
@@ -496,17 +497,34 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   /**
    * Fill in specification Velocity parameter map for DROPBOXPath tab.
    */
-  private static void fillInDropboxPathSpecificationMap(Map<String, String> newMap, DocumentSpecification ds) {
+  private static void fillInDropboxPathSpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
     int i = 0;
     String DropboxPath = DropboxConfig.DROPBOX_PATH_PARAM_DEFAULT_VALUE;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        DropboxPath = sn.getAttributeValue(DropboxConfig.DROPBOX_PATH_PARAM);
+        DropboxPath = sn.getAttributeValue(JOB_PATH_ATTRIBUTE);
       }
       i++;
     }
-    newMap.put(DropboxConfig.DROPBOX_PATH_PARAM, DropboxPath);
+    newMap.put("DROPBOXPATH", DropboxPath);
+  }
+
+  /**
+   * Fill in specification Velocity parameter map for Dropbox Security tab.
+   */
+  private static void fillInDropboxSecuritySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
+    List<Map<String,String>> accessTokenList = new ArrayList<Map<String,String>>();
+    for (int i = 0; i < ds.getChildCount(); i++) {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
+        String token = sn.getAttributeValue(JOB_TOKEN_ATTRIBUTE);
+        Map<String,String> accessMap = new HashMap<String,String>();
+        accessMap.put("TOKEN",token);
+        accessTokenList.add(accessMap);
+      }
+    }
+    newMap.put("ACCESSTOKENS", accessTokenList);
   }
 
   /**
@@ -523,12 +541,13 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException {
 
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the map with data from all tabs
     fillInDropboxPathSpecificationMap(paramMap, ds);
-
-    outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
+    fillInDropboxSecuritySpecificationMap(paramMap, ds);
+      
+    Messages.outputResourceWithVelocity(out,locale,VIEW_SPEC_FORWARD,paramMap);
   }
 
   /**
@@ -548,7 +567,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public String processSpecificationPost(IPostParameters variableContext,
     DocumentSpecification ds) throws ManifoldCFException {
-    String dropboxPath = variableContext.getParameter(DropboxConfig.DROPBOX_PATH_PARAM);
+    String dropboxPath = variableContext.getParameter("dropboxpath");
     if (dropboxPath != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
@@ -560,10 +579,50 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
         i++;
       }
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
-      node.setAttribute(DropboxConfig.DROPBOX_PATH_PARAM, dropboxPath);
-      variableContext.setParameter(DropboxConfig.DROPBOX_PATH_PARAM, dropboxPath);
+      node.setAttribute(JOB_PATH_ATTRIBUTE, dropboxPath);
       ds.addChild(ds.getChildCount(), node);
     }
+    String xc = variableContext.getParameter("tokencount");
+    if (xc != null) {
+      // Delete all tokens first
+      int i = 0;
+      while (i < ds.getChildCount()) {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(JOB_ACCESS_NODE_TYPE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount) {
+        String accessDescription = "_"+Integer.toString(i);
+        String accessOpName = "accessop"+accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete")) {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
+        SpecificationNode node = new SpecificationNode(JOB_ACCESS_NODE_TYPE);
+        node.setAttribute(JOB_TOKEN_ATTRIBUTE,accessSpec);
+        ds.addChild(ds.getChildCount(),node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add"))
+      {
+        String accessspec = variableContext.getParameter("spectoken");
+        SpecificationNode node = new SpecificationNode(JOB_ACCESS_NODE_TYPE);
+        node.setAttribute(JOB_TOKEN_ATTRIBUTE,accessspec);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+
     return null;
   }
 
@@ -585,10 +644,13 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     IOException {
 
     // Output DROPBOXPath tab
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
     fillInDropboxPathSpecificationMap(paramMap, ds);
-    outputResource(EDIT_SPEC_FORWARD_DROPBOXPATH, out, locale, paramMap);
+    fillInDropboxSecuritySpecificationMap(paramMap, ds);
+
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORWARD_DROPBOXPATH,paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORWARD_SECURITY,paramMap);
   }
 
   /**
@@ -608,13 +670,15 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale, DROPBOX_PATH_TAB_PROPERTY));
+    tabsArray.add(Messages.getString(locale, DROPBOX_SECURITY_TAB_PROPERTY));
 
-    Map<String, String> paramMap = new HashMap<String, String>();
+    Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the specification header map, using data from all tabs.
     fillInDropboxPathSpecificationMap(paramMap, ds);
+    fillInDropboxSecuritySpecificationMap(paramMap, ds);
 
-    outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_HEADER_FORWARD,paramMap);
   }
 
   /**
@@ -833,8 +897,27 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
           if (!scanOnly[i]) {
             doLog = true;
             
+            // Unpack the version string
+            ArrayList acls = new ArrayList();
+            StringBuilder denyAclBuffer = new StringBuilder();
+            int index = unpackList(acls,version,0,'+');
+            if (index < version.length() && version.charAt(index++) == '+') {
+              index = unpack(denyAclBuffer,version,index,'+');
+            }
+
             // content ingestion
             RepositoryDocument rd = new RepositoryDocument();
+
+            // Turn into acls and add into description
+            String[] aclArray = new String[acls.size()];
+            for (int j = 0; j < aclArray.length; j++) {
+              aclArray[j] = (String)acls.get(j);
+            }
+            rd.setACL(aclArray);
+            if (denyAclBuffer.length() > 0) {
+              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+              rd.setDenyACL(denyAclArray);
+            }
 
             // Length in bytes
             long fileLength = dropboxObject.bytes;
@@ -1088,6 +1171,12 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public String[] getDocumentVersions(String[] documentIdentifiers,
     DocumentSpecification spec) throws ManifoldCFException, ServiceInterruption {
+
+    // Forced acls
+    String[] acls = getAcls(spec);
+    // Sort it,
+    java.util.Arrays.sort(acls);
+
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
       getSession();
@@ -1110,10 +1199,22 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
         if (dropboxObject.isDeleted) {
           rval[i] = null;
         } else if (StringUtils.isNotEmpty(dropboxObject.rev)) {
-          rval[i] = dropboxObject.rev;
+          StringBuilder sb = new StringBuilder();
+
+          // Acls
+          packList(sb,acls,'+');
+          if (acls.length > 0) {
+            sb.append('+');
+            pack(sb,defaultAuthorityDenyToken,'+');
+          }
+          else
+            sb.append('-');
+
+          sb.append(dropboxObject.rev);
+          rval[i] = sb.toString();
         } else {
-          //a document that doesn't contain versioning information will always be processed
-          rval[i] = StringUtils.EMPTY;
+          //a document that doesn't contain versioning information will never be processed
+          rval[i] = null;
         }
       } else {
         //a folder will always be processed
@@ -1123,6 +1224,29 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     return rval;
   }
   
+  /** Grab forced acl out of document specification.
+  *@param spec is the document specification.
+  *@return the acls.
+  */
+  protected static String[] getAcls(DocumentSpecification spec) {
+    Set<String> map = new HashSet<String>();
+    for (int i = 0; i < spec.getChildCount(); i++) {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
+        String token = sn.getAttributeValue(JOB_TOKEN_ATTRIBUTE);
+        map.add(token);
+      }
+    }
+
+    String[] rval = new String[map.size()];
+    Iterator<String> iter = map.iterator();
+    int i = 0;
+    while (iter.hasNext()) {
+      rval[i++] = (String)iter.next();
+    }
+    return rval;
+  }
+
   /** Handle a dropbox exception. */
   protected static void handleDropboxException(DropboxException e)
     throws ManifoldCFException, ServiceInterruption {
