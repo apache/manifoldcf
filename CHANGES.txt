@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-708: Make JDBC connector check mime type for indexability,
+if it is present.
+(Richard Nichols, Karl Wright)
+
 CONNECTORS-709: Escape \r, \n, \f, and \b in ElasticSearch connector.
 (Richard Nichols, Karl Wright)
 

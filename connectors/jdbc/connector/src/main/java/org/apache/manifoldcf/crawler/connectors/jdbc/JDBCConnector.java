@@ -543,90 +543,95 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 else
                   contentType = null;
                 
-                if (contents instanceof BinaryInput)
+                if (contentType == null || activities.checkMimeTypeIndexable(contentType))
                 {
-                  // An ingestion will take place for this document.
-                  RepositoryDocument rd = new RepositoryDocument();
-
-                  // Default content type is application/octet-stream for binary data
-                  if (contentType == null)
-                    rd.setMimeType("application/octet-stream");
-                  else
-                    rd.setMimeType(contentType);
-                  
-                  applyAccessTokens(rd,version,spec);
-                  applyMetadata(rd,row);
-
-                  BinaryInput bi = (BinaryInput)contents;
-                  try
+                  if (contents instanceof BinaryInput)
                   {
-                    // Read the stream
-                    InputStream is = bi.getStream();
-                    try
-                    {
-                      rd.setBinary(is,bi.getLength());
-                      activities.ingestDocument(id, version, url, rd);
-                    }
-                    finally
-                    {
-                      is.close();
-                    }
-                  }
-                  catch (java.net.SocketTimeoutException e)
-                  {
-                    throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                  }
-                  catch (InterruptedIOException e)
-                  {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                  }
-                  finally
-                  {
-                    bi.discard();
-                  }
-                }
-                else
-                {
-                  // Turn it into a string, and then into a stream
-                  String value = contents.toString();
-                  try
-                  {
-                    byte[] bytes = value.getBytes("utf-8");
+                    // An ingestion will take place for this document.
                     RepositoryDocument rd = new RepositoryDocument();
 
-                    // Default content type is text/plain for character data
+                    // Default content type is application/octet-stream for binary data
                     if (contentType == null)
-                      rd.setMimeType("text/plain");
+                      rd.setMimeType("application/octet-stream");
                     else
                       rd.setMimeType(contentType);
                     
                     applyAccessTokens(rd,version,spec);
                     applyMetadata(rd,row);
 
-                    InputStream is = new ByteArrayInputStream(bytes);
+                    BinaryInput bi = (BinaryInput)contents;
                     try
                     {
-                      rd.setBinary(is,bytes.length);
-                      activities.ingestDocument(id, version, url, rd);
+                      // Read the stream
+                      InputStream is = bi.getStream();
+                      try
+                      {
+                        rd.setBinary(is,bi.getLength());
+                        activities.ingestDocument(id, version, url, rd);
+                      }
+                      finally
+                      {
+                        is.close();
+                      }
+                    }
+                    catch (java.net.SocketTimeoutException e)
+                    {
+                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
                     }
                     finally
                     {
-                      is.close();
+                      bi.discard();
                     }
                   }
-                  catch (InterruptedIOException e)
+                  else
                   {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    // Turn it into a string, and then into a stream
+                    String value = contents.toString();
+                    try
+                    {
+                      byte[] bytes = value.getBytes("utf-8");
+                      RepositoryDocument rd = new RepositoryDocument();
+
+                      // Default content type is text/plain for character data
+                      if (contentType == null)
+                        rd.setMimeType("text/plain");
+                      else
+                        rd.setMimeType(contentType);
+                      
+                      applyAccessTokens(rd,version,spec);
+                      applyMetadata(rd,row);
+
+                      InputStream is = new ByteArrayInputStream(bytes);
+                      try
+                      {
+                        rd.setBinary(is,bytes.length);
+                        activities.ingestDocument(id, version, url, rd);
+                      }
+                      finally
+                      {
+                        is.close();
+                      }
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    }
                   }
                 }
+                else
+                  Logging.connectors.warn("JDBC: Document '"+id+"' excluded because of mime type - skipping");
               }
               else
                 Logging.connectors.warn("JDBC: Document '"+id+"' seems to have null data - skipping");
