@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-709: Escape \r, \n, \f, and \b in ElasticSearch connector.
+(Richard Nichols, Karl Wright)
+
 CONNECTORS-701: Add forced ACLs to DropBox connector.  Fixed a
 few UI-related other problems as well.
 WARNING: This is a non-backwards-compatible change!!

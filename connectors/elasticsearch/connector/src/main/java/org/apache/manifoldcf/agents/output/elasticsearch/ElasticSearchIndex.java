@@ -200,9 +200,22 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     for (int i = 0; i < value.length(); i++)
     {
       char x = value.charAt(i);
-      if (x == '\"' || x == '\\' || x == '/')
-        sb.append('\\');
-      sb.append(x);
+      if (x == '\n')
+        sb.append('\\').append('n');
+      else if (x == '\r')
+        sb.append('\\').append('r');
+      else if (x == '\t')
+        sb.append('\\').append('t');
+      else if (x == '\b')
+        sb.append('\\').append('b');
+      else if (x == '\f')
+        sb.append('\\').append('f');
+      else
+      {
+        if (x == '\"' || x == '\\' || x == '/')
+          sb.append('\\');
+        sb.append(x);
+      }
     }
     sb.append("\"");
     return sb.toString();
