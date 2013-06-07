@@ -1081,6 +1081,43 @@
                 <p>１つ以上のルールが存在する場合は、上から実行され、上のルールの結果は下のルールで変更されます。</p>
             </section>
             
+            <section id="dropboxrepository">
+              <title>Dropboxリポジトリコネクション</title>
+              <p>Dropboxリポジトリコネクションは、<a href="https://www.dropbox.com/home">Dropbox</a>の内容をインデクシングすることができます。</p>
+              <p>それぞれのDropboxコネクションは、ひとつのDropboxリポジトリへのアクセスを管理します。これは、たとえば異なるユーザを使って、複数のDropboxを持っている場合、それぞれのDropboxリポジトリに対してひとつずつコネクションを作り、その関連した権限情報を用意する必要があることを意味します。</p>
+              <br/>
+              <p>ひとつのDropboxコネクションは、次のような設定パラメータを、リポジトリコネクションの編集画面に持っています。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-configuration.PNG" alt="Dropbox Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>コネクションに接続するためには、４つの情報が必要です。Application KeyとApplication Secretは、開発ライセンスであなたのアプリケーションを登録した時に、Dropboxから提供されます。これは基本的には、アプリケーション開発者用の<a href="https://www.dropbox.com/developers/apps">Dropbox website</a>を通して行われます。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-create-application.PNG" alt="Dropbox create application" width="80%"/>
+              <br/><br/>
+              <p>今回の用途としては、DropboxとコミュニケートするためにRESTサービスを使いますので、アプリケーションタイプとして"Core"を選択する必要があります。また、"full access"を選択します。これには少々議論があります。基本的に、情報を格納したり取得したりするアプリケーションでは、アプリケーションの固有フォルダからフルアクセスします。今回のケースでは、ユーザーがユーザーのファイルをそのままアクセスし、manifoldcfの固有フォルダにコピーしないことを想定しています。結果的には、"App folder"の代わりに"full access"を選択しています。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-application-secret-passwords.PNG" alt="Dropbox get key and secret passwords" width="80%"/>
+              <br/><br/>
+              <p>その後、このコネクタで求められる２つの情報、App keyとApp secretを見ることができます。</p>
+              <p>ここで、それぞれのユーザは、ユーザのアプリケーションがDropboxにアクセスできるよう受諾されることを確認しなければなりません。これは普通のOAUTHアプローチを通してなされます。ユーザのアプリケーションのkeyとsecretが提供された後、ユーザは、ユーザのアプリケーションの権限を許可してもらうことを、Dropboxのウェブサイトに対して問い合わせするよう指示されます。彼らがそのリクエストを受諾すると、Dropboxはclient keyとsecretを提供します。このkeyとsecretが、Dropboxコネクタで必要になる最後の２つです。このプロセスの深い内容については、<a href="https://www.dropbox.com/developers/core/authentication">dropbox website</a>で説明されており、どのようにこの２つのclientトークンを生成するかの例が示されています。</p>
+              <br/>
+              <br/><br/>
+              <p>保存ボタンをクリックしたら、コネクションのサマリ画面を見ることになります。これは以下のようなものになります。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-configuration-save.PNG" alt="Dropbox Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>Dropboxリポジトリコネクションを使用するジョブを設定した場合は、追加タブが表示されます。これは、"Dropbox Folder to Index" です。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-job-dropbox-folder-to-index.PNG" alt="Dropbox Repository Connection, Dropbox Folder to Index" width="80%"/>
+              <br/><br/>
+              <p>このタブでは、Dropboxコネクタがインデクシングするディレクトリを指定することができます。Dropboxはunixスタイルのパスを使います。"/"はルートパスを意味します（したがって全体のDropboxを指定することになります）。たとえば、Photosディレクトリをインデクシングしたい場合は、"/Photos"と指定することになります。</p>
+              <p>注意点は、Dropboxコネクタは取り込み処理中、それぞれの結果について、フォルダの階層を見つけた時、そのフォルダの子供のすべてのフォルダを取り込みしようとします。フォルダでなければ、直接ドキュメントを取り込みしようとします。</p>
+              <p>ジョブの設定が終わったら、保存ボタンをクリックし、サマリ画面を見ます。これは以下のようなものになります。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-job-save.PNG" alt="CMIS Repository Connection, saving job" width="80%"/>
+              <br/><br/>
+            </section>
+            
             <section id="livelinkrepository">
                 <title>OpenText LiveLinkリポジトリコネクション</title>
                 <p>OpenText LiveLinkコネクションタイプは、LiveLinkリポジトリからのコンテンツから索引を作成します。LiveLinkには基本ドキュメント、複合ドキュメント、フォルダ、ワークスペース、プロジェクトのような多くのドキュメントタイプがあります。LiveLinkコネクションはこれらのすべてのドキュメント種類のコンテンツを処理することができます。</p>

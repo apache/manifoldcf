@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-684: Add Dropbox connector end-user documentation for
+Japanese.
+(Shinichiro Abe)
+
 CONNECTORS-687: Fix the way documents are indexed via DropBox, so
 that dangling threads are not left unjoined, and all common metadata
 is set in RepositoryDocument.
