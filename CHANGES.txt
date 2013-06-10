@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-706: Update documentation to require JDK 1.7.
+(Karl Wright)
+
 CONNECTORS-635: Alfresco test sometimes fails; upgrade to Alfresco 4.0 recommended
 (Piergiorgio Lucidi)
 
