@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-635: Alfresco test sometimes fails; upgrade to Alfresco 4.0 recommended
+(Piergiorgio Lucidi)
+
 CONNECTORS-707: Treat special character "." as meaning "no extension",
 for ElasticSearch and OpenSearchServer output connectors.
 (TC Tobin-Campbell, Karl Wright)

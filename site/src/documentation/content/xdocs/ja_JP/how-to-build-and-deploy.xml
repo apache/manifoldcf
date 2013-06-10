@@ -120,7 +120,7 @@
           <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. Place this jar into the directory <em>connectors/alfresco/lib-proprietary</em> before you build.
               This will occur automatically if you execute the ant target "make-deps" from the ManifoldCF root directory.</p>
           <p></p>
-          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder)
+          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-4-war (using "mvn package" inside the folder)
               into the <em>connectors/alfresco/test-materials-proprietary</em> folder.  Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
           <p></p>
         </section>

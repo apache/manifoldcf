@@ -46,7 +46,7 @@
             <jvmarg value="-DcrawlerWarPath=../../../framework/build/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=../../../framework/build/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=../../../framework/build/war/mcf-api-service.war"/>
-            <jvmarg value="-DalfrescoServerWarPath=../../../connectors/alfresco/build/alfresco-war/alfresco.war"/>
+            <jvmarg value="-DalfrescoServerWarPath=../../../connectors/alfresco/build/alfresco-4-war/alfresco.war"/>
             <jvmarg value="-Xms512m"/>
             <jvmarg value="-Xmx1024m"/>
             <jvmarg value="-Xss1024k"/>
