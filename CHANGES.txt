@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-705: Upgrade the CMIS Connector to OpenCMIS 0.9.0
+(Piergiorgio Lucidi)
+
 CONNECTORS-706: Update documentation to require JDK 1.7.
 (Karl Wright)
 
