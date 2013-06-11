@@ -181,6 +181,7 @@ public class FileOutputConnector extends BaseOutputConnector {
       if (specs.getRootPath() != null) {
         path.append(specs.getRootPath());
       }
+      path.append("/");
       path.append(documentURItoFilePath(documentURI));
 
       File file = new File(path.toString());
@@ -298,6 +299,7 @@ public class FileOutputConnector extends BaseOutputConnector {
       if (specs.getRootPath() != null) {
         path.append(specs.getRootPath());
       }
+      path.append("/");
       path.append(documentURItoFilePath(documentURI));
 
       File file = new File(path.toString());
@@ -494,53 +496,40 @@ public class FileOutputConnector extends BaseOutputConnector {
     uri = new URI(documentURI);
 
     if (uri.getScheme() != null) {
-      if (!path.toString().endsWith("/")) {
-        path.append("/");
-      }
       path.append(uri.getScheme());
+      path.append("/");
     }
 
     if (uri.getHost() != null) {
-      if (!path.toString().endsWith("/")) {
-        path.append("/");
-      }
       path.append(uri.getHost());
       if (uri.getPort() != -1) {
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-          path.append("+");
-        } else {
-          path.append(":");
-        }
+        path.append(":");
         path.append(uri.getPort());
       }
-      if (uri.getPath() != null) {
-        if (uri.getPath().length() == 0) {
+      if (uri.getRawPath() != null) {
+        if (uri.getRawPath().length() == 0) {
           path.append("/");
-        } else if (uri.getPath().equals("/")) {
-          path.append(uri.getPath());
+        } else if (uri.getRawPath().equals("/")) {
+          path.append(uri.getRawPath());
         } else {
-          for (String name : uri.getPath().split("/")) {
+          for (String name : uri.getRawPath().split("/")) {
             if (name.length() > 0) {
               path.append("/");
-              try {
-                path.append(URLEncoder.encode(name, "UTF-8"));
-              } catch(UnsupportedEncodingException e) {
-                path.append(name);
-              }
+              path.append(name);
             }
           }
         }
       }
+      if (uri.getRawQuery() != null) {
+        path.append("?");
+        path.append(uri.getRawQuery());
+      }
     } else {
-      if (uri.getSchemeSpecificPart() != null) {
-        for (String name : uri.getSchemeSpecificPart().split("/")) {
+      if (uri.getRawSchemeSpecificPart() != null) {
+        for (String name : uri.getRawSchemeSpecificPart().split("/")) {
           if (name.length() > 0) {
             path.append("/");
-            try {
-              path.append(URLEncoder.encode(name, "UTF-8"));
-            } catch(UnsupportedEncodingException e) {
-              path.append(name);
-            }
+            path.append(name);
           }
         }
       }

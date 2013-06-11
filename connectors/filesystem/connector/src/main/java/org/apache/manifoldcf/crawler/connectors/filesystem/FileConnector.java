@@ -25,6 +25,10 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 import java.util.*;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 /** This is the "repository connector" for a file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality, with the exception of the ability to use ActiveDirectory and look at other shares.
@@ -101,6 +105,61 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     return new String[]{""};
   }
 
+  /** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
+  * the search index, and will be presented to the user as part of the search results.
+  *@param filePath is the document filePath.
+  *@param repositoryPath is the document repositoryPath.
+  *@return the document uri.
+  */
+  protected String convertToURI(String documentIdentifier, String[] repositoryPaths)
+    throws ManifoldCFException
+  {
+    //
+    // Note well:  This MUST be a legal URI!!!
+    try
+    {
+      String path = new File(documentIdentifier).getAbsolutePath();
+      for (String repositoryPath : repositoryPaths) {
+        if (path.startsWith(repositoryPath)) {
+          StringBuffer sb = new StringBuffer();
+          path = path.replaceFirst(repositoryPath, "");
+          if (path.startsWith("/")) {
+            path = path.replaceFirst("/", "");
+          }
+          String[] tmp = path.split("/", 3);
+          String scheme = "";
+          String host = "";
+          String other = "";
+          try {
+            scheme = tmp[0];
+          } catch (ArrayIndexOutOfBoundsException e) {
+            scheme = "http";
+          }
+          try {
+            host = tmp[1];
+          } catch (ArrayIndexOutOfBoundsException e) {
+            host = "localhost";
+          }
+          try {
+            other = "/" + tmp[2];
+          } catch (ArrayIndexOutOfBoundsException e) {
+            other = "/";
+          }
+          return new URI(scheme + "://" + host + other).toURL().toString();
+        }
+      }
+      return convertToURI(documentIdentifier);
+    }
+    catch (URISyntaxException e)
+    {
+      throw new ManifoldCFException("Bad url",e);
+    }
+    catch (IOException e)
+    {
+      throw new ManifoldCFException("Bad url",e);
+    }
+  }
+  
   /** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
   * the search index, and will be presented to the user as part of the search results.
   *@param documentIdentifier is the document identifier.
@@ -271,6 +330,36 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // We still need to check based on file data.
             if (checkIngest(file,spec))
             {
+              int j = 0;
+              
+              /*
+               * get repository paths
+               */
+              j = 0;
+              List<String> repositoryPaths = new ArrayList<String>();
+              while ( j < spec.getChildCount())
+              {
+                SpecificationNode sn = spec.getChild(j++);
+                if (sn.getType().equals("startpoint"))
+                {
+                  if (sn.getAttributeValue("path").length() > 0) {
+                    repositoryPaths.add(sn.getAttributeValue("path"));
+                  }
+                }
+              }
+              
+              /*
+               * get filepathtouri value
+               */
+              boolean filePathToUri = false;
+              j = 0;
+              while (j < spec.getChildCount()) {
+                SpecificationNode sn = spec.getChild(j++);
+                if (sn.getType().equals("filepathtouri")) {
+                  filePathToUri = Boolean.valueOf(sn.getValue());
+                }
+              }
+              
               long startTime = System.currentTimeMillis();
               String errorCode = "OK";
               String errorDesc = null;
@@ -293,9 +382,15 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     data.setFileName(fileName);
                     data.setMimeType(mapExtensionToMimeType(fileName));
                     data.setModifiedDate(new Date(file.lastModified()));
-                    data.addField("uri",file.toString());
-                    // MHL for other metadata
-                    activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
+                    if (filePathToUri) {
+                      data.addField("uri",convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])));
+                      // MHL for other metadata
+                      activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])),data);
+                    } else {
+                      data.addField("uri",file.toString());
+                      // MHL for other metadata
+                      activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
+                    }
                     fileLength = new Long(fileBytes);
                   }
                   finally
@@ -422,6 +517,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"FileConnector.Paths"));
+    tabsArray.add(Messages.getString(locale,"FileConnector.FilePathToURITab"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -689,6 +785,44 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
+    
+    
+    /*
+     * get filepathtouri value
+     */
+    boolean filePathToUri = false;
+    i = 0;
+    while (i < ds.getChildCount()) {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("filepathtouri")) {
+        filePathToUri = Boolean.valueOf(sn.getValue());
+      }
+    }	    
+
+    /*
+     * File path to URI tab
+     */
+    if (tabName.equals(Messages.getString(locale,"FileConnector.FilePathToURITab"))) {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FileConnector.FilePathToURI") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"filepathtouri\" type=\"checkbox\" value=\"true\"" + (filePathToUri ? "checked" : "") +"/>\n" +
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    } else {
+      /*
+       * File path to URI tab hiddens
+       */
+      out.print(
+"<input type=\"hidden\" name=\"filepathtouri\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Boolean.toString(filePathToUri)) + "\"/>\n"
+      );
+    }
+
   }
   
   /** Process a specification post.
@@ -804,6 +938,26 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
         ds.addChild(k,node);
       }
     }
+    
+    /*
+     * "filepathtouri"
+     */
+    String filepathtouri = variableContext.getParameter("filepathtouri");
+    if (filepathtouri != null) {
+      SpecificationNode sn;
+      int i = 0;
+      while (i < ds.getChildCount()) {
+        if (ds.getChild(i).getType().equals("filepathtouri")) {
+          ds.removeChild(i);
+        } else {
+          i++;
+        }
+      }
+      sn = new SpecificationNode("filepathtouri");
+      sn.setValue(filepathtouri);
+      ds.addChild(ds.getChildCount(),sn);
+    }
+    
     return null;
   }
   
@@ -817,6 +971,8 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
+    int i = 0;
+    
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
@@ -824,7 +980,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  </tr>\n"
     );
 
-    int i = 0;
+    i = 0;
     boolean seenAny = false;
     while (i < ds.getChildCount())
     {
@@ -867,6 +1023,29 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     out.print(
 "</table>\n"
     );
+    
+    /*
+     * get filepathtouri value
+     */
+    boolean filePathToUri = false;
+    i = 0;
+    while (i < ds.getChildCount()) {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("filepathtouri")) {
+        filePathToUri = Boolean.valueOf(sn.getValue());
+      }
+    }
+
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FileConnector.FilePathToURI") + "</nobr></td>\n"+
+"    <td class=\"value\">" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Boolean.toString(filePathToUri)) + "</td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+  
   }
 
   // Protected static methods
