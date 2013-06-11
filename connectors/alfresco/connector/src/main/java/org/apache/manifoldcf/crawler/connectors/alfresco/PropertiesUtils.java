@@ -174,8 +174,11 @@ public class PropertiesUtils {
         if(Constants.PROP_CONTENT.equals(contentProperty.getName())){
           String defaultContentPropertyValue = contentProperty.getValue();
           String[] contentSplitted = StringUtils.split(defaultContentPropertyValue, PROP_CONTENT_SEP);
-          String[] mimeTypeSplitted = StringUtils.split(contentSplitted[1], PROP_MIMETYPE_SEP);
-          return mimeTypeSplitted[1];
+          if (contentSplitted.length > 1) {
+            String[] mimeTypeSplitted = StringUtils.split(contentSplitted[1], PROP_MIMETYPE_SEP);
+            return mimeTypeSplitted[1];
+          }
+          return contentSplitted[0];
         }
       }
     }
