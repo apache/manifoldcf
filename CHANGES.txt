@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+
+CONNECTORS-667: Refix NPE problem with Livelink authority.  This time
+we were seeing it when SSL was not on.
+(David Morana, Karl Wright)
+
 CONNECTORS-712: ArrayIndexOutOfBoundsException in the Alfresco Connector
 (Karl Wright)
 
