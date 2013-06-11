@@ -3,7 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
-CONNECTORS-70x: Wrong date parsing of the Alfresco Connector
+CONNECTORS-712: ArrayIndexOutOfBoundsException in the Alfresco Connector
+(Karl Wright)
+
+CONNECTORS-711: Wrong date parsing of the Alfresco Connector
 (Piergiorgio Lucidi, Karl Wright)
 
 CONNECTORS-705: Upgrade the CMIS Connector to OpenCMIS 0.9.0
