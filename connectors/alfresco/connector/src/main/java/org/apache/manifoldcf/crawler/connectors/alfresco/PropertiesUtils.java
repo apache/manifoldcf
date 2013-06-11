@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -28,6 +27,7 @@ import java.util.List;
 import org.alfresco.webservice.types.NamedValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
+import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /**
@@ -41,13 +41,6 @@ public class PropertiesUtils {
   private static final String PROP_CONTENT_PREFIX_2 = "ContentData";
   private static final String PROP_CONTENT_SEP = "|";
   private static final String PROP_MIMETYPE_SEP = "=";
-  
-  private final static ThreadLocal<SimpleDateFormat> ISO8601_DATE_FORMAT =
-      new ThreadLocal<SimpleDateFormat>() {
-             protected SimpleDateFormat initialValue() {
-                  return new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.mmm+hh:mm");
-              }
-       };
 
   private static final String PROP_MODIFIED = Constants.createQNameString(Constants.NAMESPACE_CONTENT_MODEL, "modified");
   
@@ -193,8 +186,7 @@ public class PropertiesUtils {
    */
   public static Date getDatePropertyValue(NamedValue[] properties, String qname) throws ParseException{
     String dateString = PropertiesUtils.getPropertyValues(properties, qname)[0];
-    //String finalDateString = dateString.replaceAll(ISO8601_REPLACE, ISO8601_REPLACE_TO);
-    return ISO8601_DATE_FORMAT.get().parse(dateString);
+    return DateParser.parseISO8601Date(dateString);
   }
   
 }
