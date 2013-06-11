@@ -1265,7 +1265,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       this.serverHTTPNTLMDomain = (serverHTTPNTLMDomain==null)?"":serverHTTPNTLMDomain;
       this.serverHTTPNTLMUsername = (serverHTTPNTLMUsername==null)?"":serverHTTPNTLMUsername;
       this.serverHTTPNTLMPassword = (serverHTTPNTLMPassword==null)?"":serverHTTPNTLMPassword;
-      this.serverHTTPSKeystore = serverHTTPSKeystore.getString();
+      if (serverHTTPSKeystore != null)
+        this.serverHTTPSKeystore = serverHTTPSKeystore.getString();
+      else
+        this.serverHTTPSKeystore = null;
       this.responseLifetime = responseLifetime;
     }
 
@@ -1281,7 +1284,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       return getClass().getName() + "-" + userName + "-" + serverProtocol + "-" + serverName +
         "-" + Integer.toString(serverPort) + "-" + serverUsername + "-" + serverPassword +
         "-" + serverHTTPCgi + "-" + serverHTTPNTLMDomain + "-" + serverHTTPNTLMUsername +
-        "-" + serverHTTPNTLMPassword + "-" + serverHTTPSKeystore;
+        "-" + serverHTTPNTLMPassword + "-" + ((serverHTTPSKeystore==null)?"":serverHTTPSKeystore);
     }
 
     /** Return the object expiration interval */
@@ -1298,7 +1301,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         serverProtocol.hashCode() + serverName.hashCode() + new Integer(serverPort).hashCode() +
         serverUsername.hashCode() + serverPassword.hashCode() +
         serverHTTPCgi.hashCode() + serverHTTPNTLMDomain.hashCode() + serverHTTPNTLMUsername.hashCode() +
-        serverHTTPNTLMPassword.hashCode() + serverHTTPSKeystore.hashCode();
+        serverHTTPNTLMPassword.hashCode() + ((serverHTTPSKeystore==null)?0:serverHTTPSKeystore.hashCode());
     }
     
     public boolean equals(Object o)
@@ -1311,7 +1314,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         ard.serverUsername.equals(serverUsername) && ard.serverPassword.equals(serverPassword) &&
         ard.serverHTTPCgi.equals(serverHTTPCgi) && ard.serverHTTPNTLMDomain.equals(serverHTTPNTLMDomain) &&
         ard.serverHTTPNTLMUsername.equals(serverHTTPNTLMUsername) && ard.serverHTTPNTLMPassword.equals(serverHTTPNTLMPassword) &&
-        ard.serverHTTPSKeystore.equals(serverHTTPSKeystore);
+        ((ard.serverHTTPSKeystore != null && serverHTTPSKeystore != null && ard.serverHTTPSKeystore.equals(serverHTTPSKeystore)) ||
+          ((ard.serverHTTPSKeystore == null || serverHTTPSKeystore == null) && ard.serverHTTPSKeystore == serverHTTPSKeystore));
     }
     
   }
