@@ -24,6 +24,7 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.XThreadInputStream;
+import org.apache.manifoldcf.core.common.XThreadOutputStream;
 
 import java.io.*;
 import java.util.*;
@@ -7272,6 +7273,76 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
     // Exit the method
     return sanityRetryCount;
+
+  }
+
+  /** This thread performs a LAPI FetchVersion command, streaming the resulting
+  * document back through a XThreadInputStream to the invoking thread.
+  */
+  protected class DocumentReadingThread extends Thread 
+  {
+
+    protected Throwable exception = null;
+    protected final int volumeID;
+    protected final int docID;
+    protected final int versionNumber;
+    protected final XThreadInputStream stream;
+    
+    public DocumentReadingThread(int volumeID, int docID, int versionNumber)
+    {
+      super();
+      this.volumeID = volumeID;
+      this.docID = docID;
+      this.versionNumber = versionNumber;
+      this.stream = new XThreadInputStream();
+      setDaemon(true);
+    }
+
+    @Override
+    public void run()
+    {
+      try
+      {
+        XThreadOutputStream outputStream = new XThreadOutputStream(stream);
+        try 
+        {
+          int rval = LLDocs.FetchVersion(volumeID, docID, versionNumber, outputStream);
+          // MHL to do something with rval
+        }
+        finally
+        {
+          outputStream.close();
+        }
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public InputStream getSafeInputStream() {
+      return stream;
+    }
+    
+    public void finishUp()
+      throws InterruptedException, IOException
+    {
+      // This will be called during the finally
+      // block in the case where all is well (and
+      // the stream completed) and in the case where
+      // there were exceptions.
+      stream.abort();
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException)
+          throw (IOException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
+      }
+    }
 
   }
 

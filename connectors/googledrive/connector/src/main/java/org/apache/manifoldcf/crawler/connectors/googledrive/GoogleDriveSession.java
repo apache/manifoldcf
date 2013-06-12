@@ -147,41 +147,4 @@ public class GoogleDriveSession {
     }
   }
   
-  protected static class XThreadOutputStream extends OutputStream {
-    protected final XThreadInputStream inputStream;
-    
-    byte[] byteBuffer = new byte[1];
-
-    public XThreadOutputStream(XThreadInputStream inputStream) {
-      this.inputStream = inputStream;
-    }
-    
-    @Override
-    public void write(int c)
-      throws IOException {
-      byteBuffer[0] = (byte)c;
-      try {
-        inputStream.stuffQueue(byteBuffer,0,1);
-      } catch (InterruptedException e) {
-        throw new InterruptedIOException(e.getMessage());
-      }
-    }
-
-    @Override
-    public void write(byte[] buffer, int pos, int amt)
-      throws IOException {
-      try {
-        inputStream.stuffQueue(buffer,pos,amt);
-      } catch (InterruptedException e) {
-        throw new InterruptedIOException(e.getMessage());
-      }
-    }
-    
-    @Override
-    public void close()
-      throws IOException {
-      inputStream.doneStuffingQueue();
-      super.close();
-    }
-  }
 }
