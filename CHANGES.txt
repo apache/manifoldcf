@@ -4,6 +4,9 @@ $Id$
 ======================= 1.3-dev =====================
 
 
+CONNECTORS-710: FileConnector should have option of outputting a full http url based on Wget conventions, not just a file:/ url
+(Minoru Osuka, Karl Wright)
+
 CONNECTORS-667: Refix NPE problem with Livelink authority.  This time
 we were seeing it when SSL was not on.
 (David Morana, Karl Wright)
