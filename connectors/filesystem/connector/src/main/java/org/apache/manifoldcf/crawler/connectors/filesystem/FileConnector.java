@@ -263,7 +263,11 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // Get the file's modified date.
             long lastModified = file.lastModified();
             StringBuilder sb = new StringBuilder();
-            sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString()).append(":").append(filePathToUri);
+            if (filePathToUri)
+              sb.append("+");
+            else
+              sb.append("-");
+            sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
             rval[i] = sb.toString();
           }
           else
@@ -296,7 +300,9 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int i = 0;
     while (i < documentIdentifiers.length)
     {
-      File file = new File(documentIdentifiers[i]);
+      String version = versions[i];
+      String documentIdentifier = documentIdentifiers[i];
+      File file = new File(documentIdentifier);
       if (file.exists())
       {
         if (file.isDirectory())
@@ -305,7 +311,6 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           long startTime = System.currentTimeMillis();
           String errorCode = "OK";
           String errorDesc = null;
-          String documentIdentifier = documentIdentifiers[i];
           String entityReference = documentIdentifier;
           try
           {
@@ -366,20 +371,13 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                * get filepathtouri value
                */
               boolean filePathToUri = false;
-              j = 0;
-              while (j < spec.getChildCount()) {
-                SpecificationNode sn = spec.getChild(j++);
-                if (sn.getType().equals("filepathtouri")) {
-                  filePathToUri = Boolean.valueOf(sn.getValue());
-                }
-              }
+              if (version.length() > 0 && version.startsWith("+"))
+                filePathToUri = true;
               
               long startTime = System.currentTimeMillis();
               String errorCode = "OK";
               String errorDesc = null;
               Long fileLength = null;
-              String documentIdentifier = documentIdentifiers[i];
-              String version = versions[i];
               String entityDescription = documentIdentifier;
               try
               {
