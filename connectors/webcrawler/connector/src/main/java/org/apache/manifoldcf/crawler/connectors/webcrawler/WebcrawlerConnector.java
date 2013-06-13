@@ -5604,7 +5604,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     if (interestingMimeTypeMap.get(contentType) != null)
       return true;
     
-    return activities.checkMimeTypeIndexable(contentType);
+    boolean rval = activities.checkMimeTypeIndexable(contentType);
+    if (rval == false && Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not fetching because output connector does not want mimetype '"+contentType+"'");
+    return rval;
   }
   
   /** Code to check if an already-fetched document should be ingested.
@@ -5616,13 +5619,25 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       return false;
 
     if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector thinks length "+cache.getDataLength(documentIdentifier)+" is too long");
       return false;
-
+    }
+    
     if (activities.checkURLIndexable(documentIdentifier) == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want URL");
       return false;
+    }
 
     if (filter.isDocumentIndexable(documentIdentifier) == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because document does not match web job constraints");
       return false;
+    }
     
     // Check if it's a recognized content type
     String contentType = cache.getContentType(documentIdentifier);
@@ -5645,7 +5660,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       contentType = contentType.substring(0,pos);
     contentType = contentType.trim();
 
-    return activities.checkMimeTypeIndexable(contentType);
+    boolean rval = activities.checkMimeTypeIndexable(contentType);
+    if (rval == false && Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
+    return rval;
   }
 
   /** Find a redirection URI, if it exists */
