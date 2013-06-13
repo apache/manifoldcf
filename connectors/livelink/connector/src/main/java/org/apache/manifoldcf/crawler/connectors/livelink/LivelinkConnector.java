@@ -1705,7 +1705,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    editconnection.serverhttpcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.viewprotocol.options[0].value == \"\" && editconnection.ingestprotocol.options[0].value == \"\")\n"+
+"  if (editconnection.viewprotocol.value == \"\" && editconnection.ingestprotocol.value == \"\")\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAViewProtocol")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
@@ -1800,7 +1800,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       ingestPort = "";
     String ingestCgiPath = parameters.getParameter(LiveLinkParameters.ingestCgiPath);
     if (ingestCgiPath == null)
-      ingestCgiPath = "/livelink/livelink.exe";
+      ingestCgiPath = "";
     String ingestNtlmUsername = parameters.getParameter(LiveLinkParameters.ingestNtlmUsername);
     if (ingestNtlmUsername == null)
       ingestNtlmUsername = "";
@@ -1977,7 +1977,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "  <tr>\n"+
 "    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchProtocol")+"</td>\n"+
 "    <td class=\"value\">\n"+
-"      <select name=\"ingestprotocol\" size=\"2\">\n"+
+"      <select name=\"ingestprotocol\" size=\"3\">\n"+
 "        <option value=\"\" "+((ingestProtocol.equals(""))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.UseLAPI")+"</option>\n"+
 "        <option value=\"http\" "+((ingestProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
 "        <option value=\"https\" "+((ingestProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
