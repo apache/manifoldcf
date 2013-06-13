@@ -335,21 +335,31 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       serverHTTPNTLMPassword = params.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
 
       if (ingestProtocol == null || ingestProtocol.length() == 0)
-        ingestProtocol = "http";
+        ingestProtocol = null;
       if (viewProtocol == null || viewProtocol.length() == 0)
-        viewProtocol = ingestProtocol;
+      {
+        if (ingestProtocol == null)
+          viewProtocol = "http";
+        else
+          viewProtocol = ingestProtocol;
+      }
 
       if (ingestPort == null || ingestPort.length() == 0)
       {
-        if (!ingestProtocol.equals("https"))
-          ingestPort = "80";
+        if (ingestProtocol != null)
+        {
+          if (!ingestProtocol.equals("https"))
+            ingestPort = "80";
+          else
+            ingestPort = "443";
+        }
         else
-          ingestPort = "443";
+          ingestPort = null;
       }
 
       if (viewPort == null || viewPort.length() == 0)
       {
-        if (!viewProtocol.equals(ingestProtocol))
+        if (ingestProtocol == null || !viewProtocol.equals(ingestProtocol))
         {
           if (!viewProtocol.equals("https"))
             viewPort = "80";
@@ -360,13 +370,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           viewPort = ingestPort;
       }
 
-      try
+      if (ingestPort != null)
       {
-        ingestPortNumber = Integer.parseInt(ingestPort);
-      }
-      catch (NumberFormatException e)
-      {
-        throw new ManifoldCFException("Bad ingest port: "+e.getMessage(),e);
+        try
+        {
+          ingestPortNumber = Integer.parseInt(ingestPort);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Bad ingest port: "+e.getMessage(),e);
+        }
       }
 
       String viewPortString;
@@ -581,62 +594,67 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       getSession();
 
       // Now, set up trial of ingestion connection
-      String contextMsg = "for document access";
-      String ingestHttpAddress = ingestCgiPath;
-
-      HttpClient client = getInitializedClient(contextMsg);
-      HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
-      method.setHeader(new BasicHeader("Accept","*/*"));
-      try
+      if (ingestProtocol != null)
       {
-        int statusCode = executeMethodViaThread(client,method);
-        switch (statusCode)
+        String contextMsg = "for document access";
+        String ingestHttpAddress = ingestCgiPath;
+
+        HttpClient client = getInitializedClient(contextMsg);
+        HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
+        method.setHeader(new BasicHeader("Accept","*/*"));
+        try
         {
-        case 502:
-          return "Fetch test had transient 502 error response";
+          int statusCode = executeMethodViaThread(client,method);
+          switch (statusCode)
+          {
+          case 502:
+            return "Fetch test had transient 502 error response";
 
-        case HttpStatus.SC_UNAUTHORIZED:
-          return "Fetch test returned UNAUTHORIZED (401) response; check the security credentials and configuration";
+          case HttpStatus.SC_UNAUTHORIZED:
+            return "Fetch test returned UNAUTHORIZED (401) response; check the security credentials and configuration";
 
-        case HttpStatus.SC_OK:
-          return super.check();
+          case HttpStatus.SC_OK:
+            return super.check();
 
-        default:
-          return "Fetch test returned an unexpected response code of "+Integer.toString(statusCode);
+          default:
+            return "Fetch test returned an unexpected response code of "+Integer.toString(statusCode);
+          }
+        }
+        catch (InterruptedException e)
+        {
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (java.net.SocketTimeoutException e)
+        {
+          return "Fetch test timed out reading from the Livelink HTTP Server: "+e.getMessage();
+        }
+        catch (java.net.SocketException e)
+        {
+          return "Fetch test received a socket error reading from Livelink HTTP Server: "+e.getMessage();
+        }
+        catch (javax.net.ssl.SSLHandshakeException e)
+        {
+          return "Fetch test was unable to set up a SSL connection to Livelink HTTP Server: "+e.getMessage();
+        }
+        catch (ConnectTimeoutException e)
+        {
+          return "Fetch test connection timed out reading from Livelink HTTP Server: "+e.getMessage();
+        }
+        catch (InterruptedIOException e)
+        {
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (HttpException e)
+        {
+          return "Fetch test had an HTTP exception: "+e.getMessage();
+        }
+        catch (IOException e)
+        {
+          return "Fetch test had an IO failure: "+e.getMessage();
         }
       }
-      catch (InterruptedException e)
-      {
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (java.net.SocketTimeoutException e)
-      {
-        return "Fetch test timed out reading from the Livelink HTTP Server: "+e.getMessage();
-      }
-      catch (java.net.SocketException e)
-      {
-        return "Fetch test received a socket error reading from Livelink HTTP Server: "+e.getMessage();
-      }
-      catch (javax.net.ssl.SSLHandshakeException e)
-      {
-        return "Fetch test was unable to set up a SSL connection to Livelink HTTP Server: "+e.getMessage();
-      }
-      catch (ConnectTimeoutException e)
-      {
-        return "Fetch test connection timed out reading from Livelink HTTP Server: "+e.getMessage();
-      }
-      catch (InterruptedIOException e)
-      {
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (HttpException e)
-      {
-        return "Fetch test had an HTTP exception: "+e.getMessage();
-      }
-      catch (IOException e)
-      {
-        return "Fetch test had an IO failure: "+e.getMessage();
-      }
+      else
+        return super.check();
     }
     catch (ServiceInterruption e)
     {
@@ -1687,16 +1705,23 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    editconnection.serverhttpcgipath.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.ingestcgipath.value == \"\")\n"+
+"  if (editconnection.viewprotocol.options[0].value == \"\" && editconnection.ingestprotocol.options[0].value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheCrawlCgiPathToLivelink")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
-"    editconnection.ingestcgipath.focus();\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAViewProtocol")+"\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
+"    editconnection.viewprotocol.focus();\n"+
 "    return false;\n"+
 "  }\n"+
-"  if (editconnection.ingestcgipath.value.substring(0,1) != \"/\")\n"+
+"  if (editconnection.viewcgipath.value == \"\" && editconnection.ingestcgipath.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheIngestCgiPathMustBeginWithACharacter")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheViewCgiPathToLivelink")+"\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
+"    editconnection.viewcgipath.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.ingestcgipath.value != \"\" && editconnection.ingestcgipath.value.substring(0,1) != \"/\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheIngestCgiPathMustBeBlankOrBeginWithACharacter")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
 "    editconnection.ingestcgipath.focus();\n"+
 "    return false;\n"+
@@ -1769,7 +1794,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // Document access parameters
     String ingestProtocol = parameters.getParameter(LiveLinkParameters.ingestProtocol);
     if (ingestProtocol == null)
-      ingestProtocol = "http";
+      ingestProtocol = "";
     String ingestPort = parameters.getParameter(LiveLinkParameters.ingestPort);
     if (ingestPort == null)
       ingestPort = "";
@@ -1795,7 +1820,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // Document view parameters
     String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
     if (viewProtocol == null)
-      viewProtocol = "";
+      viewProtocol = "http";
     String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
     if (viewServerName == null)
       viewServerName = "";
@@ -1804,7 +1829,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       viewPort = "";
     String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
     if (viewCgiPath == null)
-      viewCgiPath = "";
+      viewCgiPath = "/livelink/livelink.exe";
 
     // The "Server" tab
     // Always pass the whole keystore as a hidden.
@@ -1953,6 +1978,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 "    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchProtocol")+"</td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"ingestprotocol\" size=\"2\">\n"+
+"        <option value=\"\" "+((ingestProtocol.equals(""))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.UseLAPI")+"</option>\n"+
 "        <option value=\"http\" "+((ingestProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
 "        <option value=\"https\" "+((ingestProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
 "      </select>\n"+
@@ -4176,14 +4202,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
     String contextMsg = "for '"+documentIdentifier+"'";
 
-    String ingestHttpAddress = convertToIngestURI(documentIdentifier);
-    if (ingestHttpAddress == null)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Livelink: No fetch URI "+contextMsg+" - not ingesting");
-      return;
-    }
-
     String viewHttpAddress = convertToViewURI(documentIdentifier);
     if (viewHttpAddress == null)
     {
@@ -4355,226 +4373,236 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               }
             }
 
-            if (true)
+            if (viewProtocol != null)
             {
               // Use HTTP to fetch document!
-
-              // Set up connection
-              HttpClient client = getInitializedClient(contextMsg);
-
-              long currentTime;
-
-              if (Logging.connectors.isInfoEnabled())
-                Logging.connectors.info("Livelink: " + ingestHttpAddress);
-
-
-              HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
-              method.setHeader(new BasicHeader("Accept","*/*"));
-
-              ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
-              methodThread.start();
-              try
+              String ingestHttpAddress = convertToIngestURI(documentIdentifier);
+              if (ingestHttpAddress != null)
               {
 
-                int statusCode = methodThread.getResponseCode();
-                switch (statusCode)
+                // Set up connection
+                HttpClient client = getInitializedClient(contextMsg);
+
+                long currentTime;
+
+                if (Logging.connectors.isInfoEnabled())
+                  Logging.connectors.info("Livelink: " + ingestHttpAddress);
+
+
+                HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
+                method.setHeader(new BasicHeader("Accept","*/*"));
+
+                ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
+                methodThread.start();
+                try
                 {
-                case 500:
-                case 502:
-                  Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
-                  throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
-                    System.currentTimeMillis()+600000L,-1,true);
 
-                case HttpStatus.SC_UNAUTHORIZED:
-                  Logging.connectors.warn("Livelink: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
-                  // Since we logged in, we should fail here if the ingestion user doesn't have access to the
-                  // the document, but if we do, don't fail hard.
-                  resultCode = "UNAUTHORIZED";
-                  activities.deleteDocument(documentIdentifier,version);
-                  return;
-
-                case HttpStatus.SC_OK:
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("Livelink: Created http document connection to Livelink "+contextMsg);
-                  // A non-existent content length will cause a value of -1 to be returned.  This seems to indicate that the session login did not work right.
-                  if (methodThread.getResponseContentLength() >= 0)
+                  int statusCode = methodThread.getResponseCode();
+                  switch (statusCode)
                   {
-                    try
+                  case 500:
+                  case 502:
+                    Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
+                    throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
+                      System.currentTimeMillis()+600000L,-1,true);
+
+                  case HttpStatus.SC_UNAUTHORIZED:
+                    Logging.connectors.warn("Livelink: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
+                    // Since we logged in, we should fail here if the ingestion user doesn't have access to the
+                    // the document, but if we do, don't fail hard.
+                    resultCode = "UNAUTHORIZED";
+                    activities.deleteDocument(documentIdentifier,version);
+                    return;
+
+                  case HttpStatus.SC_OK:
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("Livelink: Created http document connection to Livelink "+contextMsg);
+                    // A non-existent content length will cause a value of -1 to be returned.  This seems to indicate that the session login did not work right.
+                    if (methodThread.getResponseContentLength() >= 0)
                     {
-                      InputStream is = methodThread.getSafeInputStream();
                       try
                       {
-                        rd.setBinary(is,dataSize);
-                          
-                        activities.ingestDocument(documentIdentifier,version,viewHttpAddress,rd);
+                        InputStream is = methodThread.getSafeInputStream();
+                        try
+                        {
+                          rd.setBinary(is,dataSize);
+                            
+                          activities.ingestDocument(documentIdentifier,version,viewHttpAddress,rd);
 
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("Livelink: Ingesting done "+contextMsg);
+                          if (Logging.connectors.isDebugEnabled())
+                            Logging.connectors.debug("Livelink: Ingesting done "+contextMsg);
 
+                        }
+                        finally
+                        {
+                          // Close stream via thread, since otherwise this can hang
+                          is.close();
+                        }
                       }
-                      finally
+                      catch (java.net.SocketTimeoutException e)
                       {
-                        // Close stream via thread, since otherwise this can hang
-                        is.close();
+                        resultCode = "DATATIMEOUT";
+                        resultDescription = e.getMessage();
+                        currentTime = System.currentTimeMillis();
+                        Logging.connectors.warn("Livelink: Livelink socket timed out ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+                        throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+                      }
+                      catch (java.net.SocketException e)
+                      {
+                        resultCode = "DATASOCKETERROR";
+                        resultDescription = e.getMessage();
+                        currentTime = System.currentTimeMillis();
+                        Logging.connectors.warn("Livelink: Livelink socket error ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+                        throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+                      }
+                      catch (javax.net.ssl.SSLHandshakeException e)
+                      {
+                        resultCode = "DATASSLHANDSHAKEERROR";
+                        resultDescription = e.getMessage();
+                        currentTime = System.currentTimeMillis();
+                        Logging.connectors.warn("Livelink: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
+                        throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
+                      }
+                      catch (ConnectTimeoutException e)
+                      {
+                        resultCode = "CONNECTTIMEOUT";
+                        resultDescription = e.getMessage();
+                        currentTime = System.currentTimeMillis();
+                        Logging.connectors.warn("Livelink: Livelink socket timed out connecting to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+                        throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+                      }
+                      catch (InterruptedException e)
+                      {
+                        wasInterrupted = true;
+                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      }
+                      catch (InterruptedIOException e)
+                      {
+                        wasInterrupted = true;
+                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      }
+                      catch (HttpException e)
+                      {
+                        resultCode = "HTTPEXCEPTION";
+                        resultDescription = e.getMessage();
+                        // Treat unknown error ingesting data as a transient condition
+                        currentTime = System.currentTimeMillis();
+                        Logging.connectors.warn("Livelink: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
+                        throw new ServiceInterruption("HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+                      }
+                      catch (IOException e)
+                      {
+                        resultCode = "DATAEXCEPTION";
+                        resultDescription = e.getMessage();
+                        // Treat unknown error ingesting data as a transient condition
+                        currentTime = System.currentTimeMillis();
+                        Logging.connectors.warn("Livelink: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
+                        throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
+                      }
+                      readSize = dataSize;
+                    }
+                    else
+                    {
+                      resultCode = "SESSIONLOGINFAILED";
+                      activities.deleteDocument(documentIdentifier,version);
+                    }
+                    break;
+                  case HttpStatus.SC_BAD_REQUEST:
+                  case HttpStatus.SC_USE_PROXY:
+                  case HttpStatus.SC_GONE:
+                    resultCode = "ERROR "+Integer.toString(statusCode);
+                    throw new ManifoldCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
+                  default:
+                    resultCode = "UNKNOWN";
+                    Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
+                    currentTime = System.currentTimeMillis();
+                    throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
+                      currentTime+60000L,currentTime+600000L,-1,true);
+                  }
+                }
+                catch (InterruptedException e)
+                {
+                  // Drop the connection on the floor
+                  methodThread.interrupt();
+                  methodThread = null;
+                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                  Logging.connectors.warn("Livelink: Socket timed out reading from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+                  resultCode = "TIMEOUT";
+                  resultDescription = e.getMessage();
+                  currentTime = System.currentTimeMillis();
+                  throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
+                }
+                catch (java.net.SocketException e)
+                {
+                  Logging.connectors.warn("Livelink: Socket error reading from Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+                  resultCode = "SOCKETERROR";
+                  resultDescription = e.getMessage();
+                  currentTime = System.currentTimeMillis();
+                  throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
+                }
+                catch (javax.net.ssl.SSLHandshakeException e)
+                {
+                  currentTime = System.currentTimeMillis();
+                  Logging.connectors.warn("Livelink: SSL handshake failed "+contextMsg+": "+e.getMessage(),e);
+                  resultCode = "SSLHANDSHAKEERROR";
+                  resultDescription = e.getMessage();
+                  throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
+                }
+                catch (ConnectTimeoutException e)
+                {
+                  Logging.connectors.warn("Livelink: Connect timed out reading from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+                  resultCode = "CONNECTTIMEOUT";
+                  resultDescription = e.getMessage();
+                  currentTime = System.currentTimeMillis();
+                  throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
+                }
+                catch (InterruptedIOException e)
+                {
+                  methodThread.interrupt();
+                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                }
+                catch (HttpException e)
+                {
+                  resultCode = "EXCEPTION";
+                  resultDescription = e.getMessage();
+                  throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
+                }
+                catch (IOException e)
+                {
+                  resultCode = "EXCEPTION";
+                  resultDescription = e.getMessage();
+                  throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
+                }
+                finally
+                {
+                  if (methodThread != null)
+                  {
+                    methodThread.abort();
+                    if (!wasInterrupted)
+                    {
+                      try
+                      {
+                       methodThread.finishUp();
+                      }
+                      catch (InterruptedException e)
+                      {
+                        wasInterrupted = true;
+                        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
                       }
                     }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      resultCode = "DATATIMEOUT";
-                      resultDescription = e.getMessage();
-                      currentTime = System.currentTimeMillis();
-                      Logging.connectors.warn("Livelink: Livelink socket timed out ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                      throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                    }
-                    catch (java.net.SocketException e)
-                    {
-                      resultCode = "DATASOCKETERROR";
-                      resultDescription = e.getMessage();
-                      currentTime = System.currentTimeMillis();
-                      Logging.connectors.warn("Livelink: Livelink socket error ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                      throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                    }
-                    catch (javax.net.ssl.SSLHandshakeException e)
-                    {
-                      resultCode = "DATASSLHANDSHAKEERROR";
-                      resultDescription = e.getMessage();
-                      currentTime = System.currentTimeMillis();
-                      Logging.connectors.warn("Livelink: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
-                      throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
-                    }
-                    catch (ConnectTimeoutException e)
-                    {
-                      resultCode = "CONNECTTIMEOUT";
-                      resultDescription = e.getMessage();
-                      currentTime = System.currentTimeMillis();
-                      Logging.connectors.warn("Livelink: Livelink socket timed out connecting to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                      throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                    }
-                    catch (InterruptedException e)
-                    {
-                      wasInterrupted = true;
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      wasInterrupted = true;
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (HttpException e)
-                    {
-                      resultCode = "HTTPEXCEPTION";
-                      resultDescription = e.getMessage();
-                      // Treat unknown error ingesting data as a transient condition
-                      currentTime = System.currentTimeMillis();
-                      Logging.connectors.warn("Livelink: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
-                      throw new ServiceInterruption("HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                    }
-                    catch (IOException e)
-                    {
-                      resultCode = "DATAEXCEPTION";
-                      resultDescription = e.getMessage();
-                      // Treat unknown error ingesting data as a transient condition
-                      currentTime = System.currentTimeMillis();
-                      Logging.connectors.warn("Livelink: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
-                      throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-                    }
-                    readSize = dataSize;
-                  }
-                  else
-                  {
-                    resultCode = "SESSIONLOGINFAILED";
-                    activities.deleteDocument(documentIdentifier,version);
-                  }
-                  break;
-                case HttpStatus.SC_BAD_REQUEST:
-                case HttpStatus.SC_USE_PROXY:
-                case HttpStatus.SC_GONE:
-                  resultCode = "ERROR "+Integer.toString(statusCode);
-                  throw new ManifoldCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
-                default:
-                  resultCode = "UNKNOWN";
-                  Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
-                  currentTime = System.currentTimeMillis();
-                  throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
-                    currentTime+60000L,currentTime+600000L,-1,true);
-                }
-              }
-              catch (InterruptedException e)
-              {
-                // Drop the connection on the floor
-                methodThread.interrupt();
-                methodThread = null;
-                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-              }
-              catch (java.net.SocketTimeoutException e)
-              {
-                Logging.connectors.warn("Livelink: Socket timed out reading from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                resultCode = "TIMEOUT";
-                resultDescription = e.getMessage();
-                currentTime = System.currentTimeMillis();
-                throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-              }
-              catch (java.net.SocketException e)
-              {
-                Logging.connectors.warn("Livelink: Socket error reading from Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                resultCode = "SOCKETERROR";
-                resultDescription = e.getMessage();
-                currentTime = System.currentTimeMillis();
-                throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-              }
-              catch (javax.net.ssl.SSLHandshakeException e)
-              {
-                currentTime = System.currentTimeMillis();
-                Logging.connectors.warn("Livelink: SSL handshake failed "+contextMsg+": "+e.getMessage(),e);
-                resultCode = "SSLHANDSHAKEERROR";
-                resultDescription = e.getMessage();
-                throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
-              }
-              catch (ConnectTimeoutException e)
-              {
-                Logging.connectors.warn("Livelink: Connect timed out reading from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-                resultCode = "CONNECTTIMEOUT";
-                resultDescription = e.getMessage();
-                currentTime = System.currentTimeMillis();
-                throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-              }
-              catch (InterruptedIOException e)
-              {
-                methodThread.interrupt();
-                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-              }
-              catch (HttpException e)
-              {
-                resultCode = "EXCEPTION";
-                resultDescription = e.getMessage();
-                throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
-              }
-              catch (IOException e)
-              {
-                resultCode = "EXCEPTION";
-                resultDescription = e.getMessage();
-                throw new ManifoldCFException("Exception getting response "+contextMsg+": "+e.getMessage(), e);
-              }
-              finally
-              {
-                if (methodThread != null)
-                {
-                  methodThread.abort();
-                  if (!wasInterrupted)
-                  {
-                    try
-                    {
-                     methodThread.finishUp();
-                    }
-                    catch (InterruptedException e)
-                    {
-                      wasInterrupted = true;
-                      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
                   }
                 }
               }
-              
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Livelink: No fetch URI "+contextMsg+" - not ingesting");
+                resultCode = "NOURI";
+                return;
+              }
             }
             else
             {
