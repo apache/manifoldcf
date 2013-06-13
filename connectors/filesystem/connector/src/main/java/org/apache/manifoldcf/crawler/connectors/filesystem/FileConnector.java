@@ -223,8 +223,22 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    String[] rval = new String[documentIdentifiers.length];
     int i = 0;
+    
+    /*
+     * get filepathtouri value
+     */
+    boolean filePathToUri = false;
+    i = 0;
+    while (i < spec.getChildCount()) {
+      SpecificationNode sn = spec.getChild(i++);
+      if (sn.getType().equals("filepathtouri")) {
+        filePathToUri = Boolean.valueOf(sn.getValue());
+      }
+    }
+
+    String[] rval = new String[documentIdentifiers.length];
+    i = 0;
     while (i < rval.length)
     {
       File file = new File(documentIdentifiers[i]);
@@ -249,7 +263,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // Get the file's modified date.
             long lastModified = file.lastModified();
             StringBuilder sb = new StringBuilder();
-            sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
+            sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString()).append(":").append(filePathToUri);
             rval[i] = sb.toString();
           }
           else
