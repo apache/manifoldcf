@@ -5738,11 +5738,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     ProcessActivityRedirectionHandler redirectHandler = new ProcessActivityRedirectionHandler(documentIdentifier,activities,filter);
     handleRedirects(documentIdentifier,redirectHandler);
+    if (Logging.connectors.isDebugEnabled() && redirectHandler.shouldIndex() == false)
+      Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of redirection");
     // For html, we don't want any actions, because we don't do form submission.
     ProcessActivityHTMLHandler htmlHandler = new ProcessActivityHTMLHandler(documentIdentifier,activities,filter);
     handleHTML(documentIdentifier,htmlHandler);
+    if (Logging.connectors.isDebugEnabled() && htmlHandler.shouldIndex() == false)
+      Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of HTML robots or content tags prohibiting indexing");
     ProcessActivityXMLHandler xmlHandler = new ProcessActivityXMLHandler(documentIdentifier,activities,filter);
     handleXML(documentIdentifier,xmlHandler);
+    if (Logging.connectors.isDebugEnabled() && xmlHandler.shouldIndex() == false)
+      Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of XML robots or content tags prohibiting indexing");
     // May add more later for other extraction tasks.
     return htmlHandler.shouldIndex() && redirectHandler.shouldIndex() && xmlHandler.shouldIndex();
   }
