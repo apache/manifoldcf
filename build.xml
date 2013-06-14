@@ -45,7 +45,7 @@
             <arg value="/c"/>
             <arg value="build.bat"/>
         </exec>
-        <exec osfamily="unix" dir="build/forrest/main" executable="build.sh" failifexecutionfails="true" failonerror="true">
+        <exec osfamily="unix" dir="build/forrest/main" executable="./build.sh" failifexecutionfails="true" failonerror="true">
         </exec>
     </target>
 
