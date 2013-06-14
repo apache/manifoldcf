@@ -4258,7 +4258,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String mimeType = versInfo.getMimeType();
         if (activities.checkMimeTypeIndexable(mimeType))
         {
-          Long dataSize = objInfo.getDataSize();
+          Long dataSize = versInfo.getDataSize();
           if (dataSize != null && activities.checkLengthIndexable(dataSize.longValue()))
           {
             String fileName = versInfo.getFileName();
@@ -5601,7 +5601,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       return getVersionValue() != null;
     }
-    
+
+    /** Get data size.
+    */
+    public Long getDataSize()
+      throws ServiceInterruption, ManifoldCFException
+    {
+      LLValue elem = getVersionValue();
+      if (elem == null)
+        return null;
+      return new Long(elem.toInteger("FILEDATASIZE"));
+    }
+
     /** Get file name.
     */
     public String getFileName()
@@ -5758,17 +5769,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       return "(Volume: "+volumeID+", Object: "+objectID+")";
     }
     
-    /** Get data size.
-    */
-    public Long getDataSize()
-      throws ServiceInterruption, ManifoldCFException
-    {
-      LLValue elem = getObjectValue();
-      if (elem == null)
-        return null;
-      return new Long(elem.toInteger("DATASIZE"));
-    }
-
     /**
     * Returns the object ID specified by the path name.
     * @param startPath is the folder name (a string with dots as separators)
