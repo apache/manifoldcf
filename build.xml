@@ -36,9 +36,11 @@
             <arg value="/c"/>
             <arg value="ant.bat"/>
             <arg value="${target}" />
+            <env key="FORREST_HOME" value="${env.FORREST_HOME}"/>  
         </exec>
         <exec osfamily="unix" dir="${root-dir}" executable="ant" failifexecutionfails="true" failonerror="true">
             <arg value="${target}" />
+            <env key="FORREST_HOME" value="${env.FORREST_HOME}"/>  
         </exec>
     </target>
 
