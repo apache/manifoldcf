@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-623: Use UTF-8 for encoding headers in SolrJ post.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-716: RepositoryDocument.addField() would go into an
 infinite loop if field value was null.
 (Piergiorgio Lucidi, Karl Wright)

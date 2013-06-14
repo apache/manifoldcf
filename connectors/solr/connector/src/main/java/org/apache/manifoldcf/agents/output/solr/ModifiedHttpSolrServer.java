@@ -66,7 +66,7 @@ import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.util.NamedList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.nio.charset.Charset;
 
 /** This class overrides and somewhat changes the behavior of the
 * SolrJ HttpSolrServer class.  The point of all this is simply to get
@@ -84,6 +84,21 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
   private static final String UTF_8 = "UTF-8";
   private static final String DEFAULT_PATH = "/select";
 
+  private static Charset UTF8_CHARSET;
+  static
+  {
+    try
+    {
+      UTF8_CHARSET = Charset.forName(UTF_8);
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(-100);
+      UTF8_CHARSET = null;
+    }
+  }
+  
   private final HttpClient httpClient;
   private boolean followRedirects = false;
   private int maxRetries = 0;
@@ -192,7 +207,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
               }
               
               if (parts.size() > 0) {
-                MultipartEntity entity = new MultipartEntity(HttpMultipartMode.STRICT);
+                MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, null, UTF8_CHARSET);
                 for(FormBodyPart p: parts) {
                   entity.addPart(p);
                 }
