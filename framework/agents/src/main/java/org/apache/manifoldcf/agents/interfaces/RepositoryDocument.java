@@ -343,7 +343,7 @@ public class RepositoryDocument
     throws ManifoldCFException
   {
     if (fieldData == null)
-      addField(fieldName,(String)null);
+      addField(fieldName,(String[])null);
     else
       addField(fieldName,new String[]{fieldData});
   }
