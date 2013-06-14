@@ -904,6 +904,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
           Logging.connectors.warn(
               "Alfresco: Error during the reading process of dates: "
                   + e.getMessage(), e);
+          handleParseException(e);
         } catch (IOException e) {
           Logging.connectors.warn(
               "Alfresco: IOException: "
@@ -938,7 +939,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       i++;
     }
   }
-  
+
   /** The short version of getDocumentVersions.
    * Get document versions given an array of document identifiers.
    * This method is called for EVERY document that is considered. It is
@@ -1009,6 +1010,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       long currentTime = System.currentTimeMillis();
       throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
-    }
+  }
+  
+  private void handleParseException(ParseException e) 
+      throws ManifoldCFException {
+    throw new ManifoldCFException(
+        "Alfresco: Error during parsing date values. This should never happen: "+e.getMessage(),e);
+  }
 
 }

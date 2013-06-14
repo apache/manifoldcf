@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-718: Alfresco Connector must throw exceptions with handler methods
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-713: Alfresco connector needs to deal with IOExceptions better
 (Piergiorgio Lucidi, Karl Wright)
 

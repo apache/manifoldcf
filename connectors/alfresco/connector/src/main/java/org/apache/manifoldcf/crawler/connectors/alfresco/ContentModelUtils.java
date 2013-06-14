@@ -18,7 +18,6 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
-import java.io.IOException;
 import java.rmi.RemoteException;
 
 import org.alfresco.webservice.repository.QueryResult;
@@ -30,6 +29,7 @@ import org.alfresco.webservice.types.ResultSetRow;
 import org.alfresco.webservice.util.AuthenticationDetails;
 import org.alfresco.webservice.util.AuthenticationUtils;
 import org.alfresco.webservice.util.WebServiceFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ContentModelUtils {
@@ -55,7 +55,7 @@ public class ContentModelUtils {
    * @param node
    * @return TRUE if the reference contains a node that is an Alfresco space, otherwise FALSE
    */
-  public static boolean isFolder(String endpoint, String username, String password, AuthenticationDetails session, Reference node) throws IOException {
+  public static boolean isFolder(String endpoint, String username, String password, AuthenticationDetails session, Reference node) throws ManifoldCFException {
     QueryResult queryResult = null;
     try {
       WebServiceFactory.setEndpointAddress(endpoint);
@@ -75,20 +75,32 @@ public class ContentModelUtils {
         }
       }
       AuthenticationUtils.endSession();
-      return false;
     } catch (RepositoryFault e) {
       Logging.connectors.warn(
           "Alfresco: Repository Error during the queryChildren: "
               + e.getMessage(), e);
-      throw new IOException("Alfresco: Repository Error during the queryChildren: "
-          + e.getMessage(), e);
+      ContentModelUtils.handleRepositoryFaultException(e);
     } catch (RemoteException e) {
       Logging.connectors.warn(
           "Alfresco: Remote Error during the queryChildren: "
               + e.getMessage(), e);
-      throw e;
+      ContentModelUtils.handleRemoteException(e);
     } finally {
       session = null;
     }
+    return false;
   }
+  
+  public static void handleRepositoryFaultException(RepositoryFault e) 
+      throws ManifoldCFException {
+    throw new ManifoldCFException(
+        "Alfresco: Error during getting children: "+e.getMessage(),e);
+  }
+  
+  public static void handleRemoteException(RemoteException e) 
+      throws ManifoldCFException {
+    throw new ManifoldCFException(
+        "Alfresco: Error during getting children: "+e.getMessage(),e);
+  }
+  
 }
