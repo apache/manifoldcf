@@ -31,16 +31,35 @@
         </exec>
     </target>
 
+    <target name="checkout-forrest">
+        <mkdir dir="build"/>
+        <antcall target="checkout-source-via-svn">
+            <param name="root-dir" value="build"/>
+            <param name="svn-url" value="http://svn.apache.org/repos/asf/forrest/trunk"/>
+            <param name="dir-name" value="forrest"/>
+        </antcall>
+    </target>
+
+    <target name="build-forrest" depends="checkout-forrest">
+        <exec osfamily="windows" dir="build/forrest/main" executable="cmd" failifexecutionfails="true" failonerror="true">
+            <arg value="/c"/>
+            <arg value="build.bat"/>
+        </exec>
+        <exec osfamily="unix" dir="build/forrest/main" executable="build.sh" failifexecutionfails="true" failonerror="true">
+        </exec>
+    </target>
+
     <target name="build-via-ant">
+        <property name="forrest.path" location="build/forrest"/>
         <exec osfamily="windows" dir="${root-dir}" executable="cmd" failifexecutionfails="true" failonerror="true">
             <arg value="/c"/>
             <arg value="ant.bat"/>
             <arg value="${target}" />
-            <env key="FORREST_HOME" value="${env.FORREST_HOME}"/>  
+            <env key="FORREST_HOME" value="${forrest.path}"/>  
         </exec>
         <exec osfamily="unix" dir="${root-dir}" executable="ant" failifexecutionfails="true" failonerror="true">
             <arg value="${target}" />
-            <env key="FORREST_HOME" value="${env.FORREST_HOME}"/>  
+            <env key="FORREST_HOME" value="${forrest.path}"/>  
         </exec>
     </target>
 
@@ -167,10 +186,11 @@
     </target>
 
 
-    <target name="get-forrest-root">
-        <property environment="env"/>
+    <target name="get-forrest-root" depends="build-forrest">
+        <!--property environment="env"/>
         <echo message="${env.FORREST_HOME}"/>
-        <property name="forrest-root" value="${env.FORREST_HOME}"/>
+        <property name="forrest-root" value="${env.FORREST_HOME}"/-->
+        <property name="forrest-root" value="build/forrest"/>
     </target>
     
     <target name="calculate-forrest-condition" depends="get-forrest-root">
