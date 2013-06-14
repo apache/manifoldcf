@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-713: Alfresco connector needs to deal with IOExceptions better
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-623: Use UTF-8 for encoding headers in SolrJ post.
 (Shinichiro Abe, Karl Wright)
 

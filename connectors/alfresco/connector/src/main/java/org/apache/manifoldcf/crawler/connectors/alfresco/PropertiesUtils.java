@@ -37,8 +37,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
  */
 public class PropertiesUtils {
 
-  private static final String PROP_CONTENT_PREFIX_1 = "contentUrl";
-  private static final String PROP_CONTENT_PREFIX_2 = "ContentData";
+  private static final String PROP_CONTENT_PREFIX = "contentUrl";
   private static final String PROP_CONTENT_SEP = "|";
   private static final String PROP_MIMETYPE_SEP = "=";
 
@@ -60,27 +59,49 @@ public class PropertiesUtils {
   
   public static void ingestProperties(RepositoryDocument rd, NamedValue[] properties, List<NamedValue> contentProperties) throws ManifoldCFException, ParseException{
     for(NamedValue property : properties){
-      if(property.getIsMultiValue()){
-        String[] values = property.getValues();
-        if(values!=null){
-          for (String value : values) {
-            rd.addField(property.getName(), value);
+      if(property!=null && StringUtils.isNotEmpty(property.getName())){
+        if(property.getIsMultiValue()){
+          String[] values = property.getValues();
+          if(values!=null){
+            for (String value : values) {
+              if(StringUtils.isNotEmpty(value)){
+                rd.addField(property.getName(), value);
+              }
+            }
+          }
+        } else {
+          if(StringUtils.isNotEmpty(property.getValue())){
+            rd.addField(property.getName(), property.getValue());
           }
         }
-      } else {
-        rd.addField(property.getName(), property.getValue());
       }
     }
     
-    String fileName = PropertiesUtils.getPropertyValues(properties, Constants.PROP_NAME)[0];
+    String fileName = StringUtils.EMPTY;
+    String[] propertyValues = PropertiesUtils.getPropertyValues(properties, Constants.PROP_NAME);
+    if(propertyValues!=null && propertyValues.length>0){
+      fileName = propertyValues[0];
+    }
+    
     String mimeType = PropertiesUtils.getMimeType(contentProperties);
     Date createdDate = PropertiesUtils.getDatePropertyValue(properties, Constants.PROP_CREATED);
     Date modifiedDate = PropertiesUtils.getDatePropertyValue(properties, PROP_MODIFIED);
-     
-    rd.setFileName(fileName);
-    rd.setMimeType(mimeType);
-    rd.setCreatedDate(createdDate);
-    rd.setModifiedDate(modifiedDate);
+    
+    if(StringUtils.isNotEmpty(fileName)){
+      rd.setFileName(fileName);
+    }
+    
+    if(StringUtils.isNotEmpty(mimeType)){
+      rd.setMimeType(mimeType);
+    }
+    
+    if(createdDate!=null){
+      rd.setCreatedDate(createdDate);
+    }
+    
+    if(modifiedDate!=null){
+      rd.setModifiedDate(modifiedDate);
+    }
   }
   
   /**
@@ -93,14 +114,10 @@ public class PropertiesUtils {
     if(properties!=null){
       for (NamedValue property : properties) {
         if(property!=null){
-          if(property.getIsMultiValue()!=null){
-            if(!property.getIsMultiValue()){
-              if(StringUtils.isNotEmpty(property.getValue())){
-                if(property.getValue().startsWith(PROP_CONTENT_PREFIX_1)
-                    || property.getValue().startsWith(PROP_CONTENT_PREFIX_2)){
-                    contentProperties.add(property);
-                }
-              }
+          if(property.getIsMultiValue()!=null && !property.getIsMultiValue()){
+            if(StringUtils.isNotEmpty(property.getValue()) 
+                && property.getValue().startsWith(PROP_CONTENT_PREFIX)){
+                  contentProperties.add(property);
             }
           }
         }
@@ -185,8 +202,17 @@ public class PropertiesUtils {
    * @throws ParseException 
    */
   public static Date getDatePropertyValue(NamedValue[] properties, String qname) throws ParseException{
-    String dateString = PropertiesUtils.getPropertyValues(properties, qname)[0];
-    return DateParser.parseISO8601Date(dateString);
+    Date date = null;
+    if(properties!=null && properties.length>0){
+      String[] propertyValues = PropertiesUtils.getPropertyValues(properties, qname);
+      if(propertyValues!=null && propertyValues.length>0){
+        String dateString = propertyValues[0];
+        if(StringUtils.isNotEmpty(dateString)){
+          date = DateParser.parseISO8601Date(dateString);
+        }
+      }
+    }
+    return date;
   }
   
 }

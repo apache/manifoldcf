@@ -79,6 +79,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   /** Endpoint context path of the Alfresco webapp */
   protected String path = null;
   
+  /** Endpoint with all the details */
+  protected String endpoint = null;
+  
   /** Alfresco Tenant domain */
   protected String tenantDomain = null;
   
@@ -164,7 +167,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public void disconnect() throws ManifoldCFException {
     if (session != null) {
-      AuthenticationUtils.endSession();
+      try {
+        AuthenticationUtils.endSession();
+      } catch (Exception e) {
+        Logging.connectors.error("Alfresco: error disconnect:"+e.getMessage(), e);
+        throw new ManifoldCFException("Alfresco: error disconnect:"+e.getMessage(), e);
+      }
       session = null;
       lastSessionFetch = -1L;
     }
@@ -175,6 +183,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     server = null;
     port = null;
     path = null;
+    endpoint = null;
     tenantDomain = null;
 
   }
@@ -194,6 +203,14 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     port = params.getParameter(AlfrescoConfig.PORT_PARAM);
     path = params.getParameter(AlfrescoConfig.PATH_PARAM);
     tenantDomain = params.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
+    
+    //endpoint
+    if(StringUtils.isNotEmpty(protocol)
+        && StringUtils.isNotEmpty(server)
+        && StringUtils.isNotEmpty(port)
+        && StringUtils.isNotEmpty(path)){
+      endpoint = protocol+"://"+server+":"+port+path;
+    }
     
     //tenant domain (optional parameter). Pattern: username@tenantDomain
     if(StringUtils.isNotEmpty(tenantDomain)){
@@ -250,29 +267,31 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         throw new ManifoldCFException("Parameter " + AlfrescoConfig.PATH_PARAM
             + " required but not set");
     
-      
-    String endpoint = protocol+"://"+server+":"+port+path;
-    WebServiceFactory.setEndpointAddress(endpoint);
+    endpoint = protocol+"://"+server+":"+port+path;
     try {
+    
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(120000);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
-    } catch (AuthenticationFault e) {
-      Logging.connectors.warn(
-          "Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint+". "
-              + e.getMessage(), e);
-      throw new ManifoldCFException("Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint+". "
-          + e.getMessage(), e);
-    } catch (WebServiceException e){
-      Logging.connectors.warn(
-          "Alfresco: Error during trying to authenticate the user. Username: "+username + ", endpoint: "+endpoint
-          +". Please check the connector parameters. " 
-          + e.getMessage(), e);
-      throw new ManifoldCFException("Alfresco: Error during trying to authenticate the user. Username: "+username + ", endpoint: "+endpoint
-          +". Please check the connector parameters. "
-          + e.getMessage(), e);
-    }
+      
+    }catch (AuthenticationFault e) {
+        Logging.connectors.warn(
+            "Alfresco: Error during authentication. Username: "+username + ", endpoint: "+endpoint+". "
+                + e.getMessage(), e);
+        handleIOException(e);
+      } catch (WebServiceException e){
+        Logging.connectors.warn(
+            "Alfresco: Error during trying to authenticate the user. Username: "+username + ", endpoint: "+endpoint
+            +". Please check the connector parameters. " 
+            + e.getMessage(), e);
+        throw new ManifoldCFException("Alfresco: Error during trying to authenticate the user. Username: "+username + ", endpoint: "+endpoint
+            +". Please check the connector parameters. "
+            + e.getMessage(), e);
+      }
     
     lastSessionFetch = System.currentTimeMillis();
+    
     }
   }
 
@@ -285,7 +304,13 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
-        AuthenticationUtils.endSession();
+        try {
+          AuthenticationUtils.endSession();
+        } catch (Exception e) {
+          Logging.connectors.error(
+              "Alfresco: Error during releasing the connection.");
+          throw new ManifoldCFException( "Alfresco: Error during releasing the connection.");
+        }
         session = null;
         lastSessionFetch = -1L;
     }
@@ -294,16 +319,22 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   protected void checkConnection() throws ManifoldCFException,
       ServiceInterruption {
     while (true) {
-      getSession();
-      String ticket = AuthenticationUtils.getTicket();
-      if(StringUtils.isEmpty(ticket)){
-        Logging.connectors.error(
-            "Alfresco: Error during checking the connection.");
-        throw new ManifoldCFException( "Alfresco: Error during checking the connection.");
-      }
-      AuthenticationUtils.endSession();
-      session=null;
-      return;
+      try {
+          getSession();
+          String ticket = AuthenticationUtils.getTicket();
+          if(StringUtils.isEmpty(ticket)){
+            Logging.connectors.error(
+                "Alfresco: Error during checking the connection.");
+            throw new ManifoldCFException( "Alfresco: Error during checking the connection.");
+          }
+          AuthenticationUtils.endSession();
+        } catch (Exception e) {
+          Logging.connectors.error(
+              "Alfresco: Error during checking the connection.");
+          throw new ManifoldCFException( "Alfresco: Error during checking the connection.");
+        }
+        session=null;
+        return;
     }
   }
 
@@ -372,25 +403,30 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       }
       i++;
     }
-
-    QueryResult queryResult = null;
-    if (StringUtils.isEmpty(luceneQuery)) {
-      // get documents from the root of the Alfresco Repository
-      queryResult = SearchUtils.getChildrenFromCompanyHome(username, password, session);
-    } else {
-      // execute a Lucene query against the repository
-      queryResult = SearchUtils.luceneSearch(username, password, session, luceneQuery);
-    }
-
-    if(queryResult!=null){
-      ResultSet resultSet = queryResult.getResultSet();
-      ResultSetRow[] resultSetRows = resultSet.getRows();
-      for (ResultSetRow resultSetRow : resultSetRows) {
-          NamedValue[] properties = resultSetRow.getColumns();
-          String nodeReference = PropertiesUtils.getNodeReference(properties);
-          activities.addSeedDocument(nodeReference);
-        }
+    
+    try{
+      QueryResult queryResult = null;
+      if (StringUtils.isEmpty(luceneQuery)) {
+        // get documents from the root of the Alfresco Repository
+        queryResult = SearchUtils.getChildrenFromCompanyHome(endpoint, username, password, session);
+      } else {
+        // execute a Lucene query against the repository
+        queryResult = SearchUtils.luceneSearch(endpoint, username, password, session, luceneQuery);
       }
+  
+      if(queryResult!=null){
+        ResultSet resultSet = queryResult.getResultSet();
+        ResultSetRow[] resultSetRows = resultSet.getRows();
+        for (ResultSetRow resultSetRow : resultSetRows) {
+            NamedValue[] properties = resultSetRow.getColumns();
+            String nodeReference = PropertiesUtils.getNodeReference(properties);
+            activities.addSeedDocument(nodeReference);
+          }
+      }
+    } catch(IOException e){
+      Logging.connectors.warn("Alfresco: IOException: " + e.getMessage(), e);
+      handleIOException(e);
+    }
   }
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
@@ -460,7 +496,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     
     String tenantDomain = parameters.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
     if (tenantDomain == null)
-      tenantDomain = "";
+      tenantDomain = StringUtils.EMPTY;
     paramMap.put(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
   }
 
@@ -782,7 +818,15 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       predicate.setNodes(new Reference[] { reference });
 
       // getting properties
-      Node resultNode = NodeUtils.get(username, password, session, predicate);
+      Node resultNode = null;
+      try {
+        resultNode = NodeUtils.get(endpoint, username, password, session, predicate);
+      } catch (IOException e) {
+        Logging.connectors.warn(
+            "Alfresco: IOException closing file input stream: "
+                + e.getMessage(), e);
+        handleIOException(e);
+      }
       
       String errorCode = "OK";
       String errorDesc = StringUtils.EMPTY;
@@ -790,20 +834,29 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       NamedValue[] properties = resultNode.getProperties();
       boolean isDocument = ContentModelUtils.isDocument(properties);
       
-      boolean isFolder = ContentModelUtils.isFolder(username, password, session, reference);
-      
-      //a generic node in Alfresco could have child-associations
-      if (isFolder) {
-        // ingest all the children of the folder
-        QueryResult queryResult = SearchUtils.getChildren(username, password, session, reference);
-        ResultSet resultSet = queryResult.getResultSet();
-        ResultSetRow[] resultSetRows = resultSet.getRows();
-        for (ResultSetRow resultSetRow : resultSetRows) {
-          NamedValue[] childProperties = resultSetRow.getColumns();
-          String childNodeReference = PropertiesUtils.getNodeReference(childProperties);
-          activities.addDocumentReference(childNodeReference, nodeReference, RELATIONSHIP_CHILD);
-        }
-      } 
+      try{    
+        
+        boolean isFolder = ContentModelUtils.isFolder(endpoint, username, password, session, reference);
+        
+        //a generic node in Alfresco could have child-associations
+        if (isFolder) {
+            // ingest all the children of the folder
+            QueryResult queryResult = SearchUtils.getChildren(endpoint, username, password, session, reference);
+            ResultSet resultSet = queryResult.getResultSet();
+            ResultSetRow[] resultSetRows = resultSet.getRows();
+            for (ResultSetRow resultSetRow : resultSetRows) {
+              NamedValue[] childProperties = resultSetRow.getColumns();
+              String childNodeReference = PropertiesUtils.getNodeReference(childProperties);
+              activities.addDocumentReference(childNodeReference, nodeReference, RELATIONSHIP_CHILD);
+            }
+        } 
+
+      }catch(IOException e){
+        Logging.connectors.warn(
+            "Alfresco: IOException closing file input stream: "
+                + e.getMessage(), e);
+        handleIOException(e);
+      }
       
       //a generic node in Alfresco could also have binaries content
       if (isDocument) {
@@ -819,9 +872,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
           // binaries ingestion - in Alfresco we could have more than one binary for each node (custom content models)
           for (NamedValue contentProperty : contentProperties) {
             //we are ingesting all the binaries defined as d:content property in the Alfresco content model
-            Content binary = ContentReader.read(username, password, session, predicate, contentProperty.getName());
+            Content binary = ContentReader.read(endpoint, username, password, session, predicate, contentProperty.getName());
             fileLength = binary.getLength();
-            is = ContentReader.getBinary(binary, username, password, session);
+            is = ContentReader.getBinary(endpoint, binary, username, password, session);
             rd.setBinary(is, fileLength);
             
             //id is the node reference only if the node has an unique content stream
@@ -843,12 +896,19 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             activities.ingestDocument(id, version, documentURI, rd);
           }
           
+          AuthenticationUtils.endSession();
+          
         } catch (ParseException e) {
           errorCode = "IO ERROR";
           errorDesc = e.getMessage();
           Logging.connectors.warn(
               "Alfresco: Error during the reading process of dates: "
                   + e.getMessage(), e);
+        } catch (IOException e) {
+          Logging.connectors.warn(
+              "Alfresco: IOException: "
+                  + e.getMessage(), e);
+          handleIOException(e);
         } finally {
           try {
             if(is!=null){
@@ -865,9 +925,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             Logging.connectors.warn(
                 "Alfresco: IOException closing file input stream: "
                     + e.getMessage(), e);
+            handleIOException(e);
           }
-          
-          AuthenticationUtils.endSession();
+                    
           session = null;
           
           activities.recordActivity(new Long(startTime), ACTIVITY_READ,
@@ -909,7 +969,16 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       predicate.setStore(SearchUtils.STORE);
       predicate.setNodes(new Reference[]{reference});
       
-      Node node = NodeUtils.get(username, password, session, predicate);
+      Node node = null;
+      try {
+        node = NodeUtils.get(endpoint, username, password, session, predicate);
+      } catch (IOException e) {
+        Logging.connectors.warn(
+            "Alfresco: IOException closing file input stream: "
+                + e.getMessage(), e);
+        handleIOException(e);
+      }
+      
       if(node.getProperties()!=null){
         NamedValue[] properties = node.getProperties();
         boolean isDocument = ContentModelUtils.isDocument(properties);
@@ -930,5 +999,16 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     }
     return rval;
   }
+  
+  private static void handleIOException(IOException e)
+      throws ManifoldCFException, ServiceInterruption {
+      if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+          ManifoldCFException.INTERRUPTED);
+      }
+      long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L,
+        currentTime + 3 * 60 * 60000L,-1,false);
+    }
 
 }

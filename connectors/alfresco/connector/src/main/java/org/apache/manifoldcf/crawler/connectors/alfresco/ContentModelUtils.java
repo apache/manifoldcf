@@ -18,6 +18,7 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfresco;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 
 import org.alfresco.webservice.repository.QueryResult;
@@ -54,37 +55,40 @@ public class ContentModelUtils {
    * @param node
    * @return TRUE if the reference contains a node that is an Alfresco space, otherwise FALSE
    */
-  public static boolean isFolder(String username, String password, AuthenticationDetails session, Reference node){
+  public static boolean isFolder(String endpoint, String username, String password, AuthenticationDetails session, Reference node) throws IOException {
     QueryResult queryResult = null;
     try {
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(120000);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       queryResult = WebServiceFactory.getRepositoryService().queryChildren(node);
+      if(queryResult!=null){
+        ResultSet rs = queryResult.getResultSet();
+        if(rs!=null){
+          ResultSetRow[] rows = rs.getRows();
+          if(rows!=null){
+            if(rows.length>0){
+              return true;
+            }
+          }
+        }
+      }
+      AuthenticationUtils.endSession();
+      return false;
     } catch (RepositoryFault e) {
       Logging.connectors.warn(
           "Alfresco: Repository Error during the queryChildren: "
               + e.getMessage(), e);
+      throw new IOException("Alfresco: Repository Error during the queryChildren: "
+          + e.getMessage(), e);
     } catch (RemoteException e) {
       Logging.connectors.warn(
           "Alfresco: Remote Error during the queryChildren: "
               + e.getMessage(), e);
+      throw e;
     } finally {
-      AuthenticationUtils.endSession();
       session = null;
     }
-    
-    if(queryResult!=null){
-      ResultSet rs = queryResult.getResultSet();
-      if(rs!=null){
-        ResultSetRow[] rows = rs.getRows();
-        if(rows!=null){
-          if(rows.length>0){
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
-  
 }
