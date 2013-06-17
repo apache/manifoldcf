@@ -41,7 +41,6 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -207,7 +206,7 @@ public class ModifiedHttpSolrServer extends HttpSolrServer
               }
               
               if (parts.size() > 0) {
-                MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, null, UTF8_CHARSET);
+                ModifiedMultipartEntity entity = new ModifiedMultipartEntity(HttpMultipartMode.STRICT, null, UTF8_CHARSET);
                 for(FormBodyPart p: parts) {
                   entity.addPart(p);
                 }
