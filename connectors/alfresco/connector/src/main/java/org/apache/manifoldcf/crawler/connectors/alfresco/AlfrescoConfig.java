@@ -51,6 +51,9 @@ public class AlfrescoConfig {
   /** Separator for the username field dedicated to the tenant domain */
   public static final String TENANT_DOMAIN_SEP = "@";
   
+  /** Socket Timeout parameter for the Alfresco Web Service Client */
+  public static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+  
   //default values
   public static final String USERNAME_DEFAULT_VALUE = "admin";
   public static final String PASSWORD_DEFAULT_VALUE = "admin";
@@ -58,5 +61,6 @@ public class AlfrescoConfig {
   public static final String SERVER_DEFAULT_VALUE = "localhost";
   public static final String PORT_DEFAULT_VALUE = "8080";
   public static final String PATH_DEFAULT_VALUE = "/alfresco/api";
+  public static final int SOCKET_TIMEOUT_DEFAULT_VALUE = 120000;
   
 }

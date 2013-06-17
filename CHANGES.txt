@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-717: Alfresco Connector needs a new parameter for the Socket Timeout
+(Piergiorgio Lucidi)
+
 CONNECTORS-714: All LiveLink connector to use LAPI for document fetches.
 (David Morana, Karl Wright)
 

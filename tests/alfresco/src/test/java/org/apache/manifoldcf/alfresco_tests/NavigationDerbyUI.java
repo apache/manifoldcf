@@ -122,6 +122,8 @@ public class NavigationDerbyUI extends BaseUIDerby
     textarea.setValue(testerInstance.createStringDescription("9090"));
     textarea = form.findTextarea(testerInstance.createStringDescription("path"));
     textarea.setValue(testerInstance.createStringDescription("/alfresco/api"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("socketTimeout"));
+    textarea.setValue(testerInstance.createStringDescription("120000"));
     // Go back to the Name tab
     link = window.findLink(testerInstance.createStringDescription("Name tab"));
     link.click();

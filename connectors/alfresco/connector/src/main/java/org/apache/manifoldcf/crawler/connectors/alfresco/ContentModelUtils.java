@@ -55,11 +55,11 @@ public class ContentModelUtils {
    * @param node
    * @return TRUE if the reference contains a node that is an Alfresco space, otherwise FALSE
    */
-  public static boolean isFolder(String endpoint, String username, String password, AuthenticationDetails session, Reference node) throws ManifoldCFException {
+  public static boolean isFolder(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Reference node) throws ManifoldCFException {
     QueryResult queryResult = null;
     try {
       WebServiceFactory.setEndpointAddress(endpoint);
-      WebServiceFactory.setTimeoutMilliseconds(120000);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       queryResult = WebServiceFactory.getRepositoryService().queryChildren(node);

@@ -55,12 +55,12 @@ public class SearchUtils {
     "{http://www.alfresco.org/model/site/1.0}sites"};
   
 
-  public static QueryResult luceneSearch(String endpoint, String username, String password, AuthenticationDetails session, String luceneQuery) throws IOException {
+  public static QueryResult luceneSearch(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, String luceneQuery) throws IOException {
     QueryResult queryResult = null;
     Query query = new Query(Constants.QUERY_LANG_LUCENE, luceneQuery);
     try {
       WebServiceFactory.setEndpointAddress(endpoint);
-      WebServiceFactory.setTimeoutMilliseconds(120000);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       queryResult = WebServiceFactory.getRepositoryService().query(STORE, query, false);
@@ -82,11 +82,11 @@ public class SearchUtils {
     return queryResult;
   }
   
-  public static QueryResult getChildren(String endpoint, String username, String password, AuthenticationDetails session, Reference reference) throws IOException {
+  public static QueryResult getChildren(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Reference reference) throws IOException {
     QueryResult queryResult = null;
     try {
       WebServiceFactory.setEndpointAddress(endpoint);
-      WebServiceFactory.setTimeoutMilliseconds(120000);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();  
       queryResult = WebServiceFactory.getRepositoryService().queryChildren(reference);
@@ -117,9 +117,9 @@ public class SearchUtils {
    * @param session
    * @return filtered children of the Company Home without all the special spaces
    */
-  public static QueryResult getChildrenFromCompanyHome(String endpoint, String username, String password, AuthenticationDetails session) throws IOException {
+  public static QueryResult getChildrenFromCompanyHome(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session) throws IOException {
     Reference companyHome = new Reference(STORE, null, XPATH_COMPANY_HOME);
-    QueryResult queryResult = SearchUtils.getChildren(endpoint, username,password,session,companyHome);
+    QueryResult queryResult = SearchUtils.getChildren(endpoint, username, password, socketTimeout, session, companyHome);
     ResultSet rs = queryResult.getResultSet();
     ResultSetRow[] rows = rs.getRows();
     List<ResultSetRow> filteredRows = new ArrayList<ResultSetRow>();

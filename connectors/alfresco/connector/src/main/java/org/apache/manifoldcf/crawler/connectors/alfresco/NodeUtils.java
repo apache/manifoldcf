@@ -51,11 +51,11 @@ public class NodeUtils {
    * @param predicate
    * @return the Node object instance of the current content
    */
-  public static Node get(String endpoint, String username, String password, AuthenticationDetails session, Predicate predicate) throws IOException {
+  public static Node get(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Predicate predicate) throws IOException {
     Node[] resultNodes = null;
     try {
       WebServiceFactory.setEndpointAddress(endpoint);
-      WebServiceFactory.setTimeoutMilliseconds(120000);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       resultNodes = WebServiceFactory.getRepositoryService().get(predicate);

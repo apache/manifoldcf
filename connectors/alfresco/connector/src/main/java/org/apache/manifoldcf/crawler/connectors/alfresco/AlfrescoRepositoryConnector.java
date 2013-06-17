@@ -85,6 +85,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   /** Alfresco Tenant domain */
   protected String tenantDomain = null;
   
+  /** Socket Timeout for the Alfresco Web Service Client */
+  protected int socketTimeout = -1;
+  
   protected AuthenticationDetails session = null;
 
   protected static final long timeToRelease = 300000L;
@@ -93,6 +96,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
   protected static final String RELATIONSHIP_CHILD = "child";
 
   // Tabs
+  
+  /** Tab name parameter for managin the view of the Web UI */
+  private static final String TAB_NAME_PARAM = "TabName";
   
   /** The Lucene Query label for the configuration tab of the job settings */
   private static final String TAB_LABEL_LUCENE_QUERY_RESOURCE = "AlfrescoConnector.LuceneQuery";
@@ -185,6 +191,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     path = null;
     endpoint = null;
     tenantDomain = null;
+    socketTimeout = AlfrescoConfig.SOCKET_TIMEOUT_DEFAULT_VALUE;
 
   }
 
@@ -204,6 +211,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     path = params.getParameter(AlfrescoConfig.PATH_PARAM);
     tenantDomain = params.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
     
+    if(params.getParameter(AlfrescoConfig.SOCKET_TIMEOUT_PARAM)!=null){
+      socketTimeout = Integer.parseInt(params.getParameter(AlfrescoConfig.SOCKET_TIMEOUT_PARAM));
+    } else {
+      socketTimeout = AlfrescoConfig.SOCKET_TIMEOUT_DEFAULT_VALUE;
+    }
+    
     //endpoint
     if(StringUtils.isNotEmpty(protocol)
         && StringUtils.isNotEmpty(server)
@@ -216,6 +229,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     if(StringUtils.isNotEmpty(tenantDomain)){
       username += AlfrescoConfig.TENANT_DOMAIN_SEP + tenantDomain;
     }
+    
   }
 
   /** Test the connection.  Returns a string describing the connection integrity.
@@ -271,7 +285,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     try {
     
       WebServiceFactory.setEndpointAddress(endpoint);
-      WebServiceFactory.setTimeoutMilliseconds(120000);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       
@@ -408,10 +422,10 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       QueryResult queryResult = null;
       if (StringUtils.isEmpty(luceneQuery)) {
         // get documents from the root of the Alfresco Repository
-        queryResult = SearchUtils.getChildrenFromCompanyHome(endpoint, username, password, session);
+        queryResult = SearchUtils.getChildrenFromCompanyHome(endpoint, username, password, socketTimeout, session);
       } else {
         // execute a Lucene query against the repository
-        queryResult = SearchUtils.luceneSearch(endpoint, username, password, session, luceneQuery);
+        queryResult = SearchUtils.luceneSearch(endpoint, username, password, socketTimeout, session, luceneQuery);
       }
   
       if(queryResult!=null){
@@ -498,6 +512,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     if (tenantDomain == null)
       tenantDomain = StringUtils.EMPTY;
     paramMap.put(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
+    
+    String socketTimeout = parameters.getParameter(AlfrescoConfig.SOCKET_TIMEOUT_PARAM);
+    if (socketTimeout == null)
+      socketTimeout = String.valueOf(AlfrescoConfig.SOCKET_TIMEOUT_DEFAULT_VALUE);
+    paramMap.put(AlfrescoConfig.SOCKET_TIMEOUT_PARAM, socketTimeout);
+    
   }
 
   /**
@@ -577,7 +597,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     
     // Do the Server tab
     Map<String,String> paramMap = new HashMap<String,String>();
-    paramMap.put("TabName", tabName);
+    paramMap.put(TAB_NAME_PARAM, tabName);
     fillInServerParameters(paramMap, parameters);
     outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);  
   }
@@ -639,6 +659,11 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     String tenantDomain = variableContext.getParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM);
     if (tenantDomain != null){
       parameters.setParameter(AlfrescoConfig.TENANT_DOMAIN_PARAM, tenantDomain);
+    }
+    
+    String socketTimeout = variableContext.getParameter(AlfrescoConfig.SOCKET_TIMEOUT_PARAM);
+    if (socketTimeout != null){
+      parameters.setParameter(AlfrescoConfig.SOCKET_TIMEOUT_PARAM, socketTimeout);
     }
     
     return null;
@@ -743,7 +768,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         
     // LuceneQuery tab
     Map<String,String> paramMap = new HashMap<String,String>();
-    paramMap.put("TabName", tabName);
+    paramMap.put(TAB_NAME_PARAM, tabName);
     fillInLuceneQueryParameters(paramMap, ds);
     outputResource(EDIT_SPEC_FORWARD_LUCENEQUERY, out, locale, paramMap);
   }
@@ -820,7 +845,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       // getting properties
       Node resultNode = null;
       try {
-        resultNode = NodeUtils.get(endpoint, username, password, session, predicate);
+        resultNode = NodeUtils.get(endpoint, username, password, socketTimeout, session, predicate);
       } catch (IOException e) {
         Logging.connectors.warn(
             "Alfresco: IOException closing file input stream: "
@@ -836,12 +861,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       
       try{    
         
-        boolean isFolder = ContentModelUtils.isFolder(endpoint, username, password, session, reference);
+        boolean isFolder = ContentModelUtils.isFolder(endpoint, username, password, socketTimeout, session, reference);
         
         //a generic node in Alfresco could have child-associations
         if (isFolder) {
             // ingest all the children of the folder
-            QueryResult queryResult = SearchUtils.getChildren(endpoint, username, password, session, reference);
+            QueryResult queryResult = SearchUtils.getChildren(endpoint, username, password, socketTimeout, session, reference);
             ResultSet resultSet = queryResult.getResultSet();
             ResultSetRow[] resultSetRows = resultSet.getRows();
             for (ResultSetRow resultSetRow : resultSetRows) {
@@ -872,9 +897,9 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
           // binaries ingestion - in Alfresco we could have more than one binary for each node (custom content models)
           for (NamedValue contentProperty : contentProperties) {
             //we are ingesting all the binaries defined as d:content property in the Alfresco content model
-            Content binary = ContentReader.read(endpoint, username, password, session, predicate, contentProperty.getName());
+            Content binary = ContentReader.read(endpoint, username, password, socketTimeout, session, predicate, contentProperty.getName());
             fileLength = binary.getLength();
-            is = ContentReader.getBinary(endpoint, binary, username, password, session);
+            is = ContentReader.getBinary(endpoint, binary, username, password, socketTimeout, session);
             rd.setBinary(is, fileLength);
             
             //id is the node reference only if the node has an unique content stream
@@ -972,7 +997,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
       
       Node node = null;
       try {
-        node = NodeUtils.get(endpoint, username, password, session, predicate);
+        node = NodeUtils.get(endpoint, username, password, socketTimeout, session, predicate);
       } catch (IOException e) {
         Logging.connectors.warn(
             "Alfresco: IOException closing file input stream: "
