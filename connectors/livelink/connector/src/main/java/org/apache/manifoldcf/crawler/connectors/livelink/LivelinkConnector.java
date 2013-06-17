@@ -4373,7 +4373,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               }
             }
 
-            if (viewProtocol != null)
+            if (ingestProtocol != null)
             {
               // Use HTTP to fetch document!
               String ingestHttpAddress = convertToIngestURI(documentIdentifier);
