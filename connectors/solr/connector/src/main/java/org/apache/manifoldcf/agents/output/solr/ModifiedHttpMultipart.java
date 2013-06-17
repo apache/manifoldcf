@@ -190,7 +190,7 @@ public class ModifiedHttpMultipart {
             switch (mode) {
             case STRICT:
                 for (MinimalField field: header) {
-                    writeField(field, out);
+                    writeField(field, this.charset, out);
                 }
                 break;
             case BROWSER_COMPATIBLE:
