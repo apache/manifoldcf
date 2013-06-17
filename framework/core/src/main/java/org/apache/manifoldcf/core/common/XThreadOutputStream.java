@@ -33,7 +33,17 @@ public class XThreadOutputStream extends OutputStream {
   public XThreadOutputStream(XThreadInputStream inputStream) {
     this.inputStream = inputStream;
   }
-    
+  
+  @Override
+  public void write(byte[] buffer)
+    throws IOException {
+    try {
+      inputStream.stuffQueue(buffer,0,buffer.length);
+    } catch (InterruptedException e) {
+      throw new InterruptedIOException(e.getMessage());
+    }
+  }
+
   @Override
   public void write(int c)
     throws IOException {
