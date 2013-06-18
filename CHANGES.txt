@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-722: Fix hang during seeding in DropBox connector and
+GoogleDrive connector.
+(Andrew Janowczyk, Karl Wright)
+
 CONNECTORS-721: Fix a refactoring error in DropBox connector.
 (Andrew Janowczyk)
 

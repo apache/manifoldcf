@@ -791,6 +791,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     public void run() {
       try {
         session.getSeeds(seedBuffer,path,25000); //upper limit on files to get supported by dropbox api in a single directory
+        seedBuffer.signalDone();
       } catch (Throwable e) {
         this.exception = e;
       }
