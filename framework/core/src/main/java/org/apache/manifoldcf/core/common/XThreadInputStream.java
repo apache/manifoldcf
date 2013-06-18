@@ -90,7 +90,6 @@ public class XThreadInputStream extends InputStream
         amt = maxToRead;
       else
         amt = amount;
-      //??? make sure this is source -> target
       System.arraycopy(byteBuffer,offset,buffer,readStartPoint,amt);
       offset += amt;
       amount -= amt;
