@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-715: Add sufficient logging to the Web Connector so that
+people can diagnose their own "why didn't it index" questions.
+(TC Tobin-Campbell, Karl Wright)
+
 CONNECTORS-717: Alfresco Connector needs a new parameter for the Socket Timeout
 (Piergiorgio Lucidi)
 
