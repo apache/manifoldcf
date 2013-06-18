@@ -42,9 +42,6 @@ public class DropboxConfig {
   public static final String APP_SECRET_PARAM = "app_secret";
 
   
-  /** Path of the context of the CMIS AtomPub api */
-  public static final String PATH_PARAM = "path";
-  
   /** CMIS Repository Id */
   public static final String REPOSITORY_ID_PARAM = "repositoryId";
   

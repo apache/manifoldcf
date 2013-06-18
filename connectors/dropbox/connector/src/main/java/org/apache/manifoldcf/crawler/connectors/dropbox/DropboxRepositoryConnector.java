@@ -730,7 +730,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     while (i < spec.getChildCount()) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-        dropboxPath = sn.getAttributeValue(DropboxConfig.DROPBOX_PATH_PARAM);
+        dropboxPath = sn.getAttributeValue(JOB_PATH_ATTRIBUTE);
         break;
       }
       i++;
