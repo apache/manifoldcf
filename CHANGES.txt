@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-725: Update to SolrJ 4.3.1.
+(Karl Wright)
+
 CONNECTORS-722: Fix hang during seeding in DropBox connector and
 GoogleDrive connector.
 (Andrew Janowczyk, Karl Wright)
