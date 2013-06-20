@@ -49,8 +49,9 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import java.util.Map.Entry;
-import java.security.GeneralSecurityException;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
+
 /**
  *
  * @author andrew
