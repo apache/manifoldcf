@@ -17,22 +17,41 @@
  */
 package org.apache.manifoldcf.crawler.connectors.jira;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import org.apache.manifoldcf.core.common.*;
 
-import java.util.Map;
-import org.apache.commons.codec.binary.Base64;
+import java.io.Reader;
+import java.io.Writer;
+import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+
+import java.util.Map;
 import java.util.HashMap;
 
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -44,52 +63,129 @@ import org.json.simple.JSONArray;
  */
 public class JiraSession {
 
-  private static String APPNAME = "ManifoldCF Jira Connector";
-  private String URLbase;
-  private String authEnc;
-  private static String apiPost = "/rest/api/2/";
+  private final String URLbase;
+  private final String clientId;
+  private final String clientSecret;
+  
+  private ClientConnectionManager connectionManager;
+  private HttpClient httpClient;
+  
+  private final static String apiPost = "/rest/api/2/";
 
   /**
    * Constructor. Create a session.
    */
   public JiraSession(String clientId, String clientSecret, String URLbase) {
-    if ("".equals(clientId) && "".equals(clientSecret)) {
-      authEnc = "";
-    } else {
-      String authString = clientId + ":" + clientSecret;
-      authEnc = Base64.encodeBase64String(authString.getBytes());
-    }
     this.URLbase = URLbase;
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+
+    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+    localConnectionManager.setMaxTotal(1);
+    connectionManager = localConnectionManager;
+
+    BasicHttpParams params = new BasicHttpParams();
+    params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+    params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+    params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
+    params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+    params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+    DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+    // No retries
+    localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+        public boolean retryRequest(
+          IOException exception,
+          int executionCount,
+          HttpContext context)
+        {
+          return false;
+        }
+       
+      });
+    localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+    if (clientId != null)
+    {
+      localHttpClient.getCredentialsProvider().setCredentials(
+        AuthScope.ANY,
+        new UsernamePasswordCredentials(clientId,clientSecret));
+    }
+
+    httpClient = localHttpClient;
   }
 
   /**
    * Close session.
    */
   public void close() {
-    // MHL - figure out what is needed
+    httpClient = null;
+    if (connectionManager != null)
+      connectionManager.shutdown();
+    connectionManager = null;
+  }
+
+  private static JSONObject convertToJSON(HttpResponse httpResponse)
+    throws IOException {
+    HttpEntity entity = httpResponse.getEntity();
+    if (entity != null) {
+      InputStream is = entity.getContent();
+      try {
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        Reader r = new InputStreamReader(is,charSet);
+        return (JSONObject)JSONValue.parse(r);
+      } finally {
+        is.close();
+      }
+    }
+    return null;
+  }
+
+  private static String convertToString(HttpResponse httpResponse)
+    throws IOException {
+    HttpEntity entity = httpResponse.getEntity();
+    if (entity != null) {
+      InputStream is = entity.getContent();
+      try {
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        char[] buffer = new char[65536];
+        Reader r = new InputStreamReader(is,charSet);
+        Writer w = new StringWriter();
+        try {
+          while (true) {
+            int amt = r.read(buffer);
+            if (amt == -1)
+              break;
+            w.write(buffer,0,amt);
+          }
+        } finally {
+          w.flush();
+        }
+        return w.toString();
+      } finally {
+        is.close();
+      }
+    }
+    return "";
   }
 
   private JSONObject getRest(String rightside) throws IOException {
-    // This should use HttpComponents HttpClient instead; the java implementation is
-    // hopelessly primitive.  Also, the encoding is not dealt with properly
-    // MHL
-    URL url = new URL(URLbase + apiPost + rightside);
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("GET");
-    conn.setRequestProperty("Accept", "application/json");
 
-    if (authEnc.length() > 0) {
-      conn.setRequestProperty("Authorization", "Basic " + authEnc);
-    }
+    final HttpRequestBase method = new HttpGet(URLbase + apiPost + rightside);
+    method.addHeader("Accept", "application/json");
 
-    if (conn.getResponseCode() != 200) {
-      throw new RuntimeException("Failed : HTTP error code : "
-          + conn.getResponseCode());
+    try {
+      HttpResponse httpResponse = httpClient.execute(method);
+      int resultCode = httpResponse.getStatusLine().getStatusCode();
+      if (resultCode != 200)
+        throw new IOException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));
+      return convertToJSON(httpResponse);
+    } finally {
+      method.abort();
     }
-    BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-    Object obj = JSONValue.parse(br);
-    JSONObject jsonobj = (JSONObject) obj;
-    return jsonobj;
   }
 
   /**
