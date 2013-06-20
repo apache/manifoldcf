@@ -70,6 +70,9 @@ public class JiraSession {
   }
 
   private JSONObject getRest(String rightside) throws IOException {
+    // This should use HttpComponents HttpClient instead; the java implementation is
+    // hopelessly primitive.  Also, the encoding is not dealt with properly
+    // MHL
     URL url = new URL(URLbase + apiPost + rightside);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
@@ -127,46 +130,5 @@ public class JiraSession {
     return getRest("issue/" + id);
   }
 
-  static public HashMap<String, String> addMetaDataToMap(String parent, JSONObject cval, HashMap<String, String> currentMap) {
-    String append="";
-    if (parent.length() > 0) {
-      append=parent+"_";
-    }
-    for (Object key : cval.keySet()) {
-      Object value = cval.get(key);
-      if (value == null) {
-        continue;
-      }
-      //System.out.println(key);
-      if (JSONObject.class.isInstance(value)) {
-        currentMap = addMetaDataToMap(append + key, (JSONObject) value, currentMap);
-      } else if (JSONArray.class.isInstance(value)) {
-        for (Object subpiece : (JSONArray) (value)) {
-          if (String.class.isInstance(subpiece)) {
-            currentMap.put(append + key, subpiece.toString());
-          } else {
-            currentMap = addMetaDataToMap(append + key, (JSONObject) subpiece, currentMap);
-          }
-        }
-      } else {
-          currentMap.put(append+key + "", value.toString());
-      }
-    }
-    return currentMap;
-  }
 
-  public InputStream getJiraInputStream(JSONObject jiraFile) {
-    return new ByteArrayInputStream(getJiraBody(jiraFile).getBytes());
-  }
-  
-  static public String getJiraBody(JSONObject jiraFile){
-    String body;
-    Object possibleBody = ((JSONObject) jiraFile.get("fields")).get("description");
-    if (possibleBody == null) {
-      body = ((JSONObject) jiraFile.get("fields")).get("summary").toString();
-    } else {
-      body = possibleBody.toString();
-    }
-    return body;
-  }
 }

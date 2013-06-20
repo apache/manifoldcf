@@ -924,100 +924,73 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
           Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.get("key"));
         }
 
-          // its a file
-          if (!scanOnly[i]) {
-            doLog = true;
+        // its a file
+        if (!scanOnly[i]) {
+          doLog = true;
 
-            
+          // Unpack the version string
+          ArrayList acls = new ArrayList();
+          StringBuilder denyAclBuffer = new StringBuilder();
+          int index = unpackList(acls,version,0,'+');
+          if (index < version.length() && version.charAt(index++) == '+') {
+            index = unpack(denyAclBuffer,version,index,'+');
+          }
 
-            // Unpack the version string
-            ArrayList acls = new ArrayList();
-            StringBuilder denyAclBuffer = new StringBuilder();
-            int index = unpackList(acls,version,0,'+');
-            if (index < version.length() && version.charAt(index++) == '+') {
-              index = unpack(denyAclBuffer,version,index,'+');
-            }
+          //otherwise process
+          RepositoryDocument rd = new RepositoryDocument();
+            
+          // Turn into acls and add into description
+          String[] aclArray = new String[acls.size()];
+          for (int j = 0; j < aclArray.length; j++) {
+            aclArray[j] = (String)acls.get(j);
+          }
+          rd.setACL(aclArray);
+          if (denyAclBuffer.length() > 0) {
+            String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+            rd.setDenyACL(denyAclArray);
+          }
 
-            //otherwise process
-            RepositoryDocument rd = new RepositoryDocument();
+          // Now do standard stuff
             
-            
-            // Turn into acls and add into description
-            String[] aclArray = new String[acls.size()];
-            for (int j = 0; j < aclArray.length; j++) {
-              aclArray[j] = (String)acls.get(j);
-            }
-            rd.setACL(aclArray);
-            if (denyAclBuffer.length() > 0) {
-              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-              rd.setDenyACL(denyAclArray);
-            }
+          String mimeType = "text/plain";
+          JSONObject fields = (JSONObject)jiraFile.get("fields");
+          JSONObject createdDate = (JSONObject)fields.get("created");
+          JSONObject modifiedDate = (JSONObject)fields.get("updated");
 
-            // Now do standard stuff
+          rd.setMimeType(mimeType);
+          if (createdDate != null)
+            rd.setCreatedDate(DateParser.parseISO8601Date(createdDate.toString()));
+          if (modifiedDate != null)
+            rd.setModifiedDate(DateParser.parseISO8601Date(modifiedDate.toString()));
+          
+          // Get general document metadata
+          HashMap<String,String> metadataMap=new HashMap<String, String>();
             
-            String mimeType = "Jira Ticket";
-            String createdDate = ((JSONObject)jiraFile.get("fields")).get("created").toString();
-            String modifiedDate = ((JSONObject)jiraFile.get("fields")).get("updated").toString();
-            String title = ((JSONObject)jiraFile.get("fields")).get("summary").toString();
+          metadataMap = addMetaDataToMap("", jiraFile, metadataMap);
             
-            // Get general document metadata
-            HashMap<String,String> metadataMap=new HashMap<String, String>();
-            
-            metadataMap = JiraSession.addMetaDataToMap("", jiraFile, metadataMap);
-            
-            for (Entry<String, String> entry : metadataMap.entrySet()) {
-              rd.addField(entry.getKey(), entry.getValue());
-            }
-            String documentURI = jiraFile.get("self").toString();
-            // Fire up the document reading thread
-            BackgroundStreamThread t = new BackgroundStreamThread(jiraFile);
+          for (Entry<String, String> entry : metadataMap.entrySet()) {
+            rd.addField(entry.getKey(), entry.getValue());
+          }
+
+          String documentURI = jiraFile.get("self").toString();
+          String document = getJiraBody(jiraFile);
+          try {
+            byte[] documentBytes = document.getBytes("UTF-8");
+            InputStream is = new ByteArrayInputStream(documentBytes);
             try {
-              t.start();
-              boolean wasInterrupted = false;
-              try {
-                InputStream is = t.getSafeInputStream();
-                try {
-                    rd.setBinary(is, session.getJiraBody(jiraFile).length());
-                    activities.ingestDocument(nodeId, version, documentURI, rd);
-                } finally {
-                  is.close();
-                }
-              } catch (ManifoldCFException e) {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  wasInterrupted = true;
-                throw e;
-              } catch (java.net.SocketTimeoutException e) {
-                throw e;
-              } catch (InterruptedIOException e) {
-                wasInterrupted = true;
-                throw e;
-              } finally {
-                if (!wasInterrupted)
-                  t.finishUp();
-              }
-
+              rd.setBinary(is, documentBytes.length);
+              activities.ingestDocument(nodeId, version, documentURI, rd);
               // No errors.  Record the fact that we made it.
               errorCode = "OK";
-            } catch (InterruptedException e) {
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-            } catch (java.net.SocketTimeoutException e) {
-              Logging.connectors.warn("JIRA: Socket timeout reading document: " + e.getMessage(), e);
-              handleIOException(e);
-            } catch (InterruptedIOException e) {
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              Logging.connectors.warn("JIRA: Error reading document: " + e.getMessage(), e);
-              handleIOException(e);
+            } finally {
+              is.close();
             }
+          } catch (java.io.IOException e) {
+            throw new RuntimeException("UTF-8 encoding unknown!!");
           }
+            
         }
-       finally {
+      } finally {
         if (doLog)
           activities.recordActivity(new Long(startTime), ACTIVITY_READ,
             fileSize, nodeId, errorCode, errorDesc, null);
@@ -1025,101 +998,43 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-protected class BackgroundStreamThread extends Thread
-  {
-    protected final JSONObject jiraissue;
-    
-    protected boolean abortThread = false;
-    protected Throwable responseException = null;
-    protected InputStream sourceStream = null;
-    protected XThreadInputStream threadStream = null;
-    
-    public BackgroundStreamThread(JSONObject jiraissue)
-    {
-      super();
-      setDaemon(true);
-      this.jiraissue = jiraissue;
+  protected static HashMap<String, String> addMetaDataToMap(String parent, JSONObject cval, HashMap<String, String> currentMap) {
+    String append="";
+    if (parent.length() > 0) {
+      append=parent+"_";
     }
-
-    public void run()
-    {
-      try {
-        try {
-          synchronized (this) {
-            if (!abortThread) {
-              sourceStream = session.getJiraInputStream(jiraissue);
-              threadStream = new XThreadInputStream(sourceStream);
-              this.notifyAll();
-            }
+    for (Object key : cval.keySet()) {
+      Object value = cval.get(key);
+      if (value == null) {
+        continue;
+      }
+      //System.out.println(key);
+      if (JSONObject.class.isInstance(value)) {
+        currentMap = addMetaDataToMap(append + key, (JSONObject) value, currentMap);
+      } else if (JSONArray.class.isInstance(value)) {
+        for (Object subpiece : (JSONArray) (value)) {
+          if (String.class.isInstance(subpiece)) {
+            currentMap.put(append + key, subpiece.toString());
+          } else {
+            currentMap = addMetaDataToMap(append + key, (JSONObject) subpiece, currentMap);
           }
-          
-          if (threadStream != null)
-          {
-            // Stuff the content until we are done
-            threadStream.stuffQueue();
-          }
-        } finally {
-          if (sourceStream != null)
-            sourceStream.close();
         }
-      } catch (Throwable e) {
-        responseException = e;
+      } else {
+          currentMap.put(append+key + "", value.toString());
       }
     }
+    return currentMap;
+  }
 
-    public InputStream getSafeInputStream()
-      throws InterruptedException, IOException
-    {
-      // Must wait until stream is created, or until we note an exception was thrown.
-      while (true)
-      {
-        synchronized (this)
-        {
-          if (responseException != null)
-            throw new IllegalStateException("Check for response before getting stream");
-          checkException(responseException);
-          if (threadStream != null)
-            return threadStream;
-          wait();
-        }
-      }
+  protected static String getJiraBody(JSONObject jiraFile){
+    String body;
+    Object possibleBody = ((JSONObject) jiraFile.get("fields")).get("description");
+    if (possibleBody == null) {
+      body = ((JSONObject) jiraFile.get("fields")).get("summary").toString();
+    } else {
+      body = possibleBody.toString();
     }
-    
-    public void finishUp()
-      throws InterruptedException, IOException
-    {
-      // This will be called during the finally
-      // block in the case where all is well (and
-      // the stream completed) and in the case where
-      // there were exceptions.
-      synchronized (this) {
-        if (threadStream != null) {
-          threadStream.abort();
-        }
-        abortThread = true;
-      }
-
-      join();
-
-      checkException(responseException);
-    }
-    
-    protected synchronized void checkException(Throwable exception)
-      throws IOException
-    {
-      if (exception != null)
-      {
-        Throwable e = exception;
-        if (e instanceof IOException)
-          throw (IOException)e;
-        else if (e instanceof RuntimeException)
-          throw (RuntimeException)e;
-        else if (e instanceof Error)
-          throw (Error)e;
-        else
-          throw new RuntimeException("Unhandled exception of type: "+e.getClass().getName(),e);
-      }
-    }
+    return body;
   }
 
   /**
