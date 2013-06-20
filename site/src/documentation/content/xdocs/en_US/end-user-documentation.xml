@@ -1762,9 +1762,33 @@ curl -XGET http://localhost:9200/index/_mapping
               <figure src="images/en_US/googledrive-repository-connection-job-googledrive-seed-query.PNG" alt="googledrive Repository Connection, seed query" width="80%"/>
               <br/><br/>
               <p>This tab allows you to specify the query which will be used to seed documents for the indexing process. The query language is
-                specified on the <a href="https://developers.google.com/drive/search-parameters">Drive Search Paramters</a> site. Directories
+                specified on the <a href="https://developers.google.com/drive/search-parameters">Drive Search Parameters</a> site. Directories
                 which meet the seed query are fully crawled as the query on applies to seeds. The default query indexes the entire drive. Lastly, native Google
                 documents such as spreadsheets and word documents are exported to PDF and then ingested.</p>
+            </section>
+			
+            <section id="jirarepository">
+              <title>Jira Repository Connection</title>
+              <p>The Jira Repository Connection type allows you to index tickets from <a href="http://www.atlassian.com/‎">Atlassian</a>'s <a href="http://www.atlassian.com/software/jira">Jira</a>.</p>
+              <p>A Jira connection has the following configuration parameters on the repository connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/en_US/jira-repository-connection-configuration.PNG" alt="jira Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>As we can see there are 3 pieces of information which are needed to create a successful connection. The Client ID and Client Secret
+                are the username and password of a Jira account. The JiraUrl is the base endpoint of the particular Jira Instance, for example:
+                https://searchbox.atlassian.net is the Jira version for searchbox which is hosted at Atlassian.</p>
+              <br/><br/>
+              <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/jira-repository-connection-configuration-save.PNG" alt="jira Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>When you configure a job to use the Jira repository connection an additional tab is presented. This is the "Seed Query" tab:</p>
+              <br/><br/>
+              <figure src="images/en_US/jira-repository-connection-job-jira-seed-query.PNG" alt="jira Repository Connection, seed query" width="80%"/>
+              <br/><br/>
+              <p>This tab allows you to specify the query which will be used to find documents for the indexing process. The query language is
+                specified on the <a href="https://confluence.atlassian.com/display/JIRA/Advanced+Searching">Jira Advanced Searching</a> site. Directories
+                which meet the seed query are fully crawled as the query on applies to seeds.</p>
             </section>
 			
             <section id="livelinkrepository">
