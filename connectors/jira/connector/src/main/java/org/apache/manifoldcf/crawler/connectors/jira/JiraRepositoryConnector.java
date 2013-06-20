@@ -300,68 +300,10 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         Logging.connectors.debug("JIRA: jiraurl = '" + jiraurl + "'");
       }
 
-
-
-      long currentTime;
-      GetSessionThread t = new GetSessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof IOException) {
-            throw (IOException) thr;
-          } else if (thr instanceof GeneralSecurityException) {
-            throw (GeneralSecurityException) thr;
-          } else {
-            throw (Error) thr;
-          }
-
-        }
-      } catch (InterruptedException e) {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-      } catch (java.net.SocketTimeoutException e) {
-        Logging.connectors.warn("JIRA: Socket timeout: " + e.getMessage(), e);
-        handleIOException(e);
-      } catch (InterruptedIOException e) {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-      } catch (GeneralSecurityException e) {
-        Logging.connectors.error("JIRA: " +  "General security error initializing transport: " + e.getMessage(), e);
-        handleGeneralSecurityException(e);
-      } catch (IOException e) {
-        Logging.connectors.warn("JIRA: IO error: " + e.getMessage(), e);
-        handleIOException(e);
-      }
+      session = new JiraSession(clientid, clientsecret, jiraurl);
 
     }
     lastSessionFetch = System.currentTimeMillis();
-  }
-
-  protected class GetSessionThread extends Thread {
-
-    protected Throwable exception = null;
-
-    public GetSessionThread() {
-      super();
-      setDaemon(true);
-    }
-
-    public void run() {
-      try {
-        // Create a session
-        session = new JiraSession(clientid, clientsecret, jiraurl);
-      } catch (Throwable e) {
-        this.exception = e;
-      }
-    }
-
-    public Throwable getException() {
-      return exception;
-    }
   }
 
   @Override
@@ -1027,11 +969,6 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
               rd.addField(entry.getKey(), entry.getValue());
             }
             String documentURI = jiraFile.get("self").toString();
-            try{
-            
-            }catch(Exception e){
-                e.printStackTrace();
-            }
             // Fire up the document reading thread
             BackgroundStreamThread t = new BackgroundStreamThread(jiraFile);
             try {
@@ -1272,10 +1209,5 @@ protected class BackgroundStreamThread extends Thread
       currentTime + 3 * 60 * 60000L,-1,false);
   }
   
-  private static void handleGeneralSecurityException(GeneralSecurityException e)
-    throws ManifoldCFException, ServiceInterruption {
-    // Permanent problem: can't initialize transport layer
-    throw new ManifoldCFException("Jira exception: "+e.getMessage(), e);
-  }
 }
 
