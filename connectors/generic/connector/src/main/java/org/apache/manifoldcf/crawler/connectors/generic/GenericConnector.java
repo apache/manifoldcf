@@ -73,6 +73,16 @@ public class GenericConnector extends BaseRepositoryConnector {
    * Deny access token for default authority
    */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  
+  private final static String ACTION_PARAM_NAME = "action";
+
+  private final static String ACTION_CHECK = "check";
+  
+  private final static String ACTION_SEED = "seed";
+  
+  private final static String ACTION_ITEMS = "items";
+  
+  private final static String ACTION_ITEM = "item";
 
   private String genericLogin = null;
 
@@ -146,7 +156,7 @@ public class GenericConnector extends BaseRepositoryConnector {
   @Override
   public String check() throws ManifoldCFException {
     HttpClient client = getClient();
-    HttpGet method = new HttpGet(genericEntryPoint + "?action=check");
+    HttpGet method = new HttpGet(genericEntryPoint + "?" + ACTION_PARAM_NAME + "=" + ACTION_CHECK);
     try {
       HttpResponse response = client.execute(method);
       try {
@@ -174,7 +184,7 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     try {
       StringBuilder url = new StringBuilder(genericEntryPoint);
-      url.append("?action=seed");
+      url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_SEED);
       if (startTime > 0) {
         url.append("&startTime=").append(sdf.format(new Date(startTime)));
       }
@@ -248,7 +258,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     String[] rval = new String[documentIdentifiers.length];
     try {
       StringBuilder url = new StringBuilder(genericEntryPoint);
-      url.append("?action=items");
+      url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_ITEMS);
       for (int i = 0; i < rval.length; i++) {
         url.append("&id[]=").append(URLEncoder.encode(documentIdentifiers[i], "UTF-8"));
         rval[i] = null;
@@ -407,7 +417,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       } else {
         try {
           StringBuilder url = new StringBuilder(genericEntryPoint);
-          url.append("?action=item");
+          url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_ITEM);
           url.append("&id=").append(URLEncoder.encode(documentIdentifiers[i], "UTF-8"));
           for (int j = 0; j < spec.getChildCount(); j++) {
             SpecificationNode sn = spec.getChild(j);
