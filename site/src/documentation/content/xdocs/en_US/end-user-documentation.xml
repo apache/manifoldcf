@@ -2165,6 +2165,87 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
             </section>
             
+            <section id="genericconnector">
+              <title>Generic Connector</title>
+              <p>Generic connector allows you to index any source that follows provided API specification.</p>
+              <p>API should be implemented as web page (entry point) returning results based on provided GET params. API can be secured with HTTP basic authentication.</p>
+              <br/>
+              <p>There are 4 actions:</p>
+			  <ul>
+				<li>check</li>
+				<li>seed</li>
+				<li>items</li>
+				<li>item</li>
+			  </ul>
+			  <p>Action is passed as "action" GET param to the entrypoint.</p>
+              <br/><br/>
+			  <p><b>[entrypoint]?action=check</b></p>
+			  <p>Should return HTTP status code 200 providing information that entrypoint is working properly.</p>
+              <br/><br/>
+			  
+			  <p><b>[entrypoint]?action=seed&amp;startDate=YYYY-MM-DDTHH:mm:ssZ&amp;endDate=YYYY-MM-DDTHH:mm:ssZ</b></p>
+			  <p>Parameters:</p>
+			  <ul>
+				<li>startDate - the start of time frame which should be applied to returned seeds. If this is a first run - this parameter will not be provided meaning that all documents should be returned.</li>
+				<li>endDate - the end of time frame. Always provided.</li>
+			  </ul>
+			  <p><code>startDate</code> and <code>endDate</code> parameters are encoded as <code>YYYY-MM-DD'T'HH:mm:ss'Z'</code>. Result should be valid XML of form:</p>
+			  <source>
+&lt;seeds>
+   &lt;seed id="document_id_1" /&gt;
+   &lt;seed id="document_id_2" /&gt;
+   ...
+&lt;/seeds&gt;
+			  </source>
+			  <p>Attributes <code>id</code> are required.</p>
+              <br/><br/>
+
+			  <p><b>[entrypoint]?action=items&id[]=document_id_1&id=document_id_2</b></p>
+			  <p>Parameters:</p>
+			  <ul>
+				<li>id[] - array of document IDs that should be returned</li>
+			  </ul>
+			  <p>Result should be valid XML of form:</p>
+			  <source>
+&lt;items&gt;
+   &lt;item id="document_id_1"&gt;
+      &lt;url&gt;[http://document_uri]&lt;/url&gt;
+      &lt;version&gt;[document_version]&lt;/version&gt;
+	  &lt;created&gt;2013-11-11T21:00:00Z&lt;/created&gt;
+	  &lt;updated&gt;2013-11-11T21:00:00Z&lt;/updated&gt;
+	  &lt;filename&gt;filename.ext&lt;/filename&gt;
+	  &lt;mimetype&gt;mime/type&lt;/mimetype&gt;
+	  &lt;metadata&gt;
+	     &lt;meta name="meta_name_1"&gt;meta_value_1&lt;/meta&gt;
+	     &lt;meta name="meta_name_2"&gt;meta_value_2&lt;/meta&gt;
+		 ...
+	  &lt;/metadata&gt;
+	  &lt;auth&gt;
+		 &lt;token&gt;auth_token_1&lt;/token&gt;
+		 &lt;token&gt;auth_token_2&lt;/token&gt;
+		 ...
+	  &lt;/auth&gt;
+	  &lt;content&gt;Document content&lt;/content&gt;
+   &lt;/item&gt;
+   ...
+&lt;/items&gt;
+			  </source>
+			  <p><code>id, url, version</code> are required, the rest is optional.</p>
+ 			  <p>If <code>auth</code> tag is provided - document will be treated as non-public with defined access tokens, if it is ommited - document will be public.</p>
+			  <p>if <code>content</code> tag is ommited - connector will ask for document content as <code>action=item</code> separate API call.</p>
+              <br/><br/>
+
+			  <p><b>[entrypoint]?action=item&id=document_id</b></p>
+			  <p>Parameters:</p>
+			  <ul>
+				<li>id - requested document ID</li>
+			  </ul>
+			  <p>Result should be the document content. It does not have to be XML - you may return binary data (PDF, DOC, etc) which represent the document.</p>
+              <br/><br/>
+			  <p>You may provide custom parameters by defining them in Job specification. All defined parameters will be sent as additional GET parameters with every API call</p>
+			  <p>You may override provided auth tokens and define forced tokens in Job specification. If you change security model to "forced" and do not provide any tokens - all documents will be public.</p>
+              <br/><br/>
+            </section>
         </section>
 
 </body>
