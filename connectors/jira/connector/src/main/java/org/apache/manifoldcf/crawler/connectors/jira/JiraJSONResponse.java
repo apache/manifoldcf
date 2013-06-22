@@ -19,138 +19,28 @@
 
 package org.apache.manifoldcf.crawler.connectors.jira;
 
-import java.io.IOException;
-import org.json.simple.parser.ContentHandler;
-import org.json.simple.parser.ParseException;
+import org.json.simple.JSONObject;
 
 /** An instance of this class represents a Jira JSON object, and the parser hooks
-* needed to extract the data from the JSON event stream we use to parse it.  It
-* is meant to be overridden (selectively) by derived classes.
+* needed to understand it.
+*
+* If we needed streaming anywhere, this would implement org.json.simple.parser.ContentHandler,
+* where we would extract the data from a JSON event stream.  But since we don't need that
+* functionality, instead we're just going to accept an already-parsed JSONObject.
+*
+* This class is meant to be overridden (selectively) by derived classes.
 */
-public class JiraJSONResponse implements ContentHandler {
+public class JiraJSONResponse {
+
+  protected JSONObject object = null;
 
   public JiraJSONResponse() {
   }
   
-  /**
-  * Receive notification of the beginning of JSON processing.
-  * The parser will invoke this method only once.
-  *
-  * @throws ParseException
-  *                      - JSONParser will stop and throw the same exception to the caller when receiving this exception.
+  /** Receive a parsed JSON object.
   */
-  @Override
-  public void startJSON() throws ParseException, IOException {
+  public void acceptJSONObject(JSONObject object) {
+    this.object = object;
   }
-       
-  /**
-  * Receive notification of the end of JSON processing.
-  *
-  * @throws ParseException
-  */
-  @Override
-  public void endJSON() throws ParseException, IOException {
-  }
-       
-  /**
-  * Receive notification of the beginning of a JSON object.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *          - JSONParser will stop and throw the same exception to the caller when receiving this exception.
-  * @see #endJSON
-  */
-  @Override
-  public boolean startObject() throws ParseException, IOException {
-    return true;
-  }
-       
-  /**
-  * Receive notification of the end of a JSON object.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #startObject
-  */
-  @Override
-  public boolean endObject() throws ParseException, IOException {
-    return true;
-  }
-       
-  /**
-  * Receive notification of the beginning of a JSON object entry.
-  *
-  * @param key - Key of a JSON object entry.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #endObjectEntry
-  */
-  @Override
-  public boolean startObjectEntry(String key) throws ParseException, IOException {
-    return true;
-  }
-       
-  /**
-  * Receive notification of the end of the value of previous object entry.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #startObjectEntry
-  */
-  @Override
-  public boolean endObjectEntry() throws ParseException, IOException {
-    return true;
-  }
-       
-  /**
-  * Receive notification of the beginning of a JSON array.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #endArray
-  */
-  @Override
-  public boolean startArray() throws ParseException, IOException {
-    return true;
-  }
-       
-  /**
-  * Receive notification of the end of a JSON array.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #startArray
-  */
-  @Override
-  public boolean endArray() throws ParseException, IOException {
-    return true;
-  }
-       
-  /**
-  * Receive notification of the JSON primitive values:
-  *      java.lang.String,
-  *      java.lang.Number,
-  *      java.lang.Boolean
-  *      null
-  *
-  * @param value - Instance of the following:
-  *                      java.lang.String,
-  *                      java.lang.Number,
-  *                      java.lang.Boolean
-  *                      null
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  */
-  @Override
-  public boolean primitive(Object value) throws ParseException, IOException {
-    return true;
-  }
-
+  
 }

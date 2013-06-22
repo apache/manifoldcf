@@ -19,194 +19,150 @@
 
 package org.apache.manifoldcf.crawler.connectors.jira;
 
+import org.apache.manifoldcf.core.common.*;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-import java.io.IOException;
-import org.json.simple.parser.ContentHandler;
-import org.json.simple.parser.ParseException;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 
 /** An instance of this class represents a Jira issue, and the parser hooks
 * needed to extract the data from the JSON event stream we use to parse it.
 */
 public class JiraIssue extends JiraJSONResponse {
 
-  // Things we want to parse from a JSON issue response
-  protected Date createdDate;
-  protected Date updatedDate;
-  // Can't use streaming for these; we need the entire object BEFORE we start
-  // looking at content.
-  protected String description;
-  protected String summary;
-  protected Map<String,String> metadataMap = new HashMap<String,String>();
-  
   // Specific keys we care about
   private final static String KEY_FIELDS = "fields";
+  private final static String KEY_KEY = "key";
+  private final static String KEY_SELF = "self";
   private final static String KEY_CREATED = "created";
   private final static String KEY_UPDATED = "updated";
   private final static String KEY_DESCRIPTION = "description";
   private final static String KEY_SUMMARY = "summary";
 
-  // Parsing
-  private List<String> currentKeys = new ArrayList<String>();
-    
   public JiraIssue() {
+    super();
   }
 
+  public String getKey() {
+    Object key = object.get(KEY_KEY);
+    if (key == null)
+      return null;
+    return key.toString();
+  }
+  
+  public String getSelf() {
+    Object key = object.get(KEY_SELF);
+    if (key == null)
+      return null;
+    return key.toString();
+  }
+  
   public Date getCreatedDate() {
-    return createdDate;
+    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    if (fields == null)
+      return null;
+    JSONObject createdDate = (JSONObject)fields.get(KEY_CREATED);
+    if (createdDate == null)
+      return null;
+    return DateParser.parseISO8601Date(createdDate.toString());
   }
   
   public Date getUpdatedDate() {
-    return updatedDate;
+    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    if (fields == null)
+      return null;
+    JSONObject updatedDate = (JSONObject)fields.get(KEY_UPDATED);
+    if (updatedDate == null)
+      return null;
+    return DateParser.parseISO8601Date(updatedDate.toString());
   }
   
   public String getDescription() {
-    return description;
+    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    if (fields == null)
+      return null;
+    JSONObject description = (JSONObject)fields.get(KEY_DESCRIPTION);
+    if (description == null)
+      return null;
+    return description.toString();
   }
   
   public String getSummary() {
-    return summary;
+    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    if (fields == null)
+      return null;
+    JSONObject summary = (JSONObject)fields.get(KEY_DESCRIPTION);
+    if (summary == null)
+      return null;
+    return summary.toString();
   }
   
-  public Map<String,String> getMetadata() {
-    return metadataMap;
-  }
-  
-  /*
-  protected static HashMap<String, String> addMetaDataToMap(String parent, JSONObject cval, HashMap<String, String> currentMap) {
-    String append="";
-    if (parent.length() > 0) {
-      append=parent+"_";
+  public Map<String,String[]> getMetadata() {
+    Map<String,List<String>> map = new HashMap<String,List<String>>();
+    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    if (fields != null)
+      addMetadataToMap("", fields, map);
+    
+    // Now convert to a form more suited for RepositoryDocument
+    Map<String,String[]> rmap = new HashMap<String,String[]>();
+    for (String key : map.keySet()) {
+      List<String> values = map.get(key);
+      String[] valueArray = values.toArray(new String[0]);
+      rmap.put(key,valueArray);
     }
-    for (Object key : cval.keySet()) {
-      Object value = cval.get(key);
-      if (value == null) {
-        continue;
+    return rmap;
+  }
+
+  protected static void addMetadataToMap(String parent, Object cval, Map<String,List<String>> currentMap) {
+
+    if (cval == null)
+      return;
+
+    // See if it is a basic type
+    if (cval instanceof String || cval instanceof Number || cval instanceof Boolean) {
+      List<String> current = currentMap.get(parent);
+      if (current == null) {
+        current = new ArrayList<String>();
+        currentMap.put(parent,current);
       }
-      //System.out.println(key);
-      if (JSONObject.class.isInstance(value)) {
-        currentMap = addMetaDataToMap(append + key, (JSONObject) value, currentMap);
-      } else if (JSONArray.class.isInstance(value)) {
-        for (Object subpiece : (JSONArray) (value)) {
-          if (String.class.isInstance(subpiece)) {
-            currentMap.put(append + key, subpiece.toString());
-          } else {
-            currentMap = addMetaDataToMap(append + key, (JSONObject) subpiece, currentMap);
-          }
+      current.add(cval.toString());
+      return;
+    }
+
+    // See if it is an array
+    if (cval instanceof JSONArray) {
+      JSONArray ja = (JSONArray)cval;
+      for (Object subpiece : ja) {
+        addMetadataToMap(parent, subpiece, currentMap);
+      }
+      return;
+    }
+    
+    // See if it is a JSONObject
+    if (cval instanceof JSONObject) {
+      JSONObject jo = (JSONObject)cval;
+      String append="";
+      if (parent.length() > 0) {
+        append=parent+"_";
+      }
+      for (Object key : jo.keySet()) {
+        Object value = jo.get(key);
+        if (value == null) {
+          continue;
         }
-      } else {
-          currentMap.put(append+key + "", value.toString());
+        String newKey = append + key;
+        addMetadataToMap(newKey, value, currentMap);
       }
+      return;
     }
-    return currentMap;
-  }
-  */
-  
-  /**
-  * Receive notification of the beginning of a JSON object.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *          - JSONParser will stop and throw the same exception to the caller when receiving this exception.
-  * @see #endJSON
-  */
-  @Override
-  public boolean startObject() throws ParseException, IOException {
-    return super.startObject();
-  }
-       
-  /**
-  * Receive notification of the end of a JSON object.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #startObject
-  */
-  @Override
-  public boolean endObject() throws ParseException, IOException {
-    return super.endObject();
-  }
-       
-  /**
-  * Receive notification of the beginning of a JSON object entry.
-  *
-  * @param key - Key of a JSON object entry.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #endObjectEntry
-  */
-  @Override
-  public boolean startObjectEntry(String key) throws ParseException, IOException {
-    currentKeys.add(key);
-    return super.startObjectEntry(key);
-  }
-       
-  /**
-  * Receive notification of the end of the value of previous object entry.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #startObjectEntry
-  */
-  @Override
-  public boolean endObjectEntry() throws ParseException, IOException {
-    currentKeys.remove(currentKeys.size()-1);
-    return super.endObjectEntry();
-  }
-       
-  /**
-  * Receive notification of the beginning of a JSON array.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #endArray
-  */
-  @Override
-  public boolean startArray() throws ParseException, IOException {
-    return super.startArray();
-  }
+    
 
-  /**
-  * Receive notification of the end of a JSON array.
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  *
-  * @see #startArray
-  */
-  @Override
-  public boolean endArray() throws ParseException, IOException {
-    return super.endArray();
-  }
-
-  /**
-  * Receive notification of the JSON primitive values:
-  *      java.lang.String,
-  *      java.lang.Number,
-  *      java.lang.Boolean
-  *      null
-  *
-  * @param value - Instance of the following:
-  *                      java.lang.String,
-  *                      java.lang.Number,
-  *                      java.lang.Boolean
-  *                      null
-  *
-  * @return false if the handler wants to stop parsing after return.
-  * @throws ParseException
-  */
-  @Override
-  public boolean primitive(Object value) throws ParseException, IOException {
-    return super.primitive(value);
+    throw new IllegalArgumentException("Unknown object to addMetadataToMap: "+cval.getClass().getName());
   }
 
 }

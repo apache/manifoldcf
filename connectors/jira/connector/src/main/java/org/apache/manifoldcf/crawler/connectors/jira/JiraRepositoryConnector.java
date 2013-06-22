@@ -49,8 +49,6 @@ import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import java.util.Map.Entry;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
 
 /**
  *
@@ -811,10 +809,10 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected JSONObject getObject(String nodeId)
+  protected JiraIssue getIssue(String nodeId)
     throws ManifoldCFException, ServiceInterruption {
     getSession();
-    GetObjectThread t = new GetObjectThread(nodeId);
+    GetIssueThread t = new GetIssueThread(nodeId);
     try {
       t.start();
       t.join();
@@ -846,13 +844,13 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     return t.getResponse();
   }
   
-  protected class GetObjectThread extends Thread {
+  protected class GetIssueThread extends Thread {
 
     protected final String nodeId;
     protected Throwable exception = null;
-    protected JSONObject response = null;
+    protected JiraIssue response = null;
 
-    public GetObjectThread(String nodeId) {
+    public GetIssueThread(String nodeId) {
       super();
       setDaemon(true);
       this.nodeId = nodeId;
@@ -860,13 +858,13 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
     public void run() {
       try {
-        response = session.getObject(nodeId);
+        response = session.getIssue(nodeId);
       } catch (Throwable e) {
         this.exception = e;
       }
     }
 
-    public JSONObject getResponse() {
+    public JiraIssue getResponse() {
       return response;
     }
     
@@ -919,15 +917,14 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
               + nodeId + "'");
         }
 
-        JSONObject jiraFile = getObject(nodeId);
-        
-        if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.get("key"));
-        }
-
-        // its a file
         if (!scanOnly[i]) {
           doLog = true;
+
+          JiraIssue jiraFile = getIssue(nodeId);
+          
+          if (Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.getKey());
+          }
 
           // Unpack the version string
           ArrayList acls = new ArrayList();
@@ -954,26 +951,23 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
           // Now do standard stuff
             
           String mimeType = "text/plain";
-          JSONObject fields = (JSONObject)jiraFile.get("fields");
-          JSONObject createdDate = (JSONObject)fields.get("created");
-          JSONObject modifiedDate = (JSONObject)fields.get("updated");
+          Date createdDate = jiraFile.getCreatedDate();
+          Date modifiedDate = jiraFile.getUpdatedDate();
 
           rd.setMimeType(mimeType);
           if (createdDate != null)
-            rd.setCreatedDate(DateParser.parseISO8601Date(createdDate.toString()));
+            rd.setCreatedDate(createdDate);
           if (modifiedDate != null)
-            rd.setModifiedDate(DateParser.parseISO8601Date(modifiedDate.toString()));
+            rd.setModifiedDate(modifiedDate);
           
           // Get general document metadata
-          HashMap<String,String> metadataMap=new HashMap<String, String>();
+          Map<String,String[]> metadataMap = jiraFile.getMetadata();
             
-          metadataMap = addMetaDataToMap("", jiraFile, metadataMap);
-            
-          for (Entry<String, String> entry : metadataMap.entrySet()) {
+          for (Entry<String, String[]> entry : metadataMap.entrySet()) {
             rd.addField(entry.getKey(), entry.getValue());
           }
 
-          String documentURI = jiraFile.get("self").toString();
+          String documentURI = jiraFile.getSelf();
           String document = getJiraBody(jiraFile);
           try {
             byte[] documentBytes = document.getBytes("UTF-8");
@@ -999,43 +993,18 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected static HashMap<String, String> addMetaDataToMap(String parent, JSONObject cval, HashMap<String, String> currentMap) {
-    String append="";
-    if (parent.length() > 0) {
-      append=parent+"_";
+  protected static String getJiraBody(JiraIssue jiraFile) {
+    String summary = jiraFile.getSummary();
+    String description = jiraFile.getDescription();
+    StringBuilder body = new StringBuilder();
+    if (summary != null)
+      body.append(summary);
+    if (description != null) {
+      if (body.length() > 0)
+        body.append(" : ");
+      body.append(description);
     }
-    for (Object key : cval.keySet()) {
-      Object value = cval.get(key);
-      if (value == null) {
-        continue;
-      }
-      //System.out.println(key);
-      if (JSONObject.class.isInstance(value)) {
-        currentMap = addMetaDataToMap(append + key, (JSONObject) value, currentMap);
-      } else if (JSONArray.class.isInstance(value)) {
-        for (Object subpiece : (JSONArray) (value)) {
-          if (String.class.isInstance(subpiece)) {
-            currentMap.put(append + key, subpiece.toString());
-          } else {
-            currentMap = addMetaDataToMap(append + key, (JSONObject) subpiece, currentMap);
-          }
-        }
-      } else {
-          currentMap.put(append+key + "", value.toString());
-      }
-    }
-    return currentMap;
-  }
-
-  protected static String getJiraBody(JSONObject jiraFile){
-    String body;
-    Object possibleBody = ((JSONObject) jiraFile.get("fields")).get("description");
-    if (possibleBody == null) {
-      body = ((JSONObject) jiraFile.get("fields")).get("summary").toString();
-    } else {
-      body = possibleBody.toString();
-    }
-    return body;
+    return description.toString();
   }
 
   /**
@@ -1067,26 +1036,25 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
-      JSONObject jiraFile = getObject(documentIdentifiers[i]);
-        String rev = ((JSONObject)jiraFile.get("fields")).get("updated").toString();
-        if (StringUtils.isNotEmpty(rev)) {
-          StringBuilder sb = new StringBuilder();
+      JiraIssue jiraFile = getIssue(documentIdentifiers[i]);
+      Date rev = jiraFile.getUpdatedDate();
+      if (rev != null) {
+        StringBuilder sb = new StringBuilder();
 
-          // Acls
-          packList(sb,acls,'+');
-          if (acls.length > 0) {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          }
-          else
-            sb.append('-');
-            sb.append(rev);
-          rval[i] = sb.toString();
-        } else {
-          //a jira document that doesn't contain versioning information will NEVER be processed.
-          // I don't know what this means, and whether it can ever occur.
-          rval[i] = null;
-        }
+        // Acls
+        packList(sb,acls,'+');
+        if (acls.length > 0) {
+          sb.append('+');
+          pack(sb,defaultAuthorityDenyToken,'+');
+        } else
+          sb.append('-');
+        sb.append(rev.toString());
+        rval[i] = sb.toString();
+      } else {
+        //a jira document that doesn't contain versioning information will NEVER be processed.
+        // I don't know what this means, and whether it can ever occur.
+        rval[i] = null;
+      }
     }
     return rval;
   }

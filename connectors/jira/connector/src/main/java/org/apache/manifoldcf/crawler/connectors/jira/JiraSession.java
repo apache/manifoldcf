@@ -172,7 +172,7 @@ public class JiraSession {
     return "";
   }
 
-  private JSONObject getRest(String rightside) throws IOException {
+  private void getRest(String rightside, JiraJSONResponse response) throws IOException {
 
     final HttpRequestBase method = new HttpGet(URLbase + apiPost + rightside);
     method.addHeader("Accept", "application/json");
@@ -182,7 +182,8 @@ public class JiraSession {
       int resultCode = httpResponse.getStatusLine().getStatusCode();
       if (resultCode != 200)
         throw new IOException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));
-      return convertToJSON(httpResponse);
+      JSONObject jo = convertToJSON(httpResponse);
+      response.acceptJSONObject(jo);
     } finally {
       method.abort();
     }
@@ -193,8 +194,9 @@ public class JiraSession {
    */
   public Map<String, String> getRepositoryInfo() throws IOException {
     HashMap<String, String> statistics = new HashMap<String, String>();
-    JSONObject jsonobj = getRest("search?maxResults=1&jql=");
-    statistics.put("Total Issues", jsonobj.get("total") + "");
+    JiraQueryResults qr = new JiraQueryResults();
+    getRest("search?maxResults=1&jql=", qr);
+    statistics.put("Total Issues", qr.getTotal().toString());
     return statistics;
   }
 
@@ -203,27 +205,28 @@ public class JiraSession {
    */
   public void getSeeds(XThreadStringBuffer idBuffer, String jiraDriveQuery)
       throws IOException, InterruptedException {
-    JSONObject jsonobj;
-    int startAt = 0;
-    int setSize = 100;
-    Long total = 0l;
+    long startAt = 0L;
+    long setSize = 100L;
+    long totalAmt = 0L;
     do {
-      jsonobj = getRest("search?maxResults=" + setSize + "&startAt=" + startAt + "&jql=" + URLEncoder.encode(jiraDriveQuery, "ISO-8859-1"));
-      total = (Long) (jsonobj.get("total"));
-      JSONArray issues = (JSONArray) jsonobj.get("issues");
-      for (Object issuei : issues) {
-        JSONObject issue = (JSONObject) issuei;
-        idBuffer.add(issue.get("id") + "");
-      }
+      JiraQueryResults qr = new JiraQueryResults();
+      getRest("search?maxResults=" + setSize + "&startAt=" + startAt + "&jql=" + URLEncoder.encode(jiraDriveQuery, "UTF-8"), qr);
+      Long total = qr.getTotal();
+      if (total == null)
+        return;
+      totalAmt = total.longValue();
+      qr.pushIds(idBuffer);
       startAt += setSize;
-    } while (startAt < total); //results in a little overlap
+    } while (startAt < totalAmt);
   }
 
   /**
-   * Get an individual document.
+   * Get an individual issue.
    */
-  public JSONObject getObject(String id) throws IOException {
-    return getRest("issue/" + id);
+  public JiraIssue getIssue(String id) throws IOException {
+    JiraIssue ji = new JiraIssue();
+    getRest("issue/" + id, ji);
+    return ji;
   }
 
 
