@@ -18,6 +18,8 @@
 package org.apache.manifoldcf.crawler.connectors.jira;
 
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 import java.io.Reader;
 import java.io.Writer;
@@ -52,6 +54,10 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.params.CoreProtocolPNames;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -75,20 +81,33 @@ public class JiraSession {
   /**
    * Constructor. Create a session.
    */
-  public JiraSession(String clientId, String clientSecret, String URLbase) {
+  public JiraSession(String clientId, String clientSecret, String URLbase)
+    throws ManifoldCFException {
     this.URLbase = URLbase;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
 
+    int socketTimeout = 900000;
+    int connectionTimeout = 60000;
+
+    javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
+    SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
+      new AllowAllHostnameVerifier());
+    Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+
     PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
     localConnectionManager.setMaxTotal(1);
     connectionManager = localConnectionManager;
+    // Set up protocol registry
+    connectionManager.getSchemeRegistry().register(myHttpsProtocol);
 
     BasicHttpParams params = new BasicHttpParams();
+    params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+    params.setIntParameter(CoreProtocolPNames.WAIT_FOR_CONTINUE,socketTimeout);
     params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
     params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
-    params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
-    params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+    params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
+    params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
     params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
     DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
     // No retries

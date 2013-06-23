@@ -57,6 +57,9 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -181,13 +184,20 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       
       baseURL = protocol + "://" + server + ((portString!=null)?":" + portString:"") + path + "/api.php?format=xml&";
 
+      int socketTimeout = 900000;
+      int connectionTimeout = 300000;
+
+      javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
+      SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
+        new AllowAllHostnameVerifier());
+      Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+
       // Set up connection manager
       PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
       localConnectionManager.setMaxTotal(1);
       connectionManager = localConnectionManager;
-
-      int socketTimeout = 900000;
-      int connectionTimeout = 300000;
+      // Set up protocol registry
+      connectionManager.getSchemeRegistry().register(myHttpsProtocol);
 
       BasicHttpParams params = new BasicHttpParams();
       params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);

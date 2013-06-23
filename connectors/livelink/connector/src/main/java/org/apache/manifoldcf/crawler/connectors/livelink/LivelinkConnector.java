@@ -25,6 +25,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.core.common.XThreadOutputStream;
+import org.apache.manifoldcf.core.common.InterruptibleSocketFactory;
 
 import java.io.*;
 import java.util.*;
@@ -473,6 +474,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     getSessionParameters();
     if (hasConnected == false)
     {
+      int socketTimeout = 900000;
+      int connectionTimeout = 300000;
+
       // Set up connection manager
       PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
       localConnectionManager.setMaxTotal(1);
@@ -480,7 +484,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       // Set up ingest ssl if indicated
       if (ingestKeystoreManager != null)
       {
-        SSLSocketFactory myFactory = new SSLSocketFactory(ingestKeystoreManager.getSecureSocketFactory(),
+        SSLSocketFactory myFactory = new SSLSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
           new BrowserCompatHostnameVerifier());
         Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
         localConnectionManager.getSchemeRegistry().register(myHttpsProtocol);
