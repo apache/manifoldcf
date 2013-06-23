@@ -1,4 +1,4 @@
-/* $Id: AuthorityConnectorFactory.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -24,15 +24,15 @@ import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
 
-/** This class manages a pool of authority connectors.
+/** This class manages a pool of mapping connectors.
 */
-public class AuthorityConnectorFactory
+public class MappingConnectorFactory
 {
   // Pool hash table.
   // Keyed by PoolKey; value is Pool
   protected static Map poolHash = new HashMap();
 
-  private AuthorityConnectorFactory()
+  private MappingConnectorFactory()
   {
   }
 
@@ -42,7 +42,7 @@ public class AuthorityConnectorFactory
   public static void install(IThreadContext threadContext, String className)
     throws ManifoldCFException
   {
-    IAuthorityConnector connector = getConnectorNoCheck(className);
+    IMappingConnector connector = getConnectorNoCheck(className);
     connector.install(threadContext);
   }
 
@@ -52,30 +52,8 @@ public class AuthorityConnectorFactory
   public static void deinstall(IThreadContext threadContext, String className)
     throws ManifoldCFException
   {
-    IAuthorityConnector connector = getConnectorNoCheck(className);
+    IMappingConnector connector = getConnectorNoCheck(className);
     connector.deinstall(threadContext);
-  }
-
-  /** Get the default response from a connector.  Called if the connection attempt fails.
-  */
-  public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, UserRecord userRecord)
-    throws ManifoldCFException
-  {
-    IAuthorityConnector connector = getConnector(threadContext,className);
-    if (connector == null)
-      return null;
-    return connector.getDefaultAuthorizationResponse(userRecord);
-  }
-
-  /** Get the default response from a connector.  Called if the connection attempt fails.
-  */
-  public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, String userName)
-    throws ManifoldCFException
-  {
-    IAuthorityConnector connector = getConnector(threadContext,className);
-    if (connector == null)
-      return null;
-    return connector.getDefaultAuthorizationResponse(userName);
   }
 
   /** Output the configuration header section.
@@ -83,7 +61,7 @@ public class AuthorityConnectorFactory
   public static void outputConfigurationHeader(IThreadContext threadContext, String className, IHTTPOutput out, Locale locale, ConfigParams parameters, ArrayList tabsArray)
     throws ManifoldCFException, IOException
   {
-    IAuthorityConnector connector = getConnector(threadContext, className);
+    IMappingConnector connector = getConnector(threadContext, className);
     if (connector == null)
       return;
     connector.outputConfigurationHeader(threadContext,out,locale,parameters,tabsArray);
@@ -94,7 +72,7 @@ public class AuthorityConnectorFactory
   public static void outputConfigurationBody(IThreadContext threadContext, String className, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    IAuthorityConnector connector = getConnector(threadContext, className);
+    IMappingConnector connector = getConnector(threadContext, className);
     if (connector == null)
       return;
     connector.outputConfigurationBody(threadContext,out,locale,parameters,tabName);
@@ -105,7 +83,7 @@ public class AuthorityConnectorFactory
   public static String processConfigurationPost(IThreadContext threadContext, String className, IPostParameters variableContext, Locale locale, ConfigParams configParams)
     throws ManifoldCFException
   {
-    IAuthorityConnector connector = getConnector(threadContext, className);
+    IMappingConnector connector = getConnector(threadContext, className);
     if (connector == null)
       return null;
     return connector.processConfigurationPost(threadContext,variableContext,locale,configParams);
@@ -116,18 +94,18 @@ public class AuthorityConnectorFactory
   public static void viewConfiguration(IThreadContext threadContext, String className, IHTTPOutput out, Locale locale, ConfigParams configParams)
     throws ManifoldCFException, IOException
   {
-    IAuthorityConnector connector = getConnector(threadContext, className);
+    IMappingConnector connector = getConnector(threadContext, className);
     // We want to be able to view connections even if they have unregistered connectors.
     if (connector == null)
       return;
     connector.viewConfiguration(threadContext,out,locale,configParams);
   }
 
-  /** Get a repository connector instance, but do NOT check if class is installed first!
+  /** Get a mapping connector instance, but do NOT check if class is installed first!
   *@param className is the class name.
   *@return the instance.
   */
-  public static IAuthorityConnector getConnectorNoCheck(String className)
+  public static IMappingConnector getConnectorNoCheck(String className)
     throws ManifoldCFException
   {
     try
@@ -138,9 +116,9 @@ public class AuthorityConnectorFactory
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
-      if (!(o instanceof IAuthorityConnector))
-        throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
-      return (IAuthorityConnector)o;
+      if (!(o instanceof IMappingConnector))
+        throw new ManifoldCFException("Class '"+className+"' does not implement IMappingConnector.");
+      return (IMappingConnector)o;
     }
     catch (InvocationTargetException e)
     {
@@ -154,23 +132,23 @@ public class AuthorityConnectorFactory
     }
     catch (ClassNotFoundException e)
     {
-      throw new ManifoldCFException("No authority connector class '"+className+"' was found.",
+      throw new ManifoldCFException("No mapping connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new ManifoldCFException("No appropriate constructor for IAuthorityConnector implementation '"+
+      throw new ManifoldCFException("No appropriate constructor for IMappingConnector implementation '"+
         className+"'.  Need xxx().",
         e);
     }
     catch (SecurityException e)
     {
-      throw new ManifoldCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Protected constructor for IMappingConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new ManifoldCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Unavailable constructor for IMappingConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
@@ -179,25 +157,25 @@ public class AuthorityConnectorFactory
     }
     catch (InstantiationException e)
     {
-      throw new ManifoldCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("InstantiationException for IMappingConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new ManifoldCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("ExceptionInInitializerError for IMappingConnector implementation '"+className+"'",
         e);
     }
 
   }
 
-  /** Get a repository connector instance.
+  /** Get a mapping connector instance.
   *@param className is the class name.
   *@return the instance.
   */
-  protected static IAuthorityConnector getConnector(IThreadContext threadContext, String className)
+  protected static IMappingConnector getConnector(IThreadContext threadContext, String className)
     throws ManifoldCFException
   {
-    IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadContext);
+    IMappingConnectorManager connMgr = MappingConnectorManagerFactory.make(threadContext);
     if (connMgr.isInstalled(className) == false)
       return null;
 
@@ -209,9 +187,9 @@ public class AuthorityConnectorFactory
       Constructor c = theClass.getConstructor(argumentClasses);
       Object[] arguments = new Object[0];
       Object o = c.newInstance(arguments);
-      if (!(o instanceof IAuthorityConnector))
-        throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
-      return (IAuthorityConnector)o;
+      if (!(o instanceof IMappingConnector))
+        throw new ManifoldCFException("Class '"+className+"' does not implement IMappingConnector.");
+      return (IMappingConnector)o;
     }
     catch (InvocationTargetException e)
     {
@@ -225,27 +203,27 @@ public class AuthorityConnectorFactory
     }
     catch (ClassNotFoundException e)
     {
-      // If we get this exception, it may mean that the authority is not registered.
+      // If we get this exception, it may mean that the mapping is not registered.
       if (connMgr.isInstalled(className) == false)
         return null;
 
-      throw new ManifoldCFException("No authority connector class '"+className+"' was found.",
+      throw new ManifoldCFException("No mapping connector class '"+className+"' was found.",
         e);
     }
     catch (NoSuchMethodException e)
     {
-      throw new ManifoldCFException("No appropriate constructor for IAuthorityConnector implementation '"+
+      throw new ManifoldCFException("No appropriate constructor for IMappingConnector implementation '"+
         className+"'.  Need xxx().",
         e);
     }
     catch (SecurityException e)
     {
-      throw new ManifoldCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Protected constructor for IMappingConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalAccessException e)
     {
-      throw new ManifoldCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("Unavailable constructor for IMappingConnector implementation '"+className+"'",
         e);
     }
     catch (IllegalArgumentException e)
@@ -254,30 +232,28 @@ public class AuthorityConnectorFactory
     }
     catch (InstantiationException e)
     {
-      throw new ManifoldCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("InstantiationException for IMappingConnector implementation '"+className+"'",
         e);
     }
     catch (ExceptionInInitializerError e)
     {
-      throw new ManifoldCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+      throw new ManifoldCFException("ExceptionInInitializerError for IMappingConnector implementation '"+className+"'",
         e);
     }
 
   }
 
-  /** Get a repository connector.
+  /** Get a mapping connector.
   * The connector is specified by its class and its parameters.
   *@param threadContext is the current thread context.
   *@param className is the name of the class to get a connector for.
   *@param configInfo are the name/value pairs constituting configuration info
   * for this class.
   */
-  public static IAuthorityConnector grab(IThreadContext threadContext,
+  public static IMappingConnector grab(IThreadContext threadContext,
     String className, ConfigParams configInfo, int maxPoolSize)
     throws ManifoldCFException
   {
-    // System.out.println("In AuthorityConnectorManager.grab()");
-
     // We want to get handles off the pool and use them.  But the
     // handles we fetch have to have the right config information.
 
@@ -296,21 +272,19 @@ public class AuthorityConnectorFactory
       }
     }
 
-    IAuthorityConnector rval = p.getConnector(threadContext);
-    // System.out.println("Leaving AuthorityConnectorManager.grab()");
+    IMappingConnector rval = p.getConnector(threadContext);
     return rval;
   }
 
   /** Release a repository connector.
   *@param connector is the connector to release.
   */
-  public static void release(IAuthorityConnector connector)
+  public static void release(IMappingConnector connector)
     throws ManifoldCFException
   {
     if (connector == null)
       return;
 
-    // System.out.println("Releasing an authority connector");
     // Figure out which pool this goes on, and put it there
     PoolKey pk = new PoolKey(connector.getClass().getName(),connector.getConfiguration());
     Pool p;
@@ -323,7 +297,7 @@ public class AuthorityConnectorFactory
     // System.out.println("Done releasing");
   }
 
-  /** Idle notification for inactive authority connector handles.
+  /** Idle notification for inactive mapping connector handles.
   * This method polls all inactive handles.
   */
   public static void pollAllConnectors(IThreadContext threadContext)
@@ -342,7 +316,7 @@ public class AuthorityConnectorFactory
 
   }
 
-  /** Clean up all open authority connector handles.
+  /** Clean up all open mapping connector handles.
   * This method is called when the connector pool needs to be flushed,
   * to free resources.
   *@param threadContext is the local thread context.
@@ -435,11 +409,11 @@ public class AuthorityConnectorFactory
       numFree = maxCount;
     }
 
-    /** Grab a repository connector.
+    /** Grab a mapping connector.
     * If none exists, construct it using the information in the pool key.
     *@return the connector.
     */
-    public synchronized IAuthorityConnector getConnector(IThreadContext threadContext)
+    public synchronized IMappingConnector getConnector(IThreadContext threadContext)
       throws ManifoldCFException
     {
       while (numFree == 0)
@@ -459,7 +433,7 @@ public class AuthorityConnectorFactory
         String className = key.getClassName();
         ConfigParams configParams = key.getParams();
 
-        IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadContext);
+        IMappingConnectorManager connMgr = MappingConnectorManagerFactory.make(threadContext);
         if (connMgr.isInstalled(className) == false)
           return null;
 
@@ -471,9 +445,9 @@ public class AuthorityConnectorFactory
           Constructor c = theClass.getConstructor(argumentClasses);
           Object[] arguments = new Object[0];
           Object o = c.newInstance(arguments);
-          if (!(o instanceof IAuthorityConnector))
-            throw new ManifoldCFException("Class '"+className+"' does not implement IAuthorityConnector.");
-          IAuthorityConnector newrc = (IAuthorityConnector)o;
+          if (!(o instanceof IMappingConnector))
+            throw new ManifoldCFException("Class '"+className+"' does not implement IMappingConnector.");
+          IMappingConnector newrc = (IMappingConnector)o;
           newrc.connect(configParams);
 	  stack.add(newrc);
         }
@@ -489,27 +463,27 @@ public class AuthorityConnectorFactory
         }
         catch (ClassNotFoundException e)
         {
-          // If we get this exception, it may mean that the authority is not registered.
+          // If we get this exception, it may mean that the mapping is not registered.
           if (connMgr.isInstalled(className) == false)
             return null;
 
-          throw new ManifoldCFException("No authority connector class '"+className+"' was found.",
+          throw new ManifoldCFException("No mapping connector class '"+className+"' was found.",
             e);
         }
         catch (NoSuchMethodException e)
         {
-          throw new ManifoldCFException("No appropriate constructor for IAuthorityConnector implementation '"+
+          throw new ManifoldCFException("No appropriate constructor for IMappingConnector implementation '"+
             className+"'.  Need xxx(ConfigParams).",
             e);
         }
         catch (SecurityException e)
         {
-          throw new ManifoldCFException("Protected constructor for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("Protected constructor for IMappingConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalAccessException e)
         {
-          throw new ManifoldCFException("Unavailable constructor for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("Unavailable constructor for IMappingConnector implementation '"+className+"'",
             e);
         }
         catch (IllegalArgumentException e)
@@ -518,18 +492,18 @@ public class AuthorityConnectorFactory
         }
         catch (InstantiationException e)
         {
-          throw new ManifoldCFException("InstantiationException for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("InstantiationException for IMappingConnector implementation '"+className+"'",
             e);
         }
         catch (ExceptionInInitializerError e)
         {
-          throw new ManifoldCFException("ExceptionInInitializerError for IAuthorityConnector implementation '"+className+"'",
+          throw new ManifoldCFException("ExceptionInInitializerError for IMappingConnector implementation '"+className+"'",
             e);
         }
       }
       
       // Since thread context set can fail, do that before we remove it from the pool.
-      IAuthorityConnector rc = (IAuthorityConnector)stack.get(stack.size()-1);
+      IMappingConnector rc = (IMappingConnector)stack.get(stack.size()-1);
       rc.setThreadContext(threadContext);
       stack.remove(stack.size()-1);
       numFree--;
@@ -540,7 +514,7 @@ public class AuthorityConnectorFactory
     /** Release a repository connector to the pool.
     *@param connector is the connector.
     */
-    public synchronized void releaseConnector(IAuthorityConnector connector)
+    public synchronized void releaseConnector(IMappingConnector connector)
       throws ManifoldCFException
     {
       if (connector == null)
