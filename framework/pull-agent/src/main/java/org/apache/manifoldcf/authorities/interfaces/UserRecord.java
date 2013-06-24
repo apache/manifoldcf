@@ -44,6 +44,9 @@ import java.util.*;
 * mapper supplied out-of-the-box with ManifoldCF right now is a simple regular-
 * expression mapper, which converts the active-directory id to a user name in
 * any other specified domain.
+*
+* NOTE: since the same instance is potentially operated on by multiple threads,
+* it must be thread safe.
 */
 public class UserRecord
 {
@@ -61,25 +64,25 @@ public class UserRecord
   }
   
   /** Set a domain value to be a user record */
-  public void setDomainValue(String domain, UserRecord record)
+  public synchronized void setDomainValue(String domain, UserRecord record)
   {
     userInfo.put(domain, record);
   }
   
   /** Set a domain value to be a string */
-  public void setDomainValue(String domain, String name)
+  public synchronized void setDomainValue(String domain, String name)
   {
     userInfo.put(domain, name);
   }
   
   /** Delete a domain value */
-  public void deleteDomainValue(String domain)
+  public synchronized void deleteDomainValue(String domain)
   {
     userInfo.remove(domain);
   }
   
   /** Get a domain value, expecting a String */
-  public String getDomainValueAsString(String domain)
+  public synchronized String getDomainValueAsString(String domain)
   {
     Object o = userInfo.get(domain);
     if (o == null || !(o instanceof String))
@@ -88,7 +91,7 @@ public class UserRecord
   }
   
   /** Get a domain value, expecting a UserRecord */
-  public UserRecord getDomainValueAsUserRecord(String domain)
+  public synchronized UserRecord getDomainValueAsUserRecord(String domain)
   {
     Object o = userInfo.get(domain);
     if (o == null || !(o instanceof UserRecord))
@@ -97,13 +100,13 @@ public class UserRecord
   }
   
   /** Get an iterator over the list of domains */
-  public Iterator<String> iteratorDomains()
+  public synchronized Iterator<String> iteratorDomains()
   {
     return userInfo.keySet().iterator();
   }
   
   /** Get the number of domains */
-  public int getDomainCount()
+  public synchronized int getDomainCount()
   {
     return userInfo.size();
   }
