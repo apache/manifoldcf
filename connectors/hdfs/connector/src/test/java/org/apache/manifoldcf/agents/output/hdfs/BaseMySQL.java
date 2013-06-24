@@ -33,12 +33,12 @@ public class BaseMySQL extends org.apache.manifoldcf.crawler.tests.ConnectorBase
   
   protected String[] getConnectorNames()
   {
-    return new String[]{"File Connector"};
+    return new String[]{"HDFSRepository Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"};
   }
 
 }

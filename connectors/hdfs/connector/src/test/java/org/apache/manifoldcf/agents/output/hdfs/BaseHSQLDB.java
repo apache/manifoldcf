@@ -33,12 +33,12 @@ public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.ConnectorBas
   
   protected String[] getConnectorNames()
   {
-    return new String[]{"File Connector"};
+    return new String[]{"HDFS Repository Connector"};
   }
   
   protected String[] getConnectorClasses()
   {
-    return new String[]{"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"};
+    return new String[]{"org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"};
   }
 
 }
