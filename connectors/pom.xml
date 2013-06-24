@@ -36,6 +36,7 @@
     <module>activedirectory</module>
     <module>filesystem</module>
     <module>gts</module>
+    <module>hdfs</module>
     <module>jcifs</module>
     <module>jdbc</module>
     <module>ldap</module>
