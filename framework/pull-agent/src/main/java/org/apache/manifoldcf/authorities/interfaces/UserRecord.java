@@ -110,5 +110,19 @@ public class UserRecord
   {
     return userInfo.size();
   }
+  
+  /** Convert to string */
+  public synchronized String toString() 
+  {
+    StringBuilder sb = new StringBuilder("{");
+    Iterator<String> iter = iteratorDomains();
+    while (iter.hasNext())
+    {
+      String next = iter.next();
+      sb.append(next).append(":").append(userInfo.get(next).toString());
+      sb.append("}");
+    }
+    return sb.toString();
+  }
 }
 
