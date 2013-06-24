@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-734: Catch deadlock error with EXPLAIN ANALYZE in
+postgresql, and ignore it.
+(Ahmet Arslan, Karl Wright)
+
 CONNECTORS-732: Fix crawler-ui's message for 'Waiting' job status.
 (Ahmet Arslan)
 
