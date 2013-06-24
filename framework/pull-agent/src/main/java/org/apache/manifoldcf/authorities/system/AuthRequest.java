@@ -31,11 +31,12 @@ public class AuthRequest
   public static final String _rcsid = "@(#)$Id: AuthRequest.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // This is where the request data actually lives
-  protected String userID;
-  protected String className;
-  protected String identifyingString;
-  protected ConfigParams configParameters;
-  protected int maxConnections;
+  protected final String userID;
+  protected final UserRecord userRecord;
+  protected final String className;
+  protected final String identifyingString;
+  protected final ConfigParams configParameters;
+  protected final int maxConnections;
 
   // These are the possible results of the request
   protected boolean answerComplete = false;
@@ -47,6 +48,19 @@ public class AuthRequest
   public AuthRequest(String userID, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
   {
     this.userID = userID;
+    this.userRecord = null;
+    this.className = className;
+    this.identifyingString = identifyingString;
+    this.configParameters = configParameters;
+    this.maxConnections = maxConnections;
+  }
+
+  /** Construct the request, and record the question.
+  */
+  public AuthRequest(UserRecord userRecord, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
+  {
+    this.userID = null;
+    this.userRecord = userRecord;
     this.className = className;
     this.identifyingString = identifyingString;
     this.configParameters = configParameters;
@@ -59,6 +73,12 @@ public class AuthRequest
     return userID;
   }
 
+  /** Get the user record */
+  public UserRecord getUserRecord()
+  {
+    return userRecord;
+  }
+  
   /** Get the class name */
   public String getClassName()
   {
