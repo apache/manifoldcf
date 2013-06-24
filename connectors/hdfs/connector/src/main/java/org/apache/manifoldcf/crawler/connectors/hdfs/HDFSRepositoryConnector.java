@@ -94,8 +94,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     try {
       fileSystem = FileSystem.get(new URI(nameNode), config, user);
 	} catch (URISyntaxException e) {
+      Logging.connectors.warn("HDFS: Node name error: " + e.getMessage(), e);
 	} catch (IOException e) {
+      Logging.connectors.warn("HDFS: File system error: " + e.getMessage(), e);
 	} catch (InterruptedException e) {
+      Logging.connectors.warn("HDFS: File system error: " + e.getMessage(), e);
 	}
   }
 

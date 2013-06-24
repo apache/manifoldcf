@@ -133,10 +133,13 @@ public class HDFSOutputConnector extends BaseOutputConnector {
      */
     try {
         fileSystem = FileSystem.get(new URI(nameNode), config, user);
-  	} catch (URISyntaxException e) {
-  	} catch (IOException e) {
-  	} catch (InterruptedException e) {
-  	}
+    } catch (URISyntaxException e) {
+      Logging.connectors.warn("HDFS: Node name error: " + e.getMessage(), e);
+    } catch (IOException e) {
+      Logging.connectors.warn("HDFS: File system error: " + e.getMessage(), e);
+    } catch (InterruptedException e) {
+      Logging.connectors.warn("HDFS: File system error: " + e.getMessage(), e);
+    }
   }
 
   /** Close the connection.  Call this before discarding the connection.
