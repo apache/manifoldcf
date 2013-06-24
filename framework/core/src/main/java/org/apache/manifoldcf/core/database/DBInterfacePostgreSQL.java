@@ -1230,32 +1230,19 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     // We really can't retry at this level; it's not clear what the transaction nesting is etc.
     // So if the EXPLAIN fails due to deadlock, we just give up.
     IResultSet x;
-    try
+    String queryType = "EXPLAIN ";
+    if ("SELECT".equalsIgnoreCase(query.substring(0,6)))
+      queryType += "ANALYZE ";
+    x = executeUncachedQuery(queryType+query,params,true,
+      -1,null,null);
+    for (int k = 0; k < x.getRowCount(); k++)
     {
-      String queryType = "EXPLAIN ";
-      if ("SELECT".equalsIgnoreCase(query.substring(0,6)))
-        queryType += "ANALYZE ";
-      x = executeUncachedQuery(queryType+query,params,true,
-        -1,null,null);
-      for (int k = 0; k < x.getRowCount(); k++)
-      {
-        IResultRow row = x.getRow(k);
-        Iterator<String> iter = row.getColumns();
-        String colName = (String)iter.next();
-        Logging.db.warn(" Plan: "+row.getValue(colName).toString());
-      }
-      Logging.db.warn("");
+      IResultRow row = x.getRow(k);
+      Iterator<String> iter = row.getColumns();
+      String colName = (String)iter.next();
+      Logging.db.warn(" Plan: "+row.getValue(colName).toString());
     }
-    catch (ManifoldCFException e)
-    {
-      if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
-      {
-        if (Logging.perf.isDebugEnabled())
-          Logging.perf.debug("Aborted transaction generating EXPLAIN: "+e.getMessage());
-      }
-      else
-        throw e;
-    }
+    Logging.db.warn("");
 
     if (query.indexOf("jobqueue") != -1)
     {

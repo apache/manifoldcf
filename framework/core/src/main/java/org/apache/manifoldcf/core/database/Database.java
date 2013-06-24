@@ -1450,7 +1450,11 @@ public abstract class Database
           }
           catch (ManifoldCFException e)
           {
-            Logging.db.error("Explain failed with error "+e.getMessage(),e);
+            // We need to know if explain generated a TRANSACTION_ABORT.  If so we have to rethrow it.
+            if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT || e.getErrorCode() == e.INTERRUPTED)
+              throw e;
+            // Eat the exception
+            Logging.db.warn("Explain failed with error "+e.getMessage(),e);
           }
 
         }
