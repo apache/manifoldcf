@@ -730,11 +730,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         // Pick up the paths, and add them to the activities, before we join with the child thread.
         while (true) {
           // The only kind of exceptions this can throw are going to shut the process down.
-          String docPath = seedBuffer.fetch();
-          if (docPath ==  null)
+          String issueID = seedBuffer.fetch();
+          if (issueID ==  null)
             break;
           // Add the pageID to the queue
-          activities.addSeedDocument(docPath);
+          activities.addSeedDocument("I"+issueID);
         }
       } catch (InterruptedException e) {
         wasInterrupted = true;
@@ -809,10 +809,10 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected JiraIssue getIssue(String nodeId)
+  protected JiraIssue getIssue(String issueID)
     throws ManifoldCFException, ServiceInterruption {
     getSession();
-    GetIssueThread t = new GetIssueThread(nodeId);
+    GetIssueThread t = new GetIssueThread(issueID);
     try {
       t.start();
       t.join();
@@ -920,70 +920,73 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         if (!scanOnly[i]) {
           doLog = true;
 
-          JiraIssue jiraFile = getIssue(nodeId);
-          
-          if (Logging.connectors.isDebugEnabled()) {
-            Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.getKey());
-          }
-
-          // Unpack the version string
-          ArrayList acls = new ArrayList();
-          StringBuilder denyAclBuffer = new StringBuilder();
-          int index = unpackList(acls,version,0,'+');
-          if (index < version.length() && version.charAt(index++) == '+') {
-            index = unpack(denyAclBuffer,version,index,'+');
-          }
-
-          //otherwise process
-          RepositoryDocument rd = new RepositoryDocument();
+          if (nodeId.startsWith("I")) {
+            // It's an issue
+            String issueID = nodeId.substring(1);
+            JiraIssue jiraFile = getIssue(issueID);
             
-          // Turn into acls and add into description
-          String[] aclArray = new String[acls.size()];
-          for (int j = 0; j < aclArray.length; j++) {
-            aclArray[j] = (String)acls.get(j);
-          }
-          rd.setACL(aclArray);
-          if (denyAclBuffer.length() > 0) {
-            String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-            rd.setDenyACL(denyAclArray);
-          }
-
-          // Now do standard stuff
-            
-          String mimeType = "text/plain";
-          Date createdDate = jiraFile.getCreatedDate();
-          Date modifiedDate = jiraFile.getUpdatedDate();
-
-          rd.setMimeType(mimeType);
-          if (createdDate != null)
-            rd.setCreatedDate(createdDate);
-          if (modifiedDate != null)
-            rd.setModifiedDate(modifiedDate);
-          
-          // Get general document metadata
-          Map<String,String[]> metadataMap = jiraFile.getMetadata();
-            
-          for (Entry<String, String[]> entry : metadataMap.entrySet()) {
-            rd.addField(entry.getKey(), entry.getValue());
-          }
-
-          String documentURI = jiraFile.getSelf();
-          String document = getJiraBody(jiraFile);
-          try {
-            byte[] documentBytes = document.getBytes("UTF-8");
-            InputStream is = new ByteArrayInputStream(documentBytes);
-            try {
-              rd.setBinary(is, documentBytes.length);
-              activities.ingestDocument(nodeId, version, documentURI, rd);
-              // No errors.  Record the fact that we made it.
-              errorCode = "OK";
-            } finally {
-              is.close();
+            if (Logging.connectors.isDebugEnabled()) {
+              Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.getKey());
             }
-          } catch (java.io.IOException e) {
-            throw new RuntimeException("UTF-8 encoding unknown!!");
-          }
+
+            // Unpack the version string
+            ArrayList acls = new ArrayList();
+            StringBuilder denyAclBuffer = new StringBuilder();
+            int index = unpackList(acls,version,0,'+');
+            if (index < version.length() && version.charAt(index++) == '+') {
+              index = unpack(denyAclBuffer,version,index,'+');
+            }
+
+            //otherwise process
+            RepositoryDocument rd = new RepositoryDocument();
+              
+            // Turn into acls and add into description
+            String[] aclArray = new String[acls.size()];
+            for (int j = 0; j < aclArray.length; j++) {
+              aclArray[j] = (String)acls.get(j);
+            }
+            rd.setACL(aclArray);
+            if (denyAclBuffer.length() > 0) {
+              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+              rd.setDenyACL(denyAclArray);
+            }
+
+            // Now do standard stuff
+              
+            String mimeType = "text/plain";
+            Date createdDate = jiraFile.getCreatedDate();
+            Date modifiedDate = jiraFile.getUpdatedDate();
+
+            rd.setMimeType(mimeType);
+            if (createdDate != null)
+              rd.setCreatedDate(createdDate);
+            if (modifiedDate != null)
+              rd.setModifiedDate(modifiedDate);
             
+            // Get general document metadata
+            Map<String,String[]> metadataMap = jiraFile.getMetadata();
+              
+            for (Entry<String, String[]> entry : metadataMap.entrySet()) {
+              rd.addField(entry.getKey(), entry.getValue());
+            }
+
+            String documentURI = jiraFile.getSelf();
+            String document = getJiraBody(jiraFile);
+            try {
+              byte[] documentBytes = document.getBytes("UTF-8");
+              InputStream is = new ByteArrayInputStream(documentBytes);
+              try {
+                rd.setBinary(is, documentBytes.length);
+                activities.ingestDocument(nodeId, version, documentURI, rd);
+                // No errors.  Record the fact that we made it.
+                errorCode = "OK";
+              } finally {
+                is.close();
+              }
+            } catch (java.io.IOException e) {
+              throw new RuntimeException("UTF-8 encoding unknown!!");
+            }
+          }
         }
       } finally {
         if (doLog)
@@ -1036,24 +1039,29 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
-      JiraIssue jiraFile = getIssue(documentIdentifiers[i]);
-      Date rev = jiraFile.getUpdatedDate();
-      if (rev != null) {
-        StringBuilder sb = new StringBuilder();
+      String nodeId = documentIdentifiers[i];
+      if (nodeId.startsWith("I")) {
+        // It is an issue
+        String issueID = nodeId.substring(1);
+        JiraIssue jiraFile = getIssue(issueID);
+        Date rev = jiraFile.getUpdatedDate();
+        if (rev != null) {
+          StringBuilder sb = new StringBuilder();
 
-        // Acls
-        packList(sb,acls,'+');
-        if (acls.length > 0) {
-          sb.append('+');
-          pack(sb,defaultAuthorityDenyToken,'+');
-        } else
-          sb.append('-');
-        sb.append(rev.toString());
-        rval[i] = sb.toString();
-      } else {
-        //a jira document that doesn't contain versioning information will NEVER be processed.
-        // I don't know what this means, and whether it can ever occur.
-        rval[i] = null;
+          // Acls
+          packList(sb,acls,'+');
+          if (acls.length > 0) {
+            sb.append('+');
+            pack(sb,defaultAuthorityDenyToken,'+');
+          } else
+            sb.append('-');
+          sb.append(rev.toString());
+          rval[i] = sb.toString();
+        } else {
+          //a jira document that doesn't contain versioning information will NEVER be processed.
+          // I don't know what this means, and whether it can ever occur.
+          rval[i] = null;
+        }
       }
     }
     return rval;
