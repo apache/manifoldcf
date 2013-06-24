@@ -134,11 +134,8 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     try {
         fileSystem = FileSystem.get(new URI(nameNode), config, user);
   	} catch (URISyntaxException e) {
-        e.printStackTrace();
   	} catch (IOException e) {
-        e.printStackTrace();
   	} catch (InterruptedException e) {
-        e.printStackTrace();
   	}
   }
 
