@@ -2745,7 +2745,7 @@
         <ant dir="tests/sharepoint" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-hdfs-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector"/>
+    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector,run-tests-hdfs-connector"/>
     <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
     <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
 
@@ -3900,6 +3900,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+    </target>
+    
+    <target name="download-zookeeper">
+        <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/zookeeper"/>
@@ -3908,8 +3912,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-
-    <target name="make-core-deps" depends="download-google-api-client,download-dropbox-client,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop">
+	  
+    <target name="make-core-deps" depends="download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
