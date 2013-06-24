@@ -412,9 +412,9 @@ public class GenericConnector extends BaseRepositoryConnector {
             throw new ManifoldCFException("processDocuments error: " + thr.getMessage(), thr);
           }
         } catch (InterruptedException ex) {
-          throw new ManifoldCFException("processDocuments error - invalid chars in id: " + ex.getMessage(), ex);
+          throw new ManifoldCFException("processDocuments error: " + ex.getMessage(), ex);
         } catch (UnsupportedEncodingException ex) {
-          throw new ManifoldCFException("processDocuments error - invalid chars in id: " + ex.getMessage(), ex);
+          throw new ManifoldCFException("processDocuments error: " + ex.getMessage(), ex);
         }
       }
     }
