@@ -307,6 +307,8 @@ public class GenericConnector extends BaseRepositoryConnector {
       if (scanOnly[i]) {
         continue;
       }
+      activities.checkJobStillActive();
+      
       Item item = documentCache.get(documentIdentifiers[i]);
       if (item == null) {
         throw new ManifoldCFException("processDocuments error - no cache entry for: " + documentIdentifiers[i]);
