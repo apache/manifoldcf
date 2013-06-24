@@ -38,7 +38,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   protected static final String authCheckThreadCountProperty = "org.apache.manifoldcf.authorityservice.threads";
 
   // Request queue
-  protected static RequestQueue requestQueue = null;
+  protected static RequestQueue<AuthRequest> requestQueue = null;
 
   /** Initialize environment.
   */
@@ -174,7 +174,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     idleCleanupThread = new IdleCleanupThread();
     idleCleanupThread.start();
 
-    requestQueue = new RequestQueue();
+    requestQueue = new RequestQueue<AuthRequest>();
 
     authCheckThreads = new AuthCheckThread[numAuthCheckThreads];
     int i = 0;
