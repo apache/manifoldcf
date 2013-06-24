@@ -65,30 +65,30 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class GenericConnector extends BaseRepositoryConnector {
-
+  
   public static final String _rcsid = "@(#)$Id: GenericConnector.java 994959 2010-09-08 10:04:42Z redguy $";
 
   /**
    * Deny access token for default authority
    */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
-
+  
   private final static String ACTION_PARAM_NAME = "action";
-
+  
   private final static String ACTION_CHECK = "check";
-
+  
   private final static String ACTION_SEED = "seed";
-
+  
   private final static String ACTION_ITEMS = "items";
-
+  
   private final static String ACTION_ITEM = "item";
-
+  
   private String genericLogin = null;
-
+  
   private String genericPassword = null;
-
+  
   private String genericEntryPoint = null;
-
+  
   private ConcurrentHashMap<String, Item> documentCache = new ConcurrentHashMap<String, Item>(10);
 
   /**
@@ -96,12 +96,12 @@ public class GenericConnector extends BaseRepositoryConnector {
    */
   public GenericConnector() {
   }
-
+  
   @Override
   public int getMaxDocumentRequest() {
     return 10;
   }
-
+  
   @Override
   public int getConnectorModel() {
     return GenericConnector.MODEL_ADD_CHANGE;
@@ -136,7 +136,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     } catch (ManifoldCFException ignore) {
     }
   }
-
+  
   protected DefaultHttpClient getClient() throws ManifoldCFException {
     DefaultHttpClient cl = new DefaultHttpClient();
     if (genericLogin != null && !genericLogin.isEmpty()) {
@@ -151,7 +151,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     }
     return cl;
   }
-
+  
   @Override
   public String check() throws ManifoldCFException {
     HttpClient client = getClient();
@@ -168,15 +168,15 @@ public class GenericConnector extends BaseRepositoryConnector {
       return "Check exception: " + ex.getMessage();
     }
   }
-
+  
   @Override
   public void addSeedDocuments(ISeedingActivity activities, DocumentSpecification spec,
     long startTime, long endTime)
     throws ManifoldCFException, ServiceInterruption {
-
+    
     HttpClient client = getClient();
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
+    
     try {
       StringBuilder url = new StringBuilder(genericEntryPoint);
       url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_SEED);
@@ -219,7 +219,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
     }
   }
-
+  
   @Override
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobType, boolean usesDefaultAuthority)
@@ -230,7 +230,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     // Sort it,
     java.util.Arrays.sort(acls);
     String rights = java.util.Arrays.toString(acls);
-
+    
     String genericAuthMode = "provided";
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
@@ -239,7 +239,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         break;
       }
     }
-
+    
     HttpClient client = getClient();
     StringBuilder url = new StringBuilder(genericEntryPoint);
     try {
@@ -283,7 +283,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException("getDocumentVersions error: " + ex.getMessage(), ex);
     }
   }
-
+  
   @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities,
     DocumentSpecification spec, boolean[] scanOnly, int jobType)
@@ -291,7 +291,7 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     // Forced acls
     String[] acls = getAcls(spec);
-
+    
     String genericAuthMode = "provided";
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
@@ -300,7 +300,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         break;
       }
     }
-
+    
     HttpClient client = getClient();
     for (int i = 0; i < documentIdentifiers.length; i++) {
       if (scanOnly[i]) {
@@ -310,7 +310,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       if (item == null) {
         throw new ManifoldCFException("processDocuments error - no cache entry for: " + documentIdentifiers[i]);
       }
-
+      
       RepositoryDocument doc = new RepositoryDocument();
       if (item.mimeType != null) {
         doc.setMimeType(item.mimeType);
@@ -396,7 +396,7 @@ public class GenericConnector extends BaseRepositoryConnector {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
               throw new ManifoldCFException("processDocuments error - interface returned incorrect return code for: " + documentIdentifiers[i]);
             }
-
+            
             doc.setBinary(response.getEntity().getContent(), response.getEntity().getContentLength());
             activities.ingestDocument(documentIdentifiers[i], versions[i], item.url, doc);
           } finally {
@@ -411,7 +411,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
     }
   }
-
+  
   @Override
   public void releaseDocumentVersions(String[] documentIdentifiers, String[] versions) throws ManifoldCFException {
     for (int i = 0; i < documentIdentifiers.length; i++) {
@@ -421,13 +421,13 @@ public class GenericConnector extends BaseRepositoryConnector {
     }
     super.releaseDocumentVersions(documentIdentifiers, versions);
   }
-
+  
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale, "generic.EntryPoint"));
-
+    
     out.print(
       "<script type=\"text/javascript\">\n"
       + "<!--\n"
@@ -441,12 +441,12 @@ public class GenericConnector extends BaseRepositoryConnector {
       + "//-->\n"
       + "</script>\n");
   }
-
+  
   @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException {
-
+    
     String server = getParam(parameters, "genericEntryPoint", "");
     String login = getParam(parameters, "genericLogin", "");
     String password = "";
@@ -454,7 +454,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       password = ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", ""));
     } catch (ManifoldCFException ignore) {
     }
-
+    
     if (tabName.equals(Messages.getString(locale, "generic.EntryPoint"))) {
       out.print(
         "<table class=\"displaytable\">\n"
@@ -478,15 +478,15 @@ public class GenericConnector extends BaseRepositoryConnector {
       out.print("<input type=\"hidden\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/>\n");
     }
   }
-
+  
   @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException {
-
+    
     copyParam(variableContext, parameters, "genericLogin");
     copyParam(variableContext, parameters, "genericEntryPoint");
-
+    
     String password = variableContext.getParameter("genericPassword");
     if (password == null) {
       password = "";
@@ -494,14 +494,14 @@ public class GenericConnector extends BaseRepositoryConnector {
     parameters.setParameter("genericPassword", ManifoldCF.obfuscate(password));
     return null;
   }
-
+  
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException {
     String login = getParam(parameters, "genericLogin", "");
     String server = getParam(parameters, "genericEntryPoint", "");
-
+    
     out.print(
       "<table class=\"displaytable\">\n"
       + " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -519,13 +519,13 @@ public class GenericConnector extends BaseRepositoryConnector {
       + " </tr>\n"
       + "</table>\n");
   }
-
+  
   @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale, "generic.Parameters"));
     tabsArray.add(Messages.getString(locale, "generic.Security"));
-
+    
     out.print(
       "<script type=\"text/javascript\">\n"
       + "<!--\n"
@@ -559,22 +559,26 @@ public class GenericConnector extends BaseRepositoryConnector {
       + "//-->\n"
       + "</script>\n");
   }
-
+  
   @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException {
-
+    
     int k, i;
-
+    
     if (tabName.equals(Messages.getString(locale, "generic.Parameters"))) {
-
+      
+      out.print("<table class=\"displaytable\">"
+        + "<tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ParametersColon") + "</nobr></td>"
+        + "<td class=\"value\">");
+      
       out.print("<table class=\"formtable\">\n"
         + "<tr class=\"formheaderrow\">"
         + "<td class=\"formcolumnheader\"></td>"
         + "<td class=\"formcolumnheader\">" + Messages.getBodyString(locale, "generic.ParameterName") + "</td>"
         + "<td class=\"formcolumnheader\">" + Messages.getBodyString(locale, "generic.ParameterValue") + "</td>"
         + "</tr>");
-
+      
       i = 0;
       k = 0;
       while (i < ds.getChildCount()) {
@@ -585,17 +589,17 @@ public class GenericConnector extends BaseRepositoryConnector {
           String paramName = sn.getAttributeValue("name");
           String paramValue = sn.getValue();
           out.print(
-            "  <tr>\n"
-            + "    <td class=\"description\">\n"
+            "  <tr class=\"evenformrow\">\n"
+            + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"hidden\" name=\"" + paramOpName + "\" value=\"\"/>\n"
             + "      <a name=\"" + "param_" + Integer.toString(k) + "\">\n"
             + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:SpecOp(\"" + paramOpName + "\",\"Delete\",\"param" + paramDescription + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteParameter") + Integer.toString(k) + "\"/>\n"
             + "      </a>&nbsp;\n"
             + "    </td>\n"
-            + "    <td class=\"value\">\n"
+            + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"text\" name=\"specparamname" + paramDescription + "\" value=\"" + Encoder.attributeEscape(paramName) + "\"/>\n"
             + "    </td>\n"
-            + "    <td class=\"value\">\n"
+            + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"text\" name=\"specparamvalue" + paramDescription + "\" value=\"" + Encoder.attributeEscape(paramValue) + "\"/>\n"
             + "    </td>\n"
             + "  </tr>\n");
@@ -610,22 +614,23 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       out.print(
         "  <tr><td class=\"lightseparator\" colspan=\"3\"><hr/></td></tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\">\n"
+        + "  <tr class=\"evenformrow\">\n"
+        + "    <td class=\"formcolumncell\">\n"
         + "      <input type=\"hidden\" name=\"paramcount\" value=\"" + Integer.toString(k) + "\"/>\n"
         + "      <input type=\"hidden\" name=\"paramop\" value=\"\"/>\n"
         + "      <a name=\"param_" + Integer.toString(k) + "\">\n"
         + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Add") + "\" onClick='Javascript:SpecAddParam(\"param_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.AddParameter") + "\"/>\n"
         + "      </a>&nbsp;\n"
         + "    </td>\n"
-        + "    <td class=\"value\">\n"
+        + "    <td class=\"formcolumncell\">\n"
         + "      <input type=\"text\" size=\"30\" name=\"specparamname\" value=\"\"/>\n"
         + "    </td>\n"
-        + "    <td class=\"value\">\n"
+        + "    <td class=\"formcolumncell\">\n"
         + "      <input type=\"text\" size=\"30\" name=\"specparamvalue\" value=\"\"/>\n"
         + "    </td>\n"
         + "  </tr>\n"
         + "</table>\n");
+      out.print("</td></tr></table>");
     } else {
       i = 0;
       k = 0;
@@ -656,7 +661,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       out.print(
         "<table class=\"displaytable\">\n"
         + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
-
+      
       out.print("  <tr>\n"
         + "    <td class=\"description\">" + Messages.getBodyString(locale, "generic.AuthMode") + "</td>\n"
         + "    <td class=\"value\" >\n"
@@ -665,6 +670,13 @@ public class GenericConnector extends BaseRepositoryConnector {
         + "    </td>\n"
         + "  </tr>\n");
       // Go through forced ACL
+      out.print("<tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.TokensColon") + "</nobr></td>"
+        + "<td class=\"value\">");
+      out.print("<table class=\"formtable\">\n"
+        + "<tr class=\"formheaderrow\">"
+        + "<td class=\"formcolumnheader\"></td>"
+        + "<td class=\"formcolumnheader\">" + Messages.getBodyString(locale, "generic.Token") + "</td>"
+        + "</tr>");
       i = 0;
       k = 0;
       while (i < ds.getChildCount()) {
@@ -674,15 +686,15 @@ public class GenericConnector extends BaseRepositoryConnector {
           String accessOpName = "accessop" + accessDescription;
           String token = sn.getAttributeValue("token");
           out.print(
-            "  <tr>\n"
-            + "    <td class=\"description\">\n"
+            "  <tr class=\"evenformrow\">\n"
+            + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"hidden\" name=\"" + accessOpName + "\" value=\"\"/>\n"
             + "      <input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n"
             + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
             + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:SpecOp(\"" + accessOpName + "\",\"Delete\",\"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteToken") + Integer.toString(k) + "\"/>\n"
             + "      </a>&nbsp;\n"
             + "    </td>\n"
-            + "    <td class=\"value\">\n"
+            + "    <td class=\"formcolumncell\">\n"
             + "      " + Encoder.bodyEscape(token) + "\n"
             + "    </td>\n"
             + "  </tr>\n");
@@ -697,19 +709,20 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       out.print(
         "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\">\n"
+        + "  <tr class=\"evenformrow\">\n"
+        + "    <td class=\"formcolumncell\">\n"
         + "      <input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
         + "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"
         + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
         + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Add") + "\" onClick='Javascript:SpecAddToken(\"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.AddAccessToken") + "\"/>\n"
         + "      </a>&nbsp;\n"
         + "    </td>\n"
-        + "    <td class=\"value\">\n"
+        + "    <td class=\"formcolumncell\">\n"
         + "      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"
         + "    </td>\n"
         + "  </tr>\n"
         + "</table>\n");
+      out.print("</td></tr></table>");
     } else {
       // Finally, go through forced ACL
       i = 0;
@@ -728,11 +741,11 @@ public class GenericConnector extends BaseRepositoryConnector {
       out.print("<input type=\"hidden\" name=\"genericAuthMode\" value=\"" + Encoder.attributeEscape(genericAuthMode) + "\"/>\n");
     }
   }
-
+  
   @Override
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException {
-
+    
     String xc = variableContext.getParameter("paramcount");
     if (xc != null) {
       // Delete all tokens first
@@ -745,7 +758,7 @@ public class GenericConnector extends BaseRepositoryConnector {
           i++;
         }
       }
-
+      
       int accessCount = Integer.parseInt(xc);
       i = 0;
       while (i < accessCount) {
@@ -766,7 +779,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         ds.addChild(ds.getChildCount(), node);
         i++;
       }
-
+      
       String op = variableContext.getParameter("paramop");
       if (op != null && op.equals("Add")) {
         String paramName = variableContext.getParameter("specparamname");
@@ -777,7 +790,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         ds.addChild(ds.getChildCount(), node);
       }
     }
-
+    
     String redmineAuthMode = variableContext.getParameter("genericAuthMode");
     if (redmineAuthMode != null) {
       // Delete existing seeds record first
@@ -794,7 +807,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       cn.setValue(redmineAuthMode);
       ds.addChild(ds.getChildCount(), cn);
     }
-
+    
     xc = variableContext.getParameter("tokencount");
     if (xc != null) {
       // Delete all tokens first
@@ -807,7 +820,7 @@ public class GenericConnector extends BaseRepositoryConnector {
           i++;
         }
       }
-
+      
       int accessCount = Integer.parseInt(xc);
       i = 0;
       while (i < accessCount) {
@@ -826,7 +839,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         ds.addChild(ds.getChildCount(), node);
         i++;
       }
-
+      
       String op = variableContext.getParameter("accessop");
       if (op != null && op.equals("Add")) {
         String accessspec = variableContext.getParameter("spectoken");
@@ -835,16 +848,16 @@ public class GenericConnector extends BaseRepositoryConnector {
         ds.addChild(ds.getChildCount(), node);
       }
     }
-
+    
     return null;
   }
-
+  
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException {
     boolean seenAny;
     int i;
-
+    
     i = 0;
     seenAny = false;
     while (i < ds.getChildCount()) {
@@ -862,7 +875,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         out.print(Encoder.bodyEscape(paramName) + " = " + Encoder.bodyEscape(paramValue) + "<br/>\n");
       }
     }
-
+    
     if (seenAny) {
       out.print(
         "    </td>\n"
@@ -871,7 +884,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       out.print(
         "  <tr><td class=\"message\" colspan=\"4\"><nobr>" + Messages.getBodyString(locale, "generic.NoParametersSpecified") + "</nobr></td></tr>\n");
     }
-
+    
     out.print(
       "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n");
 
@@ -892,7 +905,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         out.print(Encoder.bodyEscape(token) + "<br/>\n");
       }
     }
-
+    
     if (seenAny) {
       out.print(
         "    </td>\n"
@@ -904,11 +917,11 @@ public class GenericConnector extends BaseRepositoryConnector {
     out.print(
       "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n");
   }
-
+  
   private String getParam(ConfigParams parameters, String name, String def) {
     return parameters.getParameter(name) != null ? parameters.getParameter(name) : def;
   }
-
+  
   private boolean copyParam(IPostParameters variableContext, ConfigParams parameters, String name) {
     String val = variableContext.getParameter(name);
     if (val == null) {
@@ -917,7 +930,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     parameters.setParameter(name, val);
     return true;
   }
-
+  
   protected static String[] getAcls(DocumentSpecification spec) {
     HashMap map = new HashMap();
     int i = 0;
@@ -928,7 +941,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         map.put(token, token);
       }
     }
-
+    
     String[] rval = new String[map.size()];
     Iterator iter = map.keySet().iterator();
     i = 0;
@@ -937,7 +950,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     }
     return rval;
   }
-
+  
   protected static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
     if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
@@ -948,38 +961,38 @@ public class GenericConnector extends BaseRepositoryConnector {
     throw new ServiceInterruption("IO exception: " + e.getMessage(), e, currentTime + 300000L,
       currentTime + 3 * 60 * 60000L, -1, false);
   }
-
+  
   static class PreemptiveAuth implements HttpRequestInterceptor {
-
+    
     private Credentials credentials;
-
+    
     public PreemptiveAuth(Credentials creds) {
       this.credentials = creds;
     }
-
+    
     @Override
     public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
       request.addHeader(BasicScheme.authenticate(credentials, "US-ASCII", false));
     }
   }
-
+  
   protected static class CheckThread extends Thread {
-
+    
     protected HttpClient client;
-
+    
     protected String url;
-
+    
     protected Throwable exception = null;
-
+    
     protected String result = "Unknown";
-
+    
     public CheckThread(HttpClient client, String url) {
       super();
       setDaemon(true);
       this.client = client;
       this.url = url;
     }
-
+    
     @Override
     public void run() {
       HttpGet method = new HttpGet(url);
@@ -1000,26 +1013,26 @@ public class GenericConnector extends BaseRepositoryConnector {
         exception = ex;
       }
     }
-
+    
     public Throwable getException() {
       return exception;
     }
-
+    
     public String getResult() {
       return result;
     }
   }
-
+  
   protected static class ExecuteSeedingThread extends Thread {
-
+    
     protected HttpClient client;
-
+    
     protected String url;
-
+    
     protected ISeedingActivity activities;
-
+    
     protected Throwable exception = null;
-
+    
     public ExecuteSeedingThread(HttpClient client, ISeedingActivity activities, String url) {
       super();
       setDaemon(true);
@@ -1027,11 +1040,11 @@ public class GenericConnector extends BaseRepositoryConnector {
       this.url = url;
       this.activities = activities;
     }
-
+    
     @Override
     public void run() {
       HttpGet method = new HttpGet(url.toString());
-
+      
       try {
         HttpResponse response = client.execute(method);
         try {
@@ -1039,7 +1052,7 @@ public class GenericConnector extends BaseRepositoryConnector {
             exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code");
             return;
           }
-
+          
           try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -1061,30 +1074,30 @@ public class GenericConnector extends BaseRepositoryConnector {
         exception = ex;
       }
     }
-
+    
     public Throwable getException() {
       return exception;
     }
   }
-
+  
   protected static class DocumentVersionThread extends Thread {
-
+    
     protected HttpClient client;
-
+    
     protected String url;
-
+    
     protected Throwable exception = null;
-
+    
     protected String[] versions;
-
+    
     protected ConcurrentHashMap<String, Item> documentCache;
-
+    
     protected String[] documentIdentifiers;
-
+    
     protected String genericAuthMode;
-
+    
     protected String defaultRights;
-
+    
     public DocumentVersionThread(HttpClient client, String url, String[] documentIdentifiers, String genericAuthMode, String defaultRights, ConcurrentHashMap<String, Item> documentCache) {
       super();
       setDaemon(true);
@@ -1099,12 +1112,12 @@ public class GenericConnector extends BaseRepositoryConnector {
         versions[i] = null;
       }
     }
-
+    
     @Override
     public void run() {
       try {
         HttpGet method = new HttpGet(url.toString());
-
+        
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -1140,24 +1153,24 @@ public class GenericConnector extends BaseRepositoryConnector {
         exception = ex;
       }
     }
-
+    
     public Throwable getException() {
       return exception;
     }
-
+    
     public String[] getVersions() {
       return versions;
     }
   }
-
+  
   static public class SAXSeedingHandler extends DefaultHandler {
-
+    
     protected ISeedingActivity activities;
-
+    
     public SAXSeedingHandler(ISeedingActivity activities) {
       this.activities = activities;
     }
-
+    
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
       if ("seed".equals(localName) && attributes.getValue("id") != null) {
@@ -1169,56 +1182,56 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
     }
   }
-
+  
   @XmlRootElement(name = "meta")
   public static class Meta {
-
+    
     @XmlAttribute(name = "name")
     String name;
-
+    
     @XmlValue
     String value;
   }
-
+  
   @XmlRootElement(name = "item")
   public static class Item {
-
+    
     @XmlAttribute(name = "id", required = true)
     String id;
-
+    
     @XmlElement(name = "url", required = true)
     String url;
-
+    
     @XmlElement(name = "version", required = true)
     String version;
-
+    
     @XmlElement(name = "content")
     String content;
-
+    
     @XmlElement(name = "mimetype")
     String mimeType;
-
+    
     @XmlElement(name = "created")
     @XmlJavaTypeAdapter(DateAdapter.class)
     Date created;
-
+    
     @XmlElement(name = "updated")
     @XmlJavaTypeAdapter(DateAdapter.class)
     Date updated;
-
+    
     @XmlElement(name = "filename")
     String fileName;
-
+    
     @XmlElementWrapper(name = "metadata")
     @XmlElements({
       @XmlElement(name = "meta", type = Meta.class)})
     List<Meta> metadata;
-
+    
     @XmlElementWrapper(name = "auth")
     @XmlElements({
       @XmlElement(name = "token", type = String.class)})
     List<String> auth;
-
+    
     public String getVersionString() {
       if (version == null) {
         return "";
@@ -1232,10 +1245,10 @@ public class GenericConnector extends BaseRepositoryConnector {
       return sb.toString();
     }
   }
-
+  
   @XmlRootElement(name = "items")
   public static class Items {
-
+    
     @XmlElements({
       @XmlElement(name = "item", type = Item.class)})
     List<Item> items;
