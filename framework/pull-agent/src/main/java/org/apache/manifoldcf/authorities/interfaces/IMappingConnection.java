@@ -80,4 +80,9 @@ public interface IMappingConnection
   */
   public int getMaxConnections();
 
+  /** Get the prerequisite mappers.
+  *@return the set of mapping connections (by name) that must be run prior to this one.
+  */
+  public Set<String> getPrerequisites();
+
 }

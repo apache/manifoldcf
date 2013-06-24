@@ -27,11 +27,11 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 /** Implementation of the authority connection manager functionality.
  * 
  * <br><br>
- * <b>authconnectors</b>
+ * <b>mapconnections</b>
  * <table border="1" cellpadding="3" cellspacing="0">
  * <tr class="TableHeadingColor">
  * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
- * <tr><td>authorityname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
+ * <tr><td>mappingname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
  * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
  * <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
  * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
@@ -47,13 +47,14 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   // Special field suffix
   private final static String passwordSuffix = "password";
 
-  protected final static String nameField = "authorityname";      // Changed this to work around a bug in postgresql
+  protected final static String nameField = "mappingname";      // Changed this to work around a bug in postgresql
   protected final static String descriptionField = "description";
   protected final static String classNameField = "classname";
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
 
-  protected static Random random = new Random();
+  // Handle for throttle spec storage
+  protected MappingPrereqManager mappingPrereqManager;
 
   // Cache manager
   ICacheManager cacheManager;
@@ -68,6 +69,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   {
     super(database,"mapconnections");
 
+    mappingPrereqManager = new MappingPrereqManager(database);
     cacheManager = CacheManagerFactory.make(threadContext);
     this.threadContext = threadContext;
   }
@@ -97,10 +99,15 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
         // Upgrade code goes here
       }
 
+      // Install dependent tables.
+      mappingPrereqManager.install(getTableName(),nameField);
+
       // Index management goes here
 
       break;
     }
+    
+
   }
 
   /** Uninstall the manager.
@@ -108,7 +115,26 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   public void deinstall()
     throws ManifoldCFException
   {
-    performDrop(null);
+    beginTransaction();
+    try
+    {
+      mappingPrereqManager.deinstall();
+      performDrop(null);
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
   }
 
   /** Export configuration */
@@ -121,17 +147,23 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
     IMappingConnection[] list = getAllConnections();
     // Write the number of authorities
     ManifoldCF.writeDword(os,list.length);
-    // Loop through the list and write the individual authority info
-    int i = 0;
-    while (i < list.length)
+    // Loop through the list and write the individual mapping info
+    for (IMappingConnection conn : list)
     {
-      IMappingConnection conn = list[i++];
       ManifoldCF.writeString(os,conn.getName());
       ManifoldCF.writeString(os,conn.getDescription());
       ManifoldCF.writeString(os,conn.getClassName());
       ManifoldCF.writeString(os,conn.getConfigParams().toXML());
       ManifoldCF.writeDword(os,conn.getMaxConnections());
+      
+      Set<String> prereqs = conn.getPrerequisites();
+      ManifoldCF.writeDword(os,prereqs.size());
+      for (String s : prereqs)
+      {
+        ManifoldCF.writeString(os,s);
+      }
     }
+    
   }
 
   /** Import configuration */
@@ -140,10 +172,9 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   {
     int version = ManifoldCF.readDword(is);
     if (version != 1)
-      throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
+      throw new java.io.IOException("Unknown mapping configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
-    int i = 0;
-    while (i < count)
+    for (int i = 0; i < count; i++)
     {
       IMappingConnection conn = create();
       conn.setName(ManifoldCF.readString(is));
@@ -151,9 +182,13 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
       conn.setClassName(ManifoldCF.readString(is));
       conn.getConfigParams().fromXML(ManifoldCF.readString(is));
       conn.setMaxConnections(ManifoldCF.readDword(is));
+      int prereqCount = ManifoldCF.readDword(is);
+      for (int j = 0; j < prereqCount; j++)
+      {
+        conn.getPrerequisites().add(ManifoldCF.readString(is));
+      }
       // Attempt to save this connection
       save(conn);
-      i++;
     }
   }
 
@@ -297,13 +332,16 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
             {
               // If the object is not supposed to be new, it is bad that we did not find one.
               if (!isNew)
-                throw new ManifoldCFException("Authority connection '"+object.getName()+"' no longer exists");
+                throw new ManifoldCFException("Mapping connection '"+object.getName()+"' no longer exists");
               isCreated = true;
               // Insert
               values.put(nameField,object.getName());
               // We only need the general key because this is new.
               performInsert(values,null);
             }
+
+            // Write secondary table stuff
+            mappingPrereqManager.writeRows(object.getName(),object);
 
             cacheManager.invalidateKeys(ch);
             return isCreated;
@@ -349,7 +387,6 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   public void delete(String name)
     throws ManifoldCFException
   {
-    // MHL to check on legality of deletion
 
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getMappingConnectionsKey());
@@ -361,11 +398,11 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
       beginTransaction();
       try
       {
-        // Check if anything refers to this connection name
-        // MHL
-        //if (repoManager.isReferenced(name))
-        //  throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing mapping connections refer to it");
+        // Check if any other mapping refers to this connection name
+        if (isReferenced(name))
+          throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing mapping connections refer to it");
         ManifoldCF.noteConfigurationChange();
+        mappingPrereqManager.deleteRows(name);
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
           new UnitaryClause(nameField,name)});
@@ -400,6 +437,24 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   public String getMappingNameColumn()
   {
     return nameField;
+  }
+
+  /** Return true if the specified mapping name is referenced.
+  *@param mappingName is the mapping name.
+  *@return true if referenced, false otherwise.
+  */
+  protected boolean isReferenced(String mappingName)
+    throws ManifoldCFException
+  {
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getMappingConnectionsKey());
+    StringSet localCacheKeys = new StringSet(ssb);
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(mappingPrereqManager.prereqField,mappingName)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+mappingPrereqManager.getTableName()+" WHERE "+query,params,
+      localCacheKeys,null);
+    return set.getRowCount() > 0;
   }
 
   // Caching strategy: Individual connection descriptions are cached, and there is a global cache key for the list of
@@ -483,7 +538,8 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   */
   protected int maxClauseGetMappingConnectionsChunk()
   {
-    return findConjunctionClauseMax(new ClauseDescription[]{});
+    return Math.min(findConjunctionClauseMax(new ClauseDescription[]{}),
+      mappingPrereqManager.maxClauseGetRows());
   }
     
   /** Read a chunk of mapping connections.
@@ -516,6 +572,8 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
         rc.getConfigParams().fromXML(xml);
       rval[index] = rc;
     }
+    // Do prereq part
+    mappingPrereqManager.getRows(rval,returnIndex,params);
   }
 
   // The cached instance will be a MappingConnection.  The cached version will be duplicated when it is returned

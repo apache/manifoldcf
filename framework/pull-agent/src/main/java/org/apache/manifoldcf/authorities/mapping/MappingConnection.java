@@ -37,6 +37,8 @@ public class MappingConnection implements IMappingConnection
   protected ConfigParams configParams = new ConfigParams();
   protected int maxCount = 100;
 
+  protected Set<String> prerequisites = new HashSet<String>();
+
   /** Constructor.
   */
   public MappingConnection()
@@ -55,6 +57,10 @@ public class MappingConnection implements IMappingConnection
     rval.className = className;
     rval.maxCount = maxCount;
     rval.configParams = configParams.duplicate();
+    for (String s : prerequisites)
+    {
+      rval.prerequisites.add(s);
+    }
     return rval;
   }
 
@@ -144,6 +150,14 @@ public class MappingConnection implements IMappingConnection
   public int getMaxConnections()
   {
     return maxCount;
+  }
+
+  /** Get the prerequisite mappers.
+  *@return the set of mapping connections (by name) that must be run prior to this one.
+  */
+  public Set<String> getPrerequisites()
+  {
+    return prerequisites;
   }
 
 }
