@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-732: Fix crawler-ui's message for 'Waiting' job status.
+(Ahmet Arslan)
+
 CONNECTORS-723: Add a Jira connector.  This connector does not yet
 handle security or comments, but may be extended in the future to do
 so.

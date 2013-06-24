@@ -158,7 +158,7 @@ if (maintenanceUnderway == false)
 			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Done");
 			break;
 		case JobStatus.JOBSTATUS_WINDOWWAIT:
-			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus,Waiting");
+			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Waiting");
 			break;
 		case JobStatus.JOBSTATUS_STARTING:
 			statusName = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startingup");
