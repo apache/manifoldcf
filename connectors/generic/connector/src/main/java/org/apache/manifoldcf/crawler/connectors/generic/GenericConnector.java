@@ -40,7 +40,6 @@ import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
@@ -73,15 +72,15 @@ public class GenericConnector extends BaseRepositoryConnector {
    * Deny access token for default authority
    */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
-  
+
   private final static String ACTION_PARAM_NAME = "action";
 
   private final static String ACTION_CHECK = "check";
-  
+
   private final static String ACTION_SEED = "seed";
-  
+
   private final static String ACTION_ITEMS = "items";
-  
+
   private final static String ACTION_ITEM = "item";
 
   private String genericLogin = null;
@@ -156,21 +155,17 @@ public class GenericConnector extends BaseRepositoryConnector {
   @Override
   public String check() throws ManifoldCFException {
     HttpClient client = getClient();
-    HttpGet method = new HttpGet(genericEntryPoint + "?" + ACTION_PARAM_NAME + "=" + ACTION_CHECK);
     try {
-      HttpResponse response = client.execute(method);
-      try {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-          return "Connection failed: " + response.getStatusLine().getReasonPhrase();
-        }
-        EntityUtils.consume(response.getEntity());
-        return "Connection OK";
-      } finally {
-        EntityUtils.consume(response.getEntity());
-        method.releaseConnection();
+      CheckThread checkThread = new CheckThread(client, genericEntryPoint + "?" + ACTION_PARAM_NAME + "=" + ACTION_CHECK);
+      checkThread.start();
+      checkThread.join();
+      if (checkThread.getException() != null) {
+        Throwable thr = checkThread.getException();
+        return "Check exception: " + thr.getMessage();
       }
-    } catch (IOException ex) {
-      return "Error: " + ex.getMessage();
+      return checkThread.getResult();
+    } catch (InterruptedException ex) {
+      return "Check exception: " + ex.getMessage();
     }
   }
 
@@ -214,7 +209,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         } else if (thr instanceof ServiceInterruption) {
           throw (ServiceInterruption) thr;
         } else if (thr instanceof IOException) {
-          throw (IOException) thr;
+          handleIOException((IOException) thr);
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         }
@@ -222,15 +217,6 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
     } catch (InterruptedException ex) {
       throw new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
-    } catch (UnsupportedEncodingException ex) {
-      throw new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
-    } catch (IOException ex) {
-      long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Exception while seeding, retrying: " + ex.getMessage(), ex,
-        currentTime + 300000L, //powtarzaj co pięć minut
-        currentTime + 60L * 60000L, //powtarzaj przez 1 godzinę
-        -1, //bez limitu powtórzeń
-        true); //wyrzuć wyjątek jeśli nie uda się pobrać
     }
   }
 
@@ -255,13 +241,11 @@ public class GenericConnector extends BaseRepositoryConnector {
     }
 
     HttpClient client = getClient();
-    String[] rval = new String[documentIdentifiers.length];
+    StringBuilder url = new StringBuilder(genericEntryPoint);
     try {
-      StringBuilder url = new StringBuilder(genericEntryPoint);
       url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_ITEMS);
-      for (int i = 0; i < rval.length; i++) {
+      for (int i = 0; i < documentIdentifiers.length; i++) {
         url.append("&id[]=").append(URLEncoder.encode(documentIdentifiers[i], "UTF-8"));
-        rval[i] = null;
       }
       for (int i = 0; i < spec.getChildCount(); i++) {
         SpecificationNode sn = spec.getChild(i);
@@ -271,47 +255,33 @@ public class GenericConnector extends BaseRepositoryConnector {
           url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
         }
       }
-      HttpGet method = new HttpGet(url.toString());
-
-      HttpResponse response = client.execute(method);
-      try {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-          throw new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code");
-        }
-        JAXBContext context;
-        context = JAXBContext.newInstance(Items.class);
-        Unmarshaller m = context.createUnmarshaller();
-        Items items = (Items) m.unmarshal(response.getEntity().getContent());
-        for (Item item : items.items) {
-          documentCache.put(item.id, item);
-          for (int i = 0; i < rval.length; i++) {
-            if (documentIdentifiers[i].equals(item.id)) {
-              if ("provided".equals(genericAuthMode)) {
-                rval[i] = item.getVersionString();
-              } else {
-                rval[i] = item.version + rights;
-              }
-              break;
-            }
-          }
-        }
-      } catch (JAXBException ex) {
-        throw new ManifoldCFException("addSeedDocuments error - response is not a valid XML: " + ex.getMessage(), ex);
-      } finally {
-        EntityUtils.consume(response.getEntity());
-        method.releaseConnection();
-      }
     } catch (UnsupportedEncodingException ex) {
       throw new ManifoldCFException("getDocumentVersions error - invalid chars in id: " + ex.getMessage(), ex);
-    } catch (IOException ex) {
-      long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Exception while seeding, retrying: " + ex.getMessage(), ex,
-        currentTime + 300000L, //powtarzaj co pięć minut
-        currentTime + 60L * 60000L, //powtarzaj przez 1 godzinę
-        -1, //bez limitu powtórzeń
-        true); //wyrzuć wyjątek jeśli nie uda się pobrać
     }
-    return rval;
+    try {
+      DocumentVersionThread versioningThread = new DocumentVersionThread(client, url.toString(), documentIdentifiers, genericAuthMode, rights, documentCache);
+      versioningThread.start();
+      versioningThread.join();
+      if (versioningThread.getException() != null) {
+        Throwable thr = versioningThread.getException();
+        if (thr instanceof ManifoldCFException) {
+          if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
+            throw new InterruptedException(thr.getMessage());
+          }
+          throw (ManifoldCFException) thr;
+        } else if (thr instanceof ServiceInterruption) {
+          throw (ServiceInterruption) thr;
+        } else if (thr instanceof IOException) {
+          handleIOException((IOException) thr);
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        }
+        throw new ManifoldCFException("getDocumentVersions error: " + thr.getMessage(), thr);
+      }
+      return versioningThread.getVersions();
+    } catch (InterruptedException ex) {
+      throw new ManifoldCFException("getDocumentVersions error: " + ex.getMessage(), ex);
+    }
   }
 
   @Override
@@ -395,24 +365,17 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       if (item.content != null) {
         try {
-          File temp = File.createTempFile("manifold", ".tmp");
-          temp.deleteOnExit();
+          byte[] content = item.content.getBytes("UTF-8");
+          ByteArrayInputStream is = new ByteArrayInputStream(content);
           try {
-            FileUtils.writeStringToFile(temp, item.content);
-            FileInputStream is = new FileInputStream(temp);
-            doc.setBinary(is, temp.length());
+            doc.setBinary(is, content.length);
             activities.ingestDocument(documentIdentifiers[i], versions[i], item.url, doc);
             is.close();
           } finally {
-            temp.delete();
+            is.close();
           }
         } catch (IOException ex) {
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Exception while processing " + documentIdentifiers[i] + ", retrying: " + ex.getMessage(), ex,
-            currentTime + 300000L, //powtarzaj co pięć minut
-            currentTime + 60L * 60000L, //powtarzaj przez 1 godzinę
-            -1, //bez limitu powtórzeń
-            true); //wyrzuć wyjątek jeśli nie uda się pobrać
+          handleIOException(ex);
         }
       } else {
         try {
@@ -443,12 +406,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         } catch (UnsupportedEncodingException ex) {
           throw new ManifoldCFException("processDocuments error - invalid chars in id: " + ex.getMessage(), ex);
         } catch (IOException ex) {
-          long currentTime = System.currentTimeMillis();
-          throw new ServiceInterruption("Exception while processing " + documentIdentifiers[i] + ", retrying: " + ex.getMessage(), ex,
-            currentTime + 300000L, //powtarzaj co pięć minut
-            currentTime + 60L * 60000L, //powtarzaj przez 1 godzinę
-            -1, //bez limitu powtórzeń
-            true); //wyrzuć wyjątek jeśli nie uda się pobrać
+          handleIOException(ex);
         }
       }
     }
@@ -610,11 +568,11 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     if (tabName.equals(Messages.getString(locale, "generic.Parameters"))) {
 
-      out.print("<table class=\"displaytable\">\n"
-        + "<tr>"
-        + "<th></th>"
-        + "<th>" + Messages.getBodyString(locale, "generic.ParameterName") + "</th>"
-        + "<th>" + Messages.getBodyString(locale, "generic.ParameterValue") + "</th>"
+      out.print("<table class=\"formtable\">\n"
+        + "<tr class=\"formheaderrow\">"
+        + "<td class=\"formcolumnheader\"></td>"
+        + "<td class=\"formcolumnheader\">" + Messages.getBodyString(locale, "generic.ParameterName") + "</td>"
+        + "<td class=\"formcolumnheader\">" + Messages.getBodyString(locale, "generic.ParameterValue") + "</td>"
         + "</tr>");
 
       i = 0;
@@ -980,6 +938,17 @@ public class GenericConnector extends BaseRepositoryConnector {
     return rval;
   }
 
+  protected static void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption {
+    if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    }
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("IO exception: " + e.getMessage(), e, currentTime + 300000L,
+      currentTime + 3 * 60 * 60000L, -1, false);
+  }
+
   static class PreemptiveAuth implements HttpRequestInterceptor {
 
     private Credentials credentials;
@@ -991,6 +960,53 @@ public class GenericConnector extends BaseRepositoryConnector {
     @Override
     public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
       request.addHeader(BasicScheme.authenticate(credentials, "US-ASCII", false));
+    }
+  }
+
+  protected static class CheckThread extends Thread {
+
+    protected HttpClient client;
+
+    protected String url;
+
+    protected Throwable exception = null;
+
+    protected String result = "Unknown";
+
+    public CheckThread(HttpClient client, String url) {
+      super();
+      setDaemon(true);
+      this.client = client;
+      this.url = url;
+    }
+
+    @Override
+    public void run() {
+      HttpGet method = new HttpGet(url);
+      try {
+        HttpResponse response = client.execute(method);
+        try {
+          if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            result = "Connection failed: " + response.getStatusLine().getReasonPhrase();
+            return;
+          }
+          EntityUtils.consume(response.getEntity());
+          result = "Connection OK";
+        } finally {
+          EntityUtils.consume(response.getEntity());
+          method.releaseConnection();
+        }
+      } catch (IOException ex) {
+        exception = ex;
+      }
+    }
+
+    public Throwable getException() {
+      return exception;
+    }
+
+    public String getResult() {
+      return result;
     }
   }
 
@@ -1048,6 +1064,89 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     public Throwable getException() {
       return exception;
+    }
+  }
+
+  protected static class DocumentVersionThread extends Thread {
+
+    protected HttpClient client;
+
+    protected String url;
+
+    protected Throwable exception = null;
+
+    protected String[] versions;
+
+    protected ConcurrentHashMap<String, Item> documentCache;
+
+    protected String[] documentIdentifiers;
+
+    protected String genericAuthMode;
+
+    protected String defaultRights;
+
+    public DocumentVersionThread(HttpClient client, String url, String[] documentIdentifiers, String genericAuthMode, String defaultRights, ConcurrentHashMap<String, Item> documentCache) {
+      super();
+      setDaemon(true);
+      this.client = client;
+      this.url = url;
+      this.documentCache = documentCache;
+      this.documentIdentifiers = documentIdentifiers;
+      this.genericAuthMode = genericAuthMode;
+      this.defaultRights = defaultRights;
+      this.versions = new String[documentIdentifiers.length];
+      for (int i = 0; i < versions.length; i++) {
+        versions[i] = null;
+      }
+    }
+
+    @Override
+    public void run() {
+      try {
+        HttpGet method = new HttpGet(url.toString());
+
+        HttpResponse response = client.execute(method);
+        try {
+          if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code");
+            return;
+          }
+          JAXBContext context;
+          context = JAXBContext.newInstance(Items.class);
+          Unmarshaller m = context.createUnmarshaller();
+          Items items = (Items) m.unmarshal(response.getEntity().getContent());
+          if (items.items != null) {
+            for (Item item : items.items) {
+              documentCache.put(item.id, item);
+              for (int i = 0; i < versions.length; i++) {
+                if (documentIdentifiers[i].equals(item.id)) {
+                  if ("provided".equals(genericAuthMode)) {
+                    versions[i] = item.getVersionString();
+                  } else {
+                    versions[i] = item.version + defaultRights;
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        } catch (JAXBException ex) {
+          exception = ex;
+        } finally {
+          EntityUtils.consume(response.getEntity());
+          method.releaseConnection();
+        }
+      } catch (Exception ex) {
+        exception = ex;
+      }
+    }
+
+    public Throwable getException() {
+      return exception;
+    }
+
+    public String[] getVersions() {
+      return versions;
     }
   }
 

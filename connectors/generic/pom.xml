@@ -30,6 +30,14 @@
     <build>
         <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
         <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/connector/src/main/native2ascii</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
