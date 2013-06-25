@@ -44,6 +44,7 @@ import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.system.Logging;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
 import org.apache.manifoldcf.agents.output.hdfs.HDFSOutputParam.ParameterEnum;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
@@ -134,11 +135,11 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     try {
         fileSystem = FileSystem.get(new URI(nameNode), config, user);
     } catch (URISyntaxException e) {
-      Logging.connectors.warn("HDFS: Node name error: " + e.getMessage(), e);
+      Logging.agents.warn("HDFS: Node name error: " + e.getMessage(), e);
     } catch (IOException e) {
-      Logging.connectors.warn("HDFS: File system error: " + e.getMessage(), e);
+      Logging.agents.warn("HDFS: File system error: " + e.getMessage(), e);
     } catch (InterruptedException e) {
-      Logging.connectors.warn("HDFS: File system error: " + e.getMessage(), e);
+      Logging.agents.warn("HDFS: File system error: " + e.getMessage(), e);
     }
   }
 
