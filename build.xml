@@ -3877,7 +3877,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/hadoop"/>
-            <param name="artifact-version" value="1.0.4"/>
+            <param name="artifact-version" value="1.1.2"/>
             <param name="artifact-name" value="hadoop-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
