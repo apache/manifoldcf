@@ -112,6 +112,40 @@ public class UserACLServlet extends HttpServlet
         return;
       }
 
+      String[] domains = request.getParameterValues("domain");
+      
+      UserRecord userRecord = new UserRecord();
+
+      if (domains == null)
+      {
+        int atIndex = userID.indexOf("@");
+        if (atIndex == -1)
+          userRecord.setDomainValue(userRecord.DOMAIN_ACTIVEDIRECTORY, userID);
+        else
+        {
+          UserRecord u2 = new UserRecord();
+          u2.setDomainValue(userID.substring(atIndex+1), userID.substring(0,atIndex));
+          userRecord.setDomainValue(userRecord.DOMAIN_ACTIVEDIRECTORY, u2);
+        }
+      }
+      else
+      {
+        int domainIndex = domains.length;
+        while (--domainIndex >= 0)
+        {
+          if (domainIndex == domains.length-1)
+          {
+            userRecord.setDomainValue(domains[domainIndex], userID);
+          }
+          else
+          {
+            UserRecord newUserRecord = new UserRecord();
+            newUserRecord.setDomainValue(domains[domainIndex], userRecord);
+            userRecord = newUserRecord;
+          }
+        }
+      }
+
       boolean idneeded = false;
       boolean aclneeded = true;
 
@@ -134,10 +168,10 @@ public class UserACLServlet extends HttpServlet
 
       if (Logging.authorityService.isDebugEnabled())
       {
-        Logging.authorityService.debug("Received authority request for user '"+userID+"'");
+        Logging.authorityService.debug("Received authority request for user '"+userRecord.toString()+"'");
       }
 
-      RequestQueue queue = ManifoldCF.getRequestQueue();
+      RequestQueue<AuthRequest> queue = ManifoldCF.getRequestQueue();
       if (queue == null)
       {
         // System wasn't started; return unauthorized
@@ -161,7 +195,7 @@ public class UserACLServlet extends HttpServlet
         if (identifyingString == null || identifyingString.length() == 0)
           identifyingString = ac.getName();
 
-        AuthRequest ar = new AuthRequest(userID,ac.getClassName(),identifyingString,ac.getConfigParams(),ac.getMaxConnections());
+        AuthRequest ar = new AuthRequest(userRecord,ac.getClassName(),identifyingString,ac.getConfigParams(),ac.getMaxConnections());
         queue.addRequest(ar);
 
         requests[i++] = ar;
@@ -183,12 +217,12 @@ public class UserACLServlet extends HttpServlet
           AuthRequest ar = requests[i++];
 
           if (Logging.authorityService.isDebugEnabled())
-            Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
+            Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userRecord.toString()+"'");
 
           ar.waitForComplete();
 
           if (Logging.authorityService.isDebugEnabled())
-            Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
+            Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userRecord.toString()+"'");
 
           Throwable exception = ar.getAnswerException();
           AuthorizationResponse reply = ar.getAnswerResponse();
@@ -211,13 +245,13 @@ public class UserACLServlet extends HttpServlet
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERUNAUTHORIZED)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userID+"'");
+              Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userRecord.toString()+"'");
             sb.append(UNAUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERNOTFOUND)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("User '"+userID+"' unknown to authority '"+ar.getIdentifyingString()+"'");
+              Logging.authorityService.debug("User '"+userRecord.toString()+"' unknown to authority '"+ar.getIdentifyingString()+"'");
             sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else
@@ -232,7 +266,7 @@ public class UserACLServlet extends HttpServlet
               while (j < acl.length)
               {
                 if (Logging.authorityService.isDebugEnabled())
-                  Logging.authorityService.debug("  User '"+userID+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
+                  Logging.authorityService.debug("  User '"+userRecord.toString()+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
                 sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(ac.getName(),"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
               }
             }
@@ -254,7 +288,7 @@ public class UserACLServlet extends HttpServlet
       }
 
       if (Logging.authorityService.isDebugEnabled())
-        Logging.authorityService.debug("Done with request for '"+userID+"'");
+        Logging.authorityService.debug("Done with request for '"+userRecord.toString()+"'");
     }
     catch (InterruptedException e)
     {
