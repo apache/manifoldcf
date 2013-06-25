@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.crawler.connectors.generic;
+package org.apache.manifoldcf.crawler.connectors.generic.api;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+import org.apache.manifoldcf.core.common.DateParser;
 
 /**
  *
@@ -25,15 +25,13 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
  */
 public class DateAdapter extends XmlAdapter<String, Date> {
 
-  private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
   @Override
   public Date unmarshal(String v) throws Exception {
-    return dateFormat.parse(v);
+    return DateParser.parseISO8601Date(v);
   }
 
   @Override
   public String marshal(Date v) throws Exception {
-    return dateFormat.format(v);
+    return DateParser.formatISO8601Date(v);
   }
 }

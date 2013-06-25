@@ -17,6 +17,9 @@
  */
 package org.apache.manifoldcf.crawler.connectors.generic;
 
+import org.apache.manifoldcf.crawler.connectors.generic.api.Meta;
+import org.apache.manifoldcf.crawler.connectors.generic.api.Item;
+import org.apache.manifoldcf.crawler.connectors.generic.api.Items;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -24,8 +27,6 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -48,7 +49,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.auth.BasicScheme;
@@ -56,6 +56,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.core.common.XThreadInputStream;
+import org.apache.manifoldcf.core.common.XThreadStringBuffer;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
@@ -90,6 +92,8 @@ public class GenericConnector extends BaseRepositoryConnector {
 
   private String genericEntryPoint = null;
 
+  protected static final String RELATIONSHIP_RELATED = "related";
+
   private ConcurrentHashMap<String, Item> documentCache = new ConcurrentHashMap<String, Item>(10);
 
   /**
@@ -101,6 +105,11 @@ public class GenericConnector extends BaseRepositoryConnector {
   @Override
   public int getMaxDocumentRequest() {
     return 10;
+  }
+
+  @Override
+  public String[] getRelationshipTypes() {
+    return new String[]{RELATIONSHIP_RELATED};
   }
 
   @Override
@@ -166,7 +175,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       return checkThread.getResult();
     } catch (InterruptedException ex) {
-      return "Check exception: " + ex.getMessage();
+      throw new ManifoldCFException(ex.getMessage(), ex, ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -178,46 +187,58 @@ public class GenericConnector extends BaseRepositoryConnector {
     HttpClient client = getClient();
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+    StringBuilder url = new StringBuilder(genericEntryPoint);
+    url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_SEED);
+    if (startTime > 0) {
+      url.append("&startTime=").append(sdf.format(new Date(startTime)));
+    }
+    url.append("&endTime=").append(sdf.format(new Date(endTime)));
+    for (int i = 0; i < spec.getChildCount(); i++) {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals("param")) {
+        try {
+          String paramName = sn.getAttributeValue("name");
+          String paramValue = sn.getValue();
+          url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+          throw new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
+        }
+      }
+    }
+    ExecuteSeedingThread t = new ExecuteSeedingThread(client, url.toString());
     try {
-      StringBuilder url = new StringBuilder(genericEntryPoint);
-      url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_SEED);
-      if (startTime > 0) {
-        url.append("&startTime=").append(sdf.format(new Date(startTime)));
-      }
-      url.append("&endTime=").append(sdf.format(new Date(endTime)));
-      for (int i = 0; i < spec.getChildCount(); i++) {
-        SpecificationNode sn = spec.getChild(i);
-        if (sn.getType().equals("param")) {
-          try {
-            String paramName = sn.getAttributeValue("name");
-            String paramValue = sn.getValue();
-            url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
-          } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(GenericConnector.class.getName()).log(Level.SEVERE, null, ex);
+      t.start();
+      boolean wasInterrupted = false;
+      try {
+        XThreadStringBuffer seedBuffer = t.getBuffer();
+
+        // Pick up the paths, and add them to the activities, before we join with the child thread.
+        while (true) {
+          // The only kind of exceptions this can throw are going to shut the process down.
+          String docPath = seedBuffer.fetch();
+          if (docPath == null) {
+            break;
           }
+          // Add the pageID to the queue
+          activities.addSeedDocument(docPath);
+        }
+      } catch (InterruptedException e) {
+        wasInterrupted = true;
+        throw e;
+      } catch (ManifoldCFException e) {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
+          wasInterrupted = true;
+        }
+        throw e;
+      } finally {
+        if (!wasInterrupted) {
+          t.finishUp();
         }
       }
-      ExecuteSeedingThread seedingThread = new ExecuteSeedingThread(client, activities, url.toString());
-      seedingThread.start();
-      seedingThread.join();
-      if (seedingThread.getException() != null) {
-        Throwable thr = seedingThread.getException();
-        if (thr instanceof ManifoldCFException) {
-          if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
-            throw new InterruptedException(thr.getMessage());
-          }
-          throw (ManifoldCFException) thr;
-        } else if (thr instanceof ServiceInterruption) {
-          throw (ServiceInterruption) thr;
-        } else if (thr instanceof IOException) {
-          handleIOException((IOException) thr);
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        }
-        throw new ManifoldCFException("addSeedDocuments error: " + thr.getMessage(), thr);
-      }
-    } catch (InterruptedException ex) {
-      throw new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -257,7 +278,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         }
       }
     } catch (UnsupportedEncodingException ex) {
-      throw new ManifoldCFException("getDocumentVersions error - invalid chars in id: " + ex.getMessage(), ex);
+      throw new ManifoldCFException("getDocumentVersions error: " + ex.getMessage(), ex);
     }
     try {
       DocumentVersionThread versioningThread = new DocumentVersionThread(client, url.toString(), documentIdentifiers, genericAuthMode, rights, documentCache);
@@ -281,7 +302,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       }
       return versioningThread.getVersions();
     } catch (InterruptedException ex) {
-      throw new ManifoldCFException("getDocumentVersions error: " + ex.getMessage(), ex);
+      throw new ManifoldCFException(ex.getMessage(), ex, ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -304,14 +325,20 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     HttpClient client = getClient();
     for (int i = 0; i < documentIdentifiers.length; i++) {
-      if (scanOnly[i]) {
-        continue;
-      }
       activities.checkJobStillActive();
-      
+
       Item item = documentCache.get(documentIdentifiers[i]);
       if (item == null) {
         throw new ManifoldCFException("processDocuments error - no cache entry for: " + documentIdentifiers[i]);
+      }
+
+      if (item.related != null) {
+        for (String rel : item.related) {
+          activities.addDocumentReference(rel, documentIdentifiers[i], RELATIONSHIP_RELATED);
+        }
+      }
+      if (scanOnly[i]) {
+        continue;
       }
 
       RepositoryDocument doc = new RepositoryDocument();
@@ -381,8 +408,8 @@ public class GenericConnector extends BaseRepositoryConnector {
           handleIOException(ex);
         }
       } else {
+        StringBuilder url = new StringBuilder(genericEntryPoint);
         try {
-          StringBuilder url = new StringBuilder(genericEntryPoint);
           url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_ITEM);
           url.append("&id=").append(URLEncoder.encode(documentIdentifiers[i], "UTF-8"));
           for (int j = 0; j < spec.getChildCount(); j++) {
@@ -393,30 +420,47 @@ public class GenericConnector extends BaseRepositoryConnector {
               url.append("&").append(URLEncoder.encode(paramName, "UTF-8")).append("=").append(URLEncoder.encode(paramValue, "UTF-8"));
             }
           }
-          
-          ExecuteProcessThread ingestThread = new ExecuteProcessThread(client, activities, doc, item.url, url.toString(), item.id, versions[i]);
-          ingestThread.start();
-          ingestThread.join();
-          if (ingestThread.getException() != null) {
-            Throwable thr = ingestThread.getException();
-            if (thr instanceof ManifoldCFException) {
-              if (((ManifoldCFException) thr).getErrorCode() == ManifoldCFException.INTERRUPTED) {
-                throw new InterruptedException(thr.getMessage());
-              }
-              throw (ManifoldCFException) thr;
-            } else if (thr instanceof ServiceInterruption) {
-              throw (ServiceInterruption) thr;
-            } else if (thr instanceof IOException) {
-              handleIOException((IOException) thr);
-            } else if (thr instanceof RuntimeException) {
-              throw (RuntimeException) thr;
-            }
-            throw new ManifoldCFException("processDocuments error: " + thr.getMessage(), thr);
-          }
-        } catch (InterruptedException ex) {
-          throw new ManifoldCFException("processDocuments error: " + ex.getMessage(), ex);
         } catch (UnsupportedEncodingException ex) {
           throw new ManifoldCFException("processDocuments error: " + ex.getMessage(), ex);
+        }
+
+        ExecuteProcessThread t = new ExecuteProcessThread(client, url.toString());
+        try {
+          t.start();
+          boolean wasInterrupted = false;
+          try {
+            InputStream is = t.getSafeInputStream();
+            long fileLength = t.getStreamLength();
+            try {
+              // Can only index while background thread is running!
+              doc.setBinary(is, fileLength);
+              activities.ingestDocument(documentIdentifiers[i], versions[i], item.url, doc);
+            } finally {
+              is.close();
+            }
+          } catch (ManifoldCFException e) {
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
+              wasInterrupted = true;
+            }
+            throw e;
+          } catch (java.net.SocketTimeoutException e) {
+            throw e;
+          } catch (InterruptedIOException e) {
+            wasInterrupted = true;
+            throw e;
+          } finally {
+            if (!wasInterrupted) {
+              t.finishUp();
+            }
+          }
+        } catch (InterruptedException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+        } catch (InterruptedIOException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+        } catch (IOException e) {
+          handleIOException(e);
         }
       }
     }
@@ -964,8 +1008,7 @@ public class GenericConnector extends BaseRepositoryConnector {
   protected static void handleIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
     if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     }
     long currentTime = System.currentTimeMillis();
     throw new ServiceInterruption("IO exception: " + e.getMessage(), e, currentTime + 300000L,
@@ -1039,16 +1082,36 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     protected String url;
 
-    protected ISeedingActivity activities;
+    protected final XThreadStringBuffer seedBuffer;
 
     protected Throwable exception = null;
 
-    public ExecuteSeedingThread(HttpClient client, ISeedingActivity activities, String url) {
+    public ExecuteSeedingThread(HttpClient client, String url) {
       super();
       setDaemon(true);
       this.client = client;
       this.url = url;
-      this.activities = activities;
+      seedBuffer = new XThreadStringBuffer();
+    }
+
+    public XThreadStringBuffer getBuffer() {
+      return seedBuffer;
+    }
+
+    public void finishUp()
+      throws InterruptedException {
+      seedBuffer.abandon();
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else if (thr instanceof Error) {
+          throw (Error) thr;
+        } else {
+          throw new RuntimeException("Unhandled exception of type: " + thr.getClass().getName(), thr);
+        }
+      }
     }
 
     @Override
@@ -1067,7 +1130,7 @@ public class GenericConnector extends BaseRepositoryConnector {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setNamespaceAware(true);
             SAXParser parser = factory.newSAXParser();
-            DefaultHandler handler = new SAXSeedingHandler(activities);
+            DefaultHandler handler = new SAXSeedingHandler(seedBuffer);
             parser.parse(response.getEntity().getContent(), handler);
           } catch (FactoryConfigurationError ex) {
             exception = new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
@@ -1076,6 +1139,7 @@ public class GenericConnector extends BaseRepositoryConnector {
           } catch (SAXException ex) {
             exception = new ManifoldCFException("addSeedDocuments error: " + ex.getMessage(), ex);
           }
+          seedBuffer.signalDone();
         } finally {
           EntityUtils.consume(response.getEntity());
           method.releaseConnection();
@@ -1179,53 +1243,114 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     protected String url;
 
-    protected String sourceUrl;
-
-    protected IProcessActivity activities;
-
     protected Throwable exception = null;
 
-    protected String id;
+    protected XThreadInputStream threadStream;
 
-    protected String version;
+    protected boolean abortThread = false;
 
-    RepositoryDocument doc;
+    protected long streamLength = 0;
 
-    public ExecuteProcessThread(HttpClient client, IProcessActivity activities, RepositoryDocument doc, String url, String sourceUrl, String id, String version) {
+    public ExecuteProcessThread(HttpClient client, String url) {
       super();
       setDaemon(true);
       this.client = client;
       this.url = url;
-      this.sourceUrl = sourceUrl;
-      this.activities = activities;
-      this.id = id;
-      this.version = version;
-      this.doc = doc;
     }
 
     @Override
     public void run() {
       try {
-        HttpGet method = new HttpGet(sourceUrl);
+        HttpGet method = new HttpGet(url);
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            exception = new ManifoldCFException("processDocuments error - interface returned incorrect return code for: " + id);
+            exception = new ManifoldCFException("processDocuments error - interface returned incorrect return code for: " + url);
+            return;
+          }
+          synchronized (this) {
+            if (!abortThread) {
+              streamLength = response.getEntity().getContentLength();
+              threadStream = new XThreadInputStream(response.getEntity().getContent());
+              this.notifyAll();
+            }
           }
 
-          doc.setBinary(response.getEntity().getContent(), response.getEntity().getContentLength());
-          activities.ingestDocument(id, version, url, doc);
-        } catch (ManifoldCFException ex) {
-          exception = ex;
-        } catch (ServiceInterruption ex) {
+          if (threadStream != null) {
+            // Stuff the content until we are done
+            threadStream.stuffQueue();
+          }
+        } catch (Throwable ex) {
           exception = ex;
         } finally {
           EntityUtils.consume(response.getEntity());
           method.releaseConnection();
         }
-      } catch (IOException ex) {
-        exception = ex;
+      } catch (Throwable e) {
+        exception = e;
       }
+    }
+
+    public InputStream getSafeInputStream() throws InterruptedException, IOException {
+      while (true) {
+        synchronized (this) {
+          if (exception != null) {
+            throw new IllegalStateException("Check for response before getting stream");
+          }
+          checkException(exception);
+          if (threadStream != null) {
+            return threadStream;
+          }
+          wait();
+        }
+      }
+    }
+
+    public long getStreamLength() throws IOException, InterruptedException {
+      while (true) {
+        synchronized (this) {
+          if (exception != null) {
+            throw new IllegalStateException("Check for response before getting stream");
+          }
+          checkException(exception);
+          if (threadStream != null) {
+            return streamLength;
+          }
+          wait();
+        }
+      }
+    }
+
+    protected synchronized void checkException(Throwable exception)
+      throws IOException {
+      if (exception != null) {
+        Throwable e = exception;
+        if (e instanceof IOException) {
+          throw (IOException) e;
+        } else if (e instanceof RuntimeException) {
+          throw (RuntimeException) e;
+        } else if (e instanceof Error) {
+          throw (Error) e;
+        } else {
+          throw new RuntimeException("Unhandled exception of type: " + e.getClass().getName(), e);
+        }
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, IOException {
+      // This will be called during the finally
+      // block in the case where all is well (and
+      // the stream completed) and in the case where
+      // there were exceptions.
+      synchronized (this) {
+        if (threadStream != null) {
+          threadStream.abort();
+        }
+        abortThread = true;
+      }
+      join();
+      checkException(exception);
     }
 
     public Throwable getException() {
@@ -1235,92 +1360,21 @@ public class GenericConnector extends BaseRepositoryConnector {
 
   static public class SAXSeedingHandler extends DefaultHandler {
 
-    protected ISeedingActivity activities;
+    protected XThreadStringBuffer seedBuffer;
 
-    public SAXSeedingHandler(ISeedingActivity activities) {
-      this.activities = activities;
+    public SAXSeedingHandler(XThreadStringBuffer seedBuffer) {
+      this.seedBuffer = seedBuffer;
     }
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
       if ("seed".equals(localName) && attributes.getValue("id") != null) {
         try {
-          activities.addSeedDocument(attributes.getValue("id"));
-        } catch (ManifoldCFException ex) {
+          seedBuffer.add(attributes.getValue("id"));
+        } catch (InterruptedException ex) {
           throw new SAXException("Adding seed failed: " + ex.getMessage(), ex);
         }
       }
     }
-  }
-
-  @XmlRootElement(name = "meta")
-  public static class Meta {
-
-    @XmlAttribute(name = "name")
-    String name;
-
-    @XmlValue
-    String value;
-  }
-
-  @XmlRootElement(name = "item")
-  public static class Item {
-
-    @XmlAttribute(name = "id", required = true)
-    String id;
-
-    @XmlElement(name = "url", required = true)
-    String url;
-
-    @XmlElement(name = "version", required = true)
-    String version;
-
-    @XmlElement(name = "content")
-    String content;
-
-    @XmlElement(name = "mimetype")
-    String mimeType;
-
-    @XmlElement(name = "created")
-    @XmlJavaTypeAdapter(DateAdapter.class)
-    Date created;
-
-    @XmlElement(name = "updated")
-    @XmlJavaTypeAdapter(DateAdapter.class)
-    Date updated;
-
-    @XmlElement(name = "filename")
-    String fileName;
-
-    @XmlElementWrapper(name = "metadata")
-    @XmlElements({
-      @XmlElement(name = "meta", type = Meta.class)})
-    List<Meta> metadata;
-
-    @XmlElementWrapper(name = "auth")
-    @XmlElements({
-      @XmlElement(name = "token", type = String.class)})
-    List<String> auth;
-
-    public String getVersionString() {
-      if (version == null) {
-        return "";
-      }
-      StringBuilder sb = new StringBuilder(version);
-      if (auth != null) {
-        for (String t : auth) {
-          sb.append("|").append(t);
-        }
-      }
-      return sb.toString();
-    }
-  }
-
-  @XmlRootElement(name = "items")
-  public static class Items {
-
-    @XmlElements({
-      @XmlElement(name = "item", type = Item.class)})
-    List<Item> items;
   }
 }

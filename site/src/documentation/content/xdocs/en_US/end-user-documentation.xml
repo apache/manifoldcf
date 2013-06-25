@@ -2167,8 +2167,10 @@ curl -XGET http://localhost:9200/index/_mapping
             
             <section id="genericconnector">
               <title>Generic Connector</title>
-              <p>Generic connector allows you to index any source that follows provided API specification.</p>
-              <p>API should be implemented as web page (entry point) returning results based on provided GET params. API can be secured with HTTP basic authentication.</p>
+              <p>Generic connector allows you to index any source that follows provided API specification. The idea is that you can use it and implement only the API which is designed
+			  to be fine grained and as simple as it is possible to handle document indexing.</p>
+              <p>API should be implemented as xml web page (entry point) returning results based on provided GET params. It may be a simple server script or part of the bigger application.
+			  API can be secured with HTTP basic authentication.</p>
               <br/>
               <p>There are 4 actions:</p>
 			  <ul>
@@ -2180,7 +2182,7 @@ curl -XGET http://localhost:9200/index/_mapping
 			  <p>Action is passed as "action" GET param to the entrypoint.</p>
               <br/><br/>
 			  <p><b>[entrypoint]?action=check</b></p>
-			  <p>Should return HTTP status code 200 providing information that entrypoint is working properly.</p>
+			  <p>Should return HTTP status code 200 providing information that entrypoint is working properly. Any content returned will be ignored, only the status code matters.</p>
               <br/><br/>
 			  
 			  <p><b>[entrypoint]?action=seed&amp;startDate=YYYY-MM-DDTHH:mm:ssZ&amp;endDate=YYYY-MM-DDTHH:mm:ssZ</b></p>
@@ -2225,6 +2227,11 @@ curl -XGET http://localhost:9200/index/_mapping
 		 &lt;token&gt;auth_token_2&lt;/token&gt;
 		 ...
 	  &lt;/auth&gt;
+	  &lt;related&gt;
+		 &lt;id&gt;other_document_id_1&lt;/id&gt;
+		 &lt;id&gt;other_document_id_2&lt;/id&gt;
+		 ...
+	  &lt;/related&gt;
 	  &lt;content&gt;Document content&lt;/content&gt;
    &lt;/item&gt;
    ...
@@ -2232,7 +2239,9 @@ curl -XGET http://localhost:9200/index/_mapping
 			  </source>
 			  <p><code>id, url, version</code> are required, the rest is optional.</p>
  			  <p>If <code>auth</code> tag is provided - document will be treated as non-public with defined access tokens, if it is ommited - document will be public.</p>
-			  <p>if <code>content</code> tag is ommited - connector will ask for document content as <code>action=item</code> separate API call.</p>
+			  <p>If <code>content</code> tag is ommited - connector will ask for document content as <code>action=item</code> separate API call.</p>
+			  <p>You may provide related document ids when document repository is a graph or tree. Provided documents will also be indexed. In case you want to use relations -
+			  seeding do not have to return all documents, only starting points. Rest of documents will be fetched using relations.</p>
               <br/><br/>
 
 			  <p><b>[entrypoint]?action=item&id=document_id</b></p>
