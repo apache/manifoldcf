@@ -157,9 +157,14 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   @Override
   public void disconnect() throws ManifoldCFException {
     if (session != null) {
-      session.close();
-      session = null;
-      lastSessionFetch = -1L;
+      try {
+        session.close();
+      } catch (IOException e) {
+    	throw new ManifoldCFException(e);  
+      } finally {
+        session = null;
+        lastSessionFetch = -1L;
+      }
     }
   
     config.clear();
@@ -289,9 +294,14 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
       if (session != null) {
-        session.close();
-        session = null;
-        lastSessionFetch = -1L;
+        try {
+          session.close();
+        } catch (IOException e) {
+          throw new ManifoldCFException(e);  
+        } finally {
+          session = null;
+          lastSessionFetch = -1L;
+        }
       }
     }
   }
@@ -380,12 +390,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         } catch (InterruptedException e) {
           t.interrupt();
           throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-        } catch (java.net.SocketTimeoutException e) {
-          Logging.connectors.warn("HDFS: Socket timeout adding seed documents: " + e.getMessage(), e);
-          handleIOException(e);
-        } catch (IOException e) {
-          Logging.connectors.warn("HDFS: Error adding seed documents: " + e.getMessage(), e);
-          handleIOException(e);
         }
       }
       i++;
