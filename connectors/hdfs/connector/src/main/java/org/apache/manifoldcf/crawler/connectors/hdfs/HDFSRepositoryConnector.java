@@ -57,16 +57,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   // Activities list
   protected static final String[] activitiesList = new String[]{ACTIVITY_READ};
 
-  // Parameters that this connector cares about
-  // public final static String ROOTDIRECTORY = "rootdirectory";
-
-  // Local data
-  // protected File rootDirectory = null;
-
-  // Nodes and attributes
-  //private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
-  //private static final String JOB_PATH_ATTRIBUTE = "path";
-
   protected String nameNode = null;
   protected String user = null;
   protected Configuration config = null;
