@@ -48,7 +48,14 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
     throws ManifoldCFException
   {
     UserRecord activeDirectoryDomain = userRecord.getDomainValueAsUserRecord(UserRecord.DOMAIN_ACTIVEDIRECTORY);
-    if (activeDirectoryDomain == null || activeDirectoryDomain.getDomainCount() == 0)
+    if (activeDirectoryDomain == null)
+    {
+      String activeDirectoryUser = userRecord.getDomainValueAsString(UserRecord.DOMAIN_ACTIVEDIRECTORY);
+      if (activeDirectoryUser == null)
+        return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
+      return getAuthorizationResponse(activeDirectoryUser);
+    }
+    if (activeDirectoryDomain.getDomainCount() == 0)
       return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
     Iterator<String> adDomains = activeDirectoryDomain.iteratorDomains();
     // Just pick the first one
