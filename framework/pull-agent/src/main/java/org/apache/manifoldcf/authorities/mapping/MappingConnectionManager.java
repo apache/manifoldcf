@@ -398,6 +398,9 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
     throws ManifoldCFException
   {
 
+    // Grab authority connection manager handle, to check on legality of deletion.
+    IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
+
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getMappingConnectionsKey());
     ssb.add(getMappingConnectionKey(name));
@@ -412,6 +415,8 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
         // MHL - need to check about authority references!!!
         if (isReferenced(name))
           throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing mapping connections refer to it");
+        if (authManager.isMappingReferenced(name))
+          throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing authority connections refer to it");
         ManifoldCF.noteConfigurationChange();
         mappingPrereqManager.deleteRows(name);
         ArrayList params = new ArrayList();
