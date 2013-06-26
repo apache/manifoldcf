@@ -38,7 +38,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("Delete authority '"+connectionName+"'?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listauthorities.DeleteAuthority")%> '"+connectionName+"'?"))
 		{
 			document.listconnections.op.value="Delete";
 			document.listconnections.connname.value=connectionName;

@@ -29,17 +29,17 @@
     try
     {
 	// Get the connection manager handle
-	IAuthorityConnectionManager connMgr = AuthorityConnectionManagerFactory.make(threadContext);
+	IMappingConnectionManager connMgr = MappingConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
-	IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(threadContext);
+	IMappingConnectorManager connectorManager = MappingConnectorManagerFactory.make(threadContext);
 
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
-		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name");
+		tabName = Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Name");
 
 	String connectionName = null;
-	IAuthorityConnection connection = (IAuthorityConnection)threadContext.get("ConnectionObject");
+	IMappingConnection connection = (IMappingConnection)threadContext.get("ConnectionObject");
 	if (connection == null)
 	{
 		// We did not go through execute.jsp
@@ -79,10 +79,10 @@
 	ArrayList tabsArray = new ArrayList();
 
 	// Set up the predefined tabs
-	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name"));
-	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Name"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type"));
 	if (className.length() > 0)
-		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling"));
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Throttling"));
 
 %>
 
@@ -93,7 +93,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ApacheManifoldCFEditAuthority")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.ApacheManifoldCFEditMapping")%>
 	</title>
 
 	<script type="text/javascript">
@@ -140,8 +140,8 @@
 			// Check our part of the form, for save
 			if (editconnection.connname.value == "")
 			{
-				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAName")%>");
-				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Name")%>");
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.ConnectionMustHaveAName")%>");
+				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.Name")%>");
 				document.editconnection.connname.focus();
 				return;
 			}
@@ -180,7 +180,7 @@
 	{
 		if (!isInteger(editconnection.maxconnections.value))
 		{
-			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
+			alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
 			editconnection.maxconnections.focus();
 			return false;
 		}
@@ -211,7 +211,7 @@
 	//-->
 	</script>
 <%
-	AuthorityConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
+	MappingConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
 
 	// Get connectors, since this will be needed to determine what to display.
 	IResultSet set = connectorManager.getConnectors();
@@ -232,7 +232,7 @@
 	if (set.getRowCount() == 0)
 	{
 %>
-	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMappingConnection")%></p>
 	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityConnectorsRegistered")%></td></tr></table>
 <%
 	}
@@ -241,7 +241,7 @@
 %>
 	<form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
 	  <input type="hidden" name="op" value="Continue"/>
-	  <input type="hidden" name="type" value="authority"/>
+	  <input type="hidden" name="type" value="mapper"/>
 	  <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
 	  <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 	    <table class="tabtable">
@@ -260,7 +260,7 @@
 		else
 		{
 %>
-		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+		      <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
 		}
 	  }
@@ -270,13 +270,13 @@
 	  if (description.length() > 0)
 	  {
 %>
-			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthority")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+			  <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMapping")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
 	  }
 	  else
 	  {
 %>
-		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAnAuthority")%></nobr>
+		          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditAMapping")%></nobr>
 <%
 	  }
 %>
@@ -288,13 +288,14 @@
 <%
 
 	  // Name tab
-	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name")))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Name")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NameColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NameColon")%></nobr></td>
+				<td class="value" colspan="4">
 <%
 	    // If the connection doesn't exist yet, we are allowed to change the name.
 	    if (isNew)
@@ -314,7 +315,8 @@
 				</td>
 			</tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DescriptionColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.DescriptionColon")%></nobr></td>
+				<td class="value" colspan="4">
 					<input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 				</td>
 			</tr>
@@ -332,13 +334,13 @@
 
 
 	  // "Type" tab
-	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -346,7 +348,7 @@
 		if (value == null)
 		{
 %>
-					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
 		}
 		else
@@ -395,13 +397,13 @@
 
 
 	  // The "Throttling" tab
-	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling")))
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Throttling")))
 	  {
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.MaxConnections")%></nobr><br/><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PerJVMColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.MaxConnections")%></nobr><br/><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.PerJVMColon")%></nobr></td>
 				<td class="value" colspan="4"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
 			</tr>
 		    </table>
@@ -416,7 +418,7 @@
 	  }
 
 	  if (className.length() > 0)
-		AuthorityConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
+		MappingConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
@@ -425,20 +427,20 @@
 	  if (className.length() > 0)
 	  {
 %>
-			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.SaveThisAuthorityConnection")%>"/>
+			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.SaveThisMappingConnection")%>"/>
 <%
 	  }
 	  else
 	  {
-		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
+		if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type")))
 		{
 %>
-			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.ContinueToNextPage")%>"/>
+			    <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.ContinueToNextPage")%>"/>
 <%
 		}
 	  }
 %>
-			    &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.CancelAuthorityEditing")%>"/></nobr></td>
+			    &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.CancelMappingEditing")%>"/></nobr></td>
 			</tr>
 		    </table>
 		</td>
@@ -462,7 +464,7 @@
     {
 	e.printStackTrace();
 	variableContext.setParameter("text",e.getMessage());
-	variableContext.setParameter("target","listauthorities.jsp");
+	variableContext.setParameter("target","listmappers.jsp");
 %>
 	<jsp:forward page="error.jsp"/>
 <%
