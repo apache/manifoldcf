@@ -20,9 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.hdfs;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -42,8 +40,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /** This is the "repository connector" for a file system.  It's a relative of the share crawler, and should have
-* comparable basic functionality, with the exception of the ability to use ActiveDirectory and look at other shares.
-*/
+ * comparable basic functionality, with the exception of the ability to use ActiveDirectory and look at other shares.
+ */
 public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
   public static final String _rcsid = "@(#)$Id: FileConnector.java 995085 2010-09-08 15:13:38Z kwright $";
@@ -81,7 +79,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     return MODEL_CHAINED_ADD_CHANGE;
   }
 
-/** Return the list of relationship types that this connector recognizes.
+  /** Return the list of relationship types that this connector recognizes.
    *@return the list.
    */
   @Override
@@ -117,7 +115,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     return 1;
   }
 
-/* (non-Javadoc)
+  /* (non-Javadoc)
    * @see org.apache.manifoldcf.core.connector.BaseConnector#connect(org.apache.manifoldcf.core.interfaces.ConfigParams)
    */
   @Override
@@ -141,7 +139,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     }
   }
 
-/* (non-Javadoc)
+  /* (non-Javadoc)
    * @see org.apache.manifoldcf.core.connector.BaseConnector#disconnect()
    */
   @Override
@@ -164,7 +162,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     super.disconnect();
   }
 
-/**
+  /**
    * Set up a session
    */
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
@@ -218,7 +216,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     lastSessionFetch = System.currentTimeMillis();
   }
 
-/**
+  /**
    * Test the connection. Returns a string describing the connection
    * integrity.
    *
@@ -387,23 +385,23 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
 
   /** Get document versions given an array of document identifiers.
-  * This method is called for EVERY document that is considered. It is therefore important to perform
-  * as little work as possible here.
-  * The connector will be connected before this method can be called.
-  *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
-  *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
-  *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
-  *   had an empty version string.
-  *@param activities is the interface this method should use to perform whatever framework actions are desired.
-  *@param spec is the current document specification for the current job.  If there is a dependency on this
-  * specification, then the version string should include the pertinent data, so that reingestion will occur
-  * when the specification changes.  This is primarily useful for metadata.
-  *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
-  *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-  *@return the corresponding version strings, with null in the places where the document no longer exists.
-  * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
-  * will always be processed.
-  */
+   * This method is called for EVERY document that is considered. It is therefore important to perform
+   * as little work as possible here.
+   * The connector will be connected before this method can be called.
+   *@param documentIdentifiers is the array of local document identifiers, as understood by this connector.
+   *@param oldVersions is the corresponding array of version strings that have been saved for the document identifiers.
+   *   A null value indicates that this is a first-time fetch, while an empty string indicates that the previous document
+   *   had an empty version string.
+   *@param activities is the interface this method should use to perform whatever framework actions are desired.
+   *@param spec is the current document specification for the current job.  If there is a dependency on this
+   * specification, then the version string should include the pertinent data, so that reingestion will occur
+   * when the specification changes.  This is primarily useful for metadata.
+   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
+   *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
+   *@return the corresponding version strings, with null in the places where the document no longer exists.
+   * Empty version strings indicate that there is no versioning ability for the corresponding document, and the document
+   * will always be processed.
+   */
   public String[] getDocumentVersions(String[] documentIdentifiers, String[] oldVersions, IVersionActivity activities,
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
@@ -435,15 +433,15 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
       
       try {
-        Path path = objt.getResponse();
-        if (session.getFileSystem().exists(path)) {
-          if (session.getFileSystem().getFileStatus(path).isDir()) {
-            long lastModified = session.getFileSystem().getFileStatus(path).getModificationTime();
+        FileStatus fileStatus = objt.getResponse();
+        if (session.getFileSystem().exists(fileStatus.getPath())) {
+          if (fileStatus.isDir()) {
+            long lastModified = fileStatus.getModificationTime();
             rval[i] = new Long(lastModified).toString();
           } else {
-            long fileLength = session.getFileSystem().getFileStatus(path).getLen();
+            long fileLength = fileStatus.getLen();
             if (activities.checkLengthIndexable(fileLength)) {
-              long lastModified = session.getFileSystem().getFileStatus(path).getModificationTime();
+              long lastModified = fileStatus.getModificationTime();
               StringBuilder sb = new StringBuilder();
               if (filePathToUri) {
                 sb.append("+");
@@ -470,158 +468,182 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 
 
   /** Process a set of documents.
-  * This is the method that should cause each document to be fetched, processed, and the results either added
-  * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
-  * The document specification allows this class to filter what is done based on the job.
-  *@param documentIdentifiers is the set of document identifiers to process.
-  *@param activities is the interface this method should use to queue up new document references
-  * and ingest documents.
-  *@param spec is the document specification.
-  *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
-  * should only find other references, and should not actually call the ingestion methods.
-  */
+   * This is the method that should cause each document to be fetched, processed, and the results either added
+   * to the queue of documents for the current job, and/or entered into the incremental ingestion manager.
+   * The document specification allows this class to filter what is done based on the job.
+   *@param documentIdentifiers is the set of document identifiers to process.
+   *@param activities is the interface this method should use to queue up new document references
+   * and ingest documents.
+   *@param spec is the document specification.
+   *@param scanOnly is an array corresponding to the document identifiers.  It is set to true to indicate when the processing
+   * should only find other references, and should not actually call the ingestion methods.
+   */
   @Override
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    try
-    {
-      int i = 0;
-      while (i < documentIdentifiers.length)
-      {
-        String version = versions[i];
-        String documentIdentifier = documentIdentifiers[i];
-        Path path = new Path(documentIdentifier);
-        FileStatus fileStatus = session.getFileSystem().getFileStatus(path);
-        if (session.getFileSystem().exists(path))
-        {
-          if (fileStatus.isDir())
-          {
-            // Queue up stuff for directory
-            long startTime = System.currentTimeMillis();
-            String errorCode = "OK";
-            String errorDesc = null;
-            String entityReference = documentIdentifier;
-            try
-            {
-              try
-              {
-                FileStatus[] fileStatuses = session.getFileSystem().listStatus(path);
-                if (fileStatuses != null)
-                {
-                  int j = 0;
-                  while (j < fileStatuses.length)
-                  {
-                    FileStatus fs = fileStatuses[j++];
-                    String canonicalPath = fs.getPath().toString();
-                    if (checkInclude(session.getFileSystem().getUri().toString(),fs,canonicalPath,spec))
-                      activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
-                  }
+    throws ManifoldCFException, ServiceInterruption {
+    for (int i = 0; i < documentIdentifiers.length; i++) {
+      long startTime = System.currentTimeMillis();
+      String errorCode = "FAILED";
+      String errorDesc = StringUtils.EMPTY;
+      long fileSize = 0;
+      boolean doLog = false;
+      String version = versions[i];
+      String documentIdentifier = documentIdentifiers[i];
+        
+      try {
+        if (Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug("HDFS: Processing document identifier '" + documentIdentifier + "'");
+        }
+        getSession();
+        GetObjectThread objt = new GetObjectThread(documentIdentifier);
+        try {
+          objt.start();
+          objt.finishUp();
+        } catch (InterruptedException e) {
+          objt.interrupt();
+          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+            ManifoldCFException.INTERRUPTED);
+        }
+        
+        FileStatus fileStatus = objt.getResponse();
+        
+        if (!session.getFileSystem().exists(fileStatus.getPath())) {
+        	continue;
+        }
+        
+        if (fileStatus.isDir()) {
+          /*
+           * Queue up stuff for directory
+           */
+          String entityReference = documentIdentifier;
+          try {
+            FileStatus[] fileStatuses = session.getFileSystem().listStatus(fileStatus.getPath());
+            if (fileStatuses != null) {
+              int j = 0;
+              while (j < fileStatuses.length) {
+                FileStatus fs = fileStatuses[j++];
+                String canonicalPath = fs.getPath().toString();
+                if (checkInclude(session.getFileSystem().getUri().toString(),fs,canonicalPath,spec)) {
+                  activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
                 }
               }
-              catch (IOException e)
-              {
-                errorCode = "IO ERROR";
-                errorDesc = e.getMessage();
-                throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
-              }
             }
-            finally
-            {
-              activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
-            }
+          } catch (IOException e) {
+            errorCode = "IO ERROR";
+            errorDesc = e.getMessage();
+            throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
+          } finally {
+            activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
           }
-          else
-          {
-            if (!scanOnly[i])
-            {
-              // We've already avoided queuing documents that we don't want, based on file specifications.
-              // We still need to check based on file data.
-              if (checkIngest(session.getFileSystem().getUri().toString(),fileStatus,spec))
-              {
-                int j = 0;
+        } else {
+          /*
+           * its a file
+           */
+          if (!scanOnly[i]) {
+            doLog = true;
+            if (!checkIngest(session.getFileSystem().getUri().toString(),fileStatus,spec)) {
+              continue;
+            }
 
-                /*
-                 * get repository paths
-                 */
-                j = 0;
-                List<String> repositoryPaths = new ArrayList<String>();
-                while ( j < spec.getChildCount())
-                {
-                  SpecificationNode sn = spec.getChild(j++);
-                  if (sn.getType().equals("startpoint"))
-                  {
-                    if (sn.getAttributeValue("path").length() > 0) {
-                      repositoryPaths.add(session.getFileSystem().getUri().resolve(sn.getAttributeValue("path")).toString());
-                    }
-                  }
-                }
-
-                /*
-                 * get filepathtouri value
-                 */
-                boolean filePathToUri = false;
-                if (version.length() > 0 && version.startsWith("+")) {
-                  filePathToUri = true;
-                }
-
-                long startTime = System.currentTimeMillis();
-                String errorCode = "OK";
-                String errorDesc = null;
-                Long fileLength = null;
-                String entityDescription = documentIdentifier;
-                try
-                {
-                  // Ingest the document.
-                  try
-                  {
-                    FSDataInputStream is = session.getFileSystem().open(path);
-                    try
-                    {
-                      long fileBytes = fileStatus.getLen();
-                      RepositoryDocument data = new RepositoryDocument();
-                      data.setBinary(is,fileBytes);
-                      String fileName = path.getName();
-                      data.setFileName(fileName);
-                      data.setMimeType(mapExtensionToMimeType(fileName));
-                      data.setModifiedDate(new Date(fileStatus.getModificationTime()));
-                      if (filePathToUri) {
-                        data.addField("uri",convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])));
-                        // MHL for other metadata
-                        activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])),data);
-                      } else {
-                        data.addField("uri",path.toString());
-                        // MHL for other metadata
-                        activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
-                      }
-                      fileLength = new Long(fileBytes);
-                    }
-                    finally
-                    {
-                      is.close();
-                    }
-                  }
-                  catch (IOException e)
-                  {
-                    errorCode = "IO ERROR";
-                    errorDesc = e.getMessage();
-                    throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
-                  }
-                }
-                finally
-                {
-                  activities.recordActivity(new Long(startTime),ACTIVITY_READ,fileLength,entityDescription,errorCode,errorDesc,null);
+            /*
+             * get repository paths
+             */
+            int j = 0;
+            List<String> repositoryPaths = new ArrayList<String>();
+            while ( j < spec.getChildCount()) {
+              SpecificationNode sn = spec.getChild(j++);
+              if (sn.getType().equals("startpoint")) {
+                if (sn.getAttributeValue("path").length() > 0) {
+                  repositoryPaths.add(session.getFileSystem().getUri().resolve(sn.getAttributeValue("path")).toString());
                 }
               }
+            }
+
+            /*
+             * get filepathtouri value
+             */
+            boolean filePathToUri = false;
+            if (version.length() > 0 && version.startsWith("+")) {
+              filePathToUri = true;
+            }
+            
+            // Length in bytes
+            fileSize = fileStatus.getLen();
+            
+            RepositoryDocument data = new RepositoryDocument();
+
+            data.setFileName(fileStatus.getPath().getName());
+            data.setMimeType(mapExtensionToMimeType(fileStatus.getPath().getName()));
+            data.setModifiedDate(new Date(fileStatus.getModificationTime()));
+
+            if (filePathToUri) {
+              data.addField("uri",convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])));
+            } else {
+              data.addField("uri",fileStatus.getPath().toUri().toString());
+            }
+
+            getSession();
+            BackgroundStreamThread t = new BackgroundStreamThread(documentIdentifier);
+            try {
+              t.start();
+              boolean wasInterrupted = false;
+              try {
+                InputStream is = t.getSafeInputStream();
+                try {
+                  data.setBinary(is, fileSize);
+                  if (filePathToUri) {
+                    activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])),data);
+                  } else {
+                    activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
+                  }
+                } finally {
+                  is.close();
+                }
+              } catch (java.net.SocketTimeoutException e) {
+                throw e;
+              } catch (InterruptedIOException e) {
+                wasInterrupted = true;
+                throw e;
+              } catch (ManifoldCFException e) {
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
+                  wasInterrupted = true;
+                }
+                throw e;
+              } finally {
+                if (!wasInterrupted) {
+                  // This does a join
+                  t.finishUp();
+                }
+              }
+
+              // No errors.  Record the fact that we made it.
+              errorCode = "OK";
+            } catch (InterruptedException e) {
+              // We were interrupted out of the join, most likely.  Before we abandon the thread,
+              // send a courtesy interrupt.
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+            } catch (java.net.SocketTimeoutException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              handleIOException(e);
+            } catch (InterruptedIOException e) {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+            } catch (IOException e) {
+              errorCode = "IO ERROR";
+              errorDesc = e.getMessage();
+              handleIOException(e);
             }
           }
         }
-        i++;
+      } catch (IOException e) {
+        errorCode = "IO ERROR";
+        errorDesc = e.getMessage();
+        handleIOException(e);
+      } finally {
+        activities.recordActivity(new Long(startTime),ACTIVITY_READ,new Long(fileSize),documentIdentifier,errorCode,errorDesc,null);
       }
-    }
-    catch(IOException e)
-    {
-      throw new ManifoldCFException(e);
     }
   }
 
@@ -634,13 +656,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   // method, above).
     
   /** Output the configuration header section.
-  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
-  * javascript methods that might be needed by the configuration editing HTML.
-  *@param threadContext is the local thread context.
-  *@param out is the output to which any HTML should be sent.
-  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-  */
+   * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+   * javascript methods that might be needed by the configuration editing HTML.
+   *@param threadContext is the local thread context.
+   *@param out is the output to which any HTML should be sent.
+   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+   */
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray) throws ManifoldCFException, IOException
   {
@@ -710,14 +732,14 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
   
   /** Process a configuration post.
-  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
-  * The name of the posted form is "editconnection".
-  *@param threadContext is the local thread context.
-  *@param variableContext is the set of variables available from the post, including binary file post information.
-  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
-  */
+   * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+   * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+   * The name of the posted form is "editconnection".
+   *@param threadContext is the local thread context.
+   *@param variableContext is the set of variables available from the post, including binary file post information.
+   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+   */
   @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
@@ -736,12 +758,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
   
   /** View configuration.
-  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
-  *@param threadContext is the local thread context.
-  *@param out is the output to which any HTML should be sent.
-  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-  */
+   * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+   *@param threadContext is the local thread context.
+   *@param out is the output to which any HTML should be sent.
+   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   */
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
@@ -771,12 +793,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
   
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
-  * to the list, and to output any javascript methods that might be needed by the job editing HTML.
-  *@param out is the output to which any HTML should be sent.
-  *@param ds is the current document specification for this job.
-  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-  */
+   * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
+   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
+   *@param out is the output to which any HTML should be sent.
+   *@param ds is the current document specification for this job.
+   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+   */
   @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException
@@ -804,13 +826,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
   
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editjob".
-  *@param out is the output to which any HTML should be sent.
-  *@param ds is the current document specification for this job.
-  *@param tabName is the current tab name.
-  */
+   * This method is called in the body section of a job page which has selected a repository connection of the current type.  Its purpose is to present the required form elements for editing.
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+   * form is "editjob".
+   *@param out is the output to which any HTML should be sent.
+   *@param ds is the current document specification for this job.
+   *@param tabName is the current tab name.
+   */
   @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
@@ -1091,13 +1113,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
   
   /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
-  * posted.  Its purpose is to gather form information and modify the document specification accordingly.
-  * The name of the posted form is "editjob".
-  *@param variableContext contains the post data, including binary file-upload information.
-  *@param ds is the current document specification for this job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
-  */
+   * This method is called at the start of job's edit or view page, whenever there is a possibility that form data for a connection has been
+   * posted.  Its purpose is to gather form information and modify the document specification accordingly.
+   * The name of the posted form is "editjob".
+   *@param variableContext contains the post data, including binary file-upload information.
+   *@param ds is the current document specification for this job.
+   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
+   */
   @Override
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException
@@ -1227,11 +1249,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
   
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
-  *@param out is the output to which any HTML should be sent.
-  *@param ds is the current document specification for this job.
-  */
+   * This method is called in the body section of a job's view page.  Its purpose is to present the document specification information to the user.
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+   *@param out is the output to which any HTML should be sent.
+   *@param ds is the current document specification for this job.
+   */
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
@@ -1370,11 +1392,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     }
   }
 
-/** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
-  * the search index, and will be presented to the user as part of the search results.
-  *@param documentIdentifier is the document identifier.
-  *@return the document uri.
-  */
+  /** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
+   * the search index, and will be presented to the user as part of the search results.
+   *@param documentIdentifier is the document identifier.
+   *@return the document uri.
+   */
   protected String convertToURI(String documentIdentifier)
     throws ManifoldCFException
   {
@@ -1383,7 +1405,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     return new Path(documentIdentifier).toUri().toString();
   }
 
-/** Map an extension to a mime type */
+  /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
     int slashIndex = fileName.lastIndexOf("/");
@@ -1395,11 +1417,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
   }
 
-/** Check if a file or directory should be included, given a document specification.
-  *@param fileName is the canonical file name.
-  *@param documentSpecification is the specification.
-  *@return true if it should be included.
-  */
+  /** Check if a file or directory should be included, given a document specification.
+   *@param fileName is the canonical file name.
+   *@param documentSpecification is the specification.
+   *@return true if it should be included.
+   */
   protected static boolean checkInclude(String nameNode, FileStatus fileStatus, String fileName, DocumentSpecification documentSpecification)
     throws ManifoldCFException
   {
@@ -1514,10 +1536,10 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
 
   /** Check if a file should be ingested, given a document specification.  It is presumed that
-  * documents that do not pass checkInclude() will be checked with this method.
-  *@param file is the file.
-  *@param documentSpecification is the specification.
-  */
+   * documents that do not pass checkInclude() will be checked with this method.
+   *@param file is the file.
+   *@param documentSpecification is the specification.
+   */
   protected static boolean checkIngest(String nameNode, FileStatus fileStatus, DocumentSpecification documentSpecification)
     throws ManifoldCFException
   {
@@ -1527,12 +1549,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
 
   /** Match a sub-path.  The sub-path must match the complete starting part of the full path, in a path
-  * sense.  The returned value should point into the file name beyond the end of the matched path, or
-  * be -1 if there is no match.
-  *@param subPath is the sub path.
-  *@param fullPath is the full path.
-  *@return the index of the start of the remaining part of the full path, or -1.
-  */
+   * sense.  The returned value should point into the file name beyond the end of the matched path, or
+   * be -1 if there is no match.
+   *@param subPath is the sub path.
+   *@param fullPath is the full path.
+   *@return the index of the start of the remaining part of the full path, or -1.
+   */
   protected static int matchSubPath(String subPath, String fullPath)
   {
     if (subPath.length() > fullPath.length())
@@ -1549,11 +1571,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
 
   /** Check a match between two strings with wildcards.
-  *@param sourceMatch is the expanded string (no wildcards)
-  *@param sourceIndex is the starting point in the expanded string.
-  *@param match is the wildcard-based string.
-  *@return true if there is a match.
-  */
+   *@param sourceMatch is the expanded string (no wildcards)
+   *@param sourceIndex is the starting point in the expanded string.
+   *@param match is the wildcard-based string.
+   *@return true if there is a match.
+   */
   protected static boolean checkMatch(String sourceMatch, int sourceIndex, String match)
   {
     // Note: The java regex stuff looks pretty heavyweight for this purpose.
@@ -1566,14 +1588,14 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   }
 
   /** Recursive worker method for checkMatch.  Returns 'true' if there is a path that consumes both
-  * strings in their entirety in a matched way.
-  *@param caseSensitive is true if file names are case sensitive.
-  *@param sourceMatch is the source string (w/o wildcards)
-  *@param sourceIndex is the current point in the source string.
-  *@param match is the match string (w/wildcards)
-  *@param matchIndex is the current point in the match string.
-  *@return true if there is a match.
-  */
+   * strings in their entirety in a matched way.
+   *@param caseSensitive is true if file names are case sensitive.
+   *@param sourceMatch is the source string (w/o wildcards)
+   *@param sourceIndex is the current point in the source string.
+   *@param match is the match string (w/wildcards)
+   *@param matchIndex is the current point in the match string.
+   *@return true if there is a match.
+   */
   protected static boolean processCheck(boolean caseSensitive, String sourceMatch, int sourceIndex,
     String match, int matchIndex)
   {
@@ -1736,7 +1758,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   protected class GetObjectThread extends Thread {
     protected final String nodeId;
     protected Throwable exception = null;
-    protected Path response = null;
+    protected FileStatus response = null;
 
     public GetObjectThread(String nodeId) {
       super();
@@ -1766,7 +1788,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
     }
 
-    public Path getResponse() {
+    public FileStatus getResponse() {
       return response;
     }
 
