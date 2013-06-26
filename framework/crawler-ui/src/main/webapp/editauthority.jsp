@@ -32,6 +32,8 @@
 	IAuthorityConnectionManager connMgr = AuthorityConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
 	IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(threadContext);
+	// Get the mapping connection manager
+	IMappingConnectionManager mappingConnMgr = MappingConnectionManagerFactory.make(threadContext);
 
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
@@ -58,6 +60,7 @@
 	String className = "";
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
+	Set<String> prereqs = new HashSet<String>();
 
 	if (connection != null)
 	{
@@ -68,6 +71,7 @@
 		className = connection.getClassName();
 		parameters = connection.getConfigParams();
 		maxConnections = connection.getMaxConnections();
+		prereqs = connection.getPrerequisites();
 	}
 	else
 		connectionName = null;
@@ -338,7 +342,8 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></nobr></td>
+				<td class="value" colspan="4">
 <%
 	    if (className.length() > 0)
 	    {
@@ -393,7 +398,57 @@
 <%
 	  }
 
-
+	  // The "Prerequisites" tab
+	  IMappingConnection[] mappingConnections = mappingConnMgr.getAllConnections();
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Prerequisites")))
+	  {
+%>
+		    <table class="displaytable">
+			<tr><td class="separator" colspan="5"><hr/></td></tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PrerequisiteUserMappingsColon")%></nobr></td>
+				<td class="value" colspan="4">
+					<input type="hidden" name="prerequisites_present" value="true"/>
+<%
+	    for (IMappingConnection mappingConnection : mappingConnections)
+	    {
+		String mappingName = mappingConnection.getName();
+		String mappingDescription = mappingName;
+		if (mappingConnection.getDescription() != null && mappingConnection.getDescription().length() > 0)
+			mappingDescription += " (" + mappingConnection.getDescription()+")";
+		if (prereqs.contains(mappingName))
+		{
+%>
+					<input type="checkbox" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+<%
+		}
+		else
+		{
+%>
+					<input type="checkbox" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+<%
+		}
+	    }
+%>
+				</td>
+			</tr>
+		    </table>
+<%
+	  }
+	  else
+	  {
+		// Hiddens for Prerequisites tab
+%>
+		    <input type="hidden" name="prerequisites_present" value="true"/>
+<%
+		for (String prereq : prereqs)
+		{
+%>
+		    <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
+<%
+		}
+	  }
+	  
 	  // The "Throttling" tab
 	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling")))
 	  {
