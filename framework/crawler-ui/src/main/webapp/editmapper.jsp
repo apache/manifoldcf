@@ -233,7 +233,7 @@
 	{
 %>
 	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMappingConnection")%></p>
-	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityConnectorsRegistered")%></td></tr></table>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoMappingConnectorsRegistered")%></td></tr></table>
 <%
 	}
 	else
