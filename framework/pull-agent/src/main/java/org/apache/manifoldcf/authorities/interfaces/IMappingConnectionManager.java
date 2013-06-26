@@ -58,6 +58,13 @@ public interface IMappingConnectionManager
   public IMappingConnection load(String name)
     throws ManifoldCFException;
 
+  /** Load multiple mapping connections by name.
+  *@param names are the names to load.
+  *@return the loaded connection objects.
+  */
+  public IMappingConnection[] loadMultiple(String[] names)
+    throws ManifoldCFException;
+
   /** Create a new mapping connection object.
   *@return the new object.
   */

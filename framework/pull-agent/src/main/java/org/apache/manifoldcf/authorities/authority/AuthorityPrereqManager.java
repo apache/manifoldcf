@@ -16,26 +16,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.authorities.mapping;
+package org.apache.manifoldcf.authorities.authority;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import java.util.*;
 
-/** This class manages the "mappingprereq" table, which contains the mapping connection prerequisites for each connection.
+/** This class manages the "authprereq" table, which contains the mapping connection prerequisites for each authority connection.
 * 
 * <br><br>
-* <b>mappingprereq</b>
+* <b>authprereq</b>
 * <table border="1" cellpadding="3" cellspacing="0">
 * <tr class="TableHeadingColor">
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-* <tr><td>ownername</td><td>VARCHAR(32)</td><td>Reference:mappingconnections.connectionname</td></tr>
+* <tr><td>ownername</td><td>VARCHAR(32)</td><td>Reference:authconnections.connectionname</td></tr>
 * <tr><td>prereq</td><td>VARCHAR(32)</td><td>Reference:mappingconnections.connectionname</td></tr>
 * </table>
 * <br><br>
 * 
 */
-public class MappingPrereqManager extends org.apache.manifoldcf.core.database.BaseTable
+public class AuthorityPrereqManager extends org.apache.manifoldcf.core.database.BaseTable
 {
   public static final String _rcsid = "@(#)$Id$";
 
@@ -46,10 +46,10 @@ public class MappingPrereqManager extends org.apache.manifoldcf.core.database.Ba
   /** Constructor.
   *@param database is the database instance.
   */
-  public MappingPrereqManager(IDBInterface database)
+  public AuthorityPrereqManager(IDBInterface database)
     throws ManifoldCFException
   {
-    super(database,"mappingprereq");
+    super(database,"authprereq");
   }
 
   /** Install or upgrade.
@@ -131,7 +131,7 @@ public class MappingPrereqManager extends org.apache.manifoldcf.core.database.Ba
   *@param indexMap maps the connection name to the index in the connections array.
   *@param ownerNameParams is the corresponding set of connection name parameters.
   */
-  public void getRows(IMappingConnection[] connections, Map indexMap, ArrayList ownerNameParams)
+  public void getRows(IAuthorityConnection[] connections, Map indexMap, ArrayList ownerNameParams)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -153,7 +153,7 @@ public class MappingPrereqManager extends org.apache.manifoldcf.core.database.Ba
   *@param owner is the owning connection name.
   *@param connection is the connection to write prereqs for.
   */
-  public void writeRows(String owner, IMappingConnection connection)
+  public void writeRows(String owner, IAuthorityConnection connection)
     throws ManifoldCFException
   {
     beginTransaction();

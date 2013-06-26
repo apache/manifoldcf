@@ -53,7 +53,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
 
-  // Handle for throttle spec storage
+  // Handle for prereq storage
   protected MappingPrereqManager mappingPrereqManager;
 
   // Cache manager
@@ -76,6 +76,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
 
   /** Install the manager.
   */
+  @Override
   public void install()
     throws ManifoldCFException
   {
@@ -112,6 +113,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
 
   /** Uninstall the manager.
   */
+  @Override
   public void deinstall()
     throws ManifoldCFException
   {
@@ -138,6 +140,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   }
 
   /** Export configuration */
+  @Override
   public void exportConfiguration(java.io.OutputStream os)
     throws java.io.IOException, ManifoldCFException
   {
@@ -167,6 +170,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   }
 
   /** Import configuration */
+  @Override
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException
   {
@@ -195,6 +199,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   /** Obtain a list of the repository connections, ordered by name.
   *@return an array of connection objects.
   */
+  @Override
   public IMappingConnection[] getAllConnections()
     throws ManifoldCFException
   {
@@ -237,6 +242,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   *@param name is the name of the mapping connection.
   *@return the loaded connection object, or null if not found.
   */
+  @Override
   public IMappingConnection load(String name)
     throws ManifoldCFException
   {
@@ -247,6 +253,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   *@param names are the names to load.
   *@return the loaded connection objects.
   */
+  @Override
   public IMappingConnection[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
@@ -270,6 +277,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   /** Create a new repository connection object.
   *@return the new object.
   */
+  @Override
   public IMappingConnection create()
     throws ManifoldCFException
   {
@@ -281,6 +289,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   *@param object is the object to save.
   *@return true if the object is created, false otherwise.
   */
+  @Override
   public boolean save(IMappingConnection object)
     throws ManifoldCFException
   {
@@ -384,6 +393,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
+  @Override
   public void delete(String name)
     throws ManifoldCFException
   {
@@ -399,6 +409,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
       try
       {
         // Check if any other mapping refers to this connection name
+        // MHL - need to check about authority references!!!
         if (isReferenced(name))
           throw new ManifoldCFException("Can't delete mapping connection '"+name+"': existing mapping connections refer to it");
         ManifoldCF.noteConfigurationChange();
@@ -434,6 +445,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   /** Get the mapping connection name column.
   *@return the name column.
   */
+  @Override
   public String getMappingNameColumn()
   {
     return nameField;
