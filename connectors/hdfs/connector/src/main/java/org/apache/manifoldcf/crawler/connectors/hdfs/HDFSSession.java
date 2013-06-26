@@ -95,9 +95,7 @@ public class HDFSSession {
   }
   
   public FileStatus getObject(String id) throws IOException {
-    Path path = new Path(id);
-    FileStatus fileStatus = fileSystem.getFileStatus(path);
-    return fileStatus;
+    return fileSystem.getFileStatus(new Path(id));
   }
 
   public FSDataInputStream getFSDataInputStream(String id) throws IOException {
