@@ -51,6 +51,15 @@ public interface IMappingConnectionManager
   public IMappingConnection[] getAllConnections()
     throws ManifoldCFException;
 
+  /** Obtain a list of the mapping connections, ordered by name,
+  * excluding those that would form a prerequisite loop if chosen.
+  *@param startingConnectionName is the name of the connection we would be starting with.
+  * Pass null for all connections.
+  *@return an array of connection objects.
+  */
+  public IMappingConnection[] getAllNonLoopingConnections(String startingConnectionName)
+    throws ManifoldCFException;
+
   /** Load a mapping connection by name.
   *@param name is the name of the mapping connection.
   *@return the loaded connection object, or null if not found.

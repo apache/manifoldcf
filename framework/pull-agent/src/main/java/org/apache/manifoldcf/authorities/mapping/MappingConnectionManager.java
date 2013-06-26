@@ -196,6 +196,124 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
     }
   }
 
+  /** Obtain a list of the mapping connections, ordered by name,
+  * excluding those that would form a prerequisite loop if chosen.
+  *@param startingConnectionName is the name of the connection we would be starting with.
+  * Pass null for all connections.
+  *@return an array of connection objects.
+  */
+  public IMappingConnection[] getAllNonLoopingConnections(String startingConnectionName)
+    throws ManifoldCFException
+  {
+    // The point of this method is to prune connections from the list that, if a new prereq was established
+    // between the specified starting connection name and the listed mapping connection, a loop would develop.
+    IMappingConnection[] connections = getAllConnections();
+    // Degenerate case: no (existing) starting point.
+    if (startingConnectionName == null)
+      return connections;
+    
+    List<IMappingConnection> finalConnections = new ArrayList<IMappingConnection>();
+    
+    Map<String,IMappingConnection> connectionMap = new HashMap<String,IMappingConnection>();
+    for (IMappingConnection thisConnection : connections)
+    {
+      connectionMap.put(thisConnection.getName(), thisConnection);
+    }
+    
+    for (IMappingConnection connectionToEvaluate : connections)
+    {
+      // The algorithm we want is as follows (from Wikipedia):
+      //
+      // L <- Empty list where we put the sorted elements
+      // Q <- Set of all nodes with no incoming edges
+      // while Q is non-empty do
+      //    remove a node n from Q
+      //    insert n into L
+      //    for each node m with an edge e from n to m do
+      //        remove edge e from the graph
+      //        if m has no other incoming edges then
+      //            insert m into Q
+      // if graph has edges then
+      //    output error message (graph has a cycle)
+      // else 
+      //    output message (proposed topologically sorted order: L)
+      //
+      // In order to "remove" a link, we have to either keep a list of links we've already processed, or copy the
+      // structure to another one where we *can* remove links.  I opt for the former.
+      // The second issue is that we need to generate Q up front.  This is easy enough; just keep a hash of connections
+      // that have not been referenced (yet), and remove connections from the hash as refs are found.
+      // Also interesting: we don't actually need to keep L.
+      Set<String> Q = new HashSet<String>();
+      Set<String> links = new HashSet<String>();
+      Map<String,Integer> incomingCount = new HashMap<String,Integer>();
+
+      for (int i = 0; i < connections.length; i++)
+      {
+        Q.add(connections[i].getName());
+      }
+      for (int i = 0; i < connections.length; i++)
+      {
+        String connectionName = connections[i].getName();
+        Set<String> prereqs = connections[i].getPrerequisites();
+        for (String s : prereqs)
+        {
+          Integer x = incomingCount.get(s);
+          if (x == null)
+            incomingCount.put(s,new Integer(1));
+          else
+            incomingCount.put(s,new Integer(x.intValue()+1));
+          Q.remove(s);
+          links.add(connectionName + ":" + s);
+        }
+      }
+
+      // There is a "proposed" edge ending at connectionToEvaluate, so remove that one too
+      String thisConnectionName = connectionToEvaluate.getName();
+      Q.remove(thisConnectionName);
+      Integer x1 = incomingCount.get(thisConnectionName);
+      if (x1 == null)
+        incomingCount.put(thisConnectionName,new Integer(1));
+      else
+        incomingCount.put(thisConnectionName,new Integer(x1.intValue()+1));
+      links.add(startingConnectionName + ":" + thisConnectionName);
+
+      // Now, repeat until Q is empty
+      while (!Q.isEmpty())
+      {
+        Iterator<String> iter = Q.iterator();
+        String checkConnectionName = iter.next();
+        // Get prereqs for the connection, those that are still in the graph
+        IMappingConnection sourceConnection = connectionMap.get(checkConnectionName);
+        for (String s : sourceConnection.getPrerequisites())
+        {
+          String edgeName = checkConnectionName + ":" + s;
+          if (links.contains(edgeName))
+          {
+            // Remove edgeName from graph
+            links.remove(edgeName);
+            // If s has no other incoming edges then insert it into Q
+            Integer x = incomingCount.get(s);
+            if (x.intValue() == 1)
+            {
+              incomingCount.remove(s);
+              Q.add(s);
+            }
+            else
+              incomingCount.put(s,new Integer(x.intValue() - 1));
+          }
+        }
+      }
+      
+      // Any links remaining?
+      if (links.isEmpty())
+      {
+        // No cycles.  Add this connection to the final list.
+        finalConnections.add(connectionToEvaluate);
+      }
+    }
+    return finalConnections.toArray(new IMappingConnection[0]);
+  }
+
   /** Obtain a list of the repository connections, ordered by name.
   *@return an array of connection objects.
   */
