@@ -17,9 +17,6 @@
  */
 package org.apache.manifoldcf.crawler.connectors.generic;
 
-import org.apache.manifoldcf.crawler.connectors.generic.api.Meta;
-import org.apache.manifoldcf.crawler.connectors.generic.api.Item;
-import org.apache.manifoldcf.crawler.connectors.generic.api.Items;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,13 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlElements;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -61,6 +51,9 @@ import org.apache.manifoldcf.core.common.XThreadStringBuffer;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
+import org.apache.manifoldcf.crawler.connectors.generic.api.Item;
+import org.apache.manifoldcf.crawler.connectors.generic.api.Items;
+import org.apache.manifoldcf.crawler.connectors.generic.api.Meta;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.ui.util.Encoder;
 import org.xml.sax.Attributes;
@@ -1122,7 +1115,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code");
+            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
             return;
           }
 
@@ -1195,7 +1188,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code");
+            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
             return;
           }
           JAXBContext context;
@@ -1265,7 +1258,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            exception = new ManifoldCFException("processDocuments error - interface returned incorrect return code for: " + url);
+            exception = new ManifoldCFException("processDocuments error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
             return;
           }
           synchronized (this) {
