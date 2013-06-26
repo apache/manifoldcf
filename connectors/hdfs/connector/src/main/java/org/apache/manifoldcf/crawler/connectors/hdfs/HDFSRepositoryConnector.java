@@ -431,35 +431,30 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         objt.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
       }
-      
-      try {
-        FileStatus fileStatus = objt.getResponse();
-        if (session.getFileSystem().exists(fileStatus.getPath())) {
-          if (fileStatus.isDir()) {
-            long lastModified = fileStatus.getModificationTime();
-            rval[i] = new Long(lastModified).toString();
-          } else {
-            long fileLength = fileStatus.getLen();
-            if (activities.checkLengthIndexable(fileLength)) {
-              long lastModified = fileStatus.getModificationTime();
-              StringBuilder sb = new StringBuilder();
-              if (filePathToUri) {
-                sb.append("+");
-              } else {
-                sb.append("-");
-              }
-              sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
-              rval[i] = sb.toString();
-            } else {
-              rval[i] = null;
-            }
-          }
+
+      FileStatus fileStatus = objt.getResponse();
+      if (fileStatus != null) {
+        if (fileStatus.isDir()) {
+          long lastModified = fileStatus.getModificationTime();
+          rval[i] = new Long(lastModified).toString();
         } else {
-          rval[i] = null;
+          long fileLength = fileStatus.getLen();
+          if (activities.checkLengthIndexable(fileLength)) {
+            long lastModified = fileStatus.getModificationTime();
+            StringBuilder sb = new StringBuilder();
+            if (filePathToUri) {
+              sb.append("+");
+            } else {
+              sb.append("-");
+            }
+            sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
+            rval[i] = sb.toString();
+          } else {
+            rval[i] = null;
+          }
         }
-      } catch (IOException e) {
-        objt.interrupt();
-        throw new ManifoldCFException(e);
+      } else {
+        rval[i] = null;
       }
     }
     
@@ -507,7 +502,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         
         FileStatus fileStatus = objt.getResponse();
         
-        if (!session.getFileSystem().exists(fileStatus.getPath())) {
+        if (fileStatus == null) {
         	continue;
         }
         

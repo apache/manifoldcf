@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.manifoldcf.core.common.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -95,7 +96,11 @@ public class HDFSSession {
   }
   
   public FileStatus getObject(String id) throws IOException {
-    return fileSystem.getFileStatus(new Path(id));
+    try {
+      return fileSystem.getFileStatus(new Path(id));
+    } catch(FileNotFoundException e) {
+      return null;
+    }
   }
 
   public FSDataInputStream getFSDataInputStream(String id) throws IOException {
