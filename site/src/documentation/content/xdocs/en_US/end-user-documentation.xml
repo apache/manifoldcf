@@ -890,7 +890,41 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
             </section>
             
-        </section>
+             <section id="genericauthority">
+              <title>Generic Authority</title>
+              <p>Generic authority is intended to be used with Generic Connector and provide authentication tokens based on generic API. The idea is that you can use it and implement only the API which is designed
+			  to be fine grained and as simple as it is possible to handle all tasks.</p>
+              <p>API should be implemented as xml web page (entry point) returning results based on provided GET params. It may be a simple server script or part of the bigger application.
+			  API can be secured with HTTP basic authentication.</p>
+              <br/>
+              <p>There are 2 actions:</p>
+			  <ul>
+				<li>check</li>
+				<li>auth</li>
+			  </ul>
+			  <p>Action is passed as "action" GET param to the entrypoint.</p>
+              <br/><br/>
+			  <p><b>[entrypoint]?action=check</b></p>
+			  <p>Should return HTTP status code 200 providing information that entrypoint is working properly. Any content returned will be ignored, only the status code matters.</p>
+              <br/><br/>
+			  
+			  <p><b>[entrypoint]?action=auth&amp;username=UserName@Domain</b></p>
+			  <p>Parameters:</p>
+			  <ul>
+				<li>username - name of the user we want to resolve and fetch tokens.</li>
+			  </ul>
+			  <p>Result should be valid XML of form:</p>
+			  <source>
+&lt;auth exists="true|false"&gt;
+   &lt;token&gt;token_1&lt;/token&gt;;
+   &lt;token&gt;token_2&lt;/token&gt;;
+   ...
+&lt;/auth&gt;
+			  </source>
+			  <p><code>exists</code> attribute is required and it carries information wheter user is valid or not.</p>
+              <br/><br/>
+            </section>
+       </section>
         
         <section id="repositoryconnectiontypes">
             <title>Repository Connection Types</title>
@@ -2217,7 +2251,7 @@ curl -XGET http://localhost:9200/index/_mapping
 			  </ul>
 			  <p><code>startDate</code> and <code>endDate</code> parameters are encoded as <code>YYYY-MM-DD'T'HH:mm:ss'Z'</code>. Result should be valid XML of form:</p>
 			  <source>
-&lt;seeds>
+&lt;seeds&gt;
    &lt;seed id="document_id_1" /&gt;
    &lt;seed id="document_id_2" /&gt;
    ...
