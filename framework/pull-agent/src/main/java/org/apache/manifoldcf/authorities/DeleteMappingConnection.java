@@ -1,4 +1,4 @@
-/* $Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,11 +26,11 @@ import java.util.*;
 
 /** This class is used during testing.
 */
-public class DeleteAuthorityConnection
+public class DeleteMappingConnection
 {
-  public static final String _rcsid = "@(#)$Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  private DeleteAuthorityConnection()
+  private DeleteMappingConnection()
   {
   }
 
@@ -39,7 +39,7 @@ public class DeleteAuthorityConnection
   {
     if (args.length != 1)
     {
-      System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
+      System.err.println("Usage: DeleteMappingConnection <connection_name>");
       System.exit(1);
     }
 
@@ -48,7 +48,7 @@ public class DeleteAuthorityConnection
     {
       ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+      IMappingConnectionManager mgr = MappingConnectionManagerFactory.make(tc);
       mgr.delete(connectionName);
 
     }
@@ -59,7 +59,4 @@ public class DeleteAuthorityConnection
     }
   }
 
-
-
-    
 }

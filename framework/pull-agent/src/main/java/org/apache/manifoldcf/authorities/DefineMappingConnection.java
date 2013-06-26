@@ -1,4 +1,4 @@
-/* $Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -26,30 +26,58 @@ import java.util.*;
 
 /** This class is used during testing.
 */
-public class DeleteAuthorityConnection
+public class DefineMappingConnection
 {
-  public static final String _rcsid = "@(#)$Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  private DeleteAuthorityConnection()
+  private DefineMappingConnection()
   {
   }
 
 
   public static void main(String[] args)
   {
-    if (args.length != 1)
+    if (args.length < 4)
     {
-      System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
+      System.err.println("Usage: DefineMappingConnection <connection_name> <description> <connector_class> <pool_max> <param1>=<value1> ...");
       System.exit(1);
     }
 
     String connectionName = args[0];
+    String description = args[1];
+    String connectorClass = args[2];
+    String poolMax = args[3];
+
+
     try
     {
       ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-      mgr.delete(connectionName);
+      IMappingConnectionManager mgr = MappingConnectionManagerFactory.make(tc);
+      IMappingConnection conn = mgr.create();
+      conn.setName(connectionName);
+      conn.setDescription(description);
+      conn.setClassName(connectorClass);
+      conn.setMaxConnections(new Integer(poolMax).intValue());
+      ConfigParams x = conn.getConfigParams();
+      int i = 4;
+      while (i < args.length)
+      {
+        String arg = args[i++];
+        // Parse
+        int pos = arg.indexOf("=");
+        if (pos == -1)
+          throw new ManifoldCFException("Argument missing =");
+        String name = arg.substring(0,pos);
+        String value = arg.substring(pos+1);
+        if (name.endsWith("assword"))
+          x.setObfuscatedParameter(name,value);
+        else
+          x.setParameter(name,value);
+      }
+
+      // Now, save
+      mgr.save(conn);
 
     }
     catch (Exception e)
@@ -60,6 +88,4 @@ public class DeleteAuthorityConnection
   }
 
 
-
-    
 }

@@ -235,6 +235,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   // Connectors configuration file
   protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
+  protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
   protected static final String ATTRIBUTE_NAME = "name";
@@ -248,6 +249,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Create a map of class name and description, so we can compare what we can find
     // against what we want.
     Map<String,String> desiredOutputConnectors = new HashMap<String,String>();
+    Map<String,String> desiredMappingConnectors = new HashMap<String,String>();
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
 
@@ -261,6 +263,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
           desiredOutputConnectors.put(className,name);
+        }
+        else if (cn.getType().equals(NODE_MAPPINGCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          desiredMappingConnectors.put(className,name);
         }
         else if (cn.getType().equals(NODE_AUTHORITYCONNECTOR))
         {
@@ -325,7 +333,25 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       System.err.println("Successfully unregistered all output connectors");
     }
-      
+
+    // Mapping connectors...
+    {
+      IMappingConnectorManager mgr = MappingConnectorManagerFactory.make(tc);
+      IResultSet classNames = mgr.getConnectors();
+      int i = 0;
+      while (i < classNames.getRowCount())
+      {
+        IResultRow row = classNames.getRow(i++);
+        String className = (String)row.getValue("classname");
+        String description = (String)row.getValue("description");
+        if (desiredMappingConnectors.get(className) == null || !desiredMappingConnectors.get(className).equals(description))
+        {
+          mgr.unregisterConnector(className);
+        }
+      }
+      System.err.println("Successfully unregistered all mapping connectors");
+    }
+
     // Authority connectors...
     {
       IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
@@ -449,6 +475,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
           mgr.registerConnector(name,className);
           System.err.println("Successfully registered authority connector '"+className+"'");
+        }
+        else if (cn.getType().equals(NODE_MAPPINGCONNECTOR))
+        {
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
+          IMappingConnectorManager mgr = MappingConnectorManagerFactory.make(tc);
+          mgr.registerConnector(name,className);
+          System.err.println("Successfully registered mapping connector '"+className+"'");
         }
         else if (cn.getType().equals(NODE_REPOSITORYCONNECTOR))
         {
@@ -1073,6 +1107,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+    IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
 
@@ -1132,6 +1167,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             java.util.zip.ZipEntry outputEntry = new java.util.zip.ZipEntry("outputs");
             zos.putNextEntry(outputEntry);
             outputManager.exportConfiguration(zos);
+            zos.closeEntry();
+
+            java.util.zip.ZipEntry mappingEntry = new java.util.zip.ZipEntry("mappings");
+            zos.putNextEntry(mappingEntry);
+            mappingManager.exportConfiguration(zos);
             zos.closeEntry();
 
             java.util.zip.ZipEntry authEntry = new java.util.zip.ZipEntry("authorities");
@@ -1201,6 +1241,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+    IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
     IJobManager jobManager = JobManagerFactory.make(threadContext);
 
@@ -1256,6 +1297,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               String name = z.getName();
               if (name.equals("outputs"))
                 outputManager.importConfiguration(zis);
+              else if (name.equals("mappings"))
+                mappingManager.importConfiguration(zis);
               else if (name.equals("authorities"))
                 authManager.importConfiguration(zis);
               else if (name.equals("connections"))

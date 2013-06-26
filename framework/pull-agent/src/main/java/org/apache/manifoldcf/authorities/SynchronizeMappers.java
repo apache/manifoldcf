@@ -1,4 +1,4 @@
-/* $Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -7,9 +7,9 @@
 * The ASF licenses this file to You under the Apache License, Version 2.0
 * (the "License"); you may not use this file except in compliance with
 * the License. You may obtain a copy of the License at
-* 
+*
 * http://www.apache.org/licenses/LICENSE-2.0
-* 
+*
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,44 +22,56 @@ import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.*;
-import java.util.*;
 
-/** This class is used during testing.
-*/
-public class DeleteAuthorityConnection
+public class SynchronizeMappers extends BaseMappersInitializationCommand
 {
-  public static final String _rcsid = "@(#)$Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  private DeleteAuthorityConnection()
+  public SynchronizeMappers()
   {
+  }
+
+
+  protected void doExecute(IMappingConnectorManager mgr) throws ManifoldCFException
+  {
+    IResultSet classNames = mgr.getConnectors();
+    int i = 0;
+    while (i < classNames.getRowCount())
+    {
+      IResultRow row = classNames.getRow(i++);
+      String classname = (String)row.getValue("classname");
+      try
+      {
+        MappingConnectorFactory.getConnectorNoCheck(classname);
+      }
+      catch (ManifoldCFException e)
+      {
+        mgr.removeConnector(classname);
+      }
+    }
+    Logging.root.info("Successfully synchronized all mappers");
   }
 
 
   public static void main(String[] args)
   {
-    if (args.length != 1)
+    if (args.length > 0)
     {
-      System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
+      System.err.println("Usage: SynchronizeMappers");
       System.exit(1);
     }
 
-    String connectionName = args[0];
+
     try
     {
-      ManifoldCF.initializeEnvironment();
-      IThreadContext tc = ThreadContextFactory.make();
-      IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-      mgr.delete(connectionName);
-
+      SynchronizeMappers synchronizeMappers = new SynchronizeMappers();
+      synchronizeMappers.execute();
+      System.err.println("Successfully synchronized all mappers");
     }
-    catch (Exception e)
+    catch (ManifoldCFException e)
     {
-      e.printStackTrace(System.err);
-      System.exit(2);
+      e.printStackTrace();
+      System.exit(1);
     }
   }
-
-
-
-    
 }
