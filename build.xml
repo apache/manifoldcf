@@ -59,6 +59,7 @@
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
         <ant dir="connectors/dropbox" target="clean"/>
+        <ant dir="connectors/generic" target="clean"/>
         <ant dir="connectors/googledrive" target="clean"/>
 		<ant dir="connectors/jira" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
@@ -112,6 +113,7 @@
         <ant dir="connectors/alfresco" target="clean"/>
         <ant dir="connectors/cmis" target="clean"/>
         <ant dir="connectors/dropbox" target="clean"/>
+        <ant dir="connectors/generic" target="clean"/>
         <ant dir="connectors/googledrive" target="clean"/>
 		<ant dir="connectors/jira" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
@@ -286,6 +288,8 @@
     
     <target name="setup-dropbox-connector" depends="build-framework" if="downloaded"/>
 
+    <target name="setup-generic-connector" depends="build-framework" if="downloaded"/>
+
     <target name="setup-googledrive-connector" depends="build-framework" if="downloaded"/>
 	<target name="setup-jira-connector" depends="build-framework" if="downloaded"/>
     
@@ -309,6 +313,9 @@
         <ant dir="connectors/dropbox" target="build"/>
     </target>
 
+    <target name="build-generic-connector" depends="setup-generic-connector" if="downloaded">
+        <ant dir="connectors/generic" target="build"/>
+    </target>
 
     <target name="build-googledrive-connector" depends="setup-googledrive-connector" if="downloaded">
         <ant dir="connectors/googledrive" target="build"/>
@@ -321,6 +328,10 @@
 
     <target name="doc-dropbox-connector" depends="setup-dropbox-connector" if="downloaded">
         <ant dir="connectors/dropbox" target="doc"/>
+    </target>
+
+    <target name="doc-generic-connector" depends="setup-generic-connector" if="downloaded">
+        <ant dir="connectors/generic" target="doc"/>
     </target>
 
     <target name="doc-googledrive-connector" depends="setup-googledrive-connector" if="downloaded">
@@ -1420,7 +1431,26 @@
         </condition>
     </target>
 
+    <target name="calculate-generic-condition" depends="build-generic-connector">
+        <available file="connectors/generic/dist/lib" type="dir" property="generic.exists"/>
+        <condition property="generic.include">
+            <and>
+                <isset property="generic.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
 
+    <target name="calculate-generic-doc-condition" depends="doc-generic-connector">
+        <available file="connectors/generic/dist/doc" type="dir" property="generic-doc.exists"/>
+        <condition property="generic-doc.include">
+            <and>
+                <isset property="generic-doc.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+	
     <target name="calculate-googledrive-condition" depends="build-googledrive-connector">
         <available file="connectors/googledrive/dist/lib" type="dir" property="googledrive.exists"/>
         <condition property="googledrive.include">
@@ -1503,6 +1533,23 @@
     <target name="deliver-dropbox-connector-doc" depends="calculate-dropbox-doc-condition" if="dropbox-doc.include">
         <antcall target="general-connector-doc-delivery">
             <param name="connector-name" value="dropbox"/>
+        </antcall>
+    </target>
+
+    <target name="deliver-generic-connector" depends="calculate-generic-condition" if="generic.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="generic"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="generic"/>
+            <param name="connector-label" value="generic"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.generic.GenericRepositoryConnector"/>
+        </antcall>
+    </target>
+    
+    <target name="deliver-generic-connector-doc" depends="calculate-generic-doc-condition" if="generic-doc.include">
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="generic"/>
         </antcall>
     </target>
 
@@ -2698,8 +2745,8 @@
     <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
 
-    <target name="deliver-open-connectors" depends="deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-googledrive-connector-doc,deliver-jira-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
+    <target name="deliver-open-connectors" depends="deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors-doc" depends="deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
     
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
@@ -3706,7 +3753,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-    
 	
 	<target name="download-jira-client">
         <mkdir dir="lib"/>
@@ -3855,6 +3901,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="make-deps" depends="download-proprietary-dependencies">
         <ant dir="connectors/alfresco" target="download-dependencies"/>
         <ant dir="connectors/cmis" target="download-dependencies"/>
+        <ant dir="connectors/generic" target="download-dependencies"/>
         <ant dir="connectors/dropbox" target="download-dependencies"/>
         <ant dir="connectors/googledrive" target="download-dependencies"/>
 		<ant dir="connectors/jira" target="download-dependencies"/>
@@ -3894,6 +3941,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="clean-deps" depends="download-proprietary-cleanup">
         <ant dir="connectors/alfresco" target="download-cleanup"/>
         <ant dir="connectors/cmis" target="download-cleanup"/>
+        <ant dir="connectors/generic" target="download-cleanup"/>        
         <ant dir="connectors/dropbox" target="download-cleanup"/>        
         <ant dir="connectors/googledrive" target="download-cleanup"/>
 		<ant dir="connectors/jira" target="download-cleanup"/>

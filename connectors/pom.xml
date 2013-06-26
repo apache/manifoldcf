@@ -53,6 +53,7 @@
     <module>dropbox</module>
     <module>googledrive</module>
     <module>jira</module>
+    <module>generic</module>
   </modules>
 
 </project>
