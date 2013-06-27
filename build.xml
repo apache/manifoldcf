@@ -1582,8 +1582,13 @@
         </antcall>
         <antcall target="general-add-repository-connector">
             <param name="connector-name" value="generic"/>
-            <param name="connector-label" value="generic"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.generic.GenericRepositoryConnector"/>
+            <param name="connector-label" value="Generic"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.generic.GenericConnector"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="generic"/>
+            <param name="connector-label" value="Generic"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.generic.GenericAuthority"/>
         </antcall>
     </target>
     
