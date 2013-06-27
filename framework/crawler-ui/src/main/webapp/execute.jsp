@@ -256,9 +256,12 @@
 					{
 						connection.getPrerequisites().clear();
 						String[] y = variableContext.getParameterValues("prerequisites");
-						for (String s : y)
+						if (y != null)
 						{
-							connection.getPrerequisites().add(s);
+							for (String s : y)
+							{
+								connection.getPrerequisites().add(s);
+							}
 						}
 					}
 					
@@ -381,9 +384,12 @@
 					{
 						connection.getPrerequisites().clear();
 						String[] y = variableContext.getParameterValues("prerequisites");
-						for (String s : y)
+						if (y != null)
 						{
-							connection.getPrerequisites().add(s);
+							for (String s : y)
+							{
+								connection.getPrerequisites().add(s);
+							}
 						}
 					}
 
