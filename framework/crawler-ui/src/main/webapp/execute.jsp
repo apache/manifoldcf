@@ -376,6 +376,16 @@
 					x = variableContext.getParameter("maxconnections");
 					if (x != null && x.length() > 0)
 						connection.setMaxConnections(Integer.parseInt(x));
+					x = variableContext.getParameter("prerequisites_present");
+					if (x != null && x.equals("true"))
+					{
+						connection.getPrerequisites().clear();
+						String[] y = variableContext.getParameterValues("prerequisites");
+						for (String s : y)
+						{
+							connection.getPrerequisites().add(s);
+						}
+					}
 
 					String error = MappingConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 					

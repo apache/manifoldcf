@@ -58,6 +58,7 @@
 	String className = "";
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
+	Set<String> prereqs = new HashSet<String>();
 
 	if (connection != null)
 	{
@@ -68,6 +69,7 @@
 		className = connection.getClassName();
 		parameters = connection.getConfigParams();
 		maxConnections = connection.getMaxConnections();
+		prereqs = connection.getPrerequisites();
 	}
 	else
 		connectionName = null;
@@ -81,6 +83,7 @@
 	// Set up the predefined tabs
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Name"));
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type"));
+	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Prerequisites"));
 	if (className.length() > 0)
 		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Throttling"));
 
@@ -395,6 +398,56 @@
 <%
 	  }
 
+	  // The "Prerequisites" tab
+	  IMappingConnection[] mappingConnections = connMgr.getAllNonLoopingConnections((connection==null)?null:connection.getName());
+	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Prerequisites")))
+	  {
+%>
+		    <table class="displaytable">
+			<tr><td class="separator" colspan="5"><hr/></td></tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.PrerequisiteUserMappingsColon")%></nobr></td>
+				<td class="value" colspan="4">
+					<input type="hidden" name="prerequisites_present" value="true"/>
+<%
+	    for (IMappingConnection mappingConnection : mappingConnections)
+	    {
+		String mappingName = mappingConnection.getName();
+		String mappingDescription = mappingName;
+		if (mappingConnection.getDescription() != null && mappingConnection.getDescription().length() > 0)
+			mappingDescription += " (" + mappingConnection.getDescription()+")";
+		if (prereqs.contains(mappingName))
+		{
+%>
+					<input type="checkbox" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+<%
+		}
+		else
+		{
+%>
+					<input type="checkbox" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+<%
+		}
+	    }
+%>
+				</td>
+			</tr>
+		    </table>
+<%
+	  }
+	  else
+	  {
+		// Hiddens for Prerequisites tab
+%>
+		    <input type="hidden" name="prerequisites_present" value="true"/>
+<%
+		for (String prereq : prereqs)
+		{
+%>
+		    <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
+<%
+		}
+	  }
 
 	  // The "Throttling" tab
 	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Throttling")))
