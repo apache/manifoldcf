@@ -632,10 +632,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             }
           }
         }
-      } catch (IOException e) {
-        errorCode = "IO ERROR";
-        errorDesc = e.getMessage();
-        handleIOException(e);
       } finally {
         activities.recordActivity(new Long(startTime),ACTIVITY_READ,new Long(fileSize),documentIdentifier,errorCode,errorDesc,null);
       }
