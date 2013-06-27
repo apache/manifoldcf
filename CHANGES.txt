@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-728: Add HDFS connector
+{Minoru Osuka, Karl Wright)
+
 CONNECTORS-727: Implemented generic API connector
 {Maciej Lizewski, Karl Wright)
 
