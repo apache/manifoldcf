@@ -83,6 +83,15 @@
 		if (connectorName == null)
 			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"viewmapper.uninstalled");
 		int maxCount = connection.getMaxConnections();
+		Set<String> prereqs = connection.getPrerequisites();
+		String[] prereqList = new String[prereqs.size()];
+		int i = 0;
+		for (String s : prereqs)
+		{
+			prereqList[i++] = s;
+		}
+		java.util.Arrays.sort(prereqList);
+
 		ConfigParams parameters = connection.getConfigParams();
 
 		// Now, test the connection.
@@ -129,6 +138,31 @@
 				<td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
 				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.MaxConnectionsColon")%></nobr></td>
 				<td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
+			</tr>
+			<tr>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.PrerequisiteUserMappingsColon")%></nobr></td>
+				<td class="value" colspan="3">
+<%
+		if (prereqList.length != 0)
+		{
+			for (int j = 0; j < prereqList.length; j++)
+			{	
+%>
+					<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereqList[j])%></nobr><br/>
+<%
+			}
+		}
+		else
+		{
+%>
+					<nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.NoPrerequisites")%></nobr>
+<%
+		}
+%>
+				</td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
