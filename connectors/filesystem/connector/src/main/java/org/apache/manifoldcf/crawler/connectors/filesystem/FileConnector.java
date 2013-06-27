@@ -821,7 +821,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"FileConnector.FilePathToURI") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input name=\"filepathtouri\" type=\"checkbox\" value=\"true\"" + (filePathToUri ? "checked" : "") +"/>\n" +
+"      <input name=\"filepathtouri\" type=\"checkbox\" value=\"true\"" + (filePathToUri ? "checked" : "") +"/>&nbsp;" + Messages.getBodyString(locale,"FileConnector.FilePathToURIExample") + "\n" +
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"

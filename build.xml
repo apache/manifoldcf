@@ -68,6 +68,7 @@
         <ant dir="connectors/filenet" target="clean"/>
         <ant dir="connectors/filesystem" target="clean"/>
         <ant dir="connectors/gts" target="clean"/>
+        <ant dir="connectors/hdfs" target="clean"/>
         <ant dir="connectors/jcifs" target="clean"/>
         <ant dir="connectors/jdbc" target="clean"/>
         <ant dir="connectors/livelink" target="clean"/>
@@ -88,6 +89,7 @@
         <ant dir="tests/cmis" target="clean"/>
         <ant dir="tests/filesystem" target="clean"/>
         <ant dir="tests/gts" target="clean"/>
+        <ant dir="tests/hdfs" target="clean"/>
         <ant dir="tests/opensearchserver" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
         <ant dir="tests/solr" target="clean"/>
@@ -122,6 +124,7 @@
         <ant dir="connectors/filenet" target="clean"/>
         <ant dir="connectors/filesystem" target="clean"/>
         <ant dir="connectors/gts" target="clean"/>
+        <ant dir="connectors/hdfs" target="clean"/>
         <ant dir="connectors/jcifs" target="clean"/>
         <ant dir="connectors/jdbc" target="clean"/>
         <ant dir="connectors/livelink" target="clean"/>
@@ -142,6 +145,7 @@
         <ant dir="tests/cmis" target="clean"/>
         <ant dir="tests/filesystem" target="clean"/>
         <ant dir="tests/gts" target="clean"/>
+        <ant dir="tests/hdfs" target="clean"/>
         <ant dir="tests/opensearchserver" target="clean"/>
         <ant dir="tests/rss" target="clean"/>
         <ant dir="tests/solr" target="clean"/>
@@ -540,6 +544,42 @@
 
     <target name="run-tests-HSQLDB-gts-connector" depends="setup-gts-connector,setup-gts-connector-tests" if="downloaded">
         <ant dir="connectors/gts" target="run-tests-HSQLDB"/>
+    </target>
+
+    <target name="setup-hdfs-connector" depends="build-framework" if="downloaded"/>
+
+    <target name="setup-hdfs-connector-tests" depends="build-tests-framework" if="downloaded"/>
+
+    <target name="build-hdfs-connector" depends="setup-hdfs-connector" if="downloaded">
+        <ant dir="connectors/hdfs" target="build"/>
+    </target>
+
+    <target name="doc-hdfs-connector" depends="setup-hdfs-connector" if="downloaded">
+      <ant dir="connectors/hdfs" target="doc"/>
+    </target>
+
+    <target name="build-tests-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
+        <ant dir="connectors/hdfs" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
+        <ant dir="connectors/hdfs" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
+        <ant dir="connectors/hdfs" target="run-tests-derby"/>
+    </target>
+
+    <target name="run-tests-postgresql-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
+        <ant dir="connectors/hdfs" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
+        <ant dir="connectors/hdfs" target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-hdfs-connector" depends="setup-hdfs-connector,setup-hdfs-connector-tests" if="downloaded">
+        <ant dir="connectors/hdfs" target="run-tests-HSQLDB"/>
     </target>
 
     <target name="setup-jcifs-connector" depends="build-framework" if="downloaded"/>
@@ -1762,6 +1802,48 @@
         </condition>
     </target>
 
+    <target name="calculate-hdfs-condition" depends="build-hdfs-connector">
+        <available file="connectors/hdfs/dist/lib" type="dir" property="hdfs.exists"/>
+        <condition property="hdfs.include">
+            <and>
+                <isset property="hdfs.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="calculate-hdfs-doc-condition" depends="doc-hdfs-connector">
+        <available file="connectors/hdfs/dist/doc" type="dir" property="hdfs-doc.exists"/>
+        <condition property="hdfs-doc.include">
+            <and>
+                <isset property="hdfs-doc.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="deliver-hdfs-connector" depends="calculate-hdfs-condition" if="hdfs.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="hdfs"/>
+        </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-name" value="hdfs"/>
+            <param name="connector-label" value="HDFS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"/>
+        </antcall>
+        <antcall target="general-add-output-connector">
+            <param name="connector-name" value="hdfs"/>
+            <param name="connector-label" value="HDFS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.hdfs.HDFSOutputConnector"/>
+        </antcall>
+    </target>
+
+    <target name="deliver-hdfs-connector-doc" depends="calculate-hdfs-doc-condition" if="hdfs-doc.include">
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="hdfs"/>
+        </antcall>
+    </target>
+
     <target name="calculate-jdbc-doc-condition" depends="doc-jdbc-connector">
         <available file="connectors/jdbc/dist/doc" type="dir" property="jdbc-doc.exists"/>
         <condition property="jdbc-doc.include">
@@ -2317,7 +2399,16 @@
       </condition>
     </target>
 
-    <target name="calculate-jcifs-tests-condition" depends="calculate-jcifs-condition,calculate-nulloutput-condition">
+    <target name="calculate-hdfs-tests-condition" depends="calculate-hdfs-condition,calculate-nulloutput-condition">
+      <condition property="hdfs-tests.include">
+        <and>
+            <isset property="hdfs.include"/>
+            <isset property="nulloutput.include"/>
+        </and>
+      </condition>
+    </target>
+
+	<target name="calculate-jcifs-tests-condition" depends="calculate-jcifs-condition,calculate-nulloutput-condition">
       <condition property="jcifs-tests.include">
         <and>
             <isset property="jcifs.include"/>
@@ -2450,6 +2541,10 @@
 
     <target name="run-filesystem-loadtests-derby" depends="build-tests-framework,build-tests-filesystem-connector,build-tests-nulloutput-connector,calculate-filesystem-tests-condition" if="filesystem-tests.include">
         <ant dir="tests/filesystem" target="run-load-derby"/>
+    </target>
+
+    <target name="run-hdfs-UI-tests-derby" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-UI-derby"/>
     </target>
 
     <target name="run-jcifs-UI-tests-derby" depends="build-tests-framework,build-tests-jcifs-connector,build-tests-nulloutput-connector,calculate-jcifs-tests-condition" if="jcifs-tests.include">
@@ -2596,6 +2691,22 @@
         <ant dir="tests/filesystem" target="run-load-mysql"/>
     </target>
 
+    <target name="run-hdfs-tests-postgresql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-postgresql"/>
+    </target>
+
+    <target name="run-hdfs-tests-mysql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-mysql"/>
+    </target>
+
+    <target name="run-hdfs-loadtests-postgresql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-load-postgresql"/>
+    </target>
+
+    <target name="run-hdfs-loadtests-mysql" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-load-mysql"/>
+    </target>
+
     <target name="run-wiki-tests-postgresql" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
         <ant dir="tests/wiki" target="run-postgresql"/>
     </target>
@@ -2660,6 +2771,18 @@
         <ant dir="tests/filesystem" target="run-load-HSQLDB"/>
     </target>
 
+    <target name="run-hdfs-tests-HSQLDB" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-HSQLDB"/>
+    </target>
+
+    <target name="run-hdfs-UI-tests-HSQLDB" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-UI-HSQLDB"/>
+    </target>
+
+    <target name="run-hdfs-loadtests-HSQLDB" depends="build-tests-framework,build-tests-hdfs-connector,build-tests-nulloutput-connector,calculate-hdfs-tests-condition" if="hdfs-tests.include">
+        <ant dir="tests/hdfs" target="run-load-HSQLDB"/>
+    </target>
+
     <target name="run-wiki-tests-HSQLDB" depends="build-tests-framework,build-tests-wiki-connector,build-tests-nulloutput-connector,calculate-wiki-tests-condition" if="wiki-tests.include">
         <ant dir="tests/wiki" target="run-HSQLDB"/>
     </target>
@@ -2708,46 +2831,45 @@
         <ant dir="tests/sharepoint" target="run-load-HSQLDB"/>
     </target>
 
-    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector"/>
+    <target name="run-tests-open-connectors" depends="run-tests-activedirectory-connector,run-tests-ldap-connector,run-tests-alfresco-connector,run-tests-cmis-connector,run-tests-filesystem-connector,run-tests-nullauthority-connector,run-tests-nulloutput-connector,run-tests-rss-connector,run-tests-solr-connector,run-tests-webcrawler-connector,run-tests-wiki-connector,run-tests-jdbc-connector,run-tests-hdfs-connector"/>
     <target name="run-tests-lgpl-connectors" depends="run-tests-jcifs-connector"/>
     <target name="run-tests-proprietary-connectors" depends="run-tests-documentum-connector,run-tests-filenet-connector,run-tests-livelink-connector,run-tests-memex-connector,run-tests-meridio-connector,run-tests-sharepoint-connector"/>
 
-    <target name="run-tests-derby-open-connectors" depends="run-tests-derby-activedirectory-connector,run-tests-derby-ldap-connector,run-tests-derby-alfresco-connector,run-tests-derby-cmis-connector,run-tests-derby-filesystem-connector,run-tests-derby-nullauthority-connector,run-tests-derby-nulloutput-connector,run-tests-derby-rss-connector,run-tests-derby-solr-connector,run-tests-derby-webcrawler-connector,run-tests-derby-wiki-connector,run-tests-derby-jdbc-connector"/>
+    <target name="run-tests-derby-open-connectors" depends="run-tests-derby-activedirectory-connector,run-tests-derby-ldap-connector,run-tests-derby-alfresco-connector,run-tests-derby-cmis-connector,run-tests-derby-filesystem-connector,run-tests-derby-hdfs-connector,run-tests-derby-nullauthority-connector,run-tests-derby-nulloutput-connector,run-tests-derby-rss-connector,run-tests-derby-solr-connector,run-tests-derby-webcrawler-connector,run-tests-derby-wiki-connector,run-tests-derby-jdbc-connector"/>
     <target name="run-tests-derby-lgpl-connectors" depends="run-tests-derby-jcifs-connector"/>
     <target name="run-tests-derby-proprietary-connectors" depends="run-tests-derby-documentum-connector,run-tests-derby-filenet-connector,run-tests-derby-livelink-connector,run-tests-derby-memex-connector,run-tests-derby-meridio-connector,run-tests-derby-sharepoint-connector"/>
     
     <target name="end-to-end-tests-derby" depends="run-filesystem-tests-derby,run-webcrawler-tests-derby,run-rss-tests-derby,run-solr-tests-derby,run-wiki-tests-derby,run-alfresco-tests-derby,run-cmis-tests-derby,run-sharepoint-tests-derby"/>
 
-    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-ldap-connector,run-tests-postgresql-alfresco-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-wiki-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector,run-tests-postgresql-elasticsearch-connector"/>
+    <target name="run-tests-postgresql-open-connectors" depends="run-tests-postgresql-activedirectory-connector,run-tests-postgresql-ldap-connector,run-tests-postgresql-alfresco-connector,run-tests-postgresql-cmis-connector,run-tests-postgresql-filesystem-connector,run-tests-postgresql-hdfs-connector,run-tests-postgresql-nullauthority-connector,run-tests-postgresql-nulloutput-connector,run-tests-postgresql-rss-connector,run-tests-postgresql-solr-connector,run-tests-postgresql-webcrawler-connector,run-tests-postgresql-wiki-connector,run-tests-postgresql-jdbc-connector,run-tests-postgresql-opensearchserver-connector,run-tests-postgresql-elasticsearch-connector"/>
     <target name="run-tests-postgresql-lgpl-connectors" depends="run-tests-postgresql-jcifs-connector"/>
     <target name="run-tests-postgresql-proprietary-connectors" depends="run-tests-postgresql-documentum-connector,run-tests-postgresql-filenet-connector,run-tests-postgresql-livelink-connector,run-tests-postgresql-memex-connector,run-tests-postgresql-meridio-connector,run-tests-postgresql-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-webcrawler-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
+    <target name="end-to-end-tests-postgresql" depends="run-filesystem-tests-postgresql,run-hdfs-tests-postgresql,run-webcrawler-tests-postgresql,run-wiki-tests-postgresql,run-alfresco-tests-postgresql,run-cmis-tests-postgresql,run-sharepoint-tests-postgresql"/>
 
-    <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-ldap-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector,run-tests-mysql-elasticsearch-connector"/>
+    <target name="run-tests-mysql-open-connectors" depends="run-tests-mysql-activedirectory-connector,run-tests-mysql-ldap-connector,run-tests-mysql-alfresco-connector,run-tests-mysql-cmis-connector,run-tests-mysql-filesystem-connector,run-tests-mysql-hdfs-connector,run-tests-mysql-nullauthority-connector,run-tests-mysql-nulloutput-connector,run-tests-mysql-rss-connector,run-tests-mysql-solr-connector,run-tests-mysql-webcrawler-connector,run-tests-mysql-wiki-connector,run-tests-mysql-jdbc-connector,run-tests-mysql-opensearchserver-connector,run-tests-mysql-elasticsearch-connector"/>
     <target name="run-tests-mysql-lgpl-connectors" depends="run-tests-mysql-jcifs-connector"/>
     <target name="run-tests-mysql-proprietary-connectors" depends="run-tests-mysql-documentum-connector,run-tests-mysql-filenet-connector,run-tests-mysql-livelink-connector,run-tests-mysql-memex-connector,run-tests-mysql-meridio-connector,run-tests-mysql-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-webcrawler-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
+    <target name="end-to-end-tests-mysql" depends="run-filesystem-tests-mysql,run-hdfs-tests-mysql,run-webcrawler-tests-mysql,run-wiki-tests-mysql,run-alfresco-tests-mysql,run-cmis-tests-mysql,run-sharepoint-tests-mysql"/>
 
-    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-ldap-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector,run-tests-HSQLDB-elasticsearch-connector"/>
+    <target name="run-tests-HSQLDB-open-connectors" depends="run-tests-HSQLDB-activedirectory-connector,run-tests-HSQLDB-ldap-connector,run-tests-HSQLDB-alfresco-connector,run-tests-HSQLDB-cmis-connector,run-tests-HSQLDB-filesystem-connector,run-tests-HSQLDB-hdfs-connector,run-tests-HSQLDB-nullauthority-connector,run-tests-HSQLDB-nulloutput-connector,run-tests-HSQLDB-rss-connector,run-tests-HSQLDB-solr-connector,run-tests-HSQLDB-webcrawler-connector,run-tests-HSQLDB-wiki-connector,run-tests-HSQLDB-jdbc-connector,run-tests-HSQLDB-opensearchserver-connector,run-tests-HSQLDB-elasticsearch-connector"/>
     <target name="run-tests-HSQLDB-lgpl-connectors" depends="run-tests-HSQLDB-jcifs-connector"/>
     <target name="run-tests-HSQLDB-proprietary-connectors" depends="run-tests-HSQLDB-documentum-connector,run-tests-HSQLDB-filenet-connector,run-tests-HSQLDB-livelink-connector,run-tests-HSQLDB-memex-connector,run-tests-HSQLDB-meridio-connector,run-tests-HSQLDB-sharepoint-connector"/>
     
-    <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-rss-tests-HSQLDB,run-wiki-tests-HSQLDB,run-alfresco-tests-HSQLDB,run-cmis-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
+    <target name="end-to-end-tests-HSQLDB" depends="run-filesystem-tests-HSQLDB,run-hdfs-tests-HSQLDB,run-rss-tests-HSQLDB,run-wiki-tests-HSQLDB,run-alfresco-tests-HSQLDB,run-cmis-tests-HSQLDB,run-sharepoint-tests-HSQLDB"/>
 
     <target name="end-to-end-loadtests-derby" depends="run-filesystem-loadtests-derby,run-rss-loadtests-derby,run-wiki-loadtests-derby,run-alfresco-loadtests-derby,run-cmis-loadtests-derby,run-sharepoint-loadtests-derby"/>
 
-    <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-rss-loadtests-postgresql,run-wiki-loadtests-postgresql,run-alfresco-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
+    <target name="end-to-end-loadtests-postgresql" depends="run-filesystem-loadtests-postgresql,run-hdfs-loadtests-postgresql,run-rss-loadtests-postgresql,run-wiki-loadtests-postgresql,run-alfresco-loadtests-postgresql,run-cmis-loadtests-postgresql,run-sharepoint-loadtests-postgresql"/>
 
-    <target name="end-to-end-loadtests-mysql" depends="run-filesystem-loadtests-mysql,run-rss-loadtests-mysql,run-wiki-loadtests-mysql,run-alfresco-loadtests-mysql,run-cmis-loadtests-mysql,run-sharepoint-loadtests-mysql"/>
+    <target name="end-to-end-loadtests-mysql" depends="run-filesystem-loadtests-mysql,run-hdfs-loadtests-mysql,run-rss-loadtests-mysql,run-wiki-loadtests-mysql,run-alfresco-loadtests-mysql,run-cmis-loadtests-mysql,run-sharepoint-loadtests-mysql"/>
 
-    <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
+    <target name="end-to-end-loadtests-HSQLDB" depends="run-filesystem-loadtests-HSQLDB,run-hdfs-loadtests-HSQLDB,run-rss-loadtests-HSQLDB,run-wiki-loadtests-HSQLDB,run-alfresco-loadtests-HSQLDB,run-cmis-loadtests-HSQLDB,run-sharepoint-loadtests-HSQLDB"/>
 
+    <target name="deliver-open-connectors" depends="deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-hdfs-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
+    <target name="deliver-open-connectors-doc" depends="deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-hdfs-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
 
-    <target name="deliver-open-connectors" depends="deliver-generic-connector,deliver-jira-connector,deliver-googledrive-connector,deliver-dropbox-connector,deliver-nullauthority-connector,deliver-activedirectory-connector,deliver-ldap-connector,deliver-alfresco-connector,deliver-cmis-connector,deliver-filesystem-connector,deliver-rss-connector,deliver-webcrawler-connector,deliver-wiki-connector,deliver-jdbc-connector"/>
-    <target name="deliver-open-connectors-doc" depends="deliver-generic-connector-doc,deliver-jira-connector-doc,deliver-googledrive-connector-doc,deliver-dropbox-connector-doc,deliver-nullauthority-connector-doc,deliver-activedirectory-connector-doc,deliver-ldap-connector-doc,deliver-alfresco-connector-doc,deliver-cmis-connector-doc,deliver-filesystem-connector-doc,deliver-rss-connector-doc,deliver-webcrawler-connector-doc,deliver-wiki-connector-doc,deliver-jdbc-connector-doc"/>
-    
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
     
@@ -2897,7 +3019,7 @@
 
     <target name="ldtest" depends="load-dr,load-hs"/>
 
-    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-filesystem-UI-tests-HSQLDB,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
+    <target name="uitest" depends="run-filesystem-UI-tests-derby,run-hdfs-UI-tests-derby,run-filesystem-UI-tests-HSQLDB,run-hdfs-UI-tests-HSQLDB,run-jcifs-UI-tests-derby,run-jdbc-UI-tests-derby,run-activedirectory-UI-tests-derby,run-ldap-UI-tests-derby,run-rss-UI-tests-derby,run-webcrawler-UI-tests-derby,run-wiki-UI-tests-derby,run-solr-UI-tests-derby,run-cmis-UI-tests-derby,run-gts-UI-tests-derby,run-opensearchserver-UI-tests-derby"/>
     
     <target name="all" depends="build,javadoc,doc,image,test-dr,test-hs"/>
 
@@ -3292,6 +3414,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="commons-logging"/>
             <param name="artifact-version" value="1.1.1"/>
             <param name="artifact-name" value="commons-logging"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="commons-configuration"/>
+            <param name="artifact-version" value="1.6"/>
+            <param name="artifact-name" value="commons-configuration"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -3854,7 +3982,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-    <target name="download-solrj">
+    <target name="download-hadoop">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/hadoop"/>
+            <param name="artifact-version" value="1.1.2"/>
+            <param name="artifact-name" value="hadoop-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+	  <target name="download-solrj">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
@@ -3863,6 +4002,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+    </target>
+    
+    <target name="download-zookeeper">
+        <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/zookeeper"/>
@@ -3871,8 +4014,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-
-    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj">
+    
+    <target name="make-core-deps" depends="download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-derby,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
@@ -3911,6 +4054,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/filenet" target="download-dependencies"/>
         <ant dir="connectors/filesystem" target="download-dependencies"/>
         <ant dir="connectors/gts" target="download-dependencies"/>
+        <ant dir="connectors/hdfs" target="download-dependencies"/>
         <ant dir="connectors/jcifs" target="download-dependencies"/>
         <ant dir="connectors/jdbc" target="download-dependencies"/>
         <ant dir="connectors/livelink" target="download-dependencies"/>
@@ -3951,6 +4095,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/filenet" target="download-cleanup"/>
         <ant dir="connectors/filesystem" target="download-cleanup"/>
         <ant dir="connectors/gts" target="download-cleanup"/>
+        <ant dir="connectors/hdfs" target="download-cleanup"/>
         <ant dir="connectors/jcifs" target="download-cleanup"/>
         <ant dir="connectors/jdbc" target="download-cleanup"/>
         <ant dir="connectors/livelink" target="download-cleanup"/>
