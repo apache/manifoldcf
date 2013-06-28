@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-738: Update how-to-build-and-deploy to reflect new
+connectors.
+(Karl Wright)
+
 CONNECTORS-739: Update included-connectors on site.
 (Karl Wright)
 
