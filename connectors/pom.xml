@@ -52,6 +52,7 @@
     <module>elasticsearch</module>
     <module>dropbox</module>
     <module>googledrive</module>
+    <module>regexpmapper</module>
   </modules>
 
 </project>

@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!--
  Licensed to the Apache Software Foundation (ASF) under one or more
  contributor license agreements.  See the NOTICE file distributed with
@@ -16,14 +15,9 @@
  limitations under the License.
 -->
 
-<!-- The connectors registry file permits registration of connectors upon the
-      startup of the jetty-based LCF example.  In a real installation, this registration
-      step would be done ideally just once, but in the example the connectors
-      are all reregistered on every startup.
--->
-<connectors>
-    <!-- Add your output connectors here -->
-    <!-- Add your mapping connectors here -->
-    <!-- Add your authority connectors here -->
-    <!-- Add your repository connectors here -->
-</connectors>
+<project name="regexpmapper" default="all">
+
+    <import file="../connector-build.xml"/>
+    
+    
+</project>
