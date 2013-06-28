@@ -166,9 +166,8 @@ public class UserACLServlet extends HttpServlet
       // One thread per authority, which is responsible for starting the auth request when it is ready.
       List<AuthOrderThread> authThreads = new ArrayList<AuthOrderThread>();
 
-      // These two must be thread-safe!!
-      Map<String,MappingRequest> mappingRequests = new Hashtable<String,MappingRequest>();
-      Map<String,AuthRequest> authRequests = new Hashtable<String,AuthRequest>();
+      Map<String,MappingRequest> mappingRequests = new HashMap<String,MappingRequest>();
+      Map<String,AuthRequest> authRequests = new HashMap<String,AuthRequest>();
 
       Map<String,IMappingConnection> mappingConnMap = new HashMap<String,IMappingConnection>();
       
@@ -192,20 +191,22 @@ public class UserACLServlet extends HttpServlet
         if (identifyingString == null || identifyingString.length() == 0)
           identifyingString = thisConnection.getName();
         
-        // Create a record and add it to the queue
+        // Create a request
+        AuthRequest ar = new AuthRequest(
+          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        authRequests.put(thisConnection.getName(), ar);
         
         // We create an auth thread if there are prerequisites to meet.
         // Otherwise, we just fire off the request
         if (thisConnection.getPrerequisiteMapping() == null)
         {
-          AuthRequest ar = new AuthRequest(userID,
-            thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-          authRequests.put(thisConnection.getName(), ar);
           queue.addRequest(ar);
         }
         else
         {
-          AuthOrderThread thread = new AuthOrderThread(queue, authRequests, mappingRequests, thisConnection, identifyingString);
+          AuthOrderThread thread = new AuthOrderThread(identifyingString,
+            ar, thisConnection.getPrerequisiteMapping(),
+            queue, mappingRequests);
           authThreads.add(thread);
           activeConnections.add(thisConnection.getPrerequisiteMapping());
         }
@@ -220,19 +221,21 @@ public class UserACLServlet extends HttpServlet
         String identifyingString = thisConnection.getDescription();
         if (identifyingString == null || identifyingString.length() == 0)
           identifyingString = connectionName;
-        
+
+        // Create a request
+        MappingRequest mr = new MappingRequest(
+          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        mappingRequests.put(connectionName, mr);
+
         // Either start up a thread, or just fire it off immediately.
         if (thisConnection.getPrerequisiteMapping() == null)
         {
-          // Create a record and add it to the queue
-          MappingRequest mr = new MappingRequest(userID,
-            thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-          mappingRequests.put(connectionName, mr);
           mappingQueue.addRequest(mr);
         }
         else
         {
-          MappingOrderThread thread = new MappingOrderThread(mappingQueue, mappingRequests, thisConnection, identifyingString);
+          MappingOrderThread thread = new MappingOrderThread(identifyingString,
+            mr, thisConnection.getPrerequisiteMapping(), mappingQueue, mappingRequests);
           mappingThreads.add(thread);
           String p = thisConnection.getPrerequisiteMapping();
           if (mappingRequests.get(p) == null)
@@ -392,23 +395,25 @@ public class UserACLServlet extends HttpServlet
   */
   protected static class MappingOrderThread extends Thread
   {
+    protected final MappingRequest request;
+    protected final String prerequisite;
     protected final Map<String,MappingRequest> requests;
     protected final RequestQueue<MappingRequest> mappingRequestQueue;
-    protected final IMappingConnection mappingConnection;
-    protected final String identifyingString;
 
     protected Throwable exception = null;
     
-    public MappingOrderThread(RequestQueue<MappingRequest> mappingRequestQueue,
-      Map<String, MappingRequest> requests,
-      IMappingConnection mappingConnection,
-      String identifyingString)
+    public MappingOrderThread(
+      String identifyingString,
+      MappingRequest request,
+      String prerequisite,
+      RequestQueue<MappingRequest> mappingRequestQueue,
+      Map<String, MappingRequest> requests)
     {
       super();
+      this.request = request;
+      this.prerequisite = prerequisite;
       this.mappingRequestQueue = mappingRequestQueue;
-      this.mappingConnection = mappingConnection;
       this.requests = requests;
-      this.identifyingString = identifyingString;
       setName("Constraint matcher for mapper '"+identifyingString+"'");
       setDaemon(true);
     }
@@ -417,14 +422,11 @@ public class UserACLServlet extends HttpServlet
     {
       try
       {
-        String prerequisite = mappingConnection.getPrerequisiteMapping();
         MappingRequest mappingRequest = requests.get(prerequisite);
         mappingRequest.waitForComplete();
         // Constraints are met.  Fire off the request.
-        MappingRequest mr = new MappingRequest(mappingRequest.getAnswerResponse(),
-          mappingConnection.getClassName(),identifyingString,mappingConnection.getConfigParams(),mappingConnection.getMaxConnections());
-        requests.put(mappingConnection.getName(), mr);
-        mappingRequestQueue.addRequest(mr);
+        request.setUserID(mappingRequest.getAnswerResponse());
+        mappingRequestQueue.addRequest(request);
       }
       catch (Throwable e)
       {
@@ -456,26 +458,25 @@ public class UserACLServlet extends HttpServlet
   */
   protected static class AuthOrderThread extends Thread
   {
-    protected final Map<String,AuthRequest> requests;
+    protected final AuthRequest request;
+    protected final String prerequisite;
     protected final Map<String,MappingRequest> mappingRequests;
     protected final RequestQueue<AuthRequest> authRequestQueue;
-    protected final IAuthorityConnection authConnection;
-    protected final String identifyingString;
     
     protected Throwable exception = null;
     
-    public AuthOrderThread(RequestQueue<AuthRequest> authRequestQueue,
-      Map<String, AuthRequest> requests,
-      Map<String, MappingRequest> mappingRequests,
-      IAuthorityConnection authConnection,
-      String identifyingString)
+    public AuthOrderThread(
+      String identifyingString,
+      AuthRequest request,
+      String prerequisite,
+      RequestQueue<AuthRequest> authRequestQueue,
+      Map<String, MappingRequest> mappingRequests)
     {
       super();
+      this.request = request;
+      this.prerequisite = prerequisite;
       this.authRequestQueue = authRequestQueue;
-      this.authConnection = authConnection;
-      this.requests = requests;
       this.mappingRequests = mappingRequests;
-      this.identifyingString = identifyingString;
       setName("Constraint matcher for authority '"+identifyingString+"'");
       setDaemon(true);
     }
@@ -484,14 +485,11 @@ public class UserACLServlet extends HttpServlet
     {
       try
       {
-        String prerequisite = authConnection.getPrerequisiteMapping();
         MappingRequest mappingRequest = mappingRequests.get(prerequisite);
         mappingRequest.waitForComplete();
         // Constraints are met.  Fire off the request.  User may be null if mapper failed!!
-        AuthRequest ar = new AuthRequest(mappingRequest.getAnswerResponse(),
-          authConnection.getClassName(),identifyingString,authConnection.getConfigParams(),authConnection.getMaxConnections());
-        requests.put(authConnection.getName(), ar);
-        authRequestQueue.addRequest(ar);
+        request.setUserID(mappingRequest.getAnswerResponse());
+        authRequestQueue.addRequest(request);
       }
       catch (Throwable e)
       {
