@@ -42,6 +42,7 @@
         <tr><td>HDFS</td><td>Pure Java</td><td>Various</td><td>1.1.2</td><td>1.1.2</td></tr>
         <tr><td>Windows Shares</td><td>Pure Java</td><td> Win, Samba, NetApp, other NAS systems </td><td>N/A</td><td>N/A</td></tr>
         <tr><td>JDBC</td><td> Pure Java </td><td> Various </td><td> Supports JDBC V2, V3, V4; tested with Oracle 10, JTDS 1.2, PostgreSQL 9.1 drivers </td><td> Various </td></tr>
+        <tr><td>Jira</td><td> Pure Java </td><td>Various</td><td>N/A</td><td>5.0-6.1</td></tr>
         <tr><td>RSS</td><td> Pure Java </td><td> N/A </td><td> N/A </td><td>Atom, RSS 2.0, others </td></tr>
         <tr><td>Web</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>HTML Version 1.0, 1.1, 2.0, Atom, RSS 2.0, others </td></tr>
         <tr><td>Wiki</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>Wiki version 1.8 and above </td></tr>
