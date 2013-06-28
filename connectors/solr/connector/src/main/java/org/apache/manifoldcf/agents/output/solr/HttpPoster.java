@@ -107,6 +107,7 @@ public class HttpPoster
   private String idAttributeName;
   private String modifiedDateAttributeName;
   private String createdDateAttributeName;
+  private String indexedDateAttributeName;
   private String fileNameAttributeName;
   private String mimeTypeAttributeName;
   
@@ -131,7 +132,7 @@ public class HttpPoster
     int zkClientTimeout, int zkConnectTimeout,
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    String modifiedDateAttributeName, String createdDateAttributeName,
+    String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName,
     Long maxDocumentLength,
     String commitWithin)
@@ -149,6 +150,7 @@ public class HttpPoster
     this.idAttributeName = idAttributeName;
     this.modifiedDateAttributeName = modifiedDateAttributeName;
     this.createdDateAttributeName = createdDateAttributeName;
+    this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     
@@ -176,7 +178,7 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    String modifiedDateAttributeName, String createdDateAttributeName,
+    String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
     String commitWithin)
@@ -194,6 +196,7 @@ public class HttpPoster
     this.idAttributeName = idAttributeName;
     this.modifiedDateAttributeName = modifiedDateAttributeName;
     this.createdDateAttributeName = createdDateAttributeName;
+    this.indexedDateAttributeName = indexedDateAttributeName;
     this.fileNameAttributeName = fileNameAttributeName;
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     
@@ -831,6 +834,13 @@ public class HttpPoster
             if (date != null)
               // Write value
               writeField(out,LITERAL+createdDateAttributeName,DateParser.formatISO8601Date(date));
+          }
+          if (indexedDateAttributeName != null)
+          {
+            Date date = document.getIndexingDate();
+            if (date != null)
+              // Write value
+              writeField(out,LITERAL+indexedDateAttributeName,DateParser.formatISO8601Date(date));
           }
           if (fileNameAttributeName != null)
           {

@@ -1647,6 +1647,8 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
+    // Set indexing date
+    document.setIndexingDate(new Date());
     IOutputConnector connector = OutputConnectorFactory.grab(threadContext,connection.getClassName(),connection.getConfigParams(),connection.getMaxConnections());
     if (connector == null)
       // The connector is not installed; treat this as a service interruption.

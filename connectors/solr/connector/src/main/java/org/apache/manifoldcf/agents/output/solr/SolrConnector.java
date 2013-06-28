@@ -160,6 +160,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (createdDateAttributeName == null || createdDateAttributeName.length() == 0)
         createdDateAttributeName = null;
   
+      String indexedDateAttributeName = params.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
+      if (indexedDateAttributeName == null || indexedDateAttributeName.length() == 0)
+        indexedDateAttributeName = null;
+
       String fileNameAttributeName = params.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
       if (fileNameAttributeName == null || fileNameAttributeName.length() == 0)
         fileNameAttributeName = null;
@@ -273,7 +277,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             connectTimeout,socketTimeout,
             updatePath,removePath,statusPath,realm,userID,password,
             allowAttributeName,denyAttributeName,idAttributeName,
-            modifiedDateAttributeName,createdDateAttributeName,
+            modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,
             keystoreManager,maxDocumentLength,commitWithin);
           
@@ -328,7 +332,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             zkClientTimeout,zkConnectTimeout,
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
-            modifiedDateAttributeName,createdDateAttributeName,
+            modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,
             maxDocumentLength,commitWithin);
           
@@ -1059,6 +1063,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String createdDateField = parameters.getParameter(SolrConfig.PARAM_CREATEDDATEFIELD);
     if (createdDateField == null)
       createdDateField = "";
+
+    String indexedDateField = parameters.getParameter(SolrConfig.PARAM_INDEXEDDATEFIELD);
+    if (indexedDateField == null)
+      indexedDateField = "";
     
     String fileNameField = parameters.getParameter(SolrConfig.PARAM_FILENAMEFIELD);
     if (fileNameField == null)
@@ -1503,6 +1511,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.IndexedDateFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"indexeddatefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.FileNameFieldName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"filenamefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
@@ -1523,6 +1537,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "<input type=\"hidden\" name=\"idfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"modifieddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(modifiedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"createddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"indexeddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"filenamefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(fileNameField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"mimetypefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mimeTypeField)+"\"/>\n"
       );
@@ -1811,6 +1826,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String createdDateField = variableContext.getParameter("createddatefield");
     if (createdDateField != null)
       parameters.setParameter(SolrConfig.PARAM_CREATEDDATEFIELD,createdDateField);
+
+    String indexedDateField = variableContext.getParameter("indexeddatefield");
+    if (indexedDateField != null)
+      parameters.setParameter(SolrConfig.PARAM_INDEXEDDATEFIELD,indexedDateField);
 
     String fileNameField = variableContext.getParameter("filenamefield");
     if (fileNameField != null)

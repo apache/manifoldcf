@@ -3,11 +3,15 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-735: Include crawl date in output.  Modified Solr connector
+to allow you to specify indexeddate attribute name.
+(Stephane Gamard, Karl Wright)
+
 CONNECTORS-728: Add HDFS connector
-{Minoru Osuka, Karl Wright)
+(Minoru Osuka, Karl Wright)
 
 CONNECTORS-727: Implemented generic API connector
-{Maciej Lizewski, Karl Wright)
+(Maciej Lizewski, Karl Wright)
 
 CONNECTORS-734: Catch deadlock error with EXPLAIN ANALYZE in
 postgresql, and ignore it.
