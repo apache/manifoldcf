@@ -61,7 +61,7 @@
         <ant dir="connectors/dropbox" target="clean"/>
         <ant dir="connectors/generic" target="clean"/>
         <ant dir="connectors/googledrive" target="clean"/>
-		<ant dir="connectors/jira" target="clean"/>
+        <ant dir="connectors/jira" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <ant dir="connectors/ldap" target="clean"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -117,7 +117,7 @@
         <ant dir="connectors/dropbox" target="clean"/>
         <ant dir="connectors/generic" target="clean"/>
         <ant dir="connectors/googledrive" target="clean"/>
-		<ant dir="connectors/jira" target="clean"/>
+        <ant dir="connectors/jira" target="clean"/>
         <ant dir="connectors/activedirectory" target="clean"/>
         <ant dir="connectors/ldap" target="clean"/>
         <ant dir="connectors/documentum" target="clean"/>
@@ -295,7 +295,8 @@
     <target name="setup-generic-connector" depends="build-framework" if="downloaded"/>
 
     <target name="setup-googledrive-connector" depends="build-framework" if="downloaded"/>
-	<target name="setup-jira-connector" depends="build-framework" if="downloaded"/>
+    
+    <target name="setup-jira-connector" depends="build-framework" if="downloaded"/>
     
     <target name="setup-alfresco-connector-tests" depends="build-tests-framework" if="downloaded"/>
 
@@ -325,7 +326,7 @@
         <ant dir="connectors/googledrive" target="build"/>
     </target>
 
-	<target name="build-jira-connector" depends="setup-jira-connector" if="downloaded">
+    <target name="build-jira-connector" depends="setup-jira-connector" if="downloaded">
         <ant dir="connectors/jira" target="build"/>
     </target>
 	
@@ -342,7 +343,7 @@
         <ant dir="connectors/googledrive" target="doc"/>
     </target>
 
-	<target name="doc-jira-connector" depends="setup-jira-connector" if="downloaded">
+    <target name="doc-jira-connector" depends="setup-jira-connector" if="downloaded">
         <ant dir="connectors/googledrive" target="doc"/>
     </target>
 	
@@ -1511,7 +1512,7 @@
         </condition>
     </target>
 
-<target name="calculate-jira-condition" depends="build-jira-connector">
+    <target name="calculate-jira-condition" depends="build-jira-connector">
         <available file="connectors/jira/dist/lib" type="dir" property="jira.exists"/>
         <condition property="jira.include">
             <and>
@@ -3887,7 +3888,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 	
-	<target name="download-jira-client">
+    <target name="download-jira-client">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
@@ -3896,7 +3897,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="json-simple"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-		<antcall target="download-via-maven">
+        <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="commons-codec"/>
             <param name="artifact-version" value="1.8"/>
@@ -4052,7 +4053,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/generic" target="download-dependencies"/>
         <ant dir="connectors/dropbox" target="download-dependencies"/>
         <ant dir="connectors/googledrive" target="download-dependencies"/>
-		<ant dir="connectors/jira" target="download-dependencies"/>
+        <ant dir="connectors/jira" target="download-dependencies"/>
         <ant dir="connectors/activedirectory" target="download-dependencies"/>
         <ant dir="connectors/ldap" target="download-dependencies"/>
         <ant dir="connectors/documentum" target="download-dependencies"/>
@@ -4093,7 +4094,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="connectors/generic" target="download-cleanup"/>        
         <ant dir="connectors/dropbox" target="download-cleanup"/>        
         <ant dir="connectors/googledrive" target="download-cleanup"/>
-		<ant dir="connectors/jira" target="download-cleanup"/>
+        <ant dir="connectors/jira" target="download-cleanup"/>
         <ant dir="connectors/activedirectory" target="download-cleanup"/>
         <ant dir="connectors/ldap" target="download-cleanup"/>
         <ant dir="connectors/documentum" target="download-cleanup"/>
