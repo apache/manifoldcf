@@ -36,14 +36,17 @@
         <tr><th>System</th><th>Connector Platform</th><th>Server Platform</th><th>Client Version</th><th>Server Version</th></tr>
         <tr><td>Alfresco</td><td>Pure Java</td><td>Various</td><td>Tested using the Alfresco Web Services Client 4.0.b</td><td>Tested with Alfresco 2.x, 3.x and 4.x</td></tr>
         <tr><td>CMIS</td><td>Pure Java</td><td>Various</td><td>CMIS 1.0</td><td>CMIS 1.0</td></tr>
+        <tr><td>DropBox</td><td>Pure Java</td><td>Various</td><td>1.5.3</td><td>N/A</td></tr>
         <tr><td>File System</td><td>Pure Java</td><td>Win/*NIX</td><td>N/A</td><td>N/A</td></tr>
+        <tr><td>Google Drive</td><td>Pure Java</td><td>Various</td><td>v2-rev64-1.14.1-beta</td><td>N/A</td></tr>
+        <tr><td>HDFS</td><td>Pure Java</td><td>Various</td><td>1.1.2</td><td>1.1.2</td></tr>
         <tr><td>Windows Shares</td><td>Pure Java</td><td> Win, Samba, NetApp, other NAS systems </td><td>N/A</td><td>N/A</td></tr>
         <tr><td>JDBC</td><td> Pure Java </td><td> Various </td><td> Supports JDBC V2, V3, V4; tested with Oracle 10, JTDS 1.2, PostgreSQL 9.1 drivers </td><td> Various </td></tr>
         <tr><td>RSS</td><td> Pure Java </td><td> N/A </td><td> N/A </td><td>Atom, RSS 2.0, others </td></tr>
         <tr><td>Web</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>HTML Version 1.0, 1.1, 2.0, Atom, RSS 2.0, others </td></tr>
         <tr><td>Wiki</td><td> Pure Java </td><td>N/A</td><td> N/A </td><td>Wiki version 1.8 and above </td></tr>
         <tr><td>LiveLink (OpenText)</td><td> Pure Java </td><td> Win </td><td> LAPI 9.7.1, 10.2.0 </td><td> Tested with 9.2.0 - 10.2.0 </td></tr>
-        <tr><td>Solr</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with Solr 1.4, 3.6.2, 4.0.0, 4.1.0 </td></tr>
+        <tr><td>Solr</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with Solr 1.4, 3.6.2, 4.0.0, 4.1.0, 4.2.0, 4.3.0 </td></tr>
         <tr><td>OpenSearchServer</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with OpenSearchServer 1.2.1, 1.2.2, 1.2.3 </td></tr>
         <tr><td>ElasticSearch</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with ElasticSearch 0.18.3, 0.18.4, 0.18.5, 0.18.6, 0.18.7 </td></tr>
         <tr><td>Documentum (EMC)</td><td> Win, RedHat </td><td> Win, RedHat </td><td> Tested with DFC 5.3 SP5 </td><td> Tested against 5.3, 6.0, and 6.5 servers </td></tr>
