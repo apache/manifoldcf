@@ -196,29 +196,28 @@ public class UserACLServlet extends HttpServlet
       IAuthorityConnection[] connections = authConnManager.getAllConnections();
       
       // One thread per connection, which is responsible for starting the mapping process when it is ready.
-      MappingOrderThread[] mappingThreads = new MappingOrderThread[mappingConnections.length];
+      List<MappingOrderThread> mappingThreads = new ArrayList<MappingOrderThread>();
       // One thread per authority, which is responsible for starting the auth request when it is ready.
-      AuthOrderThread[] authThreads = new AuthOrderThread[connections.length];
+      List<AuthOrderThread> authThreads = new ArrayList<AuthOrderThread>();
 
-      // Create mapping requests
       Map<String,MappingRequest> mappingRequests = new HashMap<String,MappingRequest>();
-      for (int i = 0; i < mappingConnections.length; i++)
-      {
-        IMappingConnection thisConnection = mappingConnections[i];
-        String identifyingString = thisConnection.getDescription();
-        if (identifyingString == null || identifyingString.length() == 0)
-          identifyingString = thisConnection.getName();
-        
-        // Create a record and add it to the queue
-        MappingRequest mr = new MappingRequest(userRecord,
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-        
-        mappingRequests.put(thisConnection.getName(), mr);
-        mappingThreads[i] = new MappingOrderThread(mappingQueue, mappingRequests, thisConnection);
-      }
-      
-      // Create auth requests
       Map<String,AuthRequest> authRequests = new HashMap<String,AuthRequest>();
+
+      Map<String,IMappingConnection> mappingConnMap = new HashMap<String,IMappingConnection>();
+      
+      // Fill in mappingConnMap, since we need to be able to find connections given connection names
+      for (IMappingConnection c : mappingConnections)
+      {
+        mappingConnMap.put(c.getName(),c);
+      }
+
+      // Set of connections we need to fire off
+      Set<String> activeConnections = new HashSet<String>();
+
+      // We do the minimal set of mapping requests and authorities.  Since it is the authority tokens we are
+      // looking for, we start there, and build authority requests first, then mapping requests that support them,
+      // etc.
+      // Create auth requests
       for (int i = 0; i < connections.length; i++)
       {
         IAuthorityConnection thisConnection = connections[i];
@@ -231,30 +230,67 @@ public class UserACLServlet extends HttpServlet
           thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
         
         authRequests.put(thisConnection.getName(), ar);
-        authThreads[i] = new AuthOrderThread(queue, authRequests, thisConnection);
+        
+        // We create an auth thread if there are prerequisites to meet.
+        // Otherwise, we just fire off the request
+        if (thisConnection.getPrerequisites().isEmpty())
+          queue.addRequest(ar);
+        else
+        {
+          AuthOrderThread thread = new AuthOrderThread(queue, authRequests, thisConnection);
+          thread.start();
+          authThreads.add(thread);
+          for (String p : thisConnection.getPrerequisites())
+          {
+            activeConnections.add(p);
+          }
+        }
       }
-      
-      // Start the threads!
-      for (int i = 0; i < mappingConnections.length; i++)
+
+      // Create mapping requests
+      while (!activeConnections.isEmpty())
       {
-        mappingThreads[i].start();
-      }
-      for (int i = 0; i < connections.length; i++)
-      {
-        authThreads[i].start();
+        Iterator<String> connectionIter = activeConnections.iterator();
+        String connectionName = connectionIter.next();
+        IMappingConnection thisConnection = mappingConnMap.get(connectionName);
+        String identifyingString = thisConnection.getDescription();
+        if (identifyingString == null || identifyingString.length() == 0)
+          identifyingString = connectionName;
+        
+        // Create a record and add it to the queue
+        MappingRequest mr = new MappingRequest(userRecord,
+          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        
+        mappingRequests.put(connectionName, mr);
+        
+        // Either start up a thread, or just fire it off immediately.
+        if (thisConnection.getPrerequisites().isEmpty())
+          mappingQueue.addRequest(mr);
+        else
+        {
+          MappingOrderThread thread = new MappingOrderThread(mappingQueue, mappingRequests, thisConnection);
+          thread.start();
+          mappingThreads.add(thread);
+          for (String p : thisConnection.getPrerequisites())
+          {
+            if (mappingRequests.get(p) == null)
+            activeConnections.add(p);
+          }
+        }
+        activeConnections.remove(connectionName);
       }
       
       // Wait for the threads to finish up.  This will guarantee that all mappers have been started.
-      for (int i = 0;  i < mappingConnections.length; i++)
+      for (MappingOrderThread thread : mappingThreads)
       {
-        mappingThreads[i].finishUp();
+        thread.finishUp();
       }
-      for (int i = 0;  i < connections.length; i++)
+      for (AuthOrderThread thread : authThreads)
       {
-        authThreads[i].finishUp();
+        thread.finishUp();
       }
       
-      // Wait for everything to finish.
+      // This is probably unnecessary, but we do it anyway just to adhere to the contract
       for (MappingRequest mr : mappingRequests.values())
       {
         mr.waitForComplete();
