@@ -31,7 +31,7 @@ public class MappingRequest
   public static final String _rcsid = "@(#)$Id$";
 
   // This is where the request data actually lives
-  protected final UserRecord userRecord;
+  protected final String userID;
   protected final String className;
   protected final String identifyingString;
   protected final ConfigParams configParameters;
@@ -39,23 +39,24 @@ public class MappingRequest
 
   // These are the possible results of the request
   protected boolean answerComplete = false;
+  protected String outputUserID = null;
   protected Throwable answerException = null;
 
   /** Construct the request, and record the question.
   */
-  public MappingRequest(UserRecord userRecord, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
+  public MappingRequest(String userID, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
   {
-    this.userRecord = userRecord;
+    this.userID = userID;
     this.className = className;
     this.identifyingString = identifyingString;
     this.configParameters = configParameters;
     this.maxConnections = maxConnections;
   }
 
-  /** Get the user record */
-  public UserRecord getUserRecord()
+  /** Get the user ID */
+  public String getUserID()
   {
-    return userRecord;
+    return userID;
   }
   
   /** Get the class name */
@@ -97,7 +98,7 @@ public class MappingRequest
 
   /** Note that the request is complete, and record the answers.
   */
-  public void completeRequest(Throwable answerException)
+  public void completeRequest(String outputUserID, Throwable answerException)
   {
     synchronized (this)
     {
@@ -106,11 +107,18 @@ public class MappingRequest
 
       // Record the answer.
       answerComplete = true;
+      this.outputUserID = outputUserID;
       this.answerException = answerException;
 
       // Notify threads waiting on the answer.
       this.notifyAll();
     }
+  }
+
+  /** Get the answer user */
+  public String getAnswerResponse()
+  {
+    return outputUserID;
   }
 
   /** Get the answer exception */

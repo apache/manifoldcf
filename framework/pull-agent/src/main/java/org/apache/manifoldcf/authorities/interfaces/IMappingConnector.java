@@ -28,10 +28,11 @@ import org.apache.manifoldcf.core.interfaces.*;
 public interface IMappingConnector extends IConnector
 {
 
-  /** Modify a user record, according to whatever mapping is desired.
-  *@param record is the user record to read data from, and to modify.
+  /** Map an input user name to an output name.
+  *@param userName is the name to map
+  *@return the mapped user name
   */
-  public void mapUser(UserRecord record)
+  public String mapUser(String userName)
     throws ManifoldCFException;
   
 }

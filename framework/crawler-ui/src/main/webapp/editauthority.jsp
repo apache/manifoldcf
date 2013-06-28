@@ -60,7 +60,7 @@
 	String className = "";
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
-	Set<String> prereqs = new HashSet<String>();
+	String prereq = null;
 
 	if (connection != null)
 	{
@@ -71,7 +71,7 @@
 		className = connection.getClassName();
 		parameters = connection.getConfigParams();
 		maxConnections = connection.getMaxConnections();
-		prereqs = connection.getPrerequisites();
+		prereq = connection.getPrerequisiteMapping();
 	}
 	else
 		connectionName = null;
@@ -407,26 +407,39 @@
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PrerequisiteUserMappingsColon")%></nobr></td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PrerequisiteUserMappingColon")%></nobr></td>
 				<td class="value" colspan="4">
 					<input type="hidden" name="prerequisites_present" value="true"/>
 <%
+	    if (prereq == null)
+	    {
+%>
+					<input type="radio" name="prerequisites" value="" checked="true"/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
+<%
+	    }
+	    else
+	    {
+%>
+					<input type="radio" name="prerequisites" value=""/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
+<%
+	    }
+
 	    for (IMappingConnection mappingConnection : mappingConnections)
 	    {
 		String mappingName = mappingConnection.getName();
 		String mappingDescription = mappingName;
 		if (mappingConnection.getDescription() != null && mappingConnection.getDescription().length() > 0)
 			mappingDescription += " (" + mappingConnection.getDescription()+")";
-		if (prereqs.contains(mappingName))
+		if (prereq != null && prereq.equals(mappingName))
 		{
 %>
-					<input type="checkbox" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+					<input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
 <%
 		}
 		else
 		{
 %>
-					<input type="checkbox" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+					<input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
 <%
 		}
 	    }
@@ -442,7 +455,7 @@
 %>
 		    <input type="hidden" name="prerequisites_present" value="true"/>
 <%
-		for (String prereq : prereqs)
+		if (prereq != null)
 		{
 %>
 		    <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>

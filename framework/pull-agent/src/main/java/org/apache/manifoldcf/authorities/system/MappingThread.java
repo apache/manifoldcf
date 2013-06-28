@@ -68,6 +68,7 @@ public class MappingThread extends Thread
           Logging.authorityService.debug(" Calling mapping connector class '"+theRequest.getClassName()+"'");
         }
 
+	String outputUserID = null;
         Throwable exception = null;
 
         try
@@ -85,7 +86,7 @@ public class MappingThread extends Thread
               // Do the mapping
               try
               {
-                connector.mapUser(theRequest.getUserRecord());
+                outputUserID = connector.mapUser(theRequest.getUserID());
               }
               catch (ManifoldCFException e)
               {
@@ -115,7 +116,7 @@ public class MappingThread extends Thread
         }
 
         // The request is complete
-        theRequest.completeRequest(exception);
+        theRequest.completeRequest(outputUserID, exception);
 
         // Repeat, and only go to sleep if there are no more requests.
       }

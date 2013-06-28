@@ -80,9 +80,15 @@ public interface IMappingConnection
   */
   public int getMaxConnections();
 
-  /** Get the prerequisite mappers.
-  *@return the set of mapping connections (by name) that must be run prior to this one.
+  /** Set the prerequisite mapper, if any.
+  *@param mapping is the name of the mapping connection to use to get the input user name,
+  *  or null.
   */
-  public Set<String> getPrerequisites();
+  public void setPrerequisiteMapping(String mapping);
+
+  /** Get the prerequisite mapper, if any.
+  *@return the mapping connection name whose output should be used as the input user name.
+  */
+  public String getPrerequisiteMapping();
 
 }

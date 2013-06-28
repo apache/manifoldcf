@@ -39,6 +39,7 @@ import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFacto
  * <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
  * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
  * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>mappingname</td><td>VARCHAR(32)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -55,9 +56,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   protected final static String classNameField = "classname";
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
-
-  // Handle for prereq storage
-  protected AuthorityPrereqManager authPrereqManager;
+  protected final static String mappingField = "mappingname";
 
   // Cache manager
   ICacheManager cacheManager;
@@ -72,7 +71,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   {
     super(database,"authconnections");
 
-    authPrereqManager = new AuthorityPrereqManager(database);
     cacheManager = CacheManagerFactory.make(threadContext);
     this.threadContext = threadContext;
   }
@@ -96,15 +94,20 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         map.put(classNameField,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
         map.put(maxCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+        map.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
       {
-        // Upgrade code goes here
+        // Add the mappingField column
+        ColumnDescription cd = (ColumnDescription)existing.get(mappingField);
+        if (cd == null)
+        {
+          Map addMap = new HashMap();
+          addMap.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
       }
-
-      // Install dependent tables.
-      authPrereqManager.install(getTableName(),nameField);
 
       // Index management goes here
 
@@ -118,26 +121,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void deinstall()
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
-    {
-      authPrereqManager.deinstall();
-      performDrop(null);
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    performDrop(null);
   }
 
   /** Export configuration */
@@ -161,13 +145,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       ManifoldCF.writeString(os,conn.getClassName());
       ManifoldCF.writeString(os,conn.getConfigParams().toXML());
       ManifoldCF.writeDword(os,conn.getMaxConnections());
-      
-      Set<String> prereqs = conn.getPrerequisites();
-      ManifoldCF.writeDword(os,prereqs.size());
-      for (String s : prereqs)
-      {
-        ManifoldCF.writeString(os,s);
-      }
+      ManifoldCF.writeString(os,conn.getPrerequisiteMapping());
     }
   }
 
@@ -191,11 +169,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       conn.setMaxConnections(ManifoldCF.readDword(is));
       if (version >= 2)
       {
-        int prereqCount = ManifoldCF.readDword(is);
-        for (int j = 0; j < prereqCount; j++)
-        {
-          conn.getPrerequisites().add(ManifoldCF.readString(is));
-        }
+        conn.setPrerequisiteMapping(ManifoldCF.readString(is));
       }
       // Attempt to save this connection
       save(conn);
@@ -329,6 +303,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             values.put(classNameField,object.getClassName());
             values.put(maxCountField,new Long((long)object.getMaxConnections()));
             values.put(configField,object.getConfigParams().toXML());
+            values.put(mappingField,object.getPrerequisiteMapping());
 
             boolean isCreated;
             
@@ -355,9 +330,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
               // We only need the general key because this is new.
               performInsert(values,null);
             }
-
-            // Write secondary table stuff
-            authPrereqManager.writeRows(object.getName(),object);
 
             cacheManager.invalidateKeys(ch);
             return isCreated;
@@ -421,7 +393,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         if (repoManager.isReferenced(name))
           throw new ManifoldCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
         ManifoldCF.noteConfigurationChange();
-        authPrereqManager.deleteRows(name);
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
           new UnitaryClause(nameField,name)});
@@ -472,8 +443,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     StringSet localCacheKeys = new StringSet(ssb);
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
-      new UnitaryClause(authPrereqManager.prereqField,mappingName)});
-    IResultSet set = performQuery("SELECT "+nameField+" FROM "+authPrereqManager.getTableName()+" WHERE "+query,params,
+      new UnitaryClause(mappingField,mappingName)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
       localCacheKeys,null);
     return set.getRowCount() > 0;
   }
@@ -559,8 +530,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   */
   protected int maxClauseGetAuthorityConnectionsChunk()
   {
-    return Math.min(findConjunctionClauseMax(new ClauseDescription[]{}),
-      authPrereqManager.maxClauseGetRows());
+    return findConjunctionClauseMax(new ClauseDescription[]{});
   }
     
   /** Read a chunk of authority connections.
@@ -588,13 +558,12 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       rc.setDescription((String)row.getValue(descriptionField));
       rc.setClassName((String)row.getValue(classNameField));
       rc.setMaxConnections((int)((Long)row.getValue(maxCountField)).longValue());
+      rc.setPrerequisiteMapping((String)row.getValue(mappingField));
       String xml = (String)row.getValue(configField);
       if (xml != null && xml.length() > 0)
         rc.getConfigParams().fromXML(xml);
       rval[index] = rc;
     }
-    // Do prereq part
-    authPrereqManager.getRows(rval,returnIndex,params);
   }
 
   // The cached instance will be a AuthorityConnection.  The cached version will be duplicated when it is returned

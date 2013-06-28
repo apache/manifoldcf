@@ -32,7 +32,6 @@ public class AuthRequest
 
   // This is where the request data actually lives
   protected final String userID;
-  protected final UserRecord userRecord;
   protected final String className;
   protected final String identifyingString;
   protected final ConfigParams configParameters;
@@ -48,19 +47,6 @@ public class AuthRequest
   public AuthRequest(String userID, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
   {
     this.userID = userID;
-    this.userRecord = null;
-    this.className = className;
-    this.identifyingString = identifyingString;
-    this.configParameters = configParameters;
-    this.maxConnections = maxConnections;
-  }
-
-  /** Construct the request, and record the question.
-  */
-  public AuthRequest(UserRecord userRecord, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
-  {
-    this.userID = null;
-    this.userRecord = userRecord;
     this.className = className;
     this.identifyingString = identifyingString;
     this.configParameters = configParameters;
@@ -73,12 +59,6 @@ public class AuthRequest
     return userID;
   }
 
-  /** Get the user record */
-  public UserRecord getUserRecord()
-  {
-    return userRecord;
-  }
-  
   /** Get the class name */
   public String getClassName()
   {

@@ -58,17 +58,6 @@ public class AuthorityConnectorFactory
 
   /** Get the default response from a connector.  Called if the connection attempt fails.
   */
-  public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, UserRecord userRecord)
-    throws ManifoldCFException
-  {
-    IAuthorityConnector connector = getConnector(threadContext,className);
-    if (connector == null)
-      return null;
-    return connector.getDefaultAuthorizationResponse(userRecord);
-  }
-
-  /** Get the default response from a connector.  Called if the connection attempt fails.
-  */
   public static AuthorizationResponse getDefaultAuthorizationResponse(IThreadContext threadContext, String className, String userName)
     throws ManifoldCFException
   {

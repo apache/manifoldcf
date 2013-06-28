@@ -34,38 +34,6 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
 {
   public static final String _rcsid = "@(#)$Id: BaseAuthorityConnector.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** Obtain the access tokens for a given UserRecord.
-  * This method is typically the one that is implemented by an authority,
-  * unless the authority predates release 1.3.  In that case, the
-  * ActiveDirectory credentials are pulled from the UserRecord and
-  * are passed to the other variant of this method.
-  *@param userRecord is the identifying user record.
-  *@return the response tokens (according to the current authority).
-  * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
-  */
-  @Override
-  public AuthorizationResponse getAuthorizationResponse(UserRecord userRecord)
-    throws ManifoldCFException
-  {
-    UserRecord activeDirectoryDomain = userRecord.getDomainValueAsUserRecord(UserRecord.DOMAIN_ACTIVEDIRECTORY);
-    if (activeDirectoryDomain == null)
-    {
-      String activeDirectoryUser = userRecord.getDomainValueAsString(UserRecord.DOMAIN_ACTIVEDIRECTORY);
-      if (activeDirectoryUser == null)
-        return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
-      return getAuthorizationResponse(activeDirectoryUser);
-    }
-    if (activeDirectoryDomain.getDomainCount() == 0)
-      return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
-    Iterator<String> adDomains = activeDirectoryDomain.iteratorDomains();
-    // Just pick the first one
-    String adDomain = adDomains.next();
-    String userName = activeDirectoryDomain.getDomainValueAsString(adDomain);
-    if (userName == null)
-      return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
-    return getAuthorizationResponse(userName + "@" + adDomain);
-  }
-
   /** Obtain the access tokens for a given user name.
   *@param userName is the user name or identifier.
   *@return the response tokens (according to the current authority).
@@ -94,25 +62,6 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
       }
       return new AuthorizationResponse(defaultAccessTokens,AuthorizationResponse.RESPONSE_UNREACHABLE);
     }
-  }
-
-  /** Obtain the default access tokens for a given user record.
-  *@param userRecord is the identifying user record.
-  *@return the default response tokens, presuming that the connect method fails.
-  */
-  @Override
-  public AuthorizationResponse getDefaultAuthorizationResponse(UserRecord userRecord)
-  {
-    UserRecord activeDirectoryDomain = userRecord.getDomainValueAsUserRecord(UserRecord.DOMAIN_ACTIVEDIRECTORY);
-    if (activeDirectoryDomain == null || activeDirectoryDomain.getDomainCount() == 0)
-      return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
-    Iterator<String> adDomains = activeDirectoryDomain.iteratorDomains();
-    // Just pick the first one
-    String adDomain = adDomains.next();
-    String userName = activeDirectoryDomain.getDomainValueAsString(adDomain);
-    if (userName == null)
-      return new AuthorizationResponse(new String[0],AuthorizationResponse.RESPONSE_USERNOTFOUND);
-    return getDefaultAuthorizationResponse(userName + "@" + adDomain);
   }
 
   /** Obtain the default access tokens for a given user name.

@@ -113,40 +113,6 @@ public class UserACLServlet extends HttpServlet
         return;
       }
 
-      String[] domains = request.getParameterValues("domain");
-      
-      UserRecord userRecord = new UserRecord();
-
-      if (domains == null)
-      {
-        int atIndex = userID.indexOf("@");
-        if (atIndex == -1)
-          userRecord.setDomainValue(userRecord.DOMAIN_ACTIVEDIRECTORY, userID);
-        else
-        {
-          UserRecord u2 = new UserRecord();
-          u2.setDomainValue(userID.substring(atIndex+1), userID.substring(0,atIndex));
-          userRecord.setDomainValue(userRecord.DOMAIN_ACTIVEDIRECTORY, u2);
-        }
-      }
-      else
-      {
-        int domainIndex = domains.length;
-        while (--domainIndex >= 0)
-        {
-          if (domainIndex == domains.length-1)
-          {
-            userRecord.setDomainValue(domains[domainIndex], userID);
-          }
-          else
-          {
-            UserRecord newUserRecord = new UserRecord();
-            newUserRecord.setDomainValue(domains[domainIndex], userRecord);
-            userRecord = newUserRecord;
-          }
-        }
-      }
-
       boolean idneeded = false;
       boolean aclneeded = true;
 
@@ -169,7 +135,7 @@ public class UserACLServlet extends HttpServlet
 
       if (Logging.authorityService.isDebugEnabled())
       {
-        Logging.authorityService.debug("Received authority request for user '"+userRecord.toString()+"'");
+        Logging.authorityService.debug("Received authority request for user '"+userID+"'");
       }
 
       RequestQueue<MappingRequest> mappingQueue = ManifoldCF.getMappingRequestQueue();
@@ -200,8 +166,9 @@ public class UserACLServlet extends HttpServlet
       // One thread per authority, which is responsible for starting the auth request when it is ready.
       List<AuthOrderThread> authThreads = new ArrayList<AuthOrderThread>();
 
-      Map<String,MappingRequest> mappingRequests = new HashMap<String,MappingRequest>();
-      Map<String,AuthRequest> authRequests = new HashMap<String,AuthRequest>();
+      // These two must be thread-safe!!
+      Map<String,MappingRequest> mappingRequests = new Hashtable<String,MappingRequest>();
+      Map<String,AuthRequest> authRequests = new Hashtable<String,AuthRequest>();
 
       Map<String,IMappingConnection> mappingConnMap = new HashMap<String,IMappingConnection>();
       
@@ -226,24 +193,21 @@ public class UserACLServlet extends HttpServlet
           identifyingString = thisConnection.getName();
         
         // Create a record and add it to the queue
-        AuthRequest ar = new AuthRequest(userRecord,
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-        
-        authRequests.put(thisConnection.getName(), ar);
         
         // We create an auth thread if there are prerequisites to meet.
         // Otherwise, we just fire off the request
-        if (thisConnection.getPrerequisites().isEmpty())
+        if (thisConnection.getPrerequisiteMapping() == null)
+        {
+          AuthRequest ar = new AuthRequest(userID,
+            thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+          authRequests.put(thisConnection.getName(), ar);
           queue.addRequest(ar);
+        }
         else
         {
-          AuthOrderThread thread = new AuthOrderThread(queue, authRequests, thisConnection);
-          thread.start();
+          AuthOrderThread thread = new AuthOrderThread(queue, authRequests, mappingRequests, thisConnection, identifyingString);
           authThreads.add(thread);
-          for (String p : thisConnection.getPrerequisites())
-          {
-            activeConnections.add(p);
-          }
+          activeConnections.add(thisConnection.getPrerequisiteMapping());
         }
       }
 
@@ -257,30 +221,38 @@ public class UserACLServlet extends HttpServlet
         if (identifyingString == null || identifyingString.length() == 0)
           identifyingString = connectionName;
         
-        // Create a record and add it to the queue
-        MappingRequest mr = new MappingRequest(userRecord,
-          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
-        
-        mappingRequests.put(connectionName, mr);
-        
         // Either start up a thread, or just fire it off immediately.
-        if (thisConnection.getPrerequisites().isEmpty())
+        if (thisConnection.getPrerequisiteMapping() == null)
+        {
+          // Create a record and add it to the queue
+          MappingRequest mr = new MappingRequest(userID,
+            thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+          mappingRequests.put(connectionName, mr);
           mappingQueue.addRequest(mr);
+        }
         else
         {
-          MappingOrderThread thread = new MappingOrderThread(mappingQueue, mappingRequests, thisConnection);
-          thread.start();
+          MappingOrderThread thread = new MappingOrderThread(mappingQueue, mappingRequests, thisConnection, identifyingString);
           mappingThreads.add(thread);
-          for (String p : thisConnection.getPrerequisites())
-          {
-            if (mappingRequests.get(p) == null)
+          String p = thisConnection.getPrerequisiteMapping();
+          if (mappingRequests.get(p) == null)
             activeConnections.add(p);
-          }
         }
         activeConnections.remove(connectionName);
       }
       
-      // Wait for the threads to finish up.  This will guarantee that all mappers have been started.
+      // Start threads.  We have to wait until all the requests have been
+      // at least created before we do this.
+      for (MappingOrderThread thread : mappingThreads)
+      {
+        thread.start();
+      }
+      for (AuthOrderThread thread : authThreads)
+      {
+        thread.start();
+      }
+      
+      // Wait for the threads to finish up.  This will guarantee that all entities have run to completion.
       for (MappingOrderThread thread : mappingThreads)
       {
         thread.finishUp();
@@ -322,12 +294,12 @@ public class UserACLServlet extends HttpServlet
           AuthRequest ar = authRequests.get(ac.getName());
 
           if (Logging.authorityService.isDebugEnabled())
-            Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userRecord.toString()+"'");
+            Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
 
           ar.waitForComplete();
 
           if (Logging.authorityService.isDebugEnabled())
-            Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userRecord.toString()+"'");
+            Logging.authorityService.debug("Received answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
 
           Throwable exception = ar.getAnswerException();
           AuthorizationResponse reply = ar.getAnswerResponse();
@@ -350,13 +322,13 @@ public class UserACLServlet extends HttpServlet
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERUNAUTHORIZED)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userRecord.toString()+"'");
+              Logging.authorityService.debug("Authority '"+ar.getIdentifyingString()+"' does not authorize user '"+userID+"'");
             sb.append(UNAUTHORIZED_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_USERNOTFOUND)
           {
             if (Logging.authorityService.isDebugEnabled())
-              Logging.authorityService.debug("User '"+userRecord.toString()+"' unknown to authority '"+ar.getIdentifyingString()+"'");
+              Logging.authorityService.debug("User '"+userID+"' unknown to authority '"+ar.getIdentifyingString()+"'");
             sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
           }
           else
@@ -371,7 +343,7 @@ public class UserACLServlet extends HttpServlet
               while (j < acl.length)
               {
                 if (Logging.authorityService.isDebugEnabled())
-                  Logging.authorityService.debug("  User '"+userRecord.toString()+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
+                  Logging.authorityService.debug("  User '"+userID+"' has Acl = '"+acl[j]+"' from authority '"+ar.getIdentifyingString()+"'");
                 sb.append(TOKEN_PREFIX).append(java.net.URLEncoder.encode(ac.getName(),"UTF-8")).append(":").append(java.net.URLEncoder.encode(acl[j++],"UTF-8")).append("\n");
               }
             }
@@ -393,7 +365,7 @@ public class UserACLServlet extends HttpServlet
       }
 
       if (Logging.authorityService.isDebugEnabled())
-        Logging.authorityService.debug("Done with request for '"+userRecord.toString()+"'");
+        Logging.authorityService.debug("Done with request for '"+userID+"'");
     }
     catch (InterruptedException e)
     {
@@ -423,18 +395,21 @@ public class UserACLServlet extends HttpServlet
     protected final Map<String,MappingRequest> requests;
     protected final RequestQueue<MappingRequest> mappingRequestQueue;
     protected final IMappingConnection mappingConnection;
-    
+    protected final String identifyingString;
+
     protected Throwable exception = null;
     
     public MappingOrderThread(RequestQueue<MappingRequest> mappingRequestQueue,
       Map<String, MappingRequest> requests,
-      IMappingConnection mappingConnection)
+      IMappingConnection mappingConnection,
+      String identifyingString)
     {
       super();
       this.mappingRequestQueue = mappingRequestQueue;
       this.mappingConnection = mappingConnection;
       this.requests = requests;
-      setName("Constraint matcher for mapper "+mappingConnection.getName());
+      this.identifyingString = identifyingString;
+      setName("Constraint matcher for mapper '"+identifyingString+"'");
       setDaemon(true);
     }
     
@@ -442,17 +417,14 @@ public class UserACLServlet extends HttpServlet
     {
       try
       {
-        while (true)
-        {
-          Set<String> prereqs = mappingConnection.getPrerequisites();
-          for (String x : prereqs)
-          {
-            MappingRequest mr = requests.get(x);
-            mr.waitForComplete();
-          }
-          // Constraints are met.  Fire off the request.
-          mappingRequestQueue.addRequest(requests.get(mappingConnection.getName()));
-        }
+        String prerequisite = mappingConnection.getPrerequisiteMapping();
+        MappingRequest mappingRequest = requests.get(prerequisite);
+        mappingRequest.waitForComplete();
+        // Constraints are met.  Fire off the request.
+        MappingRequest mr = new MappingRequest(mappingRequest.getAnswerResponse(),
+          mappingConnection.getClassName(),identifyingString,mappingConnection.getConfigParams(),mappingConnection.getMaxConnections());
+        requests.put(mappingConnection.getName(), mr);
+        mappingRequestQueue.addRequest(mr);
       }
       catch (Throwable e)
       {
@@ -485,20 +457,26 @@ public class UserACLServlet extends HttpServlet
   protected static class AuthOrderThread extends Thread
   {
     protected final Map<String,AuthRequest> requests;
+    protected final Map<String,MappingRequest> mappingRequests;
     protected final RequestQueue<AuthRequest> authRequestQueue;
     protected final IAuthorityConnection authConnection;
+    protected final String identifyingString;
     
     protected Throwable exception = null;
     
     public AuthOrderThread(RequestQueue<AuthRequest> authRequestQueue,
       Map<String, AuthRequest> requests,
-      IAuthorityConnection authConnection)
+      Map<String, MappingRequest> mappingRequests,
+      IAuthorityConnection authConnection,
+      String identifyingString)
     {
       super();
       this.authRequestQueue = authRequestQueue;
       this.authConnection = authConnection;
       this.requests = requests;
-      setName("Constraint matcher for authority "+authConnection.getName());
+      this.mappingRequests = mappingRequests;
+      this.identifyingString = identifyingString;
+      setName("Constraint matcher for authority '"+identifyingString+"'");
       setDaemon(true);
     }
     
@@ -506,17 +484,14 @@ public class UserACLServlet extends HttpServlet
     {
       try
       {
-        while (true)
-        {
-          Set<String> prereqs = authConnection.getPrerequisites();
-          for (String x : prereqs)
-          {
-            AuthRequest mr = requests.get(x);
-            mr.waitForComplete();
-          }
-          // Constraints are met.  Fire off the request.
-          authRequestQueue.addRequest(requests.get(authConnection.getName()));
-        }
+        String prerequisite = authConnection.getPrerequisiteMapping();
+        MappingRequest mappingRequest = mappingRequests.get(prerequisite);
+        mappingRequest.waitForComplete();
+        // Constraints are met.  Fire off the request.  User may be null if mapper failed!!
+        AuthRequest ar = new AuthRequest(mappingRequest.getAnswerResponse(),
+          authConnection.getClassName(),identifyingString,authConnection.getConfigParams(),authConnection.getMaxConnections());
+        requests.put(authConnection.getName(), ar);
+        authRequestQueue.addRequest(ar);
       }
       catch (Throwable e)
       {

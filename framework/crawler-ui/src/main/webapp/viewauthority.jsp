@@ -83,14 +83,7 @@
 		if (connectorName == null)
 			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.uninstalled");
 		int maxCount = connection.getMaxConnections();
-		Set<String> prereqs = connection.getPrerequisites();
-		String[] prereqList = new String[prereqs.size()];
-		int i = 0;
-		for (String s : prereqs)
-		{
-			prereqList[i++] = s;
-		}
-		java.util.Arrays.sort(prereqList);
+		String prereq = connection.getPrerequisiteMapping();
 		
 		ConfigParams parameters = connection.getConfigParams();
 
@@ -147,17 +140,14 @@
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
 			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.PrerequisiteUserMappingsColon")%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.PrerequisiteUserMappingColon")%></nobr></td>
 				<td class="value" colspan="3">
 <%
-		if (prereqList.length != 0)
+		if (prereq != null)
 		{
-			for (int j = 0; j < prereqList.length; j++)
-			{	
 %>
-					<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereqList[j])%></nobr><br/>
+					<nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereq)%></nobr>
 <%
-			}
 		}
 		else
 		{
