@@ -683,6 +683,23 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/ldap-status.PNG" alt="LDAP Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the LDAP connection is not responding, which is leading to an error status message instead of "Connection working".</p>
+				<br/><br/>
+				<p>Example configuration for ActiveDirectory server to fetch user groups:</p>
+				<ul>
+				  <li>Server: [xxx.yyy.zzz.ttt]</li>
+				  <li>Port: 389</li>
+				  <li>Server base: [DC=domain,DC=name]</li>
+				  <li>Bind as user: [user@domain.name]</li>
+				  <li>Bind with password: [password for that user]</li>
+				  <li>User search base: CN=Users</li>
+				  <li>User search filter: sAMAccountName={0}</li>
+				  <li>User name attribute: sAMAccountName</li>
+				  <li>Group search base: CN=Users</li>
+				  <li>Group search filter: (member:1.2.840.113556.1.4.1941:={0})</li>
+				  <li>Group name attribute: sAMAccountName</li>
+				  <li>Member attribute is DN: yes (tick the checkbox)</li>
+				</ul>
+				<p><code>member:1.2.840.113556.1.4.1941:</code> gives you recursive check for nested groups</p>
             </section>
 
             <section id="livelinkauthority">
