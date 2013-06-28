@@ -255,6 +255,8 @@
 					if (x != null && x.equals("true"))
 					{
 						String y = variableContext.getParameter("prerequisites");
+						if (y != null && y.length() == 0)
+							y = null;
 						connection.setPrerequisiteMapping(y);
 					}
 					
@@ -376,6 +378,8 @@
 					if (x != null && x.equals("true"))
 					{
 						String y = variableContext.getParameter("prerequisites");
+						if (y != null && y.length() == 0)
+							y = null;
 						connection.setPrerequisiteMapping(y);
 					}
 
