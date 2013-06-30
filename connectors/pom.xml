@@ -55,6 +55,7 @@
     <module>googledrive</module>
     <module>jira</module>
     <module>generic</module>
+    <module>regexpmapper</module>
   </modules>
 
 </project>

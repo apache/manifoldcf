@@ -36,6 +36,7 @@ public class AuthorityConnection implements IAuthorityConnection
   protected String className = null;
   protected ConfigParams configParams = new ConfigParams();
   protected int maxCount = 100;
+  protected String prerequisiteMapping = null;
 
   /** Constructor.
   */
@@ -55,6 +56,7 @@ public class AuthorityConnection implements IAuthorityConnection
     rval.className = className;
     rval.maxCount = maxCount;
     rval.configParams = configParams.duplicate();
+    rval.prerequisiteMapping = prerequisiteMapping;
     return rval;
   }
 
@@ -144,6 +146,23 @@ public class AuthorityConnection implements IAuthorityConnection
   public int getMaxConnections()
   {
     return maxCount;
+  }
+
+  /** Set the prerequisite mapper, if any.
+  *@param mapping is the name of the mapping connection to use to get the input user name,
+  *  or null.
+  */
+  public void setPrerequisiteMapping(String mapping)
+  {
+    prerequisiteMapping = mapping;
+  }
+  
+  /** Get the prerequisite mapper, if any.
+  *@return the mapping connection name whose output should be used as the input user name.
+  */
+  public String getPrerequisiteMapping()
+  {
+    return prerequisiteMapping;
   }
 
 }

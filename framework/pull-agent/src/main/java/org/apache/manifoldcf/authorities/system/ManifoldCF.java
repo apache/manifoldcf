@@ -31,15 +31,21 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   // Threads
   protected static IdleCleanupThread idleCleanupThread = null;
   protected static AuthCheckThread[] authCheckThreads = null;
+  protected static MappingThread[] mappingThreads = null;
 
   // Number of auth check threads
   protected static int numAuthCheckThreads = 0;
-
+  // Number of mapping threads
+  protected static int numMappingThreads = 0;
+  
   protected static final String authCheckThreadCountProperty = "org.apache.manifoldcf.authorityservice.threads";
+  protected static final String mappingThreadCountProperty = "org.apache.manifoldcf.authorityservice.mappingthreads";
 
   // Request queue
-  protected static RequestQueue requestQueue = null;
-
+  protected static RequestQueue<AuthRequest> requestQueue = null;
+  // Mapping request queue
+  protected static RequestQueue<MappingRequest> mappingRequestQueue = null;
+  
   /** Initialize environment.
   */
   public static void initializeEnvironment()
@@ -92,12 +98,16 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
+    IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
+    IMappingConnectionManager mappingConnectionMgr = MappingConnectionManagerFactory.make(threadcontext);
 
     mainDatabase.beginTransaction();
     try
     {
       connMgr.install();
       authConnMgr.install();
+      mappingConnectorMgr.install();
+      mappingConnectionMgr.install();
     }
     catch (ManifoldCFException e)
     {
@@ -131,10 +141,14 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
+    IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
+    IMappingConnectionManager mappingConnectionMgr = MappingConnectionManagerFactory.make(threadcontext);
 
     mainDatabase.beginTransaction();
     try
     {
+      mappingConnectionMgr.deinstall();
+      mappingConnectorMgr.deinstall();
       authConnMgr.deinstall();
       connMgr.deinstall();
     }
@@ -170,20 +184,34 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     if (numAuthCheckThreads < 1 || numAuthCheckThreads > 100)
       throw new ManifoldCFException("Illegal value for the number of auth check threads");
 
+    String maxMappingThreads = getProperty(mappingThreadCountProperty);
+    if (maxMappingThreads == null)
+      maxMappingThreads = "10";
+    numMappingThreads = new Integer(maxMappingThreads).intValue();
+    if (numMappingThreads < 1 || numMappingThreads > 100)
+      throw new ManifoldCFException("Illegal value for the number of mapping threads");
+
     // Start up threads
     idleCleanupThread = new IdleCleanupThread();
     idleCleanupThread.start();
 
-    requestQueue = new RequestQueue();
+    requestQueue = new RequestQueue<AuthRequest>();
+    mappingRequestQueue = new RequestQueue<MappingRequest>();
 
     authCheckThreads = new AuthCheckThread[numAuthCheckThreads];
-    int i = 0;
-    while (i < numAuthCheckThreads)
+    for (int i = 0; i < numAuthCheckThreads; i++)
     {
       authCheckThreads[i] = new AuthCheckThread(Integer.toString(i),requestQueue);
       authCheckThreads[i].start();
-      i++;
     }
+    
+    mappingThreads = new MappingThread[numMappingThreads];
+    for (int i = 0; i < numMappingThreads; i++)
+    {
+      mappingThreads[i] = new MappingThread(Integer.toString(i),mappingRequestQueue);
+      mappingThreads[i].start();
+    }
+
   }
 
   /** Shut down the authority system.
@@ -192,7 +220,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     throws ManifoldCFException
   {
 
-    while (idleCleanupThread != null || authCheckThreads != null)
+    while (idleCleanupThread != null || authCheckThreads != null || mappingThreads != null)
     {
       if (idleCleanupThread != null)
       {
@@ -200,15 +228,23 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       }
       if (authCheckThreads != null)
       {
-        int i = 0;
-        while (i < authCheckThreads.length)
+        for (int i = 0; i < authCheckThreads.length; i++)
         {
-          Thread authCheckThread = authCheckThreads[i++];
+          Thread authCheckThread = authCheckThreads[i];
           if (authCheckThread != null)
             authCheckThread.interrupt();
         }
       }
-
+      if (mappingThreads != null)
+      {
+        for (int i = 0; i < mappingThreads.length; i++)
+        {
+          Thread mappingThread = mappingThreads[i];
+          if (mappingThread != null)
+            mappingThread.interrupt();
+        }
+      }
+      
       if (idleCleanupThread != null)
       {
         if (!idleCleanupThread.isAlive())
@@ -216,9 +252,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       }
       if (authCheckThreads != null)
       {
-        int i = 0;
         boolean isAlive = false;
-        while (i < authCheckThreads.length)
+        for (int i = 0; i < authCheckThreads.length; i++)
         {
           Thread authCheckThread = authCheckThreads[i];
           if (authCheckThread != null)
@@ -234,6 +269,25 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
           authCheckThreads = null;
       }
 
+      if (mappingThreads != null)
+      {
+        boolean isAlive = false;
+        for (int i = 0; i < mappingThreads.length; i++)
+        {
+          Thread mappingThread = mappingThreads[i];
+          if (mappingThread != null)
+          {
+            if (!mappingThread.isAlive())
+              mappingThreads[i] = null;
+            else
+              isAlive = true;
+          }
+          i++;
+        }
+        if (!isAlive)
+          mappingThreads = null;
+      }
+
       try
       {
         ManifoldCF.sleep(1000);
@@ -247,13 +301,22 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     AuthorityConnectorFactory.closeAllConnectors(threadContext);
     numAuthCheckThreads = 0;
     requestQueue = null;
+    MappingConnectorFactory.closeAllConnectors(threadContext);
+    numMappingThreads = 0;
+    mappingRequestQueue = null;
   }
 
   /** Get the current request queue */
-  public static RequestQueue getRequestQueue()
+  public static RequestQueue<AuthRequest> getRequestQueue()
   {
     return requestQueue;
   }
 
+  /** Get the current mapping request queue */
+  public static RequestQueue<MappingRequest> getMappingRequestQueue()
+  {
+    return mappingRequestQueue;
+  }
+  
 }
 

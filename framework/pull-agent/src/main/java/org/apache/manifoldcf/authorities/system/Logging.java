@@ -32,6 +32,7 @@ public class Logging extends org.apache.manifoldcf.core.system.Logging
   // Public logger objects
   public static Logger authorityService = null;
   public static Logger authorityConnectors = null;
+  public static Logger mappingConnectors = null;
 
   /** Initialize logger setup.
   */
@@ -45,6 +46,7 @@ public class Logging extends org.apache.manifoldcf.core.system.Logging
     // package loggers
     authorityService = newLogger("org.apache.manifoldcf.authorityservice");
     authorityConnectors = newLogger("org.apache.manifoldcf.authorityconnectors");
+    mappingConnectors = newLogger("org.apache.manifoldcf.mappingconnectors");
   }
 
 

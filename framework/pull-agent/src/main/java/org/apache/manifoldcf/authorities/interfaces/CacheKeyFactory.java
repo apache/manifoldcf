@@ -45,4 +45,21 @@ public class CacheKeyFactory extends org.apache.manifoldcf.core.interfaces.Cache
     return "AUTHORITYCONNECTION_"+connectionName;
   }
 
+  /** Construct a key which represents the general list of mapping connectors.
+  *@return the cache key.
+  */
+  public static String makeMappingConnectionsKey()
+  {
+    return "MAPPINGCONNECTIONS";
+  }
+
+  /** Construct a key which represents an individual mapping connection.
+  *@param connectionName is the name of the connection.
+  *@return the cache key.
+  */
+  public static String makeMappingConnectionKey(String connectionName)
+  {
+    return "MAPPINGCONNECTION_"+connectionName;
+  }
+
 }

@@ -58,6 +58,13 @@ public interface IAuthorityConnectionManager
   public IAuthorityConnection load(String name)
     throws ManifoldCFException;
 
+  /** Load multiple repository connections by name.
+  *@param names are the names to load.
+  *@return the loaded connection objects.
+  */
+  public IAuthorityConnection[] loadMultiple(String[] names)
+    throws ManifoldCFException;
+
   /** Create a new authority connection object.
   *@return the new object.
   */
@@ -89,5 +96,12 @@ public interface IAuthorityConnectionManager
   *@return the name column.
   */
   public String getAuthorityNameColumn();
+
+  /** Return true if the specified mapping name is referenced.
+  *@param mappingName is the mapping name.
+  *@return true if referenced, false otherwise.
+  */
+  public boolean isMappingReferenced(String mappingName)
+    throws ManifoldCFException;
 
 }

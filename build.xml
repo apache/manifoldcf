@@ -80,6 +80,7 @@
         <ant dir="connectors/nullauthority" target="clean"/>
         <ant dir="connectors/nulloutput" target="clean"/>
         <ant dir="connectors/rss" target="clean"/>
+        <ant dir="connectors/regexpmapper" target="clean"/>
         <ant dir="connectors/sharepoint" target="clean"/>
         <ant dir="connectors/webcrawler" target="clean"/>
         <ant dir="connectors/wiki" target="clean"/>
@@ -136,6 +137,7 @@
         <ant dir="connectors/nullauthority" target="clean"/>
         <ant dir="connectors/nulloutput" target="clean"/>
         <ant dir="connectors/rss" target="clean"/>
+        <ant dir="connectors/regexpmapper" target="clean"/>
         <ant dir="connectors/sharepoint" target="clean"/>
         <ant dir="connectors/webcrawler" target="clean"/>
         <ant dir="connectors/wiki" target="clean"/>
@@ -981,6 +983,42 @@
         <ant dir="connectors/rss" target="run-tests-HSQLDB"/>
     </target>
 
+    <target name="setup-regexp-mapper" depends="build-framework" if="downloaded"/>
+
+    <target name="setup-regexp-mapper-tests" depends="build-tests-framework" if="downloaded"/>
+
+    <target name="build-regexp-mapper" depends="setup-regexp-mapper" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="build"/>
+    </target>
+
+    <target name="doc-regexp-mapper" depends="setup-regexp-mapper" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="doc"/>
+    </target>
+
+    <target name="build-tests-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="build-tests"/>
+    </target>
+
+    <target name="run-tests-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="run-tests"/>
+    </target>
+
+    <target name="run-tests-derby-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="run-tests-derby"/>
+    </target>
+
+    <target name="run-tests-postgresql-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="run-tests-postgresql"/>
+    </target>
+
+    <target name="run-tests-mysql-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="run-tests-mysql"/>
+    </target>
+
+    <target name="run-tests-HSQLDB-regexp-mapper" depends="setup-regexp-mapper,setup-regexp-mapper-tests" if="downloaded">
+        <ant dir="connectors/regexpmapper" target="run-tests-HSQLDB"/>
+    </target>
+
     <target name="setup-sharepoint-connector" depends="build-framework" if="downloaded"/>
     
     <target name="setup-sharepoint-connector-tests" depends="build-tests-framework" if="downloaded"/>
@@ -1261,7 +1299,25 @@
         </condition>
     </target>
     
-    
+    <target name="general-add-mapping-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;!--mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-mapping-connector-non-commented" depends="general-connector-runnable-check" if="${connector-name}.is-runnable">
+        <replace file="dist/connectors.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-mapping-connector-proprietary-commented" depends="general-connector-proprietary-runnable-check" unless="${connector-name}.is-proprietary-runnable">
+        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;!--mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
+    </target>
+
+    <target name="general-add-mapping-connector-proprietary-non-commented" depends="general-connector-proprietary-runnable-check" if="${connector-name}.is-proprietary-runnable">
+        <replace file="dist/connectors-proprietary.xml" token="&lt;!-- Add your mapping connectors here --&gt;" value="&lt;!-- Add your mapping connectors here --&gt;&#0010;  &lt;mappingconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/&gt;"/>
+    </target>
+
+    <target name="general-add-mapping-connector" depends="general-add-mapping-connector-commented,general-add-mapping-connector-non-commented,general-add-mapping-connector-proprietary-commented,general-add-mapping-connector-proprietary-non-commented">
+    </target>
+
     <target name="general-add-authority-connector-commented" depends="general-connector-runnable-check" unless="${connector-name}.is-runnable">
         <replace file="dist/connectors.xml" token="&lt;!-- Add your authority connectors here --&gt;" value="&lt;!-- Add your authority connectors here --&gt;&#0010;  &lt;!--authorityconnector name=&quot;${connector-label}&quot; class=&quot;${connector-class}&quot;/--&gt;"/>
     </target>
@@ -2285,6 +2341,43 @@
         </antcall>
     </target>
 
+    <target name="calculate-regexpmapper-condition" depends="build-regexp-mapper">
+        <available file="connectors/regexpmapper/dist/lib" type="dir" property="regexpmapper.exists"/>
+        <condition property="regexpmapper.include">
+            <and>
+                <isset property="regexpmapper.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="calculate-regexpmapper-doc-condition" depends="doc-regexp-mapper">
+        <available file="connectors/regexpmapper/dist/doc" type="dir" property="regexpmapper-doc.exists"/>
+        <condition property="regexpmapper-doc.include">
+            <and>
+                <isset property="regexpmapper-doc.exists"/>
+                <isset property="downloaded"/>
+            </and>
+        </condition>
+    </target>
+
+    <target name="deliver-regexp-mapper" depends="calculate-regexpmapper-condition" if="regexpmapper.include">
+        <antcall target="general-connector-delivery">
+            <param name="connector-name" value="regexpmapper"/>
+        </antcall>
+        <antcall target="general-add-mapping-connector">
+            <param name="connector-name" value="regexpmapper"/>
+            <param name="connector-label" value="Regular expression mapper"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.mappers.regexp.RegexpMapper"/>
+        </antcall>
+    </target>
+    
+    <target name="deliver-regexp-mapper-doc" depends="calculate-regexpmapper-doc-condition" if="regexpmapper-doc.include">
+        <antcall target="general-connector-doc-delivery">
+            <param name="connector-name" value="regexpmapper"/>
+        </antcall>
+    </target>
+
     <target name="calculate-sharepoint-condition" depends="build-sharepoint-connector">
         <available file="connectors/sharepoint/dist/lib" type="dir" property="sharepoint.exists"/>
         <condition property="sharepoint.include">
@@ -2879,16 +2972,19 @@
     <target name="deliver-output-connectors" depends="deliver-gts-connector,deliver-solr-connector,deliver-nulloutput-connector,deliver-opensearchserver-connector,deliver-elasticsearch-connector"/>
     <target name="deliver-output-connectors-doc" depends="deliver-gts-connector-doc,deliver-solr-connector-doc,deliver-nulloutput-connector-doc,deliver-opensearchserver-connector-doc,deliver-elasticsearch-connector-doc"/>
     
+    <target name="deliver-mapping-connectors" depends="deliver-regexp-mapper"/>
+    <target name="deliver-mapping-connectors-doc" depends="deliver-regexp-mapper-doc"/>
+    
     <target name="deliver-lgpl-connectors" depends="deliver-jcifs-connector"/>
     <target name="deliver-lgpl-connectors-doc" depends="deliver-jcifs-connector-doc"/>
     
     <target name="deliver-proprietary-connectors" depends="deliver-documentum-connector,deliver-filenet-connector,deliver-livelink-connector,deliver-memex-connector,deliver-meridio-connector,deliver-sharepoint-connector"/>
     <target name="deliver-proprietary-connectors-doc" depends="deliver-documentum-connector-doc,deliver-filenet-connector-doc,deliver-livelink-connector-doc,deliver-memex-connector-doc,deliver-meridio-connector-doc,deliver-sharepoint-connector-doc"/>
 
-    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
+    <target name="build" depends="deliver-framework,deliver-open-connectors,deliver-output-connectors,deliver-mapping-connectors,deliver-lgpl-connectors,deliver-proprietary-connectors"/>
     <target name="tmpclean" depends="cleanup-afterbuild"/>
     <target name="buildcln" depends="build,tmpclean"/>
-    <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
+    <target name="javadoc" depends="deliver-framework-doc,deliver-open-connectors-doc,deliver-output-connectors-doc,deliver-mapping-connectors-doc,deliver-lgpl-connectors-doc,deliver-proprietary-connectors-doc"/>
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">

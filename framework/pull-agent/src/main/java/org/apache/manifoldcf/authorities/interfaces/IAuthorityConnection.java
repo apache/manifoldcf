@@ -80,4 +80,15 @@ public interface IAuthorityConnection
   */
   public int getMaxConnections();
 
+  /** Set the prerequisite mapper, if any.
+  *@param mapping is the name of the mapping connection to use to get the input user name,
+  *  or null.
+  */
+  public void setPrerequisiteMapping(String mapping);
+
+  /** Get the prerequisite mapper, if any.
+  *@return the mapping connection name whose output should be used as the input user name.
+  */
+  public String getPrerequisiteMapping();
+
 }

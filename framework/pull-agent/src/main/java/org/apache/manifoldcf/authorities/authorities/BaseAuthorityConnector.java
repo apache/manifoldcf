@@ -39,6 +39,7 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
+  @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
@@ -67,6 +68,7 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
   *@param userName is the user name or identifier.
   *@return the default response tokens, presuming that the connect method fails.
   */
+  @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     String[] acls = getDefaultAccessTokens(userName);

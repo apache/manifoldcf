@@ -23,6 +23,7 @@
 -->
 <connectors>
     <!-- Add your output connectors here -->
+    <!-- Add your mapping connectors here -->
     <!-- Add your authority connectors here -->
     <!-- Add your repository connectors here -->
 </connectors>

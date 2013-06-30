@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-703: Add mapper plugin functionality, and regular expression
+mapper.  WARNING: This change represents a schema change!!
+(Maciej Lizewski, Karl Wright)
+
 CONNECTORS-740: Add documentation for filesystem connector changes
 and for filesystem output connector.  Also refactor filesystem connector
 for better UI.

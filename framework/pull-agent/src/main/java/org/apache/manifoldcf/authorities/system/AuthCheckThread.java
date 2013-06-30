@@ -33,11 +33,11 @@ public class AuthCheckThread extends Thread
   public static final String _rcsid = "@(#)$Id: AuthCheckThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  protected RequestQueue requestQueue;
+  protected RequestQueue<AuthRequest> requestQueue;
 
   /** Constructor.
   */
-  public AuthCheckThread(String id, RequestQueue requestQueue)
+  public AuthCheckThread(String id, RequestQueue<AuthRequest> requestQueue)
     throws ManifoldCFException
   {
     super();
