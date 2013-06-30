@@ -196,6 +196,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     idleCleanupThread.start();
 
     requestQueue = new RequestQueue<AuthRequest>();
+    mappingRequestQueue = new RequestQueue<MappingRequest>();
 
     authCheckThreads = new AuthCheckThread[numAuthCheckThreads];
     for (int i = 0; i < numAuthCheckThreads; i++)

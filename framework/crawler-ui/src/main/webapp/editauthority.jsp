@@ -85,9 +85,11 @@
 	// Set up the predefined tabs
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name"));
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type"));
-	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Prerequisites"));
 	if (className.length() > 0)
+	{
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Prerequisites"));
 		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling"));
+	}
 
 %>
 

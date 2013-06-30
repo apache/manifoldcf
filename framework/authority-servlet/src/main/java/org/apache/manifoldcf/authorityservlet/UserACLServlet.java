@@ -200,6 +200,7 @@ public class UserACLServlet extends HttpServlet
         // Otherwise, we just fire off the request
         if (thisConnection.getPrerequisiteMapping() == null)
         {
+          ar.setUserID(userID);
           queue.addRequest(ar);
         }
         else
@@ -230,10 +231,12 @@ public class UserACLServlet extends HttpServlet
         // Either start up a thread, or just fire it off immediately.
         if (thisConnection.getPrerequisiteMapping() == null)
         {
+          mr.setUserID(userID);
           mappingQueue.addRequest(mr);
         }
         else
         {
+          //System.out.println("Mapper: prerequisite found: '"+thisConnection.getPrerequisiteMapping()+"'");
           MappingOrderThread thread = new MappingOrderThread(identifyingString,
             mr, thisConnection.getPrerequisiteMapping(), mappingQueue, mappingRequests);
           mappingThreads.add(thread);

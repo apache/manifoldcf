@@ -33,14 +33,35 @@ public class RegexpMapper extends org.apache.manifoldcf.authorities.mappers.Base
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  // Match map for username
+  private MatchMap matchMap = null;
+
   /** Constructor.
   */
   public RegexpMapper()
   {
   }
 
+  /** Close the connection.  Call this before discarding the mapping connection.
+  */
+  @Override
+  public void disconnect()
+    throws ManifoldCFException
+  {
+    matchMap = null;
+    super.disconnect();
+  }
+
   // All methods below this line will ONLY be called if a connect() call succeeded
   // on this instance!
+
+  private MatchMap getSession()
+    throws ManifoldCFException
+  {
+    if (matchMap == null)
+      matchMap = new MatchMap(params.getParameter(RegexpParameters.userNameMapping));
+    return matchMap;
+  }
 
   /** Map an input user name to an output name.
   *@param userName is the name to map
@@ -50,8 +71,14 @@ public class RegexpMapper extends org.apache.manifoldcf.authorities.mappers.Base
   public String mapUser(String userName)
     throws ManifoldCFException
   {
-    // MHL
-    return userName;
+    MatchMap mm = getSession();
+    
+    String outputUserName = mm.translate(userName);
+    
+    if (Logging.mappingConnectors.isDebugEnabled())
+      Logging.mappingConnectors.debug("RegexpMapper: Input user name '"+userName+"'; output user name '"+outputUserName+"'");
+    
+    return outputUserName;
   }
 
   // UI support methods.
@@ -72,19 +99,33 @@ public class RegexpMapper extends org.apache.manifoldcf.authorities.mappers.Base
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
+    tabsArray.add(Messages.getString(locale,"RegexpMapper.UserMapping"));
+
     out.print(
 "<script type=\"text/javascript\">\n"+
 "<!--\n"+
 "function checkConfig()\n"+
 "{\n"+
+"  if (editconnection.usernameregexp.value != \"\" && !isRegularExpression(editconnection.usernameregexp.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"RegexpMapper.UserNameRegularExpressionMustBeValidRegularExpression") + "\");\n"+
+"    editconnection.usernameregexp.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
 "function checkConfigForSave()\n"+
 "{\n"+
+"  if (editconnection.usernameregexp.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"RegexpMapper.UserNameRegularExpressionCannotBeNull") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"RegexpMapper.UserMapping") + "\");\n"+
+"    editconnection.usernameregexp.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
-"\n"+
 "//-->\n"+
 "</script>\n"
     );
@@ -104,7 +145,40 @@ public class RegexpMapper extends org.apache.manifoldcf.authorities.mappers.Base
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    // Does nothing
+    String userNameMapping = parameters.getParameter(RegexpParameters.userNameMapping);
+    if (userNameMapping == null)
+      userNameMapping = "^(.*)\\\\@([A-Z|a-z|0-9|_|-]*)\\\\.(.*)$=$(2)\\\\$(1l)";
+    MatchMap matchMap = new MatchMap(userNameMapping);
+
+    String usernameRegexp = matchMap.getMatchString(0);
+    String livelinkUserExpr = matchMap.getReplaceString(0);
+
+    // The "User Mapping" tab
+    if (tabName.equals(Messages.getString(locale,"RegexpMapper.UserMapping")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RegexpMapper.UserNameRegularExpressionColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"usernameregexp\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RegexpMapper.UserExpressionColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"livelinkuserexpr\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      // Hiddens for "User Mapping" tab
+      out.print(
+"<input type=\"hidden\" name=\"usernameregexp\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(usernameRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\"livelinkuserexpr\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(livelinkUserExpr)+"\"/>\n"
+      );
+    }
+
   }
   
   /** Process a configuration post.
@@ -121,6 +195,16 @@ public class RegexpMapper extends org.apache.manifoldcf.authorities.mappers.Base
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
+    // User name parameters
+    String usernameRegexp = variableContext.getParameter("usernameregexp");
+    String livelinkUserExpr = variableContext.getParameter("livelinkuserexpr");
+    if (usernameRegexp != null && livelinkUserExpr != null)
+    {
+      MatchMap matchMap = new MatchMap();
+      matchMap.appendMatchPair(usernameRegexp,livelinkUserExpr);
+      parameters.setParameter(RegexpParameters.userNameMapping,matchMap.toString());
+    }
+
     return null;
   }
   
@@ -136,7 +220,25 @@ public class RegexpMapper extends org.apache.manifoldcf.authorities.mappers.Base
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    // Does nothing
+    MatchMap matchMap = new MatchMap(parameters.getParameter(RegexpParameters.userNameMapping));
+
+    String usernameRegexp = matchMap.getMatchString(0);
+    String livelinkUserExpr = matchMap.getReplaceString(0);
+
+    out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RegexpMapper.UserNameRegularExpressionColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(usernameRegexp)+"</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RegexpMapper.UserExpressionColon") + "</nobr></td>\n"+
+"    <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(livelinkUserExpr)+"</nobr></td>\n"+
+"  </tr>\n"+
+"</table>\n"
+    );
+
   }
 
 }

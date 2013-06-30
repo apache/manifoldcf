@@ -83,9 +83,11 @@
 	// Set up the predefined tabs
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Name"));
 	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type"));
-	tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Prerequisites"));
 	if (className.length() > 0)
+	{
+		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Prerequisites"));
 		tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Throttling"));
+	}
 
 %>
 

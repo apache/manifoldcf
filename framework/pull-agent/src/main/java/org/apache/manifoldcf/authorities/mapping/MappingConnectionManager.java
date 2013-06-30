@@ -47,7 +47,7 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
   // Special field suffix
   private final static String passwordSuffix = "password";
 
-  protected final static String nameField = "mappingname";      // Changed this to work around a bug in postgresql
+  protected final static String nameField = "connname";      // Changed this to work around a bug in postgresql
   protected final static String descriptionField = "description";
   protected final static String classNameField = "classname";
   protected final static String maxCountField = "maxcount";
