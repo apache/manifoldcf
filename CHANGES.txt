@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-740: Add documentation for filesystem connector changes
+and for filesystem output connector.  Also refactor filesystem connector
+for better UI.
+(Karl Wright)
+
 CONNECTORS-738: Update how-to-build-and-deploy to reflect new
 connectors.
 (Karl Wright)

@@ -17,5 +17,16 @@
 
 <script type="text/javascript">
 <!--
+function checkOutputSpecificationForSave()
+{
+  if (editjob.rootpath.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('FileConnector.RootPathCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('FileConnector.PathTabName'))");
+    editjob.rootpath.focus();
+    return false;
+  }
+  return true;
+}
 //-->
 </script>
