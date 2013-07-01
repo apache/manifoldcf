@@ -1,4 +1,4 @@
-/* $Id: FileOutputParam.java 1299512 2013-05-31 22:59:38Z minoru $ */
+/* $Id$ */
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -22,24 +22,15 @@ package org.apache.manifoldcf.agents.output.hdfs;
 import java.util.HashMap;
 import java.util.Map;
 
-/** 
- * Parameters data for the elasticsearch output connector.
- */
-public class HDFSOutputParam extends HashMap<ParameterEnum, String>
-{
+/** Parameters constants */
+public enum ParameterEnum {
+  NAMENODE("hdfs://localhost:9000"),
+  USER(""),
+  ROOTPATH("");
 
-  private static final long serialVersionUID = -140994685772720029L;
+  final protected String defaultValue;
 
-  protected HDFSOutputParam(ParameterEnum[] params) {
-    super(params.length);
+  private ParameterEnum(String defaultValue) {
+    this.defaultValue = defaultValue;
   }
-
-  final public Map<String, String> buildMap() {
-    Map<String, String> rval = new HashMap<String, String>();
-    for (Map.Entry<ParameterEnum, String> entry : this.entrySet()) {
-      rval.put(entry.getKey().name(), entry.getValue());
-    }
-    return rval;
-  }
-
 }

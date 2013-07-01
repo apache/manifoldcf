@@ -17,5 +17,16 @@
 
 <script type="text/javascript">
 <!--
+function checkOutputSpecificationForSave()
+{
+  if (editjob.rootpath.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.RootPathCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.PathTabName'))");
+    editjob.rootpath.focus();
+    return false;
+  }
+  return true;
+}
 //-->
 </script>

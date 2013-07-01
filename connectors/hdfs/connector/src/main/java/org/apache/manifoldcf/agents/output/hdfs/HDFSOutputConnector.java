@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -113,34 +114,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
     
-    String nameNode = configParams.getParameter(ParameterEnum.NAMENODE.name());
-    
-    String user = configParams.getParameter(ParameterEnum.USER.name());
-    
-    /*
-     * make Configuration
-     */
-    ClassLoader ocl = Thread.currentThread().getContextClassLoader();
-    try {
-      Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
-      config = new Configuration();
-      config.set("fs.default.name", nameNode);
-    } finally {
-      Thread.currentThread().setContextClassLoader(ocl);
-    }
-    
-    /*
-     * get connection to HDFS
-     */
-    try {
-        fileSystem = FileSystem.get(new URI(nameNode), config, user);
-    } catch (URISyntaxException e) {
-      Logging.agents.warn("HDFS: Node name error: " + e.getMessage(), e);
-    } catch (IOException e) {
-      Logging.agents.warn("HDFS: File system error: " + e.getMessage(), e);
-    } catch (InterruptedException e) {
-      Logging.agents.warn("HDFS: File system error: " + e.getMessage(), e);
-    }
   }
 
   /** Close the connection.  Call this before discarding the connection.
@@ -158,6 +131,40 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /** Set up a session */
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
+    String nameNode = params.getParameter(ParameterEnum.NAMENODE.name());
+    if (nameNode == null)
+      throw new ManifoldCFException("Namenode must be specified");
+    
+    String user = params.getParameter(ParameterEnum.USER.name());
+    if (user == null)
+      throw new ManifoldCFException("User must be specified");
+    
+    /*
+     * make Configuration
+     */
+    ClassLoader ocl = Thread.currentThread().getContextClassLoader();
+    try {
+      Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
+      config = new Configuration();
+      config.set("fs.default.name", nameNode);
+    } finally {
+      Thread.currentThread().setContextClassLoader(ocl);
+    }
+    
+    /*
+     * get connection to HDFS
+     */
+    try {
+      fileSystem = FileSystem.get(new URI(nameNode), config, user);
+    } catch (URISyntaxException e) {
+      handleURISyntaxException(e);
+      throw new ManifoldCFException(e.getMessage(),e);
+    } catch (IOException e) {
+      handleIOException(e);
+    } catch (InterruptedException e) {
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+    }
+
   }
 
   /** Test the connection.  Returns a string describing the connection integrity.
@@ -249,19 +256,20 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       /*
        * write file
        */
-      byte buf[] = new byte[1024];
+      byte buf[] = new byte[65536];
       int len;
       while((len = input.read(buf)) != -1) {
         output.write(buf, 0, len);
       }
       output.flush();
     } catch (JSONException e) {
+      handleJSONException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (URISyntaxException e) {
+      handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
-    } catch (NullPointerException e) {
-        return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
+      handleIOException(e);
       return DOCUMENTSTATUS_REJECTED;
     } finally {
       try {
@@ -314,9 +322,11 @@ public class HDFSOutputConnector extends BaseOutputConnector {
         fileSystem.delete(path, true);
       }
     } catch (JSONException e) {
+      handleJSONException(e);
     } catch (URISyntaxException e) {
-    } catch (NullPointerException e) {
+      handleURISyntaxException(e);
     } catch (IOException e) {
+      handleIOException(e);
     }
 
     activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, "OK", null);
@@ -499,9 +509,8 @@ public class HDFSOutputConnector extends BaseOutputConnector {
    * @param documentURI
    * @return
    * @throws URISyntaxException
-   * @throws NullPointerException
    */
-  final private String documentURItoFilePath(String documentURI) throws URISyntaxException, NullPointerException {
+  final private String documentURItoFilePath(String documentURI) throws URISyntaxException {
     StringBuffer path = new StringBuffer();
     URI uri = null;
 
@@ -516,7 +525,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       path.append(uri.getHost());
       if (uri.getPort() != -1) {
         path.append(":");
-        path.append(uri.getPort());
+        path.append(Integer.toString(uri.getPort()));
       }
       if (uri.getRawPath() != null) {
         if (uri.getRawPath().length() == 0) {
@@ -525,7 +534,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
           path.append(uri.getRawPath());
         } else {
           for (String name : uri.getRawPath().split("/")) {
-            if (name.length() > 0) {
+            if (name != null && name.length() > 0) {
               path.append("/");
               path.append(name);
             }
@@ -539,7 +548,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     } else {
       if (uri.getRawSchemeSpecificPart() != null) {
         for (String name : uri.getRawSchemeSpecificPart().split("/")) {
-          if (name.length() > 0) {
+          if (name != null && name.length() > 0) {
             path.append("/");
             path.append(name);
           }
@@ -552,4 +561,32 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     }
     return path.toString();
   }
+  
+  /** Handle URISyntaxException */
+  protected static void handleURISyntaxException(URISyntaxException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Logging.agents.error("Namenode URI is malformed: "+e.getMessage(),e);
+    throw new ManifoldCFException("Namenode URI is malformed: "+e.getMessage(),e);
+  }
+  
+  /** Handle JSONException */
+  protected static void handleJSONException(JSONException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Logging.agents.error("JSON parsing error: "+e.getMessage(),e);
+    throw new ManifoldCFException("JSON parsing error: "+e.getMessage(),e);
+  }
+  
+  /** Handle IOException */
+  protected static void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    }
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L, currentTime + 3 * 60 * 60000L,-1,false);
+  }
+  
 }

@@ -17,5 +17,23 @@
 
 <script type="text/javascript">
 <!--
+function checkConfigForSave()
+{
+  if (editconnection.namenode.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeURICannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    editconnection.namenode.focus();
+    return false;
+  }
+  if (editconnection.user.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.UserCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    editconnection.user.focus();
+    return false;
+  }
+  return true;
+}
 //-->
 </script>
