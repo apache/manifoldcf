@@ -320,7 +320,14 @@ public class UserACLServlet extends HttpServlet
             return;
           }
 
-          if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
+          // A null reply means the same as USERNOTFOUND; it occurs because a user mapping failed somewhere.
+          if (reply == null)
+          {
+            if (Logging.authorityService.isDebugEnabled())
+              Logging.authorityService.debug("User '"+userID+"' mapping failed for authority '"+ar.getIdentifyingString()+"'");
+            sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+          }
+          else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
           {
             Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+userID+"'");
             sb.append(UNREACHABLE_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");

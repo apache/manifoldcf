@@ -71,48 +71,52 @@ public class MappingThread extends Thread
 	String outputUserID = null;
         Throwable exception = null;
 
-        try
+        // Only try a mapping if we have a user to map...
+        if (theRequest.getUserID() != null)
         {
-          IMappingConnector connector = MappingConnectorFactory.grab(threadContext,
-            theRequest.getClassName(),
-            theRequest.getConfigurationParams(),
-            theRequest.getMaxConnections());
           try
           {
-            if (connector == null)
-              exception = new ManifoldCFException("Mapping connector "+theRequest.getClassName()+" is not registered.");
-            else
+            IMappingConnector connector = MappingConnectorFactory.grab(threadContext,
+              theRequest.getClassName(),
+              theRequest.getConfigurationParams(),
+              theRequest.getMaxConnections());
+            try
             {
-              // Do the mapping
-              try
+              if (connector == null)
+                exception = new ManifoldCFException("Mapping connector "+theRequest.getClassName()+" is not registered.");
+              else
               {
-                outputUserID = connector.mapUser(theRequest.getUserID());
-              }
-              catch (ManifoldCFException e)
-              {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  throw e;
-                Logging.authorityService.warn("Mapping error: "+e.getMessage(),e);
-              }
+                // Do the mapping
+                try
+                {
+                  outputUserID = connector.mapUser(theRequest.getUserID());
+                }
+                catch (ManifoldCFException e)
+                {
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    throw e;
+                  Logging.authorityService.warn("Mapping error: "+e.getMessage(),e);
+                }
 
+              }
+            }
+            finally
+            {
+              MappingConnectorFactory.release(connector);
             }
           }
-          finally
+          catch (ManifoldCFException e)
           {
-            MappingConnectorFactory.release(connector);
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              throw e;
+            Logging.authorityService.warn("Mapping connection exception: "+e.getMessage(),e);
+            exception = e;
           }
-        }
-        catch (ManifoldCFException e)
-        {
-          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-            throw e;
-          Logging.authorityService.warn("Mapping connection exception: "+e.getMessage(),e);
-          exception = e;
-        }
-        catch (Throwable e)
-        {
-          Logging.authorityService.warn("Mapping connection error: "+e.getMessage(),e);
-          exception = e;
+          catch (Throwable e)
+          {
+            Logging.authorityService.warn("Mapping connection error: "+e.getMessage(),e);
+            exception = e;
+          }
         }
 
         // The request is complete
