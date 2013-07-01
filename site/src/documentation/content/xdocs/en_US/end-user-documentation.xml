@@ -592,7 +592,24 @@
                 <br/><br/>
                 <p>Fill in the path you want the connection type to use to write the documents to.  Then, click the "Save" button.</p>
             </section>
-            
+
+            <section id="hdfsoutputconnector">
+                <title>HDFS Output Connection</title>
+                <p>The HDFS output connection type allows ManifoldCF to store documents in HDFS, using the conventions established by the
+                    Unix utility called <em>wget</em>.  Documents stored by this connection type will not include any metadata or security information, but instead
+                    consist solely of a binary file.</p>
+                <p>The connection configuration information for the HDFS output connection type includes one additional tab: the "Server" tab.  This tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-configure-server.PNG" alt="HDFS Output Configuration, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the name node URI and the user name.  Both are required.</p>
+                <p>For the HDFS output connection type, there is an additional job tab called "Output Path".  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-output-path.PNG" alt="HDFS Output Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the path you want the connection type to use to write the documents to.  Then, click the "Save" button.</p>
+            </section>
+
             <section id="opensearchserveroutputconnector">
                 <title>OpenSearchServer Output Connection</title>
                 <p>The OpenSearchServer Output Connection allow ManifoldCF to submit documents to an OpenSearchServer instance, via the XML over HTTP API. The connector has been designed

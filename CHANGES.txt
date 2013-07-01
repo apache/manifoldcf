@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-741: Document HDFS output connector.
+(Karl Wright)
+
 CONNECTORS-743: Document user mapping functionality.
 (Karl Wright)
 
