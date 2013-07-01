@@ -406,22 +406,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     DocumentSpecification spec, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    int i = 0;
-    
-    /*
-     * get filepathtouri value
-     */
-    boolean filePathToUri = false;
-    i = 0;
-    while (i < spec.getChildCount()) {
-      SpecificationNode sn = spec.getChild(i++);
-      if (sn.getType().equals("filepathtouri")) {
-        filePathToUri = Boolean.valueOf(sn.getValue());
-      }
-    }
-
     String[] rval = new String[documentIdentifiers.length];
-    for (i = 0; i < rval.length; i++) {
+    for (int i = 0; i < rval.length; i++) {
       getSession();
       GetObjectThread objt = new GetObjectThread(documentIdentifiers[i]);
       try {
@@ -442,11 +428,17 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           if (activities.checkLengthIndexable(fileLength)) {
             long lastModified = fileStatus.getModificationTime();
             StringBuilder sb = new StringBuilder();
-            if (filePathToUri) {
+            // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
+            // URI's change.
+            String convertPath = findConvertPath(spec, fileStatus.getPath());
+            if (convertPath != null)
+            {
+              // Record the path.
               sb.append("+");
-            } else {
-              sb.append("-");
+              pack(sb,convertPath,'+');
             }
+            else
+              sb.append("-");
             sb.append(new Long(lastModified).toString()).append(":").append(new Long(fileLength).toString());
             rval[i] = sb.toString();
           } else {
@@ -541,27 +533,16 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             }
 
             /*
-             * get repository paths
-             */
-            int j = 0;
-            List<String> repositoryPaths = new ArrayList<String>();
-            while ( j < spec.getChildCount()) {
-              SpecificationNode sn = spec.getChild(j++);
-              if (sn.getType().equals("startpoint")) {
-                if (sn.getAttributeValue("path").length() > 0) {
-                  repositoryPaths.add(session.getFileSystem().getUri().resolve(sn.getAttributeValue("path")).toString());
-                }
-              }
-            }
-
-            /*
              * get filepathtouri value
              */
-            boolean filePathToUri = false;
-            if (version.length() > 0 && version.startsWith("+")) {
-              filePathToUri = true;
+            String convertPath = null;
+            if (version.length() > 0 && version.startsWith("+"))
+            {
+              StringBuilder unpack = new StringBuilder();
+              unpack(unpack, version, 1, '+');
+              convertPath = unpack.toString();
             }
-            
+
             // Length in bytes
             fileSize = fileStatus.getLen();
             
@@ -571,11 +552,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             data.setMimeType(mapExtensionToMimeType(fileStatus.getPath().getName()));
             data.setModifiedDate(new Date(fileStatus.getModificationTime()));
 
-            if (filePathToUri) {
-              data.addField("uri",convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])));
+            String uri;
+            if (convertPath != null) {
+              uri = convertToWGETURI(convertPath);
             } else {
-              data.addField("uri",fileStatus.getPath().toUri().toString());
+              uri = fileStatus.getPath().toUri().toString();
             }
+            data.addField("uri",uri);
 
             getSession();
             BackgroundStreamThread t = new BackgroundStreamThread(documentIdentifier);
@@ -586,11 +569,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
                 InputStream is = t.getSafeInputStream();
                 try {
                   data.setBinary(is, fileSize);
-                  if (filePathToUri) {
-                    activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier,repositoryPaths.toArray(new String[0])),data);
-                  } else {
-                    activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
-                  }
+                  activities.ingestDocument(documentIdentifier,version,uri,data);
                 } finally {
                   is.close();
                 }
@@ -664,6 +643,20 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "<!--\n"+
 "function checkConfigForSave()\n"+
 "{\n"+
+"  if (editconnection.namenode.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.NameNodeURICannotBeNull")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.ServerTabName")+"\");\n"+
+"    editconnection.namenode.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.user.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.UserCannotBeNull")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.ServerTabName")+"\");\n"+
+"    editconnection.user.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  return true;\n"+
 "}\n"+
 "\n"+
@@ -795,7 +788,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"HDFSRepositoryConnector.Paths"));
-    tabsArray.add(Messages.getString(locale,"HDFSRepositoryConnector.FilePathToURITab"));
 
     out.print(
 "<script type=\"text/javascript\">\n"+
@@ -844,6 +836,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "        <tr class=\"formheaderrow\">\n"+
 "          <td class=\"formcolumnheader\"></td>\n"+
 "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.RootPath") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.ConvertToURI") + "<br/>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.ConvertToURIExample")+ "</nobr></td>\n"+
 "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.Rules") + "</nobr></td>\n"+
 "        </tr>\n"
       );
@@ -856,6 +849,14 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         {
           String pathDescription = "_"+Integer.toString(k);
           String pathOpName = "specop"+pathDescription;
+          
+          String path = sn.getAttributeValue("path");
+          String convertToURIString = sn.getAttributeValue("converttouri");
+
+          boolean convertToURI = false;
+          if (convertToURIString != null && convertToURIString.equals("true"))
+            convertToURI = true;
+
           out.print(
 "        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -867,7 +868,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+" \n"+
+"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+" \n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <input type=\"hidden\" name=\"converttouri"+pathDescription+"\" value=\""+(convertToURI?"true":"false")+"\">\n"+
+"            <nobr>\n"+
+"              "+(convertToURI?Messages.getBodyString(locale,"HDFSRepositoryConnector.Yes"):Messages.getBodyString(locale,"HDFSRepositoryConnector.No"))+" \n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"boxcell\">\n"+
@@ -953,7 +960,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           if (j == 0)
           {
             out.print(
-"              <tr class=\"formrow\"><td class=\"message\" colspan=\"4\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoRulesDefined") + "</td></tr>\n"
+"              <tr class=\"formrow\"><td class=\"formcolumnmessage\" colspan=\"4\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoRulesDefined") + "</td></tr>\n"
             );
           }
           out.print(
@@ -996,11 +1003,11 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       if (k == 0)
       {
         out.print(
-"        <tr class=\"formrow\"><td class=\"message\" colspan=\"3\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoDocumentsSpecified") + "</td></tr>\n"
+"        <tr class=\"formrow\"><td class=\"formcolumnmessage\" colspan=\"4\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoDocumentsSpecified") + "</td></tr>\n"
         );
       }
       out.print(
-"        <tr class=\"formrow\"><td class=\"lightseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\"><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
@@ -1013,7 +1020,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
 "            <nobr>\n"+
-"              <input type=\"text\" size=\"80\" name=\"specpath\" value=\"\"/>\n"+
+"              <input type=\"text\" size=\"30\" name=\"specpath\" value=\"\"/>\n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              <input name=\"converttouri\" type=\"checkbox\" value=\"true\"/>\n"+
 "            </nobr>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -1035,8 +1047,17 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         if (sn.getType().equals("startpoint"))
         {
           String pathDescription = "_"+Integer.toString(k);
+          
+          String path = sn.getAttributeValue("path");
+          String convertToURIString = sn.getAttributeValue("converttouri");
+
+          boolean convertToURI = false;
+          if (convertToURIString != null && convertToURIString.equals("true"))
+            convertToURI = true;
+
           out.print(
-"<input type=\"hidden\" name=\"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
+"<input type=\"hidden\" name=\"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
+"<input type=\"hidden\" name=\"converttouri"+pathDescription+"\" value=\""+(convertToURI?"true":"false")+"\">\n"+
 "<input type=\"hidden\" name=\"specchildcount"+pathDescription+"\" value=\""+Integer.toString(sn.getChildCount())+"\"/>\n"
           );
 
@@ -1063,44 +1084,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "<input type=\"hidden\" name=\"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
       );
     }
-    
-    
-    /*
-     * get filepathtouri value
-     */
-    boolean filePathToUri = false;
-    i = 0;
-    while (i < ds.getChildCount()) {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("filepathtouri")) {
-        filePathToUri = Boolean.valueOf(sn.getValue());
-      }
-    }	    
-
-    /*
-     * File path to URI tab
-     */
-    if (tabName.equals(Messages.getString(locale,"HDFSRepositoryConnector.FilePathToURITab"))) {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.FilePathToURI") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input name=\"filepathtouri\" type=\"checkbox\" value=\"true\"" + (filePathToUri ? "checked" : "") +"/>&nbsp;" + Messages.getBodyString(locale,"HDFSRepositoryConnector.FilePathToURIExample") + "\n" +
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    } else {
-      /*
-       * File path to URI tab hiddens
-       */
-      out.print(
-"<input type=\"hidden\" name=\"filepathtouri\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Boolean.toString(filePathToUri)) + "\"/>\n"
-      );
-    }
-
   }
   
   /** Process a specification post.
@@ -1137,8 +1120,13 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         }
         // Path inserts won't happen until the very end
         String path = variableContext.getParameter("specpath"+pathDescription);
+        String convertToURI = variableContext.getParameter("converttouri"+pathDescription);
+
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
+        if (convertToURI != null)
+          node.setAttribute("converttouri",convertToURI);
+
         // Now, get the number of children
         String y = variableContext.getParameter("specchildcount"+pathDescription);
         int childCount = Integer.parseInt(y);
@@ -1200,8 +1188,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       if (op != null && op.equals("Add"))
       {
         String path = variableContext.getParameter("specpath");
+        String convertToURI = variableContext.getParameter("converttouri");
+
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
+        if (convertToURI != null)
+          node.setAttribute("converttouri",convertToURI);
         
         // Now add in the defaults; these will be "include all directories" and "include all files".
         SpecificationNode sn = new SpecificationNode("include");
@@ -1249,151 +1241,192 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
-    int i = 0;
-    
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"  <td colspan=\"2\" class=\"message\">" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Paths") + "</td>\n"+
-"  </tr>\n"
+"    <td class=\"description\">" + Messages.getAttributeString(locale,"HDFSRepositoryConnector.Paths2") + "</td>\n"+    
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.RootPath") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.ConvertToURI") + "<br/>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.ConvertToURIExample")+ "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.Rules") + "</nobr></td>\n"+
+"        </tr>\n"
     );
-
-    i = 0;
-    boolean seenAny = false;
-    while (i < ds.getChildCount())
+    
+    int k = 0;
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("startpoint"))
       {
-        if (seenAny == false)
-        {
-          seenAny = true;
-        }
+        String path = sn.getAttributeValue("path");
+        String convertToURIString = sn.getAttributeValue("converttouri");
+        boolean convertToURI = false;
+        if (convertToURIString != null && convertToURIString.equals("true"))
+          convertToURI = true;
+        
         out.print(
-"  <tr>\n"+
-"    <td class=\"description\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+":"+"</td>\n"+
-"    <td class=\"value\">\n"
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+" \n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <nobr>\n"+
+"              "+(convertToURI?Messages.getBodyString(locale,"HDFSRepositoryConnector.Yes"):Messages.getBodyString(locale,"HDFSRepositoryConnector.No"))+" \n"+
+"            </nobr>\n"+
+"          </td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.IncludeExclude") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.FileDirectory") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.Match") + "</nobr></td>\n"+
+"              </tr>\n"
         );
-        int j = 0;
-        while (j < sn.getChildCount())
+        
+        int l = 0;
+        for (int j = 0; j < sn.getChildCount(); j++)
         {
-          SpecificationNode excludeNode = sn.getChild(j++);
+          SpecificationNode excludeNode = sn.getChild(j);
+
+          String nodeFlavor = excludeNode.getType();
+          String nodeType = excludeNode.getAttributeValue("type");
+          String nodeMatch = excludeNode.getAttributeValue("match");
           out.print(
-"      "+(excludeNode.getType().equals("include")?"Include ":"")+"\n"+
-"      "+(excludeNode.getType().equals("exclude")?"Exclude ":"")+"\n"+
-"      "+(excludeNode.getAttributeValue("type").equals("file")?"file ":"")+"\n"+
-"      "+(excludeNode.getAttributeValue("type").equals("directory")?"directory ":"")+"\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(excludeNode.getAttributeValue("match"))+"<br/>\n"
+"              <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    "+nodeFlavor+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    "+nodeType+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>\n"+
+"                    "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nodeMatch)+"\n"+
+"                  </nobr>\n"+
+"                </td>\n"+
+"              </tr>\n"
+          );
+          l++;
+        }
+
+        if (l == 0)
+        {
+          out.print(
+"              <tr><td class=\"formcolumnmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoRulesDefined") + "</td></tr>\n"
           );
         }
+
         out.print(
-"    </td>\n"+
-"  </tr>\n"
+"            </table>\n"+
+"           </td>\n"
         );
+
+        out.print(
+"        </tr>\n"
+        );
+
+        k++;
       }
+      
     }
-    if (seenAny == false)
+
+    if (k == 0)
     {
       out.print(
-"  <tr><td class=\"message\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoDocumentsSpecified") + "</td></tr>\n"
+"        <tr><td class=\"formcolumnmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NoDocumentsSpecified") + "</td></tr>\n"
       );
     }
+    
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
+"  </tr>\n"
+    );
+
     out.print(
 "</table>\n"
     );
     
-    /*
-     * get filepathtouri value
-     */
-    boolean filePathToUri = false;
-    i = 0;
-    while (i < ds.getChildCount()) {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("filepathtouri")) {
-        filePathToUri = Boolean.valueOf(sn.getValue());
-      }
-    }
-
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td colspan=\"2\" class=\"separator\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.FilePathToURI") + "</nobr></td>\n"+
-"    <td class=\"value\">" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Boolean.toString(filePathToUri)) + "</td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
-  
   }
 
   // Protected static methods
 
-  /** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
+  /** Convert a path to an HDFS wget URI.  The URI is the URI that will be the unique key from
   * the search index, and will be presented to the user as part of the search results.
   *@param filePath is the document filePath.
   *@param repositoryPath is the document repositoryPath.
   *@return the document uri.
   */
-  protected String convertToURI(String documentIdentifier, String[] repositoryPaths)
+  protected static String convertToWGETURI(String path)
     throws ManifoldCFException
   {
     //
     // Note well:  This MUST be a legal URI!!!
     try
     {
-      String path = new Path(documentIdentifier).toString();
-      for (String repositoryPath : repositoryPaths) {
-        if (path.startsWith(repositoryPath)) {
-          StringBuffer sb = new StringBuffer();
-          path = path.replaceFirst(repositoryPath, "");
-          if (path.startsWith("/")) {
-            path = path.replaceFirst("/", "");
-          }
-          String[] tmp = path.split("/", 3);
-          String scheme = "";
-          String host = "";
-          String other = "";
-          try {
-            scheme = tmp[0];
-          } catch (ArrayIndexOutOfBoundsException e) {
-            scheme = "hdfs";
-          }
-          try {
-            host = tmp[1];
-          } catch (ArrayIndexOutOfBoundsException e) {
-            host = "localhost:9000";
-          }
-          try {
-            other = "/" + tmp[2];
-          } catch (ArrayIndexOutOfBoundsException e) {
-            other = "/";
-          }
-          return new URI(scheme + "://" + host + other).toURL().toString();
-        }
-      }
-      return convertToURI(documentIdentifier);
+      StringBuffer sb = new StringBuffer();
+      String[] tmp = path.split("/", 3);
+      String scheme = "";
+      String host = "";
+      String other = "";
+      if (tmp.length >= 1)
+        scheme = tmp[0];
+      else
+        scheme = "hdfs";
+      if (tmp.length >= 2)
+        host = tmp[1];
+      else
+        host = "localhost:9000";
+      if (tmp.length >= 3)
+        other = "/" + tmp[2];
+      else
+        other = "/";
+      return new URI(scheme + "://" + host + other).toURL().toString();
+    }
+    catch (java.net.MalformedURLException e)
+    {
+      throw new ManifoldCFException("Bad url: "+e.getMessage(),e);
     }
     catch (URISyntaxException e)
     {
-      throw new ManifoldCFException("Bad url",e);
-    }
-    catch (IOException e)
-    {
-      throw new ManifoldCFException("Bad url",e);
+      throw new ManifoldCFException("Bad url: "+e.getMessage(),e);
     }
   }
 
-  /** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
-   * the search index, and will be presented to the user as part of the search results.
-   *@param documentIdentifier is the document identifier.
-   *@return the document uri.
-   */
-  protected String convertToURI(String documentIdentifier)
-    throws ManifoldCFException
+  /** This method finds the part of the path that should be converted to a URI.
+  * Returns null if the path should not be converted.
+  *@param spec is the document specification.
+  *@param documentIdentifier is the document identifier.
+  *@return the part of the path to be converted, or null.
+  */
+  protected static String findConvertPath(DocumentSpecification spec, Path theFile)
   {
-    //
-    // Note well:  This MUST be a legal URI!!!
-    return new Path(documentIdentifier).toUri().toString();
+    String fullpath = theFile.toString();
+    for (int j = 0; j < spec.getChildCount(); j++)
+    {
+      SpecificationNode sn = spec.getChild(j);
+      if (sn.getType().equals("startpoint"))
+      {
+        String path = sn.getAttributeValue("path");
+        String convertToURI = sn.getAttributeValue("converttouri");
+        if (path.length() > 0 && convertToURI != null && convertToURI.equals("true"))
+        {
+          if (!path.endsWith("/"))
+            path += "/";
+          if (fullpath.startsWith(path))
+            return fullpath.substring(path.length());
+        }
+      }
+    }
+    return null;
   }
 
   /** Map an extension to a mime type */
