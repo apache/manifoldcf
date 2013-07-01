@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-743: Document user mapping functionality.
+(Karl Wright)
+
 CONNECTORS-703: Add mapper plugin functionality, and regular expression
 mapper.  WARNING: This change represents a schema change!!
 (Maciej Lizewski, Karl Wright)
