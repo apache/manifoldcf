@@ -84,6 +84,63 @@
                        If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the output connection
                        will work correctly.</p>
             </section>
+
+            <section id="mappers">
+                <title>Defining Mapping Connections</title>
+                <p>The Framework UI's left-side menu contains a link for listing user mapping connections.  A user mapping connection is a connection to a system that understands how to map a user name
+                       into a different user name intended for a different repository.  For example, if you want to enforce document security using LiveLink, but you have only an Active Directory user name,
+                       you will need to map the Active Directory user name to a corresponding LiveLink one, before finding access tokens for it using the LiveLink Authority.</p>
+                <p>You will not need any user mapping connections if the authorities that you intend to create can all operate using the same user name, and that user name is the one that is made available to
+                       ManifoldCF's authority servlet at search time.</p>
+                <p>You should define your mapping connections <b>before</b> setting up your authority connections.  Individual authority connections must specify the mapping connection that precedes it.
+                       It's also convenient to define your mapping connections in the order that you want to process the user name, for the same reason.  If you don't manage to do this right the first time, though,
+                       there is no penalty involved if you need to go back and fix things up.</p>
+                <p>You can create a mapping connection by clicking the "List User Mapping Connections" link in the left-side navigation menu.  When you do this, the
+                       following screen will appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/list-mapping-connections.PNG" alt="List User Mapping Connections" width="80%"/>
+                <br/><br/>
+                <p>On a freshly created system, there may well be no existing mapping connections listed.  If there are already mapping connections, they will be listed on this screen, along with links
+                       that allow you to view, edit, or delete them.  To create a new mapping connection, click the "Add a new connection" link at the bottom.  The following screen will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-mapping-connection-name.PNG" alt="Add New User Mapping Connection, specify Name" width="80%"/>
+                <br/><br/>
+                <p>The tabs across the top each present a different view of your mapping connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
+                       depends on the connection type you choose for the connection.</p>
+                <p>Start by giving your connection a name and a description.  Remember that all mapping connection names must be unique, and cannot be changed after the connection is defined.  The name must be
+                       no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-mapping-connection-type.PNG" alt="Add New User Mapping Connection, select Type" width="80%"/>
+                <br/><br/>
+                <p>The list of mapping connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of
+                       mapping connection type included with ManifoldCF are described in separate sections below.</p>
+                <p>After you choose a mapping connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
+                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead,
+                       the new connection will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                <p>Every mapping connection has a "Prerequisites" tab.  This tab allows you to specify which mapping connection needs to be run before this one (if any).  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/mapping-prerequisites.PNG" alt="User Mapping Connection Prerequisites" width="80%"/>
+                <br/><br/>
+                <p>Note: It is very important that you do not specify prerequisites in such a way as to create a loop.  To make this easier, ManifoldCF will not display any user mapping connections in the pulldown
+                       which, if selected, would lead to a loop.</p>
+                <p>Every mapping connection has a "Throttling" tab.  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/mapping-throttling.PNG" alt="User Mapping Connection Throttling" width="80%"/>
+                <br/><br/>
+                <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
+                       that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
+                       value is 10, which may not be optimal for all types of mapping connections.  Please refer to the section of the manual describing your mapping connection type for more precise
+                       recommendations.
+                </p>
+                <p>Please refer to the section of the manual describing your chosen mapping connection type for a description of the tabs appropriate for that connection type.</p>
+
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
+                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
+                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the mapping connection
+                       will work correctly.</p>
+                       
+            </section>
+
             <section id="authorities">
                 <title>Defining Authority Connections</title>
                 <p>The Framework UI's left-side menu contains a link for listing authority connections.  An authority connection is a connection to a system that defines a particular security environment.
@@ -114,7 +171,11 @@
                 <p>After you choose an authority connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
                        "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead, the new connection
                        will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
-                <p>Every authority connection has a "Throttling" tab.  The tab looks like this:</p>
+                <p>Every authority connection has a "Prerequisites" tab.  This tab allows you to specify which mapping connection needs to be run before this one (if any).  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/authority-prerequisites.PNG" alt="Authority Connection Prerequisites" width="80%"/>
+                <br/><br/>
+                <p>Every authority connection also has a "Throttling" tab.  The tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/authority-throttling.PNG" alt="Authority Connection Throttling" width="80%"/>
                 <br/><br/>
@@ -640,7 +701,35 @@ curl -XGET http://localhost:9200/index/_mapping
             </section>
             
         </section>
-        
+
+        <section id="mappingconnectiontypes">
+            <title>User Mapping Connection Types</title>
+            
+            <section id="regexpmapper">
+                <title>Regular Expression User Mapping Connection</title>
+                <p>The Regular Expression user mapping connection type is very helpful for rote user name conversions of all sorts.  For example, it can easily be configured to map the standard "user@domain" form
+                       of an Active Directory user name to (say) a LiveLink equivalent, e.g. "domain\user".  Since many repositories establish such rote conversions, the Regular Expression user mapping connection
+                       type is often all that you will ever need.</p>
+                <br/>
+                <p>A Regular Expression user mapping connection type has one special tab in the user mapping connection editing screen: "User Mapping".  This
+                       tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/regexp-mapping-user-mapping.PNG" alt="Regexp User Mapping, User Mapping tab" width="80%"/>
+                <br/><br/>
+                <p>The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
+                       replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
+                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first
+                       match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
+                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert
+                      an Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the user name
+                      <code>subdomain\myusername</code>.</p>
+                <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented, which may look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/regexp-mapping-status.PNG" alt="Regexp User Mapping Status" width="80%"/>
+                <br/><br/>
+            </section>
+        </section>
+
         <section id="authorityconnectiontypes">
             <title>Authority Connection Types</title>
             
