@@ -32,9 +32,9 @@ public class HDFSOutputConfig extends HDFSOutputParam {
 
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST = {
-    ParameterEnum.NAMENODEHOST,
-    ParameterEnum.NAMENODEPORT,
-    ParameterEnum.USER
+    ParameterEnum.namenodehost,
+    ParameterEnum.namenodeport,
+    ParameterEnum.user
   };
 
   /** Build a set of ElasticSearchParameters by reading ConfigParams. If the

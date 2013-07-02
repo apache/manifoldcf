@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-744: Use background threads in HDFS output connector.
+(Karl Wright)
+
 CONNECTORS-742: Document HDFS connector.
 (Karl Wright)
 

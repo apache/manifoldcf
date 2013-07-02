@@ -39,7 +39,7 @@ public class HDFSOutputSpecs extends HDFSOutputParam {
   private static final long serialVersionUID = 1145652730572662025L;
 
   final public static ParameterEnum[] SPECIFICATIONLIST = {
-    ParameterEnum.ROOTPATH
+    ParameterEnum.rootpath
   };
 
   private String rootPath;
@@ -118,7 +118,7 @@ public class HDFSOutputSpecs extends HDFSOutputParam {
    * @return
    */
   public String getRootPath() {
-    return get(ParameterEnum.ROOTPATH);
+    return get(ParameterEnum.rootpath);
   }
 
   /**
@@ -142,7 +142,7 @@ public class HDFSOutputSpecs extends HDFSOutputParam {
       }
       return set;
     } catch (IOException e) {
-      throw new ManifoldCFException(e);
+      throw new ManifoldCFException(e.getMessage(),e);
     } finally {
       if (br != null) {
         IOUtils.closeQuietly(br);

@@ -24,10 +24,10 @@ import java.util.Map;
 
 /** Parameters constants */
 public enum ParameterEnum {
-  NAMENODEHOST("localhost"),
-  NAMENODEPORT("9000"),
-  USER(""),
-  ROOTPATH("");
+  namenodehost("localhost"),
+  namenodeport("9000"),
+  user(""),
+  rootpath("");
 
   final protected String defaultValue;
 
