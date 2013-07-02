@@ -714,6 +714,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       username = StringUtils.EMPTY;
     if(password == null)
       password = StringUtils.EMPTY;
+    else
+    {
+      if (password.length() > 0)
+        password = EXISTING_VALUE_PASSWORD;
+    }
     if(protocol == null)
       protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
     if(server == null)
@@ -848,7 +853,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     String password = variableContext.getParameter(CmisConfig.PASSWORD_PARAM);
     if (password != null)
-      parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
+    {
+      if (!password.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
+    }
 
     String protocol = variableContext.getParameter(CmisConfig.PROTOCOL_PARAM);
     if (protocol != null) {

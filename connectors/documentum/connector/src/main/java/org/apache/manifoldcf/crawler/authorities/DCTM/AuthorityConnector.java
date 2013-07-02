@@ -1139,6 +1139,11 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     String docbasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD);
     if (docbasePassword == null)
       docbasePassword = "";
+    else
+    {
+      if (docbasePassword.length() > 0)
+        docbasePassword = EXISTING_VALUE_PASSWORD;
+    }
 
     String docbaseDomain = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN);
     if (docbaseDomain == null)
@@ -1311,8 +1316,11 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
 	
     String docbasePassword = variableContext.getParameter("docbasepassword");
     if (docbasePassword != null)
+    {
+      if (!docbasePassword.equals(EXISTING_VALUE_PASSWORD))
       parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD,docbasePassword);
-	
+    }
+
     String docbaseDomain = variableContext.getParameter("docbasedomain");
     if (docbaseDomain != null)
       parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN,docbaseDomain);

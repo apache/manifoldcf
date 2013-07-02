@@ -486,6 +486,11 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
     if (password == null) 
       password = AlfrescoConfig.PASSWORD_DEFAULT_VALUE;
+    else
+    {
+      if (password.length() > 0)
+        password = EXISTING_VALUE_PASSWORD;
+    }
     paramMap.put(AlfrescoConfig.PASSWORD_PARAM, password);
     
     String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
@@ -633,7 +638,8 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
     String password = variableContext.getParameter(AlfrescoConfig.PASSWORD_PARAM);
     if (password != null) {
-      parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
+      if (!password.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
     }
     
     String protocol = variableContext.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
