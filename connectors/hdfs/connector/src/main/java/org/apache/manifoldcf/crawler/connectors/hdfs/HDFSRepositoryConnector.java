@@ -33,7 +33,6 @@ import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.manifoldcf.core.common.XThreadStringBuffer;
 import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 
-import java.security.GeneralSecurityException;
 import java.util.*;
 import java.io.*;
 import java.net.URI;
@@ -55,7 +54,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   // Activities list
   protected static final String[] activitiesList = new String[]{ACTIVITY_READ};
 
-  protected String nameNode = null;
+  protected String nameNodeHost = null;
+  protected String nameNodePort = null;
   protected String user = null;
   protected Configuration config = null;
   protected HDFSSession session = null;
@@ -122,8 +122,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
 
-    nameNode = configParams.getParameter("namenode");
-    
+    nameNodeHost = configParams.getParameter("namenodehost");
+    nameNodePort = configParams.getParameter("namenodeport");
     user = configParams.getParameter("user");
     
     /*
@@ -133,7 +133,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     try {
       Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
       config = new Configuration();
-      config.set("fs.default.name", nameNode);
+      config.set("fs.default.name", makeNameNodeURI(nameNodeHost, nameNodePort));
     } finally {
       Thread.currentThread().setContextClassLoader(ocl);
     }
@@ -144,34 +144,34 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
    */
   @Override
   public void disconnect() throws ManifoldCFException {
-    if (session != null) {
-      try {
-        session.close();
-      } catch (IOException e) {
-    	throw new ManifoldCFException(e);  
-      } finally {
-        session = null;
-        lastSessionFetch = -1L;
-      }
-    }
-  
-    config.clear();
+    closeSession();
     config = null;
     user = null;
-    nameNode = null;
+    nameNodeHost = null;
+    nameNodePort = null;
     super.disconnect();
   }
 
+  protected static String makeNameNodeURI(String host, String port) {
+    return "hdfs://"+host+":"+port;
+  }
+  
   /**
    * Set up a session
    */
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
-      if (StringUtils.isEmpty(nameNode)) {
-        throw new ManifoldCFException("Parameter namenode required but not set");
+      if (StringUtils.isEmpty(nameNodeHost)) {
+        throw new ManifoldCFException("Parameter namenodehost required but not set");
       }
       if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("HDFS: NameNode = '" + nameNode + "'");
+        Logging.connectors.debug("HDFS: NameNodeHost = '" + nameNodeHost + "'");
+      }
+      if (StringUtils.isEmpty(nameNodePort)) {
+        throw new ManifoldCFException("Parameter namenodeport required but not set");
+      }
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("HDFS: NameNodePort = '" + nameNodePort + "'");
       }
 
       if (StringUtils.isEmpty(user)) {
@@ -190,8 +190,10 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         if (thr != null) {
           if (thr instanceof IOException) {
             throw (IOException) thr;
-          } else if (thr instanceof GeneralSecurityException) {
-            throw (GeneralSecurityException) thr;
+          } else if (thr instanceof URISyntaxException) {
+            throw (URISyntaxException) thr;
+          } else if (thr instanceof RuntimeException) {
+            throw (RuntimeException) thr;
           } else {
             throw (Error) thr;
           }
@@ -205,9 +207,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       } catch (InterruptedIOException e) {
         t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-      } catch (GeneralSecurityException e) {
-        Logging.connectors.error("HDFS: " +  "General security error initializing transport: " + e.getMessage(), e);
-        handleGeneralSecurityException(e);
+      } catch (URISyntaxException e) {
+        Logging.connectors.error("HDFS: URI syntax exception: " + e.getMessage(), e);
+        handleURISyntaxException(e);
       } catch (IOException e) {
         Logging.connectors.warn("HDFS: IO error: " + e.getMessage(), e);
         handleIOException(e);
@@ -243,17 +245,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     CheckConnectionThread t = new CheckConnectionThread();
     try {
       t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof IOException) {
-          throw (IOException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
-        }
-      }
+      t.finishUp();
       return;
     } catch (InterruptedException e) {
       t.interrupt();
@@ -281,15 +273,26 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
-      if (session != null) {
-        try {
-          session.close();
-        } catch (IOException e) {
-          throw new ManifoldCFException(e);  
-        } finally {
-          session = null;
-          lastSessionFetch = -1L;
-        }
+      closeSession();
+    }
+  }
+
+  protected void closeSession()
+    throws ManifoldCFException {
+    if (session != null) {
+      try {
+        // This can in theory throw an IOException, so it is possible it is doing socket
+        // communication.  In practice, it's unlikely that there's any real IO, so I'm
+        // NOT putting it in a background thread for now.
+        session.close();
+      } catch (InterruptedIOException e) {
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      } catch (IOException e) {
+        Logging.connectors.warn("HDFS: Error closing connection: "+e.getMessage(),e);
+        // Eat the exception
+      } finally {
+        session = null;
+        lastSessionFetch = -1L;
       }
     }
   }
@@ -344,40 +347,12 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       if (sn.getType().equals("startpoint")) {
         path = sn.getAttributeValue("path");
   
-        getSession();
-        GetSeedsThread t = new GetSeedsThread(path);
-        try {
-          t.start();
-          boolean wasInterrupted = false;
-          try {
-            XThreadStringBuffer seedBuffer = t.getBuffer();
+        FileStatus[] statuses = getChildren(new Path(path));
 
-            // Pick up the paths, and add them to the activities, before we join with the child thread.
-            while (true) {
-              // The only kind of exceptions this can throw are going to shut the process down.
-              String docPath = seedBuffer.fetch();
-              if (docPath ==  null) {
-                break;
-              }
-              // Add the pageID to the queue
-              activities.addSeedDocument(docPath);
-            }
-          } catch (InterruptedException e) {
-            wasInterrupted = true;
-            throw e;
-          } catch (ManifoldCFException e) {
-            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
-              wasInterrupted = true;
-            }
-            throw e;
-          } finally {
-            if (!wasInterrupted) {
-              t.finishUp();
-            }
+        for (FileStatus fileStatus : statuses) {
+          if (fileStatus.isDir()) {
+            activities.addSeedDocument(fileStatus.getPath().toUri().toString());
           }
-        } catch (InterruptedException e) {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
         }
       }
       i++;
@@ -408,17 +383,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   {
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
-      getSession();
-      GetObjectThread objt = new GetObjectThread(documentIdentifiers[i]);
-      try {
-        objt.start();
-        objt.finishUp();
-      } catch (InterruptedException e) {
-        objt.interrupt();
-        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-      }
-
-      FileStatus fileStatus = objt.getResponse();
+      String documentIdentifier = documentIdentifiers[i];
+      
+      FileStatus fileStatus = getObject(new Path(documentIdentifier));
       if (fileStatus != null) {
         if (fileStatus.isDir()) {
           long lastModified = fileStatus.getModificationTime();
@@ -469,150 +436,134 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void processDocuments(String[] documentIdentifiers, String[] versions, IProcessActivity activities, DocumentSpecification spec, boolean[] scanOnly)
     throws ManifoldCFException, ServiceInterruption {
     for (int i = 0; i < documentIdentifiers.length; i++) {
-      long startTime = System.currentTimeMillis();
-      String errorCode = "FAILED";
-      String errorDesc = StringUtils.EMPTY;
-      long fileSize = 0;
-      boolean doLog = false;
       String version = versions[i];
       String documentIdentifier = documentIdentifiers[i];
         
-      try {
-        if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("HDFS: Processing document identifier '" + documentIdentifier + "'");
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("HDFS: Processing document identifier '" + documentIdentifier + "'");
+      }
+      FileStatus fileStatus = getObject(new Path(documentIdentifier));
+        
+      if (fileStatus == null) {
+        // It is no longer there , so delete right away
+        activities.deleteDocument(documentIdentifier,version);
+        continue;
+      }
+        
+      if (fileStatus.isDir()) {
+        /*
+          * Queue up stuff for directory
+          */
+        String entityReference = documentIdentifier;
+        FileStatus[] fileStatuses = getChildren(fileStatus.getPath());
+        if (fileStatuses == null) {
+          // Directory was deleted, so remove
+          activities.deleteDocument(documentIdentifier,version);
+          continue;
         }
+        for (int j = 0; j < fileStatuses.length; j++) {
+          FileStatus fs = fileStatuses[j++];
+          String canonicalPath = fs.getPath().toString();
+          if (checkInclude(session.getUri().toString(),fs,canonicalPath,spec)) {
+            activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
+          }
+        }
+      } else {
+        if (scanOnly[i])
+          continue;
+        if (!checkIngest(session.getUri().toString(),fileStatus,spec))
+          continue;
+
+        // Get the WGet conversion path out of the version string
+        String convertPath = null;
+        if (version.length() > 0 && version.startsWith("+"))
+        {
+          StringBuilder unpack = new StringBuilder();
+          unpack(unpack, version, 1, '+');
+          convertPath = unpack.toString();
+        }
+
+        // It is a file to be indexed.
+        
+        // Prepare the metadata part of RepositoryDocument
+        RepositoryDocument data = new RepositoryDocument();
+
+        data.setFileName(fileStatus.getPath().getName());
+        data.setMimeType(mapExtensionToMimeType(fileStatus.getPath().getName()));
+        data.setModifiedDate(new Date(fileStatus.getModificationTime()));
+
+        String uri;
+        if (convertPath != null) {
+          uri = convertToWGETURI(convertPath);
+        } else {
+          uri = fileStatus.getPath().toUri().toString();
+        }
+        data.addField("uri",uri);
+
+        // Make sure we have a session
         getSession();
-        GetObjectThread objt = new GetObjectThread(documentIdentifier);
+
+        // We will record document fetch as an activity
+        long startTime = System.currentTimeMillis();
+        String errorCode = "FAILED";
+        String errorDesc = StringUtils.EMPTY;
+        long fileSize = 0;
+
         try {
-          objt.start();
-          objt.finishUp();
-        } catch (InterruptedException e) {
-          objt.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-        }
-        
-        FileStatus fileStatus = objt.getResponse();
-        
-        if (fileStatus == null) {
-        	continue;
-        }
-        
-        if (fileStatus.isDir()) {
-          /*
-           * Queue up stuff for directory
-           */
-          String entityReference = documentIdentifier;
+          BackgroundStreamThread t = new BackgroundStreamThread(new Path(documentIdentifier));
           try {
-            FileStatus[] fileStatuses = session.getFileSystem().listStatus(fileStatus.getPath());
-            if (fileStatuses != null) {
-              int j = 0;
-              while (j < fileStatuses.length) {
-                FileStatus fs = fileStatuses[j++];
-                String canonicalPath = fs.getPath().toString();
-                if (checkInclude(session.getFileSystem().getUri().toString(),fs,canonicalPath,spec)) {
-                  activities.addDocumentReference(canonicalPath,documentIdentifier,RELATIONSHIP_CHILD);
-                }
+            t.start();
+            boolean wasInterrupted = false;
+            try {
+              InputStream is = t.getSafeInputStream();
+              try {
+                data.setBinary(is, fileSize);
+                activities.ingestDocument(documentIdentifier,version,uri,data);
+              } finally {
+                is.close();
+              }
+            } catch (java.net.SocketTimeoutException e) {
+              throw e;
+            } catch (InterruptedIOException e) {
+              wasInterrupted = true;
+              throw e;
+            } catch (ManifoldCFException e) {
+              if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
+                wasInterrupted = true;
+              }
+              throw e;
+            } finally {
+              if (!wasInterrupted) {
+                // This does a join
+                t.finishUp();
               }
             }
+
+            // No errors.  Record the fact that we made it.
+            errorCode = "OK";
+            // Length we did in bytes
+            fileSize = fileStatus.getLen();
+
+          } catch (InterruptedException e) {
+            // We were interrupted out of the join, most likely.  Before we abandon the thread,
+            // send a courtesy interrupt.
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+          } catch (java.net.SocketTimeoutException e) {
+            errorCode = "IO ERROR";
+            errorDesc = e.getMessage();
+            handleIOException(e);
+          } catch (InterruptedIOException e) {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
           } catch (IOException e) {
             errorCode = "IO ERROR";
             errorDesc = e.getMessage();
-            throw new ManifoldCFException("IO Error: "+e.getMessage(),e);
-          } finally {
-            activities.recordActivity(new Long(startTime),ACTIVITY_READ,null,entityReference,errorCode,errorDesc,null);
+            handleIOException(e);
           }
-        } else {
-          /*
-           * its a file
-           */
-          if (!scanOnly[i]) {
-            doLog = true;
-            if (!checkIngest(session.getFileSystem().getUri().toString(),fileStatus,spec)) {
-              continue;
-            }
-
-            /*
-             * get filepathtouri value
-             */
-            String convertPath = null;
-            if (version.length() > 0 && version.startsWith("+"))
-            {
-              StringBuilder unpack = new StringBuilder();
-              unpack(unpack, version, 1, '+');
-              convertPath = unpack.toString();
-            }
-
-            // Length in bytes
-            fileSize = fileStatus.getLen();
-            
-            RepositoryDocument data = new RepositoryDocument();
-
-            data.setFileName(fileStatus.getPath().getName());
-            data.setMimeType(mapExtensionToMimeType(fileStatus.getPath().getName()));
-            data.setModifiedDate(new Date(fileStatus.getModificationTime()));
-
-            String uri;
-            if (convertPath != null) {
-              uri = convertToWGETURI(convertPath);
-            } else {
-              uri = fileStatus.getPath().toUri().toString();
-            }
-            data.addField("uri",uri);
-
-            getSession();
-            BackgroundStreamThread t = new BackgroundStreamThread(documentIdentifier);
-            try {
-              t.start();
-              boolean wasInterrupted = false;
-              try {
-                InputStream is = t.getSafeInputStream();
-                try {
-                  data.setBinary(is, fileSize);
-                  activities.ingestDocument(documentIdentifier,version,uri,data);
-                } finally {
-                  is.close();
-                }
-              } catch (java.net.SocketTimeoutException e) {
-                throw e;
-              } catch (InterruptedIOException e) {
-                wasInterrupted = true;
-                throw e;
-              } catch (ManifoldCFException e) {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED) {
-                  wasInterrupted = true;
-                }
-                throw e;
-              } finally {
-                if (!wasInterrupted) {
-                  // This does a join
-                  t.finishUp();
-                }
-              }
-
-              // No errors.  Record the fact that we made it.
-              errorCode = "OK";
-            } catch (InterruptedException e) {
-              // We were interrupted out of the join, most likely.  Before we abandon the thread,
-              // send a courtesy interrupt.
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-            } catch (java.net.SocketTimeoutException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              handleIOException(e);
-            } catch (InterruptedIOException e) {
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              handleIOException(e);
-            }
-          }
+        } finally {
+          activities.recordActivity(new Long(startTime),ACTIVITY_READ,new Long(fileSize),documentIdentifier,errorCode,errorDesc,null);
         }
-      } finally {
-        activities.recordActivity(new Long(startTime),ACTIVITY_READ,new Long(fileSize),documentIdentifier,errorCode,errorDesc,null);
       }
     }
   }
@@ -643,11 +594,25 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
 "<!--\n"+
 "function checkConfigForSave()\n"+
 "{\n"+
-"  if (editconnection.namenode.value == \"\")\n"+
+"  if (editconnection.namenodehost.value == \"\")\n"+
 "  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.NameNodeURICannotBeNull")+"\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.NameNodeHostCannotBeNull")+"\");\n"+
 "    SelectTab(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.ServerTabName")+"\");\n"+
-"    editconnection.namenode.focus();\n"+
+"    editconnection.namenodehost.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (editconnection.namenodeport.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.NameNodePortCannotBeNull")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.ServerTabName")+"\");\n"+
+"    editconnection.namenodeport.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  if (!isInteger(editconnection.namenodeport.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.NameNodePortMustBeAnInteger")+"\");\n"+
+"    SelectTab(\""+Messages.getBodyJavascriptString(locale,"HDFSRepositoryConnector.ServerTabName")+"\");\n"+
+"    editconnection.namenodeport.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.user.value == \"\")\n"+
@@ -677,13 +642,19 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String nameNode = parameters.getParameter("namenode");
-    if (nameNode == null) {
-    	nameNode = "hdfs://localhost:9000";
+    String nameNodeHost = parameters.getParameter("namenodehost");
+    if (nameNodeHost == null) {
+      nameNodeHost = "localhost";
     }
+    
+    String nameNodePort = parameters.getParameter("namenodeport");
+    if (nameNodePort == null) {
+      nameNodePort = "9000";
+    }
+
     String user = parameters.getParameter("user");
     if (user == null) {
-    	user = "";
+      user = "";
     }
     
     if (tabName.equals(Messages.getString(locale,"HDFSRepositoryConnector.ServerTabName")))
@@ -691,15 +662,21 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNode") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodeHost") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input name=\"namenode\" type=\"text\" size=\"48\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNode)+"\"/>\n"+
+"      <input name=\"namenodehost\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeHost)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodePort") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"namenodeport\" type=\"text\" size=\"5\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodePort)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.User") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
-"      <input name=\"user\" type=\"text\" size=\"48\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(user)+"\"/>\n"+
+"      <input name=\"user\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(user)+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
@@ -709,7 +686,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     {
       // Server tab hiddens
       out.print(
-"<input type=\"hidden\" name=\"namenode\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNode)+"\"/>\n"+
+"<input type=\"hidden\" name=\"namenodehost\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeHost)+"\"/>\n"+
+"<input type=\"hidden\" name=\"namenodeport\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodePort)+"\"/>\n"+
 "<input type=\"hidden\" name=\"user\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(user)+"\"/>\n"
       );
     }
@@ -728,9 +706,14 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException
   {
-    String nameNode = variableContext.getParameter("namenode");
-    if (nameNode != null) {
-      parameters.setParameter("namenode", nameNode);
+    String nameNodeHost = variableContext.getParameter("namenodehost");
+    if (nameNodeHost != null) {
+      parameters.setParameter("namenodehost", nameNodeHost);
+    }
+
+    String nameNodePort = variableContext.getParameter("namenodeport");
+    if (nameNodePort != null) {
+      parameters.setParameter("namenodeport", nameNodePort);
     }
 
     String user = variableContext.getParameter("user");
@@ -752,21 +735,19 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    String nameNode = parameters.getParameter("namenode");
-    if (nameNode == null) {
-      nameNode = "hdfs://localhost:9000";
-    }
-    
+    String nameNodeHost = parameters.getParameter("namenodehost");
+    String nameNodePort = parameters.getParameter("namenodeport");
     String user = parameters.getParameter("user");
-    if (user == null) {
-      user = "user";
-    }
     
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNode") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNode)+"</td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodeHost") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodeHost)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.NameNodePort") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(nameNodePort)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"HDFSRepositoryConnector.User") + "</nobr></td>\n"+
@@ -1689,9 +1670,9 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
    * @throws ManifoldCFException
    * @throws ServiceInterruption
    */
-  private static void handleGeneralSecurityException(GeneralSecurityException e) throws ManifoldCFException, ServiceInterruption {
-    // Permanent problem: can't initialize transport layer
-    throw new ManifoldCFException("HDFS exception: "+e.getMessage(), e);
+  private static void handleURISyntaxException(URISyntaxException e) throws ManifoldCFException, ServiceInterruption {
+    // Permanent problem
+    throw new ManifoldCFException("HDFS bad namenode specification: "+e.getMessage(), e);
   }
 
   protected class CheckConnectionThread extends Thread {
@@ -1710,8 +1691,18 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
     }
 
-    public Throwable getException() {
-      return exception;
+    public void finishUp() throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
     }
   }
 
@@ -1726,7 +1717,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     public void run() {
       try {
         // Create a session
-        session = new HDFSSession(nameNode, config, user);
+        session = new HDFSSession(makeNameNodeURI(nameNodeHost,nameNodePort), config, user);
       } catch (Throwable e) {
         this.exception = e;
       }
@@ -1737,34 +1728,46 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
     }
   }
 
-  protected class GetSeedsThread extends Thread {
-    protected Throwable exception = null;
-    protected final String path;
-    protected final XThreadStringBuffer seedBuffer;
+  protected FileStatus[] getChildren(Path path)
+    throws ManifoldCFException, ServiceInterruption {
+    getSession();
+    try {
+      GetChildrenThread t = new GetChildrenThread(path);
+      try {
+        t.start();
+        t.finishUp();
+      } catch (InterruptedException e) {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+      }
+      return t.getResult();
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+    return null;
+  }
 
-    public GetSeedsThread(String path) {
+  protected class GetChildrenThread extends Thread {
+    protected Throwable exception = null;
+    protected FileStatus[] result = null;
+    protected final Path path;
+
+    public GetChildrenThread(Path path) {
       super();
       this.path = path;
-      this.seedBuffer = new XThreadStringBuffer();
       setDaemon(true);
     }
 
     @Override
     public void run() {
       try {
-        session.getSeeds(seedBuffer, path);
-        seedBuffer.signalDone();
+        result = session.listStatus(path);
       } catch (Throwable e) {
         this.exception = e;
       }
     }
 
-    public XThreadStringBuffer getBuffer() {
-      return seedBuffer;
-    }
-
-    public void finishUp() throws InterruptedException {
-      seedBuffer.abandon();
+    public void finishUp() throws InterruptedException, IOException {
       join();
       Throwable thr = exception;
       if (thr != null) {
@@ -1772,19 +1775,45 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           throw (RuntimeException) thr;
         } else if (thr instanceof Error) {
           throw (Error) thr;
+        } else if (thr instanceof IOException) {
+          throw (IOException) thr;
         } else {
           throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
         }
       }
     }
+    
+    public FileStatus[] getResult() {
+      return result;
+    }
   }
 
+  protected FileStatus getObject(Path path)
+    throws ManifoldCFException, ServiceInterruption {
+    getSession();
+    try {
+      GetObjectThread objt = new GetObjectThread(path);
+      try {
+        objt.start();
+        objt.finishUp();
+      } catch (InterruptedException e) {
+        objt.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+      }
+
+      return objt.getResponse();
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+    return null;
+  }
+  
   protected class GetObjectThread extends Thread {
-    protected final String nodeId;
+    protected final Path nodeId;
     protected Throwable exception = null;
     protected FileStatus response = null;
 
-    public GetObjectThread(String nodeId) {
+    public GetObjectThread(Path nodeId) {
       super();
       setDaemon(true);
       this.nodeId = nodeId;
@@ -1798,7 +1827,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       }
     }
 
-    public void finishUp() throws InterruptedException {
+    public void finishUp() throws InterruptedException, IOException {
       join();
       Throwable thr = exception;
       if (thr != null) {
@@ -1806,6 +1835,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
           throw (RuntimeException) thr;
         } else if (thr instanceof Error) {
           throw (Error) thr;
+        } else if (thr instanceof IOException) {
+          throw (IOException) thr;
         } else {
           throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
         }
@@ -1816,21 +1847,18 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       return response;
     }
 
-    public Throwable getException() {
-      return exception;
-    }
   }
 
   protected class BackgroundStreamThread extends Thread
   {
-    protected final String nodeId;
+    protected final Path nodeId;
     
     protected boolean abortThread = false;
     protected Throwable responseException = null;
     protected InputStream sourceStream = null;
     protected XThreadInputStream threadStream = null;
     
-    public BackgroundStreamThread(String nodeId)
+    public BackgroundStreamThread(Path nodeId)
     {
       super();
       setDaemon(true);

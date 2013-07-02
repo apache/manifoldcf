@@ -130,14 +130,20 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /** Set up a session */
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
-    String nameNode = params.getParameter(ParameterEnum.NAMENODE.name());
-    if (nameNode == null)
-      throw new ManifoldCFException("Namenode must be specified");
+    String nameNodeHost = params.getParameter(ParameterEnum.NAMENODEHOST.name());
+    if (nameNodeHost == null)
+      throw new ManifoldCFException("Namenodehost must be specified");
+
+    String nameNodePort = params.getParameter(ParameterEnum.NAMENODEPORT.name());
+    if (nameNodePort == null)
+      throw new ManifoldCFException("Namenodeport must be specified");
     
     String user = params.getParameter(ParameterEnum.USER.name());
     if (user == null)
       throw new ManifoldCFException("User must be specified");
     
+    String nameNode = "hdfs://"+nameNodeHost+":"+nameNodePort;
+
     /*
      * make Configuration
      */

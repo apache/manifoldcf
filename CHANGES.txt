@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-742: Document HDFS connector.
+(Karl Wright)
+
 CONNECTORS-741: Document HDFS output connector.
 (Karl Wright)
 

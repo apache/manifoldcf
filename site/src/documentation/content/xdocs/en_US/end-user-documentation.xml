@@ -1072,7 +1072,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        will parse file names that were created by <em>wget</em>, or by the wget-compatible File System Output Connector, and turn these back
                        into full URL's to external web content.</p>
                 <p>This connection type has no support for any kind of document security.</p>
-                <p>The file system repository connection type provides no configuration tabs beyond the standard ones.  However, please consider setting a "Maximum connections per
+                <p>The File System repository connection type provides no configuration tabs beyond the standard ones.  However, please consider setting a "Maximum connections per
                        JVM" value on the "Throttling" tab to at least one per worker thread, or 30, for best performance.</p>
                 <p>Jobs created using a file-system-type repository connection
                        have two tabs in addition to the standard repertoire: the "Hop Filters" tab, and the "Repository Paths" tab.</p>
@@ -1082,7 +1082,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/filesystem-job-hopcount.PNG" alt="File System Connection, Hop Filters tab" width="80%"/>
                 <br/><br/>
-                <p>In the case of the file system connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
+                <p>In the case of the File System connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
                        restrict the document set by how far away a document is from the path root, enter the maximum allowed number of hops in the text box.  Leaving the box blank
                        indicates that no such filtering will take place.</p>
                 <p>On this same tab, you can tell the Framework what to do should there be changes in the distance from the root to a document.  The choice "Delete unreachable
@@ -1103,6 +1103,43 @@ curl -XGET http://localhost:9200/index/_mapping
                        a match file specification (e.g. "*.txt"), and click the "Add" button.</p>
             </section>
             
+            <section id="hdfsrepository">
+                <title>HDFS Repository Connection (WGET sensitive)</title>
+                <p>The HDFS repository connection operates much like the File System Repository Connection, except it reads data from the Hadoop File System rather than a
+                       local disk.  It, too, is capable of understanding directories written in the manner of the Unix utility called <em>wget</em>.  In the latter mode, the HDFS Repository Connector
+                       will parse file names that were created by <em>wget</em>, or by the wget-compatible HDFS Output Connector, and turn these back
+                       into full URL's pointing to external web content.</p>
+                <p>This connection type has no support for any kind of document security.</p>
+                <p>The HDFS repository connection type has an additional configuration tab above and beyond the standard ones, called "Server".  This is what it looks like:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-repository-configure-server.PNG" alt="HDFS Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Enter the HDFS name node URI, and the user name, and click the "Save" button.</p>
+                <p>Jobs created using an HDFS repository connection type
+                       have two tabs in addition to the standard repertoire: the "Hop Filters" tab, and the "Repository Paths" tab.</p>
+                <p>The "Hop Filters" tab allows you to restrict the document set by the number of child hops from the path root.  This is what it looks like:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-hopcount.PNG" alt="HDFS Connection, Hop Filters tab" width="80%"/>
+                <br/><br/>
+                <p>In the case of the HDFS connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
+                       restrict the document set by how far away a document is from the path root, enter the maximum allowed number of hops in the text box.  Leaving the box blank
+                       indicates that no such filtering will take place.</p>
+                <p>On this same tab, you can tell the Framework what to do should there be changes in the distance from the root to a document.  The choice "Delete unreachable
+                       documents" requires the Framework to recalculate the distance to every potentially affected document whenever a change takes place.  This may require
+                       expensive bookkeeping, however, so you also have the option of  ignoring such changes.  There are two varieties of this latter option - you can ignore the changes
+                       for now, with the option of turning back on the aggressive bookkeeping at a later time, or you can decide not to ever allow changes to propagate, in which case
+                       the Framework will discard the necessary bookkeeping information permanently.</p>
+                <p>The "Repository Paths" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-paths.PNG" alt="HDFS Connection, Repository Paths tab" width="80%"/>
+                <br/><br/>
+                <p>This tab allows you to type in a set of paths which function as the roots of the crawl.  For each desired path, type in the path, select whether the root should
+                       behave as an WGET repository or not, and click the "Add" button to add it to the list.</p>
+                <p>Each root path has a set of rules which determines whether a document is included or not in the set for the job.  Once you have added the root path to the list, you
+                       may then add rules to it.  Each rule has a match expression, an indication of whether the rule is intended to match files or directories, and an action (include or exclude).
+                       Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in 
+                       a match file specification (e.g. "*.txt"), and click the "Add" button.</p>
+            </section>
 
             <section id="rssrepository">
                 <title>Generic RSS Repository Connection</title>

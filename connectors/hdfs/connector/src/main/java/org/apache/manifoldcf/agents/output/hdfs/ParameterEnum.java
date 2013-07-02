@@ -24,7 +24,8 @@ import java.util.Map;
 
 /** Parameters constants */
 public enum ParameterEnum {
-  NAMENODE("hdfs://localhost:9000"),
+  NAMENODEHOST("localhost"),
+  NAMENODEPORT("9000"),
   USER(""),
   ROOTPATH("");
 

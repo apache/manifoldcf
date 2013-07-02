@@ -69,42 +69,33 @@ public class HDFSSession {
     return info;
   }
 
-  public void getSeeds(XThreadStringBuffer idBuffer, String path)
-    throws IOException, InterruptedException {
-
-    /*
-     * need to add root dir so that single files such as /file1 will still get read
-     */
-    idBuffer.add(path);
-    
-    /*
-     * gets a list of the contents of the entire folder: subfolders + files
-     */
-    FileStatus[] fileStatuses = fileSystem.listStatus(new Path(path));
-    for (FileStatus fileStatus : fileStatuses) {
-      /*
-       * only add the directories as seeds, we'll add the files later
-       */
-      if (fileStatus.isDir()) {
-        idBuffer.add(fileStatus.getPath().toUri().toString());
-      }
+  public FileStatus[] listStatus(Path path)
+    throws IOException {
+    try {
+      return fileSystem.listStatus(path);
+    } catch (FileNotFoundException e) {
+      return null;
     }
   }
   
-  public FileSystem getFileSystem() {
-	  return fileSystem;
+  public URI getUri() {
+    return fileSystem.getUri();
   }
-  
-  public FileStatus getObject(String id) throws IOException {
+
+  public FileStatus getObject(Path path) throws IOException {
     try {
-      return fileSystem.getFileStatus(new Path(id));
+      return fileSystem.getFileStatus(path);
     } catch(FileNotFoundException e) {
       return null;
     }
   }
 
-  public FSDataInputStream getFSDataInputStream(String id) throws IOException {
-    return fileSystem.open(new Path(id));
+  public FSDataInputStream getFSDataInputStream(Path path) throws IOException {
+    try {
+      return fileSystem.open(path);
+    } catch (FileNotFoundException e) {
+      return null;
+    }
   }
   
   public void close() throws IOException {

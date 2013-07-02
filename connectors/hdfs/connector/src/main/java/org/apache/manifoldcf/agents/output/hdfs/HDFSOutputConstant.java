@@ -27,8 +27,11 @@ public class HDFSOutputConstant
 
   // Configuration parameters
 
-  /** Name node */
-  public static final String PARAM_NAMENODE = "namenode";
+  /** Name node host */
+  public static final String PARAM_NAMENODEHOST = "namenodehost";
+
+  /** Name node port */
+  public static final String PARAM_NAMENODEPORT = "namenodeport";
 
   /** User */
   public static final String PARAM_USER = "user";
