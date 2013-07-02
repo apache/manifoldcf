@@ -491,7 +491,7 @@ public class HttpPoster
   * @throws ManifoldCFException, ServiceInterruption
   */
   public boolean indexPost(String documentURI,
-    RepositoryDocument document, Map arguments, Map sourceTargets,
+    RepositoryDocument document, Map arguments, Map<String, List<String>> sourceTargets,
     String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -767,7 +767,7 @@ public class HttpPoster
     protected String documentURI;
     protected RepositoryDocument document;
     protected Map<String,List<String>> arguments;
-    protected Map<String,String> sourceTargets;
+    protected Map<String,List<String>> sourceTargets;
     protected String[] shareAcls;
     protected String[] shareDenyAcls;
     protected String[] acls;
@@ -783,7 +783,7 @@ public class HttpPoster
     protected boolean rval = false;
 
     public IngestThread(String documentURI, RepositoryDocument document,
-      Map<String,List<String>> arguments, Map<String,String> sourceTargets,
+      Map<String,List<String>> arguments, Map<String, List<String>> sourceTargets,
       String[] shareAcls, String[] shareDenyAcls, String[] acls, String[] denyAcls, String commitWithin)
     {
       super();
@@ -871,15 +871,26 @@ public class HttpPoster
           while (iter.hasNext())
           {
             String fieldName = iter.next();
-            String newFieldName = sourceTargets.get(fieldName);
-            if (newFieldName == null)
-              newFieldName = fieldName;
-            if (newFieldName.length() > 0)
-            {
-              if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT)))
-                newFieldName = ID_METADATA;
-              String[] values = document.getFieldAsStrings(fieldName);
-              writeField(out,LITERAL+newFieldName,values);
+            List<String> mapping = sourceTargets.get(fieldName);
+            if(mapping != null) {
+              for(String newFieldName : mapping) {
+                if(newFieldName != null && !newFieldName.isEmpty()) {
+                  if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+                    newFieldName = ID_METADATA;
+                  }
+                  String[] values = document.getFieldAsStrings(fieldName);
+                  writeField(out,LITERAL+newFieldName,values);
+                }
+              }
+            } else {
+              String newFieldName = fieldName;
+              if (!newFieldName.isEmpty()) {
+                if (newFieldName.toLowerCase(Locale.ROOT).equals(idAttributeName.toLowerCase(Locale.ROOT))) {
+                  newFieldName = ID_METADATA;
+                }
+                String[] values = document.getFieldAsStrings(fieldName);
+                writeField(out,LITERAL+newFieldName,values);
+              }
             }
           }
              
