@@ -356,6 +356,31 @@
                 <br/><br/>
                 <p>新しいマッピングを追加する場合は、項目「ソース」にメタデータ名、「ターゲット」にSolrの出力項目名を入力して「追加」ボタンを押下してください。Solrに送信しない項目の場合は、「ターゲット」を空に設定してください。</p>
             </section>
+
+            <section id="filesystemoutputconnector">
+                <title>ファイルシステム出力コネクション</title>
+                <p>ファイルシステム出力コネクションは、Unixユーティリティの<em>wget</em>のようにローカルファイルシステムに文書を保管することができます。このコネクションタイプによって格納されたドキュメントは、メタデータまたはセキュリティ情報を含んでいませんが、バイナリ·ファイルのみから構成されています。</p>
+                <p>ファイルシステム出力コネクションタイプの接続構成情報には追加のタブを含みません。しかしながら、付加的なJobタブがあり、「出力パス」と呼びます。タブはこのように見えます。</p>
+                <br/><br/>
+                <figure src="images/en_US/filesystem-job-output-path.PNG" alt="File System Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>ドキュメントを出力したいパスを入力して、「保存」をクリックしてください。</p>
+            </section>
+
+            <section id="hdfsoutputconnector">
+                <title>HDFS出力コネクション</title>
+                <p>HDFS出力コネクションは、Unixユーティリティの<em>wget</em>のようにHDFS(Hadoop Distributed File System)に文書を保管することができます。このコネクションタイプによって格納されたドキュメントは、メタデータまたはセキュリティ情報を含んでいませんが、バイナリ·ファイルのみから構成されています。</p>
+                <p>HDFS出力コネクションタイプのための接続構成情報は「サーバー」タブという追加のタブを1つ含んでいます。このタブこのように見えます。</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-configure-server.PNG" alt="HDFS Output Configuration, Server tab" width="80%"/>
+                <br/><br/>
+                <p>HDFSネームノードのURIおよびHDFSユーザー名に書き入れてください。両方とも必要となります。</p>
+                <p>HDFS出力接続タイプについては、「出力パス」と呼ばれる付加的なJobタブがあります。このタブこのように見えます。</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-output-path.PNG" alt="HDFS Output Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>ドキュメントを出力したいパスを入力して、「保存」をクリックしてください。</p>
+            </section>
             
             <section id="osssoutputconnector">
             	<title>OpenSearchServer出力コネクション</title>
