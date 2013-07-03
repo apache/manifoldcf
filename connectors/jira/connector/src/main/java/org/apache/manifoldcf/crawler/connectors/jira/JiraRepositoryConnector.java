@@ -57,8 +57,6 @@ import java.util.Map.Entry;
 public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
   protected final static String ACTIVITY_READ = "read document";
-  public final static String ACTIVITY_FETCH = "fetch";
-  protected static final String RELATIONSHIP_CHILD = "child";
   
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
@@ -110,16 +108,18 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification_jira.html";
   
-  /**
-   * Endpoint server name
-   */
-  protected String server = "jira";
+  // Session data
   protected JiraSession session = null;
   protected long lastSessionFetch = -1L;
   protected static final long timeToRelease = 300000L;
+  
+  // Parameter data
+  protected String jiraprotocol = null;
+  protected String jirahost = null;
+  protected String jiraport = null;
+  protected String jirapath = null;
   protected String clientid = null;
   protected String clientsecret = null;
-  protected String jiraurl = null;
 
   public JiraRepositoryConnector() {
     super();
@@ -133,7 +133,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String[] getActivitiesList() {
-    return new String[]{ACTIVITY_FETCH, ACTIVITY_READ};
+    return new String[]{ACTIVITY_READ};
   }
 
   /**
@@ -153,7 +153,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String[] getBinNames(String documentIdentifier) {
-    return new String[]{server};
+    return new String[]{jirahost};
   }
 
   /**
@@ -167,9 +167,12 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       lastSessionFetch = -1L;
     }
 
+    jiraprotocol = null;
+    jirahost = null;
+    jiraport = null;
+    jirapath = null;
     clientid = null;
     clientsecret = null;
-    jiraurl = null;
   }
 
   /**
@@ -186,9 +189,12 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
 
+    jiraprotocol = params.getParameter(JiraConfig.JIRA_PROTOCOL_PARAM);
+    jirahost = params.getParameter(JiraConfig.JIRA_HOST_PARAM);
+    jiraport = params.getParameter(JiraConfig.JIRA_PORT_PARAM);
+    jirapath = params.getParameter(JiraConfig.JIRA_PATH_PARAM);
     clientid = params.getParameter(JiraConfig.CLIENT_ID_PARAM);
     clientsecret = params.getObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM);
-    jiraurl = params.getParameter(JiraConfig.JIRAURL_TOKEN_PARAM);
   }
 
   /**
@@ -209,100 +215,59 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected class CheckConnectionThread extends Thread {
-
-    protected Throwable exception = null;
-
-    public CheckConnectionThread() {
-      super();
-      setDaemon(true);
-    }
-
-    public void run() {
-      try {
-        session.getRepositoryInfo();
-      } catch (Throwable e) {
-        this.exception = e;
-      }
-    }
-
-    public Throwable getException() {
-      return exception;
-    }
-  }
-
-  protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    CheckConnectionThread t = new CheckConnectionThread();
-    try {
-      t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof IOException) {
-          throw (IOException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
-        }
-      }
-      return;
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (java.net.SocketTimeoutException e) {
-      Logging.connectors.warn("JIRA: Socket timeout: " + e.getMessage(), e);
-      handleIOException(e);
-    } catch (InterruptedIOException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (IOException e) {
-      Logging.connectors.warn("JIRA: Error checking repository: " + e.getMessage(), e);
-      handleIOException(e);
-    }
-  }
 
   /**
    * Set up a session
    */
-  protected void getSession() throws ManifoldCFException, ServiceInterruption {
+  protected JiraSession getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
       // Check for parameter validity
 
-      if (StringUtils.isEmpty(clientid)) {
-        throw new ManifoldCFException("Parameter " + JiraConfig.CLIENT_ID_PARAM
+      if (StringUtils.isEmpty(jiraprotocol)) {
+        throw new ManifoldCFException("Parameter " + JiraConfig.JIRA_PROTOCOL_PARAM
             + " required but not set");
+      }
+
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("JIRA: jiraprotocol = '" + jiraprotocol + "'");
+      }
+
+      if (StringUtils.isEmpty(jirahost)) {
+        throw new ManifoldCFException("Parameter " + JiraConfig.JIRA_HOST_PARAM
+            + " required but not set");
+      }
+
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("JIRA: jirahost = '" + jirahost + "'");
+      }
+
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("JIRA: jiraport = '" + jiraport + "'");
+      }
+
+      if (StringUtils.isEmpty(jirapath)) {
+        throw new ManifoldCFException("Parameter " + JiraConfig.JIRA_PATH_PARAM
+            + " required but not set");
+      }
+
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("JIRA: jirapath = '" + jirapath + "'");
       }
 
       if (Logging.connectors.isDebugEnabled()) {
         Logging.connectors.debug("JIRA: Clientid = '" + clientid + "'");
       }
 
-      if (StringUtils.isEmpty(clientsecret)) {
-        throw new ManifoldCFException("Parameter " + JiraConfig.CLIENT_SECRET_PARAM
-            + " required but not set");
-      }
-
       if (Logging.connectors.isDebugEnabled()) {
         Logging.connectors.debug("JIRA: Clientsecret = '" + clientsecret + "'");
       }
 
-      if (StringUtils.isEmpty(jiraurl)) {
-        throw new ManifoldCFException("Parameter " + JiraConfig.JIRAURL_TOKEN_PARAM
-            + " required but not set");
-      }
-
-      if (Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug("JIRA: jiraurl = '" + jiraurl + "'");
-      }
-
+      String jiraurl = jiraprotocol + "://" + jirahost + (StringUtils.isEmpty(jiraport)?"":":"+jiraport) + jirapath;
       session = new JiraSession(clientid, clientsecret, jiraurl);
 
     }
     lastSessionFetch = System.currentTimeMillis();
+    return session;
   }
 
   @Override
@@ -337,7 +302,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String[] getRelationshipTypes() {
-    return new String[]{RELATIONSHIP_CHILD};
+    return new String[]{};
   }
 
   /**
@@ -348,25 +313,37 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    * @param parameters is the current set of configuration parameters
    */
   private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
+    String jiraprotocol = parameters.getParameter(JiraConfig.JIRA_PROTOCOL_PARAM);
+    String jirahost = parameters.getParameter(JiraConfig.JIRA_HOST_PARAM);
+    String jiraport = parameters.getParameter(JiraConfig.JIRA_PORT_PARAM);
+    String jirapath = parameters.getParameter(JiraConfig.JIRA_PATH_PARAM);
     String clientid = parameters.getParameter(JiraConfig.CLIENT_ID_PARAM);
     String clientsecret = parameters.getObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM);
-    String jiraurl = parameters.getParameter(JiraConfig.JIRAURL_TOKEN_PARAM);
 
-    if (clientid == null) {
-      clientid = StringUtils.EMPTY;
-    }
+    if (jiraprotocol == null)
+      jiraprotocol = JiraConfig.JIRA_PROTOCOL_DEFAULT;
+    if (jirahost == null)
+      jirahost = JiraConfig.JIRA_HOST_DEFAULT;
+    if (jiraport == null)
+      jiraport = JiraConfig.JIRA_PORT_DEFAULT;
+    if (jirapath == null)
+      jirapath = JiraConfig.JIRA_PATH_DEFAULT;
     
-    if (clientsecret == null) {
-      clientsecret = StringUtils.EMPTY;
+    if (clientid == null)
+      clientid = JiraConfig.CLIENT_ID_DEFAULT;
+    if (clientsecret == null)
+      clientsecret = JiraConfig.CLIENT_SECRET_DEFAULT;
+    else {
+      if (clientsecret.length() > 0)
+        clientsecret = EXISTING_VALUE_PASSWORD;
     }
 
-    if (jiraurl == null) {
-      jiraurl = StringUtils.EMPTY;
-    }
-
+    newMap.put("JIRAPROTOCOL", jiraprotocol);
+    newMap.put("JIRAHOST", jirahost);
+    newMap.put("JIRAPORT", jiraport);
+    newMap.put("JIRAPATH", jirapath);
     newMap.put("CLIENTID", clientid);
     newMap.put("CLIENTSECRET", clientsecret);
-    newMap.put("JIRAURL", jiraurl);
   }
 
   /**
@@ -458,22 +435,33 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   @Override
   public String processConfigurationPost(IThreadContext threadContext,
-      IPostParameters variableContext, ConfigParams parameters)
-      throws ManifoldCFException {
+    IPostParameters variableContext, ConfigParams parameters)
+    throws ManifoldCFException {
 
-    String clientid = variableContext.getParameter(JiraConfig.CLIENT_ID_PARAM);
-    if (clientid != null) {
+    String jiraprotocol = variableContext.getParameter("jiraprotocol");
+    if (jiraprotocol != null)
+      parameters.setParameter(JiraConfig.JIRA_PROTOCOL_PARAM, jiraprotocol);
+
+    String jirahost = variableContext.getParameter("jirahost");
+    if (jirahost != null)
+      parameters.setParameter(JiraConfig.JIRA_HOST_PARAM, jirahost);
+
+    String jiraport = variableContext.getParameter("jiraport");
+    if (jiraport != null)
+      parameters.setParameter(JiraConfig.JIRA_PORT_PARAM, jiraport);
+
+    String jirapath = variableContext.getParameter("jirapath");
+    if (jirapath != null)
+      parameters.setParameter(JiraConfig.JIRA_PATH_PARAM, jirapath);
+
+    String clientid = variableContext.getParameter("clientid");
+    if (clientid != null)
       parameters.setParameter(JiraConfig.CLIENT_ID_PARAM, clientid);
-    }
 
-    String clientsecret = variableContext.getParameter(JiraConfig.CLIENT_SECRET_PARAM);
+    String clientsecret = variableContext.getParameter("clientsecret");
     if (clientsecret != null) {
-      parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, clientsecret);
-    }
-
-    String jiraurl = variableContext.getParameter(JiraConfig.JIRAURL_TOKEN_PARAM);
-    if (jiraurl != null) {
-      parameters.setParameter(JiraConfig.JIRAURL_TOKEN_PARAM, jiraurl);
+      if (!clientsecret.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, clientsecret);
     }
 
     return null;
@@ -720,8 +708,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       i++;
     }
 
-    getSession();
-    GetSeedsThread t = new GetSeedsThread(jiraDriveQuery);
+    GetSeedsThread t = new GetSeedsThread(getSession(), jiraDriveQuery);
     try {
       t.start();
       boolean wasInterrupted = false;
@@ -752,126 +739,16 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
     } catch (java.net.SocketTimeoutException e) {
-      Logging.connectors.warn("JIRA: Socket timeout adding seed documents: " + e.getMessage(), e);
       handleIOException(e);
     } catch (InterruptedIOException e) {
       t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
+      handleIOException(e);
     } catch (IOException e) {
-      Logging.connectors.warn("JIRA: Error adding seed documents: " + e.getMessage(), e);
       handleIOException(e);
     }
   }
   
-  protected class GetSeedsThread extends Thread {
 
-    protected Throwable exception = null;
-    protected final String jiraDriveQuery;
-    protected final XThreadStringBuffer seedBuffer;
-    
-    public GetSeedsThread(String jiraDriveQuery) {
-      super();
-      this.jiraDriveQuery = jiraDriveQuery;
-      this.seedBuffer = new XThreadStringBuffer();
-      setDaemon(true);
-    }
-
-    @Override
-    public void run() {
-      try {
-        session.getSeeds(seedBuffer, jiraDriveQuery);
-        seedBuffer.signalDone();
-      } catch (Throwable e) {
-        this.exception = e;
-      }
-    }
-
-    public XThreadStringBuffer getBuffer() {
-      return seedBuffer;
-    }
-    
-    public void finishUp()
-      throws InterruptedException, IOException {
-      seedBuffer.abandon();
-      join();
-      Throwable thr = exception;
-      if (thr != null) {
-        if (thr instanceof IOException)
-          throw (IOException) thr;
-        else if (thr instanceof RuntimeException)
-          throw (RuntimeException) thr;
-        else if (thr instanceof Error)
-          throw (Error) thr;
-        else
-          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
-      }
-    }
-  }
-
-  protected JiraIssue getIssue(String issueID)
-    throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    GetIssueThread t = new GetIssueThread(issueID);
-    try {
-      t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null) {
-        if (thr instanceof IOException) {
-          throw (IOException) thr;
-        } else if (thr instanceof RuntimeException) {
-          throw (RuntimeException) thr;
-        } else {
-          throw (Error) thr;
-        }
-      }
-    } catch (InterruptedException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (java.net.SocketTimeoutException e) {
-      Logging.connectors.warn("JIRA: Socket timeout getting object: " + e.getMessage(), e);
-      handleIOException(e);
-    } catch (InterruptedIOException e) {
-      t.interrupt();
-      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-        ManifoldCFException.INTERRUPTED);
-    } catch (IOException e) {
-      Logging.connectors.warn("JIRA: Error getting object: " + e.getMessage(), e);
-      handleIOException(e);
-    }
-    return t.getResponse();
-  }
-  
-  protected class GetIssueThread extends Thread {
-
-    protected final String nodeId;
-    protected Throwable exception = null;
-    protected JiraIssue response = null;
-
-    public GetIssueThread(String nodeId) {
-      super();
-      setDaemon(true);
-      this.nodeId = nodeId;
-    }
-
-    public void run() {
-      try {
-        response = session.getIssue(nodeId);
-      } catch (Throwable e) {
-        this.exception = e;
-      }
-    }
-
-    public JiraIssue getResponse() {
-      return response;
-    }
-    
-    public Throwable getException() {
-      return exception;
-    }
-  }
   
   /**
    * Process a set of documents. This is the method that should cause each
@@ -1096,10 +973,177 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
     }
+    Logging.connectors.warn("JIRA: IO exception: "+e.getMessage(), e);
     long currentTime = System.currentTimeMillis();
     throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L,
       currentTime + 3 * 60 * 60000L,-1,false);
   }
   
+  // Background threads
+
+  protected static class CheckConnectionThread extends Thread {
+
+    protected final JiraSession session;
+    protected Throwable exception = null;
+
+    public CheckConnectionThread(JiraSession session) {
+      super();
+      this.session = session;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        session.getRepositoryInfo();
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+  }
+
+  protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
+    CheckConnectionThread t = new CheckConnectionThread(getSession());
+    try {
+      t.start();
+      t.finishUp();
+      return;
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+  }
+
+  protected static class GetSeedsThread extends Thread {
+
+    protected Throwable exception = null;
+    protected final JiraSession session;
+    protected final String jiraDriveQuery;
+    protected final XThreadStringBuffer seedBuffer;
+    
+    public GetSeedsThread(JiraSession session, String jiraDriveQuery) {
+      super();
+      this.session = session;
+      this.jiraDriveQuery = jiraDriveQuery;
+      this.seedBuffer = new XThreadStringBuffer();
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      try {
+        session.getSeeds(seedBuffer, jiraDriveQuery);
+        seedBuffer.signalDone();
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public XThreadStringBuffer getBuffer() {
+      return seedBuffer;
+    }
+    
+    public void finishUp()
+      throws InterruptedException, IOException {
+      seedBuffer.abandon();
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException)
+          throw (IOException) thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException) thr;
+        else if (thr instanceof Error)
+          throw (Error) thr;
+        else
+          throw new RuntimeException("Unhandled exception of type: "+thr.getClass().getName(),thr);
+      }
+    }
+  }
+
+  protected JiraIssue getIssue(String issueID)
+    throws ManifoldCFException, ServiceInterruption {
+    GetIssueThread t = new GetIssueThread(getSession(), issueID);
+    try {
+      t.start();
+      t.finishUp();
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+    return t.getResponse();
+  }
+  
+  protected static class GetIssueThread extends Thread {
+
+    protected final JiraSession session;
+    protected final String nodeId;
+    protected Throwable exception = null;
+    protected JiraIssue response = null;
+
+    public GetIssueThread(JiraSession session, String nodeId) {
+      super();
+      setDaemon(true);
+      this.session = session;
+      this.nodeId = nodeId;
+    }
+
+    public void run() {
+      try {
+        response = session.getIssue(nodeId);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public JiraIssue getResponse() {
+      return response;
+    }
+    
+    public void finishUp() throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+  }
+
 }
 

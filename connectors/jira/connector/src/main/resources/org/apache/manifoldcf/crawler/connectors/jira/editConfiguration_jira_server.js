@@ -19,34 +19,73 @@
 <!--
 function checkConfig()
 {
+  if (editconnection.jiraport.value != "" && !isInteger(editconnection.jiraport.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraPortMustBeAnInteger'))");
+    editconnection.jiraport.focus();
+    return false;
+  }
+
+  if (editconnection.jirahost.value != "" && editconnection.jirahost.value.indexOf("/") != -1)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraHostMustNotIncludeSlash'))");
+    editconnection.jirahost.focus();
+    return false;
+  }
+
+  if (editconnection.jirapath.value != "" && !editconnection.jirapath.value.startsWith("/"))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraPathMustBeginWithASlash'))");
+    editconnection.jirapath.focus();
+    return false;
+  }
+
   return true;
 }
  
 function checkConfigForSave()
 {
     
-  if (editconnection.jiraurl.value == "")
+  if (editconnection.jirahost.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraUrlMustNotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraHostMustNotBeNull'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Server'))");
-    editconnection.jsonauth.focus();
+    editconnection.jirahost.focus();
     return false;
   }
-  /*  -- allow anonymous access
-  if (editconnection.clientid.value == "")
+  
+  if (editconnection.jirahost.value != "" && editconnection.jirahost.value.indexOf("/") != -1)
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.ClientMustNotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraHostMustNotIncludeSlash'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Server'))");
-    editconnection.key.focus();
+    editconnection.jirahost.focus();
     return false;
   }
-  if (editconnection.clientsecret.value == "")
+
+  if (editconnection.jiraport.value != "" && !isInteger(editconnection.jiraport.value))
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.ClientSecretMustNotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraPortMustBeAnInteger'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Server'))");
-    editconnection.secret.focus();
+    editconnection.jiraport.focus();
     return false;
-  }*/
+  }
+
+  if (editconnection.jirapath.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraPathMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Server'))");
+    editconnection.jirapath.focus();
+    return false;
+  }
+  
+  if (editconnection.jirapath.value != "" && !editconnection.jirapath.value.startsWith("/"))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraPathMustBeginWithASlash'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Server'))");
+    editconnection.jirapath.focus();
+    return false;
+  }
+
   return true;
 }
 //-->
