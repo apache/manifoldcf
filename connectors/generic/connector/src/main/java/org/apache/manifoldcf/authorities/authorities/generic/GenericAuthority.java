@@ -33,11 +33,11 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
@@ -88,6 +88,10 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
 
   private String genericEntryPoint = null;
 
+  private int connectionTimeoutMillis = 60 * 1000;
+
+  private int socketTimeoutMillis = 30 * 60 * 1000;
+
   private long responseLifetime = 60000L; //60sec
 
   private int LRUsize = 1000;
@@ -132,6 +136,18 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
       genericPassword = ManifoldCF.deobfuscate(getParam(configParams, "genericPassword", ""));
     } catch (ManifoldCFException ignore) {
     }
+    connectionTimeoutMillis = Integer.parseInt(getParam(configParams, "genericConnectionTimeout", "60000"));
+    if (connectionTimeoutMillis == 0) {
+      connectionTimeoutMillis = 60000;
+    }
+    socketTimeoutMillis = Integer.parseInt(getParam(configParams, "genericSocketTimeout", "1800000"));
+    if (socketTimeoutMillis == 0) {
+      socketTimeoutMillis = 1800000;
+    }
+    responseLifetime = Long.parseLong(getParam(configParams, "genericResponseLifetime", "60000"));
+    if (responseLifetime == 0) {
+      responseLifetime = 60000;
+    }
   }
 
   protected DefaultHttpClient getClient() throws ManifoldCFException {
@@ -152,6 +168,8 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
           throw new ManifoldCFException("getClient exception: " + ex.getMessage(), ex);
         }
       }
+      HttpConnectionParams.setConnectionTimeout(cl.getParams(), connectionTimeoutMillis);
+      HttpConnectionParams.setSoTimeout(cl.getParams(), socketTimeoutMillis);
       sessionExpirationTime = System.currentTimeMillis() + 300000L;
       client = cl;
       return cl;
@@ -274,7 +292,7 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
       if (auth == null) {
         return userNotFoundResponse;
       }
-      if(!auth.exists) {
+      if (!auth.exists) {
         return userNotFoundResponse;
       }
       if (auth.tokens == null) {
@@ -349,6 +367,9 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
       password = ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", ""));
     } catch (ManifoldCFException ignore) {
     }
+    String conTimeout = getParam(parameters, "genericConnectionTimeout", "60000");
+    String soTimeout = getParam(parameters, "genericSocketTimeout", "1800000");
+    String respLifetime = getParam(parameters, "genericResponseLifetime", "60000");
 
     if (tabName.equals(Messages.getString(locale, "generic.EntryPoint"))) {
       out.print(
@@ -366,11 +387,26 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.PasswordColon") + "</nobr></td>\n"
         + "  <td class=\"value\"><input type=\"password\" size=\"32\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/></td>\n"
         + " </tr>\n"
+        + " <tr>\n"
+        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
+        + " </tr>\n"
+        + " <tr>\n"
+        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
+        + " </tr>\n"
+        + " <tr>\n"
+        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ResponseLifetimeColon") + "</nobr></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericResponseLifetime\" value=\"" + Encoder.attributeEscape(respLifetime) + "\"/></td>\n"
+        + " </tr>\n"
         + "</table>\n");
     } else {
       out.print("<input type=\"hidden\" name=\"genericEntryPoint\" value=\"" + Encoder.attributeEscape(server) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericLogin\" value=\"" + Encoder.attributeEscape(login) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericResponseLifetime\" value=\"" + Encoder.attributeEscape(respLifetime) + "\"/>\n");
     }
   }
 
@@ -381,6 +417,9 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
 
     copyParam(variableContext, parameters, "genericLogin");
     copyParam(variableContext, parameters, "genericEntryPoint");
+    copyParam(variableContext, parameters, "genericConTimeout");
+    copyParam(variableContext, parameters, "genericSoTimeout");
+    copyParam(variableContext, parameters, "genericResponseLifetime");
 
     String password = variableContext.getParameter("genericPassword");
     if (password == null) {
@@ -396,6 +435,9 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
     throws ManifoldCFException, IOException {
     String login = getParam(parameters, "genericLogin", "");
     String server = getParam(parameters, "genericEntryPoint", "");
+    String conTimeout = getParam(parameters, "genericConnectionTimeout", "60000");
+    String soTimeout = getParam(parameters, "genericSocketTimeout", "1800000");
+    String respLifetime = getParam(parameters, "genericResponseLifetime", "60000");
 
     out.print(
       "<table class=\"displaytable\">\n"
@@ -411,6 +453,18 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
       + " <tr>\n"
       + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.PasswordColon") + "</nobr></td>\n"
       + "  <td class=\"value\">**********</td>\n"
+      + " </tr>\n"
+      + " <tr>\n"
+      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
+      + "  <td class=\"value\">" + Encoder.bodyEscape(conTimeout) + "</td>\n"
+      + " </tr>\n"
+      + " <tr>\n"
+      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
+      + "  <td class=\"value\">" + Encoder.bodyEscape(soTimeout) + "</td>\n"
+      + " </tr>\n"
+      + " <tr>\n"
+      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ResponseLifetimeColon") + "</nobr></td>\n"
+      + "  <td class=\"value\">" + Encoder.bodyEscape(respLifetime) + "</td>\n"
       + " </tr>\n"
       + "</table>\n");
   }
