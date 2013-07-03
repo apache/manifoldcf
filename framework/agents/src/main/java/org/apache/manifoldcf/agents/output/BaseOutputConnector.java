@@ -49,6 +49,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   /** Return the list of activities that this connector supports (i.e. writes into the log).
   *@return the list.
   */
+  @Override
   public String[] getActivitiesList()
   {
     return new String[0];
@@ -61,6 +62,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param command is the command, which is taken directly from the API request.
   *@return true if the resource is found, false if not.  In either case, output may be filled in.
   */
+  @Override
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException
   {
@@ -72,6 +74,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   * is a good time to synchronize things.  It is called whenever a job is either completed or aborted.
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
+  @Override
   public void noteJobComplete(IOutputNotifyActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -84,6 +87,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param mimeType is the mime type of the document.
   *@return true if the mime type is indexable by this connector.
   */
+  @Override
   public boolean checkMimeTypeIndexable(String outputDescription, String mimeType)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -108,6 +112,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param localFile is the local file to check.
   *@return true if the file is indexable.
   */
+  @Override
   public boolean checkDocumentIndexable(String outputDescription, File localFile)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -132,6 +137,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param length is the length of the document.
   *@return true if the file is indexable.
   */
+  @Override
   public boolean checkLengthIndexable(String outputDescription, long length)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -144,6 +150,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param url is the URL of the document.
   *@return true if the file is indexable.
   */
+  @Override
   public boolean checkURLIndexable(String outputDescription, String url)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -161,6 +168,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@return a string, of unlimited length, which uniquely describes output configuration and specification in such a way that if two such strings are equal,
   * the document will not need to be sent again to the output data store.
   */
+  @Override
   public String getOutputDescription(OutputSpecification spec)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -182,6 +190,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   *@return the document status (accepted or permanently rejected).
   */
+  @Override
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -195,6 +204,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param outputDescription is the last description string that was constructed for this document by the getOutputDescription() method above.
   *@param activities is the handle to an object that the implementer of an output connector may use to perform operations, such as logging processing activity.
   */
+  @Override
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -217,6 +227,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
   */
+  @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, OutputSpecification os, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
@@ -256,6 +267,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   *@param tabName is the current tab name.
   */
+  @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, OutputSpecification os, String tabName)
     throws ManifoldCFException, IOException
   {
@@ -284,6 +296,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param os is the current output specification for this job.
   *@return null if all is well, or a string error message if there is an error that should prevent saving of the job (and cause a redirection to an error page).
   */
+  @Override
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, OutputSpecification os)
     throws ManifoldCFException
   {
@@ -311,6 +324,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
   *@param locale is the preferred local of the output.
   *@param os is the current output specification for this job.
   */
+  @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, OutputSpecification os)
     throws ManifoldCFException, IOException
   {

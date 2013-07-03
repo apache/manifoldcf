@@ -22,26 +22,11 @@ package org.apache.manifoldcf.agents.output.hdfs;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.manifoldcf.agents.output.hdfs.HDFSOutputParam.ParameterEnum;
-
 /** 
  * Parameters data for the elasticsearch output connector.
  */
 public class HDFSOutputParam extends HashMap<ParameterEnum, String>
 {
-
-  /** Parameters constants */
-  public enum ParameterEnum {
-    NAMENODE("hdfs://localhost:9000"),
-    USER(""),
-    ROOTPATH("/tmp");
-
-    final protected String defaultValue;
-
-    private ParameterEnum(String defaultValue) {
-      this.defaultValue = defaultValue;
-    }
-  }
 
   private static final long serialVersionUID = -140994685772720029L;
 

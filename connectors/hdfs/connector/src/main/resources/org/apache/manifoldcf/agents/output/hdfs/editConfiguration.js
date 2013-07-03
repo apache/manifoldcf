@@ -17,5 +17,37 @@
 
 <script type="text/javascript">
 <!--
+function checkConfigForSave()
+{
+  if (editconnection.namenodehost.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeHostCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    editconnection.namenodehost.focus();
+    return false;
+  }
+  if (editconnection.namenodeport.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodePortCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    editconnection.namenodeport.focus();
+    return false;
+  }
+  if (!isInteger(editconnection.namenodeport.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodePortMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    editconnection.namenodeport.focus();
+    return false;
+  }
+  if (editconnection.user.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.UserCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))");
+    editconnection.user.focus();
+    return false;
+  }
+  return true;
+}
 //-->
 </script>

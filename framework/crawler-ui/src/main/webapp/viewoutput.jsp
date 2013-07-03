@@ -121,6 +121,7 @@
 		}
 		catch (ManifoldCFException e)
 		{
+			e.printStackTrace();
 			connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewoutput.Threwexception")+" '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
 		}
 %>

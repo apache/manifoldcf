@@ -702,7 +702,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (j == 0)
           {
             out.print(
-"              <tr class=\"formrow\"><td class=\"message\" colspan=\"4\">" + Messages.getBodyString(locale,"FileConnector.NoRulesDefined") + "</td></tr>\n"
+"              <tr class=\"formrow\"><td class=\"formcolumnmessage\" colspan=\"4\">" + Messages.getBodyString(locale,"FileConnector.NoRulesDefined") + "</td></tr>\n"
             );
           }
           out.print(

@@ -1,4 +1,4 @@
-/* $Id: FileOutputConstant.java 991374 2013-05-31 23:01:08Z minoru $ */
+/* $Id$ */
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,23 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.manifoldcf.agents.output.hdfs;
 
+import java.util.HashMap;
+import java.util.Map;
 
-/** Parameters and output data for File output connector.
- */
-public class HDFSOutputConstant
-{
-  public static final String _rcsid = "@(#)$Id: SolrConfig.java 991374 2010-08-31 22:32:08Z minoru $";
+/** Parameters constants */
+public enum ParameterEnum {
+  namenodehost("localhost"),
+  namenodeport("9000"),
+  user(""),
+  rootpath("");
 
-  // Configuration parameters
+  final protected String defaultValue;
 
-  /** Name node */
-  public static final String PARAM_NAMENODE = "namenode";
-
-  /** User */
-  public static final String PARAM_USER = "user";
-
-  /** Root path */
-  public static final String PARAM_ROOTPATH = "rootpath";
+  private ParameterEnum(String defaultValue) {
+    this.defaultValue = defaultValue;
+  }
 }

@@ -1,4 +1,4 @@
-/* $Id: DropboxSession.java 1490621 2013-06-07 12:55:04Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,15 +21,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.apache.manifoldcf.crawler.connectors.hdfs;
+package org.apache.manifoldcf.agents.output.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.manifoldcf.core.common.*;
 
+import java.io.InputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
@@ -38,15 +39,13 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- *
- * @author andrew
  */
 public class HDFSSession {
 
   private FileSystem fileSystem;
-  private String nameNode;
-  private Configuration config;
-  private String user;
+  private final String nameNode;
+  private final Configuration config;
+  private final String user;
   
   public HDFSSession(String nameNode, Configuration config, String user) throws URISyntaxException, IOException, InterruptedException {
     this.nameNode = nameNode;
@@ -69,35 +68,51 @@ public class HDFSSession {
     return info;
   }
 
-  public FileStatus[] listStatus(Path path)
+  public void deleteFile(Path path)
     throws IOException {
-    try {
-      return fileSystem.listStatus(path);
-    } catch (FileNotFoundException e) {
-      return null;
+    if (fileSystem.exists(path)) {
+      fileSystem.delete(path, true);
     }
   }
-  
+
+  public void createFile(Path path, InputStream input)
+    throws IOException {
+    /*
+      * make directory
+      */
+    if (!fileSystem.exists(path.getParent())) {
+      fileSystem.mkdirs(path.getParent());
+    }
+
+    /*
+      * delete old file
+      */
+    if (fileSystem.exists(path)) {
+      fileSystem.delete(path, true);
+    }
+
+    FSDataOutputStream output = fileSystem.create(path);
+    try {
+      /*
+       * write file
+       */
+      byte buf[] = new byte[65536];
+      int len;
+      while((len = input.read(buf)) != -1) {
+        output.write(buf, 0, len);
+      }
+      output.flush();
+    } finally {
+      output.close();
+    }
+
+    // Do NOT close input; it's closed by the caller.
+  }
+
   public URI getUri() {
     return fileSystem.getUri();
   }
 
-  public FileStatus getObject(Path path) throws IOException {
-    try {
-      return fileSystem.getFileStatus(path);
-    } catch(FileNotFoundException e) {
-      return null;
-    }
-  }
-
-  public FSDataInputStream getFSDataInputStream(Path path) throws IOException {
-    try {
-      return fileSystem.open(path);
-    } catch (FileNotFoundException e) {
-      return null;
-    }
-  }
-  
   public void close() throws IOException {
     fileSystem.close();
   }

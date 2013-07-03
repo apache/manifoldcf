@@ -361,6 +361,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     
     if (app_secret == null) {
       app_secret = StringUtils.EMPTY;
+    } else {
+      if (app_secret.length() > 0)
+        app_secret = EXISTING_VALUE_PASSWORD;
     }
     
     if (username == null) {
@@ -368,6 +371,9 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
     if (password == null) {
       password = StringUtils.EMPTY;
+    } else {
+      if (password.length() > 0)
+        password = EXISTING_VALUE_PASSWORD;
     }
     
     newMap.put("APP_KEY", app_key);
@@ -478,7 +484,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     
     String app_secret = variableContext.getParameter("app_secret");
     if (app_secret != null) {
-      parameters.setObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM, app_secret);
+      if (!app_secret.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM, app_secret);
     }
     
     String key = variableContext.getParameter("key");
@@ -488,7 +495,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
     String secret = variableContext.getParameter("secret");
     if (secret != null) {
-      parameters.setObfuscatedParameter(DropboxConfig.SECRET_PARAM, secret);
+      if (!secret.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setObfuscatedParameter(DropboxConfig.SECRET_PARAM, secret);
     }
 
     return null;

@@ -27,9 +27,20 @@ public class JiraConfig {
 
   public static final String CLIENT_ID_PARAM = "clientid";
   public static final String CLIENT_SECRET_PARAM = "clientsecret";
-  public static final String JIRAURL_TOKEN_PARAM = "jiraurl";
-  public static final String REPOSITORY_ID_DEFAULT_VALUE = "jira";
+  public static final String JIRA_PROTOCOL_PARAM = "jiraprotocol";
+  public static final String JIRA_HOST_PARAM = "jirahost";
+  public static final String JIRA_PORT_PARAM = "jiraport";
+  public static final String JIRA_PATH_PARAM = "jirapath";
+  
   public static final String JIRA_QUERY_PARAM = "jiraquery";
+  
+  public static final String CLIENT_ID_DEFAULT = "";
+  public static final String CLIENT_SECRET_DEFAULT = "";
+  public static final String JIRA_PROTOCOL_DEFAULT = "http";
+  public static final String JIRA_HOST_DEFAULT = "";
+  public static final String JIRA_PORT_DEFAULT = "";
+  public static final String JIRA_PATH_DEFAULT = "/rest/api/2/";
+  
   public static final String JIRA_QUERY_DEFAULT = "ORDER BY createdDate Asc";
 
     

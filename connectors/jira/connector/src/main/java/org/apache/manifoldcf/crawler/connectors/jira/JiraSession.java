@@ -76,8 +76,6 @@ public class JiraSession {
   private ClientConnectionManager connectionManager;
   private HttpClient httpClient;
   
-  private final static String apiPost = "/rest/api/2/";
-
   /**
    * Constructor. Create a session.
    */
@@ -193,7 +191,7 @@ public class JiraSession {
 
   private void getRest(String rightside, JiraJSONResponse response) throws IOException {
 
-    final HttpRequestBase method = new HttpGet(URLbase + apiPost + rightside);
+    final HttpRequestBase method = new HttpGet(URLbase + rightside);
     method.addHeader("Accept", "application/json");
 
     try {

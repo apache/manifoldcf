@@ -23,14 +23,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,7 +44,6 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.system.Logging;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
-import org.apache.manifoldcf.agents.output.hdfs.HDFSOutputParam.ParameterEnum;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
@@ -88,8 +85,12 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
-  protected Configuration config = null;
-  protected FileSystem fileSystem = null;
+  protected String nameNodeHost = null;
+  protected String nameNodePort = null;
+  protected String user = null;
+  protected HDFSSession session = null;
+  protected long lastSessionFetch = -1L;
+  protected static final long timeToRelease = 300000L;
 
   /** Constructor.
    */
@@ -112,52 +113,113 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
-    
-    String nameNode = configParams.getParameter(ParameterEnum.NAMENODE.name());
-    
-    String user = configParams.getParameter(ParameterEnum.USER.name());
-    
-    /*
-     * make Configuration
-     */
-    ClassLoader ocl = Thread.currentThread().getContextClassLoader();
-    try {
-      Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
-      config = new Configuration();
-      config.set("fs.default.name", nameNode);
-    } finally {
-      Thread.currentThread().setContextClassLoader(ocl);
-    }
-    
-    /*
-     * get connection to HDFS
-     */
-    try {
-        fileSystem = FileSystem.get(new URI(nameNode), config, user);
-    } catch (URISyntaxException e) {
-      Logging.agents.warn("HDFS: Node name error: " + e.getMessage(), e);
-    } catch (IOException e) {
-      Logging.agents.warn("HDFS: File system error: " + e.getMessage(), e);
-    } catch (InterruptedException e) {
-      Logging.agents.warn("HDFS: File system error: " + e.getMessage(), e);
-    }
+    nameNodeHost = configParams.getParameter(ParameterEnum.namenodehost.name());
+    nameNodePort = configParams.getParameter(ParameterEnum.namenodeport.name());
+    user = configParams.getParameter(ParameterEnum.user.name());
   }
 
   /** Close the connection.  Call this before discarding the connection.
    */
   @Override
   public void disconnect() throws ManifoldCFException {
-    try {
-      fileSystem.close();
-    } catch(IOException ex) {
-      throw new ManifoldCFException(ex);
-    }
-    config.clear();
+    closeSession();
+    nameNodeHost = null;
+    nameNodePort = null;
+    user = null;
     super.disconnect();
   }
 
+  /**
+   * @throws ManifoldCFException
+   */
+  @Override
+  public void poll() throws ManifoldCFException {
+    if (lastSessionFetch == -1L) {
+      return;
+    }
+
+    long currentTime = System.currentTimeMillis();
+    if (currentTime >= lastSessionFetch + timeToRelease) {
+      closeSession();
+    }
+  }
+
+  protected void closeSession()
+    throws ManifoldCFException {
+    if (session != null) {
+      try {
+        // This can in theory throw an IOException, so it is possible it is doing socket
+        // communication.  In practice, it's unlikely that there's any real IO, so I'm
+        // NOT putting it in a background thread for now.
+        session.close();
+      } catch (InterruptedIOException e) {
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      } catch (IOException e) {
+        Logging.agents.warn("HDFS: Error closing connection: "+e.getMessage(),e);
+        // Eat the exception
+      } finally {
+        session = null;
+        lastSessionFetch = -1L;
+      }
+    }
+  }
+
   /** Set up a session */
-  protected void getSession() throws ManifoldCFException, ServiceInterruption {
+  protected HDFSSession getSession() throws ManifoldCFException, ServiceInterruption {
+    if (session == null) {
+      String nameNodeHost = params.getParameter(ParameterEnum.namenodehost.name());
+      if (nameNodeHost == null)
+        throw new ManifoldCFException("Namenodehost must be specified");
+
+      String nameNodePort = params.getParameter(ParameterEnum.namenodeport.name());
+      if (nameNodePort == null)
+        throw new ManifoldCFException("Namenodeport must be specified");
+      
+      String user = params.getParameter(ParameterEnum.user.name());
+      if (user == null)
+        throw new ManifoldCFException("User must be specified");
+      
+      String nameNode = "hdfs://"+nameNodeHost+":"+nameNodePort;
+      //System.out.println("Namenode = '"+nameNode+"'");
+
+      /*
+       * make Configuration
+       */
+      Configuration config = null;
+      ClassLoader ocl = Thread.currentThread().getContextClassLoader();
+      try {
+        Thread.currentThread().setContextClassLoader(org.apache.hadoop.conf.Configuration.class.getClassLoader());
+        config = new Configuration();
+        config.set("fs.default.name", nameNode);
+      } finally {
+        Thread.currentThread().setContextClassLoader(ocl);
+      }
+      
+      /*
+       * get connection to HDFS
+       */
+      GetSessionThread t = new GetSessionThread(nameNode,config,user);
+      try {
+        t.start();
+        t.finishUp();
+      } catch (InterruptedException e) {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+      } catch (java.net.SocketTimeoutException e) {
+        handleIOException(e);
+      } catch (InterruptedIOException e) {
+        t.interrupt();
+        handleIOException(e);
+      } catch (URISyntaxException e) {
+        handleURISyntaxException(e);
+      } catch (IOException e) {
+        handleIOException(e);
+      }
+      
+      session = t.getResult();
+    }
+    lastSessionFetch = System.currentTimeMillis();
+    return session;
   }
 
   /** Test the connection.  Returns a string describing the connection integrity.
@@ -166,10 +228,12 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   @Override
   public String check() throws ManifoldCFException {
     try {
-      getSession();
+      checkConnection();
       return super.check();
     } catch (ServiceInterruption e) {
-      return "Transient error: "+e.getMessage();
+      return "Connection temporarily failed: " + e.getMessage();
+    } catch (ManifoldCFException e) {
+      return "Connection failed: " + e.getMessage();
     }
   }
 
@@ -206,17 +270,9 @@ public class HDFSOutputConnector extends BaseOutputConnector {
    */
   @Override
   public int addOrReplaceDocument(String documentURI, String outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities) throws ManifoldCFException, ServiceInterruption {
-    // Establish a session
-    getSession();
 
-    HDFSOutputConfig config = getConfigParameters(null);
-
-    HDFSOutputSpecs specs = null;
-    InputStream input = null;
-    FSDataOutputStream output = null;
-    FileLock lock = null;
     try {
-      specs = new HDFSOutputSpecs(outputDescription);
+      HDFSOutputSpecs specs = new HDFSOutputSpecs(outputDescription);
 
       /*
        * make file path
@@ -229,53 +285,18 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       strBuff.append(documentURItoFilePath(documentURI));
       Path path = new Path(strBuff.toString());
 
-      /*
-       * make directory
-       */
-      if (!fileSystem.exists(path.getParent())) {
-        fileSystem.mkdirs(path.getParent());
-      }
-
-      /*
-       * delete old file
-       */
-      if (fileSystem.exists(path)) {
-        fileSystem.delete(path, true);
-      }
-
-      input = document.getBinaryStream();
-      output = fileSystem.create(path);
-
-      /*
-       * write file
-       */
-      byte buf[] = new byte[1024];
-      int len;
-      while((len = input.read(buf)) != -1) {
-        output.write(buf, 0, len);
-      }
-      output.flush();
+      Long startTime = new Long(System.currentTimeMillis());
+      createFile(path, document.getBinaryStream());
+      activities.recordActivity(startTime, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
+      return DOCUMENTSTATUS_ACCEPTED;
     } catch (JSONException e) {
+      handleJSONException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (URISyntaxException e) {
+      handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
-    } catch (NullPointerException e) {
-        return DOCUMENTSTATUS_REJECTED;
-    } catch (IOException e) {
-      return DOCUMENTSTATUS_REJECTED;
-    } finally {
-      try {
-        input.close();
-      } catch (IOException e) {
-      }
-      try {
-        output.close();
-      } catch (IOException e) {
-      }
     }
 
-    activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
-    return DOCUMENTSTATUS_ACCEPTED;
   }
 
   /** Remove a document using the connector.
@@ -287,14 +308,9 @@ public class HDFSOutputConnector extends BaseOutputConnector {
    */
   @Override
   public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities) throws ManifoldCFException, ServiceInterruption {
-    // Establish a session
-    getSession();
 
-    HDFSOutputConfig config = getConfigParameters(null);
-
-    HDFSOutputSpecs specs = null;
     try {
-      specs = new HDFSOutputSpecs(outputDescription);
+      HDFSOutputSpecs specs = new HDFSOutputSpecs(outputDescription);
 
       /*
        * make path
@@ -306,20 +322,14 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       strBuff.append("/");
       strBuff.append(documentURItoFilePath(documentURI));
       Path path = new Path(strBuff.toString());
-
-      /*
-       * delete old file
-       */
-      if (fileSystem.exists(path)) {
-        fileSystem.delete(path, true);
-      }
+      Long startTime = new Long(System.currentTimeMillis());
+      deleteFile(path);
+      activities.recordActivity(startTime, REMOVE_ACTIVITY, null, documentURI, "OK", null);
     } catch (JSONException e) {
+      handleJSONException(e);
     } catch (URISyntaxException e) {
-    } catch (NullPointerException e) {
-    } catch (IOException e) {
+      handleURISyntaxException(e);
     }
-
-    activities.recordActivity(null, REMOVE_ACTIVITY, null, documentURI, "OK", null);
   }
 
   /** Output the configuration header section.
@@ -422,7 +432,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     ConfigurationNode specNode = getSpecNode(os);
     boolean bAdd = (specNode == null);
     if (bAdd) {
-      specNode = new SpecificationNode(HDFSOutputConstant.PARAM_ROOTPATH);
+      specNode = new SpecificationNode(ParameterEnum.rootpath.name());
     }
     HDFSOutputSpecs.contextToSpecNode(variableContext, specNode);
     if (bAdd) {
@@ -452,7 +462,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     int l = os.getChildCount();
     for (int i = 0; i < l; i++) {
       SpecificationNode node = os.getChild(i);
-      if (node.getType().equals(HDFSOutputConstant.PARAM_ROOTPATH)) {
+      if (node.getType().equals(ParameterEnum.rootpath.name())) {
         return node;
       }
     }
@@ -499,9 +509,8 @@ public class HDFSOutputConnector extends BaseOutputConnector {
    * @param documentURI
    * @return
    * @throws URISyntaxException
-   * @throws NullPointerException
    */
-  final private String documentURItoFilePath(String documentURI) throws URISyntaxException, NullPointerException {
+  final private String documentURItoFilePath(String documentURI) throws URISyntaxException {
     StringBuffer path = new StringBuffer();
     URI uri = null;
 
@@ -516,7 +525,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
       path.append(uri.getHost());
       if (uri.getPort() != -1) {
         path.append(":");
-        path.append(uri.getPort());
+        path.append(Integer.toString(uri.getPort()));
       }
       if (uri.getRawPath() != null) {
         if (uri.getRawPath().length() == 0) {
@@ -525,7 +534,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
           path.append(uri.getRawPath());
         } else {
           for (String name : uri.getRawPath().split("/")) {
-            if (name.length() > 0) {
+            if (name != null && name.length() > 0) {
               path.append("/");
               path.append(name);
             }
@@ -539,7 +548,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     } else {
       if (uri.getRawSchemeSpecificPart() != null) {
         for (String name : uri.getRawSchemeSpecificPart().split("/")) {
-          if (name.length() > 0) {
+          if (name != null && name.length() > 0) {
             path.append("/");
             path.append(name);
           }
@@ -552,4 +561,247 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     }
     return path.toString();
   }
+  
+  /** Handle URISyntaxException */
+  protected static void handleURISyntaxException(URISyntaxException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Logging.agents.error("Namenode URI is malformed: "+e.getMessage(),e);
+    throw new ManifoldCFException("Namenode URI is malformed: "+e.getMessage(),e);
+  }
+  
+  /** Handle JSONException */
+  protected static void handleJSONException(JSONException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    Logging.agents.error("JSON parsing error: "+e.getMessage(),e);
+    throw new ManifoldCFException("JSON parsing error: "+e.getMessage(),e);
+  }
+  
+  /** Handle IOException */
+  protected static void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    }
+    long currentTime = System.currentTimeMillis();
+    Logging.agents.warn("HDFS output connection: IO exception: "+e.getMessage(),e);
+    throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L, currentTime + 3 * 60 * 60000L,-1,false);
+  }
+
+  protected static class CreateFileThread extends Thread {
+    protected final HDFSSession session;
+    protected final Path path;
+    protected final InputStream input;
+    protected Throwable exception = null;
+
+    public CreateFileThread(HDFSSession session, Path path, InputStream input) {
+      super();
+      this.session = session;
+      this.path = path;
+      this.input = input;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        session.createFile(path,input);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp() throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+  }
+
+  protected void createFile(Path path, InputStream input)
+    throws ManifoldCFException, ServiceInterruption {
+    CreateFileThread t = new CreateFileThread(getSession(), path, input);
+    try {
+      t.start();
+      t.finishUp();
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+  }
+
+  protected static class DeleteFileThread extends Thread {
+    protected final HDFSSession session;
+    protected final Path path;
+    protected Throwable exception = null;
+
+    public DeleteFileThread(HDFSSession session, Path path) {
+      super();
+      this.session = session;
+      this.path = path;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        session.deleteFile(path);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp() throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+  }
+
+  protected void deleteFile(Path path)
+    throws ManifoldCFException, ServiceInterruption {
+    // Establish a session
+    DeleteFileThread t = new DeleteFileThread(getSession(),path);
+    try {
+      t.start();
+      t.finishUp();
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+  }
+
+
+  protected static class CheckConnectionThread extends Thread {
+    protected final HDFSSession session;
+    protected Throwable exception = null;
+
+    public CheckConnectionThread(HDFSSession session) {
+      super();
+      this.session = session;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        session.getRepositoryInfo();
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp() throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+  }
+
+  /**
+   * @throws ManifoldCFException
+   * @throws ServiceInterruption
+   */
+  protected void checkConnection() throws ManifoldCFException, ServiceInterruption {
+    CheckConnectionThread t = new CheckConnectionThread(getSession());
+    try {
+      t.start();
+      t.finishUp();
+      return;
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+  }
+
+  protected static class GetSessionThread extends Thread {
+    protected final String nameNode;
+    protected final Configuration config;
+    protected final String user;
+    protected Throwable exception = null;
+    protected HDFSSession session = null;
+
+    public GetSessionThread(String nameNode, Configuration config, String user) {
+      super();
+      this.nameNode = nameNode;
+      this.config = config;
+      this.user = user;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        // Create a session
+        session = new HDFSSession(nameNode, config, user);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, IOException, URISyntaxException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof URISyntaxException) {
+          throw (URISyntaxException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+    
+    public HDFSSession getResult() {
+      return session;
+    }
+  }
+
 }

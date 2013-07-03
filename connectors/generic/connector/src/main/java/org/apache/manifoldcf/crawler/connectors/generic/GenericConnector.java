@@ -43,6 +43,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -84,6 +85,10 @@ public class GenericConnector extends BaseRepositoryConnector {
   private String genericPassword = null;
 
   private String genericEntryPoint = null;
+
+  private int connectionTimeoutMillis = 60 * 1000;
+
+  private int socketTimeoutMillis = 30 * 60 * 1000;
 
   protected static final String RELATIONSHIP_RELATED = "related";
 
@@ -138,6 +143,14 @@ public class GenericConnector extends BaseRepositoryConnector {
       genericPassword = ManifoldCF.deobfuscate(getParam(configParams, "genericPassword", ""));
     } catch (ManifoldCFException ignore) {
     }
+    connectionTimeoutMillis = Integer.parseInt(getParam(configParams, "genericConnectionTimeout", "60000"));
+    if (connectionTimeoutMillis == 0) {
+      connectionTimeoutMillis = 60000;
+    }
+    socketTimeoutMillis = Integer.parseInt(getParam(configParams, "genericSocketTimeout", "1800000"));
+    if (socketTimeoutMillis == 0) {
+      socketTimeoutMillis = 1800000;
+    }
   }
 
   protected DefaultHttpClient getClient() throws ManifoldCFException {
@@ -152,6 +165,8 @@ public class GenericConnector extends BaseRepositoryConnector {
         throw new ManifoldCFException("getClient exception: " + ex.getMessage(), ex);
       }
     }
+    HttpConnectionParams.setConnectionTimeout(cl.getParams(), connectionTimeoutMillis);
+    HttpConnectionParams.setSoTimeout(cl.getParams(), socketTimeoutMillis);
     return cl;
   }
 
@@ -501,6 +516,8 @@ public class GenericConnector extends BaseRepositoryConnector {
       password = ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", ""));
     } catch (ManifoldCFException ignore) {
     }
+    String conTimeout = getParam(parameters, "genericConnectionTimeout", "60000");
+    String soTimeout = getParam(parameters, "genericSocketTimeout", "1800000");
 
     if (tabName.equals(Messages.getString(locale, "generic.EntryPoint"))) {
       out.print(
@@ -518,11 +535,21 @@ public class GenericConnector extends BaseRepositoryConnector {
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.PasswordColon") + "</nobr></td>\n"
         + "  <td class=\"value\"><input type=\"password\" size=\"32\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/></td>\n"
         + " </tr>\n"
+        + " <tr>\n"
+        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
+        + " </tr>\n"
+        + " <tr>\n"
+        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
+        + " </tr>\n"
         + "</table>\n");
     } else {
       out.print("<input type=\"hidden\" name=\"genericEntryPoint\" value=\"" + Encoder.attributeEscape(server) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericLogin\" value=\"" + Encoder.attributeEscape(login) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
     }
   }
 
@@ -533,6 +560,8 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     copyParam(variableContext, parameters, "genericLogin");
     copyParam(variableContext, parameters, "genericEntryPoint");
+    copyParam(variableContext, parameters, "genericConTimeout");
+    copyParam(variableContext, parameters, "genericSoTimeout");
 
     String password = variableContext.getParameter("genericPassword");
     if (password == null) {
@@ -548,7 +577,9 @@ public class GenericConnector extends BaseRepositoryConnector {
     throws ManifoldCFException, IOException {
     String login = getParam(parameters, "genericLogin", "");
     String server = getParam(parameters, "genericEntryPoint", "");
-
+    String conTimeout = getParam(parameters, "genericConnectionTimeout", "60000");
+    String soTimeout = getParam(parameters, "genericSocketTimeout", "1800000");
+    
     out.print(
       "<table class=\"displaytable\">\n"
       + " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
@@ -563,6 +594,14 @@ public class GenericConnector extends BaseRepositoryConnector {
       + " <tr>\n"
       + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.PasswordColon") + "</nobr></td>\n"
       + "  <td class=\"value\">**********</td>\n"
+      + " </tr>\n"
+      + " <tr>\n"
+      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
+      + "  <td class=\"value\">" + Encoder.bodyEscape(conTimeout) + "</td>\n"
+      + " </tr>\n"
+      + " <tr>\n"
+      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
+      + "  <td class=\"value\">" + Encoder.bodyEscape(soTimeout) + "</td>\n"
       + " </tr>\n"
       + "</table>\n");
   }

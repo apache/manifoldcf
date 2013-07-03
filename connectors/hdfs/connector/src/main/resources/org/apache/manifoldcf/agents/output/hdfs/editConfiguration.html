@@ -18,18 +18,25 @@
 #if($TABNAME == $ResourceBundle.getString('HDFSOutputConnector.ServerTabName'))
 
 <table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNode'))</nobr></td>
-    <td class="value"><input name="namenode" type="text" value="$Encoder.attributeEscape($NAMENODE)" size="48" /></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodeHost'))</nobr></td>
+    <td class="value"><input name="namenodehost" type="text" value="$Encoder.attributeEscape($NAMENODEHOST)" size="32" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.NameNodePort'))</nobr></td>
+    <td class="value"><input name="namenodeport" type="text" value="$Encoder.attributeEscape($NAMENODEPORT)" size="5" /></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HDFSOutputConnector.User'))</nobr></td>
-    <td class="value"><input name="user" type="text" value="$Encoder.attributeEscape($USER)" size="48" /></td>
+    <td class="value"><input name="user" type="text" value="$Encoder.attributeEscape($USER)" size="32" /></td>
   </tr>
 </table>
 
 #else
 
-<input type="hidden" name="namenode" value="$Encoder.attributeEscape($NAMENODE)" />
+<input type="hidden" name="namenodehost" value="$Encoder.attributeEscape($NAMENODEHOST)" />
+<input type="hidden" name="namenodeport" value="$Encoder.attributeEscape($NAMENODEPORT)" />
+<input type="hidden" name="user" value="$Encoder.attributeEscape($USER)" />
 
 #end
