@@ -694,7 +694,7 @@ cd example
             <tr><td>tcpip_socket</td><td>true</td></tr>
             <tr><td>max_connections</td><td>400</td></tr>
             <tr><td>checkpoint_timeout</td><td>900</td></tr>
-            <tr><td>datastyle</td><td>ISO,European</td></tr>
+            <tr><td>datestyle</td><td>ISO,European</td></tr>
             <tr><td>autovacuum</td><td>off</td></tr>
           </table>
           <p></p>
