@@ -73,15 +73,6 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   
   final private static int MANAGE_DOCUMENT_PRIVILEGE = 17;
 
-  /** Deny access token for Meridio.  All tokens begin with "U" or with "G", except the blanket "READ_ALL" that I create.
-  * However, we currently have code in the field, so I will continue ot use "DEAD_AUTHORITY" for that reason.
-  */
-  private final static String denyToken = "DEAD_AUTHORITY";
-
-  private final static AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private final static AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERNOTFOUND);
-
-
   /** Constructor.
   */
   public MeridioAuthority() {}
@@ -551,7 +542,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
         {
           if (Logging.authorityConnectors.isDebugEnabled())
             Logging.authorityConnectors.debug("Meridio: User '" + userName + "' does not exist");
-          return userNotFoundResponse;
+          return RESPONSE_USERNOTFOUND;
         }
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Meridio: Found user - the User Id for '" + userName +
@@ -677,7 +668,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
   
   // UI support methods.

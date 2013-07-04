@@ -65,7 +65,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   /** Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
   * However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
   * The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token. */
-  private static final String denyToken = "DEAD_AUTHORITY";
+  private static final String denyToken = GLOBAL_DENY_TOKEN;
 
   protected class GetSessionThread extends Thread
   {

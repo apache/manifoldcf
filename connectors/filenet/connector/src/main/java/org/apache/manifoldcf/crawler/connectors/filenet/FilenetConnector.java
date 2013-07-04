@@ -104,7 +104,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   protected String docURIPrefix = null;
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   protected class GetSessionThread extends Thread
   {

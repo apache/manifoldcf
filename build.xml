@@ -1681,6 +1681,11 @@
             <param name="connector-label" value="Jira"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.jira.JiraRepositoryConnector"/>
         </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="jira"/>
+            <param name="connector-label" value="Jira"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.jira.JiraAuthorityConnector"/>
+        </antcall>
     </target>
 
     <target name="deliver-jira-connector-doc" depends="calculate-jira-doc-condition" if="jira-doc.include">

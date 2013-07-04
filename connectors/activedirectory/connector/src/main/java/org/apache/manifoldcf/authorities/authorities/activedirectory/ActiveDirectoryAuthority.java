@@ -63,14 +63,6 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** The length of time in milliseconds that the connection remains idle before expiring.  Currently 5 minutes. */
   private static final long expirationInterval = 300000L;
   
-  /** This is the active directory global deny token.  This should be ingested with all documents. */
-  private static final String globalDenyToken = "DEAD_AUTHORITY";
-  
-  private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_USERNOTFOUND);
-  
   /** Constructor.
   */
   public ActiveDirectoryAuthority()
@@ -318,7 +310,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (domainController == null)
     {
       // No domain controller found for the user, so return "user not found".
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     }
     
     // Look up connection parameters
@@ -326,7 +318,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (dcParams == null)
     {
       // No domain controller, even though it's mentioned in a rule
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     }
     
     // Use the complete fqn if the field is the "userPrincipalName"
@@ -361,7 +353,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
       String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
       if (searchBase == null)
-        return userNotFoundResponse;
+        return RESPONSE_USERNOTFOUND;
 
       //specify the LDAP search filter
       String searchFilter = "(objectClass=user)";
@@ -412,7 +404,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       }
 
       if (theGroups.size() == 0)
-        return userNotFoundResponse;
+        return RESPONSE_USERNOTFOUND;
       
       // All users get certain well-known groups
       theGroups.add("S-1-1-0");
@@ -431,12 +423,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     catch (NameNotFoundException e)
     {
       // This means that the user doesn't exist
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     }
     catch (NamingException e)
     {
       // Unreachable
-      return unreachableResponse;
+      return RESPONSE_UNREACHABLE;
     }
   }
 
@@ -448,7 +440,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
 
   // UI support methods.
