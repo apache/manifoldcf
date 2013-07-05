@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-748: Fix broken regular expressions in file connector, and
+modify file output connector to deal with colons in the file name in an
+acceptable way (so can be used on WIndows too).
+(Minoru Osuka, Karl Wright)
+
 CONNECTORS-729: Break up Jira URL into components, with proper
 javascript checking.
 (Karl Wright)

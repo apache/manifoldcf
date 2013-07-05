@@ -410,13 +410,13 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected static String findConvertPath(DocumentSpecification spec, File theFile)
   {
-    String fullpath = theFile.getAbsolutePath().replaceAll("\\","/");
+    String fullpath = theFile.getAbsolutePath().replaceAll("\\\\","/");
     for (int j = 0; j < spec.getChildCount(); j++)
     {
       SpecificationNode sn = spec.getChild(j);
       if (sn.getType().equals("startpoint"))
       {
-        String path = sn.getAttributeValue("path").replaceAll("\\","/");
+        String path = sn.getAttributeValue("path").replaceAll("\\\\","/");
         String convertToURI = sn.getAttributeValue("converttouri");
         if (path.length() > 0 && convertToURI != null && convertToURI.equals("true"))
         {

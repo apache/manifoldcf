@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -41,6 +42,7 @@ import org.apache.manifoldcf.agents.interfaces.OutputSpecification;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
+import org.apache.manifoldcf.agents.system.Logging;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
@@ -169,9 +171,6 @@ public class FileOutputConnector extends BaseOutputConnector {
 
     FileOutputSpecs specs = null;
     StringBuffer path = new StringBuffer();
-    InputStream input = null;
-    FileOutputStream output = null;
-    FileLock lock = null;
     try {
       specs = new FileOutputSpecs(outputDescription);
 
@@ -185,6 +184,8 @@ public class FileOutputConnector extends BaseOutputConnector {
       path.append(documentURItoFilePath(documentURI));
 
       File file = new File(path.toString());
+
+      //System.out.println("File is '"+file+"'");
 
       /*
        * make directory
@@ -200,78 +201,98 @@ public class FileOutputConnector extends BaseOutputConnector {
         file.delete();
       }
 
-      input = document.getBinaryStream();
-      output = new FileOutputStream(file);
-
+      FileOutputStream output = new FileOutputStream(file);
       try {
         /*
          * lock file
          */
-        boolean locked = false;
-        int retryCount = 0;
         FileChannel channel = output.getChannel();
-        while(retryCount < 10) {
-          lock = channel.tryLock();
-          if (lock == null) {
-            retryCount++;
-            try {
-              Thread.sleep(1000L);
-            } catch(InterruptedException e) {
-            }
-          } else {
-            locked = true;
-            break;
-          }
-        }
-        if (!locked) {
-          throw new ManifoldCFException("Lock failed.");
-        }
+        FileLock lock = channel.tryLock();
+        if (lock == null)
+          throw new ServiceInterruption("Could not lock file: '"+file+"'",null,1000L,-1L,10,false);
 
-        /*
-         * write file
-         */
-        byte buf[] = new byte[1024];
-        int len;
-        while((len = input.read(buf)) != -1) {
-          output.write(buf, 0, len);
-        }
-        output.flush();
-      } finally {
-        /*
-         * release file
-         */
         try {
-          if (lock != null) {
-            lock.release();
+
+          /*
+           * write file
+           */
+          InputStream input = document.getBinaryStream();
+          byte buf[] = new byte[1024];
+          int len;
+          while((len = input.read(buf)) != -1) {
+            output.write(buf, 0, len);
           }
-        } catch (ClosedChannelException e) {
+          output.flush();
+        } finally {
+          // Unlock
+          try {
+            if (lock != null) {
+              lock.release();
+            }
+          } catch (ClosedChannelException e) {
+          }
+        }
+      } finally {
+        try {
+          output.close();
+        } catch (IOException e) {
         }
       }
     } catch (JSONException e) {
+      handleJSONException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (URISyntaxException e) {
+      handleURISyntaxException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (SecurityException e) {
+      handleSecurityException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (FileNotFoundException e) {
+      handleFileNotFoundException(e);
       return DOCUMENTSTATUS_REJECTED;
     } catch (IOException e) {
+      handleIOException(e);
       return DOCUMENTSTATUS_REJECTED;
-    } catch (NullPointerException e) {
-      return DOCUMENTSTATUS_REJECTED;
-    } finally {
-      try {
-        input.close();
-      } catch (IOException e) {
-      }
-      try {
-        output.close();
-      } catch (IOException e) {
-      }
     }
 
     activities.recordActivity(null, INGEST_ACTIVITY, new Long(document.getBinaryLength()), documentURI, "OK", null);
     return DOCUMENTSTATUS_ACCEPTED;
+  }
+
+  protected static void handleJSONException(JSONException e)
+    throws ManifoldCFException, ServiceInterruption {
+    Logging.agents.error("FileSystem: JSONException: "+e.getMessage(),e);
+    throw new ManifoldCFException(e.getMessage(),e);
+  }
+
+  protected static void handleURISyntaxException(URISyntaxException e)
+    throws ManifoldCFException, ServiceInterruption {
+    Logging.agents.error("FileSystem: URISyntaxException: "+e.getMessage(),e);
+    throw new ManifoldCFException(e.getMessage(),e);
+  }
+
+  protected static void handleSecurityException(SecurityException e)
+    throws ManifoldCFException, ServiceInterruption {
+    Logging.agents.error("FileSystem: SecurityException: "+e.getMessage(),e);
+    throw new ManifoldCFException(e.getMessage(),e);
+  }
+
+  protected static void handleFileNotFoundException(FileNotFoundException e)
+    throws ManifoldCFException, ServiceInterruption {
+    Logging.agents.error("FileSystem: Path is illegal: "+e.getMessage(),e);
+    throw new ManifoldCFException(e.getMessage(),e);
+  }
+
+  /** Handle IOException */
+  protected static void handleIOException(IOException e)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (!(e instanceof java.net.SocketTimeoutException) && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
+    }
+    long currentTime = System.currentTimeMillis();
+    Logging.agents.warn("FileSystem: IO exception: "+e.getMessage(),e);
+    throw new ServiceInterruption("IO exception: "+e.getMessage(), e, currentTime + 300000L, currentTime + 3 * 60 * 60000L,-1,false);
   }
 
   /** Remove a document using the connector.
@@ -515,21 +536,21 @@ public class FileOutputConnector extends BaseOutputConnector {
           for (String name : uri.getRawPath().split("/")) {
             if (name.length() > 0) {
               path.append("/");
-              path.append(name);
+              path.append(convertString(name));
             }
           }
         }
       }
       if (uri.getRawQuery() != null) {
         path.append("?");
-        path.append(uri.getRawQuery());
+        path.append(convertString(uri.getRawQuery()));
       }
     } else {
       if (uri.getRawSchemeSpecificPart() != null) {
         for (String name : uri.getRawSchemeSpecificPart().split("/")) {
           if (name.length() > 0) {
             path.append("/");
-            path.append(name);
+            path.append(convertString(name));
           }
         }
       }
@@ -539,5 +560,19 @@ public class FileOutputConnector extends BaseOutputConnector {
       path.append(".content");
     }
     return path.toString();
+  }
+  
+  final private String convertString(final String input) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+      // Handle filename disallowed special characters!
+      if (c == ':') {
+        // MHL for what really happens to colons
+      }
+      else
+        sb.append(c);
+    }
+    return sb.toString();
   }
 }
