@@ -219,4 +219,10 @@ public class JiraSession {
     return statistics;
   }
 
+  /** Check if user exists.
+  */
+  public boolean checkUserExists(String userName) throws IOException {
+    // MHL
+    return false;
+  }
 }

@@ -381,8 +381,9 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
   @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException {
-    // MHL
-    return null;
+    if (checkUserExists(userName))
+      return new AuthorizationResponse(new String[]{userName},AuthorizationResponse.RESPONSE_OK);
+    return RESPONSE_USERNOTFOUND;
   }
 
   /** Obtain the default access tokens for a given user name.
@@ -405,6 +406,69 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
   }
 
   // Background threads
+
+  protected static class CheckUserExistsThread extends Thread {
+    protected final JiraSession session;
+    protected final String userName;
+    protected Throwable exception = null;
+    protected boolean result = false;
+
+    public CheckUserExistsThread(JiraSession session, String userName) {
+      super();
+      this.session = session;
+      this.userName = userName;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        result = session.checkUserExists(userName);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+    
+    public boolean getResult() {
+      return result;
+    }
+    
+  }
+  
+  protected boolean checkUserExists(String userName) throws ManifoldCFException {
+    CheckUserExistsThread t = new CheckUserExistsThread(getSession(), userName);
+    try {
+      t.start();
+      t.finishUp();
+      return t.getResult();
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+    return false;
+  }
 
   protected static class CheckConnectionThread extends Thread {
 
