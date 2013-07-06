@@ -370,6 +370,10 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     String databasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword);
     if (databasePassword == null) {
       databasePassword = "";
+    } else {
+      if (databasePassword.length() > 0) {
+        databasePassword = EXISTING_VALUE_PASSWORD;
+      }
     }
     String lIdQuery = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserIdQuery);
     if (lIdQuery == null) {
@@ -501,7 +505,9 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 
     String lPassword = variableContext.getParameter("password");
     if (lPassword != null) {
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword, lPassword);
+      if (!lPassword.equals(EXISTING_VALUE_PASSWORD)) {
+        parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword, lPassword);
+      }
     }
 
     String lIdQuery = variableContext.getParameter("idquery");

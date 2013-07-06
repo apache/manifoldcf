@@ -1690,6 +1690,11 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
     String password = parameters.getObfuscatedParameter("Password");
     if (password == null)
       password = "";
+    else
+    {
+      if (password.length() > 0)
+        password = EXISTING_VALUE_PASSWORD;
+    }
 
     String webClientProtocol = parameters.getParameter("MeridioWebClientProtocol");
     if (webClientProtocol == null)
@@ -2007,7 +2012,10 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("Password",password);
+    {
+      if (!password.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setObfuscatedParameter("Password",password);
+    }
 
     String webClientProtocol = variableContext.getParameter("webClientProtocol");
     if (webClientProtocol != null)

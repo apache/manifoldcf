@@ -716,6 +716,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
+    else
+    {
+      if (serverPassword.length() > 0)
+        serverPassword = EXISTING_VALUE_PASSWORD;
+    }
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
@@ -728,6 +733,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
       serverHTTPNTLMPassword = "";
+    else
+    {
+      if (serverHTTPNTLMPassword.length() > 0)
+        serverHTTPNTLMPassword = EXISTING_VALUE_PASSWORD;
+    }
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
     IKeystoreManager localServerHTTPSKeystore;
     if (serverHTTPSKeystore == null)
@@ -974,7 +984,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+    {
+      if (!serverPassword.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+    }
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
@@ -986,7 +999,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,serverHTTPNTLMPassword);
+    {
+      if (!serverHTTPNTLMPassword.equals(EXISTING_VALUE_PASSWORD))
+        parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,serverHTTPNTLMPassword);
+    }
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     if (serverHTTPSKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
