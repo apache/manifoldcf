@@ -541,13 +541,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     boolean fGroupMemberDN = "1".equals(getParam(parameters, "ldapGroupMemberDn", ""));
 
     String fBindUser = getParam(parameters, "ldapBindUser", "");
-    String fBindPass = parameters.getObfuscatedParameter("ldapBindUser");
-    if (fBindPass == null) {
-      fBindPass = "";
-    } else {
-      if (fBindPass.length() > 0) {
-        fBindPass = EXISTING_VALUE_PASSWORD;
-      }
+    String fBindPass = "";
+    try {
+      fBindPass = ManifoldCF.deobfuscate(getParam(parameters, "ldapBindPass", ""));
+    } catch (ManifoldCFException ex) {
+      //ignore
     }
 
     if (tabName.equals(Messages.getString(locale, "LDAP.LDAP"))) {
@@ -687,9 +685,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     copyParam(variableContext, parameters, "ldapBindUser");
     String bindPass = variableContext.getParameter("ldapBindPass");
     if (bindPass != null) {
-      if (!bindPass.equals(EXISTING_VALUE_PASSWORD)) {
-        parameters.setObfuscatedParameter("ldapBindPass", bindPass);
-      }
+      parameters.setParameter("ldapBindPass", ManifoldCF.obfuscate(bindPass));
     }
 
     return null;

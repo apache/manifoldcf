@@ -2635,25 +2635,15 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, IOException
   {
     String server   = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
-    if (server==null)
-      server = "";
+    if (server==null) server = "";
     String domain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.domain);
-    if (domain==null)
-      domain = "";
+    if (domain==null) domain = "";
     String username = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.username);
-    if (username==null)
-      username = "";
+    if (username==null) username = "";
     String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password);
-    if (password==null)
-      password = "";
-    else
-    {
-      if (password.length() > 0)
-        password = EXISTING_VALUE_PASSWORD;
-    }
+    if (password==null) password = "";
     String resolvesids = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.useSIDs);
-    if (resolvesids==null)
-      resolvesids = "true";
+    if (resolvesids==null) resolvesids = "true";
 
     // "Server" tab
     if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Server")))
@@ -2726,11 +2716,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 		
     String password = variableContext.getParameter("password");
     if (password != null)
-    {
-      if (!password.equals(EXISTING_VALUE_PASSWORD))
-        parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
-    }
-
+      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
+    
     String resolvesidspresent = variableContext.getParameter("resolvesidspresent");
     if (resolvesidspresent != null)
     {

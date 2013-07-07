@@ -28,12 +28,6 @@ public abstract class BaseConnector implements IConnector
 {
   public static final String _rcsid = "@(#)$Id: BaseConnector.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** This is a special password value that is used as a placeholder, so the real
-  * password does not appear in HTML at any point in the crawler UI.  Effectively,
-  * a password with this value means "existing value".
-  */
-  protected static final String EXISTING_VALUE_PASSWORD = "\u0512\u0512\u0512\u0512\u0512\u0512\u0512\u0512";
-
   // Config params
   protected ConfigParams params = null;
 

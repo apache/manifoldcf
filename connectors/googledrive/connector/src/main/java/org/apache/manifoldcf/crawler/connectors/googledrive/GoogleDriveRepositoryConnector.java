@@ -420,12 +420,8 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       clientid = StringUtils.EMPTY;
     }
     
-    // Client password is secret, so don't put it unchanged into the form data.
     if (clientsecret == null) {
       clientsecret = StringUtils.EMPTY;
-    } else {
-      if (clientsecret.length() != 0)
-        clientsecret = EXISTING_VALUE_PASSWORD;
     }
 
     if (refreshtoken == null) {
@@ -536,9 +532,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     String clientsecret = variableContext.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     if (clientsecret != null) {
-      // Only set the password if it has been changed
-      if (!clientsecret.equals(EXISTING_VALUE_PASSWORD))
-        parameters.setObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
+      parameters.setObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
     }
 
     String refreshtoken = variableContext.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);

@@ -1651,11 +1651,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     String proxyAuthPassword = parameters.getObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD);
     if (proxyAuthPassword == null)
       proxyAuthPassword = "";
-    else
-    {
-      if (proxyAuthPassword.length() > 0)
-        proxyAuthPassword = EXISTING_VALUE_PASSWORD;
-    }
       
     // Email tab
     if (tabName.equals(Messages.getString(locale,"RSSConnector.Email")))
@@ -1824,10 +1819,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       parameters.setParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME,proxyAuthUsername);
     String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
     if (proxyAuthPassword != null)
-    {
-      if (!proxyAuthPassword.equals(EXISTING_VALUE_PASSWORD))
-        parameters.setObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
-    }
+      parameters.setObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
 
     return null;
   }
