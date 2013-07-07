@@ -239,10 +239,6 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       clientid = JiraConfig.CLIENT_ID_DEFAULT;
     if (clientsecret == null)
       clientsecret = JiraConfig.CLIENT_SECRET_DEFAULT;
-    else {
-      if (clientsecret.length() > 0)
-        clientsecret = EXISTING_VALUE_PASSWORD;
-    }
 
     newMap.put("JIRAPROTOCOL", jiraprotocol);
     newMap.put("JIRAHOST", jirahost);
@@ -365,10 +361,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       parameters.setParameter(JiraConfig.CLIENT_ID_PARAM, clientid);
 
     String clientsecret = variableContext.getParameter("clientsecret");
-    if (clientsecret != null) {
-      if (!clientsecret.equals(EXISTING_VALUE_PASSWORD))
-        parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, clientsecret);
-    }
+    if (clientsecret != null)
+      parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, clientsecret);
 
     return null;
   }
