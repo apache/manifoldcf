@@ -64,6 +64,8 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   // Nodes
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
   private static final String JOB_QUERY_ATTRIBUTE = "query";
+  private static final String JOB_SECURITY_NODE_TYPE = "security";
+  private static final String JOB_VALUE_ATTRIBUTE = "value";
   private static final String JOB_ACCESS_NODE_TYPE = "access";
   private static final String JOB_TOKEN_ATTRIBUTE = "token";
 
@@ -486,6 +488,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   private static void fillInJIRASecuritySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
     List<Map<String,String>> accessTokenList = new ArrayList<Map<String,String>>();
+    String securityValue = "on";
     for (int i = 0; i < ds.getChildCount(); i++) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
@@ -493,9 +496,12 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         Map<String,String> accessMap = new HashMap<String,String>();
         accessMap.put("TOKEN",token);
         accessTokenList.add(accessMap);
+      } else if (sn.getType().equals(JOB_SECURITY_NODE_TYPE)) {
+        securityValue = sn.getAttributeValue(JOB_VALUE_ATTRIBUTE);
       }
     }
     newMap.put("ACCESSTOKENS", accessTokenList);
+    newMap.put("SECURITYON", securityValue);
   }
 
   /**
@@ -553,6 +559,22 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
       node.setAttribute(JOB_QUERY_ATTRIBUTE, jiraDriveQuery);
       ds.addChild(ds.getChildCount(), node);
+    }
+    
+    String securityOn = variableContext.getParameter("specsecurity");
+    if (securityOn != null) {
+      // Delete all security records first
+      int i = 0;
+      while (i < ds.getChildCount()) {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(JOB_SECURITY_NODE_TYPE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode node = new SpecificationNode(JOB_SECURITY_NODE_TYPE);
+      node.setAttribute(JOB_VALUE_ATTRIBUTE,securityOn);
+      ds.addChild(ds.getChildCount(),node);
     }
     
     String xc = variableContext.getParameter("tokencount");
