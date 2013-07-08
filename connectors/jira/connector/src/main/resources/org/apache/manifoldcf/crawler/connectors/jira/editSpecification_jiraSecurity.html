@@ -83,6 +83,8 @@
 
 #else
 
+<input type="hidden" name="specsecurity" value="$SECURITYON"/>
+
   #set($atcounter = 0)
   #foreach($atoken in $ACCESSTOKENS)
 <input type="hidden" name="spectoken_$atcounter" value="$Encoder.attributeEscape($atoken.get('TOKEN'))"/>
