@@ -35,6 +35,8 @@ import java.net.URLEncoder;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
@@ -235,6 +237,28 @@ public class JiraSession {
       qr.pushIds(idBuffer);
       startAt += setSize;
     } while (startAt < totalAmt);
+  }
+
+  /**
+  * Get the list of users that can see the specified issue.
+  */
+  public List<String> getUsers(String issueKey)
+    throws IOException {
+    List<String> rval = new ArrayList<String>();
+    long startAt = 0L;
+    long setSize = 100L;
+    long totalAmt = 0L;
+    do {
+      JiraViewQueryResults qr = new JiraViewQueryResults();
+      getRest("user/viewissue/search?issueKey="+URLEncoder.encode(issueKey,"utf-8")+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
+      Long total = qr.getTotal();
+      if (total == null)
+        break;
+      totalAmt = total.longValue();
+      qr.getNames(rval);
+      startAt += setSize;
+    } while (startAt < totalAmt);
+    return rval;
   }
 
   /**
