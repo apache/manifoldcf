@@ -304,13 +304,10 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals("startpoint")) {
         path = sn.getAttributeValue("path");
-  
-        FileStatus[] statuses = getChildren(new Path(path));
-
-        for (FileStatus fileStatus : statuses) {
-          if (fileStatus.isDir()) {
-            activities.addSeedDocument(fileStatus.getPath().toUri().toString());
-          }
+        
+        FileStatus fileStatus = getObject(new Path(path));
+        if (fileStatus.isDir()) {
+          activities.addSeedDocument(fileStatus.getPath().toUri().toString());
         }
       }
       i++;

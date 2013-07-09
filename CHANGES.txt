@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.3-dev =====================
 
+CONNECTORS-749: HDFSRepositoryConnector can not fetch files.
+(Minoru Osuka)
+
 CONNECTORS-748: Fix broken regular expressions in file connector, and
 modify file output connector to deal with colons in the file name in an
 acceptable way (so can be used on WIndows too).
