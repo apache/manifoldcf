@@ -264,9 +264,9 @@ public class JiraSession {
   /**
    * Get an individual issue.
    */
-  public JiraIssue getIssue(String id) throws IOException {
+  public JiraIssue getIssue(String issueKey) throws IOException {
     JiraIssue ji = new JiraIssue();
-    getRest("issue/" + id, ji);
+    getRest("issue/" + URLEncoder.encode(issueKey,"utf-8"), ji);
     return ji;
   }
 

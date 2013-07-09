@@ -34,7 +34,7 @@ public class JiraQueryResults extends JiraJSONResponse {
   // Specific keys we care about
   private final static String KEY_TOTAL = "total";
   private final static String KEY_ISSUES = "issues";
-  private final static String KEY_ID = "id";
+  private final static String KEY_KEY = "key";
 
   public JiraQueryResults() {
     super();
@@ -50,7 +50,7 @@ public class JiraQueryResults extends JiraJSONResponse {
     for (Object issue : issues) {
       if (issue instanceof JSONObject) {
         JSONObject jo = (JSONObject)issue;
-        seedBuffer.add(jo.get(KEY_ID).toString());
+        seedBuffer.add(jo.get(KEY_KEY).toString());
       }
     }
   }

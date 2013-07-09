@@ -739,11 +739,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         // Pick up the paths, and add them to the activities, before we join with the child thread.
         while (true) {
           // The only kind of exceptions this can throw are going to shut the process down.
-          String issueID = seedBuffer.fetch();
-          if (issueID ==  null)
+          String issueKey = seedBuffer.fetch();
+          if (issueKey ==  null)
             break;
           // Add the pageID to the queue
-          activities.addSeedDocument("I"+issueID);
+          activities.addSeedDocument("I-"+issueKey);
         }
       } catch (InterruptedException e) {
         wasInterrupted = true;
@@ -801,14 +801,14 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     Logging.connectors.debug("JIRA: Inside processDocuments");
 
     for (int i = 0; i < documentIdentifiers.length; i++) {
-      // MHL for access tokens
+      String nodeId = documentIdentifiers[i];
+      String version = versions[i];
+      
       long startTime = System.currentTimeMillis();
       String errorCode = "FAILED";
       String errorDesc = StringUtils.EMPTY;
       Long fileSize = null;
       boolean doLog = false;
-      String nodeId = documentIdentifiers[i];
-      String version = versions[i];
       
       try {
         if (Logging.connectors.isDebugEnabled()) {
@@ -819,13 +819,17 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         if (!scanOnly[i]) {
           doLog = true;
 
-          if (nodeId.startsWith("I")) {
+          if (nodeId.startsWith("I-")) {
             // It's an issue
-            String issueID = nodeId.substring(1);
-            JiraIssue jiraFile = getIssue(issueID);
+            String issueKey = nodeId.substring(2);
+            JiraIssue jiraFile = getIssue(issueKey);
+            if (jiraFile == null) {
+              activities.deleteDocument(nodeId, version);
+              continue;
+            }
             
             if (Logging.connectors.isDebugEnabled()) {
-              Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.getKey());
+              Logging.connectors.debug("JIRA: This issue exists: " + jiraFile.getKey());
             }
 
             // Unpack the version string
