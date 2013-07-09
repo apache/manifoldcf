@@ -176,7 +176,7 @@ public class NavigationUITester
     form = window.findForm(testerInstance.createStringDescription("editjob"));
     radiobutton = form.findRadiobutton(testerInstance.createStringDescription("hopcountmode"),testerInstance.createStringDescription("2"));
     radiobutton.select();
-    link = window.findLink(testerInstance.createStringDescription("Paths tab"));
+    link = window.findLink(testerInstance.createStringDescription("Repository Paths tab"));
     link.click();
     // Add a record to the Paths list
     
