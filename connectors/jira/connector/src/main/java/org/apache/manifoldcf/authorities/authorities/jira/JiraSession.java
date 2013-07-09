@@ -35,6 +35,8 @@ import java.net.URLEncoder;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
@@ -211,18 +213,28 @@ public class JiraSession {
    */
   public Map<String, String> getRepositoryInfo() throws IOException {
     HashMap<String, String> statistics = new HashMap<String, String>();
-    /*
-    JiraQueryResults qr = new JiraQueryResults();
-    getRest("search?maxResults=1&jql=", qr);
-    statistics.put("Total Issues", qr.getTotal().toString());
-    */
+    JiraUserQueryResults qr = new JiraUserQueryResults();
+    getRest("user/search?username=&maxResults=1&startAt=0", qr);
+    statistics.put("Total Users", qr.getTotal().toString());
     return statistics;
   }
 
   /** Check if user exists.
   */
   public boolean checkUserExists(String userName) throws IOException {
-    // MHL
+    JiraUserQueryResults qr = new JiraUserQueryResults();
+    getRest("user/search?username="+URLEncoder.encode(userName,"utf-8")+"&maxResults=1&startAt=0", qr);
+    Long total = qr.getTotal();
+    if (total == null || total.longValue() == 0)
+      return false;
+    List<String> values = new ArrayList<String>();
+    qr.getNames(values);
+    if (values.size() == 0)
+      return false;
+    for (String value : values) {
+      if (userName.equals(value))
+        return true;
+    }
     return false;
   }
 }

@@ -249,7 +249,7 @@ public class JiraSession {
     long setSize = 100L;
     long totalAmt = 0L;
     do {
-      JiraViewQueryResults qr = new JiraViewQueryResults();
+      JiraUserQueryResults qr = new JiraUserQueryResults();
       getRest("user/viewissue/search?issueKey="+URLEncoder.encode(issueKey,"utf-8")+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
       Long total = qr.getTotal();
       if (total == null)

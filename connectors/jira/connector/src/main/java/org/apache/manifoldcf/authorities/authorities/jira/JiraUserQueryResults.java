@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.crawler.connectors.jira;
+package org.apache.manifoldcf.authorities.authorities.jira;
 
 import org.apache.manifoldcf.core.common.*;
 
@@ -28,17 +28,17 @@ import java.util.ArrayList;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
-/** An instance of this class represents the results of a Jira view issue query, and
+/** An instance of this class represents the results of a Jira user query, and
 * the ability to parse the corresponding JSON response.
 */
-public class JiraViewQueryResults extends JiraJSONResponse {
+public class JiraUserQueryResults extends JiraJSONResponse {
 
   // Specific keys we care about
   private final static String KEY_TOTAL = "total";
   private final static String KEY_USERS = "users";
   private final static String KEY_NAME = "name";
 
-  public JiraViewQueryResults() {
+  public JiraUserQueryResults() {
     super();
   }
 
