@@ -937,23 +937,33 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
     // Forced acls
     String[] acls = getAcls(spec);
-    // Sort it,
-    java.util.Arrays.sort(acls);
+    if (acls != null)
+      java.util.Arrays.sort(acls);
 
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
       String nodeId = documentIdentifiers[i];
-      if (nodeId.startsWith("I")) {
+      if (nodeId.startsWith("I-")) {
         // It is an issue
-        String issueID = nodeId.substring(1);
+        String issueID = nodeId.substring(2);
         JiraIssue jiraFile = getIssue(issueID);
         Date rev = jiraFile.getUpdatedDate();
         if (rev != null) {
           StringBuilder sb = new StringBuilder();
 
+          String[] aclsToUse;
+          if (acls == null) {
+            // Get acls from issue
+            List<String> users = getUsers(issueID);
+            aclsToUse = (String[])users.toArray(new String[0]);
+            java.util.Arrays.sort(aclsToUse);
+          } else {
+            aclsToUse = acls;
+          }
+          
           // Acls
-          packList(sb,acls,'+');
-          if (acls.length > 0) {
+          packList(sb,aclsToUse,'+');
+          if (aclsToUse.length > 0) {
             sb.append('+');
             pack(sb,defaultAuthorityDenyToken,'+');
           } else
@@ -972,7 +982,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
   /** Grab forced acl out of document specification.
   *@param spec is the document specification.
-  *@return the acls.
+  *@return the acls, or null if security is on (and the acls need to be fetched)
   */
   protected static String[] getAcls(DocumentSpecification spec) {
     Set<String> map = new HashSet<String>();
@@ -981,6 +991,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
         String token = sn.getAttributeValue(JOB_TOKEN_ATTRIBUTE);
         map.add(token);
+      }
+      else if (sn.getType().equals(JOB_SECURITY_NODE_TYPE)) {
+        String onOff = sn.getAttributeValue(JOB_VALUE_ATTRIBUTE);
+        if (onOff != null && onOff.equals("on"))
+          return null;
       }
     }
 
@@ -1006,6 +1021,70 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   }
   
   // Background threads
+
+  protected static class GetUsersThread extends Thread {
+
+    protected final JiraSession session;
+    protected final String issueKey;
+    protected Throwable exception = null;
+    protected List<String> result = null;
+
+    public GetUsersThread(JiraSession session, String issueKey) {
+      super();
+      this.session = session;
+      this.issueKey = issueKey;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        result = session.getUsers(issueKey);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+    
+    public List<String> getResult() {
+      return result;
+    }
+
+  }
+
+  protected List<String> getUsers(String issueKey) throws ManifoldCFException, ServiceInterruption {
+    GetUsersThread t = new GetUsersThread(getSession(), issueKey);
+    try {
+      t.start();
+      t.finishUp();
+      return t.getResult();
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+    return null;
+  }
 
   protected static class CheckConnectionThread extends Thread {
 
