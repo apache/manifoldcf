@@ -49,21 +49,21 @@ public class JiraIssue extends JiraJSONResponse {
   }
 
   public String getKey() {
-    Object key = object.get(KEY_KEY);
+    Object key = ((JSONObject)object).get(KEY_KEY);
     if (key == null)
       return null;
     return key.toString();
   }
   
   public String getSelf() {
-    Object key = object.get(KEY_SELF);
+    Object key = ((JSONObject)object).get(KEY_SELF);
     if (key == null)
       return null;
     return key.toString();
   }
   
   public Date getCreatedDate() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
     Object createdDate = fields.get(KEY_CREATED);
@@ -73,7 +73,7 @@ public class JiraIssue extends JiraJSONResponse {
   }
   
   public Date getUpdatedDate() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
     Object updatedDate = fields.get(KEY_UPDATED);
@@ -83,7 +83,7 @@ public class JiraIssue extends JiraJSONResponse {
   }
   
   public String getDescription() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
     Object description = fields.get(KEY_DESCRIPTION);
@@ -93,7 +93,7 @@ public class JiraIssue extends JiraJSONResponse {
   }
   
   public String getSummary() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
     Object summary = fields.get(KEY_SUMMARY);
@@ -104,7 +104,7 @@ public class JiraIssue extends JiraJSONResponse {
   
   public Map<String,String[]> getMetadata() {
     Map<String,List<String>> map = new HashMap<String,List<String>>();
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields != null)
       addMetadataToMap("", fields, map);
     

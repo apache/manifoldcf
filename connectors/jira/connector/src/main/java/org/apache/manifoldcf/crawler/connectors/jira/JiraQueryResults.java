@@ -41,12 +41,12 @@ public class JiraQueryResults extends JiraJSONResponse {
   }
 
   public Long getTotal() {
-    return (Long)object.get(KEY_TOTAL);
+    return (Long)((JSONObject)object).get(KEY_TOTAL);
   }
   
   public void pushIds(XThreadStringBuffer seedBuffer)
     throws IOException, InterruptedException {
-    JSONArray issues = (JSONArray)object.get(KEY_ISSUES);
+    JSONArray issues = (JSONArray)((JSONObject)object).get(KEY_ISSUES);
     for (Object issue : issues) {
       if (issue instanceof JSONObject) {
         JSONObject jo = (JSONObject)issue;

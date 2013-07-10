@@ -34,8 +34,6 @@ import org.json.simple.JSONArray;
 public class JiraUserQueryResults extends JiraJSONResponse {
 
   // Specific keys we care about
-  private final static String KEY_TOTAL = "total";
-  private final static String KEY_USERS = "users";
   private final static String KEY_NAME = "name";
 
   public JiraUserQueryResults() {
@@ -43,17 +41,13 @@ public class JiraUserQueryResults extends JiraJSONResponse {
   }
 
   public void getNames(List<String> nameBuffer) {
-    JSONArray issues = (JSONArray)object.get(KEY_USERS);
-    for (Object issue : issues) {
-      if (issue instanceof JSONObject) {
-        JSONObject jo = (JSONObject)issue;
+    JSONArray users = (JSONArray)object;
+    for (Object user : users) {
+      if (user instanceof JSONObject) {
+        JSONObject jo = (JSONObject)user;
         nameBuffer.add(jo.get(KEY_NAME).toString());
       }
     }
-  }
-  
-  public Long getTotal() {
-    return (Long)object.get(KEY_TOTAL);
   }
   
 }

@@ -883,6 +883,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
                 activities.ingestDocument(nodeId, version, documentURI, rd);
                 // No errors.  Record the fact that we made it.
                 errorCode = "OK";
+                fileSize = new Long(documentBytes.length);
               } finally {
                 is.close();
               }
@@ -910,7 +911,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         body.append(" : ");
       body.append(description);
     }
-    return description.toString();
+    return body.toString();
   }
 
   /**

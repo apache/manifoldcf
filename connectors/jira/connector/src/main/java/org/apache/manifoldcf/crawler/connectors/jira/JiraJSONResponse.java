@@ -32,14 +32,14 @@ import org.json.simple.JSONObject;
 */
 public class JiraJSONResponse {
 
-  protected JSONObject object = null;
+  protected Object object = null;
 
   public JiraJSONResponse() {
   }
   
   /** Receive a parsed JSON object.
   */
-  public void acceptJSONObject(JSONObject object) {
+  public void acceptJSONObject(Object object) {
     this.object = object;
   }
   

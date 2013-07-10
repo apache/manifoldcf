@@ -143,7 +143,7 @@ public class JiraSession {
     connectionManager = null;
   }
 
-  private static JSONObject convertToJSON(HttpResponse httpResponse)
+  private static Object convertToJSON(HttpResponse httpResponse)
     throws IOException {
     HttpEntity entity = httpResponse.getEntity();
     if (entity != null) {
@@ -153,7 +153,7 @@ public class JiraSession {
         if (charSet == null)
           charSet = "utf-8";
         Reader r = new InputStreamReader(is,charSet);
-        return (JSONObject)JSONValue.parse(r);
+        return JSONValue.parse(r);
       } finally {
         is.close();
       }
@@ -201,7 +201,7 @@ public class JiraSession {
       int resultCode = httpResponse.getStatusLine().getStatusCode();
       if (resultCode != 200)
         throw new IOException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));
-      JSONObject jo = convertToJSON(httpResponse);
+      Object jo = convertToJSON(httpResponse);
       response.acceptJSONObject(jo);
     } finally {
       method.abort();
@@ -247,17 +247,14 @@ public class JiraSession {
     List<String> rval = new ArrayList<String>();
     long startAt = 0L;
     long setSize = 100L;
-    long totalAmt = 0L;
-    do {
+    while (true) {
       JiraUserQueryResults qr = new JiraUserQueryResults();
-      getRest("user/viewissue/search?issueKey="+URLEncoder.encode(issueKey,"utf-8")+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
-      Long total = qr.getTotal();
-      if (total == null)
-        break;
-      totalAmt = total.longValue();
+      getRest("user/viewissue/search?username=&issueKey="+URLEncoder.encode(issueKey,"utf-8")+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
       qr.getNames(rval);
       startAt += setSize;
-    } while (startAt < totalAmt);
+      if (rval.size() < startAt)
+        break;
+    }
     return rval;
   }
 
