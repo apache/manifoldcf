@@ -19,28 +19,35 @@
 
 package org.apache.manifoldcf.crawler.connectors.jira;
 
+import org.apache.manifoldcf.core.common.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
+
 import org.json.simple.JSONObject;
+import org.json.simple.JSONArray;
 
-/** An instance of this class represents a Jira JSON object, and the parser hooks
-* needed to understand it.
-*
-* If we needed streaming anywhere, this would implement org.json.simple.parser.ContentHandler,
-* where we would extract the data from a JSON event stream.  But since we don't need that
-* functionality, instead we're just going to accept an already-parsed JSONObject.
-*
-* This class is meant to be overridden (selectively) by derived classes.
+/** An instance of this class represents the results of a Jira user query, and
+* the ability to parse the corresponding JSON response.
 */
-public class JiraJSONResponse {
+public class JiraUserQueryResults extends JiraJSONResponse {
 
-  protected Object object = null;
+  // Specific keys we care about
+  private final static String KEY_NAME = "name";
 
-  public JiraJSONResponse() {
+  public JiraUserQueryResults() {
+    super();
   }
-  
-  /** Receive a parsed JSON object.
-  */
-  public void acceptJSONObject(Object object) {
-    this.object = object;
+
+  public void getNames(List<String> nameBuffer) {
+    JSONArray users = (JSONArray)object;
+    for (Object user : users) {
+      if (user instanceof JSONObject) {
+        JSONObject jo = (JSONObject)user;
+        nameBuffer.add(jo.get(KEY_NAME).toString());
+      }
+    }
   }
   
 }

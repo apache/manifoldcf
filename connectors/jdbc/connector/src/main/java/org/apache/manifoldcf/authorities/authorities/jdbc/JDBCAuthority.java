@@ -58,11 +58,6 @@ import org.apache.manifoldcf.crawler.system.Logging;
 public class JDBCAuthority extends BaseAuthorityConnector {
 
   public static final String _rcsid = "@(#)$Id: JDBCAuthority.java $";
-  private static final String globalDenyToken = "DEAD_AUTHORITY";
-  private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_USERNOTFOUND);
   protected WrappedConnection connection = null;
   protected String jdbcProvider = null;
   protected String host = null;
@@ -224,16 +219,16 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       loadPS(ps, paramList);
       ResultSet rs = ps.executeQuery();
       if (rs == null) {
-        return unreachableResponse;
+        return RESPONSE_UNREACHABLE;
       }
       String uid;
       if (rs.next()) {
         uid = rs.getString(1);
       } else {
-        return userNotFoundResponse;
+        return RESPONSE_USERNOTFOUND;
       }
       if (uid == null || uid.isEmpty()) {
-        return unreachableResponse;
+        return RESPONSE_UNREACHABLE;
       }
 
       // now check tokens
@@ -247,7 +242,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       loadPS(ps, paramList);
       rs = ps.executeQuery();
       if (rs == null) {
-        return unreachableResponse;
+        return RESPONSE_UNREACHABLE;
       }
       ArrayList<String> tokenArray = new ArrayList<String>();
       while (rs.next()) {
@@ -268,7 +263,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 
     } catch (Exception e) {
       // Unreachable
-      return unreachableResponse;
+      return RESPONSE_UNREACHABLE;
     }
   }
 

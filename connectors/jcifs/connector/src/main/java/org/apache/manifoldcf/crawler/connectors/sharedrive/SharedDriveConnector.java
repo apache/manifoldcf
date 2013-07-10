@@ -121,7 +121,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private NtlmPasswordAuthentication pa;
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   /** Constructor.
   */

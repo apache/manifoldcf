@@ -51,13 +51,8 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected boolean useSystemAcls = true;
 
   // Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
-  // However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
+  // However, it is felt that we need to be suspenders-and-belt, so we use the deny token.
   // The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token.
-  protected static final String denyToken = "DEAD_AUTHORITY";
-
-  protected static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_UNREACHABLE);
-  protected static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERNOTFOUND);
-  protected static final AuthorizationResponse userUnauthorizedResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERUNAUTHORIZED);
 
     /** Cache manager. */
   protected ICacheManager cacheManager = null;
@@ -528,7 +523,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           {
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("DCTM: No user found for username '" + strUserName + "'");
-            response = userNotFoundResponse;
+            response = RESPONSE_USERNOTFOUND;
             return;
           }
 
@@ -536,7 +531,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           {
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("DCTM: User found for username '" + strUserName + "' but the account is not active.");
-            response = userUnauthorizedResponse;
+            response = RESPONSE_USERUNAUTHORIZED;
             return;
           }
 
@@ -741,7 +736,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           if (noSession)
           {
             Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
-            return unreachableResponse;
+            return RESPONSE_UNREACHABLE;
           }
           session = null;
           lastSessionFetch = -1L;
@@ -820,7 +815,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           if (noSession)
           {
             Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
-            return unreachableResponse;
+            return RESPONSE_UNREACHABLE;
           }
           session = null;
           lastSessionFetch = -1L;
@@ -835,7 +830,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       {
         Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
         // Transient: Treat as if user does not exist, not like credentials invalid.
-        return unreachableResponse;
+        return RESPONSE_UNREACHABLE;
       }
       throw new ManifoldCFException(e.getMessage(),e);
     }
@@ -848,7 +843,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
 
   protected static String insensitiveMatch(boolean insensitive, String field, String value)

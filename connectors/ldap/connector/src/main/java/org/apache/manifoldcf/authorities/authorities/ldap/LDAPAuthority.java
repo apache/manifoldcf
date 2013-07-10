@@ -44,15 +44,6 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
    */
   private LdapContext session = null;
   private long sessionExpirationTime = -1L;
-  /**
-   * This is the active directory global deny token. This should be ingested
-   * with all documents.
-   */
-  private static final String globalDenyToken = "DEAD_AUTHORITY";
-  private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_USERNOTFOUND);
   private ConfigParams parameters;
   private String serverName;
   private String serverPort;
@@ -317,7 +308,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       //find user in LDAP tree
       SearchResult usrRecord = getUserEntry(session, userName);
       if (usrRecord == null) {
-        return userNotFoundResponse;
+        return RESPONSE_USERNOTFOUND;
       }
 
       ArrayList theGroups = new ArrayList();
@@ -371,10 +362,10 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
     } catch (NameNotFoundException e) {
       // This means that the user doesn't exist
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     } catch (NamingException e) {
       // Unreachable
-      return unreachableResponse;
+      return RESPONSE_UNREACHABLE;
     }
   }
 
@@ -388,7 +379,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName) {
     // The default response if the getConnection method fails
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
 
   // UI support methods.

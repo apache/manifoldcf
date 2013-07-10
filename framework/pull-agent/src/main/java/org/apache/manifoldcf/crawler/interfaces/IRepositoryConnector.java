@@ -104,6 +104,9 @@ public interface IRepositoryConnector extends IConnector
   public static final int JOBMODE_ONCEONLY = IJobDescription.TYPE_SPECIFIED;
   public static final int JOBMODE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
 
+  /** This is the global deny token.  This should be ingested with all documents. */
+  public static final String GLOBAL_DENY_TOKEN = "DEAD_AUTHORITY";
+
   /** Tell the world what model this connector uses for addSeedDocuments().
   * This must return a model value as specified above.  The connector does not have to be connected
   * for this method to be called.

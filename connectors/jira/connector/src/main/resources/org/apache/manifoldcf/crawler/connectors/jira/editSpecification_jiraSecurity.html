@@ -20,6 +20,26 @@
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraRepositoryConnector.SecurityColon'))</nobr></td>
+    <td class="value">
+  #if($SECURITYON == 'on')
+      <input type="radio" name="specsecurity" value="on" checked="true"/>
+  #else
+      <input type="radio" name="specsecurity" value="on"/>
+  #end
+      $Encoder.bodyEscape($ResourceBundle.getString('JiraRepositoryConnector.Enabled'))
+  #if($SECURITYON == 'off')
+      <input type="radio" name="specsecurity" value="off" checked="true"/>
+  #else
+      <input type="radio" name="specsecurity" value="off"/>
+  #end
+      $Encoder.bodyEscape($ResourceBundle.getString('JiraRepositoryConnector.Disabled'))
+    </td>
+  </tr>
+  
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
   #set($atcounter = 0)
   #foreach($atoken in $ACCESSTOKENS)
 
@@ -62,6 +82,8 @@
 </table>
 
 #else
+
+<input type="hidden" name="specsecurity" value="$SECURITYON"/>
 
   #set($atcounter = 0)
   #foreach($atoken in $ACCESSTOKENS)

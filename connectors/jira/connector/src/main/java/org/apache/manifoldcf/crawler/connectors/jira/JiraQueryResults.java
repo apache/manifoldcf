@@ -34,23 +34,23 @@ public class JiraQueryResults extends JiraJSONResponse {
   // Specific keys we care about
   private final static String KEY_TOTAL = "total";
   private final static String KEY_ISSUES = "issues";
-  private final static String KEY_ID = "id";
+  private final static String KEY_KEY = "key";
 
   public JiraQueryResults() {
     super();
   }
 
   public Long getTotal() {
-    return (Long)object.get(KEY_TOTAL);
+    return (Long)((JSONObject)object).get(KEY_TOTAL);
   }
   
   public void pushIds(XThreadStringBuffer seedBuffer)
     throws IOException, InterruptedException {
-    JSONArray issues = (JSONArray)object.get(KEY_ISSUES);
+    JSONArray issues = (JSONArray)((JSONObject)object).get(KEY_ISSUES);
     for (Object issue : issues) {
       if (issue instanceof JSONObject) {
         JSONObject jo = (JSONObject)issue;
-        seedBuffer.add(jo.get(KEY_ID).toString());
+        seedBuffer.add(jo.get(KEY_KEY).toString());
       }
     }
   }

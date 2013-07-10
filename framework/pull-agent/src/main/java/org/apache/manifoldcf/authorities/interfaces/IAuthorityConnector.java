@@ -32,6 +32,9 @@ import java.io.*;
 public interface IAuthorityConnector extends IConnector
 {
 
+  /** This is the global deny token.  This should be ingested with all documents. */
+  public static final String GLOBAL_DENY_TOKEN = "DEAD_AUTHORITY";
+
   /** Obtain the access tokens for a given Active Directory user name.
   *@param userName is the user name or identifier.
   *@return the response tokens (according to the current authority).

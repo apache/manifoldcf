@@ -1998,7 +1998,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <p>This tab allows you to specify the query which will be used to find documents for the indexing process. The query language is
                 specified on the <a href="https://confluence.atlassian.com/display/JIRA/Advanced+Searching">Jira Advanced Searching</a> site. Directories
-                which meet the seed query are fully crawled as the query on applies to seeds.</p>
+                which meet the seed query are fully crawled as the query only applies to seeds.</p>
             </section>
 			
             <section id="livelinkrepository">

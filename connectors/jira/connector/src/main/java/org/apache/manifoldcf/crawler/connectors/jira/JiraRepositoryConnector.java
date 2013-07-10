@@ -64,6 +64,8 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   // Nodes
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
   private static final String JOB_QUERY_ATTRIBUTE = "query";
+  private static final String JOB_SECURITY_NODE_TYPE = "security";
+  private static final String JOB_VALUE_ATTRIBUTE = "value";
   private static final String JOB_ACCESS_NODE_TYPE = "access";
   private static final String JOB_TOKEN_ATTRIBUTE = "token";
 
@@ -480,6 +482,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
    */
   private static void fillInJIRASecuritySpecificationMap(Map<String, Object> newMap, DocumentSpecification ds) {
     List<Map<String,String>> accessTokenList = new ArrayList<Map<String,String>>();
+    String securityValue = "on";
     for (int i = 0; i < ds.getChildCount(); i++) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
@@ -487,9 +490,12 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         Map<String,String> accessMap = new HashMap<String,String>();
         accessMap.put("TOKEN",token);
         accessTokenList.add(accessMap);
+      } else if (sn.getType().equals(JOB_SECURITY_NODE_TYPE)) {
+        securityValue = sn.getAttributeValue(JOB_VALUE_ATTRIBUTE);
       }
     }
     newMap.put("ACCESSTOKENS", accessTokenList);
+    newMap.put("SECURITYON", securityValue);
   }
 
   /**
@@ -547,6 +553,22 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
       node.setAttribute(JOB_QUERY_ATTRIBUTE, jiraDriveQuery);
       ds.addChild(ds.getChildCount(), node);
+    }
+    
+    String securityOn = variableContext.getParameter("specsecurity");
+    if (securityOn != null) {
+      // Delete all security records first
+      int i = 0;
+      while (i < ds.getChildCount()) {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(JOB_SECURITY_NODE_TYPE))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+      SpecificationNode node = new SpecificationNode(JOB_SECURITY_NODE_TYPE);
+      node.setAttribute(JOB_VALUE_ATTRIBUTE,securityOn);
+      ds.addChild(ds.getChildCount(),node);
     }
     
     String xc = variableContext.getParameter("tokencount");
@@ -711,11 +733,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         // Pick up the paths, and add them to the activities, before we join with the child thread.
         while (true) {
           // The only kind of exceptions this can throw are going to shut the process down.
-          String issueID = seedBuffer.fetch();
-          if (issueID ==  null)
+          String issueKey = seedBuffer.fetch();
+          if (issueKey ==  null)
             break;
           // Add the pageID to the queue
-          activities.addSeedDocument("I"+issueID);
+          activities.addSeedDocument("I-"+issueKey);
         }
       } catch (InterruptedException e) {
         wasInterrupted = true;
@@ -773,14 +795,14 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     Logging.connectors.debug("JIRA: Inside processDocuments");
 
     for (int i = 0; i < documentIdentifiers.length; i++) {
-      // MHL for access tokens
+      String nodeId = documentIdentifiers[i];
+      String version = versions[i];
+      
       long startTime = System.currentTimeMillis();
       String errorCode = "FAILED";
       String errorDesc = StringUtils.EMPTY;
       Long fileSize = null;
       boolean doLog = false;
-      String nodeId = documentIdentifiers[i];
-      String version = versions[i];
       
       try {
         if (Logging.connectors.isDebugEnabled()) {
@@ -791,13 +813,17 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         if (!scanOnly[i]) {
           doLog = true;
 
-          if (nodeId.startsWith("I")) {
+          if (nodeId.startsWith("I-")) {
             // It's an issue
-            String issueID = nodeId.substring(1);
-            JiraIssue jiraFile = getIssue(issueID);
+            String issueKey = nodeId.substring(2);
+            JiraIssue jiraFile = getIssue(issueKey);
+            if (jiraFile == null) {
+              activities.deleteDocument(nodeId, version);
+              continue;
+            }
             
             if (Logging.connectors.isDebugEnabled()) {
-              Logging.connectors.debug("JIRA: have this file:\t" + jiraFile.getKey());
+              Logging.connectors.debug("JIRA: This issue exists: " + jiraFile.getKey());
             }
 
             // Unpack the version string
@@ -851,6 +877,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
                 activities.ingestDocument(nodeId, version, documentURI, rd);
                 // No errors.  Record the fact that we made it.
                 errorCode = "OK";
+                fileSize = new Long(documentBytes.length);
               } finally {
                 is.close();
               }
@@ -878,7 +905,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         body.append(" : ");
       body.append(description);
     }
-    return description.toString();
+    return body.toString();
   }
 
   /**
@@ -905,23 +932,33 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
     // Forced acls
     String[] acls = getAcls(spec);
-    // Sort it,
-    java.util.Arrays.sort(acls);
+    if (acls != null)
+      java.util.Arrays.sort(acls);
 
     String[] rval = new String[documentIdentifiers.length];
     for (int i = 0; i < rval.length; i++) {
       String nodeId = documentIdentifiers[i];
-      if (nodeId.startsWith("I")) {
+      if (nodeId.startsWith("I-")) {
         // It is an issue
-        String issueID = nodeId.substring(1);
+        String issueID = nodeId.substring(2);
         JiraIssue jiraFile = getIssue(issueID);
         Date rev = jiraFile.getUpdatedDate();
         if (rev != null) {
           StringBuilder sb = new StringBuilder();
 
+          String[] aclsToUse;
+          if (acls == null) {
+            // Get acls from issue
+            List<String> users = getUsers(issueID);
+            aclsToUse = (String[])users.toArray(new String[0]);
+            java.util.Arrays.sort(aclsToUse);
+          } else {
+            aclsToUse = acls;
+          }
+          
           // Acls
-          packList(sb,acls,'+');
-          if (acls.length > 0) {
+          packList(sb,aclsToUse,'+');
+          if (aclsToUse.length > 0) {
             sb.append('+');
             pack(sb,defaultAuthorityDenyToken,'+');
           } else
@@ -940,7 +977,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
   /** Grab forced acl out of document specification.
   *@param spec is the document specification.
-  *@return the acls.
+  *@return the acls, or null if security is on (and the acls need to be fetched)
   */
   protected static String[] getAcls(DocumentSpecification spec) {
     Set<String> map = new HashSet<String>();
@@ -949,6 +986,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       if (sn.getType().equals(JOB_ACCESS_NODE_TYPE)) {
         String token = sn.getAttributeValue(JOB_TOKEN_ATTRIBUTE);
         map.add(token);
+      }
+      else if (sn.getType().equals(JOB_SECURITY_NODE_TYPE)) {
+        String onOff = sn.getAttributeValue(JOB_VALUE_ATTRIBUTE);
+        if (onOff != null && onOff.equals("on"))
+          return null;
       }
     }
 
@@ -974,6 +1016,70 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   }
   
   // Background threads
+
+  protected static class GetUsersThread extends Thread {
+
+    protected final JiraSession session;
+    protected final String issueKey;
+    protected Throwable exception = null;
+    protected List<String> result = null;
+
+    public GetUsersThread(JiraSession session, String issueKey) {
+      super();
+      this.session = session;
+      this.issueKey = issueKey;
+      setDaemon(true);
+    }
+
+    public void run() {
+      try {
+        result = session.getUsers(issueKey);
+      } catch (Throwable e) {
+        this.exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException, IOException {
+      join();
+      Throwable thr = exception;
+      if (thr != null) {
+        if (thr instanceof IOException) {
+          throw (IOException) thr;
+        } else if (thr instanceof RuntimeException) {
+          throw (RuntimeException) thr;
+        } else {
+          throw (Error) thr;
+        }
+      }
+    }
+    
+    public List<String> getResult() {
+      return result;
+    }
+
+  }
+
+  protected List<String> getUsers(String issueKey) throws ManifoldCFException, ServiceInterruption {
+    GetUsersThread t = new GetUsersThread(getSession(), issueKey);
+    try {
+      t.start();
+      t.finishUp();
+      return t.getResult();
+    } catch (InterruptedException e) {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+        ManifoldCFException.INTERRUPTED);
+    } catch (java.net.SocketTimeoutException e) {
+      handleIOException(e);
+    } catch (InterruptedIOException e) {
+      t.interrupt();
+      handleIOException(e);
+    } catch (IOException e) {
+      handleIOException(e);
+    }
+    return null;
+  }
 
   protected static class CheckConnectionThread extends Thread {
 
@@ -1049,9 +1155,10 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     public void run() {
       try {
         session.getSeeds(seedBuffer, jiraDriveQuery);
-        seedBuffer.signalDone();
       } catch (Throwable e) {
         this.exception = e;
+      } finally {
+        seedBuffer.signalDone();
       }
     }
 

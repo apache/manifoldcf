@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.crawler.connectors.jira;
+package org.apache.manifoldcf.authorities.authorities.jira;
 
 import org.json.simple.JSONObject;
 

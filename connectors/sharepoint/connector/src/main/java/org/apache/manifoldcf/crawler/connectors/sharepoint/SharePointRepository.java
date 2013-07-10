@@ -126,7 +126,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   }
 
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   /** Constructor.
   */

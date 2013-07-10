@@ -71,7 +71,7 @@ public class MeridioConnector extends org.apache.manifoldcf.crawler.connectors.B
   protected String urlVersionBase = null;
 
   /** Deny access token for Meridio */
-  private final static String denyToken = "DEAD_AUTHORITY";
+  private final static String denyToken = GLOBAL_DENY_TOKEN;
 
   /** Deny access token for Active Directory, which is what we expect to be in place for forced acls */
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";

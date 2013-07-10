@@ -49,54 +49,54 @@ public class JiraIssue extends JiraJSONResponse {
   }
 
   public String getKey() {
-    Object key = object.get(KEY_KEY);
+    Object key = ((JSONObject)object).get(KEY_KEY);
     if (key == null)
       return null;
     return key.toString();
   }
   
   public String getSelf() {
-    Object key = object.get(KEY_SELF);
+    Object key = ((JSONObject)object).get(KEY_SELF);
     if (key == null)
       return null;
     return key.toString();
   }
   
   public Date getCreatedDate() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject createdDate = (JSONObject)fields.get(KEY_CREATED);
+    Object createdDate = fields.get(KEY_CREATED);
     if (createdDate == null)
       return null;
     return DateParser.parseISO8601Date(createdDate.toString());
   }
   
   public Date getUpdatedDate() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject updatedDate = (JSONObject)fields.get(KEY_UPDATED);
+    Object updatedDate = fields.get(KEY_UPDATED);
     if (updatedDate == null)
       return null;
     return DateParser.parseISO8601Date(updatedDate.toString());
   }
   
   public String getDescription() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject description = (JSONObject)fields.get(KEY_DESCRIPTION);
+    Object description = fields.get(KEY_DESCRIPTION);
     if (description == null)
       return null;
     return description.toString();
   }
   
   public String getSummary() {
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject summary = (JSONObject)fields.get(KEY_DESCRIPTION);
+    Object summary = fields.get(KEY_SUMMARY);
     if (summary == null)
       return null;
     return summary.toString();
@@ -104,7 +104,7 @@ public class JiraIssue extends JiraJSONResponse {
   
   public Map<String,String[]> getMetadata() {
     Map<String,List<String>> map = new HashMap<String,List<String>>();
-    JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
+    JSONObject fields = (JSONObject)((JSONObject)object).get(KEY_FIELDS);
     if (fields != null)
       addMetadataToMap("", fields, map);
     
