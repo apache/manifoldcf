@@ -66,7 +66,7 @@ public class JiraIssue extends JiraJSONResponse {
     JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject createdDate = (JSONObject)fields.get(KEY_CREATED);
+    Object createdDate = fields.get(KEY_CREATED);
     if (createdDate == null)
       return null;
     return DateParser.parseISO8601Date(createdDate.toString());
@@ -76,7 +76,7 @@ public class JiraIssue extends JiraJSONResponse {
     JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject updatedDate = (JSONObject)fields.get(KEY_UPDATED);
+    Object updatedDate = fields.get(KEY_UPDATED);
     if (updatedDate == null)
       return null;
     return DateParser.parseISO8601Date(updatedDate.toString());
@@ -86,7 +86,7 @@ public class JiraIssue extends JiraJSONResponse {
     JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject description = (JSONObject)fields.get(KEY_DESCRIPTION);
+    Object description = fields.get(KEY_DESCRIPTION);
     if (description == null)
       return null;
     return description.toString();
@@ -96,7 +96,7 @@ public class JiraIssue extends JiraJSONResponse {
     JSONObject fields = (JSONObject)object.get(KEY_FIELDS);
     if (fields == null)
       return null;
-    JSONObject summary = (JSONObject)fields.get(KEY_DESCRIPTION);
+    Object summary = fields.get(KEY_SUMMARY);
     if (summary == null)
       return null;
     return summary.toString();

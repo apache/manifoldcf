@@ -851,9 +851,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     public void run() {
       try {
         session.getSeeds(seedBuffer, googleDriveQuery);
-        seedBuffer.signalDone();
       } catch (Throwable e) {
         this.exception = e;
+      } finally {
+        seedBuffer.signalDone();
       }
     }
 
@@ -1247,9 +1248,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     public void run() {
       try {
         session.getChildren(childBuffer, nodeId);
-        childBuffer.signalDone();
       } catch (Throwable e) {
         this.exception = e;
+      } finally {
+        childBuffer.signalDone();
       }
     }
 

@@ -1160,9 +1160,10 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     public void run() {
       try {
         session.getSeeds(seedBuffer, jiraDriveQuery);
-        seedBuffer.signalDone();
       } catch (Throwable e) {
         this.exception = e;
+      } finally {
+        seedBuffer.signalDone();
       }
     }
 
