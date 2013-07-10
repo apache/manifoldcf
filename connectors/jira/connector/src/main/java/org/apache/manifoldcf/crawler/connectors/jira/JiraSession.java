@@ -191,7 +191,8 @@ public class JiraSession {
     return "";
   }
 
-  private void getRest(String rightside, JiraJSONResponse response) throws IOException {
+  private void getRest(String rightside, JiraJSONResponse response) 
+    throws IOException, ResponseException {
 
     final HttpRequestBase method = new HttpGet(URLbase + rightside);
     method.addHeader("Accept", "application/json");
@@ -211,7 +212,8 @@ public class JiraSession {
   /**
    * Obtain repository information.
    */
-  public Map<String, String> getRepositoryInfo() throws IOException {
+  public Map<String, String> getRepositoryInfo()
+    throws IOException, ResponseException {
     HashMap<String, String> statistics = new HashMap<String, String>();
     JiraQueryResults qr = new JiraQueryResults();
     getRest("search?maxResults=1&jql=", qr);
@@ -223,9 +225,9 @@ public class JiraSession {
    * Get the list of matching root documents, e.g. seeds.
    */
   public void getSeeds(XThreadStringBuffer idBuffer, String jiraDriveQuery)
-      throws IOException, InterruptedException {
+      throws IOException, ResponseException, InterruptedException {
     long startAt = 0L;
-    long setSize = 100L;
+    long setSize = 800L;
     long totalAmt = 0L;
     do {
       JiraQueryResults qr = new JiraQueryResults();
@@ -243,10 +245,10 @@ public class JiraSession {
   * Get the list of users that can see the specified issue.
   */
   public List<String> getUsers(String issueKey)
-    throws IOException {
+    throws IOException, ResponseException {
     List<String> rval = new ArrayList<String>();
     long startAt = 0L;
-    long setSize = 100L;
+    long setSize = 800L;
     while (true) {
       JiraUserQueryResults qr = new JiraUserQueryResults();
       getRest("user/viewissue/search?username=&issueKey="+URLEncoder.encode(issueKey,"utf-8")+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
@@ -261,7 +263,8 @@ public class JiraSession {
   /**
    * Get an individual issue.
    */
-  public JiraIssue getIssue(String issueKey) throws IOException {
+  public JiraIssue getIssue(String issueKey)
+    throws IOException, ResponseException {
     JiraIssue ji = new JiraIssue();
     getRest("issue/" + URLEncoder.encode(issueKey,"utf-8"), ji);
     return ji;

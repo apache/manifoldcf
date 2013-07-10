@@ -399,6 +399,11 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     throw new ManifoldCFException("IO exception: "+e.getMessage(), e);
   }
 
+  private static void handleResponseException(ResponseException e)
+    throws ManifoldCFException {
+    throw new ManifoldCFException("Response exception: "+e.getMessage(),e);
+  }
+  
   // Background threads
 
   protected static class CheckUserExistsThread extends Thread {
@@ -423,12 +428,14 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     }
 
     public void finishUp()
-      throws InterruptedException, IOException {
+      throws InterruptedException, IOException, ResponseException {
       join();
       Throwable thr = exception;
       if (thr != null) {
         if (thr instanceof IOException) {
           throw (IOException) thr;
+        } else if (thr instanceof ResponseException) {
+          throw (ResponseException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         } else {
@@ -460,6 +467,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       handleIOException(e);
     } catch (IOException e) {
       handleIOException(e);
+    } catch (ResponseException e) {
+      handleResponseException(e);
     }
     return false;
   }
@@ -484,12 +493,14 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     }
 
     public void finishUp()
-      throws InterruptedException, IOException {
+      throws InterruptedException, IOException, ResponseException {
       join();
       Throwable thr = exception;
       if (thr != null) {
         if (thr instanceof IOException) {
           throw (IOException) thr;
+        } else if (thr instanceof ResponseException) {
+          throw (ResponseException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         } else {
@@ -516,6 +527,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       handleIOException(e);
     } catch (IOException e) {
       handleIOException(e);
+    } catch (ResponseException e) {
+      handleResponseException(e);
     }
   }
 

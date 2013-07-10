@@ -191,7 +191,8 @@ public class JiraSession {
     return "";
   }
 
-  private void getRest(String rightside, JiraJSONResponse response) throws IOException {
+  private void getRest(String rightside, JiraJSONResponse response)
+    throws IOException, ResponseException {
 
     final HttpRequestBase method = new HttpGet(URLbase + rightside);
     method.addHeader("Accept", "application/json");
@@ -200,7 +201,7 @@ public class JiraSession {
       HttpResponse httpResponse = httpClient.execute(method);
       int resultCode = httpResponse.getStatusLine().getStatusCode();
       if (resultCode != 200)
-        throw new IOException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));
+        throw new ResponseException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));
       Object jo = convertToJSON(httpResponse);
       response.acceptJSONObject(jo);
     } finally {
@@ -211,7 +212,7 @@ public class JiraSession {
   /**
    * Obtain repository information.
    */
-  public Map<String, String> getRepositoryInfo() throws IOException {
+  public Map<String, String> getRepositoryInfo() throws IOException, ResponseException {
     HashMap<String, String> statistics = new HashMap<String, String>();
     JiraUserQueryResults qr = new JiraUserQueryResults();
     getRest("user/search?username=&maxResults=1&startAt=0", qr);
@@ -220,7 +221,7 @@ public class JiraSession {
 
   /** Check if user exists.
   */
-  public boolean checkUserExists(String userName) throws IOException {
+  public boolean checkUserExists(String userName) throws IOException, ResponseException {
     JiraUserQueryResults qr = new JiraUserQueryResults();
     getRest("user/search?username="+URLEncoder.encode(userName,"utf-8")+"&maxResults=1&startAt=0", qr);
     List<String> values = new ArrayList<String>();

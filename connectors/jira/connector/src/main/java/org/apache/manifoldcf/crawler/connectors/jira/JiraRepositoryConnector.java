@@ -761,6 +761,8 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       handleIOException(e);
     } catch (IOException e) {
       handleIOException(e);
+    } catch (ResponseException e) {
+      handleResponseException(e);
     }
   }
   
@@ -1015,6 +1017,11 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       currentTime + 3 * 60 * 60000L,-1,false);
   }
   
+  private static void handleResponseException(ResponseException e)
+    throws ManifoldCFException, ServiceInterruption {
+    throw new ManifoldCFException("Unexpected response: "+e.getMessage(),e);
+  }
+
   // Background threads
 
   protected static class GetUsersThread extends Thread {
@@ -1040,12 +1047,14 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
 
     public void finishUp()
-      throws InterruptedException, IOException {
+      throws InterruptedException, IOException, ResponseException {
       join();
       Throwable thr = exception;
       if (thr != null) {
         if (thr instanceof IOException) {
           throw (IOException) thr;
+        } else if (thr instanceof ResponseException) {
+          throw (ResponseException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         } else {
@@ -1077,6 +1086,8 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       handleIOException(e);
     } catch (IOException e) {
       handleIOException(e);
+    } catch (ResponseException e) {
+      handleResponseException(e);
     }
     return null;
   }
@@ -1101,12 +1112,14 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
 
     public void finishUp()
-      throws InterruptedException, IOException {
+      throws InterruptedException, IOException, ResponseException {
       join();
       Throwable thr = exception;
       if (thr != null) {
         if (thr instanceof IOException) {
           throw (IOException) thr;
+        } else if (thr instanceof ResponseException) {
+          throw (ResponseException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         } else {
@@ -1133,6 +1146,8 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       handleIOException(e);
     } catch (IOException e) {
       handleIOException(e);
+    } catch (ResponseException e) {
+      handleResponseException(e);
     }
   }
 
@@ -1167,13 +1182,15 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
     }
     
     public void finishUp()
-      throws InterruptedException, IOException {
+      throws InterruptedException, IOException, ResponseException {
       seedBuffer.abandon();
       join();
       Throwable thr = exception;
       if (thr != null) {
         if (thr instanceof IOException)
           throw (IOException) thr;
+        else if (thr instanceof ResponseException)
+          throw (ResponseException) thr;
         else if (thr instanceof RuntimeException)
           throw (RuntimeException) thr;
         else if (thr instanceof Error)
@@ -1201,6 +1218,8 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       handleIOException(e);
     } catch (IOException e) {
       handleIOException(e);
+    } catch (ResponseException e) {
+      handleResponseException(e);
     }
     return t.getResponse();
   }
@@ -1231,12 +1250,14 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
       return response;
     }
     
-    public void finishUp() throws InterruptedException, IOException {
+    public void finishUp() throws InterruptedException, IOException, ResponseException {
       join();
       Throwable thr = exception;
       if (thr != null) {
         if (thr instanceof IOException) {
           throw (IOException) thr;
+        } else if (thr instanceof ResponseException) {
+          throw (ResponseException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         } else {
