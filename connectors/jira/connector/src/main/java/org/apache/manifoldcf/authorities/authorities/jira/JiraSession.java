@@ -143,7 +143,7 @@ public class JiraSession {
     connectionManager = null;
   }
 
-  private static JSONObject convertToJSON(HttpResponse httpResponse)
+  private static Object convertToJSON(HttpResponse httpResponse)
     throws IOException {
     HttpEntity entity = httpResponse.getEntity();
     if (entity != null) {
@@ -153,7 +153,7 @@ public class JiraSession {
         if (charSet == null)
           charSet = "utf-8";
         Reader r = new InputStreamReader(is,charSet);
-        return (JSONObject)JSONValue.parse(r);
+        return JSONValue.parse(r);
       } finally {
         is.close();
       }
@@ -201,7 +201,7 @@ public class JiraSession {
       int resultCode = httpResponse.getStatusLine().getStatusCode();
       if (resultCode != 200)
         throw new IOException("Unexpected result code "+resultCode+": "+convertToString(httpResponse));
-      JSONObject jo = convertToJSON(httpResponse);
+      Object jo = convertToJSON(httpResponse);
       response.acceptJSONObject(jo);
     } finally {
       method.abort();
@@ -215,7 +215,6 @@ public class JiraSession {
     HashMap<String, String> statistics = new HashMap<String, String>();
     JiraUserQueryResults qr = new JiraUserQueryResults();
     getRest("user/search?username=&maxResults=1&startAt=0", qr);
-    statistics.put("Total Users", qr.getTotal().toString());
     return statistics;
   }
 
@@ -224,9 +223,6 @@ public class JiraSession {
   public boolean checkUserExists(String userName) throws IOException {
     JiraUserQueryResults qr = new JiraUserQueryResults();
     getRest("user/search?username="+URLEncoder.encode(userName,"utf-8")+"&maxResults=1&startAt=0", qr);
-    Long total = qr.getTotal();
-    if (total == null || total.longValue() == 0)
-      return false;
     List<String> values = new ArrayList<String>();
     qr.getNames(values);
     if (values.size() == 0)
