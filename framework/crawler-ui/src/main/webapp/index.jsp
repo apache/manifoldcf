@@ -29,7 +29,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		Apache ManifoldCF
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCF")%>
 	</title>
 
 </head>
@@ -39,7 +39,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"index.WelcomeToApacheManifoldFC")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.WelcomeToApacheManifoldFC")%></p>
        </td>
       </tr>
     </table>

@@ -90,4 +90,7 @@
 	<li class="menuitem">
 		<nobr><a class="menulink" href='<%="http://manifoldcf.apache.org/release/trunk/"+Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/end-user-documentation.html"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Help")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Help")%></a></nobr>
 	</li>
+	<li class="menuitem">
+		<nobr><a class="menulink" href="logout.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.LogOut")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.LogOut")%></a></nobr>
+	</li>
 </ul>
