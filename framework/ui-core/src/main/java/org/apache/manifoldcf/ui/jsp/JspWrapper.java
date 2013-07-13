@@ -19,23 +19,27 @@
 package org.apache.manifoldcf.ui.jsp;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.ui.beans.AdminProfile;
 import javax.servlet.jsp.*;
 import java.io.*;
 
 /** This class provides an implementation of IHTTPOutput, which provides output
-* services to connector UI interfaces.
+* services to connector UI interfaces.  More broadly, it provides the services that all
+* connectors will need in order to provide UI components.
 */
 public class JspWrapper implements IHTTPOutput
 {
   public static final String _rcsid = "@(#)$Id: JspWrapper.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected JspWriter writer;
+  protected final JspWriter writer;
+  protected final AdminProfile adminProfile;
 
   /** Constructor.
   */
-  public JspWrapper(JspWriter writer)
+  public JspWrapper(JspWriter writer, AdminProfile adminProfile)
   {
     this.writer = writer;
+    this.adminProfile = adminProfile;
   }
 
   /** Flush the stream */
@@ -176,6 +180,28 @@ public class JspWrapper implements IHTTPOutput
     throws IOException
   {
     writer.println(s);
+  }
+
+  /** Map a password to a unique key.
+  * This method works within a specific given browser session to replace an existing password with
+  * a key which can be used to look up the password at a later time.
+  *@param password is the password.
+  *@return the key.
+  */
+  public String mapPasswordToKey(String password)
+  {
+    return adminProfile.getPasswordMapper().mapPasswordToKey(password);
+  }
+  
+  /** Convert a key, created by mapPasswordToKey, back to the original password, within
+  * the lifetime of the browser session.  If the provided key is not an actual key, instead
+  * the key value is assumed to be a new password value.
+  *@param key is the key.
+  *@return the password.
+  */
+  public String mapKeyToPassword(String key)
+  {
+    return adminProfile.getPasswordMapper().mapKeyToPassword(key);
   }
 
 }

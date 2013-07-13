@@ -160,7 +160,7 @@
 			<tr>
 				<td colspan="4">
 <%
-		MappingConnectorFactory.viewConfiguration(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters);
+		MappingConnectorFactory.viewConfiguration(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters);
 %>
 
 				</td>

@@ -164,7 +164,7 @@
 			<tr>
 				<td colspan="4">
 <%
-		AuthorityConnectorFactory.viewConfiguration(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters);
+		AuthorityConnectorFactory.viewConfiguration(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters);
 %>
 
 				</td>

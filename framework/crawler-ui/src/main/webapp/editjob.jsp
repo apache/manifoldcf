@@ -410,7 +410,7 @@
 		{
 			try
 			{
-				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),outputSpecification,tabsArray);
+				outputConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,tabsArray);
 			}
 			finally
 			{
@@ -429,7 +429,7 @@
 		{
 			try
 			{
-				repositoryConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),documentSpecification,tabsArray);
+				repositoryConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,tabsArray);
 			}
 			finally
 			{
@@ -1278,7 +1278,7 @@
 		{
 			try
 			{
-				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),outputSpecification,tabName);
+				outputConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),outputSpecification,tabName);
 			}
 			finally
 			{
@@ -1298,7 +1298,7 @@
 		{
 			try
 			{
-				repositoryConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),documentSpecification,tabName);
+				repositoryConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),documentSpecification,tabName);
 			}
 			finally
 			{

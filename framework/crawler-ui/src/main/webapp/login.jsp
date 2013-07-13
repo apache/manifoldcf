@@ -71,7 +71,7 @@ if (value != null && value.equals("true"))
 							<tr><td class="separator" colspan="2"><hr/></td></tr>
 							<tr>
 								<td class="message" colspan="2">
-									<input type="button" onclick='Javascript:login();' value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
+									<input type="button" onclick='Javascript:login();' value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
 								</td>
 							</tr>
 						</table>

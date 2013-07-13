@@ -24,6 +24,7 @@ import javax.servlet.http.*;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.*;
+import org.apache.manifoldcf.ui.passwords.PasswordMapper;
 
 /** The profile object contains an admin user's login information, and helps establish the
 * session model for the application.  This particular bean maintains the user (against
@@ -41,6 +42,8 @@ public class AdminProfile implements HttpSessionBindingListener
   private boolean isLoggedIn = false;
   /** Set to "true" if user can manage users. */
   private boolean manageUsers = false;
+  /** Password mapper */
+  private PasswordMapper passwordMapper = null;
 
   /** Session identifier */
   private String sessionIdentifier = null;
@@ -102,6 +105,7 @@ public class AdminProfile implements HttpSessionBindingListener
         loginTime = System.currentTimeMillis();
         this.userID = userID;
         manageUsers = false;
+        passwordMapper = new PasswordMapper();
       }
     }
     catch (ManifoldCFException e)
@@ -135,6 +139,14 @@ public class AdminProfile implements HttpSessionBindingListener
     return loginTime;
   }
 
+  /** Get the password mapper object.
+  *@return the password mapper object.
+  */
+  public PasswordMapper getPasswordMapper()
+  {
+    return passwordMapper;
+  }
+  
   // Nuke stuff for security and the garbage
   // collector threads
   private void sessionCleanup()
@@ -144,6 +156,7 @@ public class AdminProfile implements HttpSessionBindingListener
     userID = null;
     manageUsers = false;
     loginTime = -1L;
+    passwordMapper = null;
   }
 
 

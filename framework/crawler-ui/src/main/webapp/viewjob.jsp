@@ -637,7 +637,7 @@
 			{
 				try
 				{
-					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),job.getOutputSpecification());
+					outputConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getOutputSpecification());
 				}
 				finally
 				{
@@ -663,7 +663,7 @@
 			{
 				try
 				{
-					repositoryConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),job.getSpecification());
+					repositoryConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),job.getSpecification());
 				}
 				finally
 				{

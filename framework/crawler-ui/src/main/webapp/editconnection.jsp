@@ -254,7 +254,7 @@
 	//-->
 	</script>
 <%
-	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabsArray);
+	RepositoryConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
 %>
 
 </head>
@@ -567,7 +567,7 @@
 	  }
 
 	  if (className.length() > 0)
-		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out),pageContext.getRequest().getLocale(),parameters,tabName);
+		RepositoryConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="4"><hr/></td></tr>
