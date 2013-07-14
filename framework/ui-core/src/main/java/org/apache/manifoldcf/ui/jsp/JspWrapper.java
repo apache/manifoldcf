@@ -43,6 +43,7 @@ public class JspWrapper implements IHTTPOutput
   }
 
   /** Flush the stream */
+  @Override
   public void flush()
     throws IOException
   {
@@ -50,6 +51,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a newline */
+  @Override
   public void newLine()
     throws IOException
   {
@@ -57,6 +59,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a boolean */
+  @Override
   public void print(boolean b)
     throws IOException
   {
@@ -64,6 +67,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a char */
+  @Override
   public void print(char c)
     throws IOException
   {
@@ -71,6 +75,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an array of chars */
+  @Override
   public void print(char[] c)
     throws IOException
   {
@@ -78,6 +83,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a double */
+  @Override
   public void print(double d)
     throws IOException
   {
@@ -85,6 +91,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a float */
+  @Override
   public void print(float f)
     throws IOException
   {
@@ -92,6 +99,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an int */
+  @Override
   public void print(int i)
     throws IOException
   {
@@ -99,6 +107,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a long */
+  @Override
   public void print(long l)
     throws IOException
   {
@@ -106,6 +115,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an object */
+  @Override
   public void print(Object o)
     throws IOException
   {
@@ -113,6 +123,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a string */
+  @Override
   public void print(String s)
     throws IOException
   {
@@ -120,6 +131,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a boolean */
+  @Override
   public void println(boolean b)
     throws IOException
   {
@@ -127,6 +139,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a char */
+  @Override
   public void println(char c)
     throws IOException
   {
@@ -134,6 +147,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an array of chars */
+  @Override
   public void println(char[] c)
     throws IOException
   {
@@ -141,6 +155,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a double */
+  @Override
   public void println(double d)
     throws IOException
   {
@@ -148,6 +163,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a float */
+  @Override
   public void println(float f)
     throws IOException
   {
@@ -155,6 +171,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an int */
+  @Override
   public void println(int i)
     throws IOException
   {
@@ -162,6 +179,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a long */
+  @Override
   public void println(long l)
     throws IOException
   {
@@ -169,6 +187,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an object */
+  @Override
   public void println(Object o)
     throws IOException
   {
@@ -176,6 +195,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a string */
+  @Override
   public void println(String s)
     throws IOException
   {
@@ -188,6 +208,7 @@ public class JspWrapper implements IHTTPOutput
   *@param password is the password.
   *@return the key.
   */
+  @Override
   public String mapPasswordToKey(String password)
   {
     return adminProfile.getPasswordMapper().mapPasswordToKey(password);
@@ -199,6 +220,7 @@ public class JspWrapper implements IHTTPOutput
   *@param key is the key.
   *@return the password.
   */
+  @Override
   public String mapKeyToPassword(String key)
   {
     return adminProfile.getPasswordMapper().mapKeyToPassword(key);

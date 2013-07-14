@@ -43,6 +43,7 @@ import org.apache.manifoldcf.core.common.XThreadInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
@@ -347,7 +348,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
    */
-  private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
+  private static void fillInServerConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
     
     String app_key = parameters.getParameter(DropboxConfig.APP_KEY_PARAM);
     String app_secret = parameters.getObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM);
@@ -361,6 +362,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     
     if (app_secret == null) {
       app_secret = StringUtils.EMPTY;
+    } else {
+      app_secret = mapper.mapPasswordToKey(app_secret);
     }
     
     if (username == null) {
@@ -368,6 +371,8 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     }
     if (password == null) {
       password = StringUtils.EMPTY;
+    } else {
+      password = mapper.mapPasswordToKey(password);
     }
     
     newMap.put("APP_KEY", app_key);
@@ -395,7 +400,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
@@ -425,7 +430,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_HEADER_FORWARD,paramMap);
@@ -443,7 +448,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     // Set the tab name
     paramMap.put("TabName", tabName);
     // Fill in the parameters
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_SERVER,paramMap);
 
   }
@@ -478,7 +483,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
     
     String app_secret = variableContext.getParameter("app_secret");
     if (app_secret != null) {
-      parameters.setObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM, app_secret);
+      parameters.setObfuscatedParameter(DropboxConfig.APP_SECRET_PARAM, variableContext.mapKeyToPassword(app_secret));
     }
     
     String key = variableContext.getParameter("key");
@@ -488,7 +493,7 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
 
     String secret = variableContext.getParameter("secret");
     if (secret != null) {
-      parameters.setObfuscatedParameter(DropboxConfig.SECRET_PARAM, secret);
+      parameters.setObfuscatedParameter(DropboxConfig.SECRET_PARAM, variableContext.mapKeyToPassword(secret));
     }
 
     return null;

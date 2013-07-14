@@ -41,6 +41,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
@@ -411,7 +412,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
    */
-  private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
+  private static void fillInServerConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
     String clientid = parameters.getParameter(GoogleDriveConfig.CLIENT_ID_PARAM);
     String clientsecret = parameters.getObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     String refreshtoken = parameters.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
@@ -422,6 +423,8 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     
     if (clientsecret == null) {
       clientsecret = StringUtils.EMPTY;
+    } else {
+      clientsecret = mapper.mapPasswordToKey(clientsecret);
     }
 
     if (refreshtoken == null) {
@@ -451,7 +454,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
@@ -480,7 +483,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_HEADER_FORWARD,paramMap);
@@ -499,7 +502,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     // Server tab
     // Fill in the parameters
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_SERVER,paramMap);
   }
 
@@ -532,7 +535,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     String clientsecret = variableContext.getParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM);
     if (clientsecret != null) {
-      parameters.setObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, clientsecret);
+      parameters.setObfuscatedParameter(GoogleDriveConfig.CLIENT_SECRET_PARAM, variableContext.mapKeyToPassword(clientsecret));
     }
 
     String refreshtoken = variableContext.getParameter(GoogleDriveConfig.REFRESH_TOKEN_PARAM);
