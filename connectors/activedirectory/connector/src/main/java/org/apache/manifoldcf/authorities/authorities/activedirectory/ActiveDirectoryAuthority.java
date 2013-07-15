@@ -480,13 +480,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     velocityContext.put("TabName",tabName);
-    fillInDomainControllerTab(velocityContext,parameters);
-    fillInCacheTab(velocityContext,parameters);
+    fillInDomainControllerTab(velocityContext,out,parameters);
+    fillInCacheTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
   }
   
-  protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, ConfigParams parameters)
+  protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
     String domainControllerName = parameters.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
     String userName = parameters.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
@@ -498,7 +498,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     // Backwards compatibility: if domain controller parameter is set, create an entry in the map.
     if (domainControllerName != null)
     {
-      domainControllers.add(createDomainControllerMap("",domainControllerName,userName,password,authentication,userACLsUsername));
+      domainControllers.add(createDomainControllerMap(mapper,"",domainControllerName,userName,password,authentication,userACLsUsername));
     }
     else
     {
@@ -516,14 +516,14 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           String dcPassword = deobfuscate(cn.getAttributeValue(ActiveDirectoryConfig.ATTR_PASSWORD));
           String dcAuthentication = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_AUTHENTICATION);
           String dcUserACLsUsername = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_USERACLsUSERNAME);
-          domainControllers.add(createDomainControllerMap(dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
+          domainControllers.add(createDomainControllerMap(mapper,dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
         }
       }
     }
     velocityContext.put("DOMAINCONTROLLERS",domainControllers);
   }
 
-  protected static Map<String,String> createDomainControllerMap(String suffix, String domainControllerName,
+  protected static Map<String,String> createDomainControllerMap(IPasswordMapperActivity mapper, String suffix, String domainControllerName,
     String userName, String password, String authentication, String userACLsUsername)
   {
     Map<String,String> defaultMap = new HashMap<String,String>();
@@ -534,7 +534,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (userName != null)
       defaultMap.put("USERNAME",userName);
     if (password != null)
-      defaultMap.put("PASSWORD",password);
+      defaultMap.put("PASSWORD",mapper.mapPasswordToKey(password));
     if (authentication != null)
       defaultMap.put("AUTHENTICATION",authentication);
     if (userACLsUsername != null)
@@ -542,7 +542,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     return defaultMap;
   }
   
-  protected static void fillInCacheTab(Map<String,Object> velocityContext, ConfigParams parameters)
+  protected static void fillInCacheTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
     String cacheLifetime = parameters.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
@@ -603,7 +603,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
             variableContext.getParameter("dcrecord_suffix"),
             variableContext.getParameter("dcrecord_domaincontrollername"),
             variableContext.getParameter("dcrecord_username"),
-            variableContext.getParameter("dcrecord_password"),
+            variableContext.mapKeyToPassword(variableContext.getParameter("dcrecord_password")),
             variableContext.getParameter("dcrecord_authentication"),
             variableContext.getParameter("dcrecord_userACLsUsername"));
         }
@@ -614,7 +614,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
             variableContext.getParameter("dcrecord_suffix_"+i),
             variableContext.getParameter("dcrecord_domaincontrollername_"+i),
             variableContext.getParameter("dcrecord_username_"+i),
-            variableContext.getParameter("dcrecord_password_"+i),
+            variableContext.mapKeyToPassword(variableContext.getParameter("dcrecord_password_"+i)),
             variableContext.getParameter("dcrecord_authentication_"+i),
             variableContext.getParameter("dcrecord_userACLsUsername_"+i));
         }
@@ -675,8 +675,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException, IOException
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
-    fillInDomainControllerTab(velocityContext,parameters);
-    fillInCacheTab(velocityContext,parameters);
+    fillInDomainControllerTab(velocityContext,out,parameters);
+    fillInCacheTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 

@@ -34,7 +34,13 @@
             </p>
             <p>The ManifoldCF UI has been tested with Firefox and various incarnations of Internet Explorer.  If you use another browser, there is a small chance that the UI
                   will not work properly.  Please let your system integrator know if you find any browser incompatibility problems.</p>
-            <p>When you do manage to enter the Framework user interface the first time, you should see a screen that looks something like this:</p>
+            <p>When you enter the Framework user interface the first time, you will first be asked to log in:</p>
+            <br/><br/>
+            <figure src="images/en_US/login.PNG" alt="Login Screen" width="80%"/>
+            <br/><br/>
+            <p>Enter the login user name and password for your system.  By default, the user name is "admin" and the password is "admin", although your
+                  system administrator can (and should) change this.  Then, click the "Login" button.  If you entered the correct credentials, you should see a
+                  screen that looks something like this:</p>
             <br/><br/>
             <figure src="images/en_US/welcome-screen.PNG" alt="Welcome Screen" width="80%"/>
             <br/><br/>

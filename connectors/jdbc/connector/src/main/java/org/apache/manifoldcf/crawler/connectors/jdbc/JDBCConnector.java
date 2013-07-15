@@ -740,24 +740,26 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String jdbcProvider = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
+    String jdbcProvider = parameters.getParameter(JDBCConstants.providerParameter);
     if (jdbcProvider == null)
       jdbcProvider = "oracle:thin:@";
-    String accessMethod = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.methodParameter);
+    String accessMethod = parameters.getParameter(JDBCConstants.methodParameter);
     if (accessMethod == null)
       accessMethod = "name";
-    String host = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter);
+    String host = parameters.getParameter(JDBCConstants.hostParameter);
     if (host == null)
       host = "localhost";
-    String databaseName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter);
+    String databaseName = parameters.getParameter(JDBCConstants.databaseNameParameter);
     if (databaseName == null)
       databaseName = "database";
-    String databaseUser = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName);
+    String databaseUser = parameters.getParameter(JDBCConstants.databaseUserName);
     if (databaseUser == null)
       databaseUser = "";
-    String databasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword);
+    String databasePassword = parameters.getObfuscatedParameter(JDBCConstants.databasePassword);
     if (databasePassword == null)
       databasePassword = "";
+    else
+      databasePassword = out.mapPasswordToKey(databasePassword);
 
     // "Database Type" tab
     if (tabName.equals(Messages.getString(locale,"JDBCConnector.DatabaseType")))
@@ -859,27 +861,27 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     String type = variableContext.getParameter("databasetype");
     if (type != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter,type);
+      parameters.setParameter(JDBCConstants.providerParameter,type);
 
     String accessMethod = variableContext.getParameter("accessmethod");
     if (accessMethod != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.methodParameter,accessMethod);
+      parameters.setParameter(JDBCConstants.methodParameter,accessMethod);
 
     String host = variableContext.getParameter("databasehost");
     if (host != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter,host);
+      parameters.setParameter(JDBCConstants.hostParameter,host);
 
     String databaseName = variableContext.getParameter("databasename");
     if (databaseName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter,databaseName);
+      parameters.setParameter(JDBCConstants.databaseNameParameter,databaseName);
 
     String userName = variableContext.getParameter("username");
     if (userName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName,userName);
+      parameters.setParameter(JDBCConstants.databaseUserName,userName);
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword,password);
+      parameters.setObfuscatedParameter(JDBCConstants.databasePassword,variableContext.mapKeyToPassword(password));
     
     return null;
   }
@@ -1063,19 +1065,19 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+      if (sn.getType().equals(JDBCConstants.idQueryNode))
       {
         idQuery = sn.getValue();
         if (idQuery == null)
           idQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+      else if (sn.getType().equals(JDBCConstants.versionQueryNode))
       {
         versionQuery = sn.getValue();
         if (versionQuery == null)
           versionQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+      else if (sn.getType().equals(JDBCConstants.dataQueryNode))
       {
         dataQuery = sn.getValue();
         if (dataQuery == null)
@@ -1223,12 +1225,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        if (ds.getChild(i).getType().equals(JDBCConstants.idQueryNode))
           ds.removeChild(i);
         else
           i++;
       }
-      sn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode);
+      sn = new SpecificationNode(JDBCConstants.idQueryNode);
       sn.setValue(idQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
@@ -1237,12 +1239,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        if (ds.getChild(i).getType().equals(JDBCConstants.versionQueryNode))
           ds.removeChild(i);
         else
           i++;
       }
-      sn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode);
+      sn = new SpecificationNode(JDBCConstants.versionQueryNode);
       sn.setValue(versionQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
@@ -1251,12 +1253,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        if (ds.getChild(i).getType().equals(JDBCConstants.dataQueryNode))
           ds.removeChild(i);
         else
           i++;
       }
-      sn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode);
+      sn = new SpecificationNode(JDBCConstants.dataQueryNode);
       sn.setValue(dataQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
@@ -1326,19 +1328,19 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+      if (sn.getType().equals(JDBCConstants.idQueryNode))
       {
         idQuery = sn.getValue();
         if (idQuery == null)
           idQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+      else if (sn.getType().equals(JDBCConstants.versionQueryNode))
       {
         versionQuery = sn.getValue();
         if (versionQuery == null)
           versionQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+      else if (sn.getType().equals(JDBCConstants.dataQueryNode))
       {
         dataQuery = sn.getValue();
         if (dataQuery == null)
@@ -1784,19 +1786,19 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        if (sn.getType().equals(JDBCConstants.idQueryNode))
         {
           idQuery = sn.getValue();
           if (idQuery == null)
             idQuery = "";
         }
-        else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        else if (sn.getType().equals(JDBCConstants.versionQueryNode))
         {
           versionQuery = sn.getValue();
           if (versionQuery == null)
             versionQuery = "";
         }
-        else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        else if (sn.getType().equals(JDBCConstants.dataQueryNode))
         {
           dataQuery = sn.getValue();
           if (dataQuery == null)

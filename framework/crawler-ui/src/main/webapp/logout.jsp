@@ -1,10 +1,6 @@
-<c:if test="${adminprofile.loggedOn!='true'}">
-	<% // This code is disabled because tomcat 4.0 does not return the server name; it always returns localhost.
-	   // response.sendRedirect("http://"+request.getServerName()+":"+Integer.toString(request.getServerPort())+"/crawler/index.jsp?force=top&expired=true"); %>
-</c:if>
+<%@ include file="adminDefaults.jsp" %>
 
 <%
-
 /* $Id$ */
 
 /**
@@ -26,10 +22,7 @@
 %>
 
 <%
-/**
-*
-*	Validates session and redirects to logon page if expired.
-*/
+adminprofile.logout();
+response.sendRedirect("login.jsp");
 %>
-
 

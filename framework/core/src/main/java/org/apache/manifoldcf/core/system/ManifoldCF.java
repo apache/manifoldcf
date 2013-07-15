@@ -81,6 +81,8 @@ public class ManifoldCF
   protected static Integer initializeFlagLock = new Integer(0);
 
   // Local member variables
+  protected static String loginUserName = null;
+  protected static String loginPassword = null;
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
@@ -95,6 +97,12 @@ public class ManifoldCF
   public static final String lcfConfigFileProperty = "org.apache.manifoldcf.configfile";
 
   // System property/config file property names
+  
+  // Admin properties
+  /** UI login user name */
+  public static final String loginUserNameProperty = "org.apache.manifoldcf.login.name";
+  /** UI login password */
+  public static final String loginPasswordProperty = "org.apache.manifoldcf.login.password";
   
   // Database access properties
   /** Database name property */
@@ -142,6 +150,8 @@ public class ManifoldCF
       {
         // Clean up the system doing the same thing the shutdown thread would have if the process was killed
         cleanUpEnvironment();
+        loginUserName = null;
+        loginPassword = null;
         masterDatabaseName = null;
         masterDatabaseUsername = null;
         masterDatabasePassword = null;
@@ -207,6 +217,13 @@ public class ManifoldCF
           // Set up local loggers
           Logging.initializeLoggers();
           Logging.setLogLevels();
+
+          loginUserName = getProperty(loginUserNameProperty);
+          if (loginUserName == null)
+            loginUserName = "admin";
+          loginPassword = getProperty(loginPasswordProperty);
+          if (loginPassword == null)
+            loginPassword = "admin";
 
           masterDatabaseName = getProperty(masterDatabaseNameProperty);
           if (masterDatabaseName == null)
@@ -552,6 +569,25 @@ public class ManifoldCF
     }
   }
 
+  /** Verify login.
+  */
+  public static boolean verifyLogin(IThreadContext threadContext, String userID, String userPassword)
+    throws ManifoldCFException
+  {
+    if (userID != null && userPassword != null)
+    {
+      /*
+      IDBInterface database = DBInterfaceFactory.make(threadContext,
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
+      */
+      // MHL to use a database table, when we get that sophisticated
+      return userID.equals(loginUserName) &&  userPassword.equals(loginPassword);
+    }
+    return false;
+  }
+  
   /** Perform standard one-way encryption of a string.
   *@param input is the string to encrypt.
   *@return the encrypted string.

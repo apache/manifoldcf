@@ -2103,6 +2103,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     String password = parameters.getObfuscatedParameter("password");
     if (password == null)
       password = "";
+    else
+      password = out.mapPasswordToKey(password);
 
     String keystore = parameters.getParameter("keystore");
     IKeystoreManager localKeystore;
@@ -2263,7 +2265,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("password",password);
+      parameters.setObfuscatedParameter("password",variableContext.mapKeyToPassword(password));
 
     String keystoreValue = variableContext.getParameter("keystoredata");
     if (keystoreValue != null)

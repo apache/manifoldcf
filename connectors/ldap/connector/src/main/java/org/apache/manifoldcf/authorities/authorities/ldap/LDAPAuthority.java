@@ -538,6 +538,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     } catch (ManifoldCFException ex) {
       //ignore
     }
+    fBindPass = out.mapPasswordToKey(fBindPass);
 
     if (tabName.equals(Messages.getString(locale, "LDAP.LDAP"))) {
       out.print(
@@ -676,7 +677,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     copyParam(variableContext, parameters, "ldapBindUser");
     String bindPass = variableContext.getParameter("ldapBindPass");
     if (bindPass != null) {
-      parameters.setParameter("ldapBindPass", ManifoldCF.obfuscate(bindPass));
+      parameters.setObfuscatedParameter("ldapBindPass", variableContext.mapKeyToPassword(bindPass));
     }
 
     return null;

@@ -39,6 +39,7 @@ import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import java.util.Map.Entry;
@@ -218,7 +219,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
    */
-  private static void fillInServerConfigurationMap(Map<String, Object> newMap, ConfigParams parameters) {
+  private static void fillInServerConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
     String jiraprotocol = parameters.getParameter(JiraConfig.JIRA_PROTOCOL_PARAM);
     String jirahost = parameters.getParameter(JiraConfig.JIRA_HOST_PARAM);
     String jiraport = parameters.getParameter(JiraConfig.JIRA_PORT_PARAM);
@@ -239,6 +240,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       clientid = JiraConfig.CLIENT_ID_DEFAULT;
     if (clientsecret == null)
       clientsecret = JiraConfig.CLIENT_SECRET_DEFAULT;
+    else
+      clientsecret = mapper.mapPasswordToKey(clientsecret);
 
     newMap.put("JIRAPROTOCOL", jiraprotocol);
     newMap.put("JIRAHOST", jirahost);
@@ -266,7 +269,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
@@ -295,7 +298,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_HEADER_FORWARD,paramMap);
@@ -314,7 +317,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
 
     // Server tab
     // Fill in the parameters
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_SERVER,paramMap);
   }
 
@@ -362,7 +365,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
 
     String clientsecret = variableContext.getParameter("clientsecret");
     if (clientsecret != null)
-      parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, clientsecret);
+      parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, variableContext.mapKeyToPassword(clientsecret));
 
     return null;
   }

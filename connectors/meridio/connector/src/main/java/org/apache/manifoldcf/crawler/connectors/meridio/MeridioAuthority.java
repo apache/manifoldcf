@@ -937,6 +937,8 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     String password = parameters.getObfuscatedParameter("Password");
     if (password == null)
       password = "";
+    else
+      password = out.mapPasswordToKey(password);
 
     String meridioKeystore = parameters.getParameter("MeridioKeystore");
     IKeystoreManager localKeystore;
@@ -1280,7 +1282,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("Password",password);
+      parameters.setObfuscatedParameter("Password",variableContext.mapKeyToPassword(password));
 
     String configOp = variableContext.getParameter("configop");
     if (configOp != null)

@@ -42,7 +42,7 @@
 	org.apache.manifoldcf.ui.multipart.MultipartWrapper variableContext = (org.apache.manifoldcf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
 	if (variableContext == null)
 	{
-		variableContext = new org.apache.manifoldcf.ui.multipart.MultipartWrapper(request);
+		variableContext = new org.apache.manifoldcf.ui.multipart.MultipartWrapper(request,adminprofile);
 		threadContext.save("__WRAPPER__",variableContext);
 	}
 %>

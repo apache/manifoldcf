@@ -346,31 +346,33 @@ public class JDBCAuthority extends BaseAuthorityConnector {
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException {
-    String lJdbcProvider = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
+    String lJdbcProvider = parameters.getParameter(JDBCConstants.providerParameter);
     if (lJdbcProvider == null) {
       lJdbcProvider = "oracle:thin:@";
     }
-    String lHost = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter);
+    String lHost = parameters.getParameter(JDBCConstants.hostParameter);
     if (lHost == null) {
       lHost = "localhost";
     }
-    String lDatabaseName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter);
+    String lDatabaseName = parameters.getParameter(JDBCConstants.databaseNameParameter);
     if (lDatabaseName == null) {
       lDatabaseName = "database";
     }
-    String databaseUser = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName);
+    String databaseUser = parameters.getParameter(JDBCConstants.databaseUserName);
     if (databaseUser == null) {
       databaseUser = "";
     }
-    String databasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword);
+    String databasePassword = parameters.getObfuscatedParameter(JDBCConstants.databasePassword);
     if (databasePassword == null) {
       databasePassword = "";
+    } else {
+      databasePassword = out.mapPasswordToKey(password);
     }
-    String lIdQuery = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserIdQuery);
+    String lIdQuery = parameters.getParameter(JDBCConstants.databaseUserIdQuery);
     if (lIdQuery == null) {
       lIdQuery = "SELECT idfield FROM usertable WHERE login = $(USERNAME)";
     }
-    String lTokenQuery = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseTokensQuery);
+    String lTokenQuery = parameters.getParameter(JDBCConstants.databaseTokensQuery);
     if (lTokenQuery == null) {
       lTokenQuery = "SELECT groupnamefield FROM grouptable WHERE user_id = $(UID) or login = $(USERNAME)";
     }
@@ -476,37 +478,37 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     throws ManifoldCFException {
     String type = variableContext.getParameter("databasetype");
     if (type != null) {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter, type);
+      parameters.setParameter(JDBCConstants.providerParameter, type);
     }
 
     String lHost = variableContext.getParameter("databasehost");
     if (lHost != null) {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter, lHost);
+      parameters.setParameter(JDBCConstants.hostParameter, lHost);
     }
 
     String lDatabaseName = variableContext.getParameter("databasename");
     if (lDatabaseName != null) {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter, lDatabaseName);
+      parameters.setParameter(JDBCConstants.databaseNameParameter, lDatabaseName);
     }
 
     String lUserName = variableContext.getParameter("username");
     if (lUserName != null) {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName, lUserName);
+      parameters.setParameter(JDBCConstants.databaseUserName, lUserName);
     }
 
     String lPassword = variableContext.getParameter("password");
     if (lPassword != null) {
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword, lPassword);
+      parameters.setObfuscatedParameter(JDBCConstants.databasePassword, variableContext.mapKeyToPassword(lPassword));
     }
 
     String lIdQuery = variableContext.getParameter("idquery");
     if (lIdQuery != null) {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserIdQuery, lIdQuery);
+      parameters.setParameter(JDBCConstants.databaseUserIdQuery, lIdQuery);
     }
 
     String lTokenQuery = variableContext.getParameter("tokenquery");
     if (lTokenQuery != null) {
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseTokensQuery, lTokenQuery);
+      parameters.setParameter(JDBCConstants.databaseTokensQuery, lTokenQuery);
     }
 
     return null;
