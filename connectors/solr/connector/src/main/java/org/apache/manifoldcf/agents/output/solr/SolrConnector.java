@@ -1101,6 +1101,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String password = parameters.getObfuscatedParameter(SolrConfig.PARAM_PASSWORD);
     if (password == null)
       password = "";
+    else
+      password = out.mapPasswordToKey(password);
     
     String commits = parameters.getParameter(SolrConfig.PARAM_COMMITS);
     if (commits == null)
@@ -1863,7 +1865,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 		
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(SolrConfig.PARAM_PASSWORD,password);
+      parameters.setObfuscatedParameter(SolrConfig.PARAM_PASSWORD,variableContext.mapKeyToPassword(password));
     
     String maxLength = variableContext.getParameter("maxdocumentlength");
     if (maxLength != null)
