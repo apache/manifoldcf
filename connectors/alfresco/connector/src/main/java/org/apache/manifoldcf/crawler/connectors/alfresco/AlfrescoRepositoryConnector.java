@@ -46,6 +46,7 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -476,7 +477,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
   /** Fill in Velocity parameters for the Server tab.
   */
-  private static void fillInServerParameters(Map<String,String> paramMap, ConfigParams parameters)
+  private static void fillInServerParameters(Map<String,String> paramMap, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
     String username = parameters.getParameter(AlfrescoConfig.USERNAME_PARAM);
     if (username == null)
@@ -486,6 +487,8 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     String password = parameters.getParameter(AlfrescoConfig.PASSWORD_PARAM);
     if (password == null) 
       password = AlfrescoConfig.PASSWORD_DEFAULT_VALUE;
+    else
+      password = mapper.mapPasswordToKey(password);
     paramMap.put(AlfrescoConfig.PASSWORD_PARAM, password);
     
     String protocol = parameters.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
@@ -544,7 +547,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     // Fill in parameters for all tabs
 
     // Server tab
-    fillInServerParameters(paramMap, parameters);
+    fillInServerParameters(paramMap, out, parameters);
   
     outputResource(VIEW_CONFIG_FORWARD, out, locale, paramMap);
   }
@@ -576,7 +579,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     Map<String,String> paramMap = new HashMap<String,String>();
         
     // Fill in parameters for all tabs
-    fillInServerParameters(paramMap, parameters);
+    fillInServerParameters(paramMap, out, parameters);
 
     outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, paramMap);
   }
@@ -598,7 +601,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
     // Do the Server tab
     Map<String,String> paramMap = new HashMap<String,String>();
     paramMap.put(TAB_NAME_PARAM, tabName);
-    fillInServerParameters(paramMap, parameters);
+    fillInServerParameters(paramMap, out, parameters);
     outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);  
   }
 
@@ -633,7 +636,7 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
 
     String password = variableContext.getParameter(AlfrescoConfig.PASSWORD_PARAM);
     if (password != null) {
-      parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, password);
+      parameters.setParameter(AlfrescoConfig.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
     }
     
     String protocol = variableContext.getParameter(AlfrescoConfig.PROTOCOL_PARAM);
