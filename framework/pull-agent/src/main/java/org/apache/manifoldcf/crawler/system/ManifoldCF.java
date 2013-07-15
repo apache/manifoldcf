@@ -3995,7 +3995,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           {
             requestMinimum = scheduleField.getValue().equals("true");
           }
-          if (fieldType.equals(JOBNODE_TIMEZONE))
+          else if (fieldType.equals(JOBNODE_TIMEZONE))
           {
             timezone = scheduleField.getValue();
           }
