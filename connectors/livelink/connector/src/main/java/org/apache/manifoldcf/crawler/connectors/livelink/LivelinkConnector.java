@@ -1776,6 +1776,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
+    else
+      serverPassword = out.mapPasswordToKey(serverPassword);
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
@@ -1788,6 +1790,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
       serverHTTPNTLMPassword = "";
+    else
+      serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
     IKeystoreManager localServerHTTPSKeystore;
     if (serverHTTPSKeystore == null)
@@ -1811,6 +1815,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String ingestNtlmPassword = parameters.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
     if (ingestNtlmPassword == null)
       ingestNtlmPassword = "";
+    else
+      ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
     String ingestNtlmDomain = parameters.getParameter(LiveLinkParameters.ingestNtlmDomain);
     if (ingestNtlmDomain == null)
       ingestNtlmDomain = "";
@@ -2160,7 +2166,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,serverPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
@@ -2172,7 +2178,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,serverHTTPNTLMPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     if (serverHTTPSKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
@@ -2250,7 +2256,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       parameters.setParameter(LiveLinkParameters.ingestNtlmUsername,ingestNtlmUsername);
     String ingestNtlmPassword = variableContext.getParameter("ingestntlmpassword");
     if (ingestNtlmPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword,ingestNtlmPassword);
+      parameters.setObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword,variableContext.mapKeyToPassword(ingestNtlmPassword));
     String ingestKeystoreValue = variableContext.getParameter("ingestkeystoredata");
     if (ingestKeystoreValue != null)
       parameters.setParameter(LiveLinkParameters.ingestKeystore,ingestKeystoreValue);
