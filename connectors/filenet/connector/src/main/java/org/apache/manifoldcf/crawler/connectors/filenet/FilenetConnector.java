@@ -1567,44 +1567,46 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String userID = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID);
+    String userID = parameters.getParameter(CONFIG_PARAM_USERID);
     if (userID == null)
       userID = "";
-    String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_PASSWORD);
+    String password = parameters.getObfuscatedParameter(CONFIG_PARAM_PASSWORD);
     if (password == null)
       password = "";
-    String filenetdomain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN);
+    else
+      password = out.mapPasswordToKey(password);
+    String filenetdomain = parameters.getParameter(CONFIG_PARAM_FILENETDOMAIN);
     if (filenetdomain == null)
     {
-      filenetdomain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN_OLD);
+      filenetdomain = parameters.getParameter(CONFIG_PARAM_FILENETDOMAIN_OLD);
       if (filenetdomain == null)
         filenetdomain = "";
     }
-    String objectstore = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_OBJECTSTORE);
+    String objectstore = parameters.getParameter(CONFIG_PARAM_OBJECTSTORE);
     if (objectstore == null)
       objectstore = "";
-    String serverprotocol = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPROTOCOL);
+    String serverprotocol = parameters.getParameter(CONFIG_PARAM_SERVERPROTOCOL);
     if (serverprotocol == null)
       serverprotocol = "http";
-    String serverhostname = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERHOSTNAME);
+    String serverhostname = parameters.getParameter(CONFIG_PARAM_SERVERHOSTNAME);
     if (serverhostname == null)
       serverhostname = "";
-    String serverport = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPORT);
+    String serverport = parameters.getParameter(CONFIG_PARAM_SERVERPORT);
     if (serverport == null)
       serverport = "";
-    String serverwsilocation = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERWSILOCATION);
+    String serverwsilocation = parameters.getParameter(CONFIG_PARAM_SERVERWSILOCATION);
     if (serverwsilocation == null)
       serverwsilocation = "wsi/FNCEWS40DIME";
-    String urlprotocol = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPROTOCOL);
+    String urlprotocol = parameters.getParameter(CONFIG_PARAM_URLPROTOCOL);
     if (urlprotocol == null)
       urlprotocol = "http";
-    String urlhostname = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLHOSTNAME);
+    String urlhostname = parameters.getParameter(CONFIG_PARAM_URLHOSTNAME);
     if (urlhostname == null)
       urlhostname = "";
-    String urlport = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPORT);
+    String urlport = parameters.getParameter(CONFIG_PARAM_URLPORT);
     if (urlport == null)
       urlport = "";
-    String urllocation = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLLOCATION);
+    String urllocation = parameters.getParameter(CONFIG_PARAM_URLLOCATION);
     if (urllocation == null)
       urllocation = "Workplace/Browse.jsp";
 
@@ -1751,51 +1753,51 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   {
     String serverprotocol = variableContext.getParameter("serverprotocol");
     if (serverprotocol != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPROTOCOL,serverprotocol);
+      parameters.setParameter(CONFIG_PARAM_SERVERPROTOCOL,serverprotocol);
 
     String serverhostname = variableContext.getParameter("serverhostname");
     if (serverhostname != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERHOSTNAME,serverhostname);
+      parameters.setParameter(CONFIG_PARAM_SERVERHOSTNAME,serverhostname);
     
     String serverport = variableContext.getParameter("serverport");
     if (serverport != null && serverport.length() > 0)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERPORT,serverport);
+      parameters.setParameter(CONFIG_PARAM_SERVERPORT,serverport);
 
     String serverwsilocation = variableContext.getParameter("serverwsilocation");
     if (serverwsilocation != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_SERVERWSILOCATION,serverwsilocation);
+      parameters.setParameter(CONFIG_PARAM_SERVERWSILOCATION,serverwsilocation);
 
     String urlprotocol = variableContext.getParameter("urlprotocol");
     if (urlprotocol != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPROTOCOL,urlprotocol);
+      parameters.setParameter(CONFIG_PARAM_URLPROTOCOL,urlprotocol);
 
     String urlhostname = variableContext.getParameter("urlhostname");
     if (urlhostname != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLHOSTNAME,urlhostname);
+      parameters.setParameter(CONFIG_PARAM_URLHOSTNAME,urlhostname);
 
     String urlport = variableContext.getParameter("urlport");
     if (urlport != null && urlport.length() > 0)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLPORT,urlport);
+      parameters.setParameter(CONFIG_PARAM_URLPORT,urlport);
 
     String urllocation = variableContext.getParameter("urllocation");
     if (urllocation != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_URLLOCATION,urllocation);
+      parameters.setParameter(CONFIG_PARAM_URLLOCATION,urllocation);
 
     String userID = variableContext.getParameter("userid");
     if (userID != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_USERID,userID);
+      parameters.setParameter(CONFIG_PARAM_USERID,userID);
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_PASSWORD,password);
+      parameters.setObfuscatedParameter(CONFIG_PARAM_PASSWORD,variableContext.mapKeyToPassword(password));
 
     String filenetdomain = variableContext.getParameter("filenetdomain");
     if (filenetdomain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_FILENETDOMAIN,filenetdomain);
+      parameters.setParameter(CONFIG_PARAM_FILENETDOMAIN,filenetdomain);
 
     String objectstore = variableContext.getParameter("objectstore");
     if (objectstore != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.CONFIG_PARAM_OBJECTSTORE,objectstore);
+      parameters.setParameter(CONFIG_PARAM_OBJECTSTORE,objectstore);
     return null;
   }
   
@@ -1949,9 +1951,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+      if (sn.getType().equals(SPEC_NODE_DOCUMENTCLASS))
       {
-        String value = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        String value = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         // Now, scan for metadata etc.
         org.apache.manifoldcf.crawler.connectors.filenet.DocClassSpec spec = new org.apache.manifoldcf.crawler.connectors.filenet.DocClassSpec(sn);
         documentClasses.put(value,spec);
@@ -2366,9 +2368,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+      if (sn.getType().equals(SPEC_NODE_MIMETYPE))
       {
-        String value = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        String value = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         if (mimeTypes == null)
           mimeTypes = new HashMap();
         mimeTypes.put(value,value);
@@ -2594,7 +2596,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+        if (ds.getChild(i).getType().equals(SPEC_NODE_DOCUMENTCLASS))
           ds.removeChild(i);
         else
           i++;
@@ -2606,14 +2608,14 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         while (i < x.length)
         {
           String value = x[i++];
-          SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
+          SpecificationNode node = new SpecificationNode(SPEC_NODE_DOCUMENTCLASS);
+          node.setAttribute(SPEC_ATTRIBUTE_VALUE,value);
           // Get the allmetadata value for this document class
           String allmetadata = variableContext.getParameter("allmetadata_"+value);
           if (allmetadata == null)
             allmetadata = "false";
           if (allmetadata.equals("true"))
-            node.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_ALLMETADATA,allmetadata);
+            node.setAttribute(SPEC_ATTRIBUTE_ALLMETADATA,allmetadata);
           else
           {
             String[] fields = variableContext.getParameterValues("metadatafield_"+value);
@@ -2623,8 +2625,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
               while (j < fields.length)
               {
                 String field = fields[j++];
-                SpecificationNode sp2 = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_METADATAFIELD);
-                sp2.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,field);
+                SpecificationNode sp2 = new SpecificationNode(SPEC_NODE_METADATAFIELD);
+                sp2.setAttribute(SPEC_ATTRIBUTE_VALUE,field);
                 node.addChild(node.getChildCount(),sp2);
               }
             }
@@ -2642,12 +2644,12 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             String matchValue = variableContext.getParameter("matchvalue_"+value+"_"+Integer.toString(q));
             if (matchOp == null || !matchOp.equals("Delete"))
             {
-              SpecificationNode matchNode = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
-              matchNode.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
-              matchNode.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
+              SpecificationNode matchNode = new SpecificationNode(SPEC_NODE_MATCH);
+              matchNode.setAttribute(SPEC_ATTRIBUTE_MATCHTYPE,matchType);
+              matchNode.setAttribute(SPEC_ATTRIBUTE_FIELDNAME,matchField);
               if (matchValue == null)
                 matchValue = "";
-              matchNode.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
+              matchNode.setAttribute(SPEC_ATTRIBUTE_VALUE,matchValue);
               node.addChild(node.getChildCount(),matchNode);
             }
             q++;
@@ -2661,12 +2663,12 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
             String matchType = variableContext.getParameter("matchtype_"+value);
             String matchField = variableContext.getParameter("matchfield_"+value);
             String matchValue = variableContext.getParameter("matchvalue_"+value);
-            SpecificationNode matchNode = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MATCH);
-            matchNode.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_MATCHTYPE,matchType);
-            matchNode.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_FIELDNAME,matchField);
+            SpecificationNode matchNode = new SpecificationNode(SPEC_NODE_MATCH);
+            matchNode.setAttribute(SPEC_ATTRIBUTE_MATCHTYPE,matchType);
+            matchNode.setAttribute(SPEC_ATTRIBUTE_FIELDNAME,matchField);
             if (matchValue == null)
               matchValue = "";
-            matchNode.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,matchValue);
+            matchNode.setAttribute(SPEC_ATTRIBUTE_VALUE,matchValue);
             node.addChild(node.getChildCount(),matchNode);
           }
 			
@@ -2679,7 +2681,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+        if (ds.getChild(i).getType().equals(SPEC_NODE_MIMETYPE))
           ds.removeChild(i);
         else
           i++;
@@ -2691,8 +2693,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         while (i < x.length)
         {
           String value = x[i++];
-          SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE,value);
+          SpecificationNode node = new SpecificationNode(SPEC_NODE_MIMETYPE);
+          node.setAttribute(SPEC_ATTRIBUTE_VALUE,value);
           ds.addChild(ds.getChildCount(),node);
         }
       }
@@ -2861,9 +2863,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_DOCUMENTCLASS))
+      if (sn.getType().equals(SPEC_NODE_DOCUMENTCLASS))
       {
-        String value = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        String value = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         org.apache.manifoldcf.crawler.connectors.filenet.DocClassSpec spec = new org.apache.manifoldcf.crawler.connectors.filenet.DocClassSpec(sn);
         documentClasses.put(value,spec);
       }
@@ -2973,9 +2975,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_NODE_MIMETYPE))
+      if (sn.getType().equals(SPEC_NODE_MIMETYPE))
       {
-        String value = sn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.filenet.FilenetConnector.SPEC_ATTRIBUTE_VALUE);
+        String value = sn.getAttributeValue(SPEC_ATTRIBUTE_VALUE);
         if (mimeTypes == null)
           mimeTypes = new HashMap();
         mimeTypes.put(value,value);
