@@ -1012,6 +1012,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String pass = parameters.getObfuscatedParameter(WikiConfig.PARAM_PASSWORD);
     if (pass == null) {
       pass = "";
+    } else {
+      pass = out.mapPasswordToKey(pass);
     }
     String domain = parameters.getParameter(WikiConfig.PARAM_DOMAIN);
     if (domain == null) {
@@ -1031,6 +1033,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String accessPassword = parameters.getObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD);
     if (accessPassword == null)
       accessPassword = "";
+    else
+      accessPassword = out.mapPasswordToKey(accessPassword);
 
     // Email tab
     if (tabName.equals(Messages.getString(locale,"WikiConnector.Email")))
@@ -1183,7 +1187,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String pass = variableContext.getParameter("serverpass");
     if (pass != null) {
-      parameters.setObfuscatedParameter(WikiConfig.PARAM_PASSWORD, pass);
+      parameters.setObfuscatedParameter(WikiConfig.PARAM_PASSWORD, variableContext.mapKeyToPassword(pass));
     }
 
     String domain = variableContext.getParameter("serverdomain");
@@ -1198,7 +1202,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String accessPassword = variableContext.getParameter("accesspassword");
     if (accessPassword != null) {
-      parameters.setObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD, accessPassword);
+      parameters.setObfuscatedParameter(WikiConfig.PARAM_ACCESSPASSWORD, variableContext.mapKeyToPassword(accessPassword));
     }
 
     String accessRealm = variableContext.getParameter("accessrealm");
