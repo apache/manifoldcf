@@ -46,6 +46,7 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -2634,15 +2635,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String server   = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server);
+    String server   = parameters.getParameter(SharedDriveParameters.server);
     if (server==null) server = "";
-    String domain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.domain);
+    String domain = parameters.getParameter(SharedDriveParameters.domain);
     if (domain==null) domain = "";
-    String username = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.username);
+    String username = parameters.getParameter(SharedDriveParameters.username);
     if (username==null) username = "";
-    String password = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password);
-    if (password==null) password = "";
-    String resolvesids = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.useSIDs);
+    String password = parameters.getObfuscatedParameter(SharedDriveParameters.password);
+    if (password==null)
+      password = "";
+    else
+      password = out.mapPasswordToKey(password);
+    String resolvesids = parameters.getParameter(SharedDriveParameters.useSIDs);
     if (resolvesids==null) resolvesids = "true";
 
     // "Server" tab
@@ -2704,19 +2708,19 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   {
     String server = variableContext.getParameter("server");
     if (server != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.server,server);
+      parameters.setParameter(SharedDriveParameters.server,server);
 	
     String domain = variableContext.getParameter("domain");
     if (domain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.domain,domain);
+      parameters.setParameter(SharedDriveParameters.domain,domain);
 	
     String username = variableContext.getParameter("username");
     if (username != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.username,username);
+      parameters.setParameter(SharedDriveParameters.username,username);
 		
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.sharedrive.SharedDriveParameters.password,password);
+      parameters.setObfuscatedParameter(SharedDriveParameters.password,variableContext.mapKeyToPassword(password));
     
     String resolvesidspresent = variableContext.getParameter("resolvesidspresent");
     if (resolvesidspresent != null)
