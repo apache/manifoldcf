@@ -55,6 +55,7 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -699,7 +700,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   *@param newMap is the map to fill in
   *@param parameters is the current set of configuration parameters
   */
-  private static void fillInServerConfigurationMap(Map<String,String> newMap, ConfigParams parameters)
+  private static void fillInServerConfigurationMap(Map<String,String> newMap, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
     String username = parameters.getParameter(CmisConfig.USERNAME_PARAM);
     String password = parameters.getParameter(CmisConfig.PASSWORD_PARAM);
@@ -714,6 +715,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       username = StringUtils.EMPTY;
     if(password == null)
       password = StringUtils.EMPTY;
+    else
+      password = mapper.mapPasswordToKey(password);
     if(protocol == null)
       protocol = CmisConfig.PROTOCOL_DEFAULT_VALUE;
     if(server == null)
@@ -758,7 +761,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     Map<String,String> paramMap = new HashMap<String,String>();
   
     // Fill in map from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     outputResource(VIEW_CONFIG_FORWARD, out, locale, paramMap);
   }
@@ -791,7 +794,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     Map<String,String> paramMap = new HashMap<String,String>();
 
     // Fill in the parameters from each tab
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
     outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, paramMap);
@@ -809,7 +812,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     // Set the tab name
     paramMap.put("TabName", tabName);
     // Fill in the parameters
-    fillInServerConfigurationMap(paramMap, parameters);
+    fillInServerConfigurationMap(paramMap, out, parameters);
     outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);
   
   }
@@ -848,7 +851,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     String password = variableContext.getParameter(CmisConfig.PASSWORD_PARAM);
     if (password != null)
-      parameters.setParameter(CmisConfig.PASSWORD_PARAM, password);
+      parameters.setParameter(CmisConfig.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
 
     String protocol = variableContext.getParameter(CmisConfig.PROTOCOL_PARAM);
     if (protocol != null) {
