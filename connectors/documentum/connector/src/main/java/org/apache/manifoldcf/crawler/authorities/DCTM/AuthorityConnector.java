@@ -1123,27 +1123,29 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String docbaseName = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE);
+    String docbaseName = parameters.getParameter(CONFIG_PARAM_DOCBASE);
     if (docbaseName == null)
       docbaseName = "";
 
-    String docbaseUserName = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME);
+    String docbaseUserName = parameters.getParameter(CONFIG_PARAM_USERNAME);
     if (docbaseUserName == null)
       docbaseUserName = "";
 
-    String docbasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD);
+    String docbasePassword = parameters.getObfuscatedParameter(CONFIG_PARAM_PASSWORD);
     if (docbasePassword == null)
       docbasePassword = "";
+    else
+      docbasePassword = out.mapPasswordToKey(docbasePassword);
 
-    String docbaseDomain = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN);
+    String docbaseDomain = parameters.getParameter(CONFIG_PARAM_DOMAIN);
     if (docbaseDomain == null)
       docbaseDomain = "";
 
-    String caseInsensitiveUser = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE);
+    String caseInsensitiveUser = parameters.getParameter(CONFIG_PARAM_CASEINSENSITIVE);
     if (caseInsensitiveUser == null)
       caseInsensitiveUser = "false";
 
-    String useSystemAcls = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS);
+    String useSystemAcls = parameters.getParameter(CONFIG_PARAM_USESYSTEMACLS);
     if (useSystemAcls == null)
       useSystemAcls = "true";
 
@@ -1298,27 +1300,27 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   {
     String docbaseName = variableContext.getParameter("docbasename");
     if (docbaseName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE,docbaseName);
+      parameters.setParameter(CONFIG_PARAM_DOCBASE,docbaseName);
 	
     String docbaseUserName = variableContext.getParameter("docbaseusername");
     if (docbaseUserName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME,docbaseUserName);
+      parameters.setParameter(CONFIG_PARAM_USERNAME,docbaseUserName);
 	
     String docbasePassword = variableContext.getParameter("docbasepassword");
     if (docbasePassword != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD,docbasePassword);
+      parameters.setObfuscatedParameter(CONFIG_PARAM_PASSWORD,variableContext.mapKeyToPassword(docbasePassword));
 	
     String docbaseDomain = variableContext.getParameter("docbasedomain");
     if (docbaseDomain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN,docbaseDomain);
+      parameters.setParameter(CONFIG_PARAM_DOMAIN,docbaseDomain);
 
     String caseInsensitiveUser = variableContext.getParameter("usernamecaseinsensitive");
     if (caseInsensitiveUser != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
+      parameters.setParameter(CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
 
     String useSystemAcls = variableContext.getParameter("usesystemacls");
     if (useSystemAcls != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
+      parameters.setParameter(CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
     
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
