@@ -1,7 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.3-dev =====================
+======================= 1.4-dev =====================
+
+======================= Release 1.3 =====================
 
 CONNECTORS-753: Japanese translations needed for ManifoldCF crawler UI login page and logout link
 (Minoru Osuka, Karl Wright)
