@@ -1887,9 +1887,16 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
         // The way I've chosen to do this is to use a double slash at that point, as a separator.
-        String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
+        if (relPath.length() >= foldersFilePathIndex)
+        {
+          String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
 
-        activities.addDocumentReference( modifiedPath );
+          activities.addDocumentReference( modifiedPath );
+        }
+        else
+        {
+          Logging.connectors.warn("Sharepoint: Unexpected relPath structure; path is '"+relPath+"', but expected <list/library> length of "+foldersFilePathIndex);
+        }
       }
     }
   }
