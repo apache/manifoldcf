@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 1.3 =====================
 
+CONNECTORS-755: ant rat-sources finds unlicensed files in alfresco connector
+(Karl, Wright, Piergiorgio Lucidi)
+
 CONNECTORS-753: Japanese translations needed for ManifoldCF crawler UI login page and logout link
 (Minoru Osuka, Karl Wright)
 
