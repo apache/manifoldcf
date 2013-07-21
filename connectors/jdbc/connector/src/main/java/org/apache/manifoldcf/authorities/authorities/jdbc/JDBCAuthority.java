@@ -366,7 +366,7 @@ public class JDBCAuthority extends BaseAuthorityConnector {
     if (databasePassword == null) {
       databasePassword = "";
     } else {
-      databasePassword = out.mapPasswordToKey(password);
+      databasePassword = out.mapPasswordToKey(databasePassword);
     }
     String lIdQuery = parameters.getParameter(JDBCConstants.databaseUserIdQuery);
     if (lIdQuery == null) {
