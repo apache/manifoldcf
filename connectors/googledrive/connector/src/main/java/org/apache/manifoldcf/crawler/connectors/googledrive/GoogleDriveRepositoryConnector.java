@@ -1061,102 +1061,107 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             String documentURI = getUrl(googleFile, "application/pdf");
 
             // Get the file length
-            long fileLength = googleFile.getFileSize();
+            Long fileLength = googleFile.getFileSize();
+            if (fileLength != null) {
 
-            // Unpack the version string
-            ArrayList acls = new ArrayList();
-            StringBuilder denyAclBuffer = new StringBuilder();
-            int index = unpackList(acls,version,0,'+');
-            if (index < version.length() && version.charAt(index++) == '+') {
-              index = unpack(denyAclBuffer,version,index,'+');
-            }
-
-            //otherwise process
-            RepositoryDocument rd = new RepositoryDocument();
-
-            // Turn into acls and add into description
-            String[] aclArray = new String[acls.size()];
-            for (int j = 0; j < aclArray.length; j++) {
-              aclArray[j] = (String)acls.get(j);
-            }
-            rd.setACL(aclArray);
-            if (denyAclBuffer.length() > 0) {
-              String[] denyAclArray = new String[]{denyAclBuffer.toString()};
-              rd.setDenyACL(denyAclArray);
-            }
-
-            // Now do standard stuff
-            String mimeType = googleFile.getMimeType();
-            DateTime createdDate = googleFile.getCreatedDate();
-            DateTime modifiedDate = googleFile.getModifiedDate();
-            String extension = googleFile.getFileExtension();
-            String title = googleFile.getTitle();
-            
-            if (mimeType != null)
-              rd.setMimeType(mimeType);
-            if (createdDate != null)
-              rd.setCreatedDate(new Date(createdDate.getValue()));
-            if (modifiedDate != null)
-              rd.setModifiedDate(new Date(modifiedDate.getValue()));
-            if (extension != null)
-            {
-              if (title == null)
-                title = "";
-              rd.setFileName(title + "." + extension);
-            }
-
-            // Get general document metadata
-            for (Entry<String, Object> entry : googleFile.entrySet()) {
-              rd.addField(entry.getKey(), entry.getValue().toString());
-            }
-
-            // Fire up the document reading thread
-            DocumentReadingThread t = new DocumentReadingThread(documentURI);
-            try {
-              t.start();
-              boolean wasInterrupted = false;
-              try {
-                InputStream is = t.getSafeInputStream();
-                try {
-                  // Can only index while background thread is running!
-                  rd.setBinary(is, fileLength);
-                  activities.ingestDocument(nodeId, version, documentURI, rd);
-                } finally {
-                  is.close();
-                }
-              } catch (ManifoldCFException e) {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  wasInterrupted = true;
-                throw e;
-              } catch (java.net.SocketTimeoutException e) {
-                throw e;
-              } catch (InterruptedIOException e) {
-                wasInterrupted = true;
-                throw e;
-              } finally {
-                if (!wasInterrupted)
-                  t.finishUp();
+              // Unpack the version string
+              ArrayList acls = new ArrayList();
+              StringBuilder denyAclBuffer = new StringBuilder();
+              int index = unpackList(acls,version,0,'+');
+              if (index < version.length() && version.charAt(index++) == '+') {
+                index = unpack(denyAclBuffer,version,index,'+');
               }
 
-              // No errors.  Record the fact that we made it.
-              errorCode = "OK";
-              fileSize = new Long(fileLength);
-            } catch (InterruptedException e) {
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-            } catch (java.net.SocketTimeoutException e) {
-              Logging.connectors.warn("GOOGLEDRIVE: Socket timeout reading document: " + e.getMessage(), e);
-              handleIOException(e);
-            } catch (InterruptedIOException e) {
-              t.interrupt();
-              throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-                ManifoldCFException.INTERRUPTED);
-            } catch (IOException e) {
-              errorCode = "IO ERROR";
-              errorDesc = e.getMessage();
-              Logging.connectors.warn("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
-              handleIOException(e);
+              //otherwise process
+              RepositoryDocument rd = new RepositoryDocument();
+
+              // Turn into acls and add into description
+              String[] aclArray = new String[acls.size()];
+              for (int j = 0; j < aclArray.length; j++) {
+                aclArray[j] = (String)acls.get(j);
+              }
+              rd.setACL(aclArray);
+              if (denyAclBuffer.length() > 0) {
+                String[] denyAclArray = new String[]{denyAclBuffer.toString()};
+                rd.setDenyACL(denyAclArray);
+              }
+
+              // Now do standard stuff
+              String mimeType = googleFile.getMimeType();
+              DateTime createdDate = googleFile.getCreatedDate();
+              DateTime modifiedDate = googleFile.getModifiedDate();
+              String extension = googleFile.getFileExtension();
+              String title = googleFile.getTitle();
+              
+              if (mimeType != null)
+                rd.setMimeType(mimeType);
+              if (createdDate != null)
+                rd.setCreatedDate(new Date(createdDate.getValue()));
+              if (modifiedDate != null)
+                rd.setModifiedDate(new Date(modifiedDate.getValue()));
+              if (extension != null)
+              {
+                if (title == null)
+                  title = "";
+                rd.setFileName(title + "." + extension);
+              }
+
+              // Get general document metadata
+              for (Entry<String, Object> entry : googleFile.entrySet()) {
+                rd.addField(entry.getKey(), entry.getValue().toString());
+              }
+
+              // Fire up the document reading thread
+              DocumentReadingThread t = new DocumentReadingThread(documentURI);
+              try {
+                t.start();
+                boolean wasInterrupted = false;
+                try {
+                  InputStream is = t.getSafeInputStream();
+                  try {
+                    // Can only index while background thread is running!
+                    rd.setBinary(is, fileLength);
+                    activities.ingestDocument(nodeId, version, documentURI, rd);
+                  } finally {
+                    is.close();
+                  }
+                } catch (ManifoldCFException e) {
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    wasInterrupted = true;
+                  throw e;
+                } catch (java.net.SocketTimeoutException e) {
+                  throw e;
+                } catch (InterruptedIOException e) {
+                  wasInterrupted = true;
+                  throw e;
+                } finally {
+                  if (!wasInterrupted)
+                    t.finishUp();
+                }
+
+                // No errors.  Record the fact that we made it.
+                errorCode = "OK";
+                fileSize = new Long(fileLength);
+              } catch (InterruptedException e) {
+                t.interrupt();
+                throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                  ManifoldCFException.INTERRUPTED);
+              } catch (java.net.SocketTimeoutException e) {
+                Logging.connectors.warn("GOOGLEDRIVE: Socket timeout reading document: " + e.getMessage(), e);
+                handleIOException(e);
+              } catch (InterruptedIOException e) {
+                t.interrupt();
+                throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+                  ManifoldCFException.INTERRUPTED);
+              } catch (IOException e) {
+                errorCode = "IO ERROR";
+                errorDesc = e.getMessage();
+                Logging.connectors.warn("GOOGLEDRIVE: Error reading document: " + e.getMessage(), e);
+                handleIOException(e);
+              }
+            } else {
+              errorCode = "NO LENGTH";
+              errorDesc = "Document "+nodeId+" had no length; skipping";
             }
           }
         }
