@@ -1,4 +1,9 @@
-<%@ include file="adminDefaults.jsp" %>
+<% response.setHeader("Pragma","No-cache");
+response.setDateHeader("Expires",0);
+response.setHeader("Cache-Control", "no-cache");
+response.setDateHeader("max-age", 0);
+response.setContentType("text/html;charset=utf-8");
+%><%@ include file="adminDefaults.jsp" %>
 
 <%
 /* $Id$ */

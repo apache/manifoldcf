@@ -3,11 +3,14 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+======================= Release 1.3 =====================
+
+CONNECTORS-759: Fix broken content type for login page.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-757: NPE's from GoogleDrive connector when crawling
 documents that don't have a file length.
 (Piergiorgio Lucidi, Karl Wright)
-
-======================= Release 1.3 =====================
 
 CONNECTORS-756: Fix broken JDBC authority UI.
 (Karl Wright)
