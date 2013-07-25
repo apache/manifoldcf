@@ -352,7 +352,8 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
             StringBuilder sb = new StringBuilder();
             // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
             // URI's change.
-            String convertPath = findConvertPath(spec, fileStatus.getPath());
+            String nameNode = "hdfs://" + nameNodeHost + ":" + nameNodePort;
+            String convertPath = findConvertPath(nameNode, spec, fileStatus.getPath());
             if (convertPath != null)
             {
               // Record the path.
@@ -1340,7 +1341,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   *@param documentIdentifier is the document identifier.
   *@return the part of the path to be converted, or null.
   */
-  protected static String findConvertPath(DocumentSpecification spec, Path theFile)
+  protected static String findConvertPath(String nameNode, DocumentSpecification spec, Path theFile)
   {
     String fullpath = theFile.toString();
     for (int j = 0; j < spec.getChildCount(); j++)
@@ -1352,6 +1353,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
         String convertToURI = sn.getAttributeValue("converttouri");
         if (path.length() > 0 && convertToURI != null && convertToURI.equals("true"))
         {
+          path = nameNode + path;
           if (!path.endsWith("/"))
             path += "/";
           if (fullpath.startsWith(path))
@@ -1382,13 +1384,6 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   protected static boolean checkInclude(String nameNode, FileStatus fileStatus, String fileName, DocumentSpecification documentSpecification)
     throws ManifoldCFException
   {
-    /*
-     * TODO:
-     * fileName = hdfs://localhost:9000/user/minoru/KEN_ALL_UTF-8_UNIX_SHRINK.CSV
-     * pathPart = hdfs://localhost:9000/user/minoru
-     * fliePart = KEN_ALL_UTF-8_UNIX_SHRINK.CSV
-     * path = /user/minoru => hdfs://localhost:9000/user/minoru
-     */
     if (Logging.connectors.isDebugEnabled())
     {
       Logging.connectors.debug("Checking whether to include file '"+fileName+"'");
