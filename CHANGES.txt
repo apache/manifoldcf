@@ -5,6 +5,10 @@ $Id$
 
 ======================= Release 1.3 =====================
 
+CONNECTORS-761: Fix broken tab in Jira authority connector, and
+don't use startsWith in javascript since IE doesn't recognize it.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-760: HDFSRepositoryConnector's version string is always start with '-'.
 (Minoru Osuka)
 

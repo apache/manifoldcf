@@ -33,7 +33,7 @@ function checkConfig()
     return false;
   }
 
-  if (editconnection.jirapath.value != "" && !editconnection.jirapath.value.startsWith("/"))
+  if (editconnection.jirapath.value != "" && !(editconnection.jirapath.value.indexOf("/") == 0))
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraPathMustBeginWithASlash'))");
     editconnection.jirapath.focus();
@@ -78,7 +78,7 @@ function checkConfigForSave()
     return false;
   }
   
-  if (editconnection.jirapath.value != "" && !editconnection.jirapath.value.startsWith("/"))
+  if (editconnection.jirapath.value != "" && !(editconnection.jirapath.value.indexOf("/") == 0))
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraPathMustBeginWithASlash'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraAuthorityConnector.Server'))");
