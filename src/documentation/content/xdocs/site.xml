@@ -44,6 +44,7 @@
       <dev label="Download" href="download.html" />
       <mail        label="Mailing Lists"    href="mail.html" />    
       <dev label="Developer/Integrator Resources" href="developer-resources.html"/>
+      <dev label="Security Analysis" href="security.html"/>
       <security label="Report Security Problems" href="ext:security"/>
     </resources>
 
