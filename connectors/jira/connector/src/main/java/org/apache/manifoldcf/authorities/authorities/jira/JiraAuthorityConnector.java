@@ -52,7 +52,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
   private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
 
   // Configuration tabs
-  private static final String JIRA_SERVER_TAB_PROPERTY = "JiraRepositoryConnector.Server";
+  private static final String JIRA_SERVER_TAB_PROPERTY = "JiraAuthorityConnector.Server";
   
   // Template names for configuration
   /**
