@@ -33,50 +33,91 @@
       <title>ManifoldCF</title>
       
       <section>
-        <title>Latest release (Apache ManifoldCF 1.2, 2013 May 11)</title>
+        <title>Latest release (Apache ManifoldCF 1.3, 2013 Jul 29)</title>
         <p>
-          <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2.KEYS">KEYS</a><br/>
-          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2.CHANGES.txt">CHANGES.txt</a><br/>
+          <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3.KEYS">KEYS</a><br/>
+          <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3.CHANGES.txt">CHANGES.txt</a><br/>
         </p>
 
         <p>Sources only:<br/>
-          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.2-src.tar.gz">apache-manifoldcf-1.2-src.tar.gz</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz.md5">MD5</a>]<br/>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz.sha">SHA</a>]<br/>
-          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.2-src.zip">apache-manifoldcf-1.2-src.zip</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip.md5">MD5</a>]<br/>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.3-src.tar.gz">apache-manifoldcf-1.3-src.tar.gz</a>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-src.tar.gz.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-src.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-src.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.3-src.zip">apache-manifoldcf-1.3-src.zip</a>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-src.zip.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-src.zip.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-src.zip.sha">SHA</a>]<br/>
         </p>
 
         <p>Binary:<br/>
-          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz">apache-manifoldcf-1.2-bin.tar.gz</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz.md5">MD5</a>]<br/>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz.sha">SHA</a>]<br/>
-          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.2-bin.zip">apache-manifoldcf-1.2-bin.zip</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip.md5">MD5</a>]<br/>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.3-bin.tar.gz">apache-manifoldcf-1.3-bin.tar.gz</a>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.tar.gz.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.3-bin.zip">apache-manifoldcf-1.3-bin.zip</a>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.zip.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.zip.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.zip.sha">SHA</a>]<br/>
         </p>
 
         <p>Library:<br/>
-          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz">apache-manifoldcf-1.2-lib.tar.gz</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz.md5">MD5</a>]<br/>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz.sha">SHA</a>]<br/>
-          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.2-lib.zip">apache-manifoldcf-1.2-lib.zip</a>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.lib.asc">PGP</a>]
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.lib.md5">MD5</a>]<br/>
-            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.lib.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.3-lib.tar.gz">apache-manifoldcf-1.3-lib.tar.gz</a>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-lib.tar.gz.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-lib.tar.gz.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-lib.tar.gz.sha">SHA</a>]<br/>
+          <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-1.3-lib.zip">apache-manifoldcf-1.3-lib.zip</a>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.lib.asc">PGP</a>]
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.lib.md5">MD5</a>]<br/>
+            [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-1.3-bin.lib.sha">SHA</a>]<br/>
         </p>
       </section>
 
 
       <section>
         <title>Earlier releases</title>
-        
+
+        <section>
+          <title>Apache ManifoldCF 1.2, 2013 May 11)</title>
+          <p>
+            <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2.KEYS">KEYS</a><br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2.CHANGES.txt">CHANGES.txt</a><br/>
+          </p>
+
+          <p>Sources only:<br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz">apache-manifoldcf-1.2-src.tar.gz</a>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz.asc">PGP</a>]
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip">apache-manifoldcf-1.2-src.zip</a>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip.asc">PGP</a>]
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip.md5">MD5</a>]<br/>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-src.zip.sha">SHA</a>]<br/>
+          </p>
+
+          <p>Binary:<br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz">apache-manifoldcf-1.2-bin.tar.gz</a>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip">apache-manifoldcf-1.2-bin.zip</a>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip.asc">PGP</a>]
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip.md5">MD5</a>]<br/>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.zip.sha">SHA</a>]<br/>
+          </p>
+
+          <p>Library:<br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz">apache-manifoldcf-1.2-lib.tar.gz</a>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz.asc">PGP</a>]
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-lib.zip">apache-manifoldcf-1.2-lib.zip</a>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.lib.asc">PGP</a>]
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.lib.md5">MD5</a>]<br/>
+              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-1.2-bin.lib.sha">SHA</a>]<br/>
+          </p>
+        </section>
+
         <section>
           <title>Apache ManifoldCF 1.1.1, 2013 Feb 13</title>
           <p>
@@ -159,200 +200,6 @@
           </p>
         </section>
 
-        <section>
-          <title>Apache ManifoldCF 0.6, 2012 July 13</title>
-          <p>
-            <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6.KEYS">KEYS</a><br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6.CHANGES.txt">CHANGES.txt</a><br/>
-          </p>
-
-          <p>Sources only:<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.tar.gz">apache-manifoldcf-0.6-src.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.zip">apache-manifoldcf-0.6-src.zip</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.zip.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-src.zip.sha">SHA</a>]<br/>
-          </p>
-
-          <p>Binary:<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.tar.gz">apache-manifoldcf-0.6-bin.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.zip">apache-manifoldcf-0.6-bin.zip</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.zip.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.zip.sha">SHA</a>]<br/>
-          </p>
-
-          <p>Library:<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-lib.tar.gz">apache-manifoldcf-0.6-lib.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-lib.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-lib.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-lib.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://archive.apache.org/dist/closer.cgi/manifoldcf/apache-manifoldcf-0.6-lib.zip">apache-manifoldcf-0.6-lib.zip</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.lib.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.lib.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.6-bin.lib.sha">SHA</a>]<br/>
-          </p>
-        </section>
-
-        <section>
-          <title>Apache ManifoldCF 0.5.1, 2012 May 22</title>
-          <p>
-            <a href="https://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1.KEYS">KEYS</a><br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1.CHANGES.txt">CHANGES.txt</a><br/>
-          </p>
-
-          <p>Sources only:<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.tar.gz">apache-manifoldcf-0.5.1-src.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.zip">apache-manifoldcf-0.5.1-src.zip</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.zip.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-src.zip.sha">SHA</a>]<br/>
-          </p>
-
-          <p>Binary:<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.tar.gz">apache-manifoldcf-0.5.1-bin.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.zip">apache-manifoldcf-0.5.1-bin.zip</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.zip.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.zip.sha">SHA</a>]<br/>
-          </p>
-
-          <p>Library:<br/>
-            <a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-lib.tar.gz">apache-manifoldcf-0.5.1-lib.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-lib.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-lib.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-lib.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://archive.apache.org/dist/closer.cgi/manifoldcf/apache-manifoldcf-0.5.1-lib.zip">apache-manifoldcf-0.5.1-lib.zip</a>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.lib.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.lib.md5">MD5</a>]<br/>
-              [<a href="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-0.5.1-bin.lib.sha">SHA</a>]<br/>
-          </p>
-        </section>
-
-        <section>
-          <title>Apache ManifoldCF 0.4-incubating, 2012 Feb 2</title>
-          <p>
-            <a href="https://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating.KEYS">KEYS</a><br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating.CHANGES.txt">CHANGES.txt</a><br/>
-          </p>
-
-          <p>Sources only:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz">apache-manifoldcf-0.4-incubating-src.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip">apache-manifoldcf-0.4-incubating-src.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-src.zip.md5">MD5</a>]<br/>
-          </p>
-
-          <p>Source + Binary:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz">apache-manifoldcf-0.4-incubating-bin.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip">apache-manifoldcf-0.4-incubating-bin.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.4-incubating-bin.zip.md5">MD5</a>]<br/>
-          </p>
-        </section>
-
-        <section>
-          <title>Apache ManifoldCF 0.3-incubating, 2011 Sep 20</title>
-          <p>
-            <a href="https://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.KEYS">KEYS</a><br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating.CHANGES.txt">CHANGES.txt</a><br/>
-          </p>
-
-          <p>Sources only:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz">apache-manifoldcf-0.3-incubating-src.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip">apache-manifoldcf-0.3-incubating-src.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-src.zip.md5">MD5</a>]<br/>
-          </p>
-
-          <p>Source + Binary:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz">apache-manifoldcf-0.3-incubating-bin.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip">apache-manifoldcf-0.3-incubating-bin.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.3-incubating-bin.zip.md5">MD5</a>]<br/>
-          </p>
-        </section>
-        
-        <section>
-          <title>Apache ManifoldCF 0.2-incubating, 2011 May 17</title>
-          <p>
-            <a href="https://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating.KEYS">KEYS</a><br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating.CHANGES.txt">CHANGES.txt</a><br/>
-          </p>
-
-          <p>Sources only:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-src.tar.gz">apache-manifoldcf-0.2-incubating-src.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-src.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-src.zip">apache-manifoldcf-0.2-incubating-src.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-src.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-src.zip.md5">MD5</a>]<br/>
-          </p>
-
-          <p>Source + Binary:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-bin.tar.gz">apache-manifoldcf-0.2-incubating-bin.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-bin.zip">apache-manifoldcf-0.2-incubating-bin.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-bin.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.2-incubating-bin.zip.md5">MD5</a>]<br/>
-          </p>
-
-        </section>
-
-        <section>
-          <title>Apache ManifoldCF 0.1-incubating, 2011 Jan 31</title>
-          <p>
-            <a href="https://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.KEYS">KEYS</a><br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating.CHANGES.txt">CHANGES.txt</a><br/>
-          </p>
-
-          <p>Sources only:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-src.tar.gz">apache-manifoldcf-0.1-incubating-src.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-src.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-src.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-src.zip">apache-manifoldcf-0.1-incubating-src.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-src.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-src.zip.md5">MD5</a>]<br/>
-          </p>
-
-          <p>Source + Binary:<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.tar.gz">apache-manifoldcf-0.1-incubating-bin.tar.gz</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.tar.gz.md5">MD5</a>]<br/>
-            <a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.zip">apache-manifoldcf-0.1-incubating-bin.zip</a>
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.zip.asc">PGP</a>]
-              [<a href="http://archive.apache.org/dist/incubator/manifoldcf/apache-manifoldcf-0.1-incubating-bin.zip.md5">MD5</a>]<br/>
-          </p>
-
-          <p><strong>Known issue:</strong> Inability to automatically create database user 'manifoldcf' when using PostgreSQL.  Workaround steps:</p>
-          <ol>
-            <li>Enter the PostgreSQL utility program psql, as the database superuser: "psql -U &lt;<em>superuser_name</em>&gt;"</li>
-            <li>Create the database user, with the command: "CREATE USER manifoldcf PASSWORD 'local_pg_passwd';"</li>
-            <li>Exit psql: "\q"</li>
-            <li>Either proceed to set up the PostgreSQL database using the DBCreate command normally, or run the Quick Start normally</li>
-          </ol>
-        </section>
       </section>
     </section>
     
