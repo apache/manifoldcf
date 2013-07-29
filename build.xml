@@ -147,15 +147,6 @@
         <antcall target="install-release">
             <param name="release-version" value="1.2"/>
         </antcall>
-        <antcall target="install-release">
-            <param name="release-version" value="1.1.1"/>
-        </antcall>
-        <antcall target="install-archive">
-            <param name="release-version" value="1.0.1"/>
-        </antcall>
-        <antcall target="install-archive">
-            <param name="release-version" value="0.6"/>
-        </antcall>
     </target>
     
     <target name="setup-maven-url">
