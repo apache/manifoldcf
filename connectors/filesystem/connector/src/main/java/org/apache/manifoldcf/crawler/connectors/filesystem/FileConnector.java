@@ -383,6 +383,11 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     is.close();
                   }
                 }
+                catch (FileNotFoundException e)
+                {
+                  //skip. throw nothing.
+                  Logging.connectors.debug("Skipping file due to " +e.getMessage());
+                }
                 catch (IOException e)
                 {
                   errorCode = "IO ERROR";

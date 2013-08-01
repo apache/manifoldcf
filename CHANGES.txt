@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-750: Skip files when catching FileNotFoundException,
+e.g. access/permission denied files in FileConnector.
+(Shinichiro Abe)
+
 ======================= Release 1.3 =====================
 
 CONNECTORS-761: Fix broken tab in Jira authority connector, and
