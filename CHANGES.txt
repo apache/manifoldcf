@@ -3,9 +3,13 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-765: Increase crawler-ui session timeout to 30 minutes.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-764: HOPCOUNTREMOVED records need to be reset when
 a job's hopcount limits change.  It also makes sense to reset them
 when the set of documents is changed.
+(Karl Wright)
 
 CONNECTORS-750: Skip files when catching FileNotFoundException,
 e.g. access/permission denied files in FileConnector.
