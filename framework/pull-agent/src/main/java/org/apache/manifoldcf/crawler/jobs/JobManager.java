@@ -1498,7 +1498,6 @@ public class JobManager implements IJobManager
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new MultiClause(jobQueue.statusField,new Object[]{
           JobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED),
-          JobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVEDPURGATORY),
           JobQueue.statusToString(jobQueue.STATUS_PENDING),
           JobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY)}),
         new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))})).append(" AND ")
@@ -7475,7 +7474,6 @@ public class JobManager implements IJobManager
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Out of scope'")
-      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Out of scope'")
       .append(" ELSE 'Unknown'")
       .append(" END AS state,")
       .append("CASE")
@@ -7507,7 +7505,7 @@ public class JobManager implements IJobManager
       .append(" AND ").append("t0.").append(jobQueue.checkTimeField).append(" IS NULL")
       .append(" THEN 'Waiting forever'")
       .append(" WHEN ")
-      .append("t0.").append(jobQueue.statusField).append(" IN (?,?)")
+      .append("t0.").append(jobQueue.statusField).append("=?")
       .append(" THEN 'Hopcount exceeded'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append(" IN (?,?,?)")
       .append(" THEN 'Deleting'")
@@ -7546,7 +7544,6 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
     list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVEDPURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
     list.add(jobQueue.statusToString(jobQueue.STATUS_UNCHANGED));
@@ -7572,7 +7569,6 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVEDPURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
@@ -7698,7 +7694,7 @@ public class JobManager implements IJobManager
       .append(" as waitingforever,")
       .append("CASE")
       .append(" WHEN ")
-      .append(jobQueue.statusField).append(" IN (?,?)")
+      .append(jobQueue.statusField).append("=?")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" as hopcountexceeded");
@@ -7744,7 +7740,6 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
 
     list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED));
-    list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVEDPURGATORY));
 
     addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t1 GROUP BY idbucket");
@@ -7839,8 +7834,7 @@ public class JobManager implements IJobManager
       case DOCSTATE_OUTOFSCOPE:
         sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(fieldPrefix+jobQueue.statusField,new Object[]{
-            jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED),
-            jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVEDPURGATORY)})}));
+            jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED)})}));
         break;
       }
       k++;
@@ -7931,8 +7925,7 @@ public class JobManager implements IJobManager
       case DOCSTATUS_HOPCOUNTEXCEEDED:
         sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(fieldPrefix+jobQueue.statusField,new Object[]{
-            jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED),
-            jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVEDPURGATORY)})}));
+            jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED)})}));
         break;
       }
       k++;

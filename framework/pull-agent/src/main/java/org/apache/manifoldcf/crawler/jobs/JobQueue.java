@@ -70,7 +70,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_BEINGCLEANED = 10;
   public final static int STATUS_ELIGIBLEFORDELETE = 11;
   public final static int STATUS_HOPCOUNTREMOVED = 12;
-  public final static int STATUS_HOPCOUNTREMOVEDPURGATORY = 13;
   
   // Action values
   public final static int ACTION_RESCAN = 0;
@@ -134,7 +133,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("f",new Integer(STATUS_ACTIVENEEDRESCANPURGATORY));
     statusMap.put("d",new Integer(STATUS_BEINGCLEANED));
     statusMap.put("H",new Integer(STATUS_HOPCOUNTREMOVED));
-    statusMap.put("h",new Integer(STATUS_HOPCOUNTREMOVEDPURGATORY));
   }
 
   protected static Map seedstatusMap;
@@ -411,22 +409,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
     performUpdate(map,"WHERE "+query,list,null);
-
-    TrackerClass.noteJobChange(jobID,"Map HOPCOUNTREMOVED to PENDING");
-
-    // Map HOPCOUNTREMOVEDPURGATORY to PENDINGPURGATORY
-    map.clear();
-    map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
-    map.put(checkTimeField,new Long(0L));
-    list = new ArrayList();
-    query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVEDPURGATORY))});
-    performUpdate(map,"WHERE "+query,list,null);
-    
-    TrackerClass.noteJobChange(jobID,"Map HOPCOUNTREMOVEDPURGATORY to PENDINGPURGATORY");
-      
     unconditionallyAnalyzeTables();
+    
+    TrackerClass.noteJobChange(jobID,"Map HOPCOUNTREMOVED to PENDING");
   }
 
 
@@ -553,7 +538,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_PENDINGPURGATORY),
-        statusToString(STATUS_HOPCOUNTREMOVEDPURGATORY),
         statusToString(STATUS_COMPLETE),
         statusToString(STATUS_UNCHANGED),
         statusToString(STATUS_PURGATORY)})});
@@ -580,12 +564,15 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     // Delete PENDING and HOPCOUNTREMOVED entries (they are treated the same)
     ArrayList list = new ArrayList();
-    list.add(jobID);
-    list.add(statusToString(STATUS_PENDING));
     // Clean out prereqevents table first
-    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,"t0."+jobIDField+"=? AND t0."+statusField+"=?",list);
-    list.clear();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause("t0."+jobIDField,jobID),
+      new MultiClause("t0."+statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
+    prereqEventManager.deleteRows(getTableName()+" t0","t0."+idField,query,list);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_PENDING),
@@ -609,7 +596,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(statusField,new Object[]{  
         statusToString(STATUS_PENDINGPURGATORY),
-        statusToString(STATUS_HOPCOUNTREMOVEDPURGATORY),
         statusToString(STATUS_UNCHANGED),
         statusToString(STATUS_COMPLETE)})});
     performUpdate(map,"WHERE "+query,list,null);
@@ -853,15 +839,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     switch (currentStatus)
     {
     case STATUS_ACTIVE:
+    case STATUS_ACTIVEPURGATORY:
       // Mark as hopcountremove
       newStatus = STATUS_HOPCOUNTREMOVED;
-      actionFieldValue = actionToString(ACTION_RESCAN);
-      checkTimeValue = new Long(0L);
-      rval = true;
-      break;
-    case STATUS_ACTIVEPURGATORY:
-      // Mark as hopcountremovepurgatory
-      newStatus = STATUS_HOPCOUNTREMOVEDPURGATORY;
       actionFieldValue = actionToString(ACTION_RESCAN);
       checkTimeValue = new Long(0L);
       rval = true;
@@ -1642,8 +1622,6 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "d";
     case STATUS_HOPCOUNTREMOVED:
       return "H";
-    case STATUS_HOPCOUNTREMOVEDPURGATORY:
-      return "h";
     default:
       throw new ManifoldCFException("Bad status value: "+Integer.toString(status));
     }
