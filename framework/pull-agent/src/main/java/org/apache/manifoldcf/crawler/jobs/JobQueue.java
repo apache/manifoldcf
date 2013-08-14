@@ -562,7 +562,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public void prepareFullScan(Long jobID)
     throws ManifoldCFException
   {
-    // Delete PENDING entries
+    // Delete PENDING and HOPCOUNTREMOVED entries (they are treated the same)
     ArrayList list = new ArrayList();
     list.add(jobID);
     list.add(statusToString(STATUS_PENDING));
@@ -571,7 +571,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_PENDING))});
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
     performDelete("WHERE "+query,list,null);
 
     // Turn PENDINGPURGATORY and COMPLETED into PURGATORY.
@@ -626,7 +628,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
-    }
+  }
     
   /** Prepare for a "partial" job.  This is called ONLY when the job is inactive.
   *

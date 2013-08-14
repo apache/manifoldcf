@@ -5456,6 +5456,7 @@ public class JobManager implements IJobManager
     boolean requestMinimum)
     throws ManifoldCFException
   {
+
     // (1) If the connector has MODEL_ADD_CHANGE_DELETE, then
     // we let the connector run the show; there's no purge phase, and therefore the
     // documents are left in a COMPLETED state if they don't show up in the list
@@ -5474,7 +5475,7 @@ public class JobManager implements IJobManager
     if (connectorModel == IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
     {
       if (fromBeginningOfTime)
-        jobQueue.queueAllExisting(jobID);
+        queueAllExisting(jobID,legalLinkTypes);
       return;
     }
     
@@ -5483,7 +5484,7 @@ public class JobManager implements IJobManager
     if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE_DELETE)
     {
       if (fromBeginningOfTime)
-        jobQueue.queueAllExisting(jobID);
+        queueAllExisting(jobID,legalLinkTypes);
       else
         jobQueue.preparePartialScan(jobID);
       return;
@@ -5507,6 +5508,58 @@ public class JobManager implements IJobManager
       jobQueue.prepareIncrementalScan(jobID);
   }
 
+  /** Queue all existing.
+  *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
+  */
+  protected void queueAllExisting(Long jobID, String[] legalLinkTypes)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        if (legalLinkTypes.length > 0)
+        {
+          jobQueue.reactivateHopcountRemovedRecords(jobID);
+        }
+
+        jobQueue.queueAllExisting(jobID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction during queueAllExisting: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
+  }
+  
   /** Prepare for a full scan.
   *@param jobID is the job id.
   *@param legalLinkTypes are the link types allowed for the job.

@@ -752,6 +752,33 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                   isSame = false;
               }
 
+              if (isSame)
+              {
+                // Compare hopcount filter criteria.
+                Map filterRows = hopFilterManager.readRows(id);
+                Map newFilterRows = jobDescription.getHopCountFilters();
+                if (filterRows.size() != newFilterRows.size())
+                  isSame = false;
+                else
+                {
+                  for (String linkType : (Collection<String>)filterRows.keySet())
+                  {
+                    Integer oldCount = (Integer)filterRows.get(linkType);
+                    Integer newCount = (Integer)newFilterRows.get(linkType);
+                    if (oldCount == null || newCount == null)
+                    {
+                      isSame = false;
+                      break;
+                    }
+                    else if (oldCount.intValue() != newCount.intValue())
+                    {
+                      isSame = false;
+                      break;
+                    }
+                  }
+                }
+              }
+              
               if (!isSame)
                 values.put(lastCheckTimeField,null);
 
