@@ -763,14 +763,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                 {
                   for (String linkType : (Collection<String>)filterRows.keySet())
                   {
-                    Integer oldCount = (Integer)filterRows.get(linkType);
-                    Integer newCount = (Integer)newFilterRows.get(linkType);
+                    Long oldCount = (Long)filterRows.get(linkType);
+                    Long newCount = (Long)newFilterRows.get(linkType);
                     if (oldCount == null || newCount == null)
                     {
                       isSame = false;
                       break;
                     }
-                    else if (oldCount.intValue() != newCount.intValue())
+                    else if (oldCount.longValue() != newCount.longValue())
                     {
                       isSame = false;
                       break;
