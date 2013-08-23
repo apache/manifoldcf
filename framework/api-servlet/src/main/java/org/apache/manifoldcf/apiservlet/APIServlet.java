@@ -588,7 +588,7 @@ public class APIServlet extends HttpServlet
     String[] terms = queryString.split("&");
     for (String term : terms)
     {
-      int index = queryString.indexOf("=");
+      int index = term.indexOf("=");
       if (index == -1)
         addValue(rval,URLDecoder.decode(term,"utf-8"),"");
       else

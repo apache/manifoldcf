@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-766: When using mcf-api-service, multiply query
+parameters are not parsed correctly.
+(Shinichiro Abe)
+
 CONNECTORS-765: Increase crawler-ui session timeout to 30 minutes.
 (Erlend Garåsen, Karl Wright)
 
