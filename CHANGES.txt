@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-768: Add more extensions to ExtensionMimeMap.
+(Shinichiro Abe)
+
 CONNECTORS-766: When using mcf-api-service, multiply query
 parameters are not parsed correctly.
 (Shinichiro Abe)
