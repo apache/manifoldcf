@@ -118,7 +118,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected final static String GENERAL_OWNER = "general_owner";
   protected final static String GENERAL_CREATOR = "general_creator";
   protected final static String GENERAL_MODIFIER = "general_modifier";
-
+  protected final static String GENERAL_PARENTID = "general_parentid";
+  
   // Signal that we have set up connection parameters properly
   private boolean hasSessionParameters = false;
   // Signal that we have set up a connection properly
@@ -4274,6 +4275,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             String fileName = versInfo.getFileName();
             Date creationDate = objInfo.getCreationDate();
             Date modifyDate = versInfo.getModifyDate();
+            Integer parentID = objInfo.getParentId();
             RepositoryDocument rd = new RepositoryDocument();
 
             
@@ -4293,6 +4295,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               rd.addField(GENERAL_CREATIONDATE_FIELD,creationDate.toString());
             if (modifyDate != null)
               rd.addField(GENERAL_MODIFYDATE_FIELD,modifyDate.toString());
+            if (parentID != null)
+              rd.addField(GENERAL_PARENTID,parentID.toString());
             UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
             UserInformation creator = llc.getUserInformation(objInfo.getCreatorId().intValue());
             UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId().intValue());

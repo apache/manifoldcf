@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-769: Include general_parentid in Livelink metadata.
+(David Morana, Karl Wright)
+
 CONNECTORS-768: Add more extensions to ExtensionMimeMap.
 (Shinichiro Abe)
 
