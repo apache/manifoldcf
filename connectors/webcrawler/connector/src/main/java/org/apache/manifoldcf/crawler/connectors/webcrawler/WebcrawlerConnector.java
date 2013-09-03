@@ -1343,6 +1343,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
           RepositoryDocument rd = new RepositoryDocument();
 
+          // Set the file name
+          String fileName = "";
+          try {
+            fileName = documentIdentifiertoFileName(documentIdentifier);
+          } catch (URISyntaxException e1) {
+            fileName = "";
+          }
+          if (fileName.length() > 0){
+            rd.setFileName(fileName);
+          }
+          
           // Set the content type
           rd.setMimeType(cache.getContentType(documentIdentifier));
           
@@ -5670,6 +5681,44 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     if (rval == false && Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
     return rval;
+  }
+
+  /** Convert a document identifier to filename.
+   * @param documentIdentifier
+   * @return
+   * @throws URISyntaxException
+   */
+  protected String documentIdentifiertoFileName(String documentIdentifier) 
+    throws URISyntaxException
+  {
+    StringBuffer path = new StringBuffer();
+    URI uri = null;
+
+    uri = new URI(documentIdentifier);
+
+    if (uri.getRawPath() != null) {
+      if (uri.getRawPath().equals("")) {
+        path.append("");
+      } else if (uri.getRawPath().equals("/")) {
+        path.append("index.html");
+      } else if (uri.getRawPath().length() != 0) {
+        if (uri.getRawPath().endsWith("/")) {
+          path.append("index.html");
+        } else {
+          String[] names = uri.getRawPath().split("/"); 
+          path.append(names[names.length - 1]);
+        } 
+      }
+    }
+
+    if (path.length() > 0) {
+      if (uri.getRawQuery() != null) {
+        path.append("?");
+        path.append(uri.getRawQuery());
+      }
+    }
+
+    return path.toString();
   }
 
   /** Find a redirection URI, if it exists */
