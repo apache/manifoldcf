@@ -18,9 +18,11 @@
 */
 package com.filenet.api.constants;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub class to allow the connector to build fully.
 */
-public enum FilteredPropertyType
+public class FilteredPropertyType
 {
-  ANY
+  public static final int ANY = 0;
+
+  public int getValue() { return 0; }
 }
