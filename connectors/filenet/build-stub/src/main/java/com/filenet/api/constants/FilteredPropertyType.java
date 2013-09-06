@@ -22,7 +22,7 @@ package com.filenet.api.constants;
 */
 public class FilteredPropertyType
 {
-  public static final int ANY = 0;
+  public static final FilteredPropertyType ANY = new FilteredPropertyType();
 
   public int getValue() { return 0; }
 }
