@@ -20,7 +20,6 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface ObjectStore extends InstantiatingScope, IndependentlyPersistableObject
+public interface Containable
 {
-  public Folder get_RootFolder();
 }
