@@ -20,7 +20,7 @@ package com.filenet.api.constants;
 
 /** Stub class to allow the connector to build fully.
 */
-public class FilteredPropertyType
+public class FilteredPropertyType implements java.io.Serializable
 {
   public static final FilteredPropertyType ANY = new FilteredPropertyType();
 

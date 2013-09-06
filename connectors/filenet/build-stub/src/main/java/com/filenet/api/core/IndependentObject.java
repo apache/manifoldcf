@@ -16,17 +16,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.constants;
+package com.filenet.api.core;
 
-/** Stub class to allow the connector to build fully.
+/** Stub interface to allow the connector to build fully.
 */
-public class AccessType implements java.io.Serializable
+public interface IndependentObject extends EngineObject
 {
-  public static final int ALLOW_AS_INT = 1;
-  public static final int DENY_AS_INT = 2;
-  
-  public int getValue()
-  {
-    return 0;
-  }
 }
