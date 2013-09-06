@@ -18,8 +18,10 @@
 */
 package com.filenet.api.security;
 
+import com.filenet.api.core.IndependentObject;
+
 /** Stub interface to allow the connector to build fully.
 */
-public interface SecurityPrincipal
+public interface SecurityPrincipal extends IndependentObject
 {
 }
