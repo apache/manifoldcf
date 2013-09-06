@@ -20,6 +20,6 @@ package com.filenet.api.collection;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface FolderSet extends ContainableSet, SubscribableSet, IndependentObjectSet
+public interface ContainableSet
 {
 }
