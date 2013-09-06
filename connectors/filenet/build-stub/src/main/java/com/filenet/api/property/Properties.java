@@ -22,7 +22,7 @@ import java.util.*;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Properties
+public interface Properties extends java.io.Serializable
 {
   public Iterator<Property> iterator();
   public Object getObjectValue(String propName);

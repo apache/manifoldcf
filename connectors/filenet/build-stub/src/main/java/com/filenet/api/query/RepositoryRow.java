@@ -22,7 +22,7 @@ import com.filenet.api.property.Properties;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface RepositoryRow
+public interface RepositoryRow extends java.io.Serializable
 {
   public Properties getProperties();
 }

@@ -18,9 +18,11 @@
 */
 package com.filenet.api.meta;
 
+import com.filenet.api.core.*;
+
 /** Stub interface to allow the connector to build fully.
 */
-public interface PropertyDescription extends Metadata
+public interface PropertyDescription extends Metadata, EngineObject, DependentObject
 {
   public String get_SymbolicName();
 }
