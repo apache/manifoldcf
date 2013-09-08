@@ -16,36 +16,40 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.tests;
+package org.apache.manifoldcf.rss_tests;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
+import java.sql.*;
+import javax.naming.*;
+import javax.sql.*;
 
-/** This is a testing base class that is responsible for setting up/tearing down the core Derby database. */
-public class BaseHSQLDB extends BaseDatabase
+/** This is a very basic sanity check */
+public class FlakyDerbyInstance extends org.apache.manifoldcf.core.database.DBInterfaceDerby
 {
-  
-  /** Method to get database implementation class */
-  @Override
-  protected String getDatabaseImplementationClass()
-    throws Exception
+
+  public FlakyDerbyInstance(IThreadContext tc, String databaseName, String userName, String password)
+    throws ManifoldCFException
   {
-    return "org.apache.manifoldcf.core.database.DBInterfaceHSQLDB";
+    super(tc,databaseName,userName,password);
   }
 
-  /** Method to set database properties */
-  @Override
-  protected void writeDatabaseControlProperties(StringBuilder output)
-    throws Exception
+  public FlakyDerbyInstance(IThreadContext tc, String databaseName)
+    throws ManifoldCFException
   {
-    String currentPathString = currentPath.getAbsolutePath();
-    output.append(
-      "  <property name=\"org.apache.manifoldcf.hsqldbdatabasepath\" value=\""+currentPathString.replaceAll("\\\\","/")+"\"/>\n"
-    );
+    super(tc,databaseName);
+  }
+
+  @Override
+  protected IResultSet execute(Connection connection, String query, List params, boolean bResults, int maxResults,
+    ResultSpecification spec, ILimitChecker returnLimit)
+    throws ManifoldCFException
+  {
+    // MHL
+    return super.execute(connection,query,params,bResults,maxResults,spec,returnLimit);
   }
 
 }

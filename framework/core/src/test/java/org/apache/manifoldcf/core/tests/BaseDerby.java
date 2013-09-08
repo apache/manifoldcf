@@ -26,27 +26,26 @@ import java.util.*;
 import org.junit.*;
 
 /** This is a testing base class that is responsible for setting up/tearing down the core Derby database. */
-public class BaseDerby extends Base
+public class BaseDerby extends BaseDatabase
 {
 
-  /** Method to add properties to properties.xml contents.
-  * Override this method to add properties clauses to the property file.
-  */
-  protected void writeProperties(StringBuilder output)
+  /** Method to get database implementation class */
+  @Override
+  protected String getDatabaseImplementationClass()
     throws Exception
   {
-    super.writeProperties(output);
+    return "org.apache.manifoldcf.core.database.DBInterfaceDerby";
+  }
+
+  /** Method to set database properties */
+  @Override
+  protected void writeDatabaseControlProperties(StringBuilder output)
+    throws Exception
+  {
     String currentPathString = currentPath.getAbsolutePath();
     output.append(
-      "  <property name=\"org.apache.manifoldcf.databaseimplementationclass\" value=\"org.apache.manifoldcf.core.database.DBInterfaceDerby\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.derbydatabasepath\" value=\""+currentPathString.replaceAll("\\\\","/")+"\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxquerytime\" value=\"30\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.threads\" value=\"30\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.expirethreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.cleanupthreads\" value=\"10\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.crawler.deletethreads\" value=\"10\"/>\n" +
-      //"  <property name=\"org.apache.manifoldcf.connectors\" value=\"DEBUG\"/>\n" +
-      "  <property name=\"org.apache.manifoldcf.database.maxhandles\" value=\"80\"/>\n"
+      "  <property name=\"org.apache.manifoldcf.derbydatabasepath\" value=\""+currentPathString.replaceAll("\\\\","/")+"\"/>\n"
     );
   }
+
 }

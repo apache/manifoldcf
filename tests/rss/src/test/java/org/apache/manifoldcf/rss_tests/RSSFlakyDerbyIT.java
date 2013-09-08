@@ -16,36 +16,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.core.tests;
-
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+package org.apache.manifoldcf.rss_tests;
 
 import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-/** This is a testing base class that is responsible for setting up/tearing down the core Derby database. */
-public class BaseHSQLDB extends BaseDatabase
+/** This is a very basic sanity check */
+public class RSSFlakyDerbyIT extends RSSSimpleCrawlDerbyIT
 {
+  public RSSFlakyDerbyIT()
+  {
+    super();
+  }
   
   /** Method to get database implementation class */
   @Override
   protected String getDatabaseImplementationClass()
     throws Exception
   {
-    return "org.apache.manifoldcf.core.database.DBInterfaceHSQLDB";
-  }
-
-  /** Method to set database properties */
-  @Override
-  protected void writeDatabaseControlProperties(StringBuilder output)
-    throws Exception
-  {
-    String currentPathString = currentPath.getAbsolutePath();
-    output.append(
-      "  <property name=\"org.apache.manifoldcf.hsqldbdatabasepath\" value=\""+currentPathString.replaceAll("\\\\","/")+"\"/>\n"
-    );
+    return FlakyDerbyInstance.class.getName();
   }
 
 }
