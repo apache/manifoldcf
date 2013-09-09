@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-770: Java7 no longer allows an interface to be
+interchangeable with a class.  Modified FileNet stub accordingly.
+(Yann Barraud, Karl Wright)
+
 CONNECTORS-767: Add filename support to Web connector.
 (Shinichiro Abe)
 
