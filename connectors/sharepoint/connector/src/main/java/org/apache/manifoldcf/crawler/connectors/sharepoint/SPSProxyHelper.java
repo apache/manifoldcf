@@ -815,7 +815,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = 0; //decodedServerLocation.length() + parentSiteDecoded.length();
 
       int i = 0;
       while (i < nodeList.size())
@@ -1004,7 +1004,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = 0; //decodedServerLocation.length() + parentSiteDecoded.length();
 
       int i = 0;
       while (i < nodeList.size())
@@ -2107,7 +2107,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = 0; //decodedServerLocation.length() + parentSiteDecoded.length();
 
       int i = 0;
       while (i < nodeList.size())
@@ -2251,7 +2251,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = 0; //decodedServerLocation.length() + parentSiteDecoded.length();
 
       int i = 0;
       while (i < nodeList.size())
