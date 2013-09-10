@@ -776,7 +776,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary)
+  public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary, boolean fullListPaths)
     throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
@@ -815,7 +815,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
 
       int i = 0;
       while (i < nodeList.size())
@@ -965,7 +965,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String getListID(String parentSite, String parentSiteDecoded, String listName)
+  public String getListID(String parentSite, String parentSiteDecoded, String listName, boolean fullListPaths)
     throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
@@ -1004,7 +1004,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
 
       int i = 0;
       while (i < nodeList.size())
@@ -2068,7 +2068,7 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for document libraries, empty string for root
   * @return lists of NameValue objects, representing document libraries
   */
-  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded )
+  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded, boolean fullListPaths )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -2107,7 +2107,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
 
       int i = 0;
       while (i < nodeList.size())
@@ -2212,7 +2212,7 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for lists, empty string for root
   * @return lists of NameValue objects, representing lists
   */
-  public ArrayList getLists( String parentSite, String parentSiteDecoded )
+  public ArrayList getLists( String parentSite, String parentSiteDecoded, boolean fullListPaths )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -2251,7 +2251,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
 
       int i = 0;
       while (i < nodeList.size())
