@@ -85,6 +85,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
+  private boolean fullListPaths = true;
+  
   private String serverProtocol = null;
   private String serverUrl = null;
   private String fileBaseUrl = null;
@@ -145,6 +147,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
       dspStsWorks = !serverVersion.equals("4.0");
+      fullListPaths = !serverVersion.equals("4.0AWS");
 
       serverProtocol = params.getParameter( "serverProtocol" );
       if (serverProtocol == null)
@@ -756,7 +759,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String listID = listIDMap.get(decodedListPath);
               if (listID == null)
               {
-                listID = proxy.getListID(encodedSitePath, sitePath, list);
+                listID = proxy.getListID(encodedSitePath, sitePath, list, fullListPaths);
                 if (listID != null)
                   listIDMap.put(decodedListPath,listID);
               }
@@ -911,7 +914,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String libID = libIDMap.get(decodedLibPath);
               if (libID == null)
               {
-                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
+                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib, fullListPaths);
                 if (libID != null)
                   libIDMap.put(decodedLibPath,libID);
               }
@@ -1231,7 +1234,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             // Calculate the start of the path part that would contain the list item name
             int listItemPathIndex = site.length() + 1 + listName.length();
 
-            String listID = proxy.getListID( encodePath(site), site, listName );
+            String listID = proxy.getListID( encodePath(site), site, listName, fullListPaths );
             if (listID != null)
             {
               ListItemStream fs = new ListItemStream( activities, listItemPathIndex, spec );
@@ -1326,7 +1329,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     String listID = listIDMap.get(decodedListPath);
                     if (listID == null)
                     {
-                      listID = proxy.getListID( encodePath(site), site, listName);
+                      listID = proxy.getListID( encodePath(site), site, listName, fullListPaths );
                       if (listID == null)
                         listID = "";
                       listIDMap.put(decodedListPath,listID);
@@ -1404,7 +1407,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             // Calculate the start of the path part that would contain the folders/file
             int foldersFilePathIndex = site.length() + 1 + libName.length();
 
-            String libID = proxy.getDocLibID( encodePath(site), site, libName );
+            String libID = proxy.getDocLibID( encodePath(site), site, libName, fullListPaths );
             if (libID != null)
             {
               FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
@@ -1618,7 +1621,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                         String documentLibID = docLibIDMap.get(decodedLibPath);
                         if (documentLibID == null)
                         {
-                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
+                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName, fullListPaths );
                           if (documentLibID == null)
                             documentLibID = "";
                           docLibIDMap.put(decodedLibPath,documentLibID);
@@ -1744,7 +1747,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at libraries
-          ArrayList libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
+          ArrayList libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath, fullListPaths );
           if (libraries != null)
           {
             int j = 0;
@@ -1765,7 +1768,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at lists
-          ArrayList lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
+          ArrayList lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath, fullListPaths );
           if (lists != null)
           {
             int j = 0;
@@ -2140,6 +2143,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0 (2003)</option>\n"+
 "        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0 (2007)</option>\n"+
 "        <option value=\"4.0\" "+(serverVersion.equals("4.0")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010)</option>\n"+
+"        <option value=\"4.0AWS\" "+(serverVersion.equals("4.0AWS")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010), Amazon version</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -5000,7 +5004,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary, fullListPaths ) );
   }
 
   /**
@@ -5013,7 +5017,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName, fullListPaths ) );
   }
 
   /**
@@ -5037,7 +5041,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return proxy.getDocumentLibraries( encodePath(parentSite), parentSite );
+    return proxy.getDocumentLibraries( encodePath(parentSite), parentSite, fullListPaths );
   }
 
   /**
@@ -5049,7 +5053,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return proxy.getLists( encodePath(parentSite), parentSite );
+    return proxy.getLists( encodePath(parentSite), parentSite, fullListPaths );
   }
 
   // Protected static methods
