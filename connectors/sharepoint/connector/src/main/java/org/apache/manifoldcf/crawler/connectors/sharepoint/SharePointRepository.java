@@ -146,7 +146,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = !serverVersion.equals("4.0");
+      dspStsWorks = !(serverVersion.equals("4.0") || serverVersion.equals("4.0AWS"));
       fullListPaths = !serverVersion.equals("4.0AWS");
 
       serverProtocol = params.getParameter( "serverProtocol" );
