@@ -263,7 +263,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
    * @param newMap is the map to fill in
    * @param parameters is the current set of configuration parameters
    */
-  private static void fillInServerConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
+  private static void fillInProxyConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
     String jiraproxyhost = parameters.getParameter(JiraConfig.JIRA_PROXYHOST_PARAM);
     String jiraproxyport = parameters.getParameter(JiraConfig.JIRA_PROXYPORT_PARAM);
     String jiraproxydomain = parameters.getParameter(JiraConfig.JIRA_PROXYDOMAIN_PARAM);
@@ -310,6 +310,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
 
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, out, parameters);
+    fillInProxyConfigurationMap(paramMap, out, parameters);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
