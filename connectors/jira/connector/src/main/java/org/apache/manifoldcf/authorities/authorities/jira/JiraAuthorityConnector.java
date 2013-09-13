@@ -87,6 +87,12 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
   protected String clientid = null;
   protected String clientsecret = null;
 
+  protected String jiraproxyhost = null;
+  protected String jiraproxyport = null;
+  protected String jiraproxydomain = null;
+  protected String jiraproxyusername = null;
+  protected String jiraproxypassword = null;
+  
   public JiraAuthorityConnector() {
     super();
   }
@@ -108,6 +114,12 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     jirapath = null;
     clientid = null;
     clientsecret = null;
+    
+    jiraproxyhost = null;
+    jiraproxyport = null;
+    jiraproxydomain = null;
+    jiraproxyusername = null;
+    jiraproxypassword = null;
   }
 
   /**
@@ -130,6 +142,13 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     jirapath = params.getParameter(JiraConfig.JIRA_PATH_PARAM);
     clientid = params.getParameter(JiraConfig.CLIENT_ID_PARAM);
     clientsecret = params.getObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM);
+    
+    jiraproxyhost = params.getParameter(JiraConfig.JIRA_PROXYHOST_PARAM);
+    jiraproxyport = params.getParameter(JiraConfig.JIRA_PROXYPORT_PARAM);
+    jiraproxydomain = params.getParameter(JiraConfig.JIRA_PROXYDOMAIN_PARAM);
+    jiraproxyusername = params.getParameter(JiraConfig.JIRA_PROXYUSERNAME_PARAM);
+    jiraproxypassword = params.getObfuscatedParameter(JiraConfig.JIRA_PROXYPASSWORD_PARAM);
+    
   }
 
   /**
@@ -196,7 +215,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       }
 
       String jiraurl = jiraprotocol + "://" + jirahost + (StringUtils.isEmpty(jiraport)?"":":"+jiraport) + jirapath;
-      session = new JiraSession(clientid, clientsecret, jiraurl);
+      session = new JiraSession(clientid, clientsecret, jiraurl,
+        jiraproxyhost, jiraproxyport, jiraproxydomain, jiraproxyusername, jiraproxypassword);
 
     }
     lastSessionFetch = System.currentTimeMillis();
