@@ -60,7 +60,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
   protected final static String ACTIVITY_READ = "read document";
   
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   // Nodes
   private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
@@ -72,7 +72,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
 
   // Configuration tabs
   private static final String JIRA_SERVER_TAB_PROPERTY = "JiraRepositoryConnector.Server";
-  private static final String JIRA_PROXY_TAB_PROPERTY = "JiraAuthorityConnector.Proxy";
+  private static final String JIRA_PROXY_TAB_PROPERTY = "JiraRepositoryConnector.Proxy";
 
   // Specification tabs
   private static final String JIRA_QUERY_TAB_PROPERTY = "JiraRepositoryConnector.JiraQuery";
