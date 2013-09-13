@@ -43,8 +43,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -53,6 +55,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
@@ -78,10 +81,28 @@ public class JiraSession {
   private ClientConnectionManager connectionManager;
   private HttpClient httpClient;
   
+  // Current host name
+  private static String currentHost = null;
+  static
+  {
+    // Find the current host name
+    try
+    {
+      java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+
+      // Get hostname
+      currentHost = addr.getHostName();
+    }
+    catch (java.net.UnknownHostException e)
+    {
+    }
+  }
+
   /**
    * Constructor. Create a session.
    */
-  public JiraSession(String clientId, String clientSecret, String URLbase)
+  public JiraSession(String clientId, String clientSecret, String URLbase,
+    String proxyHost, String proxyPort, String proxyDomain, String proxyUsername, String proxyPassword)
     throws ManifoldCFException {
     this.URLbase = URLbase;
     this.clientId = clientId;
@@ -123,11 +144,50 @@ public class JiraSession {
        
       });
     localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+    
+    // If authentication needed, set that
     if (clientId != null)
     {
       localHttpClient.getCredentialsProvider().setCredentials(
         AuthScope.ANY,
         new UsernamePasswordCredentials(clientId,clientSecret));
+    }
+    
+    // If there's a proxy, set that too.
+    if (proxyHost != null && proxyHost.length() > 0)
+    {
+
+      int proxyPortInt;
+      if (proxyPort != null && proxyPort.length() > 0)
+      {
+        try
+        {
+          proxyPortInt = Integer.parseInt(proxyPort);
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
+        }
+      }
+      else
+        proxyPortInt = 8080;
+
+      // Configure proxy authentication
+      if (proxyUsername != null && proxyUsername.length() > 0)
+      {
+        if (proxyPassword == null)
+          proxyPassword = "";
+        if (proxyDomain == null)
+          proxyDomain = "";
+
+        localHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(proxyHost, proxyPortInt),
+          new NTCredentials(proxyUsername, proxyPassword, currentHost, proxyDomain));
+      }
+
+      HttpHost proxy = new HttpHost(proxyHost, proxyPortInt);
+
+      localHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
     }
 
     httpClient = localHttpClient;

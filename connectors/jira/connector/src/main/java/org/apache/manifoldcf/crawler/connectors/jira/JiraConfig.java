@@ -32,6 +32,12 @@ public class JiraConfig {
   public static final String JIRA_PORT_PARAM = "jiraport";
   public static final String JIRA_PATH_PARAM = "jirapath";
   
+  public static final String JIRA_PROXYHOST_PARAM = "jiraproxyhost";
+  public static final String JIRA_PROXYPORT_PARAM = "jiraproxyport";
+  public static final String JIRA_PROXYDOMAIN_PARAM = "jiraproxydomain";
+  public static final String JIRA_PROXYUSERNAME_PARAM = "jiraproxyusername";
+  public static final String JIRA_PROXYPASSWORD_PARAM = "jiraproxypassword";
+
   public static final String JIRA_QUERY_PARAM = "jiraquery";
   
   public static final String CLIENT_ID_DEFAULT = "";
@@ -41,6 +47,12 @@ public class JiraConfig {
   public static final String JIRA_PORT_DEFAULT = "";
   public static final String JIRA_PATH_DEFAULT = "/rest/api/2/";
   
+  public static final String JIRA_PROXYHOST_DEFAULT = "";
+  public static final String JIRA_PROXYPORT_DEFAULT = "";
+  public static final String JIRA_PROXYDOMAIN_DEFAULT = "";
+  public static final String JIRA_PROXYUSERNAME_DEFAULT = "";
+  public static final String JIRA_PROXYPASSWORD_DEFAULT = "";
+
   public static final String JIRA_QUERY_DEFAULT = "ORDER BY createdDate Asc";
 
     

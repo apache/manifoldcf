@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-773: Add support for proxies to Jira connectors.
+(Karl Wright)
+
 CONNECTORS-772: SharePoint connector wasn't working against
 AWS SharePoint instances.  Added a new AWS pulldown selection
 to deal with the funky configuration there.
