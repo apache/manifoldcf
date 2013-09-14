@@ -49,6 +49,13 @@ public class WikiConfig
   public static final String PARAM_ACCESSUSER = "accessuser";
   public static final String PARAM_ACCESSPASSWORD = "accesspassword";
   
+  // Proxy info
+  public static final String PARAM_PROXYHOST = "Proxy host";
+  public static final String PARAM_PROXYPORT = "Proxy port";
+  public static final String PARAM_PROXYDOMAIN = "Proxy domain";
+  public static final String PARAM_PROXYUSERNAME = "Proxy username";
+  public static final String PARAM_PROXYPASSWORD = "Proxy password";
+
   // Document specification
 
   /** Namespace and title prefix */

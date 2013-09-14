@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-774: Add support for proxies to Wiki connector.
+(Karl Wright)
+
 CONNECTORS-773: Add support for proxies to Jira connectors.
 (Karl Wright)
 
