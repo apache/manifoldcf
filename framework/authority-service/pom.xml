@@ -87,7 +87,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>${httpcomponent.version}</version>
+      <version>${httpcomponent.httpclient.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>

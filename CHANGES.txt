@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-775: Use httpclient 4.2.6.
+(Karl Wright)
+
 CONNECTORS-774: Add support for proxies to Wiki connector.
 (Karl Wright)
 
