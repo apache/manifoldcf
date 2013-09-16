@@ -40,6 +40,20 @@ function checkConfig()
     return false;
   }
 
+  if (editconnection.jiraproxyport.value != "" && !isInteger(editconnection.jiraproxyport.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraProxyPortMustBeAnInteger'))");
+    editconnection.jiraproxyport.focus();
+    return false;
+  }
+
+  if (editconnection.jiraproxyhost.value != "" && editconnection.jiraproxyhost.value.indexOf("/") != -1)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraProxyHostMustNotIncludeSlash'))");
+    editconnection.jiraproxyhost.focus();
+    return false;
+  }
+
   return true;
 }
  
@@ -83,6 +97,22 @@ function checkConfigForSave()
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraPathMustBeginWithASlash'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Server'))");
     editconnection.jirapath.focus();
+    return false;
+  }
+  
+  if (editconnection.jiraproxyhost.value != "" && editconnection.jiraproxyhost.value.indexOf("/") != -1)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraProxyHostMustNotIncludeSlash'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Proxy'))");
+    editconnection.jirahost.focus();
+    return false;
+  }
+
+  if (editconnection.jiraproxyport.value != "" && !isInteger(editconnection.jiraproxyport.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.JiraProxyPortMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('JiraRepositoryConnector.Proxy'))");
+    editconnection.jiraport.focus();
     return false;
   }
 

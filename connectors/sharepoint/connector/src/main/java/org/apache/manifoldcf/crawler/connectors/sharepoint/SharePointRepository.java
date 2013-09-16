@@ -1405,7 +1405,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
 
             // Calculate the start of the path part that would contain the folders/file
-            int foldersFilePathIndex = site.length() + 1 + libName.length();
+            int foldersFilePathIndex = encodedServerLocation.length() + site.length() + 1 + libName.length();
 
             String libID = proxy.getDocLibID( encodePath(site), site, libName, fullListPaths );
             if (libID != null)

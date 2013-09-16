@@ -15,63 +15,9 @@
  limitations under the License.
 -->
 
+#if($TabName == $ResourceBundle.getString('JiraAuthorityConnector.Proxy'))
+
 <table class="displaytable">
-
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProtocolColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPROTOCOL)</nobr>
-    </td>
-  </tr>
-
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraHostColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAHOST)</nobr>
-    </td>
-  </tr>
-
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraPortColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPORT)</nobr>
-    </td>
-  </tr>
-
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraRESTAPIPathColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPATH)</nobr>
-    </td>
-  </tr>
-
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.ClientIDColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($CLIENTID)</nobr>
-    </td>
-  </tr>
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.ClientSecretColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>********</nobr>
-    </td>
-  </tr>
-  
   <tr><td class="separator" colspan="2"><hr/></td></tr>
 
   <tr>
@@ -79,7 +25,7 @@
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProxyHostColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPROXYHOST)</nobr>
+      <input size="32" type="text" id="jiraproxyhost" name="jiraproxyhost" value="$Encoder.attributeEscape($JIRAPROXYHOST)" />
     </td>
   </tr>
 
@@ -88,7 +34,7 @@
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProxyPortColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPROXYPORT)</nobr>
+      <input size="5" type="text" id="jiraproxyport" name="jiraproxyport" value="$Encoder.attributeEscape($JIRAPROXYPORT)" />
     </td>
   </tr>
 
@@ -99,27 +45,34 @@
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProxyDomainColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPROXYDOMAIN)</nobr>
+      <input size="32" type="text" id="jiraproxydomain" name="jiraproxydomain" value="$Encoder.attributeEscape($JIRAPROXYDOMAIN)" />
     </td>
   </tr>
-
+  
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProxyUsernameColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($JIRAPROXYUSERNAME)</nobr>
+      <input size="16" type="text" id="jiraproxyusername" name="jiraproxyusername" value="$Encoder.attributeEscape($JIRAPROXYUSERNAME)" />
     </td>
   </tr>
-
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProxyPasswordColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>********</nobr>
+      <input size="16" type="password" id="jiraproxypassword" name="jiraproxypassword" value="$Encoder.attributeEscape($JIRAPROXYPASSWORD)" />
     </td>
   </tr>
-
 </table>
 
+#else
+
+<input type="hidden" name="jiraproxyhost" value="$Encoder.attributeEscape($JIRAPROXYHOST)" />
+<input type="hidden" name="jiraproxyport" value="$Encoder.attributeEscape($JIRAPROXYPORT)" />
+<input type="hidden" name="jiraproxydomain" value="$Encoder.attributeEscape($JIRAPROXYDOMAIN)" />
+<input type="hidden" name="jiraproxyusername" value="$Encoder.attributeEscape($JIRAPROXYUSERNAME)" />
+<input type="hidden" name="jiraproxypassword" value="$Encoder.attributeEscape($JIRAPROXYPASSWORD)" />
+
+#end

@@ -53,16 +53,21 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
 
   // Configuration tabs
   private static final String JIRA_SERVER_TAB_PROPERTY = "JiraAuthorityConnector.Server";
+  private static final String JIRA_PROXY_TAB_PROPERTY = "JiraAuthorityConnector.Proxy";
   
   // Template names for configuration
   /**
    * Forward to the javascript to check the configuration parameters
    */
-  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration_jira_server.js";
+  private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration_jira.js";
   /**
    * Server tab template
    */
   private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_jira_server.html";
+  /**
+   * Proxy tab template
+   */
+  private static final String EDIT_CONFIG_FORWARD_PROXY = "editConfiguration_jira_proxy.html";
   
   /**
    * Forward to the HTML template to view the configuration parameters
@@ -82,6 +87,12 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
   protected String clientid = null;
   protected String clientsecret = null;
 
+  protected String jiraproxyhost = null;
+  protected String jiraproxyport = null;
+  protected String jiraproxydomain = null;
+  protected String jiraproxyusername = null;
+  protected String jiraproxypassword = null;
+  
   public JiraAuthorityConnector() {
     super();
   }
@@ -103,6 +114,12 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     jirapath = null;
     clientid = null;
     clientsecret = null;
+    
+    jiraproxyhost = null;
+    jiraproxyport = null;
+    jiraproxydomain = null;
+    jiraproxyusername = null;
+    jiraproxypassword = null;
   }
 
   /**
@@ -125,6 +142,13 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     jirapath = params.getParameter(JiraConfig.JIRA_PATH_PARAM);
     clientid = params.getParameter(JiraConfig.CLIENT_ID_PARAM);
     clientsecret = params.getObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM);
+    
+    jiraproxyhost = params.getParameter(JiraConfig.JIRA_PROXYHOST_PARAM);
+    jiraproxyport = params.getParameter(JiraConfig.JIRA_PROXYPORT_PARAM);
+    jiraproxydomain = params.getParameter(JiraConfig.JIRA_PROXYDOMAIN_PARAM);
+    jiraproxyusername = params.getParameter(JiraConfig.JIRA_PROXYUSERNAME_PARAM);
+    jiraproxypassword = params.getObfuscatedParameter(JiraConfig.JIRA_PROXYPASSWORD_PARAM);
+    
   }
 
   /**
@@ -191,7 +215,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       }
 
       String jiraurl = jiraprotocol + "://" + jirahost + (StringUtils.isEmpty(jiraport)?"":":"+jiraport) + jirapath;
-      session = new JiraSession(clientid, clientsecret, jiraurl);
+      session = new JiraSession(clientid, clientsecret, jiraurl,
+        jiraproxyhost, jiraproxyport, jiraproxydomain, jiraproxyusername, jiraproxypassword);
 
     }
     lastSessionFetch = System.currentTimeMillis();
@@ -252,6 +277,41 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
   }
 
   /**
+   * Fill in a Proxy tab configuration parameter map for calling a Velocity
+   * template.
+   *
+   * @param newMap is the map to fill in
+   * @param parameters is the current set of configuration parameters
+   */
+  private static void fillInProxyConfigurationMap(Map<String, Object> newMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
+    String jiraproxyhost = parameters.getParameter(JiraConfig.JIRA_PROXYHOST_PARAM);
+    String jiraproxyport = parameters.getParameter(JiraConfig.JIRA_PROXYPORT_PARAM);
+    String jiraproxydomain = parameters.getParameter(JiraConfig.JIRA_PROXYDOMAIN_PARAM);
+    String jiraproxyusername = parameters.getParameter(JiraConfig.JIRA_PROXYUSERNAME_PARAM);
+    String jiraproxypassword = parameters.getObfuscatedParameter(JiraConfig.JIRA_PROXYPASSWORD_PARAM);
+
+    if (jiraproxyhost == null)
+      jiraproxyhost = JiraConfig.JIRA_PROXYHOST_DEFAULT;
+    if (jiraproxyport == null)
+      jiraproxyport = JiraConfig.JIRA_PROXYPORT_DEFAULT;
+
+    if (jiraproxydomain == null)
+      jiraproxydomain = JiraConfig.JIRA_PROXYDOMAIN_DEFAULT;
+    if (jiraproxyusername == null)
+      jiraproxyusername = JiraConfig.JIRA_PROXYUSERNAME_DEFAULT;
+    if (jiraproxypassword == null)
+      jiraproxypassword = JiraConfig.JIRA_PROXYPASSWORD_DEFAULT;
+    else
+      jiraproxypassword = mapper.mapPasswordToKey(jiraproxypassword);
+
+    newMap.put("JIRAPROXYHOST", jiraproxyhost);
+    newMap.put("JIRAPROXYPORT", jiraproxyport);
+    newMap.put("JIRAPROXYDOMAIN", jiraproxydomain);
+    newMap.put("JIRAPROXYUSERNAME", jiraproxyusername);
+    newMap.put("JIRAPROXYPASSWORD", jiraproxypassword);
+  }
+
+  /**
    * View configuration. This method is called in the body section of the
    * connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML
@@ -270,6 +330,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
 
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, out, parameters);
+    fillInProxyConfigurationMap(paramMap, out, parameters);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIG_FORWARD,paramMap);
   }
@@ -294,12 +355,15 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
       throws ManifoldCFException, IOException {
     // Add the Server tab
     tabsArray.add(Messages.getString(locale, JIRA_SERVER_TAB_PROPERTY));
+    // Add the Proxy tab
+    tabsArray.add(Messages.getString(locale, JIRA_PROXY_TAB_PROPERTY));
     // Map the parameters
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in the parameters from each tab
     fillInServerConfigurationMap(paramMap, out, parameters);
-
+    fillInProxyConfigurationMap(paramMap, out, parameters);
+        
     // Output the Javascript - only one Velocity template for all tabs
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_HEADER_FORWARD,paramMap);
   }
@@ -315,10 +379,15 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     // Set the tab name
     paramMap.put("TabName", tabName);
 
-    // Server tab
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, out, parameters);
+    fillInProxyConfigurationMap(paramMap, out, parameters);
+        
+    // Server tab
     Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_SERVER,paramMap);
+    // Proxy tab
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIG_FORWARD_PROXY,paramMap);
+
   }
 
   /**
@@ -343,6 +412,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     IPostParameters variableContext, ConfigParams parameters)
     throws ManifoldCFException {
 
+    // Server tab parameters
+
     String jiraprotocol = variableContext.getParameter("jiraprotocol");
     if (jiraprotocol != null)
       parameters.setParameter(JiraConfig.JIRA_PROTOCOL_PARAM, jiraprotocol);
@@ -366,6 +437,28 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
     String clientsecret = variableContext.getParameter("clientsecret");
     if (clientsecret != null)
       parameters.setObfuscatedParameter(JiraConfig.CLIENT_SECRET_PARAM, variableContext.mapKeyToPassword(clientsecret));
+
+    // Proxy tab parameters
+    
+    String jiraproxyhost = variableContext.getParameter("jiraproxyhost");
+    if (jiraproxyhost != null)
+      parameters.setParameter(JiraConfig.JIRA_PROXYHOST_PARAM, jiraproxyhost);
+
+    String jiraproxyport = variableContext.getParameter("jiraproxyport");
+    if (jiraproxyport != null)
+      parameters.setParameter(JiraConfig.JIRA_PROXYPORT_PARAM, jiraproxyport);
+    
+    String jiraproxydomain = variableContext.getParameter("jiraproxydomain");
+    if (jiraproxydomain != null)
+      parameters.setParameter(JiraConfig.JIRA_PROXYDOMAIN_PARAM, jiraproxydomain);
+
+    String jiraproxyusername = variableContext.getParameter("jiraproxyusername");
+    if (jiraproxyusername != null)
+      parameters.setParameter(JiraConfig.JIRA_PROXYUSERNAME_PARAM, jiraproxyusername);
+
+    String jiraproxypassword = variableContext.getParameter("jiraproxypassword");
+    if (jiraproxypassword != null)
+      parameters.setObfuscatedParameter(JiraConfig.JIRA_PROXYPASSWORD_PARAM, variableContext.mapKeyToPassword(jiraproxypassword));
 
     return null;
   }

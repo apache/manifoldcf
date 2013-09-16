@@ -3,6 +3,20 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-775: Use httpclient 4.2.6.
+(Karl Wright)
+
+CONNECTORS-774: Add support for proxies to Wiki connector.
+(Karl Wright)
+
+CONNECTORS-773: Add support for proxies to Jira connectors.
+(Karl Wright)
+
+CONNECTORS-772: SharePoint connector wasn't working against
+AWS SharePoint instances.  Added a new AWS pulldown selection
+to deal with the funky configuration there.
+(Dmitry Goldenberg, Karl Wright)
+
 CONNECTORS-770: Java7 no longer allows an interface to be
 interchangeable with a class.  Modified FileNet stub accordingly.
 (Yann Barraud, Karl Wright)
