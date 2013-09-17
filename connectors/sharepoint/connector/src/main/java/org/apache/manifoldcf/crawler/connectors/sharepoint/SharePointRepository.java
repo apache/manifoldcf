@@ -86,6 +86,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
   private boolean fullListPaths = true;
+  private boolean websBroken = false;
   
   private String serverProtocol = null;
   private String serverUrl = null;
@@ -148,6 +149,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       supportsItemSecurity = !serverVersion.equals("2.0");
       dspStsWorks = !(serverVersion.equals("4.0") || serverVersion.equals("4.0AWS"));
       fullListPaths = !serverVersion.equals("4.0AWS");
+      websBroken = serverVersion.equals("4.0AWS");
 
       serverProtocol = params.getParameter( "serverProtocol" );
       if (serverProtocol == null)
@@ -1726,7 +1728,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
 
           // Look at subsites
-          ArrayList subsites = proxy.getSites( encodePath(decodedSitePath) );
+          ArrayList subsites = proxy.getSites( encodePath(decodedSitePath), websBroken );
           if (subsites != null)
           {
             int j = 0;
@@ -5029,7 +5031,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getSites( encodePath(parentSite) );
+    return proxy.getSites( encodePath(parentSite), websBroken );
   }
 
   /**
