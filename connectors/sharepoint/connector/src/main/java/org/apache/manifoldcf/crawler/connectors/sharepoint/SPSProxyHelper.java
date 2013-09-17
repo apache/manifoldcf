@@ -589,21 +589,6 @@ public class SPSProxyHelper {
           Object node = nodeDocs.get(j);
           Logging.connectors.debug( node.toString() );
           String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
-
-          // This relative path is apparently from the domain on down; if there's a location offset we therefore
-          // need to get rid of it before checking the document against the site/library tuples.  The recorded
-          // document identifier should also not include it.
-
-          if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
-          {
-            // Unexpected processing error; the path to the folder or document did not start with the location
-            // offset, so throw up.
-            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-              serverLocation+"'");
-          }
-
-          relPath = relPath.substring(serverLocation.length());
-
           fileStream.addFile( relPath );
         }
       }
@@ -649,9 +634,6 @@ public class SPSProxyHelper {
                 {
                   resultCount++;
                   String relPath = result.getAttribute("FileRef");
-
-                  relPath = "/" + relPath;
-
                   fileStream.addFile( relPath );
                 }
               }

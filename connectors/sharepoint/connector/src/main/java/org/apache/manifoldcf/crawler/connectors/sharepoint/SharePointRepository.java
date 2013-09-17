@@ -1406,13 +1406,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
 
-            // Calculate the start of the path part that would contain the folders/file
-            int foldersFilePathIndex = encodedServerLocation.length() + site.length() + 1 + libName.length();
-
             String libID = proxy.getDocLibID( encodePath(site), site, libName, fullListPaths );
             if (libID != null)
             {
-              FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
+              FileStream fs = new FileStream( activities, encodedServerLocation, siteLibPath, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
               if (!success)
               {
@@ -1874,34 +1871,53 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
   protected class FileStream implements IFileStream
   {
-    protected IProcessActivity activities;
-    protected int foldersFilePathIndex;
-    protected DocumentSpecification spec;
+    protected final IProcessActivity activities;
+    protected final DocumentSpecification spec;
+    protected final String rootPath;
+    protected final String siteLibPath;
     
-    public FileStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    public FileStream(IProcessActivity activities, String rootPath, String siteLibPath, DocumentSpecification spec)
     {
       this.activities = activities;
-      this.foldersFilePathIndex = foldersFilePathIndex;
       this.spec = spec;
+      this.rootPath = rootPath;
+      this.siteLibPath = siteLibPath;
     }
     
     public void addFile(String relPath)
       throws ManifoldCFException
     {
-      if ( checkIncludeFile( relPath, spec ) )
-      {
-        // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
-        // The way I've chosen to do this is to use a double slash at that point, as a separator.
-        if (relPath.length() >= foldersFilePathIndex)
-        {
-          String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
 
-          activities.addDocumentReference( modifiedPath );
-        }
-        else
+      // First, convert the relative path to a full path
+      if ( !relPath.startsWith("/") )
+      {
+        relPath = rootPath + siteLibPath + "/" + relPath;
+      }
+      
+      // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
+      if ( relPath.length() >= rootPath.length() )
+      {
+        relPath = relPath.substring(rootPath.length());
+      
+        if ( checkIncludeFile( relPath, spec ) )
         {
-          Logging.connectors.warn("Sharepoint: Unexpected relPath structure; path is '"+relPath+"', but expected <list/library> length of "+foldersFilePathIndex);
+          // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
+          // The way I've chosen to do this is to use a double slash at that point, as a separator.
+          if (relPath.length() >= siteLibPath.length())
+          {
+            String modifiedPath = relPath.substring(0,siteLibPath.length()) + "/" + relPath.substring(siteLibPath.length());
+
+            activities.addDocumentReference( modifiedPath );
+          }
+          else
+          {
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with "+siteLibPath);
+          }
         }
+      }
+      else
+      {
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is "+relPath+", but expected to see something beginning with "+rootPath);
       }
     }
   }
