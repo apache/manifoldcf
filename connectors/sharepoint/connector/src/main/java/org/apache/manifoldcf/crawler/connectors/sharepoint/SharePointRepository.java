@@ -379,7 +379,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     try
     {
-      proxy.checkConnection( "/", supportsItemSecurity );
+      proxy.checkConnection( "/", supportsItemSecurity, websBroken );
     }
     catch ( ServiceInterruption e )
     {

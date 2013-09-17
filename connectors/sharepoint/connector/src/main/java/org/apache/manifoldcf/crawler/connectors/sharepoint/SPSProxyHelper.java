@@ -1437,7 +1437,7 @@ public class SPSProxyHelper {
   * @throws javax.xml.rpc.ServiceException
   * @throws java.rmi.RemoteException
   */
-  public boolean checkConnection( String site, boolean sps30 )
+  public boolean checkConnection( String site, boolean sps30, boolean websBroken )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -1456,15 +1456,16 @@ public class SPSProxyHelper {
       {
         // The web service allows us to get acls for a site, so that's what we will attempt
 
-        // This fails:
         MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
-        // This works:
-        //PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, myFactory, configuration );
-        //com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
-
         aclCall.getPermissionCollection( "/", "Web" );
+        
+        // SharePoint 2010-AWS: Make sure the plugin supports the webs fix
+        if (websBroken)
+        {
+          aclCall.getSites( );
+        }
       }
 
       return true;
@@ -1500,7 +1501,7 @@ public class SPSProxyHelper {
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 	  else if (httpErrorCode.equals("302"))
-	    throw new ManifoldCFException("ManifoldCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
+	    throw new ManifoldCFException("The correct version of ManifoldCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
           else
             throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
         }
