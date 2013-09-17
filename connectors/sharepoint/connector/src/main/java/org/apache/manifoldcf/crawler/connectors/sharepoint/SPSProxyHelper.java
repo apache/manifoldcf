@@ -798,7 +798,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded;
 
       int i = 0;
       while (i < nodeList.size())
@@ -816,9 +816,13 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
+            if (!urlPath.startsWith("/"))
+              urlPath = prefixPath + "/" + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (!urlPath.startsWith(prefixPath))
+              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'; it should start with '"+prefixPath+"'");
+            urlPath = urlPath.substring(prefixPath.length());
             if (!urlPath.startsWith("/"))
               throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
             // We're at the library name.  Figure out where the end of it is.
@@ -987,7 +991,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded;
 
       int i = 0;
       while (i < nodeList.size())
@@ -1005,9 +1009,13 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
+            if (!urlPath.startsWith("/"))
+              urlPath = prefixPath + "/" + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (!urlPath.startsWith(prefixPath))
+              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'");
+            urlPath = urlPath.substring(prefixPath.length());
             if (!urlPath.startsWith("/"))
               throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
             // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
@@ -2151,7 +2159,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded;
 
       int i = 0;
       while (i < nodeList.size())
@@ -2175,9 +2183,13 @@ public class SPSProxyHelper {
           // It's a library.  If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
+            if (!urlPath.startsWith("/"))
+              urlPath = prefixPath + "/" + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (!urlPath.startsWith(prefixPath))
+              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'");
+            urlPath = urlPath.substring(prefixPath.length());
             if (!urlPath.startsWith("/"))
               throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
             // We're at the library name.  Figure out where the end of it is.
@@ -2295,7 +2307,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded;
 
       int i = 0;
       while (i < nodeList.size())
@@ -2319,9 +2331,13 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
+            if (!urlPath.startsWith("/"))
+              urlPath = prefixPath + "/" + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (!urlPath.startsWith(prefixPath))
+              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'");
+            urlPath = urlPath.substring(prefixPath.length());
             if (!urlPath.startsWith("/"))
               throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
             // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
