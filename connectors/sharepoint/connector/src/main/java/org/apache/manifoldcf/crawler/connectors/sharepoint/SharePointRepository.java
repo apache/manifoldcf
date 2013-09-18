@@ -1906,7 +1906,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       
       // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
-      if ( relPath.length() >= rootPath.length() )
+      if ( relPath.startsWith(rootPath) )
       {
         relPath = relPath.substring(rootPath.length());
       
@@ -1914,7 +1914,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
           // The way I've chosen to do this is to use a double slash at that point, as a separator.
-          if (relPath.length() >= sitePath.length())
+          if (relPath.startsWith(sitePath))
           {
             String modifiedPath = relPath.substring(0,sitePath.length()) + "/" + relPath.substring(sitePath.length());
 
@@ -1922,13 +1922,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           else
           {
-            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with "+sitePath);
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+sitePath+"'");
           }
         }
       }
       else
       {
-        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is "+relPath+", but expected to see something beginning with "+rootPath);
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+rootPath+"'");
       }
     }
   }
@@ -1958,26 +1958,35 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
-      if ( relPath.length() >= rootPath.length() )
+      if ( relPath.startsWith(rootPath) )
       {
         relPath = relPath.substring(rootPath.length());
 
-        // Now, strip "Lists" from relPath
-        if (!relPath.startsWith("/Lists/"))
-          throw new ManifoldCFException("Expected path to start with /Lists/");
-        relPath = relPath.substring("/Lists".length());
-        if ( checkIncludeListItem( relPath, spec ) )
+        if (relPath.startsWith(sitePath))
         {
-          // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
-          // The way I've chosen to do this is to use a triple slash at that point, as a separator.
-          String modifiedPath = relPath.substring(0,sitePath.length()) + "//" + relPath.substring(sitePath.length());
+          relPath = relPath.substring(sitePath.length());
+          
+          // Now, strip "Lists" from relPath
+          if (!relPath.startsWith("/Lists/"))
+            throw new ManifoldCFException("Expected path to start with /Lists/");
+          relPath = relPath.substring("/Lists".length());
+          if ( checkIncludeListItem( sitePath + relPath, spec ) )
+          {
+            // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
+            // The way I've chosen to do this is to use a triple slash at that point, as a separator.
+            String modifiedPath = relPath.substring(0,sitePath.length()) + "//" + relPath.substring(sitePath.length());
 
-          activities.addDocumentReference( modifiedPath );
+            activities.addDocumentReference( modifiedPath );
+          }
+        }
+        else
+        {
+          Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+sitePath+"'");
         }
       }
       else
       {
-        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is "+relPath+", but expected to see something beginning with "+rootPath);
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+rootPath+"'");
       }
     }
 
