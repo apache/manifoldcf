@@ -1250,7 +1250,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String listID = proxy.getListID( encodePath(site), site, listName );
             if (listID != null)
             {
-              ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, spec );
+              ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , listID, dspStsWorks );
               if (!success)
               {
@@ -1420,7 +1420,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String libID = proxy.getDocLibID( encodePath(site), site, libName );
             if (libID != null)
             {
-              FileStream fs = new FileStream( activities, encodedServerLocation, site, spec );
+              FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
               if (!success)
               {
@@ -1886,13 +1886,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final DocumentSpecification spec;
     protected final String rootPath;
     protected final String sitePath;
+    protected final String siteLibPath;
     
-    public FileStream(IProcessActivity activities, String rootPath, String sitePath, DocumentSpecification spec)
+    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
       this.sitePath = sitePath;
+      this.siteLibPath = siteLibPath;
     }
     
     public void addFile(String relPath)
@@ -1914,15 +1916,16 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
           // The way I've chosen to do this is to use a double slash at that point, as a separator.
-          if (relPath.startsWith(sitePath))
+          if (relPath.startsWith(siteLibPath))
           {
-            String modifiedPath = relPath.substring(0,sitePath.length()) + "/" + relPath.substring(sitePath.length());
+            // Split at the libpath/file boundary
+            String modifiedPath = siteLibPath + "/" + relPath.substring(siteLibPath.length());
 
             activities.addDocumentReference( modifiedPath );
           }
           else
           {
-            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+sitePath+"'");
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+siteLibPath+"'");
           }
         }
       }
@@ -1939,13 +1942,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final DocumentSpecification spec;
     protected final String rootPath;
     protected final String sitePath;
+    protected final String siteListPath;
 
-    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, DocumentSpecification spec)
+    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
       this.sitePath = sitePath;
+      this.siteListPath = siteListPath;
     }
     
     public void addFile(String relPath)
@@ -1969,14 +1974,21 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // Now, strip "Lists" from relPath
           if (!relPath.startsWith("/Lists/"))
             throw new ManifoldCFException("Expected path to start with /Lists/");
-          relPath = relPath.substring("/Lists".length());
-          if ( checkIncludeListItem( sitePath + relPath, spec ) )
+          relPath = sitePath + relPath.substring("/Lists".length());
+          if ( checkIncludeListItem( relPath, spec ) )
           {
-            // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
-            // The way I've chosen to do this is to use a triple slash at that point, as a separator.
-            String modifiedPath = relPath.substring(0,sitePath.length()) + "//" + relPath.substring(sitePath.length());
+            if (relPath.startsWith(siteListPath))
+            {
+              // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
+              // The way I've chosen to do this is to use a triple slash at that point, as a separator.
+              String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
 
-            activities.addDocumentReference( modifiedPath );
+              activities.addDocumentReference( modifiedPath );
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+siteListPath+"'");
+            }
           }
         }
         else
