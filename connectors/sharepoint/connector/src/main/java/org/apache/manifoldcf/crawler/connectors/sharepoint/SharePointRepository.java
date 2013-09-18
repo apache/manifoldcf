@@ -514,13 +514,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("sites/".length());
-        ArrayList sites = getSites(sitePath);
+        List<NameValue> sites = getSites(sitePath);
         int i = 0;
         while (i < sites.size())
         {
-          String site = (String)sites.get(i++);
+          NameValue site = sites.get(i++);
           ConfigurationNode node = new ConfigurationNode("site");
-          node.setValue(site);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(site.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(site.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -538,13 +544,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("libraries/".length());
-        ArrayList libs = getDocLibsBySite(sitePath);
+        List<NameValue> libs = getDocLibsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
         {
-          String lib = (String)libs.get(i++);
+          NameValue lib = libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("library");
-          node.setValue(lib);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(lib.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(lib.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -562,13 +574,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("lists/".length());
-        ArrayList libs = getListsBySite(sitePath);
+        List<NameValue> libs = getListsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
         {
-          String lib = (String)libs.get(i++);
+          NameValue lib = libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("list");
-          node.setValue(lib);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(lib.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(lib.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -1720,13 +1738,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
 
           // Look at subsites
-          ArrayList subsites = proxy.getSites( encodePath(decodedSitePath), websBroken );
+          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath), websBroken );
           if (subsites != null)
           {
             int j = 0;
             while (j < subsites.size())
             {
-              NameValue subSiteName = (NameValue)subsites.get(j++);
+              NameValue subSiteName = subsites.get(j++);
               String newPath = decodedSitePath + "/" + subSiteName.getValue();
 
               String encodedNewPath = encodePath(newPath);
@@ -1741,13 +1759,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at libraries
-          ArrayList libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
+          List<NameValue> libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
           if (libraries != null)
           {
             int j = 0;
             while (j < libraries.size())
             {
-              NameValue library = (NameValue)libraries.get(j++);
+              NameValue library = libraries.get(j++);
               String newPath = decodedSitePath + "/" + library.getValue();
 
               if (checkIncludeLibrary(newPath,spec))
@@ -1762,13 +1780,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at lists
-          ArrayList lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
+          List<NameValue> lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
           if (lists != null)
           {
             int j = 0;
             while (j < lists.size())
             {
-              NameValue list = (NameValue)lists.get(j++);
+              NameValue list = lists.get(j++);
               String newPath = decodedSitePath + "/" + list.getValue();
 
               if (checkIncludeList(newPath,spec))
@@ -2875,9 +2893,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Grab next site list and lib list
-      ArrayList childSiteList = null;
-      ArrayList childLibList = null;
-      ArrayList childListList = null;
+      List<NameValue> childSiteList = null;
+      List<NameValue> childLibList = null;
+      List<NameValue> childListList = null;
       String message = null;
       if (pathState.equals("site"))
       {
@@ -3023,7 +3041,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childSiteList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childSite = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childSiteList.get(q++);
+            NameValue childSite = childSiteList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
             );
@@ -3043,7 +3061,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childLibList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childLib = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childLibList.get(q++);
+            NameValue childLib = childLibList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
             );
@@ -3063,7 +3081,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childListList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
+            NameValue childList = childListList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
             );
@@ -3591,9 +3609,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       
       // Grab next site list and lib list
-      ArrayList childSiteList = null;
-      ArrayList childLibList = null;
-      ArrayList childListList = null;
+      List<NameValue> childSiteList = null;
+      List<NameValue> childLibList = null;
+      List<NameValue> childListList = null;
 
       if (message == null && metaPathState.equals("site"))
       {
@@ -3731,7 +3749,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childSiteList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childSite = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childSiteList.get(q++);
+            NameValue childSite = childSiteList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
             );
@@ -3751,7 +3769,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childLibList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childLib = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childLibList.get(q++);
+            NameValue childLib = childLibList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
             );
@@ -3771,7 +3789,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childListList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
+            NameValue childList = childListList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
             );
@@ -5056,7 +5074,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site path to search for subsites, empty for root.
   * @return list of the sites
   */
-  public ArrayList getSites( String parentSite )
+  public List<NameValue> getSites( String parentSite )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
@@ -5068,7 +5086,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site to search for libraries, empty for root.
   * @return list of the libraries
   */
-  public ArrayList getDocLibsBySite( String parentSite )
+  public List<NameValue> getDocLibsBySite( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -5080,7 +5098,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site to search for lists, empty for root.
   * @return list of the lists
   */
-  public ArrayList getListsBySite( String parentSite )
+  public List<NameValue> getListsBySite( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();

@@ -1936,13 +1936,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for subsites, empty string for root
   * @return lists of sites as an arraylist of NameValue objects
   */
-  public ArrayList getSites( String parentSite, boolean websBroken )
+  public List<NameValue> getSites( String parentSite, boolean websBroken )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       if ( websBroken )
       {
@@ -2120,13 +2120,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for document libraries, empty string for root
   * @return lists of NameValue objects, representing document libraries
   */
-  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded )
+  public List<NameValue> getDocumentLibraries( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       String parentSiteRequest = parentSite;
 
@@ -2268,13 +2268,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for lists, empty string for root
   * @return lists of NameValue objects, representing lists
   */
-  public ArrayList getLists( String parentSite, String parentSiteDecoded )
+  public List<NameValue> getLists( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       String parentSiteRequest = parentSite;
 
