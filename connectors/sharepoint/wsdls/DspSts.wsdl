@@ -223,10 +223,10 @@
   </wsdl:binding>
   <wsdl:service name="StsAdapter">
     <wsdl:port name="StsAdapterSoap" binding="tns:StsAdapterSoap">
-      <soap:address location="http://www.wssdemo.com/_vti_bin/DspSts.asmx" />
+      <soap:address location="http://localhost/_vti_bin/DspSts.asmx" />
     </wsdl:port>
     <wsdl:port name="StsAdapterSoap12" binding="tns:StsAdapterSoap12">
-      <soap12:address location="http://www.wssdemo.com/_vti_bin/DspSts.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/DspSts.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

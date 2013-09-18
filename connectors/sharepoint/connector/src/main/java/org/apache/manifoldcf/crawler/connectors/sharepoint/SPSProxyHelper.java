@@ -1433,7 +1433,7 @@ public class SPSProxyHelper {
   * @throws javax.xml.rpc.ServiceException
   * @throws java.rmi.RemoteException
   */
-  public boolean checkConnection( String site, boolean sps30, boolean websBroken )
+  public boolean checkConnection( String site, boolean sps30 )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -1456,12 +1456,6 @@ public class SPSProxyHelper {
         com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
         aclCall.getPermissionCollection( "/", "Web" );
-        
-        // SharePoint 2010-AWS: Make sure the plugin supports the webs fix
-        if (websBroken)
-        {
-          aclCall.getSites( );
-        }
       }
 
       return true;
@@ -1942,7 +1936,7 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for subsites, empty string for root
   * @return lists of sites as an arraylist of NameValue objects
   */
-  public List<NameValue> getSites( String parentSite, boolean websBroken )
+  public List<NameValue> getSites( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -1950,114 +1944,55 @@ public class SPSProxyHelper {
     {
       ArrayList<NameValue> result = new ArrayList<NameValue>();
 
-      if ( websBroken )
+      // Call the webs service
+      if ( parentSite.equals( "/") ) parentSite = "";
+        WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, configuration, httpClient );
+      WebsSoap webCall = webService.getWebsSoapHandler();
+
+      GetWebCollectionResponseGetWebCollectionResult webResp = webCall.getWebCollection();
+      org.apache.axis.message.MessageElement[] webList = webResp.get_any();
+
+      XMLDoc doc = new XMLDoc( webList[0].toString() );
+      ArrayList nodeList = new ArrayList();
+
+      doc.processPath(nodeList, "*", null);
+      if (nodeList.size() != 1)
       {
-        // Call the plugin; the webs functionality is not working
-        MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + parentSite, userName, password, configuration, httpClient );
-        com.microsoft.sharepoint.webpartpages.PermissionsSoap itemCall = itemService.getPermissionsSoapHandler( );
-
-        com.microsoft.sharepoint.webpartpages.GetSitesResponseGetSitesResult sitesResult = itemCall.getSites();
-          
-        MessageElement[] itemsList = sitesResult.get_any();
-
-        if (Logging.connectors.isDebugEnabled()){
-          Logging.connectors.debug("SharePoint: getSites xml response: '" + itemsList[0].toString() + "'");
-        }
-
-        if (itemsList.length != 1)
-          throw new ManifoldCFException("Bad response - expecting one outer 'GetSites' node, saw "+Integer.toString(itemsList.length));
-          
-        MessageElement items = itemsList[0];
-        if (!items.getElementName().getLocalName().equals("GetSites"))
-          throw new ManifoldCFException("Bad response - outer node should have been 'GetSites' node");
-          
-        Iterator iter = items.getChildElements();
-        while (iter.hasNext())
-        {
-          MessageElement child = (MessageElement)iter.next();
-          if (child.getElementName().getLocalName().equals("GetSitesResponse"))
-          {
-            Iterator resultIter = child.getChildElements();
-            while (resultIter.hasNext())
-            {
-              MessageElement result2 = (MessageElement)resultIter.next();
-              if (result2.getElementName().getLocalName().equals("GetSitesResult"))
-              {
-                String url = result2.getAttribute("URL");
-                String title = result2.getAttribute("Name");
-                // A full path to the site is tacked on the front of each one of these.  However, due to nslookup differences, we cannot guarantee that
-                // the server name part of the path will actually match what got passed in.  Therefore, we want to look only at the last path segment, whatever that is.
-                if (url != null && url.length() > 0)
-                {
-                  int lastSlash = url.lastIndexOf("/");
-                  if (lastSlash != -1)
-                  {
-                    String pathValue = url.substring(lastSlash + 1);
-                    if (pathValue.length() > 0)
-                    {
-                      if (title == null || title.length() == 0)
-                        title = pathValue;
-                      result.add(new NameValue(pathValue,title));
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        throw new ManifoldCFException("Bad xml - missing outer 'ns1:Webs' node - there are "+Integer.toString(nodeList.size())+" nodes");
       }
-      else
+      Object parent = nodeList.get(0);
+      if (!doc.getNodeName(parent).equals("ns1:Webs"))
+        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:Webs'");
+
+      nodeList.clear();
+      doc.processPath(nodeList, "*", parent);  // <ns1:Webs>
+
+      int i = 0;
+      while (i < nodeList.size())
       {
-        // Call the webs service
-        if ( parentSite.equals( "/") ) parentSite = "";
-          WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, configuration, httpClient );
-        WebsSoap webCall = webService.getWebsSoapHandler();
+        Object o = nodeList.get( i++ );
+        //Logging.connectors.debug( i + ": " + o );
+        //System.out.println( i + ": " + o );
+        String url = doc.getValue( o, "Url" );
+        String title = doc.getValue( o, "Title" );
 
-        GetWebCollectionResponseGetWebCollectionResult webResp = webCall.getWebCollection();
-        org.apache.axis.message.MessageElement[] webList = webResp.get_any();
-
-        XMLDoc doc = new XMLDoc( webList[0].toString() );
-        ArrayList nodeList = new ArrayList();
-
-        doc.processPath(nodeList, "*", null);
-        if (nodeList.size() != 1)
+        // Leave here for now
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: Subsite list: '"+url+"', '"+title+"'");
+        
+        // A full path to the site is tacked on the front of each one of these.  However, due to nslookup differences, we cannot guarantee that
+        // the server name part of the path will actually match what got passed in.  Therefore, we want to look only at the last path segment, whatever that is.
+        if (url != null && url.length() > 0)
         {
-          throw new ManifoldCFException("Bad xml - missing outer 'ns1:Webs' node - there are "+Integer.toString(nodeList.size())+" nodes");
-        }
-        Object parent = nodeList.get(0);
-        if (!doc.getNodeName(parent).equals("ns1:Webs"))
-          throw new ManifoldCFException("Bad xml - outer node is not 'ns1:Webs'");
-
-        nodeList.clear();
-        doc.processPath(nodeList, "*", parent);  // <ns1:Webs>
-
-        int i = 0;
-        while (i < nodeList.size())
-        {
-          Object o = nodeList.get( i++ );
-          //Logging.connectors.debug( i + ": " + o );
-          //System.out.println( i + ": " + o );
-          String url = doc.getValue( o, "Url" );
-          String title = doc.getValue( o, "Title" );
-
-          // Leave here for now
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("SharePoint: Subsite list: '"+url+"', '"+title+"'");
-
-          // A full path to the site is tacked on the front of each one of these.  However, due to nslookup differences, we cannot guarantee that
-          // the server name part of the path will actually match what got passed in.  Therefore, we want to look only at the last path segment, whatever that is.
-          if (url != null && url.length() > 0)
+          int lastSlash = url.lastIndexOf("/");
+          if (lastSlash != -1)
           {
-            int lastSlash = url.lastIndexOf("/");
-            if (lastSlash != -1)
+            String pathValue = url.substring(lastSlash + 1);
+            if (pathValue.length() > 0)
             {
-              String pathValue = url.substring(lastSlash + 1);
-              if (pathValue.length() > 0)
-              {
-                if (title == null || title.length() == 0)
-                  title = pathValue;
-                result.add(new NameValue(pathValue,title));
-              }
+              if (title == null || title.length() == 0)
+                title = pathValue;
+              result.add(new NameValue(pathValue,title));
             }
           }
         }

@@ -1024,10 +1024,10 @@
   </wsdl:binding>
   <wsdl:service name="Webs">
     <wsdl:port name="WebsSoap" binding="tns:WebsSoap">
-      <soap:address location="http://www.wssdemo.com/_vti_bin/webs.asmx" />
+      <soap:address location="http://localhost/_vti_bin/webs.asmx" />
     </wsdl:port>
     <wsdl:port name="WebsSoap12" binding="tns:WebsSoap12">
-      <soap12:address location="http://www.wssdemo.com/_vti_bin/webs.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/webs.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

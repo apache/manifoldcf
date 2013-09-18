@@ -1772,10 +1772,10 @@
   </wsdl:binding>
   <wsdl:service name="Lists">
     <wsdl:port name="ListsSoap" binding="tns:ListsSoap">
-      <soap:address location="http://www.wssdemo.com/_vti_bin/Lists.asmx" />
+      <soap:address location="http://localhost/_vti_bin/Lists.asmx" />
     </wsdl:port>
     <wsdl:port name="ListsSoap12" binding="tns:ListsSoap12">
-      <soap12:address location="http://www.wssdemo.com/_vti_bin/Lists.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/Lists.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

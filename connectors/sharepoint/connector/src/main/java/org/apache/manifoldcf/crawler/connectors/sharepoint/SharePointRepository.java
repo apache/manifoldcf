@@ -85,7 +85,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
-  private boolean websBroken = false;
   
   private String serverProtocol = null;
   private String serverUrl = null;
@@ -146,8 +145,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = !(serverVersion.equals("4.0") || serverVersion.equals("4.0AWS"));
-      websBroken = serverVersion.equals("4.0AWS");
+      dspStsWorks = !serverVersion.equals("4.0");
 
       serverProtocol = params.getParameter( "serverProtocol" );
       if (serverProtocol == null)
@@ -377,7 +375,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     try
     {
-      proxy.checkConnection( "/", supportsItemSecurity, websBroken );
+      proxy.checkConnection( "/", supportsItemSecurity );
     }
     catch ( ServiceInterruption e )
     {
@@ -1738,7 +1736,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
 
           // Look at subsites
-          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath), websBroken );
+          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath) );
           if (subsites != null)
           {
             int j = 0;
@@ -2192,7 +2190,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0 (2003)</option>\n"+
 "        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0 (2007)</option>\n"+
 "        <option value=\"4.0\" "+(serverVersion.equals("4.0")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010)</option>\n"+
-"        <option value=\"4.0AWS\" "+(serverVersion.equals("4.0AWS")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010), Amazon version</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -5078,7 +5075,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getSites( encodePath(parentSite), websBroken );
+    return proxy.getSites( encodePath(parentSite) );
   }
 
   /**
