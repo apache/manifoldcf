@@ -1252,7 +1252,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String listID = proxy.getListID( encodePath(site), site, listName );
             if (listID != null)
             {
-              ListItemStream fs = new ListItemStream( activities, encodedServerLocation, siteListPath, spec );
+              ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , listID, dspStsWorks );
               if (!success)
               {
@@ -1422,7 +1422,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String libID = proxy.getDocLibID( encodePath(site), site, libName );
             if (libID != null)
             {
-              FileStream fs = new FileStream( activities, encodedServerLocation, siteLibPath, spec );
+              FileStream fs = new FileStream( activities, encodedServerLocation, site, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
               if (!success)
               {
@@ -1887,14 +1887,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final IProcessActivity activities;
     protected final DocumentSpecification spec;
     protected final String rootPath;
-    protected final String siteLibPath;
+    protected final String sitePath;
     
-    public FileStream(IProcessActivity activities, String rootPath, String siteLibPath, DocumentSpecification spec)
+    public FileStream(IProcessActivity activities, String rootPath, String sitePath, DocumentSpecification spec)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
-      this.siteLibPath = siteLibPath;
+      this.sitePath = sitePath;
     }
     
     public void addFile(String relPath)
@@ -1904,7 +1904,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       // First, convert the relative path to a full path
       if ( !relPath.startsWith("/") )
       {
-        relPath = rootPath + siteLibPath + "/" + relPath;
+        relPath = rootPath + sitePath + "/" + relPath;
       }
       
       // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
@@ -1916,15 +1916,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
           // The way I've chosen to do this is to use a double slash at that point, as a separator.
-          if (relPath.length() >= siteLibPath.length())
+          if (relPath.length() >= sitePath.length())
           {
-            String modifiedPath = relPath.substring(0,siteLibPath.length()) + "/" + relPath.substring(siteLibPath.length());
+            String modifiedPath = relPath.substring(0,sitePath.length()) + "/" + relPath.substring(sitePath.length());
 
             activities.addDocumentReference( modifiedPath );
           }
           else
           {
-            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with "+siteLibPath);
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with "+sitePath);
           }
         }
       }
@@ -1940,14 +1940,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final IProcessActivity activities;
     protected final DocumentSpecification spec;
     protected final String rootPath;
-    protected final String siteListPath;
+    protected final String sitePath;
 
-    public ListItemStream(IProcessActivity activities, String rootPath, String siteListPath, DocumentSpecification spec)
+    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, DocumentSpecification spec)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
-      this.siteListPath = siteListPath;
+      this.sitePath = sitePath;
     }
     
     public void addFile(String relPath)
@@ -1956,7 +1956,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       // First, convert the relative path to a full path
       if ( !relPath.startsWith("/") )
       {
-        relPath = rootPath + siteListPath + "/" + relPath;
+        relPath = rootPath + sitePath + "/" + relPath;
       }
 
       // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
@@ -1972,7 +1972,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         {
           // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
           // The way I've chosen to do this is to use a triple slash at that point, as a separator.
-          String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
+          String modifiedPath = relPath.substring(0,sitePath.length()) + "//" + relPath.substring(sitePath.length());
 
           activities.addDocumentReference( modifiedPath );
         }
