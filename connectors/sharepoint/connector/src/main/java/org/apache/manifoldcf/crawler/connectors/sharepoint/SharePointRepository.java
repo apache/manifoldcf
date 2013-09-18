@@ -85,7 +85,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
-  private boolean fullListPaths = true;
   
   private String serverProtocol = null;
   private String serverUrl = null;
@@ -146,8 +145,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
-      dspStsWorks = !(serverVersion.equals("4.0") || serverVersion.equals("4.0AWS"));
-      fullListPaths = !serverVersion.equals("4.0AWS");
+      dspStsWorks = !serverVersion.equals("4.0");
 
       serverProtocol = params.getParameter( "serverProtocol" );
       if (serverProtocol == null)
@@ -514,13 +512,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("sites/".length());
-        ArrayList sites = getSites(sitePath);
+        List<NameValue> sites = getSites(sitePath);
         int i = 0;
         while (i < sites.size())
         {
-          String site = (String)sites.get(i++);
+          NameValue site = sites.get(i++);
           ConfigurationNode node = new ConfigurationNode("site");
-          node.setValue(site);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(site.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(site.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -538,13 +542,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("libraries/".length());
-        ArrayList libs = getDocLibsBySite(sitePath);
+        List<NameValue> libs = getDocLibsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
         {
-          String lib = (String)libs.get(i++);
+          NameValue lib = libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("library");
-          node.setValue(lib);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(lib.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(lib.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -562,13 +572,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("lists/".length());
-        ArrayList libs = getListsBySite(sitePath);
+        List<NameValue> libs = getListsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
         {
-          String lib = (String)libs.get(i++);
+          NameValue lib = libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("list");
-          node.setValue(lib);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(lib.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(lib.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -759,7 +775,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String listID = listIDMap.get(decodedListPath);
               if (listID == null)
               {
-                listID = proxy.getListID(encodedSitePath, sitePath, list, fullListPaths);
+                listID = proxy.getListID(encodedSitePath, sitePath, list);
                 if (listID != null)
                   listIDMap.put(decodedListPath,listID);
               }
@@ -914,7 +930,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String libID = libIDMap.get(decodedLibPath);
               if (libID == null)
               {
-                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib, fullListPaths);
+                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
                 if (libID != null)
                   libIDMap.put(decodedLibPath,libID);
               }
@@ -1231,13 +1247,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
 
-            // Calculate the start of the path part that would contain the list item name
-            int listItemPathIndex = site.length() + 1 + listName.length();
-
-            String listID = proxy.getListID( encodePath(site), site, listName, fullListPaths );
+            String listID = proxy.getListID( encodePath(site), site, listName );
             if (listID != null)
             {
-              ListItemStream fs = new ListItemStream( activities, listItemPathIndex, spec );
+              ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , listID, dspStsWorks );
               if (!success)
               {
@@ -1329,7 +1342,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     String listID = listIDMap.get(decodedListPath);
                     if (listID == null)
                     {
-                      listID = proxy.getListID( encodePath(site), site, listName, fullListPaths );
+                      listID = proxy.getListID( encodePath(site), site, listName );
                       if (listID == null)
                         listID = "";
                       listIDMap.put(decodedListPath,listID);
@@ -1404,13 +1417,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
 
-            // Calculate the start of the path part that would contain the folders/file
-            int foldersFilePathIndex = encodedServerLocation.length() + site.length() + 1 + libName.length();
-
-            String libID = proxy.getDocLibID( encodePath(site), site, libName, fullListPaths );
+            String libID = proxy.getDocLibID( encodePath(site), site, libName );
             if (libID != null)
             {
-              FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
+              FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec );
               boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
               if (!success)
               {
@@ -1621,7 +1631,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                         String documentLibID = docLibIDMap.get(decodedLibPath);
                         if (documentLibID == null)
                         {
-                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName, fullListPaths );
+                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName );
                           if (documentLibID == null)
                             documentLibID = "";
                           docLibIDMap.put(decodedLibPath,documentLibID);
@@ -1726,13 +1736,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
 
           // Look at subsites
-          ArrayList subsites = proxy.getSites( encodePath(decodedSitePath) );
+          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath) );
           if (subsites != null)
           {
             int j = 0;
             while (j < subsites.size())
             {
-              NameValue subSiteName = (NameValue)subsites.get(j++);
+              NameValue subSiteName = subsites.get(j++);
               String newPath = decodedSitePath + "/" + subSiteName.getValue();
 
               String encodedNewPath = encodePath(newPath);
@@ -1747,13 +1757,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at libraries
-          ArrayList libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath, fullListPaths );
+          List<NameValue> libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
           if (libraries != null)
           {
             int j = 0;
             while (j < libraries.size())
             {
-              NameValue library = (NameValue)libraries.get(j++);
+              NameValue library = libraries.get(j++);
               String newPath = decodedSitePath + "/" + library.getValue();
 
               if (checkIncludeLibrary(newPath,spec))
@@ -1768,13 +1778,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at lists
-          ArrayList lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath, fullListPaths );
+          List<NameValue> lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
           if (lists != null)
           {
             int j = 0;
             while (j < lists.size())
             {
-              NameValue list = (NameValue)lists.get(j++);
+              NameValue list = lists.get(j++);
               String newPath = decodedSitePath + "/" + list.getValue();
 
               if (checkIncludeList(newPath,spec))
@@ -1872,65 +1882,123 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
   protected class FileStream implements IFileStream
   {
-    protected IProcessActivity activities;
-    protected int foldersFilePathIndex;
-    protected DocumentSpecification spec;
+    protected final IProcessActivity activities;
+    protected final DocumentSpecification spec;
+    protected final String rootPath;
+    protected final String sitePath;
+    protected final String siteLibPath;
     
-    public FileStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec)
     {
       this.activities = activities;
-      this.foldersFilePathIndex = foldersFilePathIndex;
       this.spec = spec;
+      this.rootPath = rootPath;
+      this.sitePath = sitePath;
+      this.siteLibPath = siteLibPath;
     }
     
     public void addFile(String relPath)
       throws ManifoldCFException
     {
-      if ( checkIncludeFile( relPath, spec ) )
-      {
-        // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
-        // The way I've chosen to do this is to use a double slash at that point, as a separator.
-        if (relPath.length() >= foldersFilePathIndex)
-        {
-          String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
 
-          activities.addDocumentReference( modifiedPath );
-        }
-        else
+      // First, convert the relative path to a full path
+      if ( !relPath.startsWith("/") )
+      {
+        relPath = rootPath + sitePath + "/" + relPath;
+      }
+      
+      // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
+      if ( relPath.startsWith(rootPath) )
+      {
+        relPath = relPath.substring(rootPath.length());
+      
+        if ( checkIncludeFile( relPath, spec ) )
         {
-          Logging.connectors.warn("Sharepoint: Unexpected relPath structure; path is '"+relPath+"', but expected <list/library> length of "+foldersFilePathIndex);
+          // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
+          // The way I've chosen to do this is to use a double slash at that point, as a separator.
+          if (relPath.startsWith(siteLibPath))
+          {
+            // Split at the libpath/file boundary
+            String modifiedPath = siteLibPath + "/" + relPath.substring(siteLibPath.length());
+
+            activities.addDocumentReference( modifiedPath );
+          }
+          else
+          {
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+siteLibPath+"'");
+          }
         }
+      }
+      else
+      {
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+rootPath+"'");
       }
     }
   }
   
   protected class ListItemStream implements IFileStream
   {
-    protected IProcessActivity activities;
-    protected int foldersFilePathIndex;
-    protected DocumentSpecification spec;
-    
-    public ListItemStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    protected final IProcessActivity activities;
+    protected final DocumentSpecification spec;
+    protected final String rootPath;
+    protected final String sitePath;
+    protected final String siteListPath;
+
+    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec)
     {
       this.activities = activities;
-      this.foldersFilePathIndex = foldersFilePathIndex;
       this.spec = spec;
+      this.rootPath = rootPath;
+      this.sitePath = sitePath;
+      this.siteListPath = siteListPath;
     }
     
     public void addFile(String relPath)
       throws ManifoldCFException
     {
-      // First, strip "Lists" from relPath
-      if (!relPath.startsWith("/Lists/"))
-        throw new ManifoldCFException("Expected path to start with /Lists/");
-      relPath = relPath.substring("/Lists".length());
-      if ( checkIncludeListItem( relPath, spec ) )
+      // First, convert the relative path to a full path
+      if ( !relPath.startsWith("/") )
       {
-        // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
-        // The way I've chosen to do this is to use a triple slash at that point, as a separator.
-        String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "//" + relPath.substring(foldersFilePathIndex);
+        relPath = rootPath + sitePath + "/" + relPath;
+      }
 
-        activities.addDocumentReference( modifiedPath );
+      // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
+      if ( relPath.startsWith(rootPath) )
+      {
+        relPath = relPath.substring(rootPath.length());
+
+        if (relPath.startsWith(sitePath))
+        {
+          relPath = relPath.substring(sitePath.length());
+          
+          // Now, strip "Lists" from relPath
+          if (!relPath.startsWith("/Lists/"))
+            throw new ManifoldCFException("Expected path to start with /Lists/");
+          relPath = sitePath + relPath.substring("/Lists".length());
+          if ( checkIncludeListItem( relPath, spec ) )
+          {
+            if (relPath.startsWith(siteListPath))
+            {
+              // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
+              // The way I've chosen to do this is to use a triple slash at that point, as a separator.
+              String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
+
+              activities.addDocumentReference( modifiedPath );
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+siteListPath+"'");
+            }
+          }
+        }
+        else
+        {
+          Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+sitePath+"'");
+        }
+      }
+      else
+      {
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+rootPath+"'");
       }
     }
 
@@ -2143,7 +2211,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 "        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0 (2003)</option>\n"+
 "        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0 (2007)</option>\n"+
 "        <option value=\"4.0\" "+(serverVersion.equals("4.0")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010)</option>\n"+
-"        <option value=\"4.0AWS\" "+(serverVersion.equals("4.0AWS")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010), Amazon version</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -2844,9 +2911,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Grab next site list and lib list
-      ArrayList childSiteList = null;
-      ArrayList childLibList = null;
-      ArrayList childListList = null;
+      List<NameValue> childSiteList = null;
+      List<NameValue> childLibList = null;
+      List<NameValue> childListList = null;
       String message = null;
       if (pathState.equals("site"))
       {
@@ -2992,7 +3059,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childSiteList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childSite = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childSiteList.get(q++);
+            NameValue childSite = childSiteList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
             );
@@ -3012,7 +3079,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childLibList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childLib = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childLibList.get(q++);
+            NameValue childLib = childLibList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
             );
@@ -3032,7 +3099,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childListList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
+            NameValue childList = childListList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
             );
@@ -3560,9 +3627,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
       
       // Grab next site list and lib list
-      ArrayList childSiteList = null;
-      ArrayList childLibList = null;
-      ArrayList childListList = null;
+      List<NameValue> childSiteList = null;
+      List<NameValue> childLibList = null;
+      List<NameValue> childListList = null;
 
       if (message == null && metaPathState.equals("site"))
       {
@@ -3700,7 +3767,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childSiteList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childSite = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childSiteList.get(q++);
+            NameValue childSite = childSiteList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
             );
@@ -3720,7 +3787,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childLibList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childLib = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childLibList.get(q++);
+            NameValue childLib = childLibList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
             );
@@ -3740,7 +3807,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           int q = 0;
           while (q < childListList.size())
           {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
+            NameValue childList = childListList.get(q++);
             out.print(
 "                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
             );
@@ -5004,7 +5071,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary, fullListPaths ) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary ) );
   }
 
   /**
@@ -5017,7 +5084,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName, fullListPaths ) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName ) );
   }
 
   /**
@@ -5025,7 +5092,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site path to search for subsites, empty for root.
   * @return list of the sites
   */
-  public ArrayList getSites( String parentSite )
+  public List<NameValue> getSites( String parentSite )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
@@ -5037,11 +5104,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site to search for libraries, empty for root.
   * @return list of the libraries
   */
-  public ArrayList getDocLibsBySite( String parentSite )
+  public List<NameValue> getDocLibsBySite( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return proxy.getDocumentLibraries( encodePath(parentSite), parentSite, fullListPaths );
+    return proxy.getDocumentLibraries( encodePath(parentSite), parentSite );
   }
 
   /**
@@ -5049,11 +5116,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site to search for lists, empty for root.
   * @return list of the lists
   */
-  public ArrayList getListsBySite( String parentSite )
+  public List<NameValue> getListsBySite( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return proxy.getLists( encodePath(parentSite), parentSite, fullListPaths );
+    return proxy.getLists( encodePath(parentSite), parentSite );
   }
 
   // Protected static methods

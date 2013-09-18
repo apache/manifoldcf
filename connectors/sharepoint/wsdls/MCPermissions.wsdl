@@ -115,10 +115,10 @@
   </wsdl:binding>
   <wsdl:service name="Permissions">
     <wsdl:port name="PermissionsSoap" binding="tns:PermissionsSoap">
-      <soap:address location="http://win-0hb0c25kl3n:33445/_vti_bin/MCPermissions.asmx" />
+      <soap:address location="http://localhost/_vti_bin/MCPermissions.asmx" />
     </wsdl:port>
     <wsdl:port name="PermissionsSoap12" binding="tns:PermissionsSoap12">
-      <soap12:address location="http://win-0hb0c25kl3n:33445/_vti_bin/MCPermissions.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/MCPermissions.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

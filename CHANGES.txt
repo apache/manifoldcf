@@ -3,6 +3,13 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-772: SharePoint connector wasn't working against
+certain SharePoint instances.  The reason was that some paths
+were relative and some absolute.  Fixed ALL path management to
+have stronger check logic so bad paths are detected, warned, and
+skipped.
+(Dmitry Goldenberg, Karl Wright)
+
 CONNECTORS-775: Use httpclient 4.2.6.
 (Karl Wright)
 
@@ -11,11 +18,6 @@ CONNECTORS-774: Add support for proxies to Wiki connector.
 
 CONNECTORS-773: Add support for proxies to Jira connectors.
 (Karl Wright)
-
-CONNECTORS-772: SharePoint connector wasn't working against
-AWS SharePoint instances.  Added a new AWS pulldown selection
-to deal with the funky configuration there.
-(Dmitry Goldenberg, Karl Wright)
 
 CONNECTORS-770: Java7 no longer allows an interface to be
 interchangeable with a class.  Modified FileNet stub accordingly.

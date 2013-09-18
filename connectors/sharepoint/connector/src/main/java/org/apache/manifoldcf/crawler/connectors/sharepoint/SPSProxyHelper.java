@@ -589,21 +589,6 @@ public class SPSProxyHelper {
           Object node = nodeDocs.get(j);
           Logging.connectors.debug( node.toString() );
           String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
-
-          // This relative path is apparently from the domain on down; if there's a location offset we therefore
-          // need to get rid of it before checking the document against the site/library tuples.  The recorded
-          // document identifier should also not include it.
-
-          if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
-          {
-            // Unexpected processing error; the path to the folder or document did not start with the location
-            // offset, so throw up.
-            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-              serverLocation+"'");
-          }
-
-          relPath = relPath.substring(serverLocation.length());
-
           fileStream.addFile( relPath );
         }
       }
@@ -649,9 +634,6 @@ public class SPSProxyHelper {
                 {
                   resultCount++;
                   String relPath = result.getAttribute("FileRef");
-
-                  relPath = "/" + relPath;
-
                   fileStream.addFile( relPath );
                 }
               }
@@ -768,6 +750,7 @@ public class SPSProxyHelper {
     }
   }
 
+
   /**
   *
   * @param parentSite
@@ -776,7 +759,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary, boolean fullListPaths)
+  public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary)
     throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
@@ -815,7 +798,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -833,22 +816,29 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the library name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-
-            if ( pathpart.equals(docLibrary) )
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              // We found it!
-              // Return its ID
-              return doc.getValue( o, "ID" );
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the library name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+
+              if ( pathpart.equals(docLibrary) )
+              {
+                // We found it!
+                // Return its ID
+                return doc.getValue( o, "ID" );
+              }
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Library view url is not in the expected form: '"+urlPath+"'; it should start with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -965,7 +955,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String getListID(String parentSite, String parentSiteDecoded, String listName, boolean fullListPaths)
+  public String getListID(String parentSite, String parentSiteDecoded, String listName)
     throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
@@ -1004,7 +994,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -1022,29 +1012,36 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-            if("Lists".equals(pathpart))
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              int k = urlPath.indexOf("/",index+1);
-              if (k == -1)
-                throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
-              pathpart = urlPath.substring(index+1,k);
-            }
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the Lists/listname part of the name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+              if("Lists".equals(pathpart))
+              {
+                int k = urlPath.indexOf("/",index+1);
+                if (k == -1)
+                  throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+                pathpart = urlPath.substring(index+1,k);
+              }
 
-            if ( pathpart.equals(listName) )
+              if ( pathpart.equals(listName) )
+              {
+                // We found it!
+                // Return its ID
+                return doc.getValue( o, "ID" );
+              }
+            }
+            else
             {
-              // We found it!
-              // Return its ID
-              return doc.getValue( o, "ID" );
+              Logging.connectors.warn("SharePoint: List view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -1455,13 +1452,8 @@ public class SPSProxyHelper {
       {
         // The web service allows us to get acls for a site, so that's what we will attempt
 
-        // This fails:
         MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
-
-        // This works:
-        //PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, myFactory, configuration );
-        //com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
         aclCall.getPermissionCollection( "/", "Web" );
       }
@@ -1499,7 +1491,7 @@ public class SPSProxyHelper {
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 	  else if (httpErrorCode.equals("302"))
-	    throw new ManifoldCFException("ManifoldCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
+	    throw new ManifoldCFException("The correct version of ManifoldCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
           else
             throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
         }
@@ -1944,14 +1936,15 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for subsites, empty string for root
   * @return lists of sites as an arraylist of NameValue objects
   */
-  public ArrayList getSites( String parentSite )
+  public List<NameValue> getSites( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
+      // Call the webs service
       if ( parentSite.equals( "/") ) parentSite = "";
         WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, configuration, httpClient );
       WebsSoap webCall = webService.getWebsSoapHandler();
@@ -1986,7 +1979,7 @@ public class SPSProxyHelper {
         // Leave here for now
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("SharePoint: Subsite list: '"+url+"', '"+title+"'");
-
+        
         // A full path to the site is tacked on the front of each one of these.  However, due to nslookup differences, we cannot guarantee that
         // the server name part of the path will actually match what got passed in.  Therefore, we want to look only at the last path segment, whatever that is.
         if (url != null && url.length() > 0)
@@ -2004,7 +1997,7 @@ public class SPSProxyHelper {
           }
         }
       }
-
+      
       return result;
     }
     catch (java.net.MalformedURLException e)
@@ -2068,13 +2061,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for document libraries, empty string for root
   * @return lists of NameValue objects, representing document libraries
   */
-  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded, boolean fullListPaths )
+  public List<NameValue> getDocumentLibraries( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       String parentSiteRequest = parentSite;
 
@@ -2107,7 +2100,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -2131,22 +2124,29 @@ public class SPSProxyHelper {
           // It's a library.  If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the library name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-
-            if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              if (title == null || title.length() == 0)
-                title = pathpart;
-              result.add( new NameValue(pathpart, title) );
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the library name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+
+              if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+              {
+                if (title == null || title.length() == 0)
+                  title = pathpart;
+                result.add( new NameValue(pathpart, title) );
+              }
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Library view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -2212,13 +2212,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for lists, empty string for root
   * @return lists of NameValue objects, representing lists
   */
-  public ArrayList getLists( String parentSite, String parentSiteDecoded, boolean fullListPaths )
+  public List<NameValue> getLists( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       String parentSiteRequest = parentSite;
 
@@ -2251,7 +2251,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = fullListPaths?decodedServerLocation.length() + parentSiteDecoded.length():0;
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -2275,30 +2275,37 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-
-            if("Lists".equals(pathpart))
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              int k = urlPath.indexOf("/",index+1);
-              if (k == -1)
-                throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
-              pathpart = urlPath.substring(index+1,k);
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+
+              if("Lists".equals(pathpart))
+              {
+                int k = urlPath.indexOf("/",index+1);
+                if (k == -1)
+                  throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+                pathpart = urlPath.substring(index+1,k);
+              }
+
+              if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+              {
+                if (title == null || title.length() == 0)
+                  title = pathpart;
+                result.add( new NameValue(pathpart, title) );
+              }
             }
-
-            if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+            else
             {
-              if (title == null || title.length() == 0)
-                title = pathpart;
-              result.add( new NameValue(pathpart, title) );
+              Logging.connectors.warn("SharePoint: List view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'; skipping");
             }
           }
         }
