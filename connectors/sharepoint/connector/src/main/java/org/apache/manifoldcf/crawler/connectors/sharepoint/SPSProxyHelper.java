@@ -759,7 +759,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary, boolean fullListPaths)
+  public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary)
     throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
@@ -952,7 +952,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String getListID(String parentSite, String parentSiteDecoded, String listName, boolean fullListPaths)
+  public String getListID(String parentSite, String parentSiteDecoded, String listName)
     throws ServiceInterruption, ManifoldCFException
   {
     long currentTime;
@@ -2120,7 +2120,7 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for document libraries, empty string for root
   * @return lists of NameValue objects, representing document libraries
   */
-  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded, boolean fullListPaths )
+  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -2268,7 +2268,7 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for lists, empty string for root
   * @return lists of NameValue objects, representing lists
   */
-  public ArrayList getLists( String parentSite, String parentSiteDecoded, boolean fullListPaths )
+  public ArrayList getLists( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
