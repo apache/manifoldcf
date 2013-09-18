@@ -1278,7 +1278,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               
               int cutoff = decodedListPath.lastIndexOf("/");
 
-              String encodedItemPath = encodePath(decodedListPath.substring(cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
+              String encodedItemPath = encodePath(decodedListPath.substring(0,cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
 
               int listCutoff = decodedListPath.lastIndexOf( "/" );
               String site = decodedListPath.substring(0,listCutoff);
