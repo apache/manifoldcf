@@ -1531,6 +1531,127 @@ public class SPSProxyHelper {
     }
   }
 
+  /** Gets a list of attachment URLs, given a site, list name, and list item ID.  The returned URLs will be relative to the site.
+  */
+  public List<String> getAttachmentURLs( String site, String listName, String itemID, boolean supportsAttachments )
+    throws ManifoldCFException, ServiceInterruption
+  {
+    long currentTime;
+    try
+    {
+      ArrayList<String> result = new ArrayList<String>();
+      if (supportsAttachments)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: In getAttachmentURLs; site='"+site+"', listName='"+listName+"', itemID='"+itemID+"'");
+
+        // The docLibrary must be a GUID, because we don't have  title.
+
+        if ( site.compareTo( "/") == 0 )
+          site = "";
+        ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
+        ListsSoap listCall = listService.getListsSoapHandler();
+
+        GetAttachmentCollectionResponseGetAttachmentCollectionResult listResponse =
+          listCall.getAttachmentCollection( listName, itemID );
+        org.apache.axis.message.MessageElement[] List = listResponse.get_any();
+
+        System.out.println(List[0].toString());
+        
+        XMLDoc doc = new XMLDoc( List[0].toString() );
+        ArrayList nodeList = new ArrayList();
+
+        doc.processPath(nodeList, "*", null);
+        if (nodeList.size() != 1)
+        {
+          throw new ManifoldCFException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
+        }
+
+        Object parent = nodeList.get(0);
+        if (!doc.getNodeName(parent).equals("ns1:List"))
+          throw new ManifoldCFException("Bad xml - outer node is '" + doc.getNodeName(parent) + "' not 'ns1:List'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", parent);  // <ns1:Attachments>
+
+        Object attachments = nodeList.get(0);
+        if ( !doc.getNodeName(attachments).equals("ns1:Attachments") )
+          throw new ManifoldCFException( "Bad xml - child node 0 '" + doc.getNodeName(attachments) + "' is not 'ns1:Attachments'");
+
+        nodeList.clear();
+        doc.processPath(nodeList, "*", attachments);
+
+        int i = 0;
+        while (i < nodeList.size())
+        {
+          Object o = nodeList.get( i++ );
+          String attachmentURL = doc.getValue( o, "ns1:Attachment" );
+          if (attachmentURL != null)
+            result.add(attachmentURL);
+        }
+      }
+      return result;
+    }
+    catch (java.net.MalformedURLException e)
+    {
+      throw new ManifoldCFException("Bad SharePoint url: "+e.getMessage(),e);
+    }
+    catch (javax.xml.rpc.ServiceException e)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Got a service exception getting attachments for site "+site+" listName "+listName+" itemID "+itemID+" - retrying",e);
+      currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
+        currentTime + 12 * 60 * 60000L,-1,true);
+    }
+    catch (org.apache.axis.AxisFault e)
+    {
+      if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
+      {
+        org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
+        if (elem != null)
+        {
+          elem.normalize();
+          String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
+          if (httpErrorCode.equals("404"))
+            return null;
+          else if (httpErrorCode.equals("403"))
+            throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
+          else if (httpErrorCode.equals("401"))
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get attachment list for site "+site+" listName "+listName+" itemID "+itemID+" - skipping",e);
+            return null;
+          }
+          throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+        }
+        throw new ManifoldCFException("Unknown http error occurred: "+e.getMessage(),e);
+      }
+
+      if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
+      {
+        String exceptionName = e.getFaultString();
+        if (exceptionName.equals("java.lang.InterruptedException"))
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+
+      // I don't know if this is what you get when the library is missing, but here's hoping.
+      if (e.getMessage().indexOf("List does not exist") != -1)
+        return null;
+
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Got a remote exception getting attachments for site "+site+" listName "+listName+" itemID "+itemID+" - retrying",e);
+      currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(), e, currentTime + 300000L,
+        currentTime + 3 * 60 * 60000L,-1,false);
+    }
+    catch (java.rmi.RemoteException e)
+    {
+      throw new ManifoldCFException("Unexpected remote exception occurred: "+e.getMessage(),e);
+    }
+
+  }
+  
   /**
   * Gets a list of field names of the given document library
   * @param site
@@ -1550,8 +1671,9 @@ public class SPSProxyHelper {
 
       // The docLibrary must be a GUID, because we don't have  title.
 
-      if ( site.compareTo( "/") == 0 ) site = "";
-        ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
+      if ( site.compareTo( "/") == 0 )
+        site = "";
+      ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
       ListsSoap listCall = listService.getListsSoapHandler();
 
       GetListResponseGetListResult listResponse = listCall.getList( listName );

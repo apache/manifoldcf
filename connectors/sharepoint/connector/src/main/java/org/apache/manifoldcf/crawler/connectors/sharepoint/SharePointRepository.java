@@ -1276,9 +1276,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
               String decodedItemPath = decodedListPath + documentIdentifier.substring(dListSeparatorIndex+2);
               
+              // The item path may actually reference both an item number and a binary attachment.  Still trying to determine how to encode this.
+              // ???
+              
               int cutoff = decodedListPath.lastIndexOf("/");
-
-              String encodedItemPath = encodePath(decodedListPath.substring(cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
+              String encodedItemPath = encodePath(decodedListPath.substring(0,cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
 
               int listCutoff = decodedListPath.lastIndexOf( "/" );
               String site = decodedListPath.substring(0,listCutoff);
@@ -1365,6 +1367,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                       {
                         String fieldName = (String)iter.next();
                         String fieldData = (String)values.get(fieldName);
+                        System.out.println("Item '"+decodedItemPath+"' has field '"+fieldName+"' value '"+fieldData+"'");
                         data.addField(fieldName,fieldData);
                       }
                     }
