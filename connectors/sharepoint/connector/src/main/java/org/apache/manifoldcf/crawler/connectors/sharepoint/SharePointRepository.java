@@ -765,6 +765,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
             String itemAndAttachment = documentIdentifier.substring(dListSeparatorIndex+2);
             String decodedItemPath = decodedListPath + itemAndAttachment;
+            
+            int cutoff = decodedListPath.lastIndexOf("/");
+            String sitePath = decodedListPath.substring(0,cutoff);
+            String list = decodedListPath.substring(cutoff+1);
+
+            String encodedSitePath = encodePath(sitePath);
 
             int attachmentSeparatorIndex = itemAndAttachment.indexOf("/");
             if (attachmentSeparatorIndex == -1)
@@ -774,12 +780,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               {
                 // This file is included, so calculate a version string.  This will include metadata info, so get that first.
                 MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
-
-                int lastIndex = decodedListPath.lastIndexOf("/");
-                String sitePath = decodedListPath.substring(0,lastIndex);
-                String list = decodedListPath.substring(lastIndex+1);
-
-                String encodedSitePath = encodePath(sitePath);
 
                 // Need to get the library id.  Cache it if we need to calculate it.
                 String listID = listIDMap.get(decodedListPath);
@@ -801,7 +801,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     metadataDescription.add("Modified");
                     metadataDescription.add("Created");
                     // The document path includes the library, with no leading slash, and is decoded.
-                    int cutoff = decodedListPath.lastIndexOf("/");
                     String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
                     Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
                     String modifiedDate = (String)values.get("Modified");
@@ -905,8 +904,118 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             else
             {
               // == List item attachment path! ==
-              // MHL
-              rval[i] = "";
+              if (checkIncludeListItemAttachment(decodedItemPath,spec))
+              {
+
+                // List item attachments have the same version info as list items, except there is no metadata with them.
+                // Need to get the library id.  Cache it if we need to calculate it.
+                String listID = listIDMap.get(decodedListPath);
+                if (listID == null)
+                {
+                  listID = proxy.getListID(encodedSitePath, sitePath, list);
+                  if (listID != null)
+                    listIDMap.put(decodedListPath,listID);
+                }
+
+                if (listID != null)
+                {
+
+                  
+                  // Next, get the actual timestamp field for the file.
+                  ArrayList metadataDescription = new ArrayList();
+                  metadataDescription.add("Modified");
+                  metadataDescription.add("Created");
+                  
+                  // ??? we need to strip the item ID
+                  // The document path includes the library, with no leading slash, and is decoded.
+                  String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
+                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+                  String modifiedDate = (String)values.get("Modified");
+                  String createdDate = (String)values.get("Created");
+                  if (modifiedDate != null)
+                  {
+                    // Item has a modified date so we presume it exists.
+                      
+                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+                      
+                    // Build version string
+                    String versionToken = modifiedDate;
+                      
+                    StringBuilder sb = new StringBuilder();
+
+                    // Do the acls.
+                    boolean foundAcls = true;
+                    if (acls != null)
+                    {
+                      sb.append('+');
+
+                      // If there are forced acls, use those in the version string instead.
+                      String[] accessTokens;
+                      if (acls.length == 0)
+                      {
+                        // The goal here is simply to record what should get ingested with the document, so that
+                        // we can compare against future values.
+                        // Grab the acls for this combo, if we haven't already
+                        accessTokens = lookupAccessTokensSorted(encodedSitePath,listID,ACLmap);
+                            
+                        if (accessTokens == null)
+                          foundAcls = false;
+                          
+                      }
+                      else
+                        accessTokens = acls;
+                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
+                      if (foundAcls)
+                      {
+                        packList(sb,accessTokens,'+');
+                        // Added 4/21/2008 to handle case when AD authority is down
+                        pack(sb,defaultAuthorityDenyToken,'+');
+                      }
+                    }
+                    else
+                      sb.append('-');
+                    if (foundAcls)
+                    {
+                      packDate(sb,modifiedDateValue);
+                      packDate(sb,createdDateValue);
+                      // The rest of this is unparseable
+                      sb.append(versionToken);
+                      sb.append(pathNameAttributeVersion);
+                      sb.append("_").append(fileBaseUrl);
+                      //
+                      rval[i] = sb.toString();
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
+                    }
+                    else
+                    {
+                      if (Logging.connectors.isDebugEnabled())
+                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for list '"+decodedListPath+"'; removing list item '"+documentIdentifier+"'");
+                      rval[i] = null;
+                    }
+                  }
+                  else
+                  {
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+                    rval[i] = null;
+                  }
+                }
+                else
+                {
+                  // Can't look up list ID, which means the list is gone, so delete
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list no longer exists");
+                  rval[i] = null;
+                }
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: List item attachment '"+documentIdentifier+"' is no longer included - removing");
+                rval[i] = null;
+              }
             }
           }
         }
@@ -1327,7 +1436,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
                 // Get the attachment names
                 List<String> attachmentNames = proxy.getAttachmentNames( site, listID, itemID );
-                // MHL
+                // Now, queue up each attachment as a separate entry
+                for (String attachmentName : attachmentNames)
+                {
+                  // No check for inclusion; if the list item is included, so is this
+                  activities.addDocumentReference(documentIdentifier + "/" + attachmentName);
+                }
               }
               
               if ( !scanOnly[ i ] )
@@ -1368,7 +1482,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 // Generate the URL we are going to use
                 String itemUrl = fileBaseUrl + encodedItemPath;
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug( "SharePoint: Processing item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
+                  Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
 
                 if (activities.checkLengthIndexable(0L))
                 {
@@ -5614,6 +5728,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       Logging.connectors.debug("SharePoint: File path '"+filePath+"' does not match any rules - excluding");
 
     return false;
+  }
+
+  /** Check if a list item attachment should be included.
+  *@param attachmentPath is the path to the attachment, including sites and list name, beneath the root site.
+  *@param documentSpecification is the document specification.
+  *@return true if file should be included.
+  */
+  protected boolean checkIncludeListItemAttachment( String attachmentPath, DocumentSpecification documentSpecification )
+  {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug( "SharePoint: Checking whether to include list item attachment '" + attachmentPath + "'" );
+
+    // There are no attachment rules, so they are always included
+    return true;
   }
 
   /** Check if a list item should be included.
