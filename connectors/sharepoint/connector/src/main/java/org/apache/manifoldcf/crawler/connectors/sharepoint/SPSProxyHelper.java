@@ -1533,63 +1533,67 @@ public class SPSProxyHelper {
 
   /** Gets a list of attachment URLs, given a site, list name, and list item ID.  The returned URLs will be relative to the site.
   */
-  public List<String> getAttachmentURLs( String site, String listName, String itemID, boolean supportsAttachments )
+  public List<String> getAttachmentNames( String site, String listName, String itemID )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
       ArrayList<String> result = new ArrayList<String>();
-      if (supportsAttachments)
-      {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("SharePoint: In getAttachmentURLs; site='"+site+"', listName='"+listName+"', itemID='"+itemID+"'");
+      
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: In getAttachmentURLs; site='"+site+"', listName='"+listName+"', itemID='"+itemID+"'");
 
-        // The docLibrary must be a GUID, because we don't have  title.
+      // The docLibrary must be a GUID, because we don't have  title.
 
-        if ( site.compareTo( "/") == 0 )
-          site = "";
-        ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
-        ListsSoap listCall = listService.getListsSoapHandler();
+      if ( site.compareTo( "/") == 0 )
+        site = "";
+      ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
+      ListsSoap listCall = listService.getListsSoapHandler();
 
-        GetAttachmentCollectionResponseGetAttachmentCollectionResult listResponse =
-          listCall.getAttachmentCollection( listName, itemID );
-        org.apache.axis.message.MessageElement[] List = listResponse.get_any();
+      GetAttachmentCollectionResponseGetAttachmentCollectionResult listResponse =
+        listCall.getAttachmentCollection( listName, itemID );
+      org.apache.axis.message.MessageElement[] List = listResponse.get_any();
 
-        System.out.println(List[0].toString());
+      System.out.println(List[0].toString());
         
-        XMLDoc doc = new XMLDoc( List[0].toString() );
-        ArrayList nodeList = new ArrayList();
+      XMLDoc doc = new XMLDoc( List[0].toString() );
+      ArrayList nodeList = new ArrayList();
 
-        doc.processPath(nodeList, "*", null);
-        if (nodeList.size() != 1)
+      doc.processPath(nodeList, "*", null);
+      if (nodeList.size() != 1)
+      {
+        throw new ManifoldCFException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
+      }
+
+      Object parent = nodeList.get(0);
+      if (!doc.getNodeName(parent).equals("ns1:List"))
+        throw new ManifoldCFException("Bad xml - outer node is '" + doc.getNodeName(parent) + "' not 'ns1:List'");
+
+      nodeList.clear();
+      doc.processPath(nodeList, "*", parent);  // <ns1:Attachments>
+
+      Object attachments = nodeList.get(0);
+      if ( !doc.getNodeName(attachments).equals("ns1:Attachments") )
+        throw new ManifoldCFException( "Bad xml - child node 0 '" + doc.getNodeName(attachments) + "' is not 'ns1:Attachments'");
+
+      nodeList.clear();
+      doc.processPath(nodeList, "*", attachments);
+
+      int i = 0;
+      while (i < nodeList.size())
+      {
+        Object o = nodeList.get( i++ );
+        String attachmentURL = doc.getValue( o, "ns1:Attachment" );
+        if (attachmentURL != null)
         {
-          throw new ManifoldCFException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
-        }
-
-        Object parent = nodeList.get(0);
-        if (!doc.getNodeName(parent).equals("ns1:List"))
-          throw new ManifoldCFException("Bad xml - outer node is '" + doc.getNodeName(parent) + "' not 'ns1:List'");
-
-        nodeList.clear();
-        doc.processPath(nodeList, "*", parent);  // <ns1:Attachments>
-
-        Object attachments = nodeList.get(0);
-        if ( !doc.getNodeName(attachments).equals("ns1:Attachments") )
-          throw new ManifoldCFException( "Bad xml - child node 0 '" + doc.getNodeName(attachments) + "' is not 'ns1:Attachments'");
-
-        nodeList.clear();
-        doc.processPath(nodeList, "*", attachments);
-
-        int i = 0;
-        while (i < nodeList.size())
-        {
-          Object o = nodeList.get( i++ );
-          String attachmentURL = doc.getValue( o, "ns1:Attachment" );
-          if (attachmentURL != null)
-            result.add(attachmentURL);
+          int index = attachmentURL.lastIndexOf("/");
+          if (index == -1)
+            throw new ManifoldCFException("Unexpected attachment URL form: '"+attachmentURL+"'");
+          result.add(attachmentURL.substring(index+1));
         }
       }
+
       return result;
     }
     catch (java.net.MalformedURLException e)
