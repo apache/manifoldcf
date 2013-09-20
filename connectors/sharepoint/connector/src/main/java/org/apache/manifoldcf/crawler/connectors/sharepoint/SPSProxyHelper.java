@@ -1531,18 +1531,19 @@ public class SPSProxyHelper {
     }
   }
 
-  /** Gets a list of attachment URLs, given a site, list name, and list item ID.  The returned URLs will be relative to the site.
+  /** Gets a list of attachment URLs, given a site, list name, and list item ID.  These will be returned
+  * as name/value pairs; the "name" is the name of the attachment, and the "value" is the full URL.
   */
-  public List<String> getAttachmentNames( String site, String listName, String itemID )
+  public List<NameValue> getAttachmentNames( String site, String listName, String itemID )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList<String> result = new ArrayList<String>();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
       
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: In getAttachmentURLs; site='"+site+"', listName='"+listName+"', itemID='"+itemID+"'");
+        Logging.connectors.debug("SharePoint: In getAttachmentNames; site='"+site+"', listName='"+listName+"', itemID='"+itemID+"'");
 
       // The docLibrary must be a GUID, because we don't have  title.
 
@@ -1590,7 +1591,7 @@ public class SPSProxyHelper {
           int index = attachmentURL.lastIndexOf("/");
           if (index == -1)
             throw new ManifoldCFException("Unexpected attachment URL form: '"+attachmentURL+"'");
-          result.add(attachmentURL.substring(index+1));
+          result.add(new NameValue(attachmentURL.substring(index+1), new java.net.URL(attachmentURL).getPath()));
         }
       }
 
@@ -1792,13 +1793,13 @@ public class SPSProxyHelper {
   * @param docId
   * @return set of the field values
   */
-  public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
+  public Map<String,String> getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      HashMap result = new HashMap();
+      HashMap<String,String> result = new HashMap<String,String>();
 
       if ( site.compareTo("/") == 0 ) site = ""; // root case
 
@@ -1987,7 +1988,7 @@ public class SPSProxyHelper {
           String attrValue = doc.getValue(o,"ows_"+(String)attrName);
           if (attrValue != null)
           {
-            result.put(attrName,valueMunge(attrValue));
+            result.put(attrName.toString(),valueMunge(attrValue));
           }
         }
       }

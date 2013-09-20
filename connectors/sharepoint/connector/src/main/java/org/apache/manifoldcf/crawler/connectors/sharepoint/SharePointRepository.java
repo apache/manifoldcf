@@ -802,9 +802,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     metadataDescription.add("Created");
                     // The document path includes the library, with no leading slash, and is decoded.
                     String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
-                    Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
-                    String modifiedDate = (String)values.get("Modified");
-                    String createdDate = (String)values.get("Created");
+                    Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+                    String modifiedDate = values.get("Modified");
+                    String createdDate = values.get("Created");
                     if (modifiedDate != null)
                     {
                       // Item has a modified date so we presume it exists.
@@ -907,106 +907,72 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               if (checkIncludeListItemAttachment(decodedItemPath,spec))
               {
 
-                // List item attachments have the same version info as list items, except there is no metadata with them.
-                // Need to get the library id.  Cache it if we need to calculate it.
-                String listID = listIDMap.get(decodedListPath);
-                if (listID == null)
+                // To save work, we retrieve most of what we need in version info from the parent.
+
+                // Retrieve modified and created dates
+                String[] modifiedDateSet = activities.retrieveParentData(documentIdentifier, "modifiedDate");
+                String[] createdDateSet = activities.retrieveParentData(documentIdentifier, "createdDate");
+                String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+                String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+                String[] urlSet = activities.retrieveParentData(documentIdentifier, "url");
+
+                // Only one modifiedDate and createdDate can be used.  If there's more than one, just pick one - the item will be reindexed
+                // anyhow.
+                String modifiedDate;
+                if (modifiedDateSet.length >= 1)
+                  modifiedDate = modifiedDateSet[0];
+                else
+                  modifiedDate = null;
+                String createdDate;
+                if (createdDateSet.length >= 1)
+                  createdDate = createdDateSet[0];
+                else
+                  createdDate = null;
+                String url;
+                if (urlSet.length >=1)
+                  url = urlSet[0];
+                else
+                  url = null;
+
+                // If we have no modified or created date, it means that the parent has gone away, so we go away too.
+                if (modifiedDate != null && createdDate != null && url != null)
                 {
-                  listID = proxy.getListID(encodedSitePath, sitePath, list);
-                  if (listID != null)
-                    listIDMap.put(decodedListPath,listID);
-                }
+                  // Item has a modified date so we presume it exists.
+                      
+                  Date modifiedDateValue = new Date(new Long(modifiedDate).longValue());
+                  Date createdDateValue = new Date(new Long(createdDate).longValue());
+                      
+                  // Build version string
+                  String versionToken = modifiedDate;
+                      
+                  StringBuilder sb = new StringBuilder();
 
-                if (listID != null)
-                {
-
+                  // Pack the URL to get the data from
+                  pack(sb,url,'+');
                   
-                  // Next, get the actual timestamp field for the file.
-                  ArrayList metadataDescription = new ArrayList();
-                  metadataDescription.add("Modified");
-                  metadataDescription.add("Created");
+                  // Do the acls.  If we get this far, we are guaranteed to have them, but we need to sort.
+                  java.util.Arrays.sort(accessTokens);
+                  java.util.Arrays.sort(denyTokens);
                   
-                  // ??? we need to strip the item ID
-                  // The document path includes the library, with no leading slash, and is decoded.
-                  String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
-                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
-                  String modifiedDate = (String)values.get("Modified");
-                  String createdDate = (String)values.get("Created");
-                  if (modifiedDate != null)
-                  {
-                    // Item has a modified date so we presume it exists.
-                      
-                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
-                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
-                      
-                    // Build version string
-                    String versionToken = modifiedDate;
-                      
-                    StringBuilder sb = new StringBuilder();
+                  packList(sb,accessTokens,'+');
+                  packList(sb,denyTokens,'+');
+                  packDate(sb,modifiedDateValue);
+                  packDate(sb,createdDateValue);
 
-                    // Do the acls.
-                    boolean foundAcls = true;
-                    if (acls != null)
-                    {
-                      sb.append('+');
-
-                      // If there are forced acls, use those in the version string instead.
-                      String[] accessTokens;
-                      if (acls.length == 0)
-                      {
-                        // The goal here is simply to record what should get ingested with the document, so that
-                        // we can compare against future values.
-                        // Grab the acls for this combo, if we haven't already
-                        accessTokens = lookupAccessTokensSorted(encodedSitePath,listID,ACLmap);
-                            
-                        if (accessTokens == null)
-                          foundAcls = false;
-                          
-                      }
-                      else
-                        accessTokens = acls;
-                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
-                      if (foundAcls)
-                      {
-                        packList(sb,accessTokens,'+');
-                        // Added 4/21/2008 to handle case when AD authority is down
-                        pack(sb,defaultAuthorityDenyToken,'+');
-                      }
-                    }
-                    else
-                      sb.append('-');
-                    if (foundAcls)
-                    {
-                      packDate(sb,modifiedDateValue);
-                      packDate(sb,createdDateValue);
-                      // The rest of this is unparseable
-                      sb.append(versionToken);
-                      sb.append(pathNameAttributeVersion);
-                      sb.append("_").append(fileBaseUrl);
-                      //
-                      rval[i] = sb.toString();
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                    }
-                    else
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for list '"+decodedListPath+"'; removing list item '"+documentIdentifier+"'");
-                      rval[i] = null;
-                    }
-                  }
-                  else
-                  {
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
-                    rval[i] = null;
-                  }
+                  // The rest of this is unparseable
+                  sb.append(versionToken);
+                  sb.append(pathNameAttributeVersion);
+                  sb.append("_").append(fileBaseUrl);
+                  //
+                  rval[i] = sb.toString();
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
                 }
                 else
                 {
                   // Can't look up list ID, which means the list is gone, so delete
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list no longer exists");
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list no longer apparently exists");
                   rval[i] = null;
                 }
               }
@@ -1075,12 +1041,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // The document path includes the library, with no leading slash, and is decoded.
                   int cutoff = decodedLibPath.lastIndexOf("/");
                   String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
-                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+                  Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
 
-                  String modifiedDate = (String)values.get("Modified");
-                  String createdDate = (String)values.get("Created");
+                  String modifiedDate = values.get("Modified");
+                  String createdDate = values.get("Created");
                   
-                  String modifyDate = (String)values.get("Last_x0020_Modified");
+                  String modifyDate = values.get("Last_x0020_Modified");
                   if (modifyDate != null)
                   {
                     // Item has a modified date, so we presume it exists
@@ -1413,6 +1379,39 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String site = decodedListPath.substring(0,cutoff);
               String listName = decodedListPath.substring( cutoff + 1 );
               
+              // Before we do anything further, unpack the info from the version string.
+              // We need to do this always because attachment queuing will require it, if enabled.
+
+              // Placeholder for metadata specification
+              ArrayList metadataDescription = new ArrayList();
+              int startPosition = unpackList(metadataDescription,version,0,'+');
+
+              // Acls
+              ArrayList acls = null;
+              ArrayList denyAcls = null;
+              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
+              {
+                acls = new ArrayList();
+                startPosition = unpackList(acls,version,startPosition,'+');
+                if (startPosition < version.length())
+                {
+                  StringBuilder denyAclBuffer = new StringBuilder();
+                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
+                  denyAcls = new ArrayList();
+                  denyAcls.add(denyAclBuffer.toString());
+                }
+              }
+
+              Date modifiedDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,modifiedDate);
+              if (modifiedDate.getTime() == 0L)
+                modifiedDate = null;
+              Date createdDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,createdDate);
+              if (createdDate.getTime() == 0L)
+                createdDate = null;
+
+              // Now, do any queuing that is needed.
               if (attachmentsSupported)
               {
                 String itemID = itemAndAttachment.substring(attachmentSeparatorIndex+1);
@@ -1435,12 +1434,40 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 }
 
                 // Get the attachment names
-                List<String> attachmentNames = proxy.getAttachmentNames( site, listID, itemID );
+                // MHL: need to get the item number from somewhere
+                String itemNumber = itemID;
+                
+                List<NameValue> attachmentNames = proxy.getAttachmentNames( site, listID, itemNumber );
                 // Now, queue up each attachment as a separate entry
-                for (String attachmentName : attachmentNames)
+                for (NameValue attachmentName : attachmentNames)
                 {
+                  // For attachments, we use the carry-down feature to get the data where we need it.  That's why
+                  // we unpacked the version information early above.
+                  
                   // No check for inclusion; if the list item is included, so is this
-                  activities.addDocumentReference(documentIdentifier + "/" + attachmentName);
+                  String[] dataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url"};
+                  String[][] dataValues = new String[3][];
+                  if (createdDate == null)
+                    dataValues[0] = new String[0];
+                  else
+                    dataValues[0] = new String[]{new Long(createdDate.getTime()).toString()};
+                  if (modifiedDate == null)
+                    dataValues[1] = new String[0];
+                  else
+                    dataValues[1] = new String[]{new Long(modifiedDate.getTime()).toString()};
+                  if (acls == null)
+                    dataValues[2] = new String[0];
+                  else
+                    dataValues[2] = (String[])acls.toArray(new String[0]);
+                  if (denyAcls == null)
+                    dataValues[3] = new String[0];
+                  else
+                    dataValues[3] = (String[])denyAcls.toArray(new String[0]);
+                  dataValues[4] = new String[]{attachmentName.getPrettyName()};
+
+                  activities.addDocumentReference(documentIdentifier + "/" + attachmentName.getValue(),
+                    null, null, dataNames, dataValues);
+                  
                 }
               }
               
@@ -1449,41 +1476,46 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 // Convert the modified document path to an unmodified one, plus a library path.
                 String encodedItemPath = encodePath(decodedListPath.substring(0,cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
                 
-                // Parse what we need out of version string.
-
-                // Placeholder for metadata specification
-                ArrayList metadataDescription = new ArrayList();
-                int startPosition = unpackList(metadataDescription,version,0,'+');
-
-                // Acls
-                ArrayList acls = null;
-                String denyAcl = null;
-                if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-                {
-                  acls = new ArrayList();
-                  startPosition = unpackList(acls,version,startPosition,'+');
-                  if (startPosition < version.length())
-                  {
-                    StringBuilder denyAclBuffer = new StringBuilder();
-                    startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                    denyAcl = denyAclBuffer.toString();
-                  }
-                }
-
-                Date modifiedDate = new Date(0L);
-                startPosition = unpackDate(version,startPosition,modifiedDate);
-                if (modifiedDate.getTime() == 0L)
-                  modifiedDate = null;
-                Date createdDate = new Date(0L);
-                startPosition = unpackDate(version,startPosition,createdDate);
-                if (createdDate.getTime() == 0L)
-                  createdDate = null;
                 
                 // Generate the URL we are going to use
                 String itemUrl = fileBaseUrl + encodedItemPath;
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
 
+                // Fetch the metadata we will be indexing
+                Map<String,String> metadataValues = null;
+                if (metadataDescription.size() > 0)
+                {
+                  String listID = listIDMap.get(decodedListPath);
+                  if (listID == null)
+                  {
+                    listID = proxy.getListID( encodePath(site), site, listName );
+                    if (listID == null)
+                      listID = "";
+                    listIDMap.put(decodedListPath,listID);
+                  }
+
+                  if (listID.length() == 0)
+                  {
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
+                    activities.deleteDocument(documentIdentifier,version);
+                    i++;
+                    continue;
+                  }
+
+                  metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(cutoff+1), dspStsWorks );
+                  if (metadataValues == null)
+                  {
+                    // Item has vanished
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
+                    activities.deleteDocument(documentIdentifier,version);
+                    i++;
+                    continue;
+                  }
+                }
+                
                 if (activities.checkLengthIndexable(0L))
                 {
                   InputStream is = new ByteArrayInputStream(new byte[0]);
@@ -1497,51 +1529,18 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     if (createdDate != null)
                       data.setCreatedDate(createdDate);
                     
-                    setDataACLs(data,acls,denyAcl);
+                    setDataACLs(data,acls,denyAcls);
                     
                     setPathAttribute(data,sDesc,documentIdentifier);
 
-                    // Retrieve field values from SharePoint
-                    if (metadataDescription.size() > 0)
+                    if (metadataValues != null)
                     {
-                      String listID = listIDMap.get(decodedListPath);
-                      if (listID == null)
+                      Iterator<String> iter = metadataValues.keySet().iterator();
+                      while (iter.hasNext())
                       {
-                        listID = proxy.getListID( encodePath(site), site, listName );
-                        if (listID == null)
-                          listID = "";
-                        listIDMap.put(decodedListPath,listID);
-                      }
-
-                      if (listID.length() == 0)
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
-                        activities.deleteDocument(documentIdentifier,version);
-                        i++;
-                        continue;
-                      }
-
-                      Map values = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(cutoff+1), dspStsWorks );
-                      if (values != null)
-                      {
-                        Iterator iter = values.keySet().iterator();
-                        while (iter.hasNext())
-                        {
-                          String fieldName = (String)iter.next();
-                          String fieldData = (String)values.get(fieldName);
-                          System.out.println("Item '"+decodedItemPath+"' has field '"+fieldName+"' value '"+fieldData+"'");
-                          data.addField(fieldName,fieldData);
-                        }
-                      }
-                      else
-                      {
-                        // Item has vanished
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
-                        activities.deleteDocument(documentIdentifier,version);
-                        i++;
-                        continue;
+                        String fieldName = iter.next();
+                        String fieldData = metadataValues.get(fieldName);
+                        data.addField(fieldName,fieldData);
                       }
                     }
 
@@ -1571,7 +1570,40 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             else
             {
               // == List item attachment identifier ==
-              // MHL
+              if (!scanOnly[i])
+              {
+                // Unpack the version info.
+                int startPosition = 0;
+                StringBuilder urlBuffer = new StringBuilder();
+                ArrayList accessTokens = new ArrayList();
+                ArrayList denyTokens = new ArrayList();
+                Date modifiedDate = new Date(0L);
+                Date createdDate = new Date(0L);
+                
+                startPosition = unpack(urlBuffer,version,startPosition,'+');
+                startPosition = unpackList(accessTokens,version,startPosition,'+');
+                startPosition = unpackList(denyTokens,version,startPosition,'+');
+                startPosition = unpackDate(version,startPosition,modifiedDate);
+                startPosition = unpackDate(version,startPosition,createdDate);
+                
+                if (modifiedDate.getTime() == 0L)
+                  modifiedDate = null;
+                if (createdDate.getTime() == 0L)
+                  createdDate = null;
+
+                // Fetch and index.  This also filters documents based on output connector restrictions.
+                String fileUrl = serverUrl + urlBuffer.toString();
+
+                if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fileUrl,
+                  accessTokens, denyTokens, createdDate, modifiedDate, null, sDesc))
+                {
+                  // Document not indexed for whatever reason
+                  activities.deleteDocument(documentIdentifier,version);
+                  i++;
+                  continue;
+                }
+
+              }
             }
           }
         }
@@ -1631,7 +1663,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
               // Acls
               ArrayList acls = null;
-              String denyAcl = null;
+              ArrayList denyAcls = null;
               if (startPosition < version.length() && version.charAt(startPosition++) == '+')
               {
                 acls = new ArrayList();
@@ -1640,7 +1672,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   StringBuilder denyAclBuffer = new StringBuilder();
                   startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                  denyAcl = denyAclBuffer.toString();
+                  denyAcls = new ArrayList();
+                  denyAcls.add(denyAclBuffer.toString());
                 }
               }
 
@@ -1658,242 +1691,49 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
 
-
-              // Set stuff up for fetch activity logging
-              long startFetchTime = System.currentTimeMillis();
-              try
+              // First, fetch the metadata we plan to index.
+              Map<String,String> metadataValues = null;
+              if (metadataDescription.size() > 0)
               {
-                // Read the document into a local temporary file, so I get a reliable length.
-                File tempFile = File.createTempFile("__shp__",".tmp");
-                try
+                String documentLibID = docLibIDMap.get(decodedLibPath);
+                if (documentLibID == null)
                 {
-                  // Open the output stream
-                  OutputStream os = new FileOutputStream(tempFile);
-                  try
-                  {
-                    // Catch all exceptions having to do with reading the document
-                    try
-                    {
-                      ExecuteMethodThread emt = new ExecuteMethodThread(httpClient,
-                        serverUrl + encodedServerLocation + encodedDocumentPath, os);
-                      emt.start();
-                      emt.join();
-                      Throwable t = emt.getException();
-                      if (t instanceof InterruptedException)
-                        throw (InterruptedException)t;
-                      if (t instanceof IOException)
-                        throw (IOException)t;
-                      else if (t instanceof Error)
-                        throw (Error)t;
-                      else if (t instanceof org.apache.http.HttpException)
-                        throw (org.apache.http.HttpException)t;
-                      else if (t instanceof RuntimeException)
-                        throw (RuntimeException)t;
-                      
-                      int returnCode = emt.getResponse();
-                        
-                      if (returnCode == 404 || returnCode == 401 || returnCode == 400)
-                      {
-                        // Well, sharepoint thought the document was there, but it really isn't, so delete it.
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
-                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                          null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
-                        activities.deleteDocument(documentIdentifier,version);
-                        i++;
-                        continue;
-                      }
-                      else if (returnCode != 200)
-                      {
-                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                          null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-                        throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
-                      }
-
-                      // Log the normal fetch activity
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-
-                    }
-                    catch (InterruptedException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                    catch (org.apache.http.conn.ConnectTimeoutException e)
-                    {
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IllegalArgumentException e)
-                    {
-                      Logging.connectors.error("SharePoint: Illegal argument", e);
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
-                    }
-                    catch (org.apache.http.HttpException e)
-                    {
-                      Logging.connectors.warn("SharePoint: HttpException thrown",e);
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                    catch (IOException e)
-                    {
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                  }
-                  finally
-                  {
-                    os.close();
-                  }
-                  
-                  // Ingest the document
-                  long documentLength = tempFile.length();
-                  if (activities.checkLengthIndexable(documentLength))
-                  {
-                    InputStream is = new FileInputStream(tempFile);
-                    try
-                    {
-                      RepositoryDocument data = new RepositoryDocument();
-                      data.setBinary( is, documentLength );
-
-                      data.setFileName(mapToFileName(documentIdentifier));
-                      
-		      String contentType = mapExtensionToMimeType(documentIdentifier);
-		      if (contentType != null)
-                        data.setMimeType(contentType);
-                      
-                      setDataACLs(data,acls,denyAcl);
-
-                      setPathAttribute(data,sDesc,documentIdentifier);
-                      
-                      if (modifiedDate != null)
-                        data.setModifiedDate(modifiedDate);
-                      if (createdDate != null)
-                        data.setCreatedDate(createdDate);
-
-                      // Retrieve field values from SharePoint
-                      if (metadataDescription.size() > 0)
-                      {
-                        String documentLibID = docLibIDMap.get(decodedLibPath);
-                        if (documentLibID == null)
-                        {
-                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName );
-                          if (documentLibID == null)
-                            documentLibID = "";
-                          docLibIDMap.put(decodedLibPath,documentLibID);
-                        }
-
-                        if (documentLibID.length() == 0)
-                        {
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                          activities.deleteDocument(documentIdentifier,version);
-                          i++;
-                          continue;
-                        }
-
-                        int cutoff = decodedLibPath.lastIndexOf("/");
-                        Map values = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
-                        if (values != null)
-                        {
-                          Iterator iter = values.keySet().iterator();
-                          while (iter.hasNext())
-                          {
-                            String fieldName = (String)iter.next();
-                            String fieldData = (String)values.get(fieldName);
-                            data.addField(fieldName,fieldData);
-                          }
-                        }
-                        else
-                        {
-                          // Document has vanished
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                          activities.deleteDocument(documentIdentifier,version);
-                          i++;
-                          continue;
-                        }
-                      }
-
-                      activities.ingestDocument( documentIdentifier, version, fileUrl , data );
-                    }
-                    finally
-                    {
-                      try
-                      {
-                        is.close();
-                      }
-                      catch (java.net.SocketTimeoutException e)
-                      {
-                        // This is not fatal
-                        Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                      }
-                      catch (org.apache.http.conn.ConnectTimeoutException e)
-                      {
-                        // This is not fatal
-                        Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                      }
-                      catch (InterruptedIOException e)
-                      {
-                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                      }
-                      catch (IOException e)
-                      {
-                        // This is not fatal
-                        Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                      }
-                    }
-                  }
-                  else
-                    // Document too long
-                    activities.deleteDocument( documentIdentifier, version );
+                  documentLibID = proxy.getDocLibID( encodePath(site), site, libName );
+                  if (documentLibID == null)
+                    documentLibID = "";
+                  docLibIDMap.put(decodedLibPath,documentLibID);
                 }
-                finally
+
+                if (documentLibID.length() == 0)
                 {
-                  tempFile.delete();
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
+                  activities.deleteDocument(documentIdentifier,version);
+                  i++;
+                  continue;
+                }
+
+                int cutoff = decodedLibPath.lastIndexOf("/");
+                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
+                if (metadataValues == null)
+                {
+                  // Document has vanished
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
+                  activities.deleteDocument(documentIdentifier,version);
+                  i++;
+                  continue;
                 }
               }
-              catch (java.net.SocketTimeoutException e)
+
+              // Fetch and index.  This also filters documents based on output connector restrictions.
+              if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
+                acls, denyAcls, createdDate, modifiedDate, metadataValues, sDesc))
               {
-                throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-              }
-              catch (org.apache.http.conn.ConnectTimeoutException e)
-              {
-                throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-              }
-              catch (InterruptedIOException e)
-              {
-                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-              }
-              catch (IOException e)
-              {
-                throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+                // Document not indexed for whatever reason
+                activities.deleteDocument(documentIdentifier,version);
+                i++;
+                continue;
               }
             }
           }
@@ -1979,6 +1819,229 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
+  /** Method that fetches and indexes a file fetched from a SharePoint URL, with appropriate error handling
+  * etc.
+  */
+  protected boolean fetchAndIndexFile(IProcessActivity activities, String documentIdentifier, String version,
+    String fileUrl, String fetchUrl, ArrayList acls, ArrayList denyAcls, Date createdDate, Date modifiedDate,
+    Map<String,String> metadataValues, SystemMetadataDescription sDesc)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Before we fetch, confirm that the output connector will accept the document
+    if (activities.checkURLIndexable(fileUrl))
+    {
+      // Also check mime type
+      String contentType = mapExtensionToMimeType(documentIdentifier);
+      if (activities.checkMimeTypeIndexable(contentType))
+      {
+        // Set stuff up for fetch activity logging
+        long startFetchTime = System.currentTimeMillis();
+        try
+        {
+          // Read the document into a local temporary file, so I get a reliable length.
+          File tempFile = File.createTempFile("__shp__",".tmp");
+          try
+          {
+            // Open the output stream
+            OutputStream os = new FileOutputStream(tempFile);
+            try
+            {
+              // Catch all exceptions having to do with reading the document
+              try
+              {
+                ExecuteMethodThread emt = new ExecuteMethodThread(httpClient, fetchUrl, os);
+                emt.start();
+                int returnCode = emt.finishUp();
+                  
+                if (returnCode == 404 || returnCode == 401 || returnCode == 400)
+                {
+                  // Well, sharepoint thought the document was there, but it really isn't, so delete it.
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Document at '"+fileUrl+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
+                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                    null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
+                  return false;
+                }
+                else if (returnCode != 200)
+                {
+                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                    null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
+                  throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+                }
+
+                // Log the normal fetch activity
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+                
+              }
+              catch (InterruptedException e)
+              {
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+              }
+              catch (java.net.SocketTimeoutException e)
+              {
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              catch (org.apache.http.conn.ConnectTimeoutException e)
+              {
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              catch (InterruptedIOException e)
+              {
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+              }
+              catch (IllegalArgumentException e)
+              {
+                Logging.connectors.error("SharePoint: Illegal argument", e);
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
+              }
+              catch (org.apache.http.HttpException e)
+              {
+                Logging.connectors.warn("SharePoint: HttpException thrown",e);
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              catch (IOException e)
+              {
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+            }
+            finally
+            {
+              os.close();
+            }
+                      
+            // Ingest the document
+            long documentLength = tempFile.length();
+            if (activities.checkLengthIndexable(documentLength))
+            {
+              InputStream is = new FileInputStream(tempFile);
+              try
+              {
+                RepositoryDocument data = new RepositoryDocument();
+                data.setBinary( is, documentLength );
+                
+                data.setFileName(mapToFileName(documentIdentifier));
+                          
+                if (contentType != null)
+                  data.setMimeType(contentType);
+                
+                setDataACLs(data,acls,denyAcls);
+
+                setPathAttribute(data,sDesc,documentIdentifier);
+                          
+                if (modifiedDate != null)
+                  data.setModifiedDate(modifiedDate);
+                if (createdDate != null)
+                  data.setCreatedDate(createdDate);
+
+                if (metadataValues != null)
+                {
+                  Iterator<String> iter = metadataValues.keySet().iterator();
+                  while (iter.hasNext())
+                  {
+                    String fieldName = iter.next();
+                    String fieldData = metadataValues.get(fieldName);
+                    data.addField(fieldName,fieldData);
+                  }
+                }
+                activities.ingestDocument( documentIdentifier, version, fileUrl , data );
+                return true;
+              }
+              finally
+              {
+                try
+                {
+                  is.close();
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                  // This is not fatal
+                  Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                }
+                catch (org.apache.http.conn.ConnectTimeoutException e)
+                {
+                  // This is not fatal
+                  Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                  // This is not fatal
+                  Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                }
+              }
+            }
+            else
+            {
+              // Document too long
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' was too long, according to output connector");
+              return false;
+            }
+          }
+          finally
+          {
+            tempFile.delete();
+          }
+        }
+        catch (java.net.SocketTimeoutException e)
+        {
+          throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+        }
+        catch (org.apache.http.conn.ConnectTimeoutException e)
+        {
+          throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+        }
+        catch (InterruptedIOException e)
+        {
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (IOException e)
+        {
+          throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+        }
+      }
+      else
+      {
+        // Mime type failed
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says mime type is not indexable");
+        return false;
+      }
+    }
+    else
+    {
+      // URL failed
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says URL is not indexable");
+      return false;
+    }
+  }
+
   /** Map an extension to a mime type */
   protected static String mapExtensionToMimeType(String fileName)
   {
@@ -2000,25 +2063,22 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return fileName;
   }
   
-  protected static void setDataACLs(RepositoryDocument data, ArrayList acls, String denyAcl)
+  protected static void setDataACLs(RepositoryDocument data, ArrayList acls, ArrayList denyAcls)
   {
     if (acls != null)
     {
       String[] actualAcls = new String[acls.size()];
-      int j = 0;
-      while (j < actualAcls.length)
+      for (int j = 0; j < actualAcls.length; j++)
       {
         actualAcls[j] = (String)acls.get(j);
-        j++;
       }
 
       if (Logging.connectors.isDebugEnabled())
       {
-        j = 0;
         StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
-        while (j < actualAcls.length)
+        for (int j = 0; j < actualAcls.length; j++)
         {
-          sb.append(actualAcls[j++]).append(" ");
+          sb.append(actualAcls[j]).append(" ");
         }
         sb.append("]");
         Logging.connectors.debug( sb.toString() );
@@ -2027,9 +2087,25 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       data.setACL( actualAcls );
     }
 
-    if (denyAcl != null)
+    if (denyAcls != null)
     {
-      String[] actualDenyAcls = new String[]{denyAcl};
+      String[] actualDenyAcls = new String[denyAcls.size()];
+      for (int j = 0; j < actualDenyAcls.length; j++)
+      {
+        actualDenyAcls[j] = (String)denyAcls.get(j);
+      }
+
+      if (Logging.connectors.isDebugEnabled())
+      {
+        StringBuilder sb = new StringBuilder("SharePoint: DenyAcls: [ ");
+        for (int j = 0; j < actualDenyAcls.length; j++)
+        {
+          sb.append(actualDenyAcls[j]).append(" ");
+        }
+        sb.append("]");
+        Logging.connectors.debug( sb.toString() );
+      }
+
       data.setDenyACL(actualDenyAcls);
     }
   }
@@ -5220,13 +5296,23 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    public Throwable getException()
+    public int finishUp()
+      throws InterruptedException, IOException, org.apache.http.HttpException
     {
-      return exception;
-    }
-
-    public int getResponse()
-    {
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof IOException)
+          throw (IOException)exception;
+        else if (exception instanceof Error)
+          throw (Error)exception;
+        else if (exception instanceof org.apache.http.HttpException)
+          throw (org.apache.http.HttpException)exception;
+        else if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+        else
+          throw new RuntimeException("Unexpected exception type thrown: "+exception.getClass().getName());
+      }
       return returnCode;
     }
   }
