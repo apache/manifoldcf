@@ -668,16 +668,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     getSession();
 
-    // Before we begin looping, make sure we know what to add to the version string to account for the forced acls.
-
-    // Read the forced acls.  A null return indicates that security is disabled!!!
-    // A zero-length return indicates that the native acls should be used.
-    // All of this is germane to how we ingest the document, so we need to note it in
-    // the version string completely.
-    String[] acls = getAcls(spec);
-    // Make sure they are in sorted order, since we need the version strings to be comparable
-    if (acls != null)
-      java.util.Arrays.sort(acls);
+    // Get the forced acls.  (We need this only for the case where documents have their own acls)
+    String[] forcedAcls = getAcls(spec);
 
     // Look at the metadata attributes.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
@@ -700,14 +692,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     }
 
-    // This is the cached map of sitelibstring to library identifier
-    Map<String,String> libIDMap = new HashMap<String,String>();
-    // This is the cached map of siteliststring to list identifier
-    Map<String,String> listIDMap = new HashMap<String,String>();
-    
-    // This is the cached map if guid to field list
-    Map<String,Map<String,String>> fieldListMap = new HashMap<String,Map<String,String>>();
-    
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
     StringBuilder pathNameAttributeVersion = new StringBuilder();
@@ -715,10 +699,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
 
     String[] rval = new String[documentIdentifiers.length];
-    
-    // Build a cache of the acls for a given site, guid.
-    // The key is the guid, and the value is a String[]
-    Map<String,String[]> ACLmap = new HashMap<String,String[]>();
     
     i = 0;
     while (i < rval.length)
@@ -781,109 +761,67 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 // This file is included, so calculate a version string.  This will include metadata info, so get that first.
                 MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
 
-                // Need to get the library id.  Cache it if we need to calculate it.
-                String listID = listIDMap.get(decodedListPath);
-                if (listID == null)
-                {
-                  listID = proxy.getListID(encodedSitePath, sitePath, list);
-                  if (listID != null)
-                    listIDMap.put(decodedListPath,listID);
-                }
+                String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+                String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+                String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
+                String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
+
+                String listID;
+                if (listIDs.length >= 1)
+                  listID = listIDs[0];
+                else
+                  listID = null;
 
                 if (listID != null)
                 {
-                  String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,listID,fieldListMap);
+                  String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
                   
-                  if (sortedMetadataFields != null)
+                  // Sort access tokens so they are comparable in the version string
+                  java.util.Arrays.sort(accessTokens);
+                  java.util.Arrays.sort(denyTokens);
+
+                  // Next, get the actual timestamp field for the file.
+                  ArrayList metadataDescription = new ArrayList();
+                  metadataDescription.add("Modified");
+                  metadataDescription.add("Created");
+                  // The document path includes the library, with no leading slash, and is decoded.
+                  String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
+                  Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+                  String modifiedDate = values.get("Modified");
+                  String createdDate = values.get("Created");
+                  if (modifiedDate != null)
                   {
-                    // Next, get the actual timestamp field for the file.
-                    ArrayList metadataDescription = new ArrayList();
-                    metadataDescription.add("Modified");
-                    metadataDescription.add("Created");
-                    // The document path includes the library, with no leading slash, and is decoded.
-                    String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
-                    Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
-                    String modifiedDate = values.get("Modified");
-                    String createdDate = values.get("Created");
-                    if (modifiedDate != null)
-                    {
-                      // Item has a modified date so we presume it exists.
+                    // Item has a modified date so we presume it exists.
                       
-                      Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
-                      Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
                       
-                      // Build version string
-                      String versionToken = modifiedDate;
+                    // Build version string
+                    String versionToken = modifiedDate;
                       
-                      // Revamped version string on 11/8/2006 to make parseability better
+                    // Revamped version string on 9/21/2013 to make parseability better
+                    
+                    StringBuilder sb = new StringBuilder();
 
-                      StringBuilder sb = new StringBuilder();
-
-                      packList(sb,sortedMetadataFields,'+');
-
-                      // Do the acls.
-                      boolean foundAcls = true;
-                      if (acls != null)
-                      {
-                        sb.append('+');
-
-                        // If there are forced acls, use those in the version string instead.
-                        String[] accessTokens;
-                        if (acls.length == 0)
-                        {
-                          // The goal here is simply to record what should get ingested with the document, so that
-                          // we can compare against future values.
-                          // Grab the acls for this combo, if we haven't already
-                          accessTokens = lookupAccessTokensSorted(encodedSitePath,listID,ACLmap);
-                            
-                          if (accessTokens == null)
-                            foundAcls = false;
-                          
-                        }
-                        else
-                          accessTokens = acls;
-                        // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
-                        if (foundAcls)
-                        {
-                          packList(sb,accessTokens,'+');
-                          // Added 4/21/2008 to handle case when AD authority is down
-                          pack(sb,defaultAuthorityDenyToken,'+');
-                        }
-                      }
-                      else
-                        sb.append('-');
-                      if (foundAcls)
-                      {
-                        packDate(sb,modifiedDateValue);
-                        packDate(sb,createdDateValue);
-                        // The rest of this is unparseable
-                        sb.append(versionToken);
-                        sb.append(pathNameAttributeVersion);
-                        // Added 9/7/07
-                        sb.append("_").append(fileBaseUrl);
-                        //
-                        rval[i] = sb.toString();
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                      }
-                      else
-                      {
-                        if (Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("SharePoint: Couldn't get access tokens for list '"+decodedListPath+"'; removing list item '"+documentIdentifier+"'");
-                        rval[i] = null;
-                      }
-                    }
-                    else
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
-                      rval[i] = null;
-                    }
+                    packList(sb,sortedMetadataFields,'+');
+                    packList(sb,accessTokens,'+');
+                    packList(sb,denyTokens,'+');
+                    packDate(sb,modifiedDateValue);
+                    packDate(sb,createdDateValue);
+                    // The rest of this is unparseable
+                    sb.append(versionToken);
+                    sb.append(pathNameAttributeVersion);
+                    // Added 9/7/07
+                    sb.append("_").append(fileBaseUrl);
+                    //
+                    rval[i] = sb.toString();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
                   }
                   else
                   {
                     if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' doesn't respond to metadata requests - removing");
+                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
                     rval[i] = null;
                   }
                 }
@@ -1016,132 +954,107 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String sitePath = decodedLibPath.substring(0,lastIndex);
               String lib = decodedLibPath.substring(lastIndex+1);
 
-              String encodedSitePath = encodePath(sitePath);
+              // Retrieve the carry-down data we will be using.
+              // Note well: for sharepoint versions that include document/folder acls, these access tokens will be ignored,
+              // but they will still be carried down nonetheless, in case someone switches versions on us.
+              String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+              String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+              String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
+              String[] libFields = activities.retrieveParentData(documentIdentifier, "fields");
 
-              // Need to get the library id.  Cache it if we need to calculate it.
-              String libID = libIDMap.get(decodedLibPath);
-              if (libID == null)
-              {
-                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
-                if (libID != null)
-                  libIDMap.put(decodedLibPath,libID);
-              }
-
+              String libID;
+              if (libIDs.length >= 1)
+                libID = libIDs[0];
+              else
+                libID = null;
+              
               if (libID != null)
               {
-                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,libID,fieldListMap);
+                String encodedSitePath = encodePath(sitePath);
+                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,libFields);
                 
-                if (sortedMetadataFields != null)
-                {
-                  // Next, get the actual timestamp field for the file.
-                  ArrayList metadataDescription = new ArrayList();
-                  metadataDescription.add("Last_x0020_Modified");
-                  metadataDescription.add("Modified");
-                  metadataDescription.add("Created");
-                  // The document path includes the library, with no leading slash, and is decoded.
-                  int cutoff = decodedLibPath.lastIndexOf("/");
-                  String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
-                  Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+                // Sort access tokens
+                java.util.Arrays.sort(accessTokens);
+                java.util.Arrays.sort(denyTokens);
 
-                  String modifiedDate = values.get("Modified");
-                  String createdDate = values.get("Created");
+                // Next, get the actual timestamp field for the file.
+                ArrayList metadataDescription = new ArrayList();
+                metadataDescription.add("Last_x0020_Modified");
+                metadataDescription.add("Modified");
+                metadataDescription.add("Created");
+                // The document path includes the library, with no leading slash, and is decoded.
+                int cutoff = decodedLibPath.lastIndexOf("/");
+                String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
+                Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+
+                String modifiedDate = values.get("Modified");
+                String createdDate = values.get("Created");
                   
-                  String modifyDate = values.get("Last_x0020_Modified");
-                  if (modifyDate != null)
-                  {
-                    // Item has a modified date, so we presume it exists
-                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
-                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+                String modifyDate = values.get("Last_x0020_Modified");
+                if (modifyDate != null)
+                {
+                  // Item has a modified date, so we presume it exists
+                  Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                  Date createdDateValue = DateParser.parseISO8601Date(createdDate);
 
-                    // Build version string
-                    String versionToken = modifyDate;
-                    // Revamped version string on 11/8/2006 to make parseability better
+                  // Build version string
+                  String versionToken = modifyDate;
+
+                  if (supportsItemSecurity)
+                  {
+                    // Do the acls.
+                    if (forcedAcls == null)
+                    {
+                      // Security is off
+                      accessTokens = new String[0];
+                      denyTokens = new String[0];
+                    }
+                    else if (forcedAcls.length > 0)
+                    {
+                      // Security on, forced acls
+                      accessTokens = forcedAcls;
+                      denyTokens = new String[0];
+                    }
+                    else
+                    {
+                      // Security on, is native
+                      accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
+                      denyTokens = new String[]{defaultAuthorityDenyToken};
+                    }
+                  }
+                  
+                  if (accessTokens != null)
+                  {
+                    // Revamped version string on 9/21/2013 to make parseability better
 
                     StringBuilder sb = new StringBuilder();
 
                     packList(sb,sortedMetadataFields,'+');
-
-                    // Do the acls.
-                    boolean foundAcls = true;
-                    if (acls != null)
-                    {
-                      sb.append('+');
-
-                      // If there are forced acls, use those in the version string instead.
-                      String[] accessTokens;
-                      if (acls.length == 0)
-                      {
-                        if (supportsItemSecurity)
-                        {
-                          // For documents, just fetch
-                          accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
-                          if (accessTokens != null)
-                          {
-                            java.util.Arrays.sort(accessTokens);
-                            if (Logging.connectors.isDebugEnabled())
-                              Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedDocumentPath+"'");
-                          }
-                          else
-                          {
-                            foundAcls = false;
-                          }
-                        }
-                        else
-                        {
-                          // The goal here is simply to record what should get ingested with the document, so that
-                          // we can compare against future values.
-                          // Grab the acls for this combo, if we haven't already
-                          accessTokens = lookupAccessTokensSorted(encodedSitePath,libID,ACLmap);
-                          
-                          if (accessTokens == null)
-                            foundAcls = false;
-
-                        }
-                      }
-                      else
-                        accessTokens = acls;
-                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
-                      if (foundAcls)
-                      {
-                        packList(sb,accessTokens,'+');
-                        // Added 4/21/2008 to handle case when AD authority is down
-                        pack(sb,defaultAuthorityDenyToken,'+');
-                      }
-                    }
-                    else
-                      sb.append('-');
-                    if (foundAcls)
-                    {
-                      packDate(sb,modifiedDateValue);
-                      packDate(sb,createdDateValue);
-                      // The rest of this is unparseable
-                      sb.append(versionToken);
-                      sb.append(pathNameAttributeVersion);
-                      // Added 9/7/07
-                      sb.append("_").append(fileBaseUrl);
-                      //
-                      rval[i] = sb.toString();
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                    }
-                    else
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for library '"+decodedLibPath+"'; removing document '"+documentIdentifier+"'");
-                      rval[i] = null;
-                    }
+                    packList(sb,accessTokens,'+');
+                    packList(sb,denyTokens,'+');
+                    packDate(sb,modifiedDateValue);
+                    packDate(sb,createdDateValue);
+                    // The rest of this is unparseable
+                    sb.append(versionToken);
+                    sb.append(pathNameAttributeVersion);
+                    // Added 9/7/07
+                    sb.append("_").append(fileBaseUrl);
+                    //
+                    rval[i] = sb.toString();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
                   }
                   else
                   {
                     if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+                      Logging.connectors.debug("SharePoint: Couldn't get access tokens for item '"+decodedDocumentPath+"'; removing document '"+documentIdentifier+"'");
                     rval[i] = null;
                   }
                 }
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' doesn't respond to metadata requests - removing");
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
                   rval[i] = null;
                 }
               }
@@ -1212,75 +1125,33 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return index;
   }
   
-  protected String[] lookupAccessTokensSorted(String encodedSitePath, String guid, Map<String,String[]> ACLmap)
-    throws ManifoldCFException, ServiceInterruption
+  protected String[] getInterestingFieldSetSorted(MetadataInformation metadataInfo, String[] allFields)
   {
-    String[] accessTokens = ACLmap.get(guid);
-    if (accessTokens == null)
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug( "SharePoint: Compiling acl list for guid "+guid+"... ");
-      accessTokens = proxy.getACLs( encodedSitePath, guid );
-      if (accessTokens != null)
-      {
-        java.util.Arrays.sort(accessTokens);
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for  guid " +guid);
-        ACLmap.put(guid,accessTokens);
-      }
-    }
-    return accessTokens;
-  }
-
-  protected String[] getInterestingFieldSetSorted(MetadataInformation metadataInfo,
-    String encodedSitePath, String guid, Map<String,Map<String,String>> fieldListMap)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    Set<String> metadataFields = null;
+    Set<String> metadataFields = new HashSet<String>();
 
     // Figure out the actual metadata fields we will request
     if (metadataInfo.getAllMetadata())
     {
-      // Fetch the fields
-      Map<String,String> fieldNames = fieldListMap.get(guid);
-      if (fieldNames == null)
+      for (String field : allFields)
       {
-        fieldNames = proxy.getFieldList( encodedSitePath, guid );
-        if (fieldNames != null)
-          fieldListMap.put(guid,fieldNames);
-      }
-
-      if (fieldNames != null)
-      {
-        metadataFields = new HashSet<String>();
-        for (Iterator<String> e = fieldNames.keySet().iterator(); e.hasNext();)
-        {
-          String key = e.next();
-          metadataFields.add(key);
-        }
+        metadataFields.add(field);
       }
     }
     else
     {
-      metadataFields = new HashSet<String>();
       String[] fields = metadataInfo.getMetadataFields();
-      int q = 0;
-      while (q < fields.length)
+      for (String field : fields)
       {
-        String field = fields[q++];
         metadataFields.add(field);
       }
     }
-    if (metadataFields == null)
-      return null;
     
     // Convert the hashtable to an array and sort it.
     String[] sortedMetadataFields = new String[metadataFields.size()];
     int z = 0;
-    Iterator<String> iter = metadataFields.iterator();
-    while (iter.hasNext())
+    for (String field : metadataFields)
     {
-      sortedMetadataFields[z++] = iter.next();
+      sortedMetadataFields[z++] = field;
     }
     java.util.Arrays.sort(sortedMetadataFields);
 
@@ -1303,6 +1174,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
+
+    // Read the forced acls.  A null return indicates that security is disabled!!!
+    // A zero-length return indicates that the native acls should be used.
+    // All of this is germane to how we ingest the document, so we need to note it in
+    // the version string completely.
+    String[] forcedAcls = getAcls(spec);
 
     // Decode the system metadata part of the specification
     SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
@@ -1342,13 +1219,65 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String listID = proxy.getListID( encodePath(site), site, listName );
             if (listID != null)
             {
-              ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec );
-              boolean success = proxy.getChildren( fs, encodePath(site) , listID, dspStsWorks );
-              if (!success)
+              String encodedSitePath = encodePath(site);
+              
+              // Get the list's fields
+              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
+              if (fieldNames != null)
               {
-                // Site/list no longer exists, so delete entry
+                String[] fields = new String[fieldNames.size()];
+                int j = 0;
+                for (String field : fieldNames.keySet())
+                {
+                  fields[j++] = field;
+                }
+                
+                String[] accessTokens;
+                String[] denyTokens;
+                
+                if (forcedAcls == null)
+                {
+                  // Security is off
+                  accessTokens = new String[0];
+                  denyTokens = new String[0];
+                }
+                else if (forcedAcls.length != 0)
+                {
+                  // Forced security
+                  accessTokens = forcedAcls;
+                  denyTokens = new String[0];
+                }
+                else
+                {
+                  // Security enabled, native security
+                  accessTokens = proxy.getACLs( encodedSitePath, listID );
+                  denyTokens = new String[]{defaultAuthorityDenyToken};
+                }
+
+                if (accessTokens != null)
+                {
+                  ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
+                    accessTokens, denyTokens, listID, fields );
+                  boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
+                  if (!success)
+                  {
+                    // Site/list no longer exists, so delete entry
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+                    activities.deleteDocument(documentIdentifier,version);
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
+                  activities.deleteDocument(documentIdentifier,version);
+                }
+              }
+              else
+              {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+                  Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
                 activities.deleteDocument(documentIdentifier,version);
               }
             }
@@ -1389,18 +1318,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // Acls
               ArrayList acls = null;
               ArrayList denyAcls = null;
-              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-              {
-                acls = new ArrayList();
-                startPosition = unpackList(acls,version,startPosition,'+');
-                if (startPosition < version.length())
-                {
-                  StringBuilder denyAclBuffer = new StringBuilder();
-                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                  denyAcls = new ArrayList();
-                  denyAcls.add(denyAclBuffer.toString());
-                }
-              }
+              startPosition = unpackList(acls,version,startPosition,'+');
+              startPosition = unpackList(denyAcls,version,startPosition,'+');
 
               Date modifiedDate = new Date(0L);
               startPosition = unpackDate(version,startPosition,modifiedDate);
@@ -1624,13 +1543,65 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String libID = proxy.getDocLibID( encodePath(site), site, libName );
             if (libID != null)
             {
-              FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec );
-              boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
-              if (!success)
+              String encodedSitePath = encodePath(site);
+              
+              // Get the lib's fields
+              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, libID );
+              if (fieldNames != null)
               {
-                // Site/library no longer exists, so delete entry
+                String[] fields = new String[fieldNames.size()];
+                int j = 0;
+                for (String field : fieldNames.keySet())
+                {
+                  fields[j++] = field;
+                }
+                
+                String[] accessTokens;
+                String[] denyTokens;
+                
+                if (forcedAcls == null)
+                {
+                  // Security is off
+                  accessTokens = new String[0];
+                  denyTokens = new String[0];
+                }
+                else if (forcedAcls.length != 0)
+                {
+                  // Forced security
+                  accessTokens = forcedAcls;
+                  denyTokens = new String[0];
+                }
+                else
+                {
+                  // Security enabled, native security
+                  accessTokens = proxy.getACLs( encodedSitePath, libID );
+                  denyTokens = new String[]{defaultAuthorityDenyToken};
+                }
+
+                if (accessTokens != null)
+                {
+                  FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
+                    accessTokens, denyTokens, libID, fields );
+                  boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
+                  if (!success)
+                  {
+                    // Site/library no longer exists, so delete entry
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+                    activities.deleteDocument(documentIdentifier,version);
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
+                  activities.deleteDocument(documentIdentifier,version);
+                }
+              }
+              else
+              {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+                  Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
                 activities.deleteDocument(documentIdentifier,version);
               }
             }
@@ -1664,19 +1635,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // Acls
               ArrayList acls = null;
               ArrayList denyAcls = null;
-              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-              {
-                acls = new ArrayList();
-                startPosition = unpackList(acls,version,startPosition,'+');
-                if (startPosition < version.length())
-                {
-                  StringBuilder denyAclBuffer = new StringBuilder();
-                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                  denyAcls = new ArrayList();
-                  denyAcls.add(denyAclBuffer.toString());
-                }
-              }
+              startPosition = unpackList(acls,version,startPosition,'+');
+              startPosition = unpackList(denyAcls,version,startPosition,'+');
 
+              // Dates
               Date modifiedDate = new Date(0L);
               startPosition = unpackDate(version,startPosition,modifiedDate);
               if (modifiedDate.getTime() == 0L)
@@ -2128,6 +2090,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       Logging.connectors.debug("SharePoint: Path attribute name is null");
   }
 
+  protected final static String[] fileStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
+
   protected class FileStream implements IFileStream
   {
     protected final IProcessActivity activities;
@@ -2136,13 +2100,22 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final String sitePath;
     protected final String siteLibPath;
     
-    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec)
+    // For carry-down
+    protected final String[][] dataValues;
+    
+    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec,
+      String[] accessTokens, String denyTokens[], String libID, String[] fields)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
       this.sitePath = sitePath;
       this.siteLibPath = siteLibPath;
+      this.dataValues = new String[fileStreamDataNames.length][];
+      this.dataValues[0] = accessTokens;
+      this.dataValues[1] = denyTokens;
+      this.dataValues[2] = new String[]{libID};
+      this.dataValues[3] = fields;
     }
     
     public void addFile(String relPath)
@@ -2168,8 +2141,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           {
             // Split at the libpath/file boundary
             String modifiedPath = siteLibPath + "/" + relPath.substring(siteLibPath.length());
-
-            activities.addDocumentReference( modifiedPath );
+            activities.addDocumentReference( modifiedPath, null, null, fileStreamDataNames, dataValues );
           }
           else
           {
@@ -2184,6 +2156,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
   
+  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
+
   protected class ListItemStream implements IFileStream
   {
     protected final IProcessActivity activities;
@@ -2192,13 +2166,22 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final String sitePath;
     protected final String siteListPath;
 
-    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec)
+    // For carry-down
+    protected final String[][] dataValues;
+
+    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec,
+      String[] accessTokens, String denyTokens[], String listID, String[] fields)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
       this.sitePath = sitePath;
       this.siteListPath = siteListPath;
+      this.dataValues = new String[listItemStreamDataNames.length][];
+      this.dataValues[0] = accessTokens;
+      this.dataValues[1] = denyTokens;
+      this.dataValues[2] = new String[]{listID};
+      this.dataValues[3] = fields;
     }
     
     public void addFile(String relPath)
@@ -2231,7 +2214,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // The way I've chosen to do this is to use a triple slash at that point, as a separator.
               String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
 
-              activities.addDocumentReference( modifiedPath );
+              activities.addDocumentReference( modifiedPath, null, null, listItemStreamDataNames, dataValues );
             }
             else
             {
