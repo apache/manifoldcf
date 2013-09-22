@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-778: Add support for attachments in SharePoint
+connector.
+(Dmitry Goldenberg, Karl Wright)
+
 CONNECTORS-772: SharePoint connector wasn't working against
 certain SharePoint instances.  The reason was that some paths
 were relative and some absolute.  Fixed ALL path management to
