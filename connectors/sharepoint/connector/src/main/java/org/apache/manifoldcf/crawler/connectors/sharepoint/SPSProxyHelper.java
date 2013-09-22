@@ -1556,8 +1556,6 @@ public class SPSProxyHelper {
         listCall.getAttachmentCollection( listName, itemID );
       org.apache.axis.message.MessageElement[] List = listResponse.get_any();
 
-      System.out.println(List[0].toString());
-        
       XMLDoc doc = new XMLDoc( List[0].toString() );
       ArrayList nodeList = new ArrayList();
 

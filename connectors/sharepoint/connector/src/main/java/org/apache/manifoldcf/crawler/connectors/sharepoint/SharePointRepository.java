@@ -792,10 +792,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   if (modifiedDate != null)
                   {
                     // Item has a modified date so we presume it exists.
-                      
+                    
                     Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
                     Date createdDateValue = DateParser.parseISO8601Date(createdDate);
-                      
+                    
                     // Build version string
                     String versionToken = modifiedDate;
                       
@@ -873,12 +873,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   url = null;
 
                 // If we have no modified or created date, it means that the parent has gone away, so we go away too.
-                if (modifiedDate != null && createdDate != null && url != null)
+                if (modifiedDate != null && url != null)
                 {
                   // Item has a modified date so we presume it exists.
                       
-                  Date modifiedDateValue = new Date(new Long(modifiedDate).longValue());
-                  Date createdDateValue = new Date(new Long(createdDate).longValue());
+                  Date modifiedDateValue;
+                  if (modifiedDate != null)
+                    modifiedDateValue = new Date(new Long(modifiedDate).longValue());
+                  else
+                    modifiedDateValue = null;
+                  Date createdDateValue;
+                  if (createdDate != null)
+                    createdDateValue = new Date(new Long(createdDate).longValue());
+                  else
+                    createdDateValue = null;
                       
                   // Build version string
                   String versionToken = modifiedDate;
@@ -910,7 +918,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   // Can't look up list ID, which means the list is gone, so delete
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because created date, modified data, or attachment url not found");
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because modified date or attachment url not found");
                   rval[i] = null;
                 }
               }
@@ -1510,7 +1518,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 startPosition = unpackList(denyTokens,version,startPosition,'+');
                 startPosition = unpackDate(version,startPosition,modifiedDate);
                 startPosition = unpackDate(version,startPosition,createdDate);
-                
+
                 if (modifiedDate.getTime() == 0L)
                   modifiedDate = null;
                 if (createdDate.getTime() == 0L)
