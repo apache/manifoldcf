@@ -582,6 +582,7 @@ public interface IJobManager
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
   *@param parentIdentifierHash is the optional parent identifier hash value for this document.  Pass null if none.
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.
@@ -610,6 +611,7 @@ public interface IJobManager
   *@param docIDHashes are the hashes of the local document identifiers.
   *@param docIDs are the local document identifiers.
   *@param parentIdentifierHash is the optional parent identifier hash of these documents.  Pass null if none.
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is either accurate, nodelete, or neverdelete.

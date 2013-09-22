@@ -3971,7 +3971,8 @@ public class JobManager implements IJobManager
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the local document identifier hashes.
-  *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none.
+  *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none. 
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is the desired method for managing hopcounts.
@@ -4263,6 +4264,7 @@ public class JobManager implements IJobManager
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
   *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none.
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is the desired method for managing hopcounts.

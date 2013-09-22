@@ -1257,7 +1257,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 if (accessTokens != null)
                 {
                   ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
-                    accessTokens, denyTokens, listID, fields );
+                    documentIdentifier, accessTokens, denyTokens, listID, fields );
                   boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
                   if (!success)
                   {
@@ -1316,8 +1316,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               int startPosition = unpackList(metadataDescription,version,0,'+');
 
               // Acls
-              ArrayList acls = null;
-              ArrayList denyAcls = null;
+              ArrayList acls = new ArrayList();
+              ArrayList denyAcls = new ArrayList();
               startPosition = unpackList(acls,version,startPosition,'+');
               startPosition = unpackList(denyAcls,version,startPosition,'+');
 
@@ -1385,7 +1385,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   dataValues[4] = new String[]{attachmentName.getPrettyName()};
 
                   activities.addDocumentReference(documentIdentifier + "/" + attachmentName.getValue(),
-                    null, null, dataNames, dataValues);
+                    documentIdentifier, null, dataNames, dataValues);
                   
                 }
               }
@@ -1581,7 +1581,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 if (accessTokens != null)
                 {
                   FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
-                    accessTokens, denyTokens, libID, fields );
+                    documentIdentifier, accessTokens, denyTokens, libID, fields );
                   boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
                   if (!success)
                   {
@@ -1633,8 +1633,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               int startPosition = unpackList(metadataDescription,version,0,'+');
 
               // Acls
-              ArrayList acls = null;
-              ArrayList denyAcls = null;
+              ArrayList acls = new ArrayList();
+              ArrayList denyAcls = new ArrayList();
               startPosition = unpackList(acls,version,startPosition,'+');
               startPosition = unpackList(denyAcls,version,startPosition,'+');
 
@@ -2101,16 +2101,18 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final String siteLibPath;
     
     // For carry-down
+    protected final String documentIdentifier;
     protected final String[][] dataValues;
     
     public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec,
-      String[] accessTokens, String denyTokens[], String libID, String[] fields)
+      String documentIdentifier, String[] accessTokens, String denyTokens[], String libID, String[] fields)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
       this.sitePath = sitePath;
       this.siteLibPath = siteLibPath;
+      this.documentIdentifier = documentIdentifier;
       this.dataValues = new String[fileStreamDataNames.length][];
       this.dataValues[0] = accessTokens;
       this.dataValues[1] = denyTokens;
@@ -2141,7 +2143,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           {
             // Split at the libpath/file boundary
             String modifiedPath = siteLibPath + "/" + relPath.substring(siteLibPath.length());
-            activities.addDocumentReference( modifiedPath, null, null, fileStreamDataNames, dataValues );
+            activities.addDocumentReference( modifiedPath, documentIdentifier, null, fileStreamDataNames, dataValues );
           }
           else
           {
@@ -2167,16 +2169,18 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     protected final String siteListPath;
 
     // For carry-down
+    protected final String documentIdentifier;
     protected final String[][] dataValues;
 
     public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec,
-      String[] accessTokens, String denyTokens[], String listID, String[] fields)
+      String documentIdentifier, String[] accessTokens, String denyTokens[], String listID, String[] fields)
     {
       this.activities = activities;
       this.spec = spec;
       this.rootPath = rootPath;
       this.sitePath = sitePath;
       this.siteListPath = siteListPath;
+      this.documentIdentifier = documentIdentifier;
       this.dataValues = new String[listItemStreamDataNames.length][];
       this.dataValues[0] = accessTokens;
       this.dataValues[1] = denyTokens;
@@ -2214,7 +2218,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // The way I've chosen to do this is to use a triple slash at that point, as a separator.
               String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
 
-              activities.addDocumentReference( modifiedPath, null, null, listItemStreamDataNames, dataValues );
+              activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
             }
             else
             {

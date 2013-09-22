@@ -33,6 +33,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   * fetched the document).
   *@param parentIdentifier is the document identifier that is considered to be the "parent"
   * of this identifier.  May be null, if no hopcount filtering desired for this kind of relationship.
+  * MUST be present in the case of carrydown information.
   *@param relationshipType is the string describing the kind of relationship described by this
   * reference.  This must be one of the strings returned by the IRepositoryConnector method
   * "getRelationshipTypes()".  May be null.
@@ -51,6 +52,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   * fetched the document).
   *@param parentIdentifier is the document identifier that is considered to be the "parent"
   * of this identifier.  May be null, if no hopcount filtering desired for this kind of relationship.
+  * MUST be present in the case of carrydown information.
   *@param relationshipType is the string describing the kind of relationship described by this
   * reference.  This must be one of the strings returned by the IRepositoryConnector method
   * "getRelationshipTypes()".  May be null.
@@ -69,6 +71,7 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   * fetched the document).
   *@param parentIdentifier is the document identifier that is considered to be the "parent"
   * of this identifier.  May be null, if no hopcount filtering desired for this kind of relationship.
+  * MUST be present in the case of carrydown information.
   *@param relationshipType is the string describing the kind of relationship described by this
   * reference.  This must be one of the strings returned by the IRepositoryConnector method
   * "getRelationshipTypes()".  May be null.
