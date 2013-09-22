@@ -752,7 +752,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
             String encodedSitePath = encodePath(sitePath);
 
-            int attachmentSeparatorIndex = itemAndAttachment.indexOf("/");
+            int attachmentSeparatorIndex = itemAndAttachment.indexOf("/",1);
             if (attachmentSeparatorIndex == -1)
             {
               // == List item path! ==
@@ -910,7 +910,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 {
                   // Can't look up list ID, which means the list is gone, so delete
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list no longer apparently exists");
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because created date, modified data, or attachment url not found");
                   rval[i] = null;
                 }
               }
@@ -1298,7 +1298,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String decodedItemPath = decodedListPath + itemAndAttachment;
             
             // If the item part has a slash, we're looking at an attachment
-            int attachmentSeparatorIndex = itemAndAttachment.indexOf("/");
+            int attachmentSeparatorIndex = itemAndAttachment.indexOf("/",1);
             if (attachmentSeparatorIndex == -1)
             {
               // == List item identifier ==
@@ -1333,7 +1333,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // Now, do any queuing that is needed.
               if (attachmentsSupported)
               {
-                String itemID = itemAndAttachment.substring(attachmentSeparatorIndex+1);
+                String itemID = itemAndAttachment.substring(1);
                 String listID = listIDMap.get(decodedListPath);
                 if (listID == null)
                 {
@@ -1354,7 +1354,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
                 // Get the attachment names
                 // MHL: need to get the item number from somewhere
-                String itemNumber = itemID;
+                // This is a hack to see if everything else works.
+                int undIndex = itemID.indexOf("_");
+                String itemNumber;
+                if (undIndex != -1)
+                  itemNumber = itemID.substring(0,undIndex);
+                else
+                  itemNumber = itemID;
                 
                 List<NameValue> attachmentNames = proxy.getAttachmentNames( site, listID, itemNumber );
                 // Now, queue up each attachment as a separate entry
@@ -1365,7 +1371,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   
                   // No check for inclusion; if the list item is included, so is this
                   String[] dataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url"};
-                  String[][] dataValues = new String[3][];
+                  String[][] dataValues = new String[5][];
                   if (createdDate == null)
                     dataValues[0] = new String[0];
                   else

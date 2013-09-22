@@ -1567,16 +1567,9 @@ public class SPSProxyHelper {
         throw new ManifoldCFException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
       }
 
-      Object parent = nodeList.get(0);
-      if (!doc.getNodeName(parent).equals("ns1:List"))
-        throw new ManifoldCFException("Bad xml - outer node is '" + doc.getNodeName(parent) + "' not 'ns1:List'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);  // <ns1:Attachments>
-
       Object attachments = nodeList.get(0);
       if ( !doc.getNodeName(attachments).equals("ns1:Attachments") )
-        throw new ManifoldCFException( "Bad xml - child node 0 '" + doc.getNodeName(attachments) + "' is not 'ns1:Attachments'");
+        throw new ManifoldCFException( "Bad xml - outer node '" + doc.getNodeName(attachments) + "' is not 'ns1:Attachments'");
 
       nodeList.clear();
       doc.processPath(nodeList, "*", attachments);
@@ -1585,7 +1578,9 @@ public class SPSProxyHelper {
       while (i < nodeList.size())
       {
         Object o = nodeList.get( i++ );
-        String attachmentURL = doc.getValue( o, "ns1:Attachment" );
+        if ( !doc.getNodeName(o).equals("ns1:Attachment") )
+          throw new ManifoldCFException( "Bad xml - inner node '" + doc.getNodeName(o) + "' is not 'ns1:Attachment'");
+        String attachmentURL = doc.getData( o );
         if (attachmentURL != null)
         {
           int index = attachmentURL.lastIndexOf("/");
