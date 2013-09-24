@@ -255,6 +255,13 @@ public class ManifoldCF
 
   }
 
+  /** Get current properties.  Makes no attempt to reread or interpret them.
+  */
+  public static final ManifoldCFConfiguration getConfiguration()
+  {
+    return localConfiguration;
+  }
+  
   /** Reloads properties as needed.
   */
   public static final void checkProperties()
