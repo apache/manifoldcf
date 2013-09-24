@@ -356,8 +356,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   @Override
   public int getMaxDocumentRequest()
   {
-    // Since we pick up acls on a per-lib basis, it helps to have this bigger than 1.
-    return 10;
+    // Since we went to a carrydown-based implementation, having this greater than 1 does not help.
+    return 1;
   }
 
   /** Test the connection.  Returns a string describing the connection integrity.
@@ -765,6 +765,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
                 String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
                 String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
+                // Grab the ID from the carrydown data; it's needed to find the attachments.
+                String[] ids = activities.retrieveParentData(documentIdentifier, "ids");
 
                 String listID;
                 if (listIDs.length >= 1)
@@ -772,7 +774,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 else
                   listID = null;
 
-                if (listID != null)
+                String id;
+                if (ids.length >= 1)
+                  id = ids[0];
+                else
+                  id = null;
+
+                if (listID != null && id != null)
                 {
                   String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
                   
@@ -808,6 +816,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     packList(sb,denyTokens,'+');
                     packDate(sb,modifiedDateValue);
                     packDate(sb,createdDateValue);
+                    pack(sb,id,'+');
                     // The rest of this is unparseable
                     sb.append(versionToken);
                     sb.append(pathNameAttributeVersion);
@@ -949,7 +958,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           else
           {
-            // Document path!
+            // == Document path ==
             // Convert the modified document path to an unmodified one, plus a library path.
             String decodedLibPath = documentIdentifier.substring(0,dLibSeparatorIndex);
             String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dLibSeparatorIndex+1);
@@ -1192,9 +1201,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     // Decode the system metadata part of the specification
     SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
 
-    Map<String,String> docLibIDMap = new HashMap<String,String>();
-    Map<String,String> listIDMap = new HashMap<String,String>();
-
     int i = 0;
     while (i < documentIdentifiers.length)
     {
@@ -1326,6 +1332,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               startPosition = unpackList(acls,version,startPosition,'+');
               startPosition = unpackList(denyAcls,version,startPosition,'+');
 
+              // Dates
               Date modifiedDate = new Date(0L);
               startPosition = unpackDate(version,startPosition,modifiedDate);
               if (modifiedDate.getTime() == 0L)
@@ -1335,38 +1342,34 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               if (createdDate.getTime() == 0L)
                 createdDate = null;
 
+              // ID (for looking up attachments)
+              StringBuilder idBuffer = new StringBuilder();
+              startPosition = unpack(idBuffer,version,startPosition,'+');
+
+              // We need the list ID, which we've already fetched, so grab that from the parent data.
+              String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
+
+              String listID;
+              if (listIDs.length >= 1)
+                listID = listIDs[0];
+              else
+                listID = null;
+
+              if (listID == null)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
+                activities.deleteDocument(documentIdentifier,version);
+                i++;
+                continue;
+              }
+
               // Now, do any queuing that is needed.
               if (attachmentsSupported)
               {
-                String itemID = itemAndAttachment.substring(1);
-                String listID = listIDMap.get(decodedListPath);
-                if (listID == null)
-                {
-                  listID = proxy.getListID( encodePath(site), site, listName );
-                  if (listID == null)
-                    listID = "";
-                  listIDMap.put(decodedListPath,listID);
-                }
-  
-                if (listID.length() == 0)
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
-                  activities.deleteDocument(documentIdentifier,version);
-                  i++;
-                  continue;
-                }
+                String itemNumber = idBuffer.toString();
 
-                // Get the attachment names
-                // MHL: need to get the item number from somewhere
-                // This is a hack to see if everything else works.
-                int undIndex = itemID.indexOf("_");
-                String itemNumber;
-                if (undIndex != -1)
-                  itemNumber = itemID.substring(0,undIndex);
-                else
-                  itemNumber = itemID;
-                
+
                 List<NameValue> attachmentNames = proxy.getAttachmentNames( site, listID, itemNumber );
                 // Now, queue up each attachment as a separate entry
                 for (NameValue attachmentName : attachmentNames)
@@ -1416,24 +1419,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 Map<String,String> metadataValues = null;
                 if (metadataDescription.size() > 0)
                 {
-                  String listID = listIDMap.get(decodedListPath);
-                  if (listID == null)
-                  {
-                    listID = proxy.getListID( encodePath(site), site, listName );
-                    if (listID == null)
-                      listID = "";
-                    listIDMap.put(decodedListPath,listID);
-                  }
-
-                  if (listID.length() == 0)
-                  {
-                    if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
-                    activities.deleteDocument(documentIdentifier,version);
-                    i++;
-                    continue;
-                  }
-
                   metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(listCutoff+1), dspStsWorks );
                   if (metadataValues == null)
                   {
@@ -1668,16 +1653,16 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               Map<String,String> metadataValues = null;
               if (metadataDescription.size() > 0)
               {
-                String documentLibID = docLibIDMap.get(decodedLibPath);
-                if (documentLibID == null)
-                {
-                  documentLibID = proxy.getDocLibID( encodePath(site), site, libName );
-                  if (documentLibID == null)
-                    documentLibID = "";
-                  docLibIDMap.put(decodedLibPath,documentLibID);
-                }
+                // Retrieve the library guid from carrydown data
+                String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
 
-                if (documentLibID.length() == 0)
+                String documentLibID;
+                if (libIDs.length >= 1)
+                  documentLibID = libIDs[0];
+                else
+                  documentLibID = null;
+
+                if (documentLibID == null)
                 {
                   if (Logging.connectors.isDebugEnabled())
                     Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
@@ -2169,7 +2154,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
   
-  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
+  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields", "ids"};
 
   protected class ListItemStream implements IFileStream
   {
@@ -2228,7 +2213,27 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
               // The way I've chosen to do this is to use a triple slash at that point, as a separator.
               String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
+              
+              // Evil hack!!!
+              // Come up with the ID based on the URL.  This SHOULD come from SharePoint via addFile, above, but
+              // this requires a new release of the plugin for SharePoint 2010, and SPSProxyHelper revision and testing on SharePoint 2007.
+              String itemRef = relPath.substring(siteListPath.length());
+              String itemID;
+              if (itemRef.length() > 1)
+              {
+                int undIndex = itemRef.indexOf("_",1);
+                if (undIndex != -1)
+                  itemID = itemRef.substring(1,undIndex);
+                else
+                  itemID = itemRef.substring(1);
+              }
+              else
+                itemID = null;
 
+              if (itemID == null)
+                dataValues[4] = new String[0];
+              else
+                dataValues[4] = new String[]{itemID};
               activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
             }
             else
