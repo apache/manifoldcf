@@ -39,25 +39,44 @@ import org.apache.manifoldcf.ui.util.Encoder;
 public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector {
 
   public static final String _rcsid = "@(#)$Id$";
+
   /**
    * Session information for all DC's we talk with.
    */
   private LdapContext session = null;
+
   private long sessionExpirationTime = -1L;
+
   private ConfigParams parameters;
+
   private String serverName;
+
   private String serverPort;
+
   private String serverBase;
+
   private String userBase;
+
   private String userSearch;
+
   private String groupBase;
+
   private String groupSearch;
+
   private String groupNameAttr;
+
   private boolean groupMemberDN;
+
   private boolean addUserRecord;
+
+  private List<String> forcedTokens;
+
   private String userNameAttr;
+
   private long responseLifetime = 60000L; //60sec
+
   private int LRUsize = 1000;
+
   /**
    * Cache manager.
    */
@@ -102,6 +121,16 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     userNameAttr = configParams.getParameter("ldapUserNameAttr");
     groupMemberDN = "1".equals(getParam(configParams, "ldapGroupMemberDn", ""));
     addUserRecord = "1".equals(getParam(configParams, "ldapAddUserRecord", ""));
+
+    forcedTokens = new ArrayList<String>();
+    int i = 0;
+    while (i < parameters.getChildCount()) {
+      ConfigNode sn = parameters.getChild(i++);
+      if (sn.getType().equals("access")) {
+        String token = "" + sn.getAttributeValue("token");
+        forcedTokens.add(token);
+      }
+    }
   }
 
   // All methods below this line will ONLY be called if a connect() call succeeded
@@ -240,6 +269,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     groupSearch = null;
     groupNameAttr = null;
     userNameAttr = null;
+    forcedTokens = null;
   }
 
   protected String createCacheConnectionString() {
@@ -312,6 +342,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       }
 
       ArrayList theGroups = new ArrayList();
+      theGroups.addAll(forcedTokens);
 
       String usrName = userName.split("@")[0];
       if (userNameAttr != null && !"".equals(userNameAttr)) {
@@ -402,6 +433,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException {
+    tabsArray.add(Messages.getString(locale, "LDAP.ForcedTokens"));
     tabsArray.add(Messages.getString(locale, "LDAP.LDAP"));
     out.print(
       "<script type=\"text/javascript\">\n"
@@ -496,6 +528,19 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       + "    return false;\n"
       + "  }\n"
       + "  return true;\n"
+      + "}\n"
+      + "function SpecOp(n, opValue, anchorvalue) {\n"
+      + "  eval(\"editconnection.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"
+      + "  postFormSetAnchor(anchorvalue);\n"
+      + "}\n"
+      + "function SpecAddToken(anchorvalue) {\n"
+      + "  if (editconnection.spectoken.value == \"\")\n"
+      + "  {\n"
+      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.TypeInToken") + "\");\n"
+      + "    editconnection.spectoken.focus();\n"
+      + "    return;\n"
+      + "  }\n"
+      + "  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"
       + "}\n"
       + "//-->\n"
       + "</script>\n");
@@ -614,6 +659,77 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       out.print("<input type=\"hidden\" name=\"ldapAddUserRecord\" value=\"" + (fAddUserRecord ? "1" : "0") + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"ldapGroupMemberDn\" value=\"" + (fGroupMemberDN ? "1" : "0") + "\"/>\n");
     }
+
+    if (tabName.equals(Messages.getString(locale, "LDAP.ForcedTokens"))) {
+      out.print(
+        "<table class=\"displaytable\">\n"
+        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+        + "  <tr><td class=\"value\" colspan=\"2\">" + Messages.getBodyString(locale, "LDAP.ForcedTokensDisclaimer") + "</td></tr>\n"
+        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
+
+      out.print("  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
+      // Go through forced ACL
+      int i = 0;
+      int k = 0;
+      while (i < parameters.getChildCount()) {
+        ConfigNode sn = parameters.getChild(i++);
+        if (sn.getType().equals("access")) {
+          String accessDescription = "_" + Integer.toString(k);
+          String accessOpName = "accessop" + accessDescription;
+          String token = sn.getAttributeValue("token");
+          out.print(
+            "  <tr>\n"
+            + "    <td class=\"description\">\n"
+            + "      <input type=\"hidden\" name=\"" + accessOpName + "\" value=\"\"/>\n"
+            + "      <input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n"
+            + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
+            + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "LDAP.Delete") + "\" onClick='Javascript:SpecOp(\"" + accessOpName + "\",\"Delete\",\"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "LDAP.DeleteToken") + Integer.toString(k) + "\"/>\n"
+            + "      </a>&nbsp;\n"
+            + "    </td>\n"
+            + "    <td class=\"value\">\n"
+            + "      " + Encoder.bodyEscape(token) + "\n"
+            + "    </td>\n"
+            + "  </tr>\n");
+          k++;
+        }
+      }
+      if (k == 0) {
+        out.print(
+          "  <tr>\n"
+          + "    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale, "LDAP.NoTokensPresent") + "</td>\n"
+          + "  </tr>\n");
+      }
+      out.print(
+        "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"
+        + "  <tr>\n"
+        + "    <td class=\"description\">\n"
+        + "      <input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
+        + "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"
+        + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
+        + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "LDAP.Add") + "\" onClick='Javascript:SpecAddToken(\"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "LDAP.AddToken") + "\"/>\n"
+        + "      </a>&nbsp;\n"
+        + "    </td>\n"
+        + "    <td class=\"value\">\n"
+        + "      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"
+        + "    </td>\n"
+        + "  </tr>\n"
+        + "</table>\n");
+    } else {
+      // Finally, go through forced ACL
+      int i = 0;
+      int k = 0;
+      while (i < parameters.getChildCount()) {
+        ConfigNode sn = parameters.getChild(i++);
+        if (sn.getType().equals("access")) {
+          String accessDescription = "_" + Integer.toString(k);
+          String token = "" + sn.getAttributeValue("token");
+          out.print(
+            "<input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n");
+          k++;
+        }
+      }
+      out.print("<input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n");
+    }
   }
 
   private String getParam(ConfigParams parameters, String name, String def) {
@@ -678,6 +794,47 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     String bindPass = variableContext.getParameter("ldapBindPass");
     if (bindPass != null) {
       parameters.setObfuscatedParameter("ldapBindPass", variableContext.mapKeyToPassword(bindPass));
+    }
+
+    String xc = variableContext.getParameter("tokencount");
+    if (xc != null) {
+      // Delete all tokens first
+      int i = 0;
+      while (i < parameters.getChildCount()) {
+        ConfigNode sn = parameters.getChild(i);
+        if (sn.getType().equals("access")) {
+          parameters.removeChild(i);
+        } else {
+          i++;
+        }
+      }
+
+      int accessCount = Integer.parseInt(xc);
+      i = 0;
+      while (i < accessCount) {
+        String accessDescription = "_" + Integer.toString(i);
+        String accessOpName = "accessop" + accessDescription;
+        xc = variableContext.getParameter(accessOpName);
+        if (xc != null && xc.equals("Delete")) {
+          // Next row
+          i++;
+          continue;
+        }
+        // Get the stuff we need
+        String accessSpec = variableContext.getParameter("spectoken" + accessDescription);
+        ConfigNode node = new ConfigNode("access");
+        node.setAttribute("token", accessSpec);
+        parameters.addChild(parameters.getChildCount(), node);
+        i++;
+      }
+
+      String op = variableContext.getParameter("accessop");
+      if (op != null && op.equals("Add")) {
+        String accessspec = variableContext.getParameter("spectoken");
+        ConfigNode node = new ConfigNode("access");
+        node.setAttribute("token", accessspec);
+        parameters.addChild(parameters.getChildCount(), node);
+      }
     }
 
     return null;
@@ -767,8 +924,38 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       + " <tr>\n"
       + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupMemberDnColon") + "</nobr></td>\n"
       + "  <td class=\"value\">" + (f_groupMemberDN ? "Y" : "N") + "</td>\n"
-      + " </tr>\n"
-      + "</table>\n");
+      + " </tr>\n");
+
+    out.print("  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n");
+    boolean seenAny = false;
+    int i;
+
+    // Go through looking for access tokens
+    i = 0;
+    while (i < parameters.getChildCount()) {
+      ConfigNode sn = parameters.getChild(i++);
+      if (sn.getType().equals("access")) {
+        if (seenAny == false) {
+          out.print(
+            "  <tr>\n"
+            + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.ForcedTokensColon") + "</nobr></td>\n"
+            + "    <td class=\"value\">\n");
+          seenAny = true;
+        }
+        String token = sn.getAttributeValue("token");
+        out.print(Encoder.bodyEscape(token) + "<br/>\n");
+      }
+    }
+
+    if (seenAny) {
+      out.print(
+        "    </td>\n"
+        + "  </tr>\n");
+    } else {
+      out.print(
+        "  <tr><td class=\"message\" colspan=\"4\"><nobr>" + Messages.getBodyString(locale, "LDAP.NoTokensSpecified") + "</nobr></td></tr>\n");
+    }
+    out.print("</table>\n");
   }
 
   // Protected methods
@@ -884,6 +1071,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     }
     return sb.toString();
   }
+
   protected static StringSet emptyStringSet = new StringSet();
 
   /**
@@ -896,22 +1084,27 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
      * The user name
      */
     protected String userName;
+
     /**
      * LDAP connection string with server name and base DN
      */
     protected String connectionString;
+
     /**
      * User search definition
      */
     protected String userSearch;
+
     /**
      * Group search definition
      */
     protected String groupSearch;
+
     /**
      * The response lifetime
      */
     protected long responseLifetime;
+
     /**
      * The expiration time
      */
