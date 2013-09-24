@@ -28,9 +28,6 @@ public class ManifoldCF
   public static final String _rcsid = "@(#)$Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Configuration XML node names and attribute names
-  public static final String NODE_PROPERTY = "property";
-  public static final String ATTRIBUTE_NAME = "name";
-  public static final String ATTRIBUTE_VALUE = "value";
   public static final String NODE_LIBDIR = "libdir";
   public static final String ATTRIBUTE_PATH = "path";
   
@@ -87,7 +84,6 @@ public class ManifoldCF
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
   protected static ManifoldCFConfiguration localConfiguration = null;
-  protected static Map localProperties = null;
   protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
 
@@ -156,7 +152,6 @@ public class ManifoldCF
         masterDatabaseUsername = null;
         masterDatabasePassword = null;
         localConfiguration = null;
-        localProperties = null;
         propertyFilelastMod = -1L;
         propertyFilePath = null;
         alreadyClosed = false;
@@ -199,8 +194,7 @@ public class ManifoldCF
           resourceLoader = new ManifoldCFResourceLoader(Thread.currentThread().getContextClassLoader());
           
           // Read configuration!
-          localConfiguration = new ManifoldCFConfiguration();
-          localProperties = new HashMap();
+          localConfiguration = new OverrideableManifoldCFConfiguration();
           checkProperties();
 
           File logConfigFile = getFileProperty(logConfigFileProperty);
@@ -254,6 +248,26 @@ public class ManifoldCF
     }
 
   }
+  
+  /** For local properties (not shared!!), this class allows them to be overridden directly from the command line.
+  */
+  protected static class OverrideableManifoldCFConfiguration extends ManifoldCFConfiguration
+  {
+    public OverrideableManifoldCFConfiguration()
+    {
+      super();
+    }
+    
+    @Override
+    public String getProperty(String s)
+    {
+      String rval = System.getProperty(s);
+      if (rval == null)
+        rval = super.getProperty(s);
+      return rval;
+    }
+    
+  }
 
   /** Get current properties.  Makes no attempt to reread or interpret them.
   */
@@ -295,23 +309,13 @@ public class ManifoldCF
       throw new ManifoldCFException("Could not read configuration file '"+f.toString()+"'",e);
     }
     
-    // For convenience, post-process all "property" nodes so that we have a semblance of the earlier name/value pairs available, by default.
-    // e.g. <property name= value=/>
-    localProperties.clear();
+    // For convenience, post-process all "lib" nodes.
     ArrayList libDirs = new ArrayList();
     int i = 0;
     while (i < localConfiguration.getChildCount())
     {
       ConfigurationNode cn = localConfiguration.findChild(i++);
-      if (cn.getType().equals(NODE_PROPERTY))
-      {
-        String name = cn.getAttributeValue(ATTRIBUTE_NAME);
-        String value = cn.getAttributeValue(ATTRIBUTE_VALUE);
-        if (name == null)
-          throw new ManifoldCFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
-        localProperties.put(name,value);
-      }
-      else if (cn.getType().equals(NODE_LIBDIR))
+      if (cn.getType().equals(NODE_LIBDIR))
       {
         String path = cn.getAttributeValue(ATTRIBUTE_PATH);
         if (path == null)
@@ -341,10 +345,7 @@ public class ManifoldCF
   */
   public static String getProperty(String s)
   {
-    String rval = System.getProperty(s);
-    if (rval == null)
-      rval = (String)localProperties.get(s);
-    return rval;
+    return localConfiguration.getProperty(s);
   }
 
   /** Read a File property, either from the system properties, or from the local configuration file.
@@ -357,38 +358,39 @@ public class ManifoldCF
       return null;
     return resolvePath(value);
   }
-  
+
+  /** Read a (string) property, either from the system properties, or from the local configuration file.
+  *@param s is the property name.
+  *@param defaultValue is the default value for the property.
+  *@return the property value, as a string.
+  */
+  public static String getStringProperty(String s, String defaultValue)
+  {
+    return localConfiguration.getStringProperty(s, defaultValue);
+  }
+
   /** Read a boolean property
   */
   public static boolean getBooleanProperty(String s, boolean defaultValue)
     throws ManifoldCFException
   {
-    String value = getProperty(s);
-    if (value == null)
-      return defaultValue;
-    if (value.equals("true") || value.equals("yes"))
-      return true;
-    if (value.equals("false") || value.equals("no"))
-      return false;
-    throw new ManifoldCFException("Illegal property value for boolean property '"+s+"': '"+value+"'");
+    return localConfiguration.getBooleanProperty(s, defaultValue);
   }
   
-  /** Read an integer propert, either from the system properties, or from the local configuration file.
+  /** Read an integer property, either from the system properties, or from the local configuration file.
   */
   public static int getIntProperty(String s, int defaultValue)
     throws ManifoldCFException
   {
-    String value = getProperty(s);
-    if (value == null)
-      return defaultValue;
-    try
-    {
-      return Integer.parseInt(value);
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Illegal property value for integer property '"+s+"': '"+value+"': "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-    }
+    return localConfiguration.getIntProperty(s, defaultValue);
+  }
+
+  /** Read a float property, either from the system properties, or from the local configuration file.
+  */
+  public static double getDoubleProperty(String s, double defaultValue)
+    throws ManifoldCFException
+  {
+    return localConfiguration.getDoubleProperty(s, defaultValue);
   }
   
   /** Attempt to make sure a path is a folder

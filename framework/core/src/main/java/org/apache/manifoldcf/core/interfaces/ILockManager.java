@@ -33,7 +33,7 @@ public interface ILockManager
   */
   public ManifoldCFConfiguration getSharedConfiguration()
     throws ManifoldCFException;
-  
+
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.
   *@param flagName is the name of the flag to set.
