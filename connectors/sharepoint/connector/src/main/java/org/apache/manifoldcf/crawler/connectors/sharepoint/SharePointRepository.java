@@ -1001,7 +1001,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 metadataDescription.add("Created");
                 // The document path includes the library, with no leading slash, and is decoded.
                 int cutoff = decodedLibPath.lastIndexOf("/");
-                String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
+                String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
                 Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
 
                 String modifiedDate = values.get("Modified");
@@ -1507,9 +1507,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   createdDate = null;
 
                 // Fetch and index.  This also filters documents based on output connector restrictions.
-                String fileUrl = serverUrl + urlBuffer.toString();
-
-                if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fileUrl,
+                String fileUrl = serverUrl + encodePath(urlBuffer.toString());
+                String fetchUrl = fileUrl;
+                if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fetchUrl,
                   accessTokens, denyTokens, createdDate, modifiedDate, null, sDesc))
                 {
                   // Document not indexed for whatever reason
