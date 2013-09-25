@@ -38,11 +38,11 @@ public abstract class Database
 {
   public static final String _rcsid = "@(#)$Id: Database.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected ICacheManager cacheManager;
-  protected IThreadContext context;
-  protected String jdbcUrl;
-  protected String jdbcDriverClass;
-  protected String databaseName;
+  protected final ICacheManager cacheManager;
+  protected final IThreadContext context;
+  protected final String jdbcUrl;
+  protected final String jdbcDriverClass;
+  protected final String databaseName;
   protected String userName;
   protected String password;
   protected TransactionHandle th = null;
@@ -52,7 +52,9 @@ public abstract class Database
   protected int delayedTransactionDepth = 0;
   protected Map<String,Modifications> modificationsSet = new HashMap<String,Modifications>();
 
-  protected long maxQueryTime;
+  protected final long maxQueryTime;
+  protected final boolean debug;
+  protected final int maxDBConnections;
   
   protected static Random random = new Random();
 
@@ -68,7 +70,10 @@ public abstract class Database
     this.userName = userName;
     this.password = password;
     
-    this.maxQueryTime = ((long)ManifoldCF.getIntProperty(ManifoldCF.databaseQueryMaxTimeProperty,60)) * 1000L;
+    this.maxQueryTime = ((long)LockManagerFactory.getIntProperty(context, ManifoldCF.databaseQueryMaxTimeProperty,60)) * 1000L;
+    this.debug = LockManagerFactory.getBooleanProperty(context, ManifoldCF.databaseConnectionTrackingProperty, false);
+    this.maxDBConnections = LockManagerFactory.getIntProperty(context, ManifoldCF.databaseHandleMaxcountProperty, 50);
+
     this.cacheManager = CacheManagerFactory.make(context);
   }
 
@@ -247,7 +252,8 @@ public abstract class Database
     // Get a semipermanent connection
     if (connection == null)
     {
-      connection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
+      connection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password,
+        maxDBConnections,debug);
       try
       {
         // Initialize the connection (for HSQLDB)
@@ -755,7 +761,8 @@ public abstract class Database
     else
     {
       // Grab a connection
-      WrappedConnection tempConnection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password);
+      WrappedConnection tempConnection = ConnectionFactory.getConnection(jdbcUrl,jdbcDriverClass,databaseName,userName,password,
+        maxDBConnections,debug);
       try
       {
         // Initialize the connection (for HSQLDB)
