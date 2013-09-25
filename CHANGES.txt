@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-782: Add unique-ID metadata in SharePoint connector.
+(Dmitry Goldenberg, Karl Wright)
+
 CONNECTORS-778: Add support for attachments in SharePoint
 connector.
 (Dmitry Goldenberg, Karl Wright)

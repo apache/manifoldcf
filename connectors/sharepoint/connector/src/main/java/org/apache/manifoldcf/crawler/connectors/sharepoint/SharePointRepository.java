@@ -765,8 +765,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
                 String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
                 String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
-                // Grab the ID from the carrydown data; it's needed to find the attachments.
-                String[] ids = activities.retrieveParentData(documentIdentifier, "ids");
 
                 String listID;
                 if (listIDs.length >= 1)
@@ -774,13 +772,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 else
                   listID = null;
 
-                String id;
-                if (ids.length >= 1)
-                  id = ids[0];
-                else
-                  id = null;
-
-                if (listID != null && id != null)
+                if (listID != null)
                 {
                   String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
                   
@@ -792,11 +784,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   ArrayList metadataDescription = new ArrayList();
                   metadataDescription.add("Modified");
                   metadataDescription.add("Created");
+                  metadataDescription.add("ID");
+                  metadataDescription.add("GUID");
                   // The document path includes the library, with no leading slash, and is decoded.
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
                   Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
                   String modifiedDate = values.get("Modified");
                   String createdDate = values.get("Created");
+                  String id = values.get("ID");
+                  String guid = values.get("GUID");
                   if (modifiedDate != null)
                   {
                     // Item has a modified date so we presume it exists.
@@ -817,6 +813,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     packDate(sb,modifiedDateValue);
                     packDate(sb,createdDateValue);
                     pack(sb,id,'+');
+                    pack(sb,guid,'+');
                     // The rest of this is unparseable
                     sb.append(versionToken);
                     sb.append(pathNameAttributeVersion);
@@ -999,6 +996,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 metadataDescription.add("Last_x0020_Modified");
                 metadataDescription.add("Modified");
                 metadataDescription.add("Created");
+                metadataDescription.add("GUID");
                 // The document path includes the library, with no leading slash, and is decoded.
                 int cutoff = decodedLibPath.lastIndexOf("/");
                 String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
@@ -1006,8 +1004,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
                 String modifiedDate = values.get("Modified");
                 String createdDate = values.get("Created");
-                  
+                String guid = values.get("GUID");
                 String modifyDate = values.get("Last_x0020_Modified");
+
                 if (modifyDate != null)
                 {
                   // Item has a modified date, so we presume it exists
@@ -1051,6 +1050,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     packList(sb,denyTokens,'+');
                     packDate(sb,modifiedDateValue);
                     packDate(sb,createdDateValue);
+                    pack(sb,guid,'+');
                     // The rest of this is unparseable
                     sb.append(versionToken);
                     sb.append(pathNameAttributeVersion);
@@ -1174,6 +1174,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     return sortedMetadataFields;
   }
+
+  protected static final String[] attachmentDataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url","guids"};
 
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
@@ -1346,6 +1348,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               StringBuilder idBuffer = new StringBuilder();
               startPosition = unpack(idBuffer,version,startPosition,'+');
 
+              // List item GUID (for metadata)
+              StringBuilder guidBuffer = new StringBuilder();
+              startPosition = unpack(guidBuffer,version,startPosition,'+');
+              String guid = guidBuffer.toString();
+              
               // We need the list ID, which we've already fetched, so grab that from the parent data.
               String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
 
@@ -1378,8 +1385,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   // we unpacked the version information early above.
                   
                   // No check for inclusion; if the list item is included, so is this
-                  String[] dataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url"};
-                  String[][] dataValues = new String[5][];
+                  String[][] dataValues = new String[attachmentDataNames.length][];
                   if (createdDate == null)
                     dataValues[0] = new String[0];
                   else
@@ -1397,9 +1403,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   else
                     dataValues[3] = (String[])denyAcls.toArray(new String[0]);
                   dataValues[4] = new String[]{attachmentName.getPrettyName()};
+                  dataValues[5] = new String[]{guid};
 
                   activities.addDocumentReference(documentIdentifier + "/" + attachmentName.getValue(),
-                    documentIdentifier, null, dataNames, dataValues);
+                    documentIdentifier, null, attachmentDataNames, dataValues);
                   
                 }
               }
@@ -1458,7 +1465,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                         data.addField(fieldName,fieldData);
                       }
                     }
-
+                    data.addField("GUID",guid);
+                    
                     activities.ingestDocument( documentIdentifier, version, itemUrl , data );
                   }
                   finally
@@ -1506,18 +1514,41 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 if (createdDate.getTime() == 0L)
                   createdDate = null;
 
-                // Fetch and index.  This also filters documents based on output connector restrictions.
-                String fileUrl = serverUrl + encodePath(urlBuffer.toString());
-                String fetchUrl = fileUrl;
-                if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fetchUrl,
-                  accessTokens, denyTokens, createdDate, modifiedDate, null, sDesc))
+                // We need the list ID, which we've already fetched, so grab that from the parent data.
+                String[] guids = activities.retrieveParentData(documentIdentifier, "guids");
+                String guid;
+                if (guids.length >= 1)
+                  guid = guids[0];
+                else
+                  guid = null;
+                
+                if (guid != null)
                 {
-                  // Document not indexed for whatever reason
+                  String url = urlBuffer.toString();
+                  int lastIndex = url.lastIndexOf("/");
+                  guid = guid + ":" + url.substring(lastIndex+1);
+                  
+                  // Fetch and index.  This also filters documents based on output connector restrictions.
+                  String fileUrl = serverUrl + encodePath(url);
+                  String fetchUrl = fileUrl;
+                  if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fetchUrl,
+                    accessTokens, denyTokens, createdDate, modifiedDate, null, guid, sDesc))
+                  {
+                    // Document not indexed for whatever reason
+                    activities.deleteDocument(documentIdentifier,version);
+                    i++;
+                    continue;
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Skipping attachment '"+documentIdentifier+"' because no parent guid found");
                   activities.deleteDocument(documentIdentifier,version);
                   i++;
                   continue;
                 }
-
+                
               }
             }
           }
@@ -1644,6 +1675,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               if (createdDate.getTime() == 0L)
                 createdDate = null;
               
+              // Document GUID (for metadata)
+              StringBuilder guidBuffer = new StringBuilder();
+              startPosition = unpack(guidBuffer,version,startPosition,'+');
+              String guid = guidBuffer.toString();
+
               // Generate the URL we are going to use
               String fileUrl = fileBaseUrl + encodedDocumentPath;
               if (Logging.connectors.isDebugEnabled())
@@ -1686,7 +1722,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
               // Fetch and index.  This also filters documents based on output connector restrictions.
               if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
-                acls, denyAcls, createdDate, modifiedDate, metadataValues, sDesc))
+                acls, denyAcls, createdDate, modifiedDate, metadataValues, guid, sDesc))
               {
                 // Document not indexed for whatever reason
                 activities.deleteDocument(documentIdentifier,version);
@@ -1782,7 +1818,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   */
   protected boolean fetchAndIndexFile(IProcessActivity activities, String documentIdentifier, String version,
     String fileUrl, String fetchUrl, ArrayList acls, ArrayList denyAcls, Date createdDate, Date modifiedDate,
-    Map<String,String> metadataValues, SystemMetadataDescription sDesc)
+    Map<String,String> metadataValues, String guid, SystemMetadataDescription sDesc)
     throws ManifoldCFException, ServiceInterruption
   {
     // Before we fetch, confirm that the output connector will accept the document
@@ -1923,6 +1959,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     data.addField(fieldName,fieldData);
                   }
                 }
+                data.addField("GUID",guid);
+                
                 activities.ingestDocument( documentIdentifier, version, fileUrl , data );
                 return true;
               }
@@ -2154,7 +2192,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
   
-  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields", "ids"};
+  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
 
   protected class ListItemStream implements IFileStream
   {
@@ -2214,26 +2252,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // The way I've chosen to do this is to use a triple slash at that point, as a separator.
               String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
               
-              // Evil hack!!!
-              // Come up with the ID based on the URL.  This SHOULD come from SharePoint via addFile, above, but
-              // this requires a new release of the plugin for SharePoint 2010, and SPSProxyHelper revision and testing on SharePoint 2007.
-              String itemRef = relPath.substring(siteListPath.length());
-              String itemID;
-              if (itemRef.length() > 1)
-              {
-                int undIndex = itemRef.indexOf("_",1);
-                if (undIndex != -1)
-                  itemID = itemRef.substring(1,undIndex);
-                else
-                  itemID = itemRef.substring(1);
-              }
-              else
-                itemID = null;
-
-              if (itemID == null)
-                dataValues[4] = new String[0];
-              else
-                dataValues[4] = new String[]{itemID};
               activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
             }
             else
