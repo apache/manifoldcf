@@ -58,9 +58,9 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public DBInterfaceHSQLDB(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,getJDBCString(databaseName),_driver,getDatabaseString(databaseName),userName,password);
+    super(tc,getJDBCString(tc,databaseName),_driver,getDatabaseString(tc,databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
-    this.isRemote = ManifoldCF.getProperty(databaseProtocolProperty) != null;
+    this.isRemote = LockManagerFactory.getProperty(tc,databaseProtocolProperty) != null;
     this.userName = userName;
     this.password = password;
     if (this.isRemote)
@@ -69,34 +69,34 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       schemaNameForQueries = "PUBLIC";
   }
 
-  protected static String getJDBCString(String databaseName)
+  protected static String getJDBCString(IThreadContext tc, String databaseName)
     throws ManifoldCFException
   {
     // For local, we use the database name as the name of the database files.
     // For remote, we connect to an instance specified by a different property, and use the database name as the schema name.
-    String protocol = ManifoldCF.getProperty(databaseProtocolProperty);
+    String protocol = LockManagerFactory.getProperty(tc,databaseProtocolProperty);
     if (protocol == null)
       return _localUrl+getFullDatabasePath(databaseName);
     
     // Remote instance.  Build the URL.
     if (legalProtocolValues.get(protocol) == null)
       throw new ManifoldCFException("The value of the '"+databaseProtocolProperty+"' property was illegal; try hsql, http, or https");
-    String server = ManifoldCF.getProperty(databaseServerProperty);
+    String server = LockManagerFactory.getProperty(tc,databaseServerProperty);
     if (server == null)
       throw new ManifoldCFException("HSQLDB remote mode requires '"+databaseServerProperty+"' property, containing a server name or IP address");
-    String port = ManifoldCF.getProperty(databasePortProperty);
+    String port = LockManagerFactory.getProperty(tc,databasePortProperty);
     if (port != null && port.length() > 0)
       server += ":"+port;
-    String instanceName = ManifoldCF.getProperty(databaseInstanceProperty);
+    String instanceName = LockManagerFactory.getProperty(tc,databaseInstanceProperty);
     if (instanceName != null && instanceName.length() > 0)
       server += "/" + instanceName;
     return _remoteUrl + protocol + "://" + server;
   }
   
-  protected static String getDatabaseString(String databaseName)
+  protected static String getDatabaseString(IThreadContext tc, String databaseName)
     throws ManifoldCFException
   {
-    String protocol = ManifoldCF.getProperty(databaseProtocolProperty);
+    String protocol = LockManagerFactory.getProperty(tc,databaseProtocolProperty);
     if (protocol == null)
       return getFullDatabasePath(databaseName);
     return databaseName;
