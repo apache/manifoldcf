@@ -62,8 +62,8 @@ public class CrawlerAgent implements IAgent
   public void startAgent()
     throws ManifoldCFException
   {
-    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
-    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize();
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize(threadContext);
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize(threadContext);
     ManifoldCF.startSystem(threadContext);
   }
 
@@ -73,8 +73,8 @@ public class CrawlerAgent implements IAgent
     throws ManifoldCFException
   {
     ManifoldCF.stopSystem(threadContext);
-    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup();
-    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup(threadContext);
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup(threadContext);
   }
 
   /** Request permission from agent to delete an output connection.

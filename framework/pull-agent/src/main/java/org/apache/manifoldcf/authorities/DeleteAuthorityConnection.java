@@ -46,8 +46,8 @@ public class DeleteAuthorityConnection
     String connectionName = args[0];
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
       mgr.delete(connectionName);
 

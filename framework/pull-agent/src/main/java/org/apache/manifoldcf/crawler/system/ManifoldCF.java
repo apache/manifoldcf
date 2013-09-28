@@ -105,35 +105,35 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String connectorsConfigurationFileProperty = "org.apache.manifoldcf.connectorsconfigurationfile";
   protected static final String databaseSuperuserNameProperty = "org.apache.manifoldcf.dbsuperusername";
   protected static final String databaseSuperuserPasswordProperty = "org.apache.manifoldcf.dbsuperuserpassword";
-  protected static final String salt = "org.apache.manifoldcf.salt";
+  protected static final String saltProperty = "org.apache.manifoldcf.salt";
 
   /** This object is used to make sure the initialization sequence is atomic.  Shutdown cannot occur until the system is in a known state. */
   protected static Integer startupLock = new Integer(0);
   
   /** Initialize environment.
   */
-  public static void initializeEnvironment()
+  public static void initializeEnvironment(IThreadContext tc)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.agents.system.ManifoldCF.initializeEnvironment();
-      org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
-      org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize();
+      org.apache.manifoldcf.agents.system.ManifoldCF.initializeEnvironment(tc);
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize(tc);
+      org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize(tc);
     }
   }
 
-  public static void cleanUpEnvironment()
+  public static void cleanUpEnvironment(IThreadContext tc)
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
-      org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup();
-      org.apache.manifoldcf.agents.system.ManifoldCF.cleanUpEnvironment();
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup(tc);
+      org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup(tc);
+      org.apache.manifoldcf.agents.system.ManifoldCF.cleanUpEnvironment(tc);
     }
   }
   
-  public static void localInitialize()
+  public static void localInitialize(IThreadContext tc)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
@@ -143,12 +143,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         return;
       
       Logging.initializeLoggers();
-      Logging.setLogLevels();
+      Logging.setLogLevels(tc);
       crawlerInitialized = true;
     }
   }
   
-  public static void localCleanup()
+  public static void localCleanup(IThreadContext tc)
   {
   }
   
@@ -158,12 +158,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     throws ManifoldCFException
   {
     // Get the specified superuser name and password, in case this isn't Derby we're using
-    String superuserName = getProperty(databaseSuperuserNameProperty);
-    if (superuserName == null)
-      superuserName = "";
-    String superuserPassword = getProperty(databaseSuperuserPasswordProperty);
-    if (superuserPassword == null)
-      superuserPassword = "";
+    String superuserName = LockManagerFactory.getStringProperty(threadContext, databaseSuperuserNameProperty, "");
+    String superuserPassword = LockManagerFactory.getStringProperty(threadContext, databaseSuperuserPasswordProperty, "");
     createSystemDatabase(threadContext,superuserName,superuserPassword);
   }
   
@@ -569,40 +565,22 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     synchronized (startupLock)
     {
       // Now, start all the threads
-      String maxThreads = getProperty(workerThreadCountProperty);
-      if (maxThreads == null)
-        maxThreads = "100";
-      numWorkerThreads = new Integer(maxThreads).intValue();
+      numWorkerThreads = LockManagerFactory.getIntProperty(threadContext,workerThreadCountProperty,100);
       if (numWorkerThreads < 1 || numWorkerThreads > 300)
         throw new ManifoldCFException("Illegal value for the number of worker threads");
-      String maxDeleteThreads = getProperty(deleteThreadCountProperty);
-      if (maxDeleteThreads == null)
-        maxDeleteThreads = "10";
-      String maxCleanupThreads = getProperty(cleanupThreadCountProperty);
-      if (maxCleanupThreads == null)
-        maxCleanupThreads = "10";
-      String maxExpireThreads = getProperty(expireThreadCountProperty);
-      if (maxExpireThreads == null)
-        maxExpireThreads = "10";
-      numDeleteThreads = new Integer(maxDeleteThreads).intValue();
+      numDeleteThreads = LockManagerFactory.getIntProperty(threadContext,deleteThreadCountProperty,10);
+      numCleanupThreads = LockManagerFactory.getIntProperty(threadContext,cleanupThreadCountProperty,10);
+      numExpireThreads = LockManagerFactory.getIntProperty(threadContext,expireThreadCountProperty,10);
       if (numDeleteThreads < 1 || numDeleteThreads > 300)
         throw new ManifoldCFException("Illegal value for the number of delete threads");
-      numCleanupThreads = new Integer(maxCleanupThreads).intValue();
       if (numCleanupThreads < 1 || numCleanupThreads > 300)
         throw new ManifoldCFException("Illegal value for the number of cleanup threads");
-      numExpireThreads = new Integer(maxExpireThreads).intValue();
       if (numExpireThreads < 1 || numExpireThreads > 300)
         throw new ManifoldCFException("Illegal value for the number of expire threads");
-      String lowWaterFactorString = getProperty(lowWaterFactorProperty);
-      if (lowWaterFactorString == null)
-        lowWaterFactorString = "5";
-      lowWaterFactor = new Float(lowWaterFactorString).floatValue();
+      lowWaterFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,lowWaterFactorProperty,5.0);
       if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
         throw new ManifoldCFException("Illegal value for the low water factor");
-      String stuffAmtFactorString = getProperty(stuffAmtFactorProperty);
-      if (stuffAmtFactorString == null)
-        stuffAmtFactorString = "2";
-      stuffAmtFactor = new Float(stuffAmtFactorString).floatValue();
+      stuffAmtFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,stuffAmtFactorProperty,2.0);
       if (stuffAmtFactor < 0.1 || stuffAmtFactor > 1000.0)
         throw new ManifoldCFException("Illegal value for the stuffing amount factor");
 
@@ -1139,7 +1117,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           Cipher cipher = null; 
           try
           {
-            cipher = getCipher(Cipher.ENCRYPT_MODE, passCode, iv);
+            cipher = getCipher(threadContext, Cipher.ENCRYPT_MODE, passCode, iv);
           }
           catch (GeneralSecurityException gse)
           {
@@ -1266,7 +1244,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           Cipher cipher = null; 
           try
           {
-            cipher = getCipher(Cipher.DECRYPT_MODE, passCode, iv);
+            cipher = getCipher(threadContext, Cipher.DECRYPT_MODE, passCode, iv);
           }
           catch (GeneralSecurityException gse)
           {
@@ -1661,10 +1639,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   private static final int IV_LENGTH = 16;
   
-  private static Cipher getCipher(final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
+  private static Cipher getCipher(IThreadContext threadContext, final int mode, final String passCode, final byte[] iv) throws GeneralSecurityException,
     ManifoldCFException
   {
-    final String saltValue = getProperty(salt);
+    final String saltValue = LockManagerFactory.getProperty(threadContext, saltProperty);
 
     if (saltValue == null || saltValue.length() == 0)
       throw new ManifoldCFException("Missing required SALT value");

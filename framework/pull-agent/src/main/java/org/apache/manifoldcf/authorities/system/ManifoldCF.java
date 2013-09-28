@@ -48,26 +48,26 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   
   /** Initialize environment.
   */
-  public static void initializeEnvironment()
+  public static void initializeEnvironment(IThreadContext tc)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
-      org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
+      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment(tc);
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize(tc);
     }
   }
 
-  public static void cleanUpEnvironment()
+  public static void cleanUpEnvironment(IThreadContext tc)
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
-      org.apache.manifoldcf.core.system.ManifoldCF.cleanUpEnvironment();
+      org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup(tc);
+      org.apache.manifoldcf.core.system.ManifoldCF.cleanUpEnvironment(tc);
     }
   }
 
-  public static void localInitialize()
+  public static void localInitialize(IThreadContext tc)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
@@ -76,12 +76,12 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
         return;
 
       Logging.initializeLoggers();
-      Logging.setLogLevels();
+      Logging.setLogLevels(tc);
       authoritiesInitialized = true;
     }
   }
   
-  public static void localCleanup()
+  public static void localCleanup(IThreadContext tc)
   {
   }
   
@@ -177,17 +177,11 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     throws ManifoldCFException
   {
     // Read any parameters
-    String maxThreads = getProperty(authCheckThreadCountProperty);
-    if (maxThreads == null)
-      maxThreads = "10";
-    numAuthCheckThreads = new Integer(maxThreads).intValue();
+    numAuthCheckThreads = LockManagerFactory.getIntProperty(threadContext, authCheckThreadCountProperty, 10);
     if (numAuthCheckThreads < 1 || numAuthCheckThreads > 100)
       throw new ManifoldCFException("Illegal value for the number of auth check threads");
 
-    String maxMappingThreads = getProperty(mappingThreadCountProperty);
-    if (maxMappingThreads == null)
-      maxMappingThreads = "10";
-    numMappingThreads = new Integer(maxMappingThreads).intValue();
+    numMappingThreads = LockManagerFactory.getIntProperty(threadContext, mappingThreadCountProperty, 10);
     if (numMappingThreads < 1 || numMappingThreads > 100)
       throw new ManifoldCFException("Illegal value for the number of mapping threads");
 

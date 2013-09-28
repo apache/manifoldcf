@@ -136,16 +136,25 @@ public class ManifoldCF
   /** File to look for to block access to UI during database maintenance */
   public static final String maintenanceFileSignalProperty = "org.apache.manifoldcf.database.maintenanceflag";
 
+  /** Reset environment, minting a thread context for convenience and backwards
+  * compatibility.
+  */
+  @Deprecated
+  public static void resetEnvironment()
+  {
+    resetEnvironment(ThreadContextFactory.make());
+  }
+  
   /** Reset environment.
   */
-  public static void resetEnvironment()
+  public static void resetEnvironment(IThreadContext threadContext)
   {
     synchronized (initializeFlagLock)
     {
       if (initializeLevel > 0)
       {
         // Clean up the system doing the same thing the shutdown thread would have if the process was killed
-        cleanUpEnvironment();
+        cleanUpEnvironment(threadContext);
         loginUserName = null;
         loginPassword = null;
         masterDatabaseName = null;
@@ -161,9 +170,18 @@ public class ManifoldCF
     }
   }
   
+  /** Initialize environment, minting a thread context for backwards compatibility.
+  */
+  @Deprecated
+  public static void initializeEnvironment()
+    throws ManifoldCFException
+  {
+    initializeEnvironment(ThreadContextFactory.make());
+  }
+  
   /** Initialize environment.
   */
-  public static void initializeEnvironment()
+  public static void initializeEnvironment(IThreadContext threadContext)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
@@ -197,6 +215,7 @@ public class ManifoldCF
           localConfiguration = new OverrideableManifoldCFConfiguration();
           checkProperties();
 
+          // Log file is always local
           File logConfigFile = getFileProperty(logConfigFileProperty);
           if (logConfigFile == null)
           {
@@ -210,24 +229,14 @@ public class ManifoldCF
 
           // Set up local loggers
           Logging.initializeLoggers();
-          Logging.setLogLevels();
+          Logging.setLogLevels(threadContext);
 
-          loginUserName = getProperty(loginUserNameProperty);
-          if (loginUserName == null)
-            loginUserName = "admin";
-          loginPassword = getProperty(loginPasswordProperty);
-          if (loginPassword == null)
-            loginPassword = "admin";
+          loginUserName = LockManagerFactory.getStringProperty(threadContext,loginUserNameProperty,"admin");
+          loginPassword = LockManagerFactory.getStringProperty(threadContext,loginPasswordProperty,"admin");
 
-          masterDatabaseName = getProperty(masterDatabaseNameProperty);
-          if (masterDatabaseName == null)
-            masterDatabaseName = "dbname";
-          masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
-          if (masterDatabaseUsername == null)
-            masterDatabaseUsername = "manifoldcf";
-          masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
-          if (masterDatabasePassword == null)
-            masterDatabasePassword = "local_pg_passwd";
+          masterDatabaseName = LockManagerFactory.getStringProperty(threadContext,masterDatabaseNameProperty,"dbname");
+          masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
+          masterDatabasePassword = LockManagerFactory.getStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
 
           // Register the file tracker for cleanup on shutdown
           tracker = new FileTrack();
@@ -236,8 +245,7 @@ public class ManifoldCF
           addShutdownHook(new DatabaseShutdown());
 
           // Open the database.  Done once per JVM.
-          IThreadContext threadcontext = ThreadContextFactory.make();
-          DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
+          DBInterfaceFactory.make(threadContext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
         }
         catch (ManifoldCFException e)
         {
@@ -815,6 +823,7 @@ public class ManifoldCF
   */
   public static boolean checkMaintenanceUnderway()
   {
+    // File check is always local; this whole bit of logic needs to be rethought though.
     String fileToCheck = getProperty(maintenanceFileSignalProperty);
     if (fileToCheck != null && fileToCheck.length() > 0)
     {
@@ -829,6 +838,7 @@ public class ManifoldCF
   public static void noteConfigurationChange()
     throws ManifoldCFException
   {
+    // Always a local file.  This needs to be rethought how it should operate in a clustered world.
     String configChangeSignalCommand = getProperty(configSignalCommandProperty);
     if (configChangeSignalCommand == null || configChangeSignalCommand.length() == 0)
       return;
@@ -1238,8 +1248,15 @@ public class ManifoldCF
     return resourceLoader.findClass(cname);
   }
   
-  /** Perform system shutdown, using the registered shutdown hooks. */
+  /** Perform system shutdown, minting thread context for backwards compatibility */
+  @Deprecated
   public static void cleanUpEnvironment()
+  {
+    cleanUpEnvironment(ThreadContextFactory.make());
+  }
+  
+  /** Perform system shutdown, using the registered shutdown hooks. */
+  public static void cleanUpEnvironment(IThreadContext threadContext)
   {
     synchronized (initializeFlagLock)
     {
@@ -1411,7 +1428,7 @@ public class ManifoldCF
     public void run()
     {
       // This thread is run at shutdown time.
-      cleanUpEnvironment();
+      cleanUpEnvironment(ThreadContextFactory.make());
     }
   }
 

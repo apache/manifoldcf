@@ -34,8 +34,8 @@ public abstract class BaseAuthoritiesInitializationCommand implements Initializa
 {
   public void execute() throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
+    ManifoldCF.initializeEnvironment(tc);
     IAuthorityConnectorManager mgr = AuthorityConnectorManagerFactory.make(tc);
 
     doExecute(mgr);

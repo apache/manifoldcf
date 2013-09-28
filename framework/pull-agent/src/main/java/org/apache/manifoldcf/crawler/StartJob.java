@@ -49,8 +49,8 @@ public class StartJob
 
                 try
                 {
-                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
+                        ManifoldCF.initializeEnvironment(tc);
                         IJobManager jobManager = JobManagerFactory.make(tc);
                         jobManager.manualStart(new Long(jobID));
                         System.out.println("Job starting");

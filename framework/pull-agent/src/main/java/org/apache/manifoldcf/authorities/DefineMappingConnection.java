@@ -51,8 +51,8 @@ public class DefineMappingConnection
 
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IMappingConnectionManager mgr = MappingConnectionManagerFactory.make(tc);
       IMappingConnection conn = mgr.create();
       conn.setName(connectionName);

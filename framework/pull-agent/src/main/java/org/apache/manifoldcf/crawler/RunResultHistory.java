@@ -73,8 +73,8 @@ public class RunResultHistory
 
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
 
       FilterCriteria filter = parseFilterCriteria(activityList,startTime,endTime,entityRegexp,resultCodeRegexp);

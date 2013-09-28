@@ -53,8 +53,8 @@ public class InitializeAndRegister
 
       try
       {
-        ManifoldCF.initializeEnvironment();
         IThreadContext tc = ThreadContextFactory.make();
+        ManifoldCF.initializeEnvironment(tc);
       
         InitializeAndRegister register = new InitializeAndRegister();
         register.doExecute(tc);

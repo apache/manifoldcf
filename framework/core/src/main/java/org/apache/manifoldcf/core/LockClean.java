@@ -38,7 +38,7 @@ public class LockClean implements InitializationCommand
    */
   public void execute() throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
+    ManifoldCF.initializeEnvironment(ThreadContextFactory.make());
     String synchDir = ManifoldCF.getFileProperty(org.apache.manifoldcf.core.lockmanager.LockManager.synchDirectoryProperty).toString();
     if (synchDir != null)
     {

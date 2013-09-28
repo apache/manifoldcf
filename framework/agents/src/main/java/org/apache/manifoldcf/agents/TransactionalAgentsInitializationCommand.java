@@ -30,8 +30,8 @@ public abstract class TransactionalAgentsInitializationCommand implements Initia
 {
   public void execute() throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
+    ManifoldCF.initializeEnvironment(tc);
     IDBInterface database = DBInterfaceFactory.make(tc,
       org.apache.manifoldcf.agents.system.ManifoldCF.getMasterDatabaseName(),
       org.apache.manifoldcf.agents.system.ManifoldCF.getMasterDatabaseUsername(),

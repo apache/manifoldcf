@@ -54,6 +54,7 @@ import org.apache.manifoldcf.core.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.core.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 import org.apache.manifoldcf.crawler.interfaces.DocumentSpecification;
 import org.apache.manifoldcf.crawler.interfaces.IDocumentIdentifierStream;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
@@ -120,7 +121,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private boolean useSIDs = true;
 
   private NtlmPasswordAuthentication pa;
-
+  
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
@@ -128,9 +129,19 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   */
   public SharedDriveConnector()
   {
-    // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.
-    String value = ManifoldCF.getProperty(PROPERTY_JCIFS_USE_NTLM_V1);
-    if (value == null || value.toLowerCase().equals("false"))
+  }
+
+  /** Set thread context.
+  * Use the opportunity to set the system properties we'll need.
+  */
+  @Override
+  public void setThreadContext(IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    super.setThreadContext(threadContext);
+    // We need to know whether to operate in NTLMv2 mode, or in NTLM mode.  We do this before jcifs called the first time.
+    boolean useV1 = LockManagerFactory.getBooleanProperty(threadContext, PROPERTY_JCIFS_USE_NTLM_V1, false);
+    if (!useV1)
     {
       System.setProperty("jcifs.smb.lmCompatibility","3");
       System.setProperty("jcifs.smb.client.useExtendedSecurity","true");
@@ -141,13 +152,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       System.setProperty("jcifs.smb.client.useExtendedSecurity","false");
     }
   }
-
+  
   /** Establish a "session".  In the case of the jcifs connector, this just builds the appropriate smbconnectionPath string, and does the necessary checks. */
   protected void getSession()
     throws ManifoldCFException
   {
     if (smbconnectionPath == null)
     {
+      
       // Get the server
       if (server == null || server.length() == 0)
         throw new ManifoldCFException("Missing parameter '"+SharedDriveParameters.server+"'");
