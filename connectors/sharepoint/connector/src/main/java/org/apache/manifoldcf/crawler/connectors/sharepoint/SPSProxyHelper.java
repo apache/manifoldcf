@@ -1922,7 +1922,7 @@ public class SPSProxyHelper {
         ListsWS lservice = new ListsWS(baseUrl + site, userName, password, configuration, httpClient );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
-        String sitePlusDocId = serverLocation + site + "/" + docId;
+        String sitePlusDocId = serverLocation + site + docId;
         if (sitePlusDocId.startsWith("/"))
           sitePlusDocId = sitePlusDocId.substring(1);
         
