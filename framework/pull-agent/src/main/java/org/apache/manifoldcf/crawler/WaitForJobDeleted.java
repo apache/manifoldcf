@@ -28,44 +28,44 @@ import java.util.*;
 */
 public class WaitForJobDeleted
 {
-        public static final String _rcsid = "@(#)$Id: WaitForJobDeleted.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: WaitForJobDeleted.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private WaitForJobDeleted()
-        {
-        }
+  private WaitForJobDeleted()
+  {
+  }
 
-        // Add: throttle, priority, recrawl interval
+  // Add: throttle, priority, recrawl interval
 
-        public static void main(String[] args)
-        {
-                if (args.length != 1)
-                {
-                        System.err.println("Usage: WaitForJobDeleted <jobid>");
-                        System.exit(1);
-                }
+  public static void main(String[] args)
+  {
+    if (args.length != 1)
+    {
+      System.err.println("Usage: WaitForJobDeleted <jobid>");
+      System.exit(1);
+    }
 
-                String jobID = args[0];
+    String jobID = args[0];
 
 
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IJobManager jobManager = JobManagerFactory.make(tc);
-                        while (true)
-                        {
-                                JobStatus status = jobManager.getStatus(new Long(jobID));
-                                if (status == null)
-                                        break;
-                                ManifoldCF.sleep(10000);
-                        }
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      while (true)
+      {
+        JobStatus status = jobManager.getStatus(new Long(jobID));
+        if (status == null)
+          break;
+        ManifoldCF.sleep(10000);
+      }
 
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
-                
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+
 }

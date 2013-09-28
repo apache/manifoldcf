@@ -51,8 +51,8 @@ public class DefineOutputConnection
 
                 try
                 {
-                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
+                        ManifoldCF.initializeEnvironment(tc);
                         IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
                         IOutputConnection conn = mgr.create();
                         conn.setName(connectionName);

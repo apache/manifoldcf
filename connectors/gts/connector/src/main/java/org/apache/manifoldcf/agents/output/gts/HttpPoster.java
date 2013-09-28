@@ -63,14 +63,16 @@ public class HttpPoster
   private int port = 80;
   private String protocol = null;
 
-  private int buffersize = 32768;  // default buffer size
-  double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
+  /** Default buffer size */
+  private final int buffersize;
+  /** Size coefficient */
+  private static double sizeCoefficient = 0.0005;    // 20 ms additional timeout per 2000 bytes, pulled out of my butt
   /** the number of times we should poll for the response */
-  int responseRetries = 9000;         // Long basic wait: 3 minutes.  This will also be added to by a term based on the size of the request.
+  private final int responseRetries;
   /** how long we should wait before checking for a new stream */
-  long responseRetryWait = 20L;
+  private final long responseRetryWait;
   /** How long to wait before retrying a failed ingestion */
-  long interruptionRetryTime = 60000L;
+  private final long interruptionRetryTime;
 
   /** This is the secure socket factory we will use.  I'm presuming it's thread-safe, but
   * if not, synchronization blocks are in order when it's used. */
@@ -95,7 +97,7 @@ public class HttpPoster
   * @param password is the unencoded password, or null.
   * @param postURI the uri to post the request to
   */
-  public HttpPoster(String realm, String userID, String password, String postURI)
+  public HttpPoster(IThreadContext threadContext, String realm, String userID, String password, String postURI)
     throws ManifoldCFException
   {
     if (userID != null && userID.length() > 0 && password != null)
@@ -136,18 +138,10 @@ public class HttpPoster
         port = 80;
     }
 
-    String x = ManifoldCF.getProperty(ingestBufferSizeProperty);
-    if (x != null && x.length() > 0)
-      buffersize = new Integer(x).intValue();
-    x = ManifoldCF.getProperty(ingestResponseRetryCount);
-    if (x != null && x.length() > 0)
-      responseRetries = new Integer(x).intValue();
-    x = ManifoldCF.getProperty(ingestResponseRetryInterval);
-    if (x != null && x.length() > 0)
-      responseRetryWait = new Long(x).longValue();
-    x = ManifoldCF.getProperty(ingestRescheduleInterval);
-    if (x != null && x.length() > 0)
-      interruptionRetryTime = new Long(x).longValue();
+    buffersize = LockManagerFactory.getIntProperty(threadContext,ingestBufferSizeProperty,32768);
+    responseRetries = LockManagerFactory.getIntProperty(threadContext,ingestResponseRetryCount,9000);
+    responseRetryWait = LockManagerFactory.getIntProperty(threadContext,ingestResponseRetryInterval,20);
+    interruptionRetryTime = LockManagerFactory.getIntProperty(threadContext,ingestRescheduleInterval,60000);
   }
 
   /**

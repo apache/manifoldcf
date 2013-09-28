@@ -114,15 +114,17 @@ public class BaseHSQLDBext extends org.apache.manifoldcf.agents.tests.BaseHSQLDB
     throws Exception
   {
     super.initializeSystem();
-    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize();
-    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize();
+    IThreadContext tc = ThreadContextFactory.make();
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localInitialize(tc);
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localInitialize(tc);
   }
   
   protected void cleanupSystem()
     throws Exception
   {
-    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup();
-    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup();
+    IThreadContext tc = ThreadContextFactory.make();
+    org.apache.manifoldcf.authorities.system.ManifoldCF.localCleanup(tc);
+    org.apache.manifoldcf.crawler.system.ManifoldCF.localCleanup(tc);
     super.cleanupSystem();
   }
 

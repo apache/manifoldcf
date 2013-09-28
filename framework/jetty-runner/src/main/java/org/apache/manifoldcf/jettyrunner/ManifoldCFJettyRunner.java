@@ -177,10 +177,10 @@ public class ManifoldCFJettyRunner
     	System.setProperty(ManifoldCF.lcfConfigFileProperty,"./properties.xml");
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
 
-      // Grab the parameters which locate the wars and describe how we work with Jetty
+      // Grab the parameters which locate the wars and describe how we work with Jetty.  These are not shared.
       File crawlerWarPath = ManifoldCF.getFileProperty(crawlerUIWarPathProperty);
       File authorityserviceWarPath = ManifoldCF.getFileProperty(authorityServiceWarPathProperty);
       File apiWarPath = ManifoldCF.getFileProperty(apiServiceWarPathProperty);

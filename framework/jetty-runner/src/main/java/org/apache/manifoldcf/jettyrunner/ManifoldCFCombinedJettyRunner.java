@@ -133,8 +133,8 @@ public class ManifoldCFCombinedJettyRunner
     	System.setProperty(ManifoldCF.lcfConfigFileProperty,"./properties.xml");
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
 
       // Grab the parameters which locate the wars and describe how we work with Jetty
       File combinedWarPath = ManifoldCF.getFileProperty(combinedWarPathProperty);

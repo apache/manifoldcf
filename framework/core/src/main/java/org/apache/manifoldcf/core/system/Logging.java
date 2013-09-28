@@ -96,7 +96,8 @@ public class Logging
 
   /** Reset all loggers
   */
-  public static void setLogLevels()
+  public static void setLogLevels(IThreadContext threadContext)
+    throws ManifoldCFException
   {
     // System.out.println("Setting log levels @ " + new Date().toString());
     Iterator it = loggerTable.entrySet().iterator();
@@ -109,7 +110,7 @@ public class Logging
       String loggername = (String)e.getKey();
 
       // logger level
-      String level = ManifoldCF.getProperty(loggername);
+      String level = LockManagerFactory.getProperty(threadContext, loggername);
 
       Level loglevel = null;
       if (level != null && level.length() > 0)

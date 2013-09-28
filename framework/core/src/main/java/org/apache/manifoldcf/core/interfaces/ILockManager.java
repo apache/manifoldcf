@@ -19,12 +19,20 @@
 package org.apache.manifoldcf.core.interfaces;
 
 
-/** The lock manager manages locks across all threads and JVMs and cluster members.  It also
-* manages shared data, which is not necessarily atomic and should be protected by locks.
+/** The lock manager manages locks and shared data across all threads and JVMs and cluster members.  It also
+* manages transient shared data, which is not necessarily atomic and should be protected by locks.
 */
 public interface ILockManager
 {
   public static final String _rcsid = "@(#)$Id: ILockManager.java 988245 2010-08-23 18:39:35Z kwright $";
+
+  /** Get the current shared configuration.  This configuration is available in common among all nodes,
+  * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
+  * specific node.
+  *@param configurationData is the globally-shared configuration information.
+  */
+  public ManifoldCFConfiguration getSharedConfiguration()
+    throws ManifoldCFException;
 
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.

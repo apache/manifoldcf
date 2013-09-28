@@ -73,6 +73,18 @@ public class LockManager implements ILockManager
   /** Global flag information.  This is used only when all of ManifoldCF is run within one process. */
   protected static HashMap globalFlags = new HashMap();
   
+  /** Get the current shared configuration.  This configuration is available in common among all nodes,
+  * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
+  * specific node.
+  *@param configurationData is the globally-shared configuration information.
+  */
+  public ManifoldCFConfiguration getSharedConfiguration()
+    throws ManifoldCFException
+  {
+    // Local implementation vectors through to system property file, which is shared in this case
+    return ManifoldCF.getConfiguration();
+  }
+
   /** Raise a flag.  Use this method to assert a condition, or send a global signal.  The flag will be reset when the
   * entire system is restarted.
   *@param flagName is the name of the flag to set.

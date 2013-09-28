@@ -34,8 +34,8 @@ public abstract class BaseMappersInitializationCommand implements Initialization
 {
   public void execute() throws ManifoldCFException
   {
-    ManifoldCF.initializeEnvironment();
     IThreadContext tc = ThreadContextFactory.make();
+    ManifoldCF.initializeEnvironment(tc);
     IMappingConnectorManager mgr = MappingConnectorManagerFactory.make(tc);
 
     doExecute(mgr);

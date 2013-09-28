@@ -28,46 +28,46 @@ import java.util.*;
 */
 public class ChangeJobDocSpec
 {
-        public static final String _rcsid = "@(#)$Id: ChangeJobDocSpec.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: ChangeJobDocSpec.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private ChangeJobDocSpec()
-        {
-        }
+  private ChangeJobDocSpec()
+  {
+  }
 
-        public static void main(String[] args)
-        {
-                if (args.length != 2)
-                {
-                        System.err.println("Usage: ChangeJobDocSpec <jobid> <filespec_xml>");
-                        System.exit(1);
-                }
+  public static void main(String[] args)
+  {
+    if (args.length != 2)
+    {
+      System.err.println("Usage: ChangeJobDocSpec <jobid> <filespec_xml>");
+      System.exit(1);
+    }
 
-                String jobID = args[0];
-                String filespecXML = args[1];
+    String jobID = args[0];
+    String filespecXML = args[1];
 
 
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IJobManager jobManager = JobManagerFactory.make(tc);
-                        IJobDescription desc = jobManager.load(new Long(jobID));
-                        if (desc == null)
-                        {
-                                System.err.println("No such job: "+jobID);
-                                System.exit(3);
-                        }
-                        desc.getSpecification().fromXML(filespecXML);
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      IJobDescription desc = jobManager.load(new Long(jobID));
+      if (desc == null)
+      {
+        System.err.println("No such job: "+jobID);
+        System.exit(3);
+      }
+      desc.getSpecification().fromXML(filespecXML);
 
-                        // Now, save
-                        jobManager.save(desc);
-                        System.err.println("Job doc spec has been changed");
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
-                
+      // Now, save
+      jobManager.save(desc);
+      System.err.println("Job doc spec has been changed");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+    
 }

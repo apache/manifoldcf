@@ -33,7 +33,7 @@ public class ServletListener implements ServletContextListener
   {
     try
     {
-      ManifoldCF.initializeEnvironment();
+      ManifoldCF.initializeEnvironment(ThreadContextFactory.make());
     }
     catch (ManifoldCFException e)
     {
@@ -43,7 +43,7 @@ public class ServletListener implements ServletContextListener
   
   public void contextDestroyed(ServletContextEvent sce)
   {
-    ManifoldCF.cleanUpEnvironment();
+    ManifoldCF.cleanUpEnvironment(ThreadContextFactory.make());
   }
 
 }

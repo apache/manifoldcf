@@ -38,10 +38,10 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   private static final String _driver = "org.postgresql.Driver";
 
   /** A lock manager handle. */
-  protected ILockManager lockManager;
+  protected final ILockManager lockManager;
   
   // Database cache key
-  protected String cacheKey;
+  protected final String cacheKey;
 	
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
@@ -78,17 +78,18 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,getJdbcUrl(databaseName),_driver,databaseName,userName,password);
+    super(tc,getJdbcUrl(tc,databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     lockManager = LockManagerFactory.make(tc);
   }
   
-  private static String getJdbcUrl(final String databaseName)
+  private static String getJdbcUrl(final IThreadContext tc, final String databaseName)
+    throws ManifoldCFException
   {
     String jdbcUrl = _defaultUrl + databaseName;
-    final String hostname = ManifoldCF.getProperty(postgresqlHostnameProperty);
-    final String ssl = ManifoldCF.getProperty(postgresqlSslProperty);
-    final String port = ManifoldCF.getProperty(postgresqlPortProperty);
+    final String hostname = LockManagerFactory.getProperty(tc,postgresqlHostnameProperty);
+    final String ssl = LockManagerFactory.getProperty(tc,postgresqlSslProperty);
+    final String port = LockManagerFactory.getProperty(tc,postgresqlPortProperty);
     if (hostname != null && hostname.length() > 0)
     {
       jdbcUrl = "jdbc:postgresql://" + hostname;
@@ -1420,7 +1421,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.postgres.reindex."+tableName,250000);
+        reindexThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1477,7 +1478,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,2000);
+        analyzeThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,2000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else

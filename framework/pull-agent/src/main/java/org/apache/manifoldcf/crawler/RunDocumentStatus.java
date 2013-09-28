@@ -75,8 +75,8 @@ public class RunDocumentStatus
 
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IJobManager jobManager = JobManagerFactory.make(tc);
 
       StatusFilterCriteria filter = parseFilterCriteria(jobList,currentTime,matchRegexp,matchStateList,matchStatusList);

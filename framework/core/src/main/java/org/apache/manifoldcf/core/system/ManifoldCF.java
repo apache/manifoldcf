@@ -28,9 +28,6 @@ public class ManifoldCF
   public static final String _rcsid = "@(#)$Id: ManifoldCF.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Configuration XML node names and attribute names
-  public static final String NODE_PROPERTY = "property";
-  public static final String ATTRIBUTE_NAME = "name";
-  public static final String ATTRIBUTE_VALUE = "value";
   public static final String NODE_LIBDIR = "libdir";
   public static final String ATTRIBUTE_PATH = "path";
   
@@ -87,7 +84,6 @@ public class ManifoldCF
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
   protected static ManifoldCFConfiguration localConfiguration = null;
-  protected static Map localProperties = null;
   protected static long propertyFilelastMod = -1L;
   protected static String propertyFilePath = null;
 
@@ -140,23 +136,31 @@ public class ManifoldCF
   /** File to look for to block access to UI during database maintenance */
   public static final String maintenanceFileSignalProperty = "org.apache.manifoldcf.database.maintenanceflag";
 
+  /** Reset environment, minting a thread context for convenience and backwards
+  * compatibility.
+  */
+  @Deprecated
+  public static void resetEnvironment()
+  {
+    resetEnvironment(ThreadContextFactory.make());
+  }
+  
   /** Reset environment.
   */
-  public static void resetEnvironment()
+  public static void resetEnvironment(IThreadContext threadContext)
   {
     synchronized (initializeFlagLock)
     {
       if (initializeLevel > 0)
       {
         // Clean up the system doing the same thing the shutdown thread would have if the process was killed
-        cleanUpEnvironment();
+        cleanUpEnvironment(threadContext);
         loginUserName = null;
         loginPassword = null;
         masterDatabaseName = null;
         masterDatabaseUsername = null;
         masterDatabasePassword = null;
         localConfiguration = null;
-        localProperties = null;
         propertyFilelastMod = -1L;
         propertyFilePath = null;
         alreadyClosed = false;
@@ -166,9 +170,18 @@ public class ManifoldCF
     }
   }
   
+  /** Initialize environment, minting a thread context for backwards compatibility.
+  */
+  @Deprecated
+  public static void initializeEnvironment()
+    throws ManifoldCFException
+  {
+    initializeEnvironment(ThreadContextFactory.make());
+  }
+  
   /** Initialize environment.
   */
-  public static void initializeEnvironment()
+  public static void initializeEnvironment(IThreadContext threadContext)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
@@ -199,10 +212,10 @@ public class ManifoldCF
           resourceLoader = new ManifoldCFResourceLoader(Thread.currentThread().getContextClassLoader());
           
           // Read configuration!
-          localConfiguration = new ManifoldCFConfiguration();
-          localProperties = new HashMap();
+          localConfiguration = new OverrideableManifoldCFConfiguration();
           checkProperties();
 
+          // Log file is always local
           File logConfigFile = getFileProperty(logConfigFileProperty);
           if (logConfigFile == null)
           {
@@ -216,24 +229,14 @@ public class ManifoldCF
 
           // Set up local loggers
           Logging.initializeLoggers();
-          Logging.setLogLevels();
+          Logging.setLogLevels(threadContext);
 
-          loginUserName = getProperty(loginUserNameProperty);
-          if (loginUserName == null)
-            loginUserName = "admin";
-          loginPassword = getProperty(loginPasswordProperty);
-          if (loginPassword == null)
-            loginPassword = "admin";
+          loginUserName = LockManagerFactory.getStringProperty(threadContext,loginUserNameProperty,"admin");
+          loginPassword = LockManagerFactory.getStringProperty(threadContext,loginPasswordProperty,"admin");
 
-          masterDatabaseName = getProperty(masterDatabaseNameProperty);
-          if (masterDatabaseName == null)
-            masterDatabaseName = "dbname";
-          masterDatabaseUsername = getProperty(masterDatabaseUsernameProperty);
-          if (masterDatabaseUsername == null)
-            masterDatabaseUsername = "manifoldcf";
-          masterDatabasePassword = getProperty(masterDatabasePasswordProperty);
-          if (masterDatabasePassword == null)
-            masterDatabasePassword = "local_pg_passwd";
+          masterDatabaseName = LockManagerFactory.getStringProperty(threadContext,masterDatabaseNameProperty,"dbname");
+          masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
+          masterDatabasePassword = LockManagerFactory.getStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
 
           // Register the file tracker for cleanup on shutdown
           tracker = new FileTrack();
@@ -242,8 +245,7 @@ public class ManifoldCF
           addShutdownHook(new DatabaseShutdown());
 
           // Open the database.  Done once per JVM.
-          IThreadContext threadcontext = ThreadContextFactory.make();
-          DBInterfaceFactory.make(threadcontext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
+          DBInterfaceFactory.make(threadContext,masterDatabaseName,masterDatabaseUsername,masterDatabasePassword).openDatabase();
         }
         catch (ManifoldCFException e)
         {
@@ -254,7 +256,34 @@ public class ManifoldCF
     }
 
   }
+  
+  /** For local properties (not shared!!), this class allows them to be overridden directly from the command line.
+  */
+  protected static class OverrideableManifoldCFConfiguration extends ManifoldCFConfiguration
+  {
+    public OverrideableManifoldCFConfiguration()
+    {
+      super();
+    }
+    
+    @Override
+    public String getProperty(String s)
+    {
+      String rval = System.getProperty(s);
+      if (rval == null)
+        rval = super.getProperty(s);
+      return rval;
+    }
+    
+  }
 
+  /** Get current properties.  Makes no attempt to reread or interpret them.
+  */
+  public static final ManifoldCFConfiguration getConfiguration()
+  {
+    return localConfiguration;
+  }
+  
   /** Reloads properties as needed.
   */
   public static final void checkProperties()
@@ -288,23 +317,13 @@ public class ManifoldCF
       throw new ManifoldCFException("Could not read configuration file '"+f.toString()+"'",e);
     }
     
-    // For convenience, post-process all "property" nodes so that we have a semblance of the earlier name/value pairs available, by default.
-    // e.g. <property name= value=/>
-    localProperties.clear();
+    // For convenience, post-process all "lib" nodes.
     ArrayList libDirs = new ArrayList();
     int i = 0;
     while (i < localConfiguration.getChildCount())
     {
       ConfigurationNode cn = localConfiguration.findChild(i++);
-      if (cn.getType().equals(NODE_PROPERTY))
-      {
-        String name = cn.getAttributeValue(ATTRIBUTE_NAME);
-        String value = cn.getAttributeValue(ATTRIBUTE_VALUE);
-        if (name == null)
-          throw new ManifoldCFException("Node type '"+NODE_PROPERTY+"' requires a '"+ATTRIBUTE_NAME+"' attribute");
-        localProperties.put(name,value);
-      }
-      else if (cn.getType().equals(NODE_LIBDIR))
+      if (cn.getType().equals(NODE_LIBDIR))
       {
         String path = cn.getAttributeValue(ATTRIBUTE_PATH);
         if (path == null)
@@ -334,10 +353,7 @@ public class ManifoldCF
   */
   public static String getProperty(String s)
   {
-    String rval = System.getProperty(s);
-    if (rval == null)
-      rval = (String)localProperties.get(s);
-    return rval;
+    return localConfiguration.getProperty(s);
   }
 
   /** Read a File property, either from the system properties, or from the local configuration file.
@@ -350,38 +366,39 @@ public class ManifoldCF
       return null;
     return resolvePath(value);
   }
-  
+
+  /** Read a (string) property, either from the system properties, or from the local configuration file.
+  *@param s is the property name.
+  *@param defaultValue is the default value for the property.
+  *@return the property value, as a string.
+  */
+  public static String getStringProperty(String s, String defaultValue)
+  {
+    return localConfiguration.getStringProperty(s, defaultValue);
+  }
+
   /** Read a boolean property
   */
   public static boolean getBooleanProperty(String s, boolean defaultValue)
     throws ManifoldCFException
   {
-    String value = getProperty(s);
-    if (value == null)
-      return defaultValue;
-    if (value.equals("true") || value.equals("yes"))
-      return true;
-    if (value.equals("false") || value.equals("no"))
-      return false;
-    throw new ManifoldCFException("Illegal property value for boolean property '"+s+"': '"+value+"'");
+    return localConfiguration.getBooleanProperty(s, defaultValue);
   }
   
-  /** Read an integer propert, either from the system properties, or from the local configuration file.
+  /** Read an integer property, either from the system properties, or from the local configuration file.
   */
   public static int getIntProperty(String s, int defaultValue)
     throws ManifoldCFException
   {
-    String value = getProperty(s);
-    if (value == null)
-      return defaultValue;
-    try
-    {
-      return Integer.parseInt(value);
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Illegal property value for integer property '"+s+"': '"+value+"': "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
-    }
+    return localConfiguration.getIntProperty(s, defaultValue);
+  }
+
+  /** Read a float property, either from the system properties, or from the local configuration file.
+  */
+  public static double getDoubleProperty(String s, double defaultValue)
+    throws ManifoldCFException
+  {
+    return localConfiguration.getDoubleProperty(s, defaultValue);
   }
   
   /** Attempt to make sure a path is a folder
@@ -806,6 +823,7 @@ public class ManifoldCF
   */
   public static boolean checkMaintenanceUnderway()
   {
+    // File check is always local; this whole bit of logic needs to be rethought though.
     String fileToCheck = getProperty(maintenanceFileSignalProperty);
     if (fileToCheck != null && fileToCheck.length() > 0)
     {
@@ -820,6 +838,7 @@ public class ManifoldCF
   public static void noteConfigurationChange()
     throws ManifoldCFException
   {
+    // Always a local file.  This needs to be rethought how it should operate in a clustered world.
     String configChangeSignalCommand = getProperty(configSignalCommandProperty);
     if (configChangeSignalCommand == null || configChangeSignalCommand.length() == 0)
       return;
@@ -1229,8 +1248,15 @@ public class ManifoldCF
     return resourceLoader.findClass(cname);
   }
   
-  /** Perform system shutdown, using the registered shutdown hooks. */
+  /** Perform system shutdown, minting thread context for backwards compatibility */
+  @Deprecated
   public static void cleanUpEnvironment()
+  {
+    cleanUpEnvironment(ThreadContextFactory.make());
+  }
+  
+  /** Perform system shutdown, using the registered shutdown hooks. */
+  public static void cleanUpEnvironment(IThreadContext threadContext)
   {
     synchronized (initializeFlagLock)
     {
@@ -1402,7 +1428,7 @@ public class ManifoldCF
     public void run()
     {
       // This thread is run at shutdown time.
-      cleanUpEnvironment();
+      cleanUpEnvironment(ThreadContextFactory.make());
     }
   }
 

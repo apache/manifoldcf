@@ -51,8 +51,8 @@ public class DefineAuthorityConnection
 
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
       IAuthorityConnection conn = mgr.create();
       conn.setName(connectionName);
