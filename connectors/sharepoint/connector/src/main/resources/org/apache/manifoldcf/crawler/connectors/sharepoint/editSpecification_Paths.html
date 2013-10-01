@@ -99,7 +99,7 @@
               <a name="path_$rulecounter"/>
               <input type="hidden" name="specop" value=""/>
               <input type="hidden" name="specpathcount" value="$rulecounter"/>
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddNewRule'))" onClick='Javascript:SpecRuleAddPath("path_"+Integer.toString(k)+"")' alt="Add rule"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddNewRule'))" onClick='Javascript:SpecRuleAddPath("path_$rulecounter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddRule'))"/>
             </nobr>
           </td>
           <td class="formcolumncell" colspan="3"></td>
