@@ -438,12 +438,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           sitePath = remainder.substring(index+1);
         }
         
-        Map fieldSet = getLibFieldList(sitePath,library);
-        Iterator iter = fieldSet.keySet().iterator();
+        Map<String,String> fieldSet = getLibFieldList(sitePath,library);
+        Iterator<String> iter = fieldSet.keySet().iterator();
         while (iter.hasNext())
         {
-          String fieldName = (String)iter.next();
-          String displayName = (String)fieldSet.get(fieldName);
+          String fieldName = iter.next();
+          String displayName = fieldSet.get(fieldName);
           ConfigurationNode node = new ConfigurationNode("field");
           ConfigurationNode child;
           child = new ConfigurationNode("name");
@@ -485,12 +485,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           sitePath = remainder.substring(index+1);
         }
         
-        Map fieldSet = getListFieldList(sitePath,listName);
-        Iterator iter = fieldSet.keySet().iterator();
+        Map<String,String> fieldSet = getListFieldList(sitePath,listName);
+        Iterator<String> iter = fieldSet.keySet().iterator();
         while (iter.hasNext())
         {
-          String fieldName = (String)iter.next();
-          String displayName = (String)fieldSet.get(fieldName);
+          String fieldName = iter.next();
+          String displayName = fieldSet.get(fieldName);
           ConfigurationNode node = new ConfigurationNode("field");
           ConfigurationNode child;
           child = new ConfigurationNode("name");
@@ -2296,117 +2296,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Server"));
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"function ShpDeleteCertificate(aliasName)\n"+
-"{\n"+
-"  editconnection.shpkeystorealias.value = aliasName;\n"+
-"  editconnection.configop.value = \"Delete\";\n"+
-"  postForm();\n"+
-"}\n"+
-"\n"+
-"function ShpAddCertificate()\n"+
-"{\n"+
-"  if (editconnection.shpcertificate.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.ChooseACertificateFile")+"\");\n"+
-"    editconnection.shpcertificate.focus();\n"+
-"  }\n"+
-"  else\n"+
-"  {\n"+
-"    editconnection.configop.value = \"Add\";\n"+
-"    postForm();\n"+
-"  }\n"+
-"}\n"+
-"\n"+
-"function checkConfig()\n"+
-"{\n"+
-"  if (editconnection.serverPort.value != \"\" && !isInteger(editconnection.serverPort.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSupplyAValidNumber")+"\");\n"+
-"    editconnection.serverPort.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverName.value.indexOf(\"/\") >= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSpecifyAnyServerPathInformation")+"\");\n"+
-"    editconnection.serverName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  var svrloc = editconnection.serverLocation.value;\n"+
-"  if (svrloc != \"\" && svrloc.charAt(0) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathMustBeginWithWCharacter")+"\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (svrloc != \"\" && svrloc.charAt(svrloc.length - 1) == \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathCannotEndWithACharacter")+"\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.AValidSharePointUserNameHasTheForm")+"\");\n"+
-"    editconnection.userName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function checkConfigForSave() \n"+
-"{\n"+
-"  if (editconnection.serverName.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseFillInASharePointServerName")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverName.value.indexOf(\"/\") >= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSpecifyAnyServerPathInformationInTheSitePathField")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  var svrloc = editconnection.serverLocation.value;\n"+
-"  if (svrloc != \"\" && svrloc.charAt(0) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathMustBeginWithWCharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (svrloc != \"\" && svrloc.charAt(svrloc.length - 1) == \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathCannotEndWithACharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverPort.value != \"\" && !isInteger(editconnection.serverPort.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSupplyASharePointPortNumber")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverPort.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.TheConnectionRequiresAValidSharePointUserName")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.userName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
   
   /** Output the configuration body section.
@@ -2423,153 +2313,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String serverVersion = parameters.getParameter("serverVersion");
-    if (serverVersion == null)
-      serverVersion = "2.0";
-
-    String serverProtocol = parameters.getParameter("serverProtocol");
-    if (serverProtocol == null)
-      serverProtocol = "http";
-
-    String serverName = parameters.getParameter("serverName");
-    if (serverName == null)
-      serverName = "localhost";
-
-    String serverPort = parameters.getParameter("serverPort");
-    if (serverPort == null)
-      serverPort = "";
-
-    String serverLocation = parameters.getParameter("serverLocation");
-    if (serverLocation == null)
-      serverLocation = "";
-      
-    String userName = parameters.getParameter("userName");
-    if (userName == null)
-      userName = "";
-
-    String password = parameters.getObfuscatedParameter("password");
-    if (password == null)
-      password = "";
-    else
-      password = out.mapPasswordToKey(password);
-
-    String keystore = parameters.getParameter("keystore");
-    IKeystoreManager localKeystore;
-    if (keystore == null)
-      localKeystore = KeystoreManagerFactory.make("");
-    else
-      localKeystore = KeystoreManagerFactory.make("",keystore);
-
-    // "Server" tab
-    // Always send along the keystore.
-    if (keystore != null)
-    {
-      out.print(
-"<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(keystore)+"\"/>\n"
-      );
-    }
-
-    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Server")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerSharePointVersion") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"serverVersion\">\n"+
-"        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0 (2003)</option>\n"+
-"        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0 (2007)</option>\n"+
-"        <option value=\"4.0\" "+(serverVersion.equals("4.0")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010)</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerProtocol") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"serverProtocol\">\n"+
-"        <option value=\"http\" "+((serverProtocol.equals("http"))?"selected=\"true\"":"")+">http</option>\n"+
-"        <option value=\"https\" "+(serverProtocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerName") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"serverName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerPort") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverPort\" value=\""+serverPort+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.SitePath") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"serverLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverLocation)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.UserName") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Password") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.SSLCertificateList") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\"configop\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\"shpkeystorealias\" value=\"\"/>\n"+
-"      <table class=\"displaytable\">\n"
-      );
-      // List the individual certificates in the store, with a delete button for each
-      String[] contents = localKeystore.getContents();
-      if (contents.length == 0)
-      {
-        out.print(
-"        <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoCertificatesPresent") + "</td></tr>\n"
-        );
-      }
-      else
-      {
-        int i = 0;
-        while (i < contents.length)
-        {
-          String alias = contents[i];
-          String description = localKeystore.getDescription(alias);
-          if (description.length() > 128)
-            description = description.substring(0,125) + "...";
-          out.print(
-"        <tr>\n"+
-"          <td class=\"value\">\n"+
-"            <input type=\"button\" onclick='Javascript:ShpDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\"/>\n"+
-"          </td>\n"+
-"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"        </tr>\n"
-          );
-
-          i++;
-        }
-      }
-      out.print(
-"      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ShpAddCertificate()' alt=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddCert") + "\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\"/>&nbsp;\n"+
-"      "+Messages.getBodyString(locale,"SharePointRepository.Certificate")+"&nbsp;<input name=\"shpcertificate\" size=\"50\" type=\"file\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Server tab hiddens
-      out.print(
-"<input type=\"hidden\" name=\"serverProtocol\" value=\""+serverProtocol+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverPort\" value=\""+serverPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverLocation)+"\"/>\n"+
-"<input type=\"hidden\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
-      );
-    }
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TabName",tabName);
+    fillInServerTab(velocityContext,out,parameters);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Server.html",velocityContext);
   }
+  
   
   /** Process a configuration post.
   * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
@@ -2688,44 +2437,79 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Parameters") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"
-    );
-    Iterator iter = parameters.listParameters();
-    while (iter.hasNext())
-    {
-      String param = (String)iter.next();
-      String value = parameters.getParameter(param);
-      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
-        );
-      }
-      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
-      {
-        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+" certificate(s)&gt;</nobr><br/>\n"
-        );
-      }
-      else
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
-        );
-      }
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    fillInServerTab(velocityContext,out,parameters);
+    Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
   
+  protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    String serverVersion = parameters.getParameter("serverVersion");
+    if (serverVersion == null)
+      serverVersion = "2.0";
+
+    String serverProtocol = parameters.getParameter("serverProtocol");
+    if (serverProtocol == null)
+      serverProtocol = "http";
+
+    String serverName = parameters.getParameter("serverName");
+    if (serverName == null)
+      serverName = "localhost";
+
+    String serverPort = parameters.getParameter("serverPort");
+    if (serverPort == null)
+      serverPort = "";
+
+    String serverLocation = parameters.getParameter("serverLocation");
+    if (serverLocation == null)
+      serverLocation = "";
+      
+    String userName = parameters.getParameter("userName");
+    if (userName == null)
+      userName = "";
+
+    String password = parameters.getObfuscatedParameter("password");
+    if (password == null)
+      password = "";
+    else
+      password = out.mapPasswordToKey(password);
+
+    String keystore = parameters.getParameter("keystore");
+    IKeystoreManager localKeystore;
+    if (keystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",keystore);
+
+    List<Map<String,String>> certificates = new ArrayList<Map<String,String>>();
+    
+    String[] contents = localKeystore.getContents();
+    for (String alias : contents)
+    {
+      String description = localKeystore.getDescription(alias);
+      if (description.length() > 128)
+        description = description.substring(0,125) + "...";
+      Map<String,String> certificate = new HashMap<String,String>();
+      certificate.put("ALIAS", alias);
+      certificate.put("DESCRIPTION", description);
+      certificates.add(certificate);
+    }
+    
+    // Fill in context
+    velocityContext.put("SERVERVERSION", serverVersion);
+    velocityContext.put("SERVERPROTOCOL", serverProtocol);
+    velocityContext.put("SERVERNAME", serverName);
+    velocityContext.put("SERVERPORT", serverPort);
+    velocityContext.put("SERVERLOCATION", serverLocation);
+    velocityContext.put("USERNAME", userName);
+    velocityContext.put("PASSWORD", password);
+    if (keystore != null)
+      velocityContext.put("KEYSTORE", keystore);
+    velocityContext.put("CERTIFICATELIST", certificates);
+    
+  }
+
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
@@ -2740,188 +2524,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Paths"));
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Security"));
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Metadata"));
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"\n"+
-"function checkSpecification()\n"+
-"{\n"+
-"  // Does nothing right now.\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function SpecRuleAddPath(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.spectype.value==\"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectATypeFirst")+"\");\n"+
-"    editjob.spectype.focus();\n"+
-"  }\n"+
-"  else if (editjob.specflavor.value==\"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAnActionFirst")+"\");\n"+
-"    editjob.specflavor.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"  \n"+
-"function SpecPathReset(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"specpathop\",\"Reset\",anchorvalue);\n"+
-"}\n"+
-"  \n"+
-"function SpecPathAppendSite(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specsite.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectASiteFirst")+"\");\n"+
-"    editjob.specsite.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendSite\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathAppendLibrary(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.speclibrary.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectALibraryFirst")+"\");\n"+
-"    editjob.speclibrary.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendLibrary\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathAppendList(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.speclist.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAListFirst")+"\");\n"+
-"    editjob.speclist.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendList\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathAppendText(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseProvideMatchTextFirst")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendText\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathRemove(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"specpathop\",\"Remove\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaRuleAddPath(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metaflavor.value==\"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAnActionFirst")+"\");\n"+
-"    editjob.metaflavor.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metaop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathReset(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"metapathop\",\"Reset\",anchorvalue);\n"+
-"}\n"+
-"  \n"+
-"function MetaPathAppendSite(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metasite.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectASiteFirst")+"\");\n"+
-"    editjob.metasite.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendSite\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathAppendLibrary(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metalibrary.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectALibraryFirst")+"\");\n"+
-"    editjob.metalibrary.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendLibrary\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathAppendList(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metalist.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAListFirst")+"\");\n"+
-"    editjob.metalist.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendList\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathAppendText(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metamatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseProvideMatchTextFirst")+"\");\n"+
-"    editjob.metamatch.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendText\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathRemove(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"metapathop\",\"Remove\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecAddAccessToken(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.AccessTokenCannotBeNull")+"\");\n"+
-"    editjob.spectoken.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecAddMapping(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.MatchStringCannotBeEmpty")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(editjob.specmatch.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.MatchStringMustBeValidRegularExpression")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
-"{\n"+
-"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
-"  postFormSetAnchor(anchorvalue);\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification.js",null);
   }
   
   /** Output the specification body section.
@@ -2936,1346 +2539,439 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
-    int i;
-    int k;
-    int l;
-
-    // Paths tab
-
-
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TabName",tabName);
+    
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInPathsTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
+    
+    // Now, do the part of the tabs that requires context logic
     if (tabName.equals(Messages.getString(locale,"SharePointRepository.Paths")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Type") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      i = 0;
-      l = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String siteLib = site + "/" + lib + "/";
-
-          // Go through all the file/folder rules for the startpoint, and generate new "rules" corresponding to each.
-          int j = 0;
-          while (j < sn.getChildCount())
-          {
-            SpecificationNode node = sn.getChild(j++);
-            if (node.getType().equals("include") || node.getType().equals("exclude"))
-            {
-              String matchPart = node.getAttributeValue("match");
-              String ruleType = node.getAttributeValue("type");
-              
-              String theFlavor = node.getType();
-
-              String pathDescription = "_"+Integer.toString(k);
-              String pathOpName = "specop"+pathDescription;
-              String thePath = siteLib + matchPart;
-              out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"
-              );
-              l++;
-              out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thePath)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"              file\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"+
-"              "+theFlavor+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-              );
-              l++;
-              k++;
-              if (ruleType.equals("file") && !matchPart.startsWith("*"))
-              {
-                // Generate another rule corresponding to all matching paths.
-                pathDescription = "_"+Integer.toString(k);
-                pathOpName = "specop"+pathDescription;
-
-                thePath = siteLib + "*/" + matchPart;
-                out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"
-                );
-                l++;
-                out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thePath)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"              file\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"+
-"              "+theFlavor+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-                );
-                l++;
-                  
-                k++;
-              }
-            }
-          }
-        }
-        else if (sn.getType().equals("pathrule"))
-        {
-          String match = sn.getAttributeValue("match");
-          String type = sn.getAttributeValue("type");
-          String action = sn.getAttributeValue("action");
-          
-          String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "specop"+pathDescription;
-
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\""+type+"\"/>\n"+
-"              "+type+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+action+"\"/>\n"+
-"              "+action+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formmessage\">" + Messages.getBodyString(locale,"SharePointRepository.NoDocumentsCurrentlyIncluded") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"specpathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddNewRule") + "\" onClick='Javascript:SpecRuleAddPath(\"path_"+Integer.toString(k)+"\")' alt=\"Add rule\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Messages.getBodyString(locale,"SharePointRepository.NewRule")+"</nobr>\n"
-      );
-
-      // The following variables may be in the thread context because postspec.jsp put them there:
-      // (1) "specpath", which contains the rule path as it currently stands;
-      // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library", "list".
-      // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
-      // specsitepath may be in the thread context, put there by postspec.jsp 
-      String pathSoFar = (String)currentContext.get("specpath");
-      String pathState = (String)currentContext.get("specpathstate");
-      String pathLibrary = (String)currentContext.get("specpathlibrary");
-      if (pathState == null)
-      {
-        pathState = "unknown";
-        pathLibrary = null;
-      }
-      if (pathSoFar == null)
-      {
-        pathSoFar = "/";
-        pathState = "site";
-        pathLibrary = null;
-      }
-
-      // Grab next site list and lib list
-      List<NameValue> childSiteList = null;
-      List<NameValue> childLibList = null;
-      List<NameValue> childListList = null;
-      String message = null;
-      if (pathState.equals("site"))
-      {
-        try
-        {
-          String queryPath = pathSoFar;
-          if (queryPath.equals("/"))
-            queryPath = "";
-          childSiteList = getSites(queryPath);
-          if (childSiteList == null)
-          {
-            // Illegal path - state becomes "unknown".
-            pathState = "unknown";
-            pathLibrary = null;
-          }
-          childLibList = getDocLibsBySite(queryPath);
-          if (childLibList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            pathState = "unknown";
-            pathLibrary = null;
-          }
-          childListList = getListsBySite(queryPath);
-          if (childListList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            pathState = "unknown";
-            pathLibrary = null;
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          e.printStackTrace();
-          message = e.getMessage();
-        }
-        catch (ServiceInterruption e)
-        {
-          message = "SharePoint unavailable: "+e.getMessage();
-        }
-      }
-      out.print(
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\"specpathop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"specpathstate\" value=\""+pathState+"\"/>\n"
-      );
-      if (pathLibrary != null)
-      {
-        out.print(
-"              <input type=\"hidden\" name=\"specpathlibrary\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathLibrary)+"\"/>\n"
-        );
-      }
-      out.print(
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"
-      );
-      if (pathState.equals("unknown"))
-      {
-        if (pathLibrary == null)
-        {
-          out.print(
-"              <select name=\"spectype\" size=\"4\">\n"+
-"                <option value=\"file\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.File") + "</option>\n"+
-"                <option value=\"library\">" + Messages.getBodyString(locale,"SharePointRepository.Library") + "</option>\n"+
-"                <option value=\"list\">" + Messages.getBodyString(locale,"SharePointRepository.List") + "</option>\n"+
-"                <option value=\"site\">" + Messages.getBodyString(locale,"SharePointRepository.Site") + "</option>\n"+
-"              </select>\n"
-          );
-        }
-        else
-        {
-          out.print(
-"              <input type=\"hidden\" name=\"spectype\" value=\"file\"/>\n"+
-"              file\n"
-          );
-        }
-      }
-      else
-      {
-        out.print(
-"              <input type=\"hidden\" name=\"spectype\" value=\""+pathState+"\"/>\n"+
-"              "+pathState+"\n"
-        );
-      }
-      out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <select name=\"specflavor\" size=\"2\">\n"+
-"                <option value=\"include\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.Include") + "</option>\n"+
-"                <option value=\"exclude\">" + Messages.getBodyString(locale,"SharePointRepository.Exclude") + "</option>\n"+
-
-"              </select>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"
-      );
-      if (message != null)
-      {
-        // Display the error message, with no widgets
-        out.print(
-"          <td class=\"formmessage\" colspan=\"4\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(message)+"</td>\n"
-        );
-      }
-      else
-      {
-        // What we display depends on the determined state of the path.  If the path is a library or is unknown, all we can do is allow a type-in to append
-        // to it, or allow a reset.  If the path is a site, then we can optionally display libraries, sites, lists, OR allow a type-in.
-        // The path buttons are on the left; they consist of "Reset" (to reset the path), "+" (to add to the path), and "-" (to remove from the path).
-        out.print(
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\"pathwidget\"/>\n"+
-"              <input type=\"button\" value=\"Reset Path\" onClick='Javascript:SpecPathReset(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.ResetRulePath")+"\"/>\n"
-        );
-        if (pathSoFar.length() > 1 && (pathState.equals("site") || pathState.equals("library") || pathState.equals("list")))
-        {
-          out.print(
-"              <input type=\"button\" value=\"-\" onClick='Javascript:SpecPathRemove(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.RemoveFromRulePath")+"\"/>\n"
-          );
-        }
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\">\n"+
-"            <nobr>\n"
-        );
-        if (pathState.equals("site") && childSiteList != null && childSiteList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddSite") + "\" onClick='Javascript:SpecPathAppendSite(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddSiteToRulePath")+"\"/>\n"+
-"              <select name=\"specsite\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectSite") + " --</option>\n"
-          );
-          int q = 0;
-          while (q < childSiteList.size())
-          {
-            NameValue childSite = childSiteList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-        
-        if (pathState.equals("site") && childLibList != null && childLibList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddLibrary") + "\" onClick='Javascript:SpecPathAppendLibrary(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddLibraryToRulePath")+"\"/>\n"+
-"              <select name=\"speclibrary\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectLibrary") + " --</option>\n"
-          );
-          int q = 0;
-          while (q < childLibList.size())
-          {
-            NameValue childLib = childLibList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-
-        if (pathState.equals("site") && childListList != null && childListList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddList") + "\" onClick='Javascript:SpecPathAppendList(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddListToRulePath")+"\"/>\n"+
-"              <select name=\"speclist\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectList") + " --</option>\n"
-          );
-          int q = 0;
-          while (q < childListList.size())
-          {
-            NameValue childList = childListList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-        
-        // If it's a list name, we're done; no text allowed
-        if (!pathState.equals("list"))
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:SpecPathAppendText(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToRulePath")+"\"/>\n"+
-"              <input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/>\n"
-          );
-        }
-        
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"
-        );
-      }
-      out.print(
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for path rules
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String siteLib = site + "/" + lib + "/";
-
-          // Go through all the file/folder rules for the startpoint, and generate new "rules" corresponding to each.
-          int j = 0;
-          while (j < sn.getChildCount())
-          {
-            SpecificationNode node = sn.getChild(j++);
-            if (node.getType().equals("include") || node.getType().equals("exclude"))
-            {
-              String matchPart = node.getAttributeValue("match");
-              String ruleType = node.getAttributeValue("type");
-              
-              String theFlavor = node.getType();
-
-              String pathDescription = "_"+Integer.toString(k);
-              
-              String thePath = siteLib + matchPart;
-              out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"<input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"
-              );
-              k++;
-
-              if (ruleType.equals("file") && !matchPart.startsWith("*"))
-              {
-                // Generate another rule corresponding to all matching paths.
-                pathDescription = "_"+Integer.toString(k);
-
-                thePath = siteLib + "*/" + matchPart;
-                out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"<input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"
-                );
-                k++;
-              }
-            }
-          }
-        }
-        else if (sn.getType().equals("pathrule"))
-        {
-          String match = sn.getAttributeValue("match");
-          String type = sn.getAttributeValue("type");
-          String action = sn.getAttributeValue("action");
-          
-          String pathDescription = "_"+Integer.toString(k);
-          out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\""+type+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+action+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"specpathcount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
-
-    // Security tab
-
-    // Find whether security is on or off
-    i = 0;
-    boolean securityOn = true;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("security"))
-      {
-        String securityValue = sn.getAttributeValue("value");
-        if (securityValue.equals("off"))
-          securityOn = false;
-        else if (securityValue.equals("on"))
-          securityOn = true;
-      }
-    }
-
-    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Security")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Security2") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Enabled")+"&nbsp;\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Disabled")+"\n"+
-"      </nobr>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
-          String token = sn.getAttributeValue("token");
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteToken")+Integer.toString(k)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"</nobr>\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoAccessTokensPresent") + "</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddAccessToken")+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
-      );
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue("token");
-          out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
-
-    // Metadata tab
-
+      fillInTransientPathsInfo(velocityContext);
+    else if (tabName.equals(Messages.getString(locale,"SharePointRepository.Metadata")))
+      fillInTransientMetadataInfo(velocityContext);
+    
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Security.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Paths.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Metadata.html",velocityContext);
+  }
+  
+  /** Fill in metadata tab */
+  protected static void fillInMetadataTab(Map<String,Object> velocityContext, IHTTPOutput out, DocumentSpecification ds)
+  {
     // Find the path-value metadata attribute name
-    i = 0;
     String pathNameAttribute = "";
-    while (i < ds.getChildCount())
+    MatchMap matchMap = new MatchMap();
+    List<Map<String,Object>> metadataRules = new ArrayList<Map<String,Object>>();
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("pathnameattribute"))
       {
         pathNameAttribute = sn.getAttributeValue("value");
       }
-    }
-
-    // Find the path-value mapping data
-    i = 0;
-    org.apache.manifoldcf.crawler.connectors.sharepoint.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.sharepoint.MatchMap();
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathmap"))
+      else if (sn.getType().equals("pathmap"))
       {
         String pathMatch = sn.getAttributeValue("match");
         String pathReplace = sn.getAttributeValue("replace");
         matchMap.appendMatchPair(pathMatch,pathReplace);
       }
-    }
-
-    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Metadata")))
-    {
-      out.print(
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
-"\n"+
-"<table class=\"displaytable\">\n"+
-"<tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"<tr>\n"+
-"  <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.MetadataRules") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      i = 0;
-      l = 0;
-      k = 0;
-      while (i < ds.getChildCount())
+      else if (sn.getType().equals("startpoint"))
       {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
+        String site = sn.getAttributeValue("site");
+        String lib = sn.getAttributeValue("lib");
+        String path = site + "/" + lib + "/*";
+        String allmetadata = sn.getAttributeValue("allmetadata");
+        StringBuilder metadataFieldList = new StringBuilder();
+        List<String> metadataFieldArray = new ArrayList<String>();
+        if (allmetadata == null || !allmetadata.equals("true"))
         {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String path = site + "/" + lib + "/*";
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          StringBuilder metadataFieldList = new StringBuilder();
-          ArrayList metadataFieldArray = new ArrayList();
+          for (int j = 0; j < sn.getChildCount(); j++)
+          {
+            SpecificationNode node = sn.getChild(j);
+            if (node.getType().equals("metafield"))
+            {
+              if (metadataFieldList.length() > 0)
+                metadataFieldList.append(", ");
+              String val = node.getAttributeValue("value");
+              metadataFieldList.append(val);
+              metadataFieldArray.add(val);
+            }
+          }
+          allmetadata = "false";
+        }
+          
+        if (allmetadata.equals("true") || metadataFieldList.length() > 0)
+        {
+          Map<String,Object> item = new HashMap<String,Object>();
+          item.put("THEPATH",path);
+          item.put("THEACTION","include");
+          item.put("ALLFLAG",allmetadata);
+          item.put("FIELDLIST",metadataFieldArray);
+          item.put("FIELDS",metadataFieldList.toString());
+          metadataRules.add(item);
+        }
+      }
+      else if (sn.getType().equals("metadatarule"))
+      {
+        String path = sn.getAttributeValue("match");
+        String action = sn.getAttributeValue("action");
+        String allmetadata = sn.getAttributeValue("allmetadata");
+        StringBuilder metadataFieldList = new StringBuilder();
+        List<String> metadataFieldArray = new ArrayList<String>();
+        if (action.equals("include"))
+        {
           if (allmetadata == null || !allmetadata.equals("true"))
           {
-            int j = 0;
-            while (j < sn.getChildCount())
+            for (int j = 0; j < sn.getChildCount(); j++)
             {
-              SpecificationNode node = sn.getChild(j++);
+              SpecificationNode node = sn.getChild(j);
               if (node.getType().equals("metafield"))
               {
+                String val = node.getAttributeValue("value");
                 if (metadataFieldList.length() > 0)
                   metadataFieldList.append(", ");
-                String val = node.getAttributeValue("value");
                 metadataFieldList.append(val);
                 metadataFieldArray.add(val);
               }
             }
-            allmetadata = "false";
-          }
-          
-          if (allmetadata.equals("true") || metadataFieldList.length() > 0)
-          {
-            String pathDescription = "_"+Integer.toString(k);
-            String pathOpName = "metaop"+pathDescription;
-            out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewMetadataRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
-"        </tr>\n"
-            );
-            l++;
-            out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteMetadataRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\"include\"/>\n"+
-"              "+Messages.getBodyString(locale,"SharePointRepository.include")+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"+
-"              "+allmetadata+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"
-            );
-            int q = 0;
-            while (q < metadataFieldArray.size())
-            {
-              String field = (String)metadataFieldArray.get(q++);
-              out.print(
-"              <input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
-              );
-            }
-            out.print(
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            l++;
-            k++;
+            allmetadata="false";
           }
         }
-        else if (sn.getType().equals("metadatarule"))
-        {
-          String path = sn.getAttributeValue("match");
-          String action = sn.getAttributeValue("action");
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          StringBuilder metadataFieldList = new StringBuilder();
-          ArrayList metadataFieldArray = new ArrayList();
-          if (action.equals("include"))
-          {
-            if (allmetadata == null || !allmetadata.equals("true"))
-            {
-              int j = 0;
-              while (j < sn.getChildCount())
-              {
-                SpecificationNode node = sn.getChild(j++);
-                if (node.getType().equals("metafield"))
-                {
-                  String val = node.getAttributeValue("value");
-                  if (metadataFieldList.length() > 0)
-                    metadataFieldList.append(", ");
-                  metadataFieldList.append(val);
-                  metadataFieldArray.add(val);
-                }
-              }
-              allmetadata="false";
-            }
-          }
-          else
-            allmetadata = "";
-          
-          String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "metaop"+pathDescription;
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewMetadataRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteMetadataRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\""+action+"\"/>\n"+
-"              "+action+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"+
-"              "+allmetadata+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"
-          );
-          int q = 0;
-          while (q < metadataFieldArray.size())
-          {
-            String field = (String)metadataFieldArray.get(q++);
-            out.print(
-"              <input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
-            );
-          }
-          out.print(
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          k++;
-
-        }
-      }
-
-      if (k == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">"+Messages.getBodyString(locale,"SharePointRepository.NoMetadataIncluded")+"</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"metaop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"metapathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddNewRule") + "\" onClick='Javascript:MetaRuleAddPath(\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddRule")+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"5\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Messages.getBodyString(locale,"SharePointRepository.NewRule")+"</nobr>\n"
-      );
-      // The following variables may be in the thread context because postspec.jsp put them there:
-      // (1) "metapath", which contains the rule path as it currently stands;
-      // (2) "metapathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
-      // (3) "metapathlibrary" is the library or list path (if this is known yet).
-      // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
-      String metaPathSoFar = (String)currentContext.get("metapath");
-      String metaPathState = (String)currentContext.get("metapathstate");
-      String metaPathLibrary = (String)currentContext.get("metapathlibrary");
-      if (metaPathState == null)
-        metaPathState = "unknown";
-      if (metaPathSoFar == null)
-      {
-        metaPathSoFar = "/";
-        metaPathState = "site";
-      }
-
-      String message = null;
-      String[] fields = null;
-      if (metaPathLibrary != null)
-      {
-        // Look up metadata fields
-        int index = metaPathLibrary.lastIndexOf("/");
-        String site = metaPathLibrary.substring(0,index);
-        String libOrList = metaPathLibrary.substring(index+1);
-        Map metaFieldList = null;
-        try
-        {
-          if (metaPathState.equals("library") || metaPathState.equals("file"))
-            metaFieldList = getLibFieldList(site,libOrList);
-          else if (metaPathState.equals("list"))
-            metaFieldList = getListFieldList(site,libOrList);
-        }
-        catch (ManifoldCFException e)
-        {
-          e.printStackTrace();
-          message = e.getMessage();
-        }
-        catch (ServiceInterruption e)
-        {
-          message = "SharePoint unavailable: "+e.getMessage();
-        }
-        if (metaFieldList != null)
-        {
-          fields = new String[metaFieldList.size()];
-          int j = 0;
-          Iterator iter = metaFieldList.keySet().iterator();
-          while (iter.hasNext())
-          {
-            fields[j++] = (String)iter.next();
-          }
-          java.util.Arrays.sort(fields);
-        }
-      }
-      
-      // Grab next site list and lib list
-      List<NameValue> childSiteList = null;
-      List<NameValue> childLibList = null;
-      List<NameValue> childListList = null;
-
-      if (message == null && metaPathState.equals("site"))
-      {
-        try
-        {
-          String queryPath = metaPathSoFar;
-          if (queryPath.equals("/"))
-            queryPath = "";
-          childSiteList = getSites(queryPath);
-          if (childSiteList == null)
-          {
-            // Illegal path - state becomes "unknown".
-            metaPathState = "unknown";
-            metaPathLibrary = null;
-          }
-          childLibList = getDocLibsBySite(queryPath);
-          if (childLibList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            metaPathState = "unknown";
-            metaPathLibrary = null;
-          }
-          childListList = getListsBySite(queryPath);
-          if (childListList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            metaPathState = "unknown";
-            metaPathLibrary = null;
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          e.printStackTrace();
-          message = e.getMessage();
-        }
-        catch (ServiceInterruption e)
-        {
-          message = "SharePoint unavailable: "+e.getMessage();
-        }
-      }
-      out.print(
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\"metapathop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"metapath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metaPathSoFar)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"metapathstate\" value=\""+metaPathState+"\"/>\n"
-      );
-      if (metaPathLibrary != null)
-      {
-        out.print(
-"              <input type=\"hidden\" name=\"metapathlibrary\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metaPathLibrary)+"\"/>\n"
-        );
-      }
-      out.print(
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metaPathSoFar)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <select name=\"metaflavor\" size=\"2\">\n"+
-"                <option value=\"include\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.Include") + "</option>\n"+
-"                <option value=\"exclude\">" + Messages.getBodyString(locale,"SharePointRepository.Exclude") + "</option>\n"+
-"              </select>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"checkbox\" name=\"metaall\" value=\"true\"/>"+Messages.getBodyString(locale,"SharePointRepository.IncludeAllMetadata")+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"
-      );
-      if (fields != null && fields.length > 0)
-      {
-        out.print(
-"              <select name=\"metafields\" multiple=\"true\" size=\"5\">\n"
-        );
-        int q = 0;
-        while (q < fields.length)
-        {
-          String field = fields[q++];
-          out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(field)+"</option>\n"
-          );
-        }
-        out.print(
-"              </select>\n"
-        );
-      }
-      out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"5\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"
-      );
-      if (message != null)
-      {
-        out.print(
-"          <td class=\"formmessage\" colspan=\"5\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(message)+"</td></tr>\n"
-        );
-      }
-      else
-      {
-        // What we display depends on the determined state of the path.  If the path is a library or is unknown, all we can do is allow a type-in to append
-        // to it, or allow a reset.  If the path is a site, then we can optionally display libraries, sites, OR allow a type-in.
-        // The path buttons are on the left; they consist of "Reset" (to reset the path), "+" (to add to the path), and "-" (to remove from the path).
-        out.print(
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\"metapathwidget\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.ResetPath") + "\" onClick='Javascript:MetaPathReset(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.ResetMetadataRulePath")+"\"/>\n"
-        );
-        if (metaPathSoFar.length() > 1 && (metaPathState.equals("site") || metaPathState.equals("library")))
-        {
-          out.print(
-"              <input type=\"button\" value=\"-\" onClick='Javascript:MetaPathRemove(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.RemoveFromMetadataRulePath")+"\"/>\n"
-          );
-        }
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\">\n"+
-"            <nobr>\n"
-        );
-        if (metaPathState.equals("site") && childSiteList != null && childSiteList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddSite") + "\" onClick='Javascript:MetaPathAppendSite(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddSiteToMetadataRulePath")+"\"/>\n"+
-"              <select name=\"metasite\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectSite")+"</option>\n"
-          );
-          int q = 0;
-          while (q < childSiteList.size())
-          {
-            NameValue childSite = childSiteList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
+        else
+          allmetadata = "";
         
-        if (metaPathState.equals("site") && childLibList != null && childLibList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddLibrary") + "\" onClick='Javascript:MetaPathAppendLibrary(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddLibraryToMetadataRulePath")+"\"/>\n"+
-"              <select name=\"metalibrary\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectLibrary")+"</option>\n"
-          );
-          int q = 0;
-          while (q < childLibList.size())
-          {
-            NameValue childLib = childLibList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-        
-        if (metaPathState.equals("site") && childListList != null && childListList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddList") + "\" onClick='Javascript:MetaPathAppendList(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddListToMetadataRulePath")+"\"/>\n"+
-"              <select name=\"metalist\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectList")+"</option>\n"
-          );
-          int q = 0;
-          while (q < childListList.size())
-          {
-            NameValue childList = childListList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-
-        if (!metaPathState.equals("list"))
-        {
-          out.print(
-  "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:MetaPathAppendText(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToMetadataRulePath")+"\"/>\n"+
-  "              <input type=\"text\" name=\"metamatch\" size=\"32\" value=\"\"/>\n"
-          );
-        }
-        
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"
-        );
+        Map<String,Object> item = new HashMap<String,Object>();
+        item.put("THEPATH",path);
+        item.put("THEACTION",action);
+        item.put("ALLFLAG",allmetadata);
+        item.put("FIELDLIST",metadataFieldArray);
+        item.put("FIELDS",metadataFieldList.toString());
+        metadataRules.add(item);
       }
-      out.print(
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMetadata") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"displaytable\">\n"+
-"        <tr>\n"+
-"          <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AttributeName") + "</nobr></td>\n"+
-"          <td class=\"value\" colspan=\"3\">\n"+
-"            <nobr>\n"+
-"              <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"        <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
-      {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"        <tr>\n"+
-"          <td class=\"description\">\n"+
-"            <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"            <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"              <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteMapping")+Integer.toString(i)+"\" value=\""+Messages.getAttributeString(locale,"SharePointRepository.DeletePathMapping")+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"value\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"value\">==></td>\n"+
-"          <td class=\"value\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-        );
-        i++;
-      }
-      if (i == 0)
-      {
-        out.print(
-"        <tr><td colspan=\"4\" class=\"message\">" + Messages.getBodyString(locale,"SharePointRepository.NoMappingsSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"\n"+
-"        <tr>\n"+
-"          <td class=\"description\">\n"+
-"            <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"              <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add Path Mapping\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"value\"><nobr>"+Messages.getBodyString(locale,"SharePointRepository.MatchRegexp") + "&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></nobr></td>\n"+
-"          <td class=\"value\">==></td>\n"+
-"          <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ReplaceString") + "&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></nobr></td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
     }
-    else
+    
+    List<Map<String,String>> mapList = new ArrayList<Map<String,String>>();
+    for (int i = 0; i < matchMap.getMatchCount(); i++)
     {
-      // Hiddens for metadata rules
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
+      String matchString = matchMap.getMatchString(i);
+      String replaceString = matchMap.getReplaceString(i);
+
+      Map<String,String> item = new HashMap<String,String>();
+      item.put("MATCH",matchString);
+      item.put("REPLACE",replaceString);
+      mapList.add(item);
+    }
+    
+    velocityContext.put("PATHNAMEATTRIBUTE",pathNameAttribute);
+    velocityContext.put("MAPLIST",mapList);
+    velocityContext.put("METADATARULES",metadataRules);
+  }
+  
+  /** Fill in transient metadata info */
+  protected void fillInTransientMetadataInfo(Map<String,Object> velocityContext)
+  {
+    // The following variables may be in the thread context because postspec.jsp put them there:
+    // (1) "metapath", which contains the rule path as it currently stands;
+    // (2) "metapathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
+    // (3) "metapathlibrary" is the library or list path (if this is known yet).
+    // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
+    String metaPathSoFar = (String)currentContext.get("metapath");
+    String metaPathState = (String)currentContext.get("metapathstate");
+    String metaPathLibrary = (String)currentContext.get("metapathlibrary");
+    if (metaPathState == null)
+      metaPathState = "unknown";
+    if (metaPathSoFar == null)
+    {
+      metaPathSoFar = "/";
+      metaPathState = "site";
+    }
+
+    String message = null;
+    List<NameValue> fieldList = null;
+    if (metaPathLibrary != null)
+    {
+      // Look up metadata fields
+      int index = metaPathLibrary.lastIndexOf("/");
+      String site = metaPathLibrary.substring(0,index);
+      String libOrList = metaPathLibrary.substring(index+1);
+      Map<String,String> metaFieldList = null;
+      try
       {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String path = site + "/" + lib + "/*";
-          
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          ArrayList metadataFieldArray = new ArrayList();
-          if (allmetadata == null || !allmetadata.equals("true"))
-          {
-            int j = 0;
-            while (j < sn.getChildCount())
-            {
-              SpecificationNode node = sn.getChild(j++);
-              if (node.getType().equals("metafield"))
-              {
-                String val = node.getAttributeValue("value");
-                metadataFieldArray.add(val);
-              }
-            }
-            allmetadata = "false";
-          }
-          
-          if (allmetadata.equals("true") || metadataFieldArray.size() > 0)
-          {
-            String pathDescription = "_"+Integer.toString(k);
-            out.print(
-"<input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\"include\"/>\n"+
-"<input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"
-            );
-            int q = 0;
-            while (q < metadataFieldArray.size())
-            {
-              String field = (String)metadataFieldArray.get(q++);
-              out.print(
-"<input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
-              );
-            }
-            k++;
-          }
-        }
-        else if (sn.getType().equals("metadatarule"))
-        {
-          String match = sn.getAttributeValue("match");
-          String action = sn.getAttributeValue("action");
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          
-          String pathDescription = "_"+Integer.toString(k);
-          out.print(
-"<input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\""+action+"\"/>\n"
-          );
-          if (action.equals("include"))
-          {
-            if (allmetadata == null || allmetadata.length() == 0)
-              allmetadata = "false";
-            out.print(
-"<input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"
-            );
-            int j = 0;
-            while (j < sn.getChildCount())
-            {
-              SpecificationNode node = sn.getChild(j++);
-              if (node.getType().equals("metafield"))
-              {
-                String value = node.getAttributeValue("value");
-                out.print(
-"<input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
-                );
-              }
-            }
-          }
-          k++;
-        }
+        if (metaPathState.equals("library") || metaPathState.equals("file"))
+          metaFieldList = getLibFieldList(site,libOrList);
+        else if (metaPathState.equals("list"))
+          metaFieldList = getListFieldList(site,libOrList);
       }
-      out.print(
-"<input type=\"hidden\" name=\"metapathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"\n"+
-"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
+      catch (ManifoldCFException e)
       {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
-        );
-        i++;
+        e.printStackTrace();
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "SharePoint unavailable: "+e.getMessage();
+      }
+      if (metaFieldList != null)
+      {
+        String[] fields = new String[metaFieldList.size()];
+        int j = 0;
+        Iterator<String> iter = metaFieldList.keySet().iterator();
+        while (iter.hasNext())
+        {
+          fields[j++] = iter.next();
+        }
+        java.util.Arrays.sort(fields);
+        fieldList = new ArrayList<NameValue>();
+        for (String field : fields)
+        {
+          fieldList.add(new NameValue(field,metaFieldList.get(field)));
+        }
       }
     }
+      
+    // Grab next site list and lib list
+    List<NameValue> childSiteList = null;
+    List<NameValue> childLibList = null;
+    List<NameValue> childListList = null;
+
+    if (message == null && metaPathState.equals("site"))
+    {
+      try
+      {
+        String queryPath = metaPathSoFar;
+        if (queryPath.equals("/"))
+          queryPath = "";
+        childSiteList = getSites(queryPath);
+        if (childSiteList == null)
+        {
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          // Illegal path - state becomes "unknown".
+          metaPathState = "unknown";
+          metaPathLibrary = null;
+        }
+        childLibList = getDocLibsBySite(queryPath);
+        if (childLibList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          metaPathState = "unknown";
+          metaPathLibrary = null;
+        }
+        childListList = getListsBySite(queryPath);
+        if (childListList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          metaPathState = "unknown";
+          metaPathLibrary = null;
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        Logging.connectors.warn(e.getMessage(),e);
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "SharePoint unavailable: "+e.getMessage();
+      }
+    }
+    
+    if (metaPathSoFar != null)
+      velocityContext.put("METAPATHSOFAR",metaPathSoFar);
+    if (metaPathState != null)
+      velocityContext.put("METAPATHSTATE",metaPathState);
+    if (metaPathLibrary != null)
+      velocityContext.put("METAPATHLIBRARY",metaPathLibrary);
+    if (message != null)
+      velocityContext.put("METAMESSAGE",message);
+    if (fieldList != null)
+      velocityContext.put("METAFIELDLIST",fieldList);
+    if (childSiteList != null)
+      velocityContext.put("METACHILDSITELIST",childSiteList);
+    if (childLibList != null)
+      velocityContext.put("METACHILDLIBLIST",childLibList);
+    if (childListList != null)
+      velocityContext.put("METACHILDLISTLIST",childListList);
+  }
+  
+  /** Fill in paths tab */
+  protected static void fillInPathsTab(Map<String,Object> velocityContext, IHTTPOutput out, DocumentSpecification ds)
+  {
+    List<Map<String,String>> rules = new ArrayList<Map<String,String>>();
+    for (int i = 0; i < ds.getChildCount(); i++)
+    {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals("startpoint"))
+      {
+        String site = sn.getAttributeValue("site");
+        String lib = sn.getAttributeValue("lib");
+        String siteLib = site + "/" + lib + "/";
+
+        // Go through all the file/folder rules for the startpoint, and generate new "rules" corresponding to each.
+        for (int j = 0; j < sn.getChildCount(); j++)
+        {
+          SpecificationNode node = sn.getChild(j);
+          if (node.getType().equals("include") || node.getType().equals("exclude"))
+          {
+            String matchPart = node.getAttributeValue("match");
+            String ruleType = node.getAttributeValue("type");
+            String theFlavor = node.getType();
+            String thePath = siteLib + matchPart;
+            
+            Map<String,String> item = new HashMap<String,String>();
+            item.put("THEPATH",thePath);
+            item.put("THETYPE","file");
+            item.put("THEACTION",theFlavor);
+            rules.add(item);
+            
+            if (ruleType.equals("file") && !matchPart.startsWith("*"))
+            {
+              thePath = siteLib + "*/" + matchPart;
+              item = new HashMap<String,String>();
+              item.put("THEPATH",thePath);
+              item.put("THETYPE","file");
+              item.put("THEACTION",theFlavor);
+              rules.add(item);
+            }
+          }
+        }
+      }
+      else if (sn.getType().equals("pathrule"))
+      {
+        String match = sn.getAttributeValue("match");
+        String type = sn.getAttributeValue("type");
+        String action = sn.getAttributeValue("action");
+        
+        Map<String,String> item = new HashMap<String,String>();
+        item.put("THEPATH",match);
+        item.put("THETYPE",type);
+        item.put("THEACTION",action);
+        rules.add(item);
+        
+      }
+    }
+    
+    velocityContext.put("RULES",rules);
+  }
+  
+  /** Fill in the transient portion of the Paths tab */
+  protected void fillInTransientPathsInfo(Map<String,Object> velocityContext)
+  {
+    // The following variables may be in the thread context because postspec.jsp put them there:
+    // (1) "specpath", which contains the rule path as it currently stands;
+    // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library", "list".
+    // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
+    // specsitepath may be in the thread context, put there by postspec.jsp 
+    String pathSoFar = (String)currentContext.get("specpath");
+    String pathState = (String)currentContext.get("specpathstate");
+    String pathLibrary = (String)currentContext.get("specpathlibrary");
+    if (pathState == null)
+    {
+      pathState = "unknown";
+      pathLibrary = null;
+    }
+    if (pathSoFar == null)
+    {
+      pathSoFar = "/";
+      pathState = "site";
+      pathLibrary = null;
+    }
+
+    // Grab next site list and lib list
+    List<NameValue> childSiteList = null;
+    List<NameValue> childLibList = null;
+    List<NameValue> childListList = null;
+    String message = null;
+    if (pathState.equals("site"))
+    {
+      try
+      {
+        String queryPath = pathSoFar;
+        if (queryPath.equals("/"))
+          queryPath = "";
+        childSiteList = getSites(queryPath);
+        if (childSiteList == null)
+        {
+          // Illegal path - state becomes "unknown".
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          pathState = "unknown";
+          pathLibrary = null;
+        }
+        childLibList = getDocLibsBySite(queryPath);
+        if (childLibList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          pathState = "unknown";
+          pathLibrary = null;
+        }
+        childListList = getListsBySite(queryPath);
+        if (childListList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          pathState = "unknown";
+          pathLibrary = null;
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        Logging.connectors.warn(e.getMessage(),e);
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "SharePoint unavailable: "+e.getMessage();
+      }
+    }
+      
+    if (pathSoFar != null)
+      velocityContext.put("PATHSOFAR",pathSoFar);
+    if (pathState != null)
+      velocityContext.put("PATHSTATE",pathState);
+    if (pathLibrary != null)
+      velocityContext.put("PATHLIBRARY",pathLibrary);
+    if (message != null)
+      velocityContext.put("MESSAGE",message);
+    if (childSiteList != null)
+      velocityContext.put("CHILDSITELIST",childSiteList);
+    if (childLibList != null)
+      velocityContext.put("CHILDLIBLIST",childLibList);
+    if (childListList != null)
+      velocityContext.put("CHILDLISTLIST",childListList);
+  }
+  
+  /** Fill in security tab */
+  protected static void fillInSecurityTab(Map<String,Object> velocityContext, IHTTPOutput out, DocumentSpecification ds)
+  {
+    // Security tab
+    String security = "on";
+    List<String> accessTokens = new ArrayList<String>();
+    for (int i = 0; i < ds.getChildCount(); i++)
+    {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals("security"))
+      {
+        security = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("access"))
+      {
+        String token = sn.getAttributeValue("token");
+        accessTokens.add(token);
+      }
+    }
+
+    velocityContext.put("SECURITY",security);
+    velocityContext.put("ACCESSTOKENS",accessTokens);
   }
   
   /** Process a specification post.
@@ -5346,7 +4042,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param docLibrary name
   * @return list of the fields
   */
-  public Map getLibFieldList( String parentSite, String docLibrary )
+  public Map<String,String> getLibFieldList( String parentSite, String docLibrary )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
@@ -5359,7 +4055,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param docLibrary name
   * @return list of the fields
   */
-  public Map getListFieldList( String parentSite, String listName )
+  public Map<String,String> getListFieldList( String parentSite, String listName )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
