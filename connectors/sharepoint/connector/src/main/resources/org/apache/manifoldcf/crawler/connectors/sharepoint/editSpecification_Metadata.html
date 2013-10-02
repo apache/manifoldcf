@@ -96,7 +96,7 @@
   #end
 
   #if($rulecounter == 0)
-        <tr class="formrow"><td class="formmessage" colspan="5">$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.NoMetadataIncluded'))</td></tr>
+        <tr class="formrow"><td class="formcolumnmessage" colspan="5">$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.NoMetadataIncluded'))</td></tr>
   #end
   
   #if(($rownumber % 2) == 0)
@@ -161,7 +161,7 @@
 
         <tr class="formrow">
   #if($METAMESSAGE)
-          <td class="formmessage" colspan="5">$Encoder.bodyEscape($METAMESSAGE)</td></tr>
+          <td class="formcolumnmessage" colspan="5">$Encoder.bodyEscape($METAMESSAGE)</td></tr>
   #else
           <td class="formcolumncell">
             <nobr>

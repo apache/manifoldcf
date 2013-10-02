@@ -86,7 +86,7 @@
   #end
   
   #if($rulecounter == 0)
-        <tr class="formrow"><td colspan="4" class="formmessage">$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.NoDocumentsCurrentlyIncluded'))</td></tr>
+        <tr class="formrow"><td colspan="4" class="formcolumnmessage">$Encoder.bodyEscape($ResourceBundle.getString('SharePointRepository.NoDocumentsCurrentlyIncluded'))</td></tr>
   #end
   
   #if(($rownumber % 2) == 0)
@@ -159,7 +159,7 @@
         <tr class="formrow">
         
   #if($MESSAGE)
-          <td class="formmessage" colspan="4">$Encoder.bodyEscape($MESSAGE)</td>
+          <td class="formcolumnmessage" colspan="4">$Encoder.bodyEscape($MESSAGE)</td>
   #else
   
           <td class="formcolumncell">
