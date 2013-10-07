@@ -7263,112 +7263,29 @@ public class JobManager implements IJobManager
       // otherwise, fire off an individual query at a time.
       if (maxCount == Integer.MAX_VALUE)
       {
-        StringBuilder sb = new StringBuilder("SELECT ");
-        ArrayList list = new ArrayList();
-        
-        sb.append(JobQueue.jobIDField).append(",")
-          .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-          .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
-        
-        if (whereClause != null)
-        {
-          sb.append(" WHERE EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
-            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
-            .append(whereClause)
-            .append(")");
-          list.addAll(whereParams);
-        }
-        
-        sb.append(" GROUP BY ").append(JobQueue.jobIDField);
-        
-        IResultSet set2 = database.performQuery(sb.toString(),list,null,null);
-
-        sb = new StringBuilder("SELECT ");
-        list.clear();
-        
-        sb.append(JobQueue.jobIDField).append(",")
-          .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-          .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new MultiClause(JobQueue.statusField,new Object[]{
-              JobQueue.statusToString(JobQueue.STATUS_ACTIVE),
-              JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCAN),
-              JobQueue.statusToString(JobQueue.STATUS_PENDING),
-              JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
-              JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
-              JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)})}));
-        if (whereClause != null)
-        {
-          sb.append(" AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
-            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
-            .append(whereClause)
-            .append(")");
-          if (whereParams != null)
-            list.addAll(whereParams);
-        }
-        sb.append(" GROUP BY ").append(JobQueue.jobIDField);
-        
-        IResultSet set3 = database.performQuery(sb.toString(),list,null,null);
-
-        sb = new StringBuilder("SELECT ");
-        list.clear();
-        
-        sb.append(JobQueue.jobIDField).append(",")
-          .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-          .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new MultiClause(JobQueue.statusField,new Object[]{
-              JobQueue.statusToString(JobQueue.STATUS_COMPLETE),
-              JobQueue.statusToString(JobQueue.STATUS_UNCHANGED),
-              JobQueue.statusToString(JobQueue.STATUS_PURGATORY),
-              JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
-              JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
-              JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)})}));
-        
-        if (whereClause != null)
-        {
-          sb.append(" AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
-            .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-              new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
-            .append(whereClause)
-            .append(")");
-
-          if (whereParams != null)
-            list.addAll(whereParams);
-        }
-        
-        sb.append(" GROUP BY ").append(JobQueue.jobIDField);
-        
-        IResultSet set4 = database.performQuery(sb.toString(),list,null,null);
-        
-        for (int j = 0; j < set2.getRowCount(); j++)
-        {
-          IResultRow row = set2.getRow(j);
-          Long jobID = (Long)row.getValue(JobQueue.jobIDField);
-          set2Hash.put(jobID,(Long)row.getValue("doccount"));
-          set2Exact.put(jobID,new Boolean(true));
-        }
-        for (int j = 0; j < set3.getRowCount(); j++)
-        {
-          IResultRow row = set3.getRow(j);
-          Long jobID = (Long)row.getValue(JobQueue.jobIDField);
-          set3Hash.put(jobID,(Long)row.getValue("doccount"));
-          set3Exact.put(jobID,new Boolean(true));
-        }
-        for (int j = 0; j < set4.getRowCount(); j++)
-        {
-          IResultRow row = set4.getRow(j);
-          Long jobID = (Long)row.getValue(JobQueue.jobIDField);
-          set4Hash.put(jobID,(Long)row.getValue("doccount"));
-          set4Exact.put(jobID,new Boolean(true));
-        }
+        buildCountsUsingGroupBy(whereClause,whereParams,set2Hash,set3Hash,set4Hash,set2Exact,set3Exact,set4Exact);
       }
       else
       {
-        // Fire off an individual query with a limit for each job
-        // MHL
+        // Check if the total matching jobqueue rows exceeds the limit.  If not, we can still use the cheaper query.
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+            
+        sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+          .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
+        addWhereClause(sb,list,whereClause,whereParams);
+        sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+        IResultSet countResult = database.performQuery(sb.toString(),list,null,null);
+        if (countResult.getRowCount() > 0 && ((Long)countResult.getRow(0).getValue("doccount")).longValue() > maxCount)
+        {
+          // Too many items in queue; do it the hard way
+          buildCountsUsingIndividualQueries(whereClause,whereParams,maxCount,set2Hash,set3Hash,set4Hash,set2Exact,set3Exact,set4Exact);
+        }
+        else
+        {
+          // Cheap way should still work.
+          buildCountsUsingGroupBy(whereClause,whereParams,set2Hash,set3Hash,set4Hash,set2Exact,set3Exact,set4Exact);
+        }
       }
     }
     
@@ -7488,14 +7405,217 @@ public class JobManager implements IJobManager
       rval[i] = new JobStatus(jobID.toString(),description,rstatus,((set2Value==null)?0L:set2Value.longValue()),
         ((set3Value==null)?0L:set3Value.longValue()),
         ((set4Value==null)?0L:set4Value.longValue()),
-        ((set2ExactValue==null)?false:set2ExactValue.booleanValue()),
-        ((set3ExactValue==null)?false:set3ExactValue.booleanValue()),
-        ((set4ExactValue==null)?false:set4ExactValue.booleanValue()),
+        ((set2ExactValue==null)?true:set2ExactValue.booleanValue()),
+        ((set3ExactValue==null)?true:set3ExactValue.booleanValue()),
+        ((set4ExactValue==null)?true:set4ExactValue.booleanValue()),
         startTime,endTime,errorText);
     }
     return rval;
   }
 
+  protected static ClauseDescription buildOutstandingClause()
+    throws ManifoldCFException
+  {
+    return new MultiClause(JobQueue.statusField,new Object[]{
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVE),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCAN),
+    JobQueue.statusToString(JobQueue.STATUS_PENDING),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)});
+  }
+    
+  protected static ClauseDescription buildProcessedClause()
+    throws ManifoldCFException
+  {
+    return new MultiClause(JobQueue.statusField,new Object[]{
+    JobQueue.statusToString(JobQueue.STATUS_COMPLETE),
+    JobQueue.statusToString(JobQueue.STATUS_UNCHANGED),
+    JobQueue.statusToString(JobQueue.STATUS_PURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)});
+  }
+
+  protected void buildCountsUsingIndividualQueries(String whereClause, ArrayList whereParams, int maxCount,
+    Map<Long,Long> set2Hash, Map<Long,Long> set3Hash, Map<Long,Long> set4Hash,
+    Map<Long,Boolean> set2Exact, Map<Long,Boolean> set3Exact, Map<Long,Boolean> set4Exact)
+    throws ManifoldCFException
+  {
+    // Fire off an individual query with a limit for each job
+    
+    // First, get the list of jobs that we are interested in.
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
+
+    sb.append(Jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" t0");
+    if (whereClause != null)
+    {
+      sb.append(" WHERE ")
+        .append(whereClause);
+      if (whereParams != null)
+        list.addAll(whereParams);
+    }
+    
+    IResultSet jobSet = database.performQuery(sb.toString(),list,null,null);
+
+    // Scan the set of jobs
+    for (int i = 0; i < jobSet.getRowCount(); i++)
+    {
+      IResultRow row = jobSet.getRow(i);
+      Long jobID = (Long)row.getValue(Jobs.idField);
+      
+      // Now, for each job, fire off a separate, limited, query for each count we care about
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      
+      IResultSet totalSet = database.performQuery(sb.toString(),list,null,null);
+      if (totalSet.getRowCount() > 0)
+      {
+        long rowCount = ((Long)totalSet.getRow(0).getValue("doccount")).longValue();
+        if (rowCount > maxCount)
+        {
+          set2Hash.put(jobID,new Long(maxCount));
+          set2Exact.put(jobID,new Boolean(false));
+        }
+        else
+        {
+          set2Hash.put(jobID,new Long(rowCount));
+          set2Exact.put(jobID,new Boolean(true));
+        }
+      }
+          
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      
+      IResultSet outstandingSet = database.performQuery(sb.toString(),list,null,null);
+      if (outstandingSet.getRowCount() > 0)
+      {
+        long rowCount = ((Long)outstandingSet.getRow(0).getValue("doccount")).longValue();
+        if (rowCount > maxCount)
+        {
+          set3Hash.put(jobID,new Long(maxCount));
+          set3Exact.put(jobID,new Boolean(false));
+        }
+        else
+        {
+          set3Hash.put(jobID,new Long(rowCount));
+          set3Exact.put(jobID,new Boolean(true));
+        }
+      }
+
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+        .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      
+      IResultSet processedSet = database.performQuery(sb.toString(),list,null,null);
+      if (processedSet.getRowCount() > 0)
+      {
+        long rowCount = ((Long)processedSet.getRow(0).getValue("doccount")).longValue();
+        if (rowCount > maxCount)
+        {
+          set4Hash.put(jobID,new Long(maxCount));
+          set4Exact.put(jobID,new Boolean(false));
+        }
+        else
+        {
+          set4Hash.put(jobID,new Long(rowCount));
+          set4Exact.put(jobID,new Boolean(true));
+        }
+      }
+    }
+  }
+
+  protected void buildCountsUsingGroupBy(String whereClause, ArrayList whereParams,
+    Map<Long,Long> set2Hash, Map<Long,Long> set3Hash, Map<Long,Long> set4Hash,
+    Map<Long,Boolean> set2Exact, Map<Long,Boolean> set3Exact, Map<Long,Boolean> set4Exact)
+    throws ManifoldCFException
+  {
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
+        
+    sb.append(JobQueue.jobIDField).append(",")
+      .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+      .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
+    addWhereClause(sb,list,whereClause,whereParams);
+    sb.append(" GROUP BY ").append(JobQueue.jobIDField);
+    
+    IResultSet set2 = database.performQuery(sb.toString(),list,null,null);
+
+    sb = new StringBuilder("SELECT ");
+    list.clear();
+        
+    sb.append(JobQueue.jobIDField).append(",")
+      .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+      .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
+    addWhereClause(sb,list,whereClause,whereParams);
+    sb.append(" GROUP BY ").append(JobQueue.jobIDField);
+        
+    IResultSet set3 = database.performQuery(sb.toString(),list,null,null);
+
+    sb = new StringBuilder("SELECT ");
+    list.clear();
+        
+    sb.append(JobQueue.jobIDField).append(",")
+      .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+      .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
+    addWhereClause(sb,list,whereClause,whereParams);
+    sb.append(" GROUP BY ").append(JobQueue.jobIDField);
+        
+    IResultSet set4 = database.performQuery(sb.toString(),list,null,null);
+        
+    for (int j = 0; j < set2.getRowCount(); j++)
+    {
+      IResultRow row = set2.getRow(j);
+      Long jobID = (Long)row.getValue(JobQueue.jobIDField);
+      set2Hash.put(jobID,(Long)row.getValue("doccount"));
+      set2Exact.put(jobID,new Boolean(true));
+    }
+    for (int j = 0; j < set3.getRowCount(); j++)
+    {
+      IResultRow row = set3.getRow(j);
+      Long jobID = (Long)row.getValue(JobQueue.jobIDField);
+      set3Hash.put(jobID,(Long)row.getValue("doccount"));
+      set3Exact.put(jobID,new Boolean(true));
+    }
+    for (int j = 0; j < set4.getRowCount(); j++)
+    {
+      IResultRow row = set4.getRow(j);
+      Long jobID = (Long)row.getValue(JobQueue.jobIDField);
+      set4Hash.put(jobID,(Long)row.getValue("doccount"));
+      set4Exact.put(jobID,new Boolean(true));
+    }
+  }
+
+  protected void addWhereClause(StringBuilder sb, ArrayList list, String whereClause, ArrayList whereParams)
+  {
+    if (whereClause != null)
+    {
+      sb.append(" WHERE EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
+        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+          new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
+        .append(whereClause)
+        .append(")");
+      if (whereParams != null)
+        list.addAll(whereParams);
+    }
+  }
+  
   // These methods generate reports for direct display in the UI.
 
   /** Run a 'document status' report.
