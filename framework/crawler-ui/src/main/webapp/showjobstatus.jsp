@@ -251,9 +251,9 @@ if (maintenanceUnderway == false)
 %>
 			</td>
 			<td class="columncell"><%="<!--jobid="+js.getJobID()+"-->"%><%=js.getDescription()%></td><td class="columncell"><%=statusName%></td><td class="columncell"><%=startTime%></td><td class="columncell"><%=endTime%></td>
-			<td class="columncell"><%=new Long(js.getDocumentsInQueue()).toString()%></td>
-			<td class="columncell"><%=new Long(js.getDocumentsOutstanding()).toString()%></td>
-			<td class="columncell"><%=new Long(js.getDocumentsProcessed()).toString()%></td>
+			<td class="columncell"><%(js.getQueueCountExact()?"":"~")%><%=new Long(js.getDocumentsInQueue()).toString()%></td>
+			<td class="columncell"><%(js.getOutstandingCountExact()?"":"~")%><%=new Long(js.getDocumentsOutstanding()).toString()%></td>
+			<td class="columncell"><%(js.getProcessedCountExact()?"":"~")%><%=new Long(js.getDocumentsProcessed()).toString()%></td>
 		</tr>
 <%
 	}

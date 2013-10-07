@@ -973,6 +973,7 @@ public interface IJobManager
   // Status reports
 
   /** Get the status of a job.
+  *@param jobID is the job ID.
   *@return the status object for the specified job.
   */
   public JobStatus getStatus(Long jobID)
@@ -997,6 +998,7 @@ public interface IJobManager
     throws ManifoldCFException;
 
   /** Get the status of a job.
+  *@param jobID is the job ID.
   *@param includeCounts is true if document counts should be included.
   *@return the status object for the specified job.
   */
@@ -1022,6 +1024,39 @@ public interface IJobManager
   *@return an array of the job status objects.
   */
   public JobStatus[] getFinishedJobs(boolean includeCounts)
+    throws ManifoldCFException;
+
+  /** Get the status of a job.
+  *@param jobID is the job ID.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return the status object for the specified job.
+  */
+  public JobStatus getStatus(Long jobID, boolean includeCounts, int maxCount)
+    throws ManifoldCFException;
+
+  /** Get a list of all jobs, and their status information.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an ordered array of job status objects.
+  */
+  public JobStatus[] getAllStatus(boolean includeCounts, int maxCount)
+    throws ManifoldCFException;
+
+  /** Get a list of running jobs.  This is for status reporting.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getRunningJobs(boolean includeCounts, int maxCount)
+    throws ManifoldCFException;
+
+  /** Get a list of completed jobs, and their statistics.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getFinishedJobs(boolean includeCounts, int maxCount)
     throws ManifoldCFException;
 
   // The following commands generate reports based on the queue.

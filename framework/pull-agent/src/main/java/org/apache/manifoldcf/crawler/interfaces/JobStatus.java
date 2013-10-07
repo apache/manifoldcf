@@ -44,15 +44,18 @@ public class JobStatus
 
 
   // Member variables.
-  protected String jobID;
-  protected String description;
-  protected int status;
-  protected long documentsInQueue;
-  protected long documentsOutstanding;
-  protected long documentsProcessed;
-  protected long startTime;       // -1 if job never started
-  protected long endTime;         // -1 if job has not ended yet
-  protected String errorText;     // null if no error on previous action
+  protected final String jobID;
+  protected final String description;
+  protected final int status;
+  protected final long documentsInQueue;
+  protected final long documentsOutstanding;
+  protected final long documentsProcessed;
+  protected final boolean queueCountExact;
+  protected final boolean outstandingCountExact;
+  protected final boolean processedCountExact;
+  protected final long startTime;       // -1 if job never started
+  protected final long endTime;         // -1 if job has not ended yet
+  protected final String errorText;     // null if no error on previous action
 
   /** Constructor.
   *@param jobID is the job identifier.
@@ -70,6 +73,9 @@ public class JobStatus
     long documentsInQueue,
     long documentsOutstanding,
     long documentsProcessed,
+    boolean queueCountExact,
+    boolean outstandingCountExact,
+    boolean processedCountExact,
     long startTime,
     long endTime,
     String errorText)
@@ -80,6 +86,9 @@ public class JobStatus
     this.documentsInQueue = documentsInQueue;
     this.documentsOutstanding = documentsOutstanding;
     this.documentsProcessed = documentsProcessed;
+    this.queueCountExact = queueCountExact;
+    this.outstandingCountExact = outstandingCountExact;
+    this.processedCountExact = processedCountExact;
     this.startTime = startTime;
     this.endTime = endTime;
     this.errorText = errorText;
@@ -117,6 +126,14 @@ public class JobStatus
     return documentsInQueue;
   }
 
+  /** Get whether the queue count is accurate, or an estimate.
+  *@return true if accurate.
+  */
+  public boolean getQueueCountExact()
+  {
+    return queueCountExact;
+  }
+  
   /** Get the number of documents outstanding.
   *@return the documents that are waiting for processing.
   */
@@ -125,12 +142,28 @@ public class JobStatus
     return documentsOutstanding;
   }
 
+  /** Get whether the outstanding count is accurate, or an estimate.
+  *@return true if accurate.
+  */
+  public boolean getOutstandingCountExact()
+  {
+    return outstandingCountExact;
+  }
+
   /** Get the number of documents that have been processed at least once.
   *@return the document count.
   */
   public long getDocumentsProcessed()
   {
     return documentsProcessed;
+  }
+
+  /** Get whether the processed count is accurate, or an estimate.
+  *@return true if accurate.
+  */
+  public boolean getProcessedCountExact()
+  {
+    return processedCountExact;
   }
 
   /** Get the start time.
