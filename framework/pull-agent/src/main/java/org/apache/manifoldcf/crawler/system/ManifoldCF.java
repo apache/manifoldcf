@@ -2001,13 +2001,45 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get api job statuses */
-  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output)
+  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output, Map<String,List<String>> queryParameters)
+    throws ManifoldCFException
+  {
+    int maxCount;
+    List<String> maxCountList = queryParameters.get("maxcount");
+    if (maxCountList == null || maxCountList.size() == 0)
+      maxCount = Integer.MAX_VALUE;
+    else if (maxCountList.size() > 1)
+      throw new ManifoldCFException("Multiple values for maxcount parameter");
+    else
+      maxCount = new Integer(maxCountList.get(0)).intValue();
+      
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus[] jobStatuses = jobManager.getAllStatus(true,maxCount);
+      int i = 0;
+      while (i < jobStatuses.length)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,jobStatuses[i++]);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Get api job statuses */
+  protected static int apiReadJobStatusesNoCounts(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
-      JobStatus[] jobStatuses = jobManager.getAllStatus();
+      JobStatus[] jobStatuses = jobManager.getAllStatus(false);
       int i = 0;
       while (i < jobStatuses.length)
       {
@@ -2024,13 +2056,22 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Get api job status */
-  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID, Map<String,List<String>> queryParameters)
     throws ManifoldCFException
   {
+    int maxCount;
+    List<String> maxCountList = queryParameters.get("maxcount");
+    if (maxCountList == null || maxCountList.size() == 0)
+      maxCount = Integer.MAX_VALUE;
+    else if (maxCountList.size() > 1)
+      throw new ManifoldCFException("Multiple values for maxcount parameter");
+    else
+      maxCount = new Integer(maxCountList.get(0)).intValue();
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
-      JobStatus status = jobManager.getStatus(jobID);
+      JobStatus status = jobManager.getStatus(jobID,true,maxCount);
       if (status != null)
       {
         ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
@@ -3147,12 +3188,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else if (path.equals("jobstatuses"))
     {
-      return apiReadJobStatuses(tc,output);
+      return apiReadJobStatuses(tc,output,queryParameters);
     }
     else if (path.startsWith("jobstatuses/"))
     {
       Long jobID = new Long(path.substring("jobstatuses/".length()));
-      return apiReadJobStatus(tc,output,jobID);
+      return apiReadJobStatus(tc,output,jobID,queryParameters);
+    }
+    else if (path.equals("jobstatusesnocounts"))
+    {
+      return apiReadJobStatusesNoCounts(tc,output);
     }
     else if (path.startsWith("jobstatusesnocounts/"))
     {
@@ -4348,6 +4393,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBSTATUSNODE_DOCUMENTSINQUEUE = "documents_in_queue";
   protected static final String JOBSTATUSNODE_DOCUMENTSOUTSTANDING = "documents_outstanding";
   protected static final String JOBSTATUSNODE_DOCUMENTSPROCESSED = "documents_processed";
+  protected static final String JOBSTATUSNODE_QUEUEEXACT = "queue_exact";
+  protected static final String JOBSTATUSNODE_OUTSTANDINGEXACT = "outstanding_exact";
+  protected static final String JOBSTATUSNODE_PROCESSEDEXACT = "processed_exact";
   
   /** Format a job status.
   */
@@ -4404,6 +4452,19 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // documents processed
     child = new ConfigurationNode(JOBSTATUSNODE_DOCUMENTSPROCESSED);
     child.setValue(new Long(jobStatus.getDocumentsProcessed()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    // Exact flags
+    child = new ConfigurationNode(JOBSTATUSNODE_QUEUEEXACT);
+    child.setValue(new Boolean(jobStatus.getQueueCountExact()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    child = new ConfigurationNode(JOBSTATUSNODE_OUTSTANDINGEXACT);
+    child.setValue(new Boolean(jobStatus.getOutstandingCountExact()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    child = new ConfigurationNode(JOBSTATUSNODE_PROCESSEDEXACT);
+    child.setValue(new Boolean(jobStatus.getProcessedCountExact()).toString());
     jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
 
   }

@@ -554,6 +554,14 @@ cd example
               correct arguments and settings.</p>
             <p></p>
             <table>
+              <tr><th>User Mapping Command Class</th><th>Arguments</th><th>Function</th></tr>
+              <tr><td>org.apache.manifoldcf.authorities.RegisterMapper</td><td><em>classname</em> <em>description</em></td><td>Register a mapping connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterMapper</td><td><em>classname</em></td><td>Un-register a mapping connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterAllMappers</td><td>None</td><td>Un-register all mapping connector classes</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.SynchronizeMappers</td><td>None</td><td>Un-register all registered mapping connector classes that can't be found</td></tr>
+            </table>
+            <p></p>
+            <table>
               <tr><th>Authority Command Class</th><th>Arguments</th><th>Function</th></tr>
               <tr><td>org.apache.manifoldcf.authorities.RegisterAuthority</td><td><em>classname</em> <em>description</em></td><td>Register an authority connector class</td></tr>
               <tr><td>org.apache.manifoldcf.authorities.UnRegisterAuthority</td><td><em>classname</em></td><td>Un-register an authority connector class</td></tr>
@@ -785,6 +793,8 @@ cd example
           <table>
             <caption>Property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
@@ -793,6 +803,7 @@ cd example
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
