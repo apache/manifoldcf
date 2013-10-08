@@ -35,7 +35,7 @@
         <mkdir dir="build"/>
         <antcall target="checkout-source-via-svn">
             <param name="root-dir" value="build"/>
-            <param name="svn-url" value="http://svn.apache.org/repos/asf/forrest/trunk"/>
+            <param name="svn-url" value="http://svn.apache.org/repos/asf/forrest/tags/forrest_09_release"/>
             <param name="dir-name" value="forrest"/>
         </antcall>
     </target>
