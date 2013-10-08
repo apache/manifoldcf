@@ -467,8 +467,9 @@
       <mkdir dir="fonts"/>
       <!-- http://ossipedia.ipa.go.jp/ipafont/download.html?ruleagreement=%E5%90%8C%E6%84%8F%E3%81%99%E3%82%8B%2FAccept -->
       <!-- get src="http://ossipedia.ipa.go.jp/ipafont/IPAGTTC00303.php" dest="fonts/IPAGTTC00303.zip"/ -->
-      <get src="http://info.openlab.ipa.go.jp/ipafont/fontdata/IPAGTTC00303.zip" dest="fonts"/>
+      <!-- get src="http://info.openlab.ipa.go.jp/ipafont/fontdata/IPAGTTC00303.zip" dest="fonts"/ -->
       <!-- get src="http://ossipedia.ipa.go.jp/ipafont/ipafont/IPAGTTC00303.zip" dest="fonts"/ -->
+      <get src="http://jaist.dl.sourceforge.jp/ipafonts/51867/IPAGTTC00303.zip" dest="fonts"/>
     </target>
     
     <target name="make-core-deps" depends="download-dejavu-fonts,download-ipa-fonts,download-commons,download-avalon-framework,download-xmlgraphics-commons,download-fop">
