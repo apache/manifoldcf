@@ -17,16 +17,16 @@
 
 <table class="displaytable">
   <tr>
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainControllers'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.DomainControllers'))</td>
     <td class="boxcell">
       <table class="formtable">
         <tr class="formheaderrow">
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainControllerName'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainSuffix'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativeUserName'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativePassword'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Authentication'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.LoginNameADAttribute'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.DomainControllerName'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.DomainSuffix'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserName'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.AdministrativePassword'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Authentication'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.LoginNameADAttribute'))</td>
         </tr>
 #set($dccounter = 0)
 #foreach($domaincontroller in $DOMAINCONTROLLERS)
@@ -49,11 +49,11 @@
   </tr>
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLifetime'))</nobr></td>
-    <td class="value"><nobr>$Encoder.bodyEscape($CACHELIFETIME)</nobr> $Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.minutes'))</td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.CacheLifetime'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($CACHELIFETIME)</nobr> $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.minutes'))</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLRUSize'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.CacheLRUSize'))</nobr></td>
     <td class="value"><nobr>$Encoder.bodyEscape($CACHELRUSIZE)</nobr></td>
   </tr>
 </table>

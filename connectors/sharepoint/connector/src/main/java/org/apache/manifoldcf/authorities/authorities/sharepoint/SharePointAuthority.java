@@ -460,8 +460,8 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.DomainController"));
-    tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.Cache"));
+    tabsArray.add(Messages.getString(locale,"SharePointAuthority.DomainController"));
+    tabsArray.add(Messages.getString(locale,"SharePointAuthority.Cache"));
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
   
@@ -1003,7 +1003,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     public AuthorizationResponseDescription(String userName, Map<String,DCConnectionParameters> dcConnectionParams,
       List<DCRule> dcRules, long responseLifetime, int LRUsize)
     {
-      super("ActiveDirectoryAuthority",LRUsize);
+      super("SharePointAuthority",LRUsize);
       this.userName = userName;
       this.dcConnectionParams = dcConnectionParams;
       this.dcRules = dcRules;

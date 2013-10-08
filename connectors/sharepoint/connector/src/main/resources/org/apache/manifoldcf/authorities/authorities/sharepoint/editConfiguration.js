@@ -26,14 +26,14 @@ function checkConfig()
     var username = eval("editconnection.dcrecord_username_"+i+".value");
     if (username == "")
     {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull'))");
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserNameCannotBeNull'))");
       eval("editconnection.dcrecord_username_"+i+".focus()");
       return false;
     }
     var authentication = eval("editconnection.dcrecord_authentication_"+i+".value");
     if (authentication == "")
     {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AuthenticationCannotBeNull'))");
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AuthenticationCannotBeNull'))");
       eval("editconnection.dcrecord_authentication_"+i+".focus()");
       return false;
     }
@@ -46,29 +46,29 @@ function checkConfigForSave()
 {
   if (editconnection.cachelifetime.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLifetimeCannotBeNull'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Cache'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.CacheLifetimeCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Cache'))");
     editconnection.cachelifetime.focus();
     return false;
   }
   if (editconnection.cachelifetime.value != "" && !isInteger(editconnection.cachelifetime.value))
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLifetimeMustBeAnInteger'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Cache'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.CacheLifetimeMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Cache'))");
     editconnection.cachelifetime.focus();
     return false;
   }
   if (editconnection.cachelrusize.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLRUSizeCannotBeNull'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Cache'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.CacheLRUSizeCannotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Cache'))");
     editconnection.cachelrusize.focus();
     return false;
   }
   if (editconnection.cachelrusize.value != "" && !isInteger(editconnection.cachelrusize.value))
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLRUSizeMustBeAnInteger'))");
-    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Cache'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.CacheLRUSizeMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Cache'))");
     editconnection.cachelrusize.focus();
     return false;
   }
@@ -85,19 +85,19 @@ function insertDC(i)
 {
   if (editconnection.dcrecord_domaincontrollername.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.EnterADomainControllerServerName'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.EnterADomainControllerServerName'))");
     editconnection.dcrecord_domaincontrollername.focus();
     return;
   }
   if (editconnection.dcrecord_username.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserNameCannotBeNull'))");
     editconnection.dcrecord_username.focus();
     return;
   }
   if (editconnection.dcrecord_authentication.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AuthenticationCannotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AuthenticationCannotBeNull'))");
     editconnection.dcrecord_authentication.focus();
     return;
   }
@@ -109,19 +109,19 @@ function addDC()
 {
   if (editconnection.dcrecord_domaincontrollername.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.EnterADomainControllerServerName'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.EnterADomainControllerServerName'))");
     editconnection.dcrecord_domaincontrollername.focus();
     return;
   }
   if (editconnection.dcrecord_username.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativeUserNameCannotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserNameCannotBeNull'))");
     editconnection.dcrecord_username.focus();
     return;
   }
   if (editconnection.dcrecord_authentication.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AuthenticationCannotBeNull'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AuthenticationCannotBeNull'))");
     editconnection.dcrecord_authentication.focus();
     return;
   }

@@ -15,16 +15,16 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('ActiveDirectoryAuthority.Cache'))
+#if($TabName == $ResourceBundle.getString('SharePointAuthority.Cache'))
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLifetime'))</nobr></td>
-    <td class="value"><input type="text" size="5" name="cachelifetime" value="$Encoder.attributeEscape($CACHELIFETIME)"/> $Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.minutes'))</td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.CacheLifetime'))</nobr></td>
+    <td class="value"><input type="text" size="5" name="cachelifetime" value="$Encoder.attributeEscape($CACHELIFETIME)"/> $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.minutes'))</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.CacheLRUSize'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.CacheLRUSize'))</nobr></td>
     <td class="value"><input type="text" size="5" name="cachelrusize" value="$Encoder.attributeEscape($CACHELRUSIZE)"/></td>
   </tr>
 </table>

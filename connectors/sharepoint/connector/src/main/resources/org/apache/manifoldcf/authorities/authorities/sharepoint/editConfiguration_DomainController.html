@@ -15,22 +15,22 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('ActiveDirectoryAuthority.DomainController'))
+#if($TabName == $ResourceBundle.getString('SharePointAuthority.DomainController'))
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainControllers'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.DomainControllers'))</td>
     <td class="boxcell">
       <table class="formtable">
         <tr class="formheaderrow">
           <td class="formcolumnheader"></td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainControllerName'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainSuffix'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativeUserName'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AdministrativePassword'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Authentication'))</td>
-          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.LoginNameADAttribute'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.DomainControllerName'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.DomainSuffix'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserName'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.AdministrativePassword'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Authentication'))</td>
+          <td class="formcolumnheader">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.LoginNameADAttribute'))</td>
         </tr>
   #set($dccounter = 0)
   #foreach($domaincontroller in $DOMAINCONTROLLERS)
@@ -42,10 +42,10 @@
           <td class="formcolumncell">
             <a name="dcrecord_$dccounter">
               <nobr>
-                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ActiveDirectoryAuthority.Delete'))"
-                alt="$Encoder.attributeEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DeleteRuleNumber'))$dccounter" onclick="javascript:deleteDC($dccounter);"/>
-                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ActiveDirectoryAuthority.InsertBefore'))"
-                alt="$Encoder.attributeEscape($ResourceBundle.getString('ActiveDirectoryAuthority.InsertBeforeRuleNumber'))$dccounter" onclick="javascript:insertDC($dccounter);"/>
+                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.Delete'))"
+                alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.DeleteRuleNumber'))$dccounter" onclick="javascript:deleteDC($dccounter);"/>
+                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.InsertBefore'))"
+                alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.InsertBeforeRuleNumber'))$dccounter" onclick="javascript:insertDC($dccounter);"/>
               </nobr>
             </a>
             <input type="hidden" name="dcrecord_op_$dccounter" value="Continue"/>
@@ -83,8 +83,8 @@
         <tr class="formrow">
           <td class="formcolumncell">
             <a name="dcrecord">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AddToEnd'))"
-              alt="$Encoder.attributeEscape($ResourceBundle.getString('ActiveDirectoryAuthority.AddRuleToEnd'))" onclick="javascript:addDC();"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.AddToEnd'))"
+              alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointAuthority.AddRuleToEnd'))" onclick="javascript:addDC();"/>
             </a>
             <input type="hidden" name="dcrecord_count" value="$dccounter"/>
             <input type="hidden" name="dcrecord_op" value="Continue"/>
