@@ -475,7 +475,7 @@
     <target name="make-core-deps" depends="download-dejavu-fonts,download-ipa-fonts,download-commons,download-avalon-framework,download-xmlgraphics-commons,download-fop">
     </target>
 
-    <target name="download-cleanup">
+    <target name="clean-core-deps">
         <delete dir="fonts"/>
         <delete dir="lib"/>
     </target>
