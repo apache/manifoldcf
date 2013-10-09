@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-784: Fix incorrect no-day-of-month-selected message
+when viewing a schedule record.
+(Adrian Conlon, Karl Wright)
+
 CONNECTORS-783: Add support for limiting the amount of counting
 needed for the job status page.
 (Hiroshi Tatsumi, Karl Wright)
