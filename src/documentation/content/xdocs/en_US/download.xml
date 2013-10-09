@@ -268,32 +268,32 @@
       <section>
         <title>Plugin for SharePoint 2007</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Plugin for SharePoint 2007, version 0.4, 2013 Feb 5)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for SharePoint 2007, version 0.5, 2013 Oct 8)</title>
           <p>
-            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4.KEYS">KEYS</a><br/>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4.CHANGES.txt">CHANGES.txt</a><br/>
+            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5.KEYS">KEYS</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5.CHANGES.txt">CHANGES.txt</a><br/>
           </p>
 
           <p>Sources only:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.tar.gz">apache-manifoldcf-sharepoint-2007-plugin-0.4-src.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.zip">apache-manifoldcf-sharepoint-2007-plugin-0.4-src.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-src.zip.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.tar.gz">apache-manifoldcf-sharepoint-2007-plugin-0.5-src.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.zip">apache-manifoldcf-sharepoint-2007-plugin-0.5-src.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.zip.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-src.zip.sha">SHA</a>]<br/>
           </p>
 
           <p>Binary:<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.tar.gz">apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.zip">apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.4-bin.zip.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.tar.gz">apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.cgi/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip">apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip.sha">SHA</a>]<br/>
           </p>
         </section>
 
