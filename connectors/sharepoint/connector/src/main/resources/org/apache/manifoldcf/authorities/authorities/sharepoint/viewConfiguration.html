@@ -47,7 +47,9 @@
       </table>
     </td>
   </tr>
+  
   <tr><td class="separator" colspan="2"><hr/></td></tr>
+  
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.CacheLifetime'))</nobr></td>
     <td class="value"><nobr>$Encoder.bodyEscape($CACHELIFETIME)</nobr> $Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.minutes'))</td>
@@ -56,4 +58,76 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.CacheLRUSize'))</nobr></td>
     <td class="value"><nobr>$Encoder.bodyEscape($CACHELRUSIZE)</nobr></td>
   </tr>
+  
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerSharePointVersion'))</nobr></td>
+    <td class="value">
+  #if($SERVERVERSION == '2.0')
+        SharePoint Services 2.0 (2003)
+  #elseif($SERVERVERSION == '3.0')
+        SharePoint Services 3.0 (2007)
+  #elseif($SERVERVERSION == '4.0')
+        SharePoint Services 4.0 (2010)
+  #else
+        Unknown
+  #end
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerProtocol'))</nobr></td>
+    <td class="value">
+      $SERVERPROTOCOL
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerName'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($SERVERNAME)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ServerPort'))</nobr></td>
+    <td class="value">
+      $SERVERPORT
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.SitePath'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($SERVERLOCATION)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.UserName'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($USERNAME)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Password'))</nobr></td>
+    <td class="value">
+      ********
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.SSLCertificateList'))</nobr></td>
+    <td class="value">
+      <table class="displaytable">
+  #if($CERTIFICATELIST.size() == 0)
+        <tr><td class="message" colspan="1">$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.NoCertificatesPresent'))</td></tr>
+  #else
+    #foreach($certificate in $CERTIFICATELIST)
+        <tr>
+          <td class="value">
+            $Encoder.bodyEscape($certificate.get('DESCRIPTION'))
+          </td>
+        </tr>
+    #end
+  #end
+      </table>
+    </td>
+  </tr>
+
 </table>

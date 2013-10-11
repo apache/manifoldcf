@@ -39,6 +39,37 @@ function checkConfig()
     }
     i += 1;
   }
+  if (editconnection.serverPort.value != "" && !isInteger(editconnection.serverPort.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSupplyAValidNumber'))");
+    editconnection.serverPort.focus();
+    return false;
+  }
+  if (editconnection.serverName.value.indexOf("/") >= 0)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSpecifyAnyServerPathInformation'))");
+    editconnection.serverName.focus();
+    return false;
+  }
+  var svrloc = editconnection.serverLocation.value;
+  if (svrloc != "" && svrloc.charAt(0) != "/")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.SitePathMustBeginWithWCharacter'))");
+    editconnection.serverLocation.focus();
+    return false;
+  }
+  if (svrloc != "" && svrloc.charAt(svrloc.length - 1) == "/")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.SitePathCannotEndWithACharacter'))");
+    editconnection.serverLocation.focus();
+    return false;
+  }
+  if (editconnection.userName.value != "" && editconnection.userName.value.indexOf("\\") <= 0)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AValidSharePointUserNameHasTheForm'))");
+    editconnection.userName.focus();
+    return false;
+  }
   return true;
 }
 
@@ -70,6 +101,49 @@ function checkConfigForSave()
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.CacheLRUSizeMustBeAnInteger'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Cache'))");
     editconnection.cachelrusize.focus();
+    return false;
+  }
+  if (editconnection.serverName.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseFillInASharePointServerName'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
+    editconnection.serverName.focus();
+    return false;
+  }
+  if (editconnection.serverName.value.indexOf("/") >= 0)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSpecifyAnyServerPathInformationInTheSitePathField'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
+    editconnection.serverName.focus();
+    return false;
+  }
+  var svrloc = editconnection.serverLocation.value;
+  if (svrloc != "" && svrloc.charAt(0) != "/")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.SitePathMustBeginWithWCharacter'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
+    editconnection.serverLocation.focus();
+    return false;
+  }
+  if (svrloc != "" && svrloc.charAt(svrloc.length - 1) == "/")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.SitePathCannotEndWithACharacter'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
+    editconnection.serverLocation.focus();
+    return false;
+  }
+  if (editconnection.serverPort.value != "" && !isInteger(editconnection.serverPort.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSupplyASharePointPortNumber'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
+    editconnection.serverPort.focus();
+    return false;
+  }
+  if (editconnection.userName.value != "" && editconnection.userName.value.indexOf("\\") <= 0)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.TheConnectionRequiresAValidSharePointUserName'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.Server'))");
+    editconnection.userName.focus();
     return false;
   }
   return true;
@@ -127,6 +201,27 @@ function addDC()
   }
   editconnection.dcrecord_op.value="Add";
   postFormSetAnchor("dcrecord");
+}
+
+function ShpDeleteCertificate(aliasName)
+{
+  editconnection.shpkeystorealias.value = aliasName;
+  editconnection.configop.value = "Delete";
+  postForm();
+}
+
+function ShpAddCertificate()
+{
+  if (editconnection.shpcertificate.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.ChooseACertificateFile'))");
+    editconnection.shpcertificate.focus();
+  }
+  else
+  {
+    editconnection.configop.value = "Add";
+    postForm();
+  }
 }
 
 //-->

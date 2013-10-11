@@ -254,7 +254,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       httpClient = localHttpClient;
       
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
-        getClass(), "sharepoint-client-config.wsdd",
+        org.apache.manifoldcf.sharepoint.CommonsHTTPSender.class, "sharepoint-client-config.wsdd",
         httpClient );
       
     }

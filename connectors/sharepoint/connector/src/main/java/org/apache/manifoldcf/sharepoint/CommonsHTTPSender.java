@@ -15,7 +15,7 @@
 *
 * $Id: CommonsHTTPSender.java 988245 2010-08-23 18:39:35Z kwright $
 */
-package org.apache.manifoldcf.crawler.connectors.sharepoint;
+package org.apache.manifoldcf.sharepoint;
 
 import org.apache.manifoldcf.core.common.XThreadInputStream;
 
@@ -89,6 +89,8 @@ import java.util.List;
 
 public class CommonsHTTPSender extends BasicHandler {
 
+  public static final String HTTPCLIENT_PROPERTY = "ManifoldCF_HttpClient";
+
   /** Field log           */
   protected static Log log =
     LogFactory.getLog(CommonsHTTPSender.class.getName());
@@ -123,7 +125,7 @@ public class CommonsHTTPSender extends BasicHandler {
         new URL(msgContext.getStrProp(MessageContext.TRANS_URL));
 
       // Get the HttpClient
-      HttpClient httpClient = (HttpClient)msgContext.getProperty(SPSProxyHelper.HTTPCLIENT_PROPERTY);
+      HttpClient httpClient = (HttpClient)msgContext.getProperty(HTTPCLIENT_PROPERTY);
 
       boolean posting = true;
       // If we're SOAP 1.2, allow the web method to be set from the

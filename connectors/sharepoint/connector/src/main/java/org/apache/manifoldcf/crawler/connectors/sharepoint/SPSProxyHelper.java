@@ -67,7 +67,7 @@ import org.w3c.dom.Document;
 public class SPSProxyHelper {
 
 
-  public static final String HTTPCLIENT_PROPERTY = "ManifoldCF_HttpClient";
+  public static final String HTTPCLIENT_PROPERTY = org.apache.manifoldcf.sharepoint.CommonsHTTPSender.HTTPCLIENT_PROPERTY;
 
   private String serverUrl;
   private String serverLocation;
