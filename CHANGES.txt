@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-771: Include new versions of SharePoint plugins in
+distribution.
+(Karl Wright)
+
 CONNECTORS-784: Fix incorrect no-day-of-month-selected message
 when viewing a schedule record.
 (Adrian Conlon, Karl Wright)

@@ -4066,10 +4066,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/sharepoint-2010"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.2-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
+        <get src="http://archive.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.3-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin"/>
         <copy todir="lib/sharepoint-2010">
-            <fileset dir="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin/apache-manifoldcf-sharepoint-2010-plugin-0.2"/>
+            <fileset dir="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin/apache-manifoldcf-sharepoint-2010-plugin-0.3"/>
         </copy>
     </target>
 
