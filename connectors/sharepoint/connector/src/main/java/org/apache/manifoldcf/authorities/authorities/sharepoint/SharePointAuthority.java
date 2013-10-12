@@ -102,38 +102,21 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     // Set up the DC param set, and the rules
     dCRules = new ArrayList<DCRule>();
     dCConnectionParameters = new HashMap<String,DCConnectionParameters>();
-    // For backwards compatibility, look at old-style parameters
-    String domainControllerName = params.getParameter(SharePointConfig.PARAM_DOMAINCONTROLLER);
-    String userName = params.getParameter(SharePointConfig.PARAM_USERNAME);
-    String password = params.getObfuscatedParameter(SharePointConfig.PARAM_PASSWORD);
-    String authentication = params.getParameter(SharePointConfig.PARAM_AUTHENTICATION);
-    String userACLsUsername = params.getParameter(SharePointConfig.PARAM_USERACLsUSERNAME);
-    if (domainControllerName != null)
+    // Read DC info from the config parameters
+    for (int i = 0; i < params.getChildCount(); i++)
     {
-      // Map the old-style parameters into the new-style structures.
-      dCConnectionParameters.put(domainControllerName,new DCConnectionParameters(userName,password,authentication,userACLsUsername));
-      // Create a single rule, too
-      dCRules.add(new DCRule("",domainControllerName));
-    }
-    else
-    {
-      // New-style parameters.  Read from the config info.
-      int i = 0;
-      while (i < params.getChildCount())
+      ConfigNode cn = params.getChild(i);
+      if (cn.getType().equals(SharePointConfig.NODE_DOMAINCONTROLLER))
       {
-        ConfigNode cn = params.getChild(i++);
-        if (cn.getType().equals(SharePointConfig.NODE_DOMAINCONTROLLER))
-        {
-          // Domain controller name is the actual key...
-          String dcName = cn.getAttributeValue(SharePointConfig.ATTR_DOMAINCONTROLLER);
-          // Set up the parameters for the domain controller
-          dCConnectionParameters.put(dcName,new DCConnectionParameters(cn.getAttributeValue(SharePointConfig.ATTR_USERNAME),
-            deobfuscate(cn.getAttributeValue(SharePointConfig.ATTR_PASSWORD)),
-            cn.getAttributeValue(SharePointConfig.ATTR_AUTHENTICATION),
-            cn.getAttributeValue(SharePointConfig.ATTR_USERACLsUSERNAME)));
-          // Order-based rule, as well
-          dCRules.add(new DCRule(cn.getAttributeValue(SharePointConfig.ATTR_SUFFIX),dcName));
-        }
+        // Domain controller name is the actual key...
+        String dcName = cn.getAttributeValue(SharePointConfig.ATTR_DOMAINCONTROLLER);
+        // Set up the parameters for the domain controller
+        dCConnectionParameters.put(dcName,new DCConnectionParameters(cn.getAttributeValue(SharePointConfig.ATTR_USERNAME),
+          deobfuscate(cn.getAttributeValue(SharePointConfig.ATTR_PASSWORD)),
+          cn.getAttributeValue(SharePointConfig.ATTR_AUTHENTICATION),
+          cn.getAttributeValue(SharePointConfig.ATTR_USERACLsUSERNAME)));
+        // Order-based rule, as well
+        dCRules.add(new DCRule(cn.getAttributeValue(SharePointConfig.ATTR_SUFFIX),dcName));
       }
     }
     
@@ -461,6 +444,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"SharePointAuthority.DomainController"));
+    tabsArray.add(Messages.getString(locale,"SharePointAuthority.Server"));
     tabsArray.add(Messages.getString(locale,"SharePointAuthority.Cache"));
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
@@ -482,42 +466,98 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     velocityContext.put("TabName",tabName);
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
+    fillInServerTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Server.html",velocityContext);
   }
   
+  protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    String serverVersion = parameters.getParameter(SharePointConfig.PARAM_SERVERVERSION);
+    if (serverVersion == null)
+      serverVersion = "2.0";
+
+    String serverProtocol = parameters.getParameter(SharePointConfig.PARAM_SERVERPROTOCOL);
+    if (serverProtocol == null)
+      serverProtocol = "http";
+
+    String serverName = parameters.getParameter(SharePointConfig.PARAM_SERVERNAME);
+    if (serverName == null)
+      serverName = "localhost";
+
+    String serverPort = parameters.getParameter(SharePointConfig.PARAM_SERVERPORT);
+    if (serverPort == null)
+      serverPort = "";
+
+    String serverLocation = parameters.getParameter(SharePointConfig.PARAM_SERVERLOCATION);
+    if (serverLocation == null)
+      serverLocation = "";
+      
+    String userName = parameters.getParameter(SharePointConfig.PARAM_SERVERUSERNAME);
+    if (userName == null)
+      userName = "";
+
+    String password = parameters.getObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD);
+    if (password == null)
+      password = "";
+    else
+      password = out.mapPasswordToKey(password);
+
+    String keystore = parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
+    IKeystoreManager localKeystore;
+    if (keystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",keystore);
+
+    List<Map<String,String>> certificates = new ArrayList<Map<String,String>>();
+    
+    String[] contents = localKeystore.getContents();
+    for (String alias : contents)
+    {
+      String description = localKeystore.getDescription(alias);
+      if (description.length() > 128)
+        description = description.substring(0,125) + "...";
+      Map<String,String> certificate = new HashMap<String,String>();
+      certificate.put("ALIAS", alias);
+      certificate.put("DESCRIPTION", description);
+      certificates.add(certificate);
+    }
+    
+    // Fill in context
+    velocityContext.put("SERVERVERSION", serverVersion);
+    velocityContext.put("SERVERPROTOCOL", serverProtocol);
+    velocityContext.put("SERVERNAME", serverName);
+    velocityContext.put("SERVERPORT", serverPort);
+    velocityContext.put("SERVERLOCATION", serverLocation);
+    velocityContext.put("USERNAME", userName);
+    velocityContext.put("PASSWORD", password);
+    if (keystore != null)
+      velocityContext.put("KEYSTORE", keystore);
+    velocityContext.put("CERTIFICATELIST", certificates);
+    
+  }
+
   protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
-    String domainControllerName = parameters.getParameter(SharePointConfig.PARAM_DOMAINCONTROLLER);
-    String userName = parameters.getParameter(SharePointConfig.PARAM_USERNAME);
-    String password = parameters.getObfuscatedParameter(SharePointConfig.PARAM_PASSWORD);
-    String authentication = parameters.getParameter(SharePointConfig.PARAM_AUTHENTICATION);
-    String userACLsUsername = parameters.getParameter(SharePointConfig.PARAM_USERACLsUSERNAME);
     List<Map<String,String>> domainControllers = new ArrayList<Map<String,String>>();
     
-    // Backwards compatibility: if domain controller parameter is set, create an entry in the map.
-    if (domainControllerName != null)
+    // Go through nodes looking for DC nodes
+    for (int i = 0; i < parameters.getChildCount(); i++)
     {
-      domainControllers.add(createDomainControllerMap(mapper,"",domainControllerName,userName,password,authentication,userACLsUsername));
-    }
-    else
-    {
-      // Go through nodes looking for DC nodes
-      int i = 0;
-      while (i < parameters.getChildCount())
+      ConfigNode cn = parameters.getChild(i);
+      if (cn.getType().equals(SharePointConfig.NODE_DOMAINCONTROLLER))
       {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(SharePointConfig.NODE_DOMAINCONTROLLER))
-        {
-          // Grab the info
-          String dcSuffix = cn.getAttributeValue(SharePointConfig.ATTR_SUFFIX);
-          String dcDomainController = cn.getAttributeValue(SharePointConfig.ATTR_DOMAINCONTROLLER);
-          String dcUserName = cn.getAttributeValue(SharePointConfig.ATTR_USERNAME);
-          String dcPassword = deobfuscate(cn.getAttributeValue(SharePointConfig.ATTR_PASSWORD));
-          String dcAuthentication = cn.getAttributeValue(SharePointConfig.ATTR_AUTHENTICATION);
-          String dcUserACLsUsername = cn.getAttributeValue(SharePointConfig.ATTR_USERACLsUSERNAME);
-          domainControllers.add(createDomainControllerMap(mapper,dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
-        }
+        // Grab the info
+        String dcSuffix = cn.getAttributeValue(SharePointConfig.ATTR_SUFFIX);
+        String dcDomainController = cn.getAttributeValue(SharePointConfig.ATTR_DOMAINCONTROLLER);
+        String dcUserName = cn.getAttributeValue(SharePointConfig.ATTR_USERNAME);
+        String dcPassword = deobfuscate(cn.getAttributeValue(SharePointConfig.ATTR_PASSWORD));
+        String dcAuthentication = cn.getAttributeValue(SharePointConfig.ATTR_AUTHENTICATION);
+        String dcUserACLsUsername = cn.getAttributeValue(SharePointConfig.ATTR_USERACLsUSERNAME);
+        domainControllers.add(createDomainControllerMap(mapper,dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
       }
     }
     velocityContext.put("DOMAINCONTROLLERS",domainControllers);
@@ -570,12 +610,6 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     String x = variableContext.getParameter("dcrecord_count");
     if (x != null)
     {
-      // Delete old stuff
-      parameters.setParameter(SharePointConfig.PARAM_DOMAINCONTROLLER,null);
-      parameters.setParameter(SharePointConfig.PARAM_USERNAME,null);
-      parameters.setParameter(SharePointConfig.PARAM_PASSWORD,null);
-      parameters.setParameter(SharePointConfig.PARAM_AUTHENTICATION,null);
-      parameters.setParameter(SharePointConfig.PARAM_USERACLsUSERNAME,null);
       // Delete old nodes
       int i = 0;
       while (i < parameters.getChildCount())
@@ -633,6 +667,8 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
           variableContext.getParameter("dcrecord_userACLsUsername"));
       }
     }
+
+    // Cache parameters
     
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
@@ -641,6 +677,96 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     if (cacheLRUsize != null)
       parameters.setParameter(SharePointConfig.PARAM_CACHELRUSIZE,cacheLRUsize);
     
+    // SharePoint server parameters
+    
+    String serverVersion = variableContext.getParameter("serverVersion");
+    if (serverVersion != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERVERSION,serverVersion);
+
+    String serverProtocol = variableContext.getParameter("serverProtocol");
+    if (serverProtocol != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERPROTOCOL,serverProtocol);
+
+    String serverName = variableContext.getParameter("serverName");
+
+    if (serverName != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERNAME,serverName);
+
+    String serverPort = variableContext.getParameter("serverPort");
+    if (serverPort != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERPORT,serverPort);
+
+    String serverLocation = variableContext.getParameter("serverLocation");
+    if (serverLocation != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERLOCATION,serverLocation);
+
+    String userName = variableContext.getParameter("userName");
+    if (userName != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERUSERNAME,userName);
+
+    String password = variableContext.getParameter("password");
+    if (password != null)
+      parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
+
+    String keystoreValue = variableContext.getParameter("keystoredata");
+    if (keystoreValue != null)
+      parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,keystoreValue);
+
+    String configOp = variableContext.getParameter("configop");
+    if (configOp != null)
+    {
+      if (configOp.equals("Delete"))
+      {
+        String alias = variableContext.getParameter("shpkeystorealias");
+        keystoreValue = parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,mgr.getString());
+      }
+      else if (configOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("shpcertificate");
+        keystoreValue = parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
+        IKeystoreManager mgr;
+        if (keystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Don't report anything
+          }
+        }
+
+        if (certError != null)
+        {
+          // Redirect to error page
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,mgr.getString());
+      }
+    }
     return null;
   }
   
@@ -677,6 +803,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
+    fillInServerTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 

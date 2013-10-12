@@ -2412,6 +2412,11 @@
             <param name="connector-label" value="SharePoint"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.sharepoint.SharePointRepository"/>
         </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="sharepoint"/>
+            <param name="connector-label" value="SharePoint"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointAuthority"/>
+        </antcall>
     </target>
     
     <target name="deliver-sharepoint-connector-doc" depends="calculate-sharepoint-doc-condition" if="sharepoint-doc.include">

@@ -16,21 +16,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.authorities.authorities.sharepoint;
+package org.apache.manifoldcf.crawler.connectors.sharepoint;
 
 
-/** Parameters and output data for SharePoint authority.
+/** Parameters and output data for SharePoint repository.
 */
 public class SharePointConfig
 {
   public static final String _rcsid = "@(#)$Id$";
 
   // Configuration parameters
-
-  /** Cache lifetime */
-  public static final String PARAM_CACHELIFETIME = "Cache lifetime";
-  /** Cache LRU size */
-  public static final String PARAM_CACHELRUSIZE = "Cache LRU size";
 
   /** SharePoint server version */
   public static final String PARAM_SERVERVERSION = "serverVersion";
@@ -48,25 +43,7 @@ public class SharePointConfig
   public static final String PARAM_SERVERPASSWORD = "password";
   /** SharePoint server certificate store */
   public static final String PARAM_SERVERKEYSTORE = "keystore";
-
-  // Nodes
-  
-  /** Domain controller node */
-  public static final String NODE_DOMAINCONTROLLER = "domaincontroller";
-  
-  // Attributes
-  
-  /** Domain suffix */
-  public static final String ATTR_SUFFIX = "suffix";
-  /** DC server name */
-  public static final String ATTR_DOMAINCONTROLLER = "domaincontroller";
-  /** DC user name */
-  public static final String ATTR_USERNAME = "username";
-  /** DC password */
-  public static final String ATTR_PASSWORD = "password";
-  /** DC authentication method */
-  public static final String ATTR_AUTHENTICATION = "authentication";
-  /** DC user acls username attribute name */
-  public static final String ATTR_USERACLsUSERNAME = "useraclsusername";
-
+	
+  /** Authority type */
+  public static final String PARAM_AUTHORITYTYPE = "authorityType";
 }

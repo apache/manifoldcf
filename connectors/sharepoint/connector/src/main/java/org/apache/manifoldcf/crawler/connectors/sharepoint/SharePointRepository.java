@@ -144,19 +144,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     if (proxy == null)
     {
-      String serverVersion = params.getParameter( "serverVersion" );
+      String serverVersion = params.getParameter( SharePointConfig.PARAM_SERVERVERSION );
       if (serverVersion == null)
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
       dspStsWorks = !serverVersion.equals("4.0");
       attachmentsSupported = !serverVersion.equals("2.0");
 
-      serverProtocol = params.getParameter( "serverProtocol" );
+      serverProtocol = params.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
       if (serverProtocol == null)
         serverProtocol = "http";
       try
       {
-        String serverPort = params.getParameter( "serverPort" );
+        String serverPort = params.getParameter( SharePointConfig.PARAM_SERVERPORT );
         if (serverPort == null || serverPort.length() == 0)
         {
           if (serverProtocol.equals("https"))
@@ -171,7 +171,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         throw new ManifoldCFException(e.getMessage(),e);
       }
-      serverLocation = params.getParameter("serverLocation");
+      serverLocation = params.getParameter(SharePointConfig.PARAM_SERVERLOCATION);
       if (serverLocation == null)
         serverLocation = "";
       if (serverLocation.endsWith("/"))
@@ -181,8 +181,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       encodedServerLocation = serverLocation;
       serverLocation = decodePath(serverLocation);
 
-      userName = params.getParameter( "userName" );
-      password = params.getObfuscatedParameter( "password" );
+      userName = params.getParameter(SharePointConfig.PARAM_SERVERUSERNAME);
+      password = params.getObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD);
       int index = userName.indexOf("\\");
       if (index != -1)
       {
@@ -208,7 +208,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
 
       // Set up ssl if indicated
-      keystoreData = params.getParameter( "keystore" );
+      keystoreData = params.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
 
       PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
       localConnectionManager.setMaxTotal(1);
@@ -2296,6 +2296,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Server"));
+    tabsArray.add(Messages.getString(locale,"SharePointRepository.AuthorityType"));
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
   
@@ -2316,7 +2317,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     velocityContext.put("TabName",tabName);
     fillInServerTab(velocityContext,out,parameters);
+    fillInAuthorityTypeTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Server.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_AuthorityType.html",velocityContext);
   }
   
   
@@ -2336,36 +2339,36 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     String serverVersion = variableContext.getParameter("serverVersion");
     if (serverVersion != null)
-      parameters.setParameter("serverVersion",serverVersion);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERVERSION,serverVersion);
 
     String serverProtocol = variableContext.getParameter("serverProtocol");
     if (serverProtocol != null)
-      parameters.setParameter("serverProtocol",serverProtocol);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERPROTOCOL,serverProtocol);
 
     String serverName = variableContext.getParameter("serverName");
 
     if (serverName != null)
-      parameters.setParameter("serverName",serverName);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERNAME,serverName);
 
     String serverPort = variableContext.getParameter("serverPort");
     if (serverPort != null)
-      parameters.setParameter("serverPort",serverPort);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERPORT,serverPort);
 
     String serverLocation = variableContext.getParameter("serverLocation");
     if (serverLocation != null)
-      parameters.setParameter("serverLocation",serverLocation);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERLOCATION,serverLocation);
 
     String userName = variableContext.getParameter("userName");
     if (userName != null)
-      parameters.setParameter("userName",userName);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERUSERNAME,userName);
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("password",variableContext.mapKeyToPassword(password));
+      parameters.setObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD,variableContext.mapKeyToPassword(password));
 
     String keystoreValue = variableContext.getParameter("keystoredata");
     if (keystoreValue != null)
-      parameters.setParameter("keystore",keystoreValue);
+      parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,keystoreValue);
 
     String configOp = variableContext.getParameter("configop");
     if (configOp != null)
@@ -2373,20 +2376,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       if (configOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("shpkeystorealias");
-        keystoreValue = parameters.getParameter("keystore");
+        keystoreValue = parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
         IKeystoreManager mgr;
         if (keystoreValue != null)
           mgr = KeystoreManagerFactory.make("",keystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter("keystore",mgr.getString());
+        parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,mgr.getString());
       }
       else if (configOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("shpcertificate");
-        keystoreValue = parameters.getParameter("keystore");
+        keystoreValue = parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
         IKeystoreManager mgr;
         if (keystoreValue != null)
           mgr = KeystoreManagerFactory.make("",keystoreValue);
@@ -2419,9 +2422,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // Redirect to error page
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter("keystore",mgr.getString());
+        parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,mgr.getString());
       }
     }
+    
+    String authorityType = variableContext.getParameter("authorityType");
+    if (authorityType != null)
+      parameters.setParameter(SharePointConfig.PARAM_AUTHORITYTYPE,authorityType);
+
     return null;
   }
   
@@ -2439,43 +2447,54 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     fillInServerTab(velocityContext,out,parameters);
+    fillInAuthorityTypeTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
+  }
+
+  protected static void fillInAuthorityTypeTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    // Default to Active Directory, for backwards compatibility
+    String authorityType = parameters.getParameter(SharePointConfig.PARAM_AUTHORITYTYPE);
+    if (authorityType == null)
+      authorityType = "ActiveDirectory";
+    velocityContext.put("AUTHORITYTYPE", authorityType);
   }
   
   protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException
   {
-    String serverVersion = parameters.getParameter("serverVersion");
+    String serverVersion = parameters.getParameter(SharePointConfig.PARAM_SERVERVERSION);
     if (serverVersion == null)
       serverVersion = "2.0";
 
-    String serverProtocol = parameters.getParameter("serverProtocol");
+    String serverProtocol = parameters.getParameter(SharePointConfig.PARAM_SERVERPROTOCOL);
     if (serverProtocol == null)
       serverProtocol = "http";
 
-    String serverName = parameters.getParameter("serverName");
+    String serverName = parameters.getParameter(SharePointConfig.PARAM_SERVERNAME);
     if (serverName == null)
       serverName = "localhost";
 
-    String serverPort = parameters.getParameter("serverPort");
+    String serverPort = parameters.getParameter(SharePointConfig.PARAM_SERVERPORT);
     if (serverPort == null)
       serverPort = "";
 
-    String serverLocation = parameters.getParameter("serverLocation");
+    String serverLocation = parameters.getParameter(SharePointConfig.PARAM_SERVERLOCATION);
     if (serverLocation == null)
       serverLocation = "";
       
-    String userName = parameters.getParameter("userName");
+    String userName = parameters.getParameter(SharePointConfig.PARAM_SERVERUSERNAME);
     if (userName == null)
       userName = "";
 
-    String password = parameters.getObfuscatedParameter("password");
+    String password = parameters.getObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD);
     if (password == null)
       password = "";
     else
       password = out.mapPasswordToKey(password);
 
-    String keystore = parameters.getParameter("keystore");
+    String keystore = parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
     IKeystoreManager localKeystore;
     if (keystore == null)
       localKeystore = KeystoreManagerFactory.make("");
