@@ -26,9 +26,32 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import java.io.*;
 import java.util.*;
+import java.net.*;
+import java.util.concurrent.TimeUnit;
 import javax.naming.*;
 import javax.naming.ldap.*;
 import javax.naming.directory.*;
+
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 
 /** This is the Active Directory implementation of the IAuthorityConnector interface.
@@ -59,10 +82,54 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   /** Cache manager. */
   private ICacheManager cacheManager = null;
   
+  /** The length of time in milliseconds that an connection remains idle before expiring.  Currently 5 minutes. */
+  private static final long ADExpirationInterval = 300000L;
   
-  /** The length of time in milliseconds that the connection remains idle before expiring.  Currently 5 minutes. */
-  private static final long expirationInterval = 300000L;
+  /** Length of time that a SharePoint session can remain idle */
+  private static final long SharePointExpirationInterval = 300000L;
   
+  // SharePoint server parameters
+  
+  private String serverProtocol = null;
+  private String serverUrl = null;
+  private String fileBaseUrl = null;
+  private String userName = null;
+  private String strippedUserName = null;
+  private String password = null;
+  private String ntlmDomain = null;
+  private String serverName = null;
+  private String serverLocation = null;
+  private String encodedServerLocation = null;
+  private int serverPort = -1;
+
+  private SPSProxyHelper proxy = null;
+
+  private long sharepointSessionTimeout;
+  
+  // SSL support
+  private String keystoreData = null;
+  private IKeystoreManager keystoreManager = null;
+  
+  private ClientConnectionManager connectionManager = null;
+  private HttpClient httpClient = null;
+
+  // Current host name
+  private static String currentHost = null;
+  static
+  {
+    // Find the current host name
+    try
+    {
+      java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+
+      // Get hostname
+      currentHost = addr.getHostName();
+    }
+    catch (UnknownHostException e)
+    {
+    }
+  }
+
   /** Constructor.
   */
   public SharePointAuthority()
@@ -151,7 +218,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   public String check()
     throws ManifoldCFException
   {
-    // Set up the basic session...
+    // Set up the basic AD session...
     getSessionParameters();
     // Clear the DC session info, so we're forced to redo it
     for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
@@ -163,6 +230,27 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     {
       createDCSession(domainController);
     }
+    
+    // SharePoint check
+    getSharePointSession();
+    try
+    {
+      URL urlServer = new URL( serverUrl );
+    }
+    catch ( MalformedURLException e )
+    {
+      return "Illegal SharePoint url: "+e.getMessage();
+    }
+
+    try
+    {
+      proxy.checkConnection( "/" );
+    }
+    catch (ManifoldCFException e)
+    {
+      return e.getMessage();
+    }
+
     return super.check();
   }
 
@@ -180,7 +268,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       session = new DCSessionInfo();
       sessionInfo.put(domainController,session);
     }
-    return session.getSession(domainController,parms);
+    return session.getADSession(domainController,parms);
   }
   
   /** Poll.  The connection should be closed if it has been idle for too long.
@@ -194,9 +282,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     {
       sessionEntry.getValue().closeIfExpired(currentTime);
     }
+    if (proxy != null && System.currentTimeMillis() >= sharepointSessionTimeout)
+      expireSharePointSession();
+    if (connectionManager != null)
+      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
     super.poll();
   }
-  
   
   /** Close the connection.  Call this before discarding the repository connector.
   */
@@ -204,6 +295,13 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   public void disconnect()
     throws ManifoldCFException
   {
+    // Clean up caching parameters
+    
+    cacheLifetime = null;
+    cacheLRUsize = null;
+    
+    // Clean up AD parameters
+    
     hasSessionParameters = false;
 
     // Close all connections
@@ -213,8 +311,28 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     }
     sessionInfo = null;
     
-    cacheLifetime = null;
-    cacheLRUsize = null;
+    // Clean up SharePoint parameters
+    
+    serverUrl = null;
+    fileBaseUrl = null;
+    userName = null;
+    strippedUserName = null;
+    password = null;
+    ntlmDomain = null;
+    serverName = null;
+    serverLocation = null;
+    encodedServerLocation = null;
+    serverPort = -1;
+
+    keystoreData = null;
+    keystoreManager = null;
+
+    proxy = null;
+    httpClient = null;
+    if (connectionManager != null)
+      connectionManager.shutdown();
+    connectionManager = null;
+
     super.disconnect();
   }
 
@@ -829,7 +947,149 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     }
   }
   
+  protected void getSharePointSession()
+    throws ManifoldCFException
+  {
+    if (proxy == null)
+    {
+      String serverVersion = params.getParameter( SharePointConfig.PARAM_SERVERVERSION );
+      if (serverVersion == null)
+        serverVersion = "2.0";
+      // Authority needs to do nothing with SharePoint version right now.
+      
+      serverProtocol = params.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
+      if (serverProtocol == null)
+        serverProtocol = "http";
+      try
+      {
+        String serverPort = params.getParameter( SharePointConfig.PARAM_SERVERPORT );
+        if (serverPort == null || serverPort.length() == 0)
+        {
+          if (serverProtocol.equals("https"))
+            this.serverPort = 443;
+          else
+            this.serverPort = 80;
+        }
+        else
+          this.serverPort = Integer.parseInt(serverPort);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e);
+      }
+      serverLocation = params.getParameter(SharePointConfig.PARAM_SERVERLOCATION);
+      if (serverLocation == null)
+        serverLocation = "";
+      if (serverLocation.endsWith("/"))
+        serverLocation = serverLocation.substring(0,serverLocation.length()-1);
+      if (serverLocation.length() > 0 && !serverLocation.startsWith("/"))
+        serverLocation = "/" + serverLocation;
+      encodedServerLocation = serverLocation;
+      serverLocation = decodePath(serverLocation);
+
+      userName = params.getParameter(SharePointConfig.PARAM_SERVERUSERNAME);
+      password = params.getObfuscatedParameter(SharePointConfig.PARAM_SERVERPASSWORD);
+      int index = userName.indexOf("\\");
+      if (index != -1)
+      {
+        strippedUserName = userName.substring(index+1);
+        ntlmDomain = userName.substring(0,index);
+      }
+      else
+      {
+        strippedUserName = null;
+        ntlmDomain = null;
+      }
+
+      serverUrl = serverProtocol + "://" + serverName;
+      if (serverProtocol.equals("https"))
+      {
+        if (serverPort != 443)
+          serverUrl += ":" + Integer.toString(serverPort);
+      }
+      else
+      {
+        if (serverPort != 80)
+          serverUrl += ":" + Integer.toString(serverPort);
+      }
+
+      // Set up ssl if indicated
+      keystoreData = params.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
+
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+      connectionManager = localConnectionManager;
+
+      if (keystoreData != null)
+      {
+        keystoreManager = KeystoreManagerFactory.make("",keystoreData);
+        SSLSocketFactory myFactory = new SSLSocketFactory(keystoreManager.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
+        Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+        connectionManager.getSchemeRegistry().register(myHttpsProtocol);
+      }
+
+      fileBaseUrl = serverUrl + encodedServerLocation;
+
+      BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+      localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+      if (strippedUserName != null)
+      {
+        localHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(serverName,serverPort),
+          new NTCredentials(strippedUserName, password, currentHost, ntlmDomain));
+      }
+
+      httpClient = localHttpClient;
+      
+      proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
+        org.apache.manifoldcf.sharepoint.CommonsHTTPSender.class, "sharepoint-client-config.wsdd",
+        httpClient );
+      
+    }
+    sharepointSessionTimeout = System.currentTimeMillis() + SharePointExpirationInterval;
+  }
   
+  protected void expireSharePointSession()
+    throws ManifoldCFException
+  {
+    serverUrl = null;
+    fileBaseUrl = null;
+    userName = null;
+    strippedUserName = null;
+    password = null;
+    ntlmDomain = null;
+    serverLocation = null;
+    encodedServerLocation = null;
+    serverPort = -1;
+
+    keystoreData = null;
+    keystoreManager = null;
+
+    proxy = null;
+    httpClient = null;
+    if (connectionManager != null)
+      connectionManager.shutdown();
+    connectionManager = null;
+  }
+
   /** Obtain the DistinguishedName for a given user logon name.
   *@param ctx is the ldap context to use.
   *@param userName (Domain Logon Name) is the user name or identifier.
@@ -935,7 +1195,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     }
 
     /** Initialize the session. */
-    public LdapContext getSession(String domainControllerName, DCConnectionParameters params)
+    public LdapContext getADSession(String domainControllerName, DCConnectionParameters params)
       throws ManifoldCFException
     {
       String authentication = params.getAuthentication();
@@ -1015,7 +1275,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       }
       
       // Set the expiration time anew
-      expiration = System.currentTimeMillis() + expirationInterval;
+      expiration = System.currentTimeMillis() + ADExpirationInterval;
       return ctx;
     }
     
@@ -1044,6 +1304,79 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         closeConnection();
     }
 
+  }
+
+  /** Decode a path item.
+  */
+  public static String pathItemDecode(String pathItem)
+  {
+    try
+    {
+      return java.net.URLDecoder.decode(pathItem.replaceAll("\\%20","+"),"utf-8");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // Bad news, utf-8 not available!
+      throw new RuntimeException("No utf-8 encoding available");
+    }
+  }
+
+  /** Encode a path item.
+  */
+  public static String pathItemEncode(String pathItem)
+  {
+    try
+    {
+      String output = java.net.URLEncoder.encode(pathItem,"utf-8");
+      return output.replaceAll("\\+","%20");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // Bad news, utf-8 not available!
+      throw new RuntimeException("No utf-8 encoding available");
+    }
+  }
+
+  /** Given a path that is /-separated, and otherwise encoded, decode properly to convert to
+  * unencoded form.
+  */
+  public static String decodePath(String relPath)
+  {
+    StringBuilder sb = new StringBuilder();
+    String[] pathEntries = relPath.split("/");
+    int k = 0;
+
+    boolean isFirst = true;
+    while (k < pathEntries.length)
+    {
+      if (isFirst)
+        isFirst = false;
+      else
+        sb.append("/");
+      sb.append(pathItemDecode(pathEntries[k++]));
+    }
+    return sb.toString();
+  }
+
+  /** Given a path that is /-separated, and otherwise unencoded, encode properly for an actual
+  * URI
+  */
+  public static String encodePath(String relPath)
+  {
+    StringBuilder sb = new StringBuilder();
+    String[] pathEntries = relPath.split("/");
+    int k = 0;
+
+    boolean isFirst = true;
+    while (k < pathEntries.length)
+    {
+      if (isFirst)
+        isFirst = false;
+      else
+        sb.append("/");
+      sb.append(pathItemEncode(pathEntries[k++]));
+    }
+    return sb.toString();
   }
 
   /** Class describing a domain suffix and corresponding domain controller name rule.

@@ -107,7 +107,7 @@ public class SPSProxyHelper {
   * @return array of sids
   * @throws Exception
   */
-  public String[] getACLs(String site, String guid )
+  public String[] getACLs(String site, String guid, boolean activeDirectoryAuthority )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -161,7 +161,7 @@ public class SPSProxyHelper {
           {
             // Use AD user or group
             String userLogin = doc.getValue( node, "UserLogin" );
-            String userSid = getSidForUser( userCall, userLogin );
+            String userSid = getSidForUser( userCall, userLogin, activeDirectoryAuthority );
             sids.add( userSid );
           }
           else
@@ -172,11 +172,11 @@ public class SPSProxyHelper {
             if ( roleName.length() == 0)
             {
               roleName = doc.getValue(node,"GroupName");
-              roleSids = getSidsForGroup(userCall, roleName);
+              roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
             }
             else
             {
-              roleSids = getSidsForRole(userCall, roleName);
+              roleSids = getSidsForRole(userCall, roleName, activeDirectoryAuthority);
             }
 
             int j = 0;
@@ -299,7 +299,7 @@ public class SPSProxyHelper {
   * @throws ManifoldCFException
   * @throws ServiceInterruption
   */
-  public String[] getDocumentACLs(String site, String file)
+  public String[] getDocumentACLs(String site, String file, boolean activeDirectoryAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
@@ -372,7 +372,7 @@ public class SPSProxyHelper {
           {
             // Use AD user or group
             String userLogin = doc.getValue( node, "UserLogin" );
-            String userSid = getSidForUser( userCall, userLogin );
+            String userSid = getSidForUser( userCall, userLogin, activeDirectoryAuthority );
             sids.add( userSid );
           }
           else
@@ -383,11 +383,11 @@ public class SPSProxyHelper {
             if ( roleName.length() == 0)
             {
               roleName = doc.getValue(node,"GroupName");
-              roleSids = getSidsForGroup(userCall, roleName);
+              roleSids = getSidsForGroup(userCall, roleName, activeDirectoryAuthority);
             }
             else
             {
-              roleSids = getSidsForRole(userCall, roleName);
+              roleSids = getSidsForRole(userCall, roleName, activeDirectoryAuthority);
             }
 
             int j = 0;
@@ -1295,10 +1295,14 @@ public class SPSProxyHelper {
   * @return
   * @throws Exception
   */
-  private String getSidForUser(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String userLogin )
+  private String getSidForUser(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String userLogin,
+    boolean activeDirectoryAuthority)
   throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
     java.rmi.RemoteException
   {
+    if (!activeDirectoryAuthority)
+      return "U"+userLogin;
+
     com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLogin );
     org.apache.axis.message.MessageElement[] userList = userResp.get_any();
 
@@ -1334,9 +1338,13 @@ public class SPSProxyHelper {
   * @return
   * @throws Exception
   */
-  private String[] getSidsForGroup(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String groupName)
+  private String[] getSidsForGroup(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String groupName,
+    boolean activeDirectoryAuthority)
     throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException, java.rmi.RemoteException
   {
+    if (!activeDirectoryAuthority)
+      return new String[]{"G"+groupName};
+
     com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
     org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
 
@@ -1383,10 +1391,13 @@ public class SPSProxyHelper {
   * @return
   * @throws Exception
   */
-  private String[] getSidsForRole( com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String roleName )
+  private String[] getSidsForRole( com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String roleName,
+    boolean activeDirectoryAuthority)
   throws ManifoldCFException, java.net.MalformedURLException, javax.xml.rpc.ServiceException,
     java.rmi.RemoteException
   {
+    if (!activeDirectoryAuthority)
+      return new String[]{"R"+roleName};
 
     com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromRoleResponseGetUserCollectionFromRoleResult roleResp = userCall.getUserCollectionFromRole( roleName );
     org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();

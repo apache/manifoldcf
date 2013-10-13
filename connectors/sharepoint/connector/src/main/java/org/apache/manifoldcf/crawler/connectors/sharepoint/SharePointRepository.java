@@ -88,6 +88,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
   private boolean attachmentsSupported = false;
+  private boolean activeDirectoryAuthority = true;
   
   private String serverProtocol = null;
   private String serverUrl = null;
@@ -150,6 +151,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       supportsItemSecurity = !serverVersion.equals("2.0");
       dspStsWorks = !serverVersion.equals("4.0");
       attachmentsSupported = !serverVersion.equals("2.0");
+      
+      String authorityType = params.getParameter( SharePointConfig.PARAM_AUTHORITYTYPE );
+      if (authorityType == null)
+        authorityType = "ActiveDirectory";
+      
+      activeDirectoryAuthority = authorityType.equals("ActiveDirectory");
 
       serverProtocol = params.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
       if (serverProtocol == null)
@@ -1034,7 +1041,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                     else
                     {
                       // Security on, is native
-                      accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
+                      accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath), activeDirectoryAuthority );
                       denyTokens = new String[]{defaultAuthorityDenyToken};
                     }
                   }
@@ -1266,7 +1273,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 else
                 {
                   // Security enabled, native security
-                  accessTokens = proxy.getACLs( encodedSitePath, listID );
+                  accessTokens = proxy.getACLs( encodedSitePath, listID, activeDirectoryAuthority );
                   denyTokens = new String[]{defaultAuthorityDenyToken};
                 }
 
@@ -1601,7 +1608,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 else
                 {
                   // Security enabled, native security
-                  accessTokens = proxy.getACLs( encodedSitePath, libID );
+                  accessTokens = proxy.getACLs( encodedSitePath, libID, activeDirectoryAuthority );
                   denyTokens = new String[]{defaultAuthorityDenyToken};
                 }
 
