@@ -104,6 +104,8 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
 
   private SPSProxyHelper proxy = null;
 
+  private boolean isClaimSpace = false;
+  
   private long sharepointSessionTimeout;
   
   // SSL support
@@ -563,6 +565,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   {
     tabsArray.add(Messages.getString(locale,"SharePointAuthority.DomainController"));
     tabsArray.add(Messages.getString(locale,"SharePointAuthority.Server"));
+    tabsArray.add(Messages.getString(locale,"SharePointAuthority.AuthorizationModel"));
     tabsArray.add(Messages.getString(locale,"SharePointAuthority.Cache"));
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
@@ -585,11 +588,24 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
     fillInServerTab(velocityContext,out,parameters);
+    fillInAuthorizationModelTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Server.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_AuthorizationModel.html",velocityContext);
   }
-  
+
+  protected static void fillInAuthorizationModelTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    String authorizationModel = parameters.getParameter(SharePointConfig.PARAM_AUTHORIZATIONMODEL);
+    if (authorizationModel == null)
+      authorizationModel = "Classic";
+    
+    // Fill in context
+    velocityContext.put("AUTHORIZATIONMODEL", authorizationModel);
+  }
+
   protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
     throws ManifoldCFException
   {
@@ -885,6 +901,12 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         parameters.setParameter(SharePointConfig.PARAM_SERVERKEYSTORE,mgr.getString());
       }
     }
+    
+    // Authorization model
+    String authorizationModel = variableContext.getParameter("authorizationModel");
+    if (authorizationModel != null)
+      parameters.setParameter(SharePointConfig.PARAM_AUTHORIZATIONMODEL,authorizationModel);
+
     return null;
   }
   
@@ -922,6 +944,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
     fillInServerTab(velocityContext,out,parameters);
+    fillInAuthorizationModelTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 
@@ -957,6 +980,9 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         serverVersion = "2.0";
       // Authority needs to do nothing with SharePoint version right now.
       
+      String authorizationModel = params.getParameter( SharePointConfig.PARAM_AUTHORIZATIONMODEL );
+      isClaimSpace = authorizationModel.equals("ClaimSpace");
+
       serverProtocol = params.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
       if (serverProtocol == null)
         serverProtocol = "http";

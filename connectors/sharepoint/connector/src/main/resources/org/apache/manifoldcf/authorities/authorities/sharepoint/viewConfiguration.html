@@ -130,4 +130,19 @@
     </td>
   </tr>
 
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.AuthorizationModelColon'))</nobr></td>
+    <td class="value">
+#if($AUTHORIZATIONMODEL == 'Classic')
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.Classic'))</nobr>
+#elseif($AUTHORIZATIONMODEL == 'ClaimSpace')
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SharePointAuthority.ClaimSpace'))</nobr>
+#else
+      Unknown
+#end
+    </td>
+  </tr>
+
 </table>
