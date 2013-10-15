@@ -39,6 +39,9 @@ import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.net.*;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
@@ -129,6 +132,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
+  // Turn off AXIS debug output that we don't want
+  static
+  {
+    Logger logger = Logger.getLogger("org.apache.axis.ConfigurationException");
+    logger.setLevel(Level.INFO);
+  }
+  
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
