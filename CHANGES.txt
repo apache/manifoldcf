@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.4-dev =====================
 
+CONNECTORS-786: Fix broken Discussion Groups in SharePoint.
+(Mark Libucha, Karl Wright)
+
 CONNECTORS-785: Turn of debug logging for Axis configuration
 exception, to remove spurious log noise.
 (Karl Wright)

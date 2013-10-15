@@ -67,14 +67,14 @@ import org.apache.http.protocol.HttpContext;
 * Document identifiers for this connector come in three forms:
 * (1) An "S" followed by the encoded subsite/library path, which represents the encoded relative path from the root site to a library. [deprecated and no longer supported];
 * (2) A "D" followed by a subsite/library/folder/file path, which represents the relative path from the root site to a file. [deprecated and no longer supported]
-* (3) Five different kinds of unencoded path, each of which starts with a "/" at the beginning, where the "/" represents the root site of the connection, as follows:
+* (3) Six different kinds of unencoded path, each of which starts with a "/" at the beginning, where the "/" represents the root site of the connection, as follows:
 *   /sitepath/ - the relative path to a site.  The path MUST both begin and end with a single "/".
 *   /sitepath/libraryname// - the relative path to a library.  The path MUST begin with a single "/" and end with "//".
 *   /sitepath/libraryname//folderfilepath - the relative path to a file.  The path MUST begin with a single "/" and MUST include a "//" after the library, and must NOT end with a "/".
 *   /sitepath/listname/// - the relative path to a list.  The path MUST begin with a single "/" and end with "///".
 *   /sitepath/listname///rowid - the relative path to a list item.  The path MUST begin with a single "/" and MUST include a "///" after the list name, and must NOT end in a "/".
-*   /sitepath/listname///rowid/attachment_filename - the relative path to a list attachment.  The path MUST begin with a single "/", MUST include a "///" after the list name, and
-*      MUST include a "/" separating the rowid from the filename.
+*   /sitepath/listname///rowid//attachment_filename - the relative path to a list attachment.  The path MUST begin with a single "/", MUST include a "///" after the list name, and
+*      MUST include a "//" separating the rowid from the filename.
 */
 public class SharePointRepository extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
@@ -762,7 +762,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
             String encodedSitePath = encodePath(sitePath);
 
-            int attachmentSeparatorIndex = itemAndAttachment.indexOf("/",1);
+            int attachmentSeparatorIndex = itemAndAttachment.indexOf("//",1);
             if (attachmentSeparatorIndex == -1)
             {
               // == List item path! ==
@@ -1324,7 +1324,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             String decodedItemPath = decodedListPath + itemAndAttachment;
             
             // If the item part has a slash, we're looking at an attachment
-            int attachmentSeparatorIndex = itemAndAttachment.indexOf("/",1);
+            int attachmentSeparatorIndex = itemAndAttachment.indexOf("//",1);
             if (attachmentSeparatorIndex == -1)
             {
               // == List item identifier ==
@@ -1415,7 +1415,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                   dataValues[4] = new String[]{attachmentName.getPrettyName()};
                   dataValues[5] = new String[]{guid};
 
-                  activities.addDocumentReference(documentIdentifier + "/" + attachmentName.getValue(),
+                  activities.addDocumentReference(documentIdentifier + "//" + attachmentName.getValue(),
                     documentIdentifier, null, attachmentDataNames, dataValues);
                   
                 }
