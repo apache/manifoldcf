@@ -145,15 +145,15 @@
             </nobr>
           </td>
           <td class="formcolumncell">
+  #if($METAFIELDLIST && $METAFIELDLIST.size() > 0)
             <nobr>
-  #if($metadatarule.get('FIELDLIST') && $metadatarule.get('FIELDLIST').size() > 0)
               <select name="metafields" multiple="true" size="5">
-    #foreach($field in $metadatarule.get('FIELDLIST'))
+    #foreach($field in $METAFIELDLIST)
                 <option value="$Encoder.attributeEscape($field.getValue())"/>$Encoder.bodyEscape($field.getPrettyName())</option>
     #end
               </select>
-  #end
             </nobr>
+  #end
           </td>
         </tr>
 
