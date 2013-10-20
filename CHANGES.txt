@@ -1,8 +1,6 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.5-dev =====================
-
 ======================= Release 1.4 =====================
 
 CONNECTORS-789: Fix broken metadata field display in SharePoint
