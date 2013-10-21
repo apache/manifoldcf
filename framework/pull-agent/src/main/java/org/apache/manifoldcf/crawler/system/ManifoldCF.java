@@ -2004,6 +2004,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJobStatuses(IThreadContext tc, Configuration output, Map<String,List<String>> queryParameters)
     throws ManifoldCFException
   {
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
     int maxCount;
     List<String> maxCountList = queryParameters.get("maxcount");
     if (maxCountList == null || maxCountList.size() == 0)
