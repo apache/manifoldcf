@@ -5,6 +5,9 @@ $Id$
 
 ======================= Release 1.4 =====================
 
+CONNECTORS-790: Fix NPE when reading job status via API.
+(Erlend Garåsen, Karl Wright)
+
 CONNECTORS-789: Fix broken metadata field display in SharePoint
 connector UI.
 (Mark Libucha, Karl Wright)
