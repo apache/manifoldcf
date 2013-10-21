@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 1.4 =====================
 
+CONNECTORS-791: Broken WHERE clause in job status query.
+(Karl Wright)
+
 CONNECTORS-790: Fix NPE when reading job status via API.
 (Erlend Garåsen, Karl Wright)
 
