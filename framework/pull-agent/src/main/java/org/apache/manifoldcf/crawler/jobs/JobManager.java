@@ -7273,7 +7273,7 @@ public class JobManager implements IJobManager
             
         sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
           .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
-        addWhereClause(sb,list,whereClause,whereParams);
+        addWhereClause(sb,list,whereClause,whereParams,false);
         sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
         IResultSet countResult = database.performQuery(sb.toString(),list,null,null);
         if (countResult.getRowCount() > 0 && ((Long)countResult.getRow(0).getValue("doccount")).longValue() > maxCount)
@@ -7550,7 +7550,7 @@ public class JobManager implements IJobManager
     sb.append(JobQueue.jobIDField).append(",")
       .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
       .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
-    addWhereClause(sb,list,whereClause,whereParams);
+    addWhereClause(sb,list,whereClause,whereParams,false);
     sb.append(" GROUP BY ").append(JobQueue.jobIDField);
     
     IResultSet set2 = database.performQuery(sb.toString(),list,null,null);
@@ -7562,7 +7562,7 @@ public class JobManager implements IJobManager
       .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
       .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
-    addWhereClause(sb,list,whereClause,whereParams);
+    addWhereClause(sb,list,whereClause,whereParams,true);
     sb.append(" GROUP BY ").append(JobQueue.jobIDField);
         
     IResultSet set3 = database.performQuery(sb.toString(),list,null,null);
@@ -7574,7 +7574,7 @@ public class JobManager implements IJobManager
       .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
       .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
-    addWhereClause(sb,list,whereClause,whereParams);
+    addWhereClause(sb,list,whereClause,whereParams,true);
     sb.append(" GROUP BY ").append(JobQueue.jobIDField);
         
     IResultSet set4 = database.performQuery(sb.toString(),list,null,null);
@@ -7602,11 +7602,16 @@ public class JobManager implements IJobManager
     }
   }
 
-  protected void addWhereClause(StringBuilder sb, ArrayList list, String whereClause, ArrayList whereParams)
+  protected void addWhereClause(StringBuilder sb, ArrayList list, String whereClause, ArrayList whereParams, boolean wherePresent)
   {
     if (whereClause != null)
     {
-      sb.append(" WHERE EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
+      if (wherePresent)
+        sb.append(" AND");
+      else
+        sb.append(" WHERE");
+      
+      sb.append(" EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
         .append(whereClause)
