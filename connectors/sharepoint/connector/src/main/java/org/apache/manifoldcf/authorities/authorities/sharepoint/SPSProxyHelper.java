@@ -217,7 +217,39 @@ public class SPSProxyHelper {
       }
 
       // Not specified in doc and must be determined experimentally
-      // MHL
+      /*
+<ns1:GetRoleCollectionFromUser xmlns:ns1="http://schemas.microsoft.com/sharepoint/soap/directory/">
+  <ns1:Roles>
+    <ns1:Role ID="1073741825" Name="Limited Access" Description="Can view specific lists, document libraries, list items, folders, or documents when given permissions."
+      Order="160" Hidden="True" Type="Guest" BasePermissions="ViewFormPages, Open, BrowseUserInfo, UseClientIntegration, UseRemoteAPIs"/>
+  </ns1:Roles>
+</ns1:GetRoleCollectionFromUser>'
+      */
+      
+      MessageElement roles = rolesList[0];
+      if (!groups.getElementName().getLocalName().equals("GetRoleCollectionFromUser"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetRoleCollectionFromUser' node");
+          
+      Iterator rolesIter = roles.getChildElements();
+      while (rolesIter.hasNext())
+      {
+        MessageElement child = (MessageElement)rolesIter.next();
+        if (child.getElementName().getLocalName().equals("Roles"))
+        {
+          Iterator roleIter = child.getChildElements();
+          while (roleIter.hasNext())
+          {
+            MessageElement role = (MessageElement)roleIter.next();
+            if (role.getElementName().getLocalName().equals("Role"))
+            {
+              String roleID = role.getAttribute("ID");
+              String roleName = role.getAttribute("Name");
+              // Add to the access token list
+              accessTokens.add("R"+roleID);
+            }
+          }
+        }
+      }
       
       return accessTokens;
     }
