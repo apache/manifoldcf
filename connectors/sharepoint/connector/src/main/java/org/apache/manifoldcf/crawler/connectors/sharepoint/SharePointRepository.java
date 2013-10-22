@@ -310,7 +310,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     super.connect(configParameters);
     // This is needed by getBins()
-    serverName = configParameters.getParameter( "serverName" );
+    serverName = configParameters.getParameter( SharePointConfig.PARAM_SERVERNAME );
   }
 
   /** Close the connection.  Call this before discarding the repository connector.

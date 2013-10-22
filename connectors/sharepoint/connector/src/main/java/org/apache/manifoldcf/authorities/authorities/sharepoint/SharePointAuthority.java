@@ -164,7 +164,8 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
-    
+
+
     // Allocate the session data, currently empty
     sessionInfo = new HashMap<String,DCSessionInfo>();
     
@@ -1004,6 +1005,9 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       serverProtocol = params.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
       if (serverProtocol == null)
         serverProtocol = "http";
+      
+      serverName = params.getParameter( SharePointConfig.PARAM_SERVERNAME );
+
       try
       {
         String serverPort = params.getParameter( SharePointConfig.PARAM_SERVERPORT );
