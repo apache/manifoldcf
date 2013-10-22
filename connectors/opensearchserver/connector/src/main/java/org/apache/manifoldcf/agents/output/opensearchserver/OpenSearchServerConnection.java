@@ -20,6 +20,12 @@ package org.apache.manifoldcf.agents.output.opensearchserver;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.io.StringWriter;
+import java.io.Reader;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URLEncoder;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -30,11 +36,18 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
+
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -58,8 +71,6 @@ public class OpenSearchServerConnection {
 
   private Document xmlResponse;
 
-  private MultiThreadedHttpConnectionManager connectionManager;
-  
   private HttpClient httpClient;
   
   protected String xPathStatus = "/response/entry[@key='Status']/text()";
@@ -71,7 +82,8 @@ public class OpenSearchServerConnection {
 
   private Result result;
 
-  protected OpenSearchServerConnection(OpenSearchServerConfig config) {
+  protected OpenSearchServerConnection(HttpClient client, OpenSearchServerConfig config) {
+    this.httpClient = client;
     result = Result.UNKNOWN;
     response = null;
     xmlResponse = null;
@@ -81,15 +93,6 @@ public class OpenSearchServerConnection {
     indexName = config.getIndexName();
     userName = config.getUserName();
     apiKey = config.getApiKey();
-    connectionManager = new MultiThreadedHttpConnectionManager();
-    // I don't know where CommonsHTTPClientPropertiesFactory.create() gets its parameters, but it was too small
-    // by default.  Since we control
-    // the pool sizes at a higher level, these should be pretty much wide open at this level
-    //cm.getParams().setDefaultMaxConnectionsPerHost(clientProperties.getMaximumConnectionsPerHost());
-    //cm.getParams().setMaxTotalConnections(clientProperties.getMaximumTotalConnections());
-    connectionManager.getParams().setDefaultMaxConnectionsPerHost(1000);
-    connectionManager.getParams().setMaxTotalConnections(1000);
-    httpClient = new HttpClient(connectionManager);
   }
 
   protected final String urlEncode(String t) throws ManifoldCFException {
@@ -118,23 +121,148 @@ public class OpenSearchServerConnection {
     return url;
   }
 
-  protected void call(HttpMethod method) throws ManifoldCFException {
-    HttpClient hc = httpClient;
-    try {
-      hc.executeMethod(method);
-      if (!checkResultCode(method.getStatusCode()))
-        throw new ManifoldCFException(getResultDescription());
-      response = IOUtils.toString(method.getResponseBodyAsStream());
-    } catch (HttpException e) {
-      setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
-    } catch (IOException e) {
-      setResult(Result.ERROR, e.getMessage());
-      throw new ManifoldCFException(e);
-    } finally {
-      if (method != null)
-        method.releaseConnection();
+  protected static class CallThread extends Thread
+  {
+    protected final HttpClient client;
+    protected final HttpRequestBase method;
+    protected int resultCode = -1;
+    protected String response = null;
+    protected Throwable exception = null;
+    
+    public CallThread(HttpClient client, HttpRequestBase method)
+    {
+      this.client = client;
+      this.method = method;
+      setDaemon(true);
     }
+    
+    @Override
+    public void run()
+    {
+      try
+      {
+        try
+        {
+          HttpResponse resp = client.execute(method);
+          resultCode = resp.getStatusLine().getStatusCode();
+          response = getResponseBodyAsString(resp.getEntity());
+        }
+        finally
+        {
+          method.abort();
+        }
+      }
+      catch (java.net.SocketTimeoutException e)
+      {
+        exception = e;
+      }
+      catch (InterruptedIOException e)
+      {
+        // Just exit
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public int getResultCode()
+    {
+      return resultCode;
+    }
+    
+    public String getResponse()
+    {
+      return response;
+    }
+    
+    public Throwable getException()
+    {
+      return exception;
+    }
+  }
+  
+  protected void call(HttpRequestBase method) throws ManifoldCFException
+  {
+    CallThread ct = new CallThread(httpClient, method);
+    try
+    {
+      ct.start();
+      try
+      {
+        ct.join();
+        Throwable t = ct.getException();
+        if (t != null)
+        {
+          if (t instanceof HttpException)
+            throw (HttpException)t;
+          else if (t instanceof IOException)
+            throw (IOException)t;
+          else if (t instanceof RuntimeException)
+            throw (RuntimeException)t;
+          else if (t instanceof Error)
+            throw (Error)t;
+          else
+            throw new RuntimeException("Unexpected exception thrown: "+t.getMessage(),t);
+        }
+        
+        if (!checkResultCode(ct.getResultCode()))
+          throw new ManifoldCFException(getResultDescription());
+        response = ct.getResponse();
+      }
+      catch (InterruptedException e)
+      {
+        ct.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      }
+    }
+    catch (HttpException e)
+    {
+      setResult(Result.ERROR, e.getMessage());
+      throw new ManifoldCFException(e);
+    }
+    catch (IOException e)
+    {
+      setResult(Result.ERROR, e.getMessage());
+      throw new ManifoldCFException(e);
+    }
+  }
+
+  private static String getResponseBodyAsString(HttpEntity entity)
+    throws IOException, HttpException {
+    InputStream is = entity.getContent();
+    if (is != null)
+    {
+      try
+      {
+        String charSet = EntityUtils.getContentCharSet(entity);
+        if (charSet == null)
+          charSet = "utf-8";
+        char[] buffer = new char[65536];
+        Reader r = new InputStreamReader(is,charSet);
+        Writer w = new StringWriter();
+        try
+        {
+          while (true)
+          {
+            int amt = r.read(buffer);
+            if (amt == -1)
+              break;
+            w.write(buffer,0,amt);
+          }
+        }
+        finally
+        {
+          w.flush();
+        }
+        return w.toString();
+      }
+      finally
+      {
+        is.close();
+      }
+    }
+    return "";
   }
 
   private void readXmlResponse() throws ManifoldCFException {
@@ -155,8 +283,9 @@ public class OpenSearchServerConnection {
     } catch (IOException e) {
       throw new ManifoldCFException(e);
     } finally {
-      if (sw != null)
-        IOUtils.closeQuietly(sw);
+      if (sw != null) {
+        sw.close();
+      }
     }
   }
 

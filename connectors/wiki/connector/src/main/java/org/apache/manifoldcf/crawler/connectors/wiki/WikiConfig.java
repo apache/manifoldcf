@@ -35,10 +35,26 @@ public class WikiConfig
   public static final String PARAM_PORT = "Server port";
   /** Path */
   public static final String PARAM_PATH = "Server path";
-	
+  
+  /** Email */
+  public static final String PARAM_EMAIL = "Email";
+  
+  // Login info
   public static final String PARAM_LOGIN = "serverlogin";
   public static final String PARAM_PASSWORD = "serverpass";
   public static final String PARAM_DOMAIN = "serverdomain";
+
+  // Access credentials
+  public static final String PARAM_ACCESSREALM = "accessrealm";
+  public static final String PARAM_ACCESSUSER = "accessuser";
+  public static final String PARAM_ACCESSPASSWORD = "accesspassword";
+  
+  // Proxy info
+  public static final String PARAM_PROXYHOST = "Proxy host";
+  public static final String PARAM_PROXYPORT = "Proxy port";
+  public static final String PARAM_PROXYDOMAIN = "Proxy domain";
+  public static final String PARAM_PROXYUSERNAME = "Proxy username";
+  public static final String PARAM_PROXYPASSWORD = "Proxy password";
 
   // Document specification
 

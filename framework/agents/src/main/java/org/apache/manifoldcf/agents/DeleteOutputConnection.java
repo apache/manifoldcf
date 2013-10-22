@@ -46,8 +46,8 @@ public class DeleteOutputConnection
                 String connectionName = args[0];
                 try
                 {
-                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
+                        ManifoldCF.initializeEnvironment(tc);
                         IOutputConnectionManager mgr = OutputConnectionManagerFactory.make(tc);
                         mgr.delete(connectionName);
 

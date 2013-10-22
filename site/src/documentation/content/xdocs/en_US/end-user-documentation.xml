@@ -18,10 +18,10 @@
 -->
 
 <document>
-<header><title>ManifoldCF- End-user Documentation</title></header>
-<properties>
-</properties>
-<body>
+    <header><title>ManifoldCF- End-user Documentation</title></header>
+    <properties>
+    </properties>
+    <body>
 
         <section id="overview">
             <title>Overview</title>
@@ -29,12 +29,18 @@
                    with all required services running and desired connection types properly registered.  If you think you need to know how to do that yourself, please visit the "Developer Resources" page.
             </p>
             <p>Most of this manual describes how to use the ManifoldCF user interface.  On a standard ManifoldCF deployment, you would reach that interface by giving your browser
-                  a URL something like this: <code>http://my-server-name:8080/acf-crawler-ui</code>.  This will, of course, differ from system to system.  Please contact your system administrator
+                  a URL something like this: <code>http://my-server-name:8345/mcf-crawler-ui</code>.  This will, of course, differ from system to system.  Please contact your system administrator
                   to find out what URL is appropriate for your environment.
             </p>
             <p>The ManifoldCF UI has been tested with Firefox and various incarnations of Internet Explorer.  If you use another browser, there is a small chance that the UI
                   will not work properly.  Please let your system integrator know if you find any browser incompatibility problems.</p>
-            <p>When you do manage to enter the Framework user interface the first time, you should see a screen that looks something like this:</p>
+            <p>When you enter the Framework user interface the first time, you will first be asked to log in:</p>
+            <br/><br/>
+            <figure src="images/en_US/login.PNG" alt="Login Screen" width="80%"/>
+            <br/><br/>
+            <p>Enter the login user name and password for your system.  By default, the user name is "admin" and the password is "admin", although your
+                  system administrator can (and should) change this.  Then, click the "Login" button.  If you entered the correct credentials, you should see a
+                  screen that looks something like this:</p>
             <br/><br/>
             <figure src="images/en_US/welcome-screen.PNG" alt="Welcome Screen" width="80%"/>
             <br/><br/>
@@ -84,6 +90,63 @@
                        If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the output connection
                        will work correctly.</p>
             </section>
+
+            <section id="mappers">
+                <title>Defining Mapping Connections</title>
+                <p>The Framework UI's left-side menu contains a link for listing user mapping connections.  A user mapping connection is a connection to a system that understands how to map a user name
+                       into a different user name intended for a different repository.  For example, if you want to enforce document security using LiveLink, but you have only an Active Directory user name,
+                       you will need to map the Active Directory user name to a corresponding LiveLink one, before finding access tokens for it using the LiveLink Authority.</p>
+                <p>You will not need any user mapping connections if the authorities that you intend to create can all operate using the same user name, and that user name is the one that is made available to
+                       ManifoldCF's authority servlet at search time.</p>
+                <p>You should define your mapping connections <b>before</b> setting up your authority connections.  Individual authority connections must specify the mapping connection that precedes it.
+                       It's also convenient to define your mapping connections in the order that you want to process the user name, for the same reason.  If you don't manage to do this right the first time, though,
+                       there is no penalty involved if you need to go back and fix things up.</p>
+                <p>You can create a mapping connection by clicking the "List User Mapping Connections" link in the left-side navigation menu.  When you do this, the
+                       following screen will appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/list-mapping-connections.PNG" alt="List User Mapping Connections" width="80%"/>
+                <br/><br/>
+                <p>On a freshly created system, there may well be no existing mapping connections listed.  If there are already mapping connections, they will be listed on this screen, along with links
+                       that allow you to view, edit, or delete them.  To create a new mapping connection, click the "Add a new connection" link at the bottom.  The following screen will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-mapping-connection-name.PNG" alt="Add New User Mapping Connection, specify Name" width="80%"/>
+                <br/><br/>
+                <p>The tabs across the top each present a different view of your mapping connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
+                       depends on the connection type you choose for the connection.</p>
+                <p>Start by giving your connection a name and a description.  Remember that all mapping connection names must be unique, and cannot be changed after the connection is defined.  The name must be
+                       no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-mapping-connection-type.PNG" alt="Add New User Mapping Connection, select Type" width="80%"/>
+                <br/><br/>
+                <p>The list of mapping connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of
+                       mapping connection type included with ManifoldCF are described in separate sections below.</p>
+                <p>After you choose a mapping connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
+                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead,
+                       the new connection will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                <p>Every mapping connection has a "Prerequisites" tab.  This tab allows you to specify which mapping connection needs to be run before this one (if any).  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/mapping-prerequisites.PNG" alt="User Mapping Connection Prerequisites" width="80%"/>
+                <br/><br/>
+                <p>Note: It is very important that you do not specify prerequisites in such a way as to create a loop.  To make this easier, ManifoldCF will not display any user mapping connections in the pulldown
+                       which, if selected, would lead to a loop.</p>
+                <p>Every mapping connection has a "Throttling" tab.  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/mapping-throttling.PNG" alt="User Mapping Connection Throttling" width="80%"/>
+                <br/><br/>
+                <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
+                       that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
+                       value is 10, which may not be optimal for all types of mapping connections.  Please refer to the section of the manual describing your mapping connection type for more precise
+                       recommendations.
+                </p>
+                <p>Please refer to the section of the manual describing your chosen mapping connection type for a description of the tabs appropriate for that connection type.</p>
+
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This summary screen contains a line where the connection's status
+                       is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.  If there was a problem, you will see a connection-type-specific diagnostic message instead.
+                       If this happens, you will need to correct the problem, by either fixing your infrastructure, or by editing the connection configuration appropriately, before the mapping connection
+                       will work correctly.</p>
+                       
+            </section>
+
             <section id="authorities">
                 <title>Defining Authority Connections</title>
                 <p>The Framework UI's left-side menu contains a link for listing authority connections.  An authority connection is a connection to a system that defines a particular security environment.
@@ -114,7 +177,11 @@
                 <p>After you choose an authority connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
                        "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead, the new connection
                        will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
-                <p>Every authority connection has a "Throttling" tab.  The tab looks like this:</p>
+                <p>Every authority connection has a "Prerequisites" tab.  This tab allows you to specify which mapping connection needs to be run before this one (if any).  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/authority-prerequisites.PNG" alt="Authority Connection Prerequisites" width="80%"/>
+                <br/><br/>
+                <p>Every authority connection also has a "Throttling" tab.  The tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/authority-throttling.PNG" alt="Authority Connection Throttling" width="80%"/>
                 <br/><br/>
@@ -196,15 +263,17 @@
             <section id="jobs">
                 <title>Creating Jobs</title>
                 <p>A "job" in ManifoldCF is a description of a set of documents.  The Framework's job is to fetch this set of documents come from a specific repository connection, and
-                       send them to a specific output connection.  The repository connection that is associated with the job will determine exactly how this set of documents is described, and to some
-                       degree how they are indexed.  The output connection associated with the job can also affect how each document is indexed.</p>
-                <p>Every job is expected to be run more than once.  Each time a job is run, it is responsible not only for sending new or changed documents to the output connection, but also for
-                       notifying the output connection of any documents that are no longer part of the set.  Note that there are two ways for a document to no longer be part of the included set of documents:
-                       Either the document may have been deleted from the repository, or the document may no longer be included in the allowed set of documents.  The Framework handles each case properly.</p>
-                <p>Deleting a job causes the output connection to be notified of deletion for all documents belonging to that job.  This makes sense because the job represents the set of documents, which would
-                       otherwise be orphaned when the job was removed.  (Some users make the assumption that a ManifoldCF job represents nothing more than a task, which is an incorrect
-                       assumption.)</p>
-                <p>Note that the Framework allows jobs that describe overlapping sets of documents to be defined.  Documents that exist in more than one job are treated in the following special ways:</p>
+                       send them to a specific output connection.  The repository connection that is associated with the job will determine exactly how this set of documents is described,
+                       and to some degree how they are indexed.  The output connection associated with the job can also affect how each document is indexed.</p>
+                <p>Every job is expected to be run more than once.  Each time a job is run, it is responsible not only for sending new or changed documents to the output connection,
+                       but also for notifying the output connection of any documents that are no longer part of the set.  Note that there are two ways for a document to no longer be part
+                       of the included set of documents: Either the document may have been deleted from the repository, or the document may no longer be included in the allowed set
+                       of documents.  The Framework handles each case properly.</p>
+                <p>Deleting a job causes the output connection to be notified of deletion for all documents belonging to that job.  This makes sense because the job represents the set
+                       of documents, which would otherwise be orphaned when the job was removed.  (Some users make the assumption that a ManifoldCF job represents nothing more
+                       than a task, which is an incorrect assumption.)</p>
+                <p>Note that the Framework allows jobs that describe overlapping sets of documents to be defined.  Documents that exist in more than one job are treated in the
+                       following special ways:</p>
                 <ul>
                     <li>When a job is deleted, the output connection is notified of deletion of documents belonging to that job only if they don't belong to another job</li>
                     <li>The version of the document sent to the output connection depends on which job was run last</li>
@@ -221,33 +290,34 @@
                     <li>Adding the job's new, changed, or deleted starting points to the queue ("seeding")</li>
                     <li>Fetching documents, discovering new documents, and detecting deletions, while reseeding periodically</li>
                 </ol>
-                <p>Note that continuous jobs <b>cannot</b> remove no-longer-included documents from the queue.  They can only remove documents that have been deleted from the repository.</p>
-                <p>A job can independently be configured to start when explicitly started by a user, or to run on a user-specified schedule.  If a job is set up to run on a schedule, it can be made to
-                      start only at the beginning of a schedule window, or to start again within any remaining schedule window when the previous job run completes.</p>
+                <p>Note that continuous jobs <b>cannot</b> remove no-longer-included documents from the queue.  They can only remove documents that have been deleted from
+                     the repository.</p>
+                <p>A job can independently be configured to start when explicitly started by a user, or to run on a user-specified schedule.  If a job is set up to run on a schedule, it
+                       can be made to start only at the beginning of a schedule window, or to start again within any remaining schedule window when the previous job run completes.</p>
                 <p>There is no restriction in ManifoldCF as to how many jobs many running at any given time.</p>
                 <p>You create a job by first clicking on the "List All Jobs" link on the left-side menu.  The following screen will appear:</p>
                 <br/><br/>
                 <figure src="images/en_US/list-jobs.PNG" alt="List Jobs" width="80%"/>
                 <br/><br/>
-                <p>You may view, edit, or delete any existing jobs by clicking on the appropriate link.  You may also create a new job that is a copy of an existing job.  But to create a brand-new job,
-                       click the "Add a new job" link at the bottom.  You will then see the following page:</p>
+                <p>You may view, edit, or delete any existing jobs by clicking on the appropriate link.  You may also create a new job that is a copy of an existing job.  But to create
+                       a brand-new job, click the "Add a new job" link at the bottom.  You will then see the following page:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-name.PNG" alt="Add New Job, name tab" width="80%"/>
                 <br/><br/>
-                <p>Give your job a name.  Note that job names do <b>not</b> have to be unique, although it is probably less confusing to have a different name for each one.  Then, click the
-                       "Connection" tab:</p>
+                <p>Give your job a name.  Note that job names do <b>not</b> have to be unique, although it is probably less confusing to have a different name for each one.  Then,
+                       click the "Connection" tab:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-connection.PNG" alt="Add New Job, connection tab" width="80%"/>
                 <br/><br/>
-                <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the job is saved
-                       the first time.</p>
+                <p>Now, you should select both the output connection name, and the repository connection name.  Bear in mind that whatever you select cannot be changed after the
+                       job is saved the first time.</p>
                 <p>You also have the opportunity to modify the job's priority and start method at this time.  The priority
-                       controls how important this job's documents are, relative to documents from any other job.  The higher the number, the more important it is considered for that job's documents to be
-                       fetched first.  The start method is as previously described; you get a choice of manual start, starting on the beginning of a scheduling window, or starting whenever possible within
-                       a scheduling window.</p>
+                       controls how important this job's documents are, relative to documents from any other job.  The higher the number, the more important it is considered for that job's
+                       documents to be fetched first.  The start method is as previously described; you get a choice of manual start, starting on the beginning of a scheduling window, or
+                       starting whenever possible within a scheduling window.</p>
                 <p>Make your selections, and click "Continue".  The rest of the job's tabs will now appear, and a
-                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create or update your job.  If you click "Cancel" instead, the new job
-                       will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create or update your job.  If
+                       you click "Cancel" instead, the new job will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
                 <p>All jobs have a "Scheduling" tab.  The scheduling tab allows you to set up schedule-related configuration information:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-scheduling.PNG" alt="Add New Job, scheduling tab" width="80%"/>
@@ -261,17 +331,29 @@
                 </ul>
                 <br/>
                 <p>The last three parameters only make sense if a job is a continuously running one, as the UI indicates.</p>
-                <p>The other thing you can do on this time is to define an appropriate set of scheduling records.  Each scheduling record defines some related set of intervals during which the job can run.  The
-                       intervals are determined by the starting time (which is defined by the day of week, month, day, hour, and minute pulldowns), and the maximum run time in minutes, which determines
-                       when the interval ends.  It is, of course, possible to select multiple values for each of the pulldowns, in which case you be describing a starting time that had to match at least <b>one</b>
-                       of the selected values for <b>each</b> of the specified fields.</p>
+                <p>The other thing you can do on this time is to define an appropriate set of scheduling records.  Each scheduling record defines some related set of intervals during
+                       which the job can run.  The intervals are determined by the starting time (which is defined by the day of week, month, day, hour, and minute pulldowns), and the
+                       maximum run time in minutes, which determines when the interval ends.  It is, of course, possible to select multiple values for each of the pulldowns, in which case
+                       you be describing a starting time that had to match at least <b>one</b> of the selected values for <b>each</b> of the specified fields.</p>
                 <p>Once you have selected the schedule values you want, click the "Add Scheduled Time" button:</p>
                 <br/><br/>
                 <figure src="images/en_US/add-new-job-scheduling-with-record.PNG" alt="Add New Job, scheduling tab with record" width="80%"/>
                 <br/><br/>
                 <p>The example shows a schedule where crawls are run on Saturday and Sunday nights at 2 AM, and run for no more than 4 hours.</p>
                 <p>The rest of the job tabs depend on the types of the connections you selected.  Please refer to the section of the manual
-                       describing the appropriate connection types corresponding to your chosen repository and output connections for a description of the job tabs that will appear for those connections.</p>
+                       describing the appropriate connection types corresponding to your chosen repository and output connections for a description of the job tabs that will appear for
+                       those connections.</p>
+                <p>All jobs also have a "Forced Metadata" tab.  This allows you to specify metadata values that are specific to those documents indexed by the job, which can be
+                       very useful in categorizing documents within a search engine.  The "Forced Metadata" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-job-forced-metadata.PNG" alt="Add New Job, forced metadata tab" width="80%"/>
+                <br/><br/>
+                <p>Enter the name of the metadata parameter you want to include in the "Parameter name" column, and the value in the "Parameter value" column, and click the
+                      "Add" button.  For example:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-job-forced-metadata-example.PNG" alt="Add New Job, forced metadata tab with example" width="80%"/>
+                <br/><br/>
+                <p>You may add multiple parameter values, or delete values you do not want by clicking the appropriate "Delete" button.</p>
             </section>
             <section id="executing">
                 <title>Executing Jobs</title>
@@ -284,15 +366,20 @@
                        status column.  Allowed actions you may see at one point or another include:</p>
                 <ul>
                     <li>Start (start the job)</li>
+                    <li>Start minimal (start the job, but do only the minimal work possible)</li>
                     <li>Abort(abort the job)</li>
                     <li>Pause (pause the job)</li>
                     <li>Resume (resume the job)</li>
                     <li>Restart (equivalent to aborting the job, and starting it all over again)</li>
+                    <li>Restart minimal (equivalent to aborting the job, and starting it all over again, doing only the minimal work possible)</li>
                 </ul>
                 <br/>
                 <p>The columns "Documents", "Active", and "Processed" have very specific means as far as documents in the job's queue are concerned.  The "Documents" column counts all the documents
                        that belong to the job.  The "Active" column counts all of the documents for that job that are queued up for processing.  The "Processed" column counts all documents that are on the
                        queue for the job that have been processed at least once in the past.</p>
+                <p>Using the "minimal" variant of the listed actions will perform the minimum possible amount of work, given the model that the connection type for the job uses.  In some
+                       cases, this will mean that additions and modifications are indexed, but deletions are not detected.  A complete job run is usually necessary to fully synchronize the target
+                       index with the repository contents.</p>
             </section>
             <section id="statusreports">
                 <title>Status Reports</title>
@@ -430,41 +517,60 @@
             
             <section id="solroutputconnector">
                 <title>Solr Output Connection</title>
-                <p>The Solr output connection type is designed to allow ManifoldCF to submit documents to an appropriate Solr pipeline, via the Solr
-                       HTTP ingestion API.  The configuration parameters are set to the default Solr values, which can be changed (since Solr's configuration can be changed).
-                       The Solr output connection type furthermore makes no judgment as to whether a given document is indexable or not - it accepts everything, and passes all documents
-                       on to the pipeline, where presumably the configured pipeline will decide if a document should be rejected or not.  (All of that happens without a Solr connection
-                       being aware of it in any way.)</p>
-                <p>Unfortunately, this lack of specificity comes at a cost.  Unless you take care to filter documents properly in each job, large movie files or other opaque
-                       content may well be picked up and sent to Solr for indexing, which will greatly increase the dead load on the overall system.  It is therefore a good idea to review
-                       all crawls done through a Solr connection while they are underway, to be sure there isn't a misconfiguration of this kind.</p>
-                <p>When you create a Solr output connection, five configuration tabs appear.  The "Server" tab allows you to configure the HTTP target of the connection:</p>
+                <p>The Solr output connection type is designed to allow ManifoldCF to submit documents to either an appropriate Apache Solr instance,
+                       via the Solr HTTP API, or alternatively to a Solr Cloud cluster.  The configuration parameters are initially set to appropriate default
+                       values for a stand-alone Solr instance.</p>
+                <p>When you create a Solr output connection, multiple configuration tabs appear.  The first tab is the "Solr type" tab.  Here you select
+                       whether you want your connection to communicate to a standalone Solr instance, or to a Solr Cloud cluster:</p>
+                <br/><br/>
+                <figure src="images/en_US/solr-configure-solr-type.PNG" alt="Solr Configuration, Solr type tab" width="80%"/>
+                <br/><br/>
+                <p>Select which kind of Solr installation you want to communicate with.  Based on your selection, you can proceed to either the "Server"
+                       tab (if a standalone instance) or to the "ZooKeeper" tab (if a SolrCloud cluster).</p>
+                <p>The "Server" tab allows you to configure the HTTP parameters appropriate for communicating with a standalone Solr instance:</p>
                 <br/><br/>
                 <figure src="images/en_US/solr-configure-server.PNG" alt="Solr Configuration, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Fill in the fields according to your Solr configuration.  The Solr connection type supports only basic authentication at this time; if you have this enabled, supply the credentials
-                       as requested on the bottom part of the form.</p>
-                <p>The second tab is the "Schema" tab, which allows you to specify the name of the Solr field to use as a document identifier.  The Solr connection type will treat
-                       this field as being a unique key for locating the indexed document for further modification or deletion:</p>
+                <p>If your Solr setup is a standalone instance, fill in the fields according to your Solr configuration.  The Solr connection type supports
+                       only basic authentication at this time; if you have this enabled, supply the credentials as requested on the bottom part of the form.</p>
+                <p>The "Zookeeper" tab allows your to configure the connection type to communicate with a Solr Cloud cluster:</p>
+                <br/><br/>
+                <figure src="images/en_US/solr-configure-zookeeper.PNG" alt="Solr Configuration, Zookeeper tab" width="80%"/>
+                <br/><br/>
+                <p>Here, add each ZooKeeper instance in the SolrCloud cluster to the list of ZooKeeper instances.  The connection comes preconfigured with
+                       "localhost" as being a ZooKeeper instance.  You may delete this if it is not the case.</p>
+                <p>The next tab is the "Schema" tab, which allows you to specify the names of various Solr fields into which the Solr connection type will
+                       place built-in document metadata:</p>
                 <br/><br/>
                 <figure src="images/en_US/solr-configure-schema.PNG" alt="Solr Configuration, Schema tab" width="80%"/>
                 <br/><br/>
-                <p>The third tab is the "Arguments" tab, which allows you to specify arbitrary arguments to be sent to Solr. All valid Solr update request parameters
-                       can be specified here. You can for instance add <a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a> to select the document processing pipeline/chain to use for
-                       processing documents in Solr. See the Solr documentation for more valid arguments. The tab looks like:</p>
+                <p>The most important of these is the document identifier field, which MUST be present for the connection type to function.  This field will
+                       be used to uniquely identify the document within Solr, and will contain the document's URL.  The Solr connection type will treat this field as being
+                       a unique key for locating the indexed document for further modification or deletion.  The other Solr fields are optional, and largely self-
+                       explanatory.</p>
+                <p>The next tab is the "Arguments" tab, which allows you to specify arbitrary arguments to be sent to Solr:</p>
                 <br/><br/>
                 <figure src="images/en_US/solr-configure-arguments.PNG" alt="Solr Configuration, Arguments tab" width="80%"/>
                 <br/><br/>
                 <p>Fill in the argument name and value, and click the "Add" button.  Bear in mind that if you add an argument with the same name as an existing one, it will replace the
                        existing one with the new specified value.  You can delete existing arguments by clicking the "Delete" button next to the argument you want to delete.</p>
-                <p>The fourth tab is the "Documents" tab, which allows you to do document filtering based on size and mime types. By specifying a maximum document length in bytes, you can filter out documents which exceed that size (e.g. 10485760 which is equivalent to 10 MB). If you only want to add documents with specific mime types, you can enter them into the "included mime types" field (e.g. "text/html" for filtering out all documents but HTML). The "excluded mime types" field is for excluding documents with specific mime types (e.g. "image/jpeg" for filtering out JPEG images). The tab looks like:</p>
+                <p>Use this tab to specify any and all desired Solr update request parameters.  You can, for instance, add
+                       <a href="http://wiki.apache.org/solr/UpdateRequestProcessor">update.chain=myChain</a> to select a specific document processing pipeline/chain to
+                       use for processing documents. See the Solr documentation for more valid arguments.</p>
+                <p>The next tab is the "Documents" tab, which allows you to do document filtering based on size and mime types. By specifying a maximum document
+                       length in bytes, you can filter out documents which exceed that size (e.g. 10485760 which is equivalent to 10 MB). If you only want to add
+                       documents with specific mime types, you can enter them into the "included mime types" field (e.g. "text/html" for filtering out all documents but HTML).
+                       The "excluded mime types" field is for excluding documents with specific mime types (e.g. "image/jpeg" for filtering out JPEG images). The tab looks like:</p>
                 <figure src="images/en_US/solr-configure-documents.PNG" alt="Solr Configuration, Documents tab" width="80%"/>
                 <br/><br/>
-                <p>The fifth tab is the "Commits" tab, which allows you to control the commit strategies. As well as committing documents at the end of every job, an option which is enabled by default, you may also commit each document within a certain time in milliseconds (e.g. "10000" for committing within 10 seconds). The <a href="http://wiki.apache.org/solr/CommitWithin">commit within</a> strategy will leave the responsibility to Solr instead of ManifoldCF. The tab looks like:</p>
+                <p>The fifth tab is the "Commits" tab, which allows you to control the commit strategies. As well as committing documents at the end of every job, an
+                       option which is enabled by default, you may also commit each document within a certain time in milliseconds (e.g. "10000" for committing within
+                       10 seconds). The <a href="http://wiki.apache.org/solr/CommitWithin">commit within</a> strategy will leave the responsibility to Solr instead
+                       of ManifoldCF. The tab looks like:</p>
                 <figure src="images/en_US/solr-configure-commits.PNG" alt="Solr Configuration, Documents tab" width="80%"/>
                 <br/><br/>
-                <p>When you are done, don't forget to click the "Save" button to save your changes!  When you do, a connection summary and status screen will be presented, which
-                       may look something like this:</p>
+                <p>When you are done, don't forget to click the "Save" button to save your changes!  When you do, a connection summary and status screen will be
+                       presented, which may look something like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/solr-status.PNG" alt="Solr Status" width="80%"/>
                 <br/><br/>
@@ -480,60 +586,123 @@
                        Solr, and click the "Add" button.  Leaving the "target" field blank will result in all metadata items of that name not being sent to Solr.</p>
             </section>
             
-            <section id="osssoutputconnector">
-            	<title>OpenSearchServer Output Connection</title>
-            	<p>The OpenSearchServer Output Connection allow ManifoldCF to submit documents to an OpenSearchServer instance, via the XML over HTTP API. The connector has been designed
+            <section id="filesystemoutputconnector">
+                <title>File System Output Connection</title>
+                <p>The File System output connection type allows ManifoldCF to store documents in a local filesystem, using the conventions established by the
+                    Unix utility called <em>wget</em>.  Documents stored by this connection type will not include any metadata or security information, but instead
+                    consist solely of a binary file.</p>
+                <p>The connection configuration information for the File System output connection type includes no additional tabs.  There is an additional job tab,
+                    however, called "Output Path".  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filesystem-job-output-path.PNG" alt="File System Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the path you want the connection type to use to write the documents to.  Then, click the "Save" button.</p>
+            </section>
+
+            <section id="hdfsoutputconnector">
+                <title>HDFS Output Connection</title>
+                <p>The HDFS output connection type allows ManifoldCF to store documents in HDFS, using the conventions established by the
+                    Unix utility called <em>wget</em>.  Documents stored by this connection type will not include any metadata or security information, but instead
+                    consist solely of a binary file.</p>
+                <p>The connection configuration information for the HDFS output connection type includes one additional tab: the "Server" tab.  This tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-configure-server.PNG" alt="HDFS Output Configuration, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the name node URI and the user name.  Both are required.</p>
+                <p>For the HDFS output connection type, there is an additional job tab called "Output Path".  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-output-path.PNG" alt="HDFS Output Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>Fill in the path you want the connection type to use to write the documents to.  Then, click the "Save" button.</p>
+            </section>
+
+            <section id="opensearchserveroutputconnector">
+                <title>OpenSearchServer Output Connection</title>
+                <p>The OpenSearchServer Output Connection allow ManifoldCF to submit documents to an OpenSearchServer instance, via the XML over HTTP API. The connector has been designed
             	to be as easy to use as possible.</p>
-            	<p>After creating an OpenSearchServer ouput connection, you have to populate the parameters tab. Fill in the fields according your OpenSearchServer configuration. Each
+                <p>After creating an OpenSearchServer ouput connection, you have to populate the parameters tab. Fill in the fields according your OpenSearchServer configuration. Each
             	OpenSearchServer output connector instance works with one index. To work with muliple indexes, just create one output connector for each index.</p>
-            	<figure src="images/en_US/opensearchserver-connection-parameters.PNG" alt="OpenSearchServer, parameters tab" width="80%"/>
-            	<p>The parameters are:</p><br/>
-            	<ul>
-            		<li>Server location: An URL that references your OpenSearchServer instance. The default value (http://localhost:8080) is valid if your OpenSearchServer instance runs
-            		on the same server than the ManifoldCF instance.</li>
-            		<li>Index name: The connector will populate the index defined here.</li>
-            		<li>User name and API Key: The credentials required to connect to the OpenSearchServer instance. It can be left empty if no user has been created. The next figure shows
-            		where to find the user's informations in the OpenSearchServer user interface.</li>
-            	</ul>
-            	<figure src="images/en_US/opensearchserver-user.PNG" alt="OpenSearchServer, user configuration" width="80%"/>
-            	<p>Once you created a new job, having selected the OpenSearchServer output connector, you will have the OpenSearchServer tab. This tab let you:</p><br/>
-            	<ul>
-            		<li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
-            		<li>The allowed mime types. Warning it does not work with all repository connectors.</li>
-            		<li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
-            	</ul>
-            	<figure src="images/en_US/opensearchserver-job-parameters.PNG" alt="OpenSearchServer, job parameters" width="80%"/>
-            	<p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
-            	   index optimization. The targeted index is automatically optimized when the job is ending.</p>
-            	<figure src="images/en_US/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
-             	<p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
+                <figure src="images/en_US/opensearchserver-connection-parameters.PNG" alt="OpenSearchServer, parameters tab" width="80%"/>
+                <p>The parameters are:</p><br/>
+                <ul>
+                      <li>Server location: An URL that references your OpenSearchServer instance. The default value (http://localhost:8080) is valid if your OpenSearchServer instance runs
+                          on the same server than the ManifoldCF instance.</li>
+                      <li>Index name: The connector will populate the index defined here.</li>
+                      <li>User name and API Key: The credentials required to connect to the OpenSearchServer instance. It can be left empty if no user has been created. The next figure shows
+                          where to find the user's informations in the OpenSearchServer user interface.</li>
+                </ul>
+                <figure src="images/en_US/opensearchserver-user.PNG" alt="OpenSearchServer, user configuration" width="80%"/>
+                <p>Once you created a new job, having selected the OpenSearchServer output connector, you will have the OpenSearchServer tab. This tab let you:</p><br/>
+                <ul>
+                      <li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
+                      <li>The allowed mime types. Warning it does not work with all repository connectors.</li>
+                      <li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
+                </ul>
+                <figure src="images/en_US/opensearchserver-job-parameters.PNG" alt="OpenSearchServer, job parameters" width="80%"/>
+                <p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
+                    index optimization. The targeted index is automatically optimized when the job is ending.</p>
+                <figure src="images/en_US/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
+                <p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
             </section>
             
-            <section id="esssoutputconnector">
-            	<title>ElasticSearch Output Connection</title>
-            	<p>The ElasticSearch Output Connection allow ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
+            <section id="elasticsearchoutputconnector">
+                <title>ElasticSearch Output Connection</title>
+                <p>The ElasticSearch Output Connection allow ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
             	to be as easy to use as possible.</p>
-            	<p>After creating an ElasticSearch ouput connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
+                <p>After creating an ElasticSearch ouput connection, you have to populate the parameters tab. Fill in the fields according your ElasticSearch configuration. Each
             	ElasticSearch output connector instance works with one index. To work with multiple indexes, just create one output connector for each index.</p>
-            	<figure src="images/en_US/elasticsearch-connection-parameters.png" alt="ElasticSearch, parameters tab" width="80%"/>
-            	<br />
-            	<p>The parameters are:</p>
-            	<ul>
-            		<li>Server location: An URL that references your ElasticSearch instance. The default value (http://localhost:9200) is valid if your ElasticSearch instance runs
-            		on the same server than the ManifoldCF instance.</li>
-            		<li>Index name: The connector will populate the index defined here.</li>
-            	</ul>
-            	<br /><p>Once you created a new job, having selected the ElasticSearch output connector, you will have the ElasticSearch tab. This tab let you:</p>
-            	<ul>
-            		<li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
-            		<li>The allowed mime types. Warning it does not work with all repository connectors.</li>
-            		<li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
-            	</ul>
-            	<figure src="images/en_US/elasticsearch-job-parameters.png" alt="ElasticSearch, job parameters" width="80%"/>
-            	<p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
-            	   index optimization. The targeted index is automatically optimized when the job is ending.</p>
-            	<figure src="images/en_US/elasticsearch-history-report.png" alt="ElasticSearch, history report" width="80%"/>
-             	<p>You may also refer to <a href="http://www.elasticsearch.org/guide">ElasticSearch's user documentation</a>.</p>
+                <figure src="images/en_US/elasticsearch-connection-parameters.png" alt="ElasticSearch, parameters tab" width="80%"/>
+                <br />
+                <p>The parameters are:</p>
+                <ul>
+                      <li>Server location: An URL that references your ElasticSearch instance. The default value (http://localhost:9200) is valid if your ElasticSearch instance runs
+                          on the same server than the ManifoldCF instance.</li>
+                      <li>Index name: The connector will populate the index defined here.</li>
+                </ul>
+                <br /><p>Once you created a new job, having selected the ElasticSearch output connector, you will have the ElasticSearch tab. This tab let you:</p>
+                <ul>
+                      <li>Fix the maximum size of a document before deciding to index it. The value is in bytes. The default value is 16MB.</li>
+                      <li>The allowed mime types. Warning it does not work with all repository connectors.</li>
+                      <li>The allowed file extensions. Warning it does not work with all repository connectors.</li>
+                </ul>
+                <figure src="images/en_US/elasticsearch-job-parameters.png" alt="ElasticSearch, job parameters" width="80%"/>
+                <p>In the history report you will be able to monitor all the activites. The connector supports three activites: Document ingestion (Indexation), document deletion and
+                  index optimization. The targeted index is automatically optimized when the job is ending.</p>
+                <figure src="images/en_US/elasticsearch-history-report.png" alt="ElasticSearch, history report" width="80%"/>
+                <p>You may also refer to <a href="http://www.elasticsearch.org/guide">ElasticSearch's user documentation</a>.  Especially important is the
+                       need to configure the ElasticSearch index mapping <em>before</em> you try to index anything.  <strong>If you have not configured the ElasticSearch mapping properly, then the
+                       documents you send to ElasticSearch via ManifoldCF will not be parsed, and once you send a document to the index, you cannot fix this in ElasticSearch
+                       without discarding your index.</strong>  Specifically, you will want a mapping that enables the attachment plug-in, for example something like this:</p>
+                <source>
+{
+  "attachment" :
+  {
+    "properties" :
+    {
+      "file" :
+      {
+        "type" : "attachment",
+        "fields" :
+        {
+          "title" : { "store" : "yes" },
+          "keywords" : { "store" : "yes" },
+          "author" : { "store" : "yes" },
+          "content_type" : {"store" : "yes"},
+          "name" : {"store" : "yes"},
+          "date" : {"store" : "yes"},
+          "file" : { "term_vector":"with_positions_offsets", "store":"yes" }
+        }
+      }
+    }
+  }
+}
+                </source>
+                <p>Obviously, you would want your mapping to have details consistent with your particular indexing task.  You can change the mapping or inspect it using
+                       the <em>curl</em> tool, which you can download from <a href="http://curl.haxx.se">http://curl.haxx.se</a>.  For example, to inspect the mapping
+                       for a version of ElasticSearch running locally on port 9200:</p>
+                <source>
+curl -XGET http://localhost:9200/index/_mapping
+                </source>
             </section>
             
             <section id="gtsoutputconnector">
@@ -555,7 +724,35 @@
             </section>
             
         </section>
-        
+
+        <section id="mappingconnectiontypes">
+            <title>User Mapping Connection Types</title>
+            
+            <section id="regexpmapper">
+                <title>Regular Expression User Mapping Connection</title>
+                <p>The Regular Expression user mapping connection type is very helpful for rote user name conversions of all sorts.  For example, it can easily be configured to map the standard "user@domain" form
+                       of an Active Directory user name to (say) a LiveLink equivalent, e.g. "domain\user".  Since many repositories establish such rote conversions, the Regular Expression user mapping connection
+                       type is often all that you will ever need.</p>
+                <br/>
+                <p>A Regular Expression user mapping connection type has one special tab in the user mapping connection editing screen: "User Mapping".  This
+                       tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/regexp-mapping-user-mapping.PNG" alt="Regexp User Mapping, User Mapping tab" width="80%"/>
+                <br/><br/>
+                <p>The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
+                       replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
+                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first
+                       match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
+                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert
+                      an Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the user name
+                      <code>subdomain\myusername</code>.</p>
+                <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented, which may look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/regexp-mapping-status.PNG" alt="Regexp User Mapping Status" width="80%"/>
+                <br/><br/>
+            </section>
+        </section>
+
         <section id="authorityconnectiontypes">
             <title>Authority Connection Types</title>
             
@@ -563,23 +760,26 @@
                 <title>Active Directory Authority Connection</title>
                 <p>An active directory authority connection is essential for enforcing security for documents from Windows shares, Microsoft SharePoint, and IBM FileNet repositories.
                        This connection type needs to be provided with information about how to log into an appropriate Windows domain controller, with a user that has sufficient privileges to
-                       be able to look up any user's ID and group relationships.  While the connection type has some known limitations, it should function well for most straightforward Windows
-                       security architecture situations.  The cases in which it may not be adequate include:</p>
+                       be able to look up any user's ID and group relationships.</p>
                 <br/>
-                <ul>
-                    <li>when child domains are present</li>
-                    <li>when the expected number of requests per second is fairly high</li>
-                </ul>
-                <br/>
-                <p>An active directory authority connection type has a single special tab in the authority connection editing screen: the "Domain Controller" tab:</p>
+                <p>An Active Directory authority connection type has two special tabs in the authority connection editing screen: "Domain Controller", and "Cache".  The "Domain Controller"
+                       tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/ad-configure-dc.PNG" alt="AD Configuration, Domain Controller tab" width="80%"/>
                 <br/><br/>
-                <p>Fill in the requested values.  Note that the "Administrative user name" field usually requires no domain suffix, but depending on the details of how the domain
-                       controller is configured, may sometimes only accept the "name@domain" format.</p>
-                <p>When you are done, click the "Save" button.  When you do, a connection
-                       summary and status screen will be presented, which
-                       may look something like this:</p>
+                <p>As you can see, the Active Directory authority allows you to configure multiple connections to different, but presumably related, domain controllers.  The choice of
+                       which domain controller will be accessed is determined by traversing the list of configured domain controllers from top to bottom, and finding the first one that
+                       matches the domain suffix field specified.  Note that a blank value for the domain suffix will match <strong>all</strong> users.</p>
+                <p>To add a domain controller to the end of the list, fill in the requested values.  Note that the "Administrative user name" field usually requires no domain suffix, but
+                       depending on the details of how the domain controller is configured, may sometimes only accept the "name@domain" format.  When you have completed your
+                       entry, click the "Add to end" button to add the domain controller rule to the end of the list.  Later, when other domain controllers are present in the list, you can
+                       click a different button at an appropriate spot to insert the domain controller record into the list where you want it to go.</p>
+                <p>The Active Directory authority connection type also has a "Cache" tab, for managing the caching of individual user responses:</p>
+                <br/><br/>
+                <figure src="images/en_US/ad-configure-cache.PNG" alt="AD Configuration, Cache tab" width="80%"/>
+                <br/><br/>
+                <p>Here you can control how many individual users will be cached, and for how long.</p>
+                <p>When you are done, click the "Save" button.  When you do, a connection summary and status screen will be presented, which may look something like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/ad-status.PNG" alt="AD Status" width="80%"/>
                 <br/><br/>
@@ -608,38 +808,74 @@
                 <figure src="images/en_US/ldap-status.PNG" alt="LDAP Status" width="80%"/>
                 <br/><br/>
                 <p>Note that in this example, the LDAP connection is not responding, which is leading to an error status message instead of "Connection working".</p>
+				<br/><br/>
+				<p>Example configuration for ActiveDirectory server to fetch user groups:</p>
+				<ul>
+				  <li>Server: [xxx.yyy.zzz.ttt]</li>
+				  <li>Port: 389</li>
+				  <li>Server base: [DC=domain,DC=name]</li>
+				  <li>Bind as user: [user@domain.name]</li>
+				  <li>Bind with password: [password for that user]</li>
+				  <li>User search base: CN=Users</li>
+				  <li>User search filter: sAMAccountName={0}</li>
+				  <li>User name attribute: sAMAccountName</li>
+				  <li>Group search base: CN=Users</li>
+				  <li>Group search filter: (member:1.2.840.113556.1.4.1941:={0})</li>
+				  <li>Group name attribute: sAMAccountName</li>
+				  <li>Member attribute is DN: yes (tick the checkbox)</li>
+				</ul>
+				<p><code>member:1.2.840.113556.1.4.1941:</code> gives you recursive check for nested groups</p>
             </section>
 
             <section id="livelinkauthority">
                 <title>OpenText LiveLink Authority Connection</title>
                 <p>A LiveLink authority connection is needed to enforce security for documents retrieved from LiveLink repositories.</p>
-                <p>In order to function, this connection type needs to be provided with 
-                    information about the name of the LiveLink server, and credentials appropriate for retrieving a user's ACLs from that machine.  Since LiveLink operates with its own list of users, you
-                    may also want to specify a rule-based mapping between an Active Directory user and the corresponding LiveLink user.  The authority type allows you to specify such a mapping using
+                <p>In order to function, this connection type needs to be provided with information about the name of the LiveLink server, and credentials appropriate
+                    for retrieving a user's ACLs from that machine.  Since LiveLink operates with its own list of users, you may also want to specify a rule-based
+                    mapping between an Active Directory user and the corresponding LiveLink user.  The authority type allows you to specify such a mapping using
                     regular expressions.</p>
-                <p>A LiveLink authority connection has two special tabs you will need to configure: the "Server" tab, and the "User Mapping" tab.</p>
+                <p>A LiveLink authority connection has three special tabs you will need to configure: the "Server" tab, the "User Mapping" tab, and the "Cache" tab.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-server.PNG" alt="LiveLink Authority, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink credentials.</p>
+                <p>Select the manner you want the connection to use to communicate with LiveLink.  Your options are:</p>
+                <ul>
+                  <li>Internal (native LiveLink protocol)</li>
+                  <li>HTTP (communication with LiveLink through the IIS web server)</li>
+                  <li>HTTPS (communication with LiveLink through IIS using SSL)</li>
+                </ul>
+                <p>Also, you need to enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink server credentials.  If you have selected communication
+                    using HTTP or HTTPS, you must provide a relative CGI path to your LiveLink.  You may also need to provide web server credentials.  Basic authentication
+                    and older forms of NTLM are supported.  In order to use NTLM, specify a non-blank server domain name in the "Server HTTP domain" field, plus a non-
+                    qualified user name and password.  If basic authentication is desired, leave the "Server HTTP domain" field blank, and provide basic auth credentials in the
+                    "Server HTTP NTLM user name" and "Server HTTP NTLM password" fields.  For no web server authentication, leave these fields all blank.</p>
+                <p>For communication using HTTPS, you will also need to upload your authority certificate(s) on the "Server" tab, to tell the connection which certificates to
+                    trust.  Upload your certificate using the browse button, and then click the "Add" button to add it to the trust store.</p>
                 <p>The "User Mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-user-mapping.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>The purpose of the "User Mapping" tab is to allow you to map the incoming user name and domain (usually from Active Directory) to its LiveLink equivalent.
-                       The mapping consists of a match expression, which is a regular expression where parentheses ("("
-                       and ")") mark sections you are interested in, and a replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
-                       mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an AD username of
-                    <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name <code>subdomain\myusername</code>.</p>
+                       The mapping consists of a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are interested in, and a
+                       replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
+                       substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first
+                       match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
+                <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert
+                      an Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name
+                      <code>subdomain\myusername</code>.</p>
+                <p>The "Cache" tab allows you to configure how the authority connection keeps an individual user's information around:</p>
+                <br/><br/>
+                <figure src="images/en_US/livelink-authority-cache.PNG" alt="LiveLink Authority, Cache tab" width="80%"/>
+                <br/><br/>
+                <p>Here you set the time a user's information is kept around (the "Cache lifetime" field), and how many simultaneous users have their information cached
+                      (the "Cache LRU size" field).</p>
                 <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-authority-status.PNG" alt="LiveLink Authority Status" width="80%"/>
                 <br/><br/>
-                <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the LiveLink server would not accept connections, which
-                    is leading to an error status message instead of "Connection working".</p>
+                <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the LiveLink server would
+                    not accept connections, which is leading to an error status message instead of "Connection working".</p>
             </section>
             
             <section id="documentumauthority">
@@ -788,35 +1024,71 @@
                      and ")") mark sections you are interested in, and a replace string.  The sections marked with parentheses are called "groups" in regular expression parlance.  The replace string consists of constant text plus
                      substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
                      mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
-              <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an AD username of
-                  <code>MyUserName@subdomain.domain.com</code> into the LiveLink user name <code>subdomain\myusername</code>.</p>
+              <p>For example, a match expression of <code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code> with a replace string of <code>$(2)\$(1l)</code> would convert an
+                   Active Directory username of <code>MyUserName@subdomain.domain.com</code> into the CMIS user name <code>subdomain\myusername</code>.</p>
               <p>When you are done, click the "Save" button.  You will then see a summary and status for the authority connection:</p>
               <br/><br/>
               <figure src="images/en_US/cmis-authority-connection-configuration-save.png" alt="CMIS Authority, saving configuration" width="80%"/>
               <br/><br/>
             </section>
             
-        </section>
+             <section id="genericauthority">
+              <title>Generic Authority</title>
+              <p>Generic authority is intended to be used with Generic Connector and provide authentication tokens based on generic API. The idea is that you can use it and implement only the API which is designed
+                  to be fine grained and as simple as it is possible to handle all tasks.</p>
+              <p>API should be implemented as xml web page (entry point) returning results based on provided GET params. It may be a simple server script or part of the bigger application.
+                  API can be secured with HTTP basic authentication.</p>
+              <br/>
+              <p>There are 2 actions:</p>
+              <ul>
+                <li>check</li>
+                <li>auth</li>
+              </ul>
+              <p>Action is passed as "action" GET param to the entrypoint.</p>
+              <br/><br/>
+              <p><b>[entrypoint]?action=check</b></p>
+              <p>Should return HTTP status code 200 providing information that entrypoint is working properly. Any content returned will be ignored, only the status code matters.</p>
+              <br/><br/>
+			  
+              <p><b>[entrypoint]?action=auth&amp;username=UserName@Domain</b></p>
+              <p>Parameters:</p>
+              <ul>
+                <li>username - name of the user we want to resolve and fetch tokens.</li>
+              </ul>
+              <p>Result should be valid XML of form:</p>
+              <source>
+&lt;auth exists="true|false"&gt;
+   &lt;token&gt;token_1&lt;/token&gt;;
+   &lt;token&gt;token_2&lt;/token&gt;;
+   ...
+&lt;/auth&gt;
+              </source>
+              <p><code>exists</code> attribute is required and it carries information whether user is valid or not.</p>
+              <br/><br/>
+            </section>
+       </section>
         
         <section id="repositoryconnectiontypes">
             <title>Repository Connection Types</title>
 
             <section id="filesystemrepository">
-                <title>Generic File System Repository Connection</title>
-                <p>The generic file system repository connection type was developed primarily as an example, demonstration, and testing tool, although it can potentially be useful for indexing local
-                       files that exist on the same machine that ManifoldCF is running on.  Bear in mind that there is no support in this connection type for any kind of
-                       security, and the options are somewhat limited.</p>
-                <p>The file system repository connection type provides no configuration tabs beyond the standard ones.  However, please consider setting a "Maximum connections per
+                <title>Generic WGET-Sensitive File System Repository Connection</title>
+                <p>The generic file system repository connection type was developed in part as an example, demonstration, and testing tool, which reads simple
+                       files in directory paths, and partly as ManifoldCF support for the Unix utility called <em>wget</em>.  In the latter mode, the File System Repository Connector
+                       will parse file names that were created by <em>wget</em>, or by the wget-compatible File System Output Connector, and turn these back
+                       into full URL's to external web content.</p>
+                <p>This connection type has no support for any kind of document security.</p>
+                <p>The File System repository connection type provides no configuration tabs beyond the standard ones.  However, please consider setting a "Maximum connections per
                        JVM" value on the "Throttling" tab to at least one per worker thread, or 30, for best performance.</p>
                 <p>Jobs created using a file-system-type repository connection
-                       have two tabs in addition to the standard repertoire: the "Hop Filters" tab, and the "Paths" tab.</p>
+                       have two tabs in addition to the standard repertoire: the "Hop Filters" tab, and the "Repository Paths" tab.</p>
                 <p>The "Hop Filters" tab allows you to restrict the document set by the number of child hops from the path root.  While this is not terribly interesting in the case of a file
                        system, the same basic functionality is also used in the Web connection type, where it is a more important feature.  The file system connection type gives you a way to see
                        how this feature works, in a more predictable environment:</p>
                 <br/><br/>
                 <figure src="images/en_US/filesystem-job-hopcount.PNG" alt="File System Connection, Hop Filters tab" width="80%"/>
                 <br/><br/>
-                <p>In the case of the file system connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
+                <p>In the case of the File System connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
                        restrict the document set by how far away a document is from the path root, enter the maximum allowed number of hops in the text box.  Leaving the box blank
                        indicates that no such filtering will take place.</p>
                 <p>On this same tab, you can tell the Framework what to do should there be changes in the distance from the root to a document.  The choice "Delete unreachable
@@ -824,18 +1096,56 @@
                        expensive bookkeeping, however, so you also have the option of  ignoring such changes.  There are two varieties of this latter option - you can ignore the changes
                        for now, with the option of turning back on the aggressive bookkeeping at a later time, or you can decide not to ever allow changes to propagate, in which case
                        the Framework will discard the necessary bookkeeping information permanently.</p>
-                <p>The "Paths" tab looks like this:</p>
+                <p>The "Repository Paths" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/en_US/filesystem-job-paths.PNG" alt="File System Connection, Paths tab" width="80%"/>
+                <figure src="images/en_US/filesystem-job-paths.PNG" alt="File System Connection, Repository Paths tab" width="80%"/>
                 <br/><br/>
-                <p>This tab allows you to type in a set of paths which function as the roots of the crawl.  For each desired path, type in the path and click the "Add" button to add it to
-                       the list.  The form of the path you type in obviously needs to be meaningful for the operating system the Framework is running on.</p>
+                <p>This tab allows you to type in a set of paths which function as the roots of the crawl.  For each desired path, type in the path, select whether the root should
+                       behave as an WGET repository or not, and click the "Add" button to add it to the list.  The form of the path you type in obviously needs to be meaningful
+                       for the operating system the Framework is running on.</p>
                 <p>Each root path has a set of rules which determines whether a document is included or not in the set for the job.  Once you have added the root path to the list, you
                        may then add rules to it.  Each rule has a match expression, an indication of whether the rule is intended to match files or directories, and an action (include or exclude).
                        Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in 
                        a match file specification (e.g. "*.txt"), and click the "Add" button.</p>
             </section>
             
+            <section id="hdfsrepository">
+                <title>HDFS Repository Connection (WGET sensitive)</title>
+                <p>The HDFS repository connection operates much like the File System Repository Connection, except it reads data from the Hadoop File System rather than a
+                       local disk.  It, too, is capable of understanding directories written in the manner of the Unix utility called <em>wget</em>.  In the latter mode, the HDFS Repository Connector
+                       will parse file names that were created by <em>wget</em>, or by the wget-compatible HDFS Output Connector, and turn these back
+                       into full URL's pointing to external web content.</p>
+                <p>This connection type has no support for any kind of document security.</p>
+                <p>The HDFS repository connection type has an additional configuration tab above and beyond the standard ones, called "Server".  This is what it looks like:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-repository-configure-server.PNG" alt="HDFS Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Enter the HDFS name node URI, and the user name, and click the "Save" button.</p>
+                <p>Jobs created using an HDFS repository connection type
+                       have two tabs in addition to the standard repertoire: the "Hop Filters" tab, and the "Repository Paths" tab.</p>
+                <p>The "Hop Filters" tab allows you to restrict the document set by the number of child hops from the path root.  This is what it looks like:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-hopcount.PNG" alt="HDFS Connection, Hop Filters tab" width="80%"/>
+                <br/><br/>
+                <p>In the case of the HDFS connection type, there is only one variety of relationship between documents, which is called a "child" relationship.  If you want to
+                       restrict the document set by how far away a document is from the path root, enter the maximum allowed number of hops in the text box.  Leaving the box blank
+                       indicates that no such filtering will take place.</p>
+                <p>On this same tab, you can tell the Framework what to do should there be changes in the distance from the root to a document.  The choice "Delete unreachable
+                       documents" requires the Framework to recalculate the distance to every potentially affected document whenever a change takes place.  This may require
+                       expensive bookkeeping, however, so you also have the option of  ignoring such changes.  There are two varieties of this latter option - you can ignore the changes
+                       for now, with the option of turning back on the aggressive bookkeeping at a later time, or you can decide not to ever allow changes to propagate, in which case
+                       the Framework will discard the necessary bookkeeping information permanently.</p>
+                <p>The "Repository Paths" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-paths.PNG" alt="HDFS Connection, Repository Paths tab" width="80%"/>
+                <br/><br/>
+                <p>This tab allows you to type in a set of paths which function as the roots of the crawl.  For each desired path, type in the path, select whether the root should
+                       behave as an WGET repository or not, and click the "Add" button to add it to the list.</p>
+                <p>Each root path has a set of rules which determines whether a document is included or not in the set for the job.  Once you have added the root path to the list, you
+                       may then add rules to it.  Each rule has a match expression, an indication of whether the rule is intended to match files or directories, and an action (include or exclude).
+                       Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in 
+                       a match file specification (e.g. "*.txt"), and click the "Add" button.</p>
+            </section>
 
             <section id="rssrepository">
                 <title>Generic RSS Repository Connection</title>
@@ -869,25 +1179,25 @@
                 <br/><br/>
                 <figure src="images/en_US/rss-configure-bandwidth.PNG" alt="RSS Connection, Bandwidth tab" width="80%"/>
                 <br/><br/>
-                <p>This tab allows you to control the <b>maximum</b> rate at which the connection fetches data, on a per-server basis, as well as the <b>maximum</b> fetches per minute,
-                       also per-server.  Finally, the maximum number of socket connections made per server at any one time is also controllable by this tab.</p>
-                <p>The screen shot displays parameters that are
-                       considered reasonably polite.  The default values for this table are all blank, meaning that, by default, there is no throttling whatsoever!  Please do not make the mistake
-                       of crawling other people's sites without adequate politeness parameters in place.</p>
-                <p>The "Throttle group" parameter allows you to treat multiple RSS-type connections together, for the purposes of throttling.  All RSS-type connections that have the same
-                       throttle group name will use the same pool for throttling purposes.</p>
+                <p>This tab allows you to control the <b>maximum</b> rate at which the connection fetches data, on a per-server basis, as well as the <b>maximum</b> fetches
+                       per minute, also per-server.  Finally, the maximum number of socket connections made per server at any one time is also controllable by this tab.</p>
+                <p>The screen shot displays parameters that are considered reasonably polite.  The default values for this table are all blank, meaning that, by default, there is no
+                       throttling whatsoever!  Please do not make the mistake of crawling other people's sites without adequate politeness parameters in place.</p>
+                <p>The "Throttle group" parameter allows you to treat multiple RSS-type connections together, for the purposes of throttling.  All RSS-type connections that
+                       have the same throttle group name will use the same pool for throttling purposes.</p>
                 <p>The "Bandwidth" tab is related to the throttles that you can set on the "Throttling" tab in the following ways:</p>
                 <br/>
                 <ul>
                     <li>The "Bandwidth" tab sets the <b>maximum</b> values, while the "Throttling" tab sets the <b>average</b> values.</li>
-                    <li>The "Bandwidth" tab does not affect how documents are scheduled in the queue; it simply blocks documents until it is safe to go ahead, which will use up a crawler thread
-                           for the entire period that both the wait and the fetch take place.  The "Throttling" tab affects how often documents are scheduled, so it does not waste threads.</li>
+                    <li>The "Bandwidth" tab does not affect how documents are scheduled in the queue; it simply blocks documents until it is safe to go ahead, which will use up a
+                          crawler thread for the entire period that both the wait and the fetch take place.  The "Throttling" tab affects how often documents are scheduled, so it does
+                          not waste threads.</li>
                 </ul>
                 <br/>
                 <p>Because of the above, we suggest that you configure your RSS connection using <b>both</b> the "Bandwidth" <b>and</b> the "Throttling" tabs.  Select maximum
                        values on the "Bandwidth" tab, and corresponding average values estimates on the "Throttling" tab.  Remember that a document identifier for an RSS connection is the
-                       document's URL, and the bin name for that URL is the server name.  Also, please note that the "Maximum number of connections per JVM" field's default value of 10 is
-                       unlikely to be correct for connections of the RSS type; you should have at least one available connection per worker thread, for best performance.  Since the
+                       document's URL, and the bin name for that URL is the server name.  Also, please note that the "Maximum number of connections per JVM" field's default value
+                       of 10 is unlikely to be correct for connections of the RSS type; you should have at least one available connection per worker thread, for best performance.  Since the
                        default number of worker threads is 30, you should set this parameter to at least a value of 30 for normal operation.</p>
                 <p>The "Proxy" tab allows you to specify a proxy that you want to crawl through.  The RSS connection type supports proxies that are secured with all forms of the NTLM
                        authentication method.  This is quite typical of large organizations.  The tab looks like this:</p>
@@ -901,8 +1211,8 @@
                 <figure src="images/en_US/rss-status.PNG" alt="RSS Status" width="80%"/>
                 <br/><br/>
                 <p></p>
-                <p>Jobs created using connections of the RSS type have the following additional tabs: "URLs", "Canonicalization", "Mappings", "Time Values", "Security", "Metadata", and
-                       "Dechromed Content".  The URLs tab is where you describe the feeds that are part of the job.  It looks like this:</p>
+                <p>Jobs created using connections of the RSS type have the following additional tabs: "URLs", "Canonicalization", "URL mappings", "Exclusions", "Time Values",
+                       "Security", "Metadata", and "Dechromed Content".  The URLs tab is where you describe the feeds that are part of the job.  It looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/rss-job-urls.PNG" alt="RSS job, URLs tab" width="80%"/>
                 <br/><br/>
@@ -933,6 +1243,12 @@
                        <code>http://Server/Folder_1/Filename</code>, it would output the string <code>http://Folder_1/Filename</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
                 <p>To add a rule, fill in the match expression and output string, and click the "Add" button.</p>
+                <p>The "Exclusions" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/rss-job-exclusions.PNG" alt="RSS job, Exclusions tab" width="80%"/>
+                <br/><br/>
+                <p>Here you can enter a set of regular expressions, one per line, which describe which document URLs to exclude from the job.  This can be very helpful if you
+                     are crawling RSS feeds that include a variety of content where you only want to index a subset of the content.</p>
                 <p>The "Time Values" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/rss-job-time-values.PNG" alt="RSS job, Time Values tab" width="80%"/>
@@ -1561,50 +1877,197 @@
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
             </section>
             
+            <section id="dropboxrepository">
+              <title>Dropbox Repository Connection</title>
+              <p>The Dropbox Repository Connection type allows you to index content from <a href="https://www.dropbox.com/home">Dropbox</a>.</p>
+              <p>Each Dropbox Connection manages access to a single dropbox repository. This means that if you have multiple dropbox repositories (i.e. different users),
+                you need to create a specific connection for each dropbox repository and provide the associated authentication information.</p>
+              <br/>
+              <p>A Dropbox connection has the following configuration parameters on the repository connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-configuration.PNG" alt="Dropbox Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>As we can see there are 4 pieces of information which are needed to create a succesful connection. The application key and secret are given by dropbox 
+                when you register your application for a development license. This is typically done through the application developer <a href="https://www.dropbox.com/developers/apps">Dropbox website</a>.</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-create-application.PNG" alt="Dropbox create application" width="80%"/>
+              <br/><br/>
+              <p>For our purposes, we need to select "Core" as the application type as we'll be using REST services to communicate with dropbox. Also we select
+                "full access". This merits a small discussion. Typically an application which wants to store and retreive information does so from an application specific
+                folder. In this case, we assume that the user wants to have access to their files as is, and not copy them into a manifoldcf specific folder. As a result,
+                we have selected full access instead of "App folder".</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-application-secret-passwords.PNG" alt="Dropbox get key and secret passwords" width="80%"/>
+              <br/><br/>
+              <p> Afterwards we can see the app key and app secret which are the two pieces of information requested by the connector.</p>
+              <p>Now each user must confirm their acceptance of allowing your application to access their dropbox. This is done through a run-of-the-mill OAUTH
+                approach. After providing your application key and secret, the user is directed to a dropbox website asking them if they wish to grant permission to your
+                application. After they accept the request, dropbox provides a client key and secret. These are the last two pieces of information needed for the dropbox
+                connector. This process is covered in depth at the <a href="https://www.dropbox.com/developers/core/authentication">dropbox website</a>
+                which shows examples of how to generate the two needed client tokens. </p>
+              <br/>
+              <br/><br/>
+              <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-configuration-save.PNG" alt="Dropbox Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>When you configure a job to use the Dropbox repository connection an additional tab is presented. This is the "Dropbox Folder to Index" tab:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-job-dropbox-folder-to-index.PNG" alt="Dropbox Repository Connection, Dropbox Folder to Index" width="80%"/>
+              <br/><br/>
+              <p>The Dropbox Folder to Index tab allows you to specify the directory which the dropbox connector will index. Dropbox uses unix style paths, with
+                "/" indicating the root path (and thus the entire dropbox). For example if you want to just index the Photos directory, you would specify "/Photos". </p>
+              <p>Note that the Dropbox Connector during the ingestion process, for each result, when it find a folder node, it will ingest all the children of the folder node;
+                otherwise it will directly ingest the document.</p>
+              <p>When you are done, and you click the "Save" button, you will see a summary page looking something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/dropbox-repository-connection-job-save.PNG" alt="CMIS Repository Connection, saving job" width="80%"/>
+              <br/><br/>
+            </section>
+			
+            <section id="googledriverepository">
+              <title>Google Drive Repository Connection</title>
+              <p>The Google Drive Repository Connection type allows you to index content from <a href="https://drive.google.com">Google Drives</a>.</p>
+              <p>Each Google Drive Connection manages access to a single drive repository. This means that if you have multiple Google Drives (i.e. different users),
+                you need to create a specific connection for each drive repository and provide the associated authentication information.</p>
+              <br/>
+              <p>A Google Drive connection has the following configuration parameters on the repository connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-connection-configuration.PNG" alt="googledrive Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>As we can see there are 3 pieces of information which are needed to create a succesful connection. The Client ID and Client Secret given by
+                Google Drive when you register your application for a development license. This is typically done through
+                the <a href="https://code.google.com/apis/console/b/0/">Google APIs Console</a>.</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-setup-1.PNG" alt="googledrive create project" width="80%"/>
+              <br/><br/>
+              <p>Once having created a project, we must enable the Google Drive API:</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-setup-2.PNG" alt="googledrive enable drive api" width="80%"/>
+              <br/><br/>
+              <p>Then going to the API Access link on the righthand side, we need to select create an OAuth 2.0 client ID:</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-setup-3.PNG" alt="googledrive create oauth client" width="80%"/>
+              <br/><br/>
+              <p>After filling in the necessary information, we need to select what type of application we'd like. For our purposes we need to select
+                installed application:</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-setup-4.PNG" alt="googledrive create client id" width="80%"/>
+              <br/><br/>
+              <p>Afterwards the connector requests our Client ID and Client secrets (where the red boxes are):</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-setup-5.PNG" alt="googledrive client id and secret" width="80%"/>
+              <br/><br/>
+              <p>Now each user must confirm their acceptance of allowing your application to access their google drive. This is done through a run-of-the-mill OAUTH
+                approach, but needs to be done before hand. Once the steps are completed, a long-life refresh token is presented, which is then used by the connector.
+                For completeness, we present the needed steps below since they require some manual work.</p>
+              <br/><br/>
+              <ol>
+                  <li>Browse to here: https://accounts.google.com/o/oauth2/auth?scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.readonly&amp;state=%2Fprofile&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;response_type=code&amp;client_id=&lt;CLIENT_ID&gt;&amp;approval_prompt=force&amp;access_type=offline</li>
+                  <li>This returns a link (after acceptance), where a code is embedded in the URL: https://localhost/?state=/profile&amp;code=&lt;CODE&gt;</li>
+                  <li>Use a tool like <em>curl</em> (<a href="http://curl.haxx.se">http://curl.haxx.se</a>) to perform a POST to "https://accounts.google.com/o/oauth2/token", using the body: grant_type=authorization_code&amp;redirect_uri=https%3A%2F%2Flocalhost&amp;client_secret=&lt;CLIENT_SECRET&gt;&amp;client_id=&lt;CLIENT_ID&gt;&amp;code=&lt;CODE&gt;</li>
+              <li> The response is then a json response which contains the refresh_token.</li>
+              </ol>
+              <br/><br/>
+              <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-connection-configuration-save.PNG" alt="googledrive Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>When you configure a job to use the Google Drive repository connection an additional tab is presented. This is the "Google Drive Seed Query" tab:</p>
+              <br/><br/>
+              <figure src="images/en_US/googledrive-repository-connection-job-googledrive-seed-query.PNG" alt="googledrive Repository Connection, seed query" width="80%"/>
+              <br/><br/>
+              <p>This tab allows you to specify the query which will be used to seed documents for the indexing process. The query language is
+                specified on the <a href="https://developers.google.com/drive/search-parameters">Drive Search Parameters</a> site. Directories
+                which meet the seed query are fully crawled as the query on applies to seeds. The default query indexes the entire drive. Lastly, native Google
+                documents such as spreadsheets and word documents are exported to PDF and then ingested.</p>
+            </section>
+			
+            <section id="jirarepository">
+              <title>Jira Repository Connection</title>
+              <p>The Jira Repository Connection type allows you to index tickets from <a href="http://www.atlassian.com/‎">Atlassian</a>'s <a href="http://www.atlassian.com/software/jira">Jira</a>.</p>
+              <p>A Jira connection has the following configuration parameters on the repository connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/en_US/jira-repository-connection-configuration.PNG" alt="jira Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>As we can see there are 3 pieces of information which are needed to create a successful connection. The Client ID and Client Secret
+                are the username and password of a Jira account. The JiraUrl is the base endpoint of the particular Jira Instance, for example:
+                https://searchbox.atlassian.net is the Jira version for searchbox which is hosted at Atlassian.</p>
+              <br/><br/>
+              <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+              <br/><br/>
+              <figure src="images/en_US/jira-repository-connection-configuration-save.PNG" alt="jira Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>When you configure a job to use the Jira repository connection an additional tab is presented. This is the "Seed Query" tab:</p>
+              <br/><br/>
+              <figure src="images/en_US/jira-repository-connection-job-jira-seed-query.PNG" alt="jira Repository Connection, seed query" width="80%"/>
+              <br/><br/>
+              <p>This tab allows you to specify the query which will be used to find documents for the indexing process. The query language is
+                specified on the <a href="https://confluence.atlassian.com/display/JIRA/Advanced+Searching">Jira Advanced Searching</a> site. Directories
+                which meet the seed query are fully crawled as the query only applies to seeds.</p>
+            </section>
+			
             <section id="livelinkrepository">
                 <title>OpenText LiveLink Repository Connection</title>
-                <p>The OpenText LiveLink connection type allows you to index content from LiveLink repositories.  LiveLink has a rich variety of different document types and metadata, which include
-                    basic documents, as well as compound documents, folders, workspaces, and projects.  A LiveLink connection is able to discover documents contained within all of these constructs.</p>
-                <p>Documents described by LiveLink connections are typically secured by a LiveLink authority.  If you have not yet created a LiveLink authority, but would like your
-                    documents to be secured, please follow the direction in the section titled "OpenText LiveLink Authority Connection".</p>
-                <p>A LiveLink connection has the following special tabs: "Server", "Document Access", and "Document View".  The "Server" tab allows you to select a LiveLink server to connect to, and also to provide
-                    appropriate credentials.  The "Document Access" tab describes the location of the LiveLink web interface, relative to the server, that will be used to fetch document content from LiveLink.
-                    The "Document View" tab affects how URLs to the fetched documents are constructed, for viewing results of searches.</p>
+                <p>The LiveLink connection type allows you to index content from LiveLink repositories.  LiveLink has a rich variety of different document types and metadata,
+                    which include basic documents, as well as compound documents, folders, workspaces, and projects.  A LiveLink connection is able to discover documents
+                    contained within all of these constructs.</p>
+                <p>Documents described by LiveLink connections are typically secured by a LiveLink authority.  If you have not yet created a LiveLink authority, but would
+                    like your documents to be secured, please follow the direction in the section titled "OpenText LiveLink Authority Connection".</p>
+                <p>A LiveLink connection has the following special tabs: "Server", "Document Access", and "Document View".  The "Server" tab allows you to select a
+                    LiveLink server to connect to, and also to provide appropriate credentials.  The "Document Access" tab describes the location of the LiveLink web interface,
+                    relative to the server, that will be used to fetch document content from LiveLink. The "Document View" tab affects how URLs to the fetched documents
+                    are constructed, for viewing results of searches.</p>
                 <p>The "Server" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-server.PNG" alt="LiveLink Connection, Server tab" width="80%"/>
                 <br/><br/>
-                <p>Enter the LiveLink server name, port, and credentials.</p>
+                <p>Select the manner you want the connection to use to communicate with LiveLink.  Your options are:</p>
+                <ul>
+                  <li>Internal (native LiveLink protocol)</li>
+                  <li>HTTP (communication with LiveLink through the IIS web server)</li>
+                  <li>HTTPS (communication with LiveLink through IIS using SSL)</li>
+                </ul>
+                <p>Also, you need to enter the name of the desired LiveLink server, the LiveLink port, and the LiveLink server credentials.  If you have selected communication
+                    using HTTP or HTTPS, you must provide a relative CGI path to your LiveLink.  You may also need to provide web server credentials.  Basic authentication
+                    and older forms of NTLM are supported.  In order to use NTLM, specify a non-blank server domain name in the "Server HTTP domain" field, plus a non-
+                    qualified user name and password.  If basic authentication is desired, leave the "Server HTTP domain" field blank, and provide basic auth credentials in the
+                    "Server HTTP NTLM user name" and "Server HTTP NTLM password" fields.  For no web server authentication, leave these fields all blank.</p>
+                <p>For communication using HTTPS, you will also need to upload your authority certificate(s) on the "Server" tab, to tell the connection which certificates to
+                    trust.  Upload your certificate using the browse button, and then click the "Add" button to add it to the trust store.</p>
                 <p>The "Document Access" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-document-access.PNG" alt="LiveLink Connection, Document Access tab" width="80%"/>
                 <br/><br/>
-                <p>The server name is presumed to be the same as is on the "Server" tab.  Select the desired protocol.  If your LiveLink server is using a non-standard HTTP port for the specified protocol, enter the 
-                    port number.  If your LiveLink server is using NTLM authentication, enter an AD user name, password, and domain.  If your LiveLink is using HTTPS, browse locally for the appropriate
-                    certificate authority certificate, and click "Add" to upload that certificate to the connection's trust store.  (You may also use the server's certificate, but that is less resilient because the
-                    server's certificate may be changed periodically.)</p>
+                <p>The server name is presumed to be the same as is on the "Server" tab.  Select the desired protocol for document retrieval.  If your LiveLink server
+                    is using a non-standard HTTP port for the specified protocol for document retrieval, enter the port number.  If your LiveLink server is using NTLM
+                    authentication to access documents, enter an Active Directory user name, password, and domain.  If your LiveLink is using HTTPS, browse locally
+                    for the appropriate certificate authority certificate, and click "Add" to upload that certificate to the connection's trust store.  (You may also use the server's
+                    certificate, but that is less resilient because the server's certificate may be changed periodically.)</p>
                 <p>The "Document View" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-document-view.PNG" alt="LiveLink Connection, Document Viewtab" width="80%"/>
                 <br/><br/>
-                <p>If you want each document's view URL to be the same as its access URL, you can leave this tab unchanged.  If you want to direct users to a different CGI path when they view search results,
-                    you can specify that here.</p>
+                <p>If you want each document's view URL to be the same as its access URL, you can leave this tab unchanged.  If you want to direct users to a different
+                    CGI path when they view search results, you can specify that here.</p>
                 <p>When you are done, click the "Save" button.  You will see a summary screen that looks something like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-connection-status.PNG" alt="LiveLink Connection Status" width="80%"/>
                 <br/><br/>
-                <p>Make note of and correct any reported connection errors.  In this example, the connection has been correctly set up, so the connection status is "Connection working".</p>
+                <p>Make note of and correct any reported connection errors.  In this example, the connection has been correctly set up, so the connection status is
+                    "Connection working".</p>
                 <p></p>
                 <p>A job created to use a LiveLink connection has the following additional tabs associated with it: "Paths", "Filters", "Security", and "Metadata".</p>
                 <p>The "Paths" tab allows you to manage a list of LiveLink paths that act as starting points for indexing content:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-job-paths.PNG" alt="LiveLink Job, Paths tab" width="80%"/>
                 <br/><br/>
-                <p>Build each path by selecting from the available dropdown, and clicking the "+" button.  When your path is complete, click the "Add" button to add the path to the list of starting points.</p>
-                <p>The "Filters" tab controls the criteria the LiveLink job will use to include or exclude content.  The filters are basically a list of rules.  Each rule has a document match field,
-                    and a matching action ("Include" or "Exclude").  When a LiveLink connection encounters a document, it evaluates the rules from top to bottom.
-                    If the rule matches, then it will be included or excluded from the job's document set depending on what you have selected for the matching action. A rule's match field specifies a
-                    character match, where "*" will match any number of characters, and "?" will match any single character.</p>
+                <p>Build each path by selecting from the available dropdown, and clicking the "+" button.  When your path is complete, click the "Add" button to add the path
+                    to the list of starting points.</p>
+                <p>The "Filters" tab controls the criteria the LiveLink job will use to include or exclude content.  The filters are basically a list of rules.  Each rule has a
+                    document match field, and a matching action ("Include" or "Exclude").  When a LiveLink connection encounters a document, it evaluates the rules from
+                    top to bottom.  If the rule matches, then it will be included or excluded from the job's document set depending on what you have selected for the
+                    matching action. A rule's match field specifies a character match, where "*" will match any number of characters, and "?" will match any single character.</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-job-filters.PNG" alt="LiveLink Job, Filters tab" width="80%"/>
                 <br/><br/>
@@ -1614,21 +2077,23 @@
                 <figure src="images/en_US/livelink-job-security.PNG" alt="LiveLink Job, Security tab" width="80%"/>
                 <br/><br/>
                 <p>If you disable security, you can add your own access tokens to all
-                    jobs in the document set as they are indexed.  The format of the access tokens you would enter depends on the governing authority associated with the job's repository connection.
-                    Enter a token and click the "Add" button to add it to the list.</p>
+                    jobs in the document set as they are indexed.  The format of the access tokens you would enter depends on the governing authority associated with the
+                    job's repository connection. Enter a token and click the "Add" button to add it to the list.</p>
                 <p>The "Metadata" tab allows you to select what specific metadata values from LiveLink you want to pass to the index:</p>
                 <br/><br/>
                 <figure src="images/en_US/livelink-job-metadata.PNG" alt="LiveLink Job, Metadata tab" width="80%"/>
                 <br/><br/>
-                <p>If you want to pass all available LiveLink metadata to the index, then click the "All metadata" radio button.  Otherwise, you need to build LiveLink metadata paths and add them to the metadata list.
-                    Select the next metadata path segment, and click the appropriate "+" button to add it to the path.  You may add folder information, or a metadata category, at any point.</p>
-                <p>Once you have drilled down to a metadata category, you can select the metadata attributes to include, or check the "All attributes in this category" checkbox.  When you are done, click the
-                    "Add" button to add the metadata attributes that you want to include in the index.</p>
-                <p>You can also use the "Metadata" tab to have the connection send path data along with each document, as a piece of document metadata.  To enable this feature, enter the name of the metadata
-                    attribute you want this information to be sent into the "Path attribute name" field.  Then, add the rules you want to the list of rules.  Each rule has a match expression, which is a regular expression where
-                    parentheses ("(" and ")") mark sections you are interested in.  These sections are called "groups" in regular expression parlance.  The replace string consists of constant text plus
-                    substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the first match group
-                    mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
+                <p>If you want to pass all available LiveLink metadata to the index, then click the "All metadata" radio button.  Otherwise, you need to build LiveLink
+                    metadata paths and add them to the metadata list. Select the next metadata path segment, and click the appropriate "+" button to add it to the path.
+                    You may add folder information, or a metadata category, at any point.</p>
+                <p>Once you have drilled down to a metadata category, you can select the metadata attributes to include, or check the "All attributes in this category"
+                    checkbox.  When you are done, click the "Add" button to add the metadata attributes that you want to include in the index.</p>
+                <p>You can also use the "Metadata" tab to have the connection send path data along with each document, as a piece of document metadata.  To enable
+                    this feature, enter the name of the metadata attribute you want this information to be sent into the "Path attribute name" field.  Then, add the rules you
+                    want to the list of rules.  Each rule has a match expression, which is a regular expression where parentheses ("(" and ")") mark sections you are
+                    interested in.  These sections are called "groups" in regular expression parlance.  The replace string consists of constant text plus
+                    substitutions of the groups from the match, perhaps modified.  For example, "$(1)" refers to the first group within the match, while "$(1l)" refers to the
+                    first match group mapped to lower case.  Similarly, "$(1u)" refers to the same characters, but mapped to upper case.</p>
                 <p>For example, suppose you had a rule which had ".*/(.*)/(.*)/.*" as a match expression, and "$(1) $(2)" as the replace string.  If presented with the path
                     <code>Project/Folder_1/Folder_2/Filename</code>, it would output the string <code>Folder_1 Folder_2</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
@@ -1916,6 +2381,7 @@
               <figure src="images/en_US/alfresco-repository-connection-configuration.png" alt="Alfresco Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
               <p>Enter the correct username, password and the endpoint to reference the Alfresco document server services.</p>
+              <p>You also can set a specific Socket Timeout to correctly tune the connector for your own Alfresco repository settings.</p>
               <p>If you have a Multi-Tenancy environment configured in the repository, be sure to also set the tenant domain parameter.</p>
               <p>The endpoint consists of the HTTP protocol, hostname, port and the context path of the Alfresco Web Services API exposed by the Alfresco server.</p>
               <p>By default, if you don't have changed the context path of the Alfresco webapp, you should have an endpoint address similar to the following:</p>
@@ -1939,6 +2405,96 @@
               <br/><br/>
             </section>
             
+            <section id="genericconnector">
+              <title>Generic Connector</title>
+              <p>Generic connector allows you to index any source that follows provided API specification. The idea is that you can use it and implement only the API which is designed
+                    to be fine grained and as simple as it is possible to handle document indexing.</p>
+              <p>API should be implemented as xml web page (entry point) returning results based on provided GET params. It may be a simple server script or part of the bigger application.
+                    API can be secured with HTTP basic authentication.</p>
+              <br/>
+              <p>There are 4 actions:</p>
+              <ul>
+                    <li>check</li>
+                    <li>seed</li>
+                    <li>items</li>
+                    <li>item</li>
+              </ul>
+              <p>Action is passed as "action" GET param to the entrypoint.</p>
+              <br/><br/>
+              <p><b>[entrypoint]?action=check</b></p>
+              <p>Should return HTTP status code 200 providing information that entrypoint is working properly. Any content returned will be ignored, only the status code matters.</p>
+              <br/><br/>
+			  
+              <p><b>[entrypoint]?action=seed&amp;startDate=YYYY-MM-DDTHH:mm:ssZ&amp;endDate=YYYY-MM-DDTHH:mm:ssZ</b></p>
+              <p>Parameters:</p>
+              <ul>
+                    <li>startDate - the start of time frame which should be applied to returned seeds. If this is a first run - this parameter will not be provided meaning that all documents should be returned.</li>
+                    <li>endDate - the end of time frame. Always provided.</li>
+              </ul>
+              <p><code>startDate</code> and <code>endDate</code> parameters are encoded as <code>YYYY-MM-DD'T'HH:mm:ss'Z'</code>. Result should be valid XML of form:</p>
+              <source>
+&lt;seeds&gt;
+   &lt;seed id="document_id_1" /&gt;
+   &lt;seed id="document_id_2" /&gt;
+   ...
+&lt;/seeds&gt;
+              </source>
+              <p>Attributes <code>id</code> are required.</p>
+              <br/><br/>
+
+              <p><b>[entrypoint]?action=items&amp;id[]=document_id_1&amp;id=document_id_2</b></p>
+              <p>Parameters:</p>
+              <ul>
+                    <li>id[] - array of document IDs that should be returned</li>
+              </ul>
+              <p>Result should be valid XML of form:</p>
+              <source>
+&lt;items&gt;
+   &lt;item id="document_id_1"&gt;
+      &lt;url&gt;[http://document_uri]&lt;/url&gt;
+      &lt;version&gt;[document_version]&lt;/version&gt;
+	  &lt;created&gt;2013-11-11T21:00:00Z&lt;/created&gt;
+	  &lt;updated&gt;2013-11-11T21:00:00Z&lt;/updated&gt;
+	  &lt;filename&gt;filename.ext&lt;/filename&gt;
+	  &lt;mimetype&gt;mime/type&lt;/mimetype&gt;
+	  &lt;metadata&gt;
+	     &lt;meta name="meta_name_1"&gt;meta_value_1&lt;/meta&gt;
+	     &lt;meta name="meta_name_2"&gt;meta_value_2&lt;/meta&gt;
+		 ...
+	  &lt;/metadata&gt;
+	  &lt;auth&gt;
+		 &lt;token&gt;auth_token_1&lt;/token&gt;
+		 &lt;token&gt;auth_token_2&lt;/token&gt;
+		 ...
+	  &lt;/auth&gt;
+	  &lt;related&gt;
+		 &lt;id&gt;other_document_id_1&lt;/id&gt;
+		 &lt;id&gt;other_document_id_2&lt;/id&gt;
+		 ...
+	  &lt;/related&gt;
+	  &lt;content&gt;Document content&lt;/content&gt;
+   &lt;/item&gt;
+   ...
+&lt;/items&gt;
+              </source>
+              <p><code>id, url, version</code> are required, the rest is optional.</p>
+              <p>If <code>auth</code> tag is provided - document will be treated as non-public with defined access tokens, if it is ommited - document will be public.</p>
+              <p>If <code>content</code> tag is ommited - connector will ask for document content as <code>action=item</code> separate API call.</p>
+              <p>You may provide related document ids when document repository is a graph or tree. Provided documents will also be indexed. In case you want to use relations -
+                  seeding do not have to return all documents, only starting points. Rest of documents will be fetched using relations.</p>
+              <br/><br/>
+
+              <p><b>[entrypoint]?action=item&amp;id=document_id</b></p>
+              <p>Parameters:</p>
+              <ul>
+                    <li>id - requested document ID</li>
+              </ul>
+              <p>Result should be the document content. It does not have to be XML - you may return binary data (PDF, DOC, etc) which represent the document.</p>
+              <br/><br/>
+              <p>You may provide custom parameters by defining them in Job specification. All defined parameters will be sent as additional GET parameters with every API call</p>
+              <p>You may override provided auth tokens and define forced tokens in Job specification. If you change security model to "forced" and do not provide any tokens - all documents will be public.</p>
+              <br/><br/>
+            </section>
         </section>
 
 </body>

@@ -1,0 +1,67 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('DropboxRepositoryConnector.Server'))
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AppKeyColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="app_key" name="app_key" value="$Encoder.attributeEscape($APP_KEY)" />
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.AppSecretColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="password" id="app_secret" name="app_secret" value="$Encoder.attributeEscape($APP_SECRET)" />
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.KeyColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="key" name="key" value="$Encoder.attributeEscape($KEY)" />
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DropboxRepositoryConnector.SecretColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="password" id="secret" name="secret" value="$Encoder.attributeEscape($SECRET)" />
+    </td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="app_key" value="$Encoder.attributeEscape($APP_KEY)" />
+<input type="hidden" name="app_secret" value="$Encoder.attributeEscape($APP_SECRET)" />
+<input type="hidden" name="key" value="$Encoder.attributeEscape($KEY)" />
+<input type="hidden" name="secret" value="$Encoder.attributeEscape($SECRET)" />
+
+#end

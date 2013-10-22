@@ -18,7 +18,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
-import org.apache.commons.httpclient.*;
+import org.apache.http.cookie.Cookie;
 
 /** This interface describes cookies obtained during sequential authentication.
 */

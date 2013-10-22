@@ -30,7 +30,19 @@ import org.junit.*;
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseITHSQLDB extends ConnectorBaseHSQLDB
 {
-  protected ManifoldCFInstance mcfInstance = new ManifoldCFInstance();
+  protected final ManifoldCFInstance mcfInstance;
+  
+  public BaseITHSQLDB()
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance();
+  }
+  
+  public BaseITHSQLDB(boolean singleWar)
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance(singleWar);
+  }
   
   // Basic job support
   

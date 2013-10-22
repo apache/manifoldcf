@@ -37,7 +37,8 @@
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
-            <include name="commons-httpclient*.jar"/>
+            <include name="httpcore*.jar"/>
+            <include name="httpclient*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
@@ -312,7 +313,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -321,6 +323,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -348,7 +351,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -357,6 +361,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -389,7 +394,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -398,6 +404,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -426,7 +433,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -435,6 +443,7 @@
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -469,7 +478,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -479,6 +489,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -514,7 +525,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -524,6 +536,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -566,7 +579,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -576,6 +590,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -613,7 +628,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -623,6 +639,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -728,7 +745,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -739,6 +757,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -766,7 +785,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -777,6 +797,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
+                <include name="slf4j*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -887,7 +908,8 @@
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -915,7 +937,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -968,8 +991,7 @@
         <property name="manifest-cp-3" value="${manifest-cp-2} lib/commons-collections.jar"/>
         <property name="manifest-cp-4" value="${manifest-cp-3} lib/commons-el.jar"/>
         <property name="manifest-cp-5" value="${manifest-cp-4} lib/commons-fileupload.jar"/>
-        <property name="manifest-cp-6" value="${manifest-cp-5} lib/commons-httpclient.jar"/>
-        <property name="manifest-cp-7" value="${manifest-cp-6} lib/commons-io.jar"/>
+        <property name="manifest-cp-7" value="${manifest-cp-5} lib/commons-io.jar"/>
         <property name="manifest-cp-8" value="${manifest-cp-7} lib/commons-logging.jar"/>
         <property name="manifest-cp-9" value="${manifest-cp-8} lib/hsqldb.jar"/>
         <property name="manifest-cp-10" value="${manifest-cp-9} lib/derbyclient.jar"/>
@@ -1020,7 +1042,9 @@
         <property name="manifest-cp-57" value="${manifest-cp-56} lib/jetty-xml.jar"/>
         <property name="manifest-cp-58" value="${manifest-cp-57} lib/slf4j-api.jar"/>
         <property name="manifest-cp-59" value="${manifest-cp-58} lib/slf4j-simple.jar"/>
-        <property name="manifest-cp" value="${manifest-cp-59}"/>
+        <property name="manifest-cp-60" value="${manifest-cp-59} lib/httpcore.jar"/>
+        <property name="manifest-cp-61" value="${manifest-cp-60} lib/httpclient.jar"/>
+        <property name="manifest-cp" value="${manifest-cp-61}"/>
         <mkdir dir="build/example"/>
         <manifest file="build/example/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1040,7 +1064,8 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
-                <include name="commons-httpclient*.jar"/>
+                <include name="httpcore*.jar"/>
+                <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -1098,8 +1123,7 @@
         <property name="manifest-cp-proprietary-3" value="${manifest-cp-proprietary-2} lib/commons-collections.jar"/>
         <property name="manifest-cp-proprietary-4" value="${manifest-cp-proprietary-3} lib/commons-el.jar"/>
         <property name="manifest-cp-proprietary-5" value="${manifest-cp-proprietary-4} lib/commons-fileupload.jar"/>
-        <property name="manifest-cp-proprietary-6" value="${manifest-cp-proprietary-5} lib/commons-httpclient.jar"/>
-        <property name="manifest-cp-proprietary-7" value="${manifest-cp-proprietary-6} lib/commons-io.jar"/>
+        <property name="manifest-cp-proprietary-7" value="${manifest-cp-proprietary-5} lib/commons-io.jar"/>
         <property name="manifest-cp-proprietary-8" value="${manifest-cp-proprietary-7} lib/commons-logging.jar"/>
         <property name="manifest-cp-proprietary-9" value="${manifest-cp-proprietary-8} lib/hsqldb.jar"/>
         <property name="manifest-cp-proprietary-10" value="${manifest-cp-proprietary-9} lib/derbyclient.jar"/>
@@ -1153,7 +1177,9 @@
         <property name="manifest-cp-proprietary-59" value="${manifest-cp-proprietary-58} lib/jetty-xml.jar"/>
         <property name="manifest-cp-proprietary-60" value="${manifest-cp-proprietary-59} lib/slf4j-api.jar"/>
         <property name="manifest-cp-proprietary-61" value="${manifest-cp-proprietary-60} lib/slf4j-simple.jar"/>
-        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-61}"/>
+        <property name="manifest-cp-proprietary-62" value="${manifest-cp-proprietary-61} lib/httpcore.jar"/>
+        <property name="manifest-cp-proprietary-63" value="${manifest-cp-proprietary-62} lib/httpclient.jar"/>
+        <property name="manifest-cp-proprietary" value="${manifest-cp-proprietary-63}"/>
         <mkdir dir="build/example-proprietary"/>
         <manifest file="build/example-proprietary/manifest">
             <attribute name="Main-Class" value="org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner"/>
@@ -1239,6 +1265,21 @@
 
     <target name="build-tests" depends="jar-tests"/>
 
+    <target name="run-core-tests" depends="compile-core,compile-core-tests">
+        <mkdir dir="test-output"/>
+        <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <classpath>
+                <path refid="framework-classpath"/>
+                <pathelement location="build/core/classes"/>
+                <pathelement location="build/core-tests/classes"/>
+            </classpath>
+            <formatter type="brief" usefile="false"/>
+
+            <test name="org.apache.manifoldcf.core.common.DateTest" todir="test-output"/>
+            
+        </junit>
+    </target>
+
     <target name="run-script-engine-tests" depends="compile-core,compile-script-engine,compile-script-engine-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
@@ -1272,7 +1313,7 @@
         </junit>
     </target>
 
-    <target name="run-tests" depends="compile-tests,run-script-engine-tests"/>
+    <target name="run-tests" depends="compile-tests,run-core-tests,run-script-engine-tests"/>
 
     <target name="run-tests-derby" depends="compile-tests">
         <mkdir dir="test-derby-output"/>

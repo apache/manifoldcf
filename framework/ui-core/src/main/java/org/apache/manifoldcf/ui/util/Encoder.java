@@ -40,6 +40,18 @@ public class Encoder
       {
         rval.append("\\").append(x);
       }
+      else if (x == '\n')
+      {
+        rval.append("\\n");
+      }
+      else if (x == '\r')
+      {
+        rval.append("\\r");
+      }
+      else if (x == '\t')
+      {
+        rval.append("\\t");
+      }
       else
         rval.append(x);
     }
@@ -61,6 +73,18 @@ public class Encoder
       if (x == '\\' || x == '"' || x == '\'')
       {
         rval.append("\\").append(x);
+      }
+      else if (x == '\n')
+      {
+        rval.append("\\n");
+      }
+      else if (x == '\r')
+      {
+        rval.append("\\r");
+      }
+      else if (x == '\t')
+      {
+        rval.append("\\t");
       }
       else
         rval.append(x);

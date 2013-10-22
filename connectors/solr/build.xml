@@ -19,6 +19,30 @@
 
     <import file="../connector-build.xml"/>
 
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="../../lib">
+            <include name="solr-solrj*.jar"/>
+            <include name="httpmime*.jar"/>
+            <include name="zookeeper*.jar"/>
+            <include name="wstx-asl*.jar"/>
+            <include name="jcl-over-slf4j*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="solr-solrj*.jar"/>
+                <include name="httpmime*.jar"/>
+                <include name="zookeeper*.jar"/>
+                <include name="wstx-asl*.jar"/>
+                <include name="jcl-over-slf4j*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
     <target name="integration">
         <mkdir dir="dist/integration/solr-3.x"/>
         <copy todir="dist/integration/solr-3.x">

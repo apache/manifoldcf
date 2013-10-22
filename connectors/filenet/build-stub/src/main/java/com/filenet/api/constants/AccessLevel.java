@@ -18,11 +18,11 @@
 */
 package com.filenet.api.constants;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub class to allow the connector to build fully.
 */
-public interface AccessLevel
+public class AccessLevel implements java.io.Serializable
 {
   public static final int VIEW_AS_INT = 131201;
-  
-  public int getValue();
+
+  public int getValue() { return 0; }
 }

@@ -33,6 +33,7 @@ public class Base
   protected File configFile = null;
   protected File loggingFile = null;
   protected File logOutputFile = null;
+  protected File connectorFile = null;
 
   protected void initialize()
     throws Exception
@@ -45,6 +46,7 @@ public class Base
       configFile = new File("properties.xml").getCanonicalFile();
       loggingFile = new File("logging.ini").getCanonicalFile();
       logOutputFile = new File("manifoldcf.log").getCanonicalFile();
+      connectorFile = new File("connectors.xml").getCanonicalFile();
 
       // Set a system property that will point us to the proper place to find the properties file
       System.setProperty("org.apache.manifoldcf.configfile",configFile.getCanonicalFile().getAbsolutePath());
@@ -119,8 +121,34 @@ public class Base
     throws Exception
   {
     output.append(
-      "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"
+      "  <property name=\"org.apache.manifoldcf.logconfigfile\" value=\""+loggingFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"+
+      "  <property name=\"org.apache.manifoldcf.connectorsconfigurationfile\" value=\""+connectorFile.getAbsolutePath().replaceAll("\\\\","/")+"\"/>\n"+
+      "  <property name=\"org.apache.manifoldcf.diagnostics\" value=\"DEBUG\"/>\n"
     );
+  }
+  
+  /** Method to write the connectors.xml contents.
+  * Override to replace everything.
+  */
+  protected void writeConnectorsXML(StringBuilder output)
+    throws Exception
+  {
+    output.append(
+      "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
+      "<connectors>\n"
+    );
+    writeConnectors(output);
+    output.append(
+      "</connectors>\n"
+    );
+  }
+  
+  /** Method to add connectors to connectors.xml contents.
+  * Override this method to add connector clauses to the connectors file.
+  */
+  protected void writeConnectors(StringBuilder output)
+    throws Exception
+  {
   }
   
   /** Method to get database superuser name.
@@ -152,7 +180,11 @@ public class Base
     writePropertiesXML(propertiesXMLContents);
     writeFile(configFile,propertiesXMLContents.toString());
 
-    ManifoldCF.initializeEnvironment();
+    StringBuilder connectorsXMLContents = new StringBuilder();
+    writeConnectorsXML(connectorsXMLContents);
+    writeFile(connectorFile,connectorsXMLContents.toString());
+
+    ManifoldCF.initializeEnvironment(ThreadContextFactory.make());
   }
   
   protected void localSetUp()
@@ -189,10 +221,12 @@ public class Base
       logOutputFile.delete();
       configFile.delete();
       loggingFile.delete();
+      connectorFile.delete();
       
-      ManifoldCF.cleanUpEnvironment();
+      IThreadContext threadContext = ThreadContextFactory.make();
+      ManifoldCF.cleanUpEnvironment(threadContext);
       // Just in case we're not synchronized...
-      ManifoldCF.resetEnvironment();
+      ManifoldCF.resetEnvironment(threadContext);
     }
   }
   

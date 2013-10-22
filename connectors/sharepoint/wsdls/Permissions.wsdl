@@ -296,10 +296,10 @@
   </wsdl:binding>
   <wsdl:service name="Permissions">
     <wsdl:port name="PermissionsSoap" binding="tns:PermissionsSoap">
-      <soap:address location="http://www.wssdemo.com/_vti_bin/Permissions.asmx" />
+      <soap:address location="http://localhost/_vti_bin/Permissions.asmx" />
     </wsdl:port>
     <wsdl:port name="PermissionsSoap12" binding="tns:PermissionsSoap12">
-      <soap12:address location="http://www.wssdemo.com/_vti_bin/Permissions.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/Permissions.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

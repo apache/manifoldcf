@@ -22,7 +22,7 @@ import com.filenet.api.util.Id;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Property
+public interface Property extends java.io.Serializable
 {
   public Object getObjectValue();
   public String getPropertyName();

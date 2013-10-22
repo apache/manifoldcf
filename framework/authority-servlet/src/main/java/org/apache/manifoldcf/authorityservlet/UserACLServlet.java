@@ -24,6 +24,7 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.RequestQueue;
 import org.apache.manifoldcf.authorities.system.AuthRequest;
+import org.apache.manifoldcf.authorities.system.MappingRequest;
 
 import java.io.*;
 import java.util.*;
@@ -137,38 +138,154 @@ public class UserACLServlet extends HttpServlet
         Logging.authorityService.debug("Received authority request for user '"+userID+"'");
       }
 
-      RequestQueue queue = ManifoldCF.getRequestQueue();
+      RequestQueue<MappingRequest> mappingQueue = ManifoldCF.getMappingRequestQueue();
+      if (mappingQueue == null)
+      {
+        // System wasn't started; return unauthorized
+        throw new ManifoldCFException("System improperly initialized");
+      }
+
+      RequestQueue<AuthRequest> queue = ManifoldCF.getRequestQueue();
       if (queue == null)
       {
         // System wasn't started; return unauthorized
         throw new ManifoldCFException("System improperly initialized");
       }
 
+      
       IThreadContext itc = ThreadContextFactory.make();
+      
+      IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(itc);
       IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(itc);
 
+      IMappingConnection[] mappingConnections = mappingConnManager.getAllConnections();
       IAuthorityConnection[] connections = authConnManager.getAllConnections();
-      int i = 0;
+      
+      // One thread per connection, which is responsible for starting the mapping process when it is ready.
+      List<MappingOrderThread> mappingThreads = new ArrayList<MappingOrderThread>();
+      // One thread per authority, which is responsible for starting the auth request when it is ready.
+      List<AuthOrderThread> authThreads = new ArrayList<AuthOrderThread>();
 
-      AuthRequest[] requests = new AuthRequest[connections.length];
+      Map<String,MappingRequest> mappingRequests = new HashMap<String,MappingRequest>();
+      Map<String,AuthRequest> authRequests = new HashMap<String,AuthRequest>();
 
-      // Queue up all the requests
-      while (i < connections.length)
+      Map<String,IMappingConnection> mappingConnMap = new HashMap<String,IMappingConnection>();
+      
+      // Fill in mappingConnMap, since we need to be able to find connections given connection names
+      for (IMappingConnection c : mappingConnections)
       {
-        IAuthorityConnection ac = connections[i];
-
-        String identifyingString = ac.getDescription();
-        if (identifyingString == null || identifyingString.length() == 0)
-          identifyingString = ac.getName();
-
-        AuthRequest ar = new AuthRequest(userID,ac.getClassName(),identifyingString,ac.getConfigParams(),ac.getMaxConnections());
-        queue.addRequest(ar);
-
-        requests[i++] = ar;
+        mappingConnMap.put(c.getName(),c);
       }
 
+      // Set of connections we need to fire off
+      Set<String> activeConnections = new HashSet<String>();
+
+      // We do the minimal set of mapping requests and authorities.  Since it is the authority tokens we are
+      // looking for, we start there, and build authority requests first, then mapping requests that support them,
+      // etc.
+      // Create auth requests
+      for (int i = 0; i < connections.length; i++)
+      {
+        IAuthorityConnection thisConnection = connections[i];
+        String identifyingString = thisConnection.getDescription();
+        if (identifyingString == null || identifyingString.length() == 0)
+          identifyingString = thisConnection.getName();
+        
+        // Create a request
+        AuthRequest ar = new AuthRequest(
+          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        authRequests.put(thisConnection.getName(), ar);
+        
+        // We create an auth thread if there are prerequisites to meet.
+        // Otherwise, we just fire off the request
+        if (thisConnection.getPrerequisiteMapping() == null)
+        {
+          ar.setUserID(userID);
+          queue.addRequest(ar);
+        }
+        else
+        {
+          AuthOrderThread thread = new AuthOrderThread(identifyingString,
+            ar, thisConnection.getPrerequisiteMapping(),
+            queue, mappingRequests);
+          authThreads.add(thread);
+          activeConnections.add(thisConnection.getPrerequisiteMapping());
+        }
+      }
+
+      // Create mapping requests
+      while (!activeConnections.isEmpty())
+      {
+        Iterator<String> connectionIter = activeConnections.iterator();
+        String connectionName = connectionIter.next();
+        IMappingConnection thisConnection = mappingConnMap.get(connectionName);
+        String identifyingString = thisConnection.getDescription();
+        if (identifyingString == null || identifyingString.length() == 0)
+          identifyingString = connectionName;
+
+        // Create a request
+        MappingRequest mr = new MappingRequest(
+          thisConnection.getClassName(),identifyingString,thisConnection.getConfigParams(),thisConnection.getMaxConnections());
+        mappingRequests.put(connectionName, mr);
+
+        // Either start up a thread, or just fire it off immediately.
+        if (thisConnection.getPrerequisiteMapping() == null)
+        {
+          mr.setUserID(userID);
+          mappingQueue.addRequest(mr);
+        }
+        else
+        {
+          //System.out.println("Mapper: prerequisite found: '"+thisConnection.getPrerequisiteMapping()+"'");
+          MappingOrderThread thread = new MappingOrderThread(identifyingString,
+            mr, thisConnection.getPrerequisiteMapping(), mappingQueue, mappingRequests);
+          mappingThreads.add(thread);
+          String p = thisConnection.getPrerequisiteMapping();
+          if (mappingRequests.get(p) == null)
+            activeConnections.add(p);
+        }
+        activeConnections.remove(connectionName);
+      }
+      
+      // Start threads.  We have to wait until all the requests have been
+      // at least created before we do this.
+      for (MappingOrderThread thread : mappingThreads)
+      {
+        thread.start();
+      }
+      for (AuthOrderThread thread : authThreads)
+      {
+        thread.start();
+      }
+      
+      // Wait for the threads to finish up.  This will guarantee that all entities have run to completion.
+      for (MappingOrderThread thread : mappingThreads)
+      {
+        thread.finishUp();
+      }
+      for (AuthOrderThread thread : authThreads)
+      {
+        thread.finishUp();
+      }
+      
+      // This is probably unnecessary, but we do it anyway just to adhere to the contract
+      for (MappingRequest mr : mappingRequests.values())
+      {
+        mr.waitForComplete();
+      }
+      
+      // Handle all exceptions thrown during mapping.  In general this just means logging them, because
+      // the downstream authorities will presumably not find what they are looking for and error out that way.
+      for (MappingRequest mr : mappingRequests.values())
+      {
+        Throwable exception = mr.getAnswerException();
+        if (exception != null)
+        {
+          Logging.authorityService.warn("Mapping exception logged from "+mr.getIdentifyingString()+": "+exception.getMessage()+"; mapper aborted", exception);
+        }
+      }
+      
       // Now, work through the returning answers.
-      i = 0;
 
       // Ask all the registered authorities for their ACLs, and merge the final list together.
       StringBuilder sb = new StringBuilder();
@@ -177,10 +294,10 @@ public class UserACLServlet extends HttpServlet
       ServletOutputStream out = response.getOutputStream();
       try
       {
-        while (i < connections.length)
+        for (int i = 0; i < connections.length; i++)
         {
           IAuthorityConnection ac = connections[i];
-          AuthRequest ar = requests[i++];
+          AuthRequest ar = authRequests.get(ac.getName());
 
           if (Logging.authorityService.isDebugEnabled())
             Logging.authorityService.debug("Waiting for answer from connector class '"+ac.getClassName()+"' for user '"+userID+"'");
@@ -203,7 +320,14 @@ public class UserACLServlet extends HttpServlet
             return;
           }
 
-          if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
+          // A null reply means the same as USERNOTFOUND; it occurs because a user mapping failed somewhere.
+          if (reply == null)
+          {
+            if (Logging.authorityService.isDebugEnabled())
+              Logging.authorityService.debug("User '"+userID+"' mapping failed for authority '"+ar.getIdentifyingString()+"'");
+            sb.append(USERNOTFOUND_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
+          }
+          else if (reply.getResponseStatus() == AuthorizationResponse.RESPONSE_UNREACHABLE)
           {
             Logging.authorityService.warn("Authority '"+ar.getIdentifyingString()+"' is unreachable for user '"+userID+"'");
             sb.append(UNREACHABLE_VALUE).append(java.net.URLEncoder.encode(ar.getIdentifyingString(),"UTF-8")).append("\n");
@@ -272,4 +396,130 @@ public class UserACLServlet extends HttpServlet
     }
   }
 
+  /** This thread is responsible for making sure that the constraints for a given mapping connection
+  * are met, and then when they are, firing off a MappingRequest.  One of these threads is spun up
+  * for every IMappingConnection being handled.
+  * NOTE WELL: The number of threads this might require is worrisome.  It is essentially
+  * <number_of_app_server_threads> * <number_of_mappers>.  I will try later to see if I can find
+  * a way of limiting this to sane numbers.
+  */
+  protected static class MappingOrderThread extends Thread
+  {
+    protected final MappingRequest request;
+    protected final String prerequisite;
+    protected final Map<String,MappingRequest> requests;
+    protected final RequestQueue<MappingRequest> mappingRequestQueue;
+
+    protected Throwable exception = null;
+    
+    public MappingOrderThread(
+      String identifyingString,
+      MappingRequest request,
+      String prerequisite,
+      RequestQueue<MappingRequest> mappingRequestQueue,
+      Map<String, MappingRequest> requests)
+    {
+      super();
+      this.request = request;
+      this.prerequisite = prerequisite;
+      this.mappingRequestQueue = mappingRequestQueue;
+      this.requests = requests;
+      setName("Constraint matcher for mapper '"+identifyingString+"'");
+      setDaemon(true);
+    }
+    
+    public void run()
+    {
+      try
+      {
+        MappingRequest mappingRequest = requests.get(prerequisite);
+        mappingRequest.waitForComplete();
+        // Constraints are met.  Fire off the request.
+        request.setUserID(mappingRequest.getAnswerResponse());
+        mappingRequestQueue.addRequest(request);
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException
+    {
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof Error)
+          throw (Error)exception;
+        else if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+      }
+    }
+    
+  }
+
+  /** This thread is responsible for making sure that the constraints for a given authority connection
+  * are met, and then when they are, firing off an AuthRequest.  One of these threads is spun up
+  * for every IAuthorityConnection being handled.
+  * NOTE WELL: The number of threads this might require is worrisome.  It is essentially
+  * <number_of_app_server_threads> * <number_of_authorities>.  I will try later to see if I can find
+  * a way of limiting this to sane numbers.
+  */
+  protected static class AuthOrderThread extends Thread
+  {
+    protected final AuthRequest request;
+    protected final String prerequisite;
+    protected final Map<String,MappingRequest> mappingRequests;
+    protected final RequestQueue<AuthRequest> authRequestQueue;
+    
+    protected Throwable exception = null;
+    
+    public AuthOrderThread(
+      String identifyingString,
+      AuthRequest request,
+      String prerequisite,
+      RequestQueue<AuthRequest> authRequestQueue,
+      Map<String, MappingRequest> mappingRequests)
+    {
+      super();
+      this.request = request;
+      this.prerequisite = prerequisite;
+      this.authRequestQueue = authRequestQueue;
+      this.mappingRequests = mappingRequests;
+      setName("Constraint matcher for authority '"+identifyingString+"'");
+      setDaemon(true);
+    }
+    
+    public void run()
+    {
+      try
+      {
+        MappingRequest mappingRequest = mappingRequests.get(prerequisite);
+        mappingRequest.waitForComplete();
+        // Constraints are met.  Fire off the request.  User may be null if mapper failed!!
+        request.setUserID(mappingRequest.getAnswerResponse());
+        authRequestQueue.addRequest(request);
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+
+    public void finishUp()
+      throws InterruptedException
+    {
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof Error)
+          throw (Error)exception;
+        else if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+      }
+    }
+    
+  }
+  
 }

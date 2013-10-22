@@ -19,33 +19,24 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 
-/** This class is a paper object which contains a job ID and a last job start time (0 if none).
+/** This class is a paper object which contains a job ID and a last job start time.
 */
-public class JobStartRecord
+public class JobStartRecord extends JobRecord
 {
   public static final String _rcsid = "@(#)$Id: JobStartRecord.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  /** The job id. */
-  protected Long jobID;
   /** The last synch time */
-  protected long synchTime;
-  /** Whether this job was started or not */
-  protected boolean wasStarted = false;
+  protected final long synchTime;
+  /** The requestMinimum flag */
+  protected final boolean requestMinimum;
 
   /** Constructor.
   */
-  public JobStartRecord(Long jobID, long synchTime)
+  public JobStartRecord(Long jobID, long synchTime, boolean requestMinimum)
   {
-    this.jobID = jobID;
+    super(jobID);
     this.synchTime = synchTime;
-  }
-
-  /** Get the job ID.
-  *@return the id.
-  */
-  public Long getJobID()
-  {
-    return jobID;
+    this.requestMinimum = requestMinimum;
   }
 
   /** Get the synch time.
@@ -56,19 +47,12 @@ public class JobStartRecord
     return synchTime;
   }
 
-  /** Note that the job was started.
+  /** Get the requestMinimum flag.
+  *@return the flag.
   */
-  public void noteStarted()
+  public boolean getRequestMinimum()
   {
-    wasStarted = true;
+    return requestMinimum;
   }
-
-  /** Check whether job was started.
-  *@return true if started.
-  */
-  public boolean wasStarted()
-  {
-    return wasStarted;
-  }
-
+  
 }

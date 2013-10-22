@@ -35,9 +35,6 @@ public class ConnectionFactory
 {
   public static final String _rcsid = "@(#)$Id: ConnectionFactory.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  // This default is designed to avoid strange errors with people using postgresql out of the box, where the maximum connection count is set to 100.
-  private static final int defaultMaxDBConnections = 50;
-  private static final int defaultTimeoutValue = 86400;
 
   private static HashMap checkedOutConnections = new HashMap();
 
@@ -47,7 +44,8 @@ public class ConnectionFactory
   {
   }
 
-  public static WrappedConnection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password)
+  public static WrappedConnection getConnection(String jdbcUrl, String jdbcDriver, String database, String userName, String password,
+    int maxDBConnections, boolean debug)
     throws ManifoldCFException
   {
     // Make sure database driver is registered
@@ -59,8 +57,8 @@ public class ConnectionFactory
     {
       throw new ManifoldCFException("Unable to load database driver: "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
     }
-
-    ConnectionPoolManager cpm = poolManager.createPoolManager();
+    
+    ConnectionPoolManager cpm = poolManager.createPoolManager(debug);
     
     try
     {
@@ -76,18 +74,6 @@ public class ConnectionFactory
       }
       if (cp == null)
       {
-        String handleMax = ManifoldCF.getProperty(ManifoldCF.databaseHandleMaxcountProperty);
-        int maxDBConnections = defaultMaxDBConnections;
-        if (handleMax != null && handleMax.length() > 0)
-          maxDBConnections = Integer.parseInt(handleMax);
-        //String timeoutValueString = ManifoldCF.getProperty(ManifoldCF.databaseHandleTimeoutProperty);
-        //int timeoutValue = defaultTimeoutValue;
-        //if (timeoutValueString != null && timeoutValueString.length() > 0)
-        //  timeoutValue = Integer.parseInt(timeoutValueString);
-
-        // Logging.db.debug("adding pool alias [" + database + "]");
-        // I had to up the timeout from one hour to 3 due to the webconnector keeping some connections open a very long time...
-	//System.out.println("jdbcUrl = '"+jdbcUrl+"', userName='"+userName+"', password='"+password+"'");
         cpm.addAlias(database, jdbcDriver, jdbcUrl,
           userName, password,
           maxDBConnections, 300000L);
@@ -173,18 +159,19 @@ public class ConnectionFactory
   {
     private Integer poolExistenceLock = new Integer(0);
     private ConnectionPoolManager _pool = null;
-
+    
     private PoolManager()
     {
     }
 
-    public ConnectionPoolManager createPoolManager()
+    public ConnectionPoolManager createPoolManager(boolean debug)
+      throws ManifoldCFException
     {
       synchronized (poolExistenceLock)
       {
         if (_pool != null)
           return _pool;
-        _pool = new ConnectionPoolManager(100);
+        _pool = new ConnectionPoolManager(100, debug);
         return _pool;
       }
     }

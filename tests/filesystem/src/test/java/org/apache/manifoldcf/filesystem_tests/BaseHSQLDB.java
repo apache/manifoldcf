@@ -30,6 +30,16 @@ import org.junit.*;
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
 {
+  public BaseHSQLDB()
+  {
+    super();
+  }
+  
+  public BaseHSQLDB(boolean singleWar)
+  {
+    super(singleWar);
+  }
+
   protected String[] getConnectorNames()
   {
     return new String[]{"File Connector"};

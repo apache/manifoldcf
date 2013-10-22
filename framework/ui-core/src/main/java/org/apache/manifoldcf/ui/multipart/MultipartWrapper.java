@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.ui.multipart;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.ui.beans.AdminProfile;
 import org.apache.commons.fileupload.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -33,6 +34,8 @@ public class MultipartWrapper implements IPostParameters
 {
   public static final String _rcsid = "@(#)$Id: MultipartWrapper.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  /** The Admin Profile bean, for password mapping. */
+  protected final AdminProfile adminProfile;
   /** This is the HttpServletRequest object, which will be used for parameters only if
   * the form is not multipart. */
   protected HttpServletRequest request = null;
@@ -41,9 +44,11 @@ public class MultipartWrapper implements IPostParameters
 
   /** Constructor.
   */
-  public MultipartWrapper(HttpServletRequest request)
+  public MultipartWrapper(HttpServletRequest request, AdminProfile adminProfile)
     throws ManifoldCFException
   {
+    this.adminProfile = adminProfile;
+
     // Check that we have a file upload request
     boolean isMultipart = FileUpload.isMultipartContent(request);
     if (!isMultipart)
@@ -95,6 +100,7 @@ public class MultipartWrapper implements IPostParameters
 
   /** Get multiple parameter values.
   */
+  @Override
   public String[] getParameterValues(String name)
   {
     // Expect multiple items, all strings
@@ -136,6 +142,7 @@ public class MultipartWrapper implements IPostParameters
 
   /** Get single parameter value.
   */
+  @Override
   public String getParameter(String name)
   {
     // Get it as a parameter.
@@ -167,6 +174,7 @@ public class MultipartWrapper implements IPostParameters
 
   /** Get a file parameter, as a binary input.
   */
+  @Override
   public BinaryInput getBinaryStream(String name)
     throws ManifoldCFException
   {
@@ -205,6 +213,7 @@ public class MultipartWrapper implements IPostParameters
 
   /** Get file parameter, as a byte array.
   */
+  @Override
   public byte[] getBinaryBytes(String name)
   {
     if (request != null)
@@ -227,6 +236,7 @@ public class MultipartWrapper implements IPostParameters
 
   /** Set a parameter value
   */
+  @Override
   public void setParameter(String name, String value)
   {
     ArrayList values = new ArrayList();
@@ -237,6 +247,7 @@ public class MultipartWrapper implements IPostParameters
 
   /** Set an array of parameter values
   */
+  @Override
   public void setParameterValues(String name, String[] values)
   {
     ArrayList valueArray = new ArrayList();
@@ -248,4 +259,30 @@ public class MultipartWrapper implements IPostParameters
     variableMap.put(name,valueArray);
   }
 
+  // Password mapping
+  
+  /** Map a password to a unique key.
+  * This method works within a specific given browser session to replace an existing password with
+  * a key which can be used to look up the password at a later time.
+  *@param password is the password.
+  *@return the key.
+  */
+  @Override
+  public String mapPasswordToKey(String password)
+  {
+    return adminProfile.getPasswordMapper().mapPasswordToKey(password);
+  }
+  
+  /** Convert a key, created by mapPasswordToKey, back to the original password, within
+  * the lifetime of the browser session.  If the provided key is not an actual key, instead
+  * the key value is assumed to be a new password value.
+  *@param key is the key.
+  *@return the password.
+  */
+  @Override
+  public String mapKeyToPassword(String key)
+  {
+    return adminProfile.getPasswordMapper().mapKeyToPassword(key);
+  }
+  
 }

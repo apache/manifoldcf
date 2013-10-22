@@ -32,10 +32,10 @@ public class AuthRequest
 
   // This is where the request data actually lives
   protected String userID;
-  protected String className;
-  protected String identifyingString;
-  protected ConfigParams configParameters;
-  protected int maxConnections;
+  protected final String className;
+  protected final String identifyingString;
+  protected final ConfigParams configParameters;
+  protected final int maxConnections;
 
   // These are the possible results of the request
   protected boolean answerComplete = false;
@@ -44,15 +44,20 @@ public class AuthRequest
 
   /** Construct the request, and record the question.
   */
-  public AuthRequest(String userID, String className, String identifyingString, ConfigParams configParameters, int maxConnections)
+  public AuthRequest(String className, String identifyingString, ConfigParams configParameters, int maxConnections)
   {
-    this.userID = userID;
     this.className = className;
     this.identifyingString = identifyingString;
     this.configParameters = configParameters;
     this.maxConnections = maxConnections;
   }
 
+  /** Set the user ID we'll be using */
+  public void setUserID(String userID)
+  {
+    this.userID = userID;
+  }
+  
   /** Get the user id */
   public String getUserID()
   {

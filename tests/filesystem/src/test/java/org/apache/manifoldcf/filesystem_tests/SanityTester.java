@@ -131,11 +131,11 @@ public class SanityTester
     if (status.getDocumentsProcessed() != 5)
       throw new ManifoldCFException("Wrong number of documents processed - expected 5, saw "+new Long(status.getDocumentsProcessed()).toString());
       
-    // Add a file and recrawl
+    // Add a file and recrawl using minimal crawl
     FileHelper.createFile(new File("testdata/testdir/test4.txt"),"Added file");
 
     // Now, start the job, and wait until it completes.
-    jobManager.manualStart(job.getID());
+    jobManager.manualStart(job.getID(),true);
     instance.waitJobInactiveNative(jobManager,job.getID(),120000L);
 
     status = jobManager.getStatus(job.getID());
@@ -143,11 +143,11 @@ public class SanityTester
     if (status.getDocumentsProcessed() != 6)
       throw new ManifoldCFException("Wrong number of documents processed after add - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
 
-    // Change a file, and recrawl
+    // Change a file, and recrawl, once again using minimal
     FileHelper.changeFile(new File("testdata/test1.txt"),"Modified contents");
       
     // Now, start the job, and wait until it completes.
-    jobManager.manualStart(job.getID());
+    jobManager.manualStart(job.getID(),true);
     instance.waitJobInactiveNative(jobManager,job.getID(),120000L);
 
     status = jobManager.getStatus(job.getID());
@@ -159,8 +159,17 @@ public class SanityTester
       
     // Delete a file, and recrawl
     FileHelper.removeFile(new File("testdata/test2.txt"));
-      
-    // Now, start the job, and wait until it completes.
+    
+    // Do a minimal recrawl first; the delete should not be picked up.
+    jobManager.manualStart(job.getID(),true);
+    instance.waitJobInactiveNative(jobManager,job.getID(),120000L);
+
+    status = jobManager.getStatus(job.getID());
+    // The test data area has 4 documents and one directory, and we have to count the root directory too.
+    if (status.getDocumentsProcessed() != 6)
+      throw new ManifoldCFException("Wrong number of documents processed after delete with minimal crawl - expected 6, saw "+new Long(status.getDocumentsProcessed()).toString());
+    
+    // Now, do a complete crawl - the delete should be found now.
     jobManager.manualStart(job.getID());
     instance.waitJobInactiveNative(jobManager,job.getID(),120000L);
 

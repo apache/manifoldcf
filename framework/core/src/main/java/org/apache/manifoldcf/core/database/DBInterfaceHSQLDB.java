@@ -58,9 +58,9 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   public DBInterfaceHSQLDB(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,getJDBCString(databaseName),_driver,getDatabaseString(databaseName),userName,password);
+    super(tc,getJDBCString(tc,databaseName),_driver,getDatabaseString(tc,databaseName),userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
-    this.isRemote = ManifoldCF.getProperty(databaseProtocolProperty) != null;
+    this.isRemote = LockManagerFactory.getProperty(tc,databaseProtocolProperty) != null;
     this.userName = userName;
     this.password = password;
     if (this.isRemote)
@@ -69,34 +69,34 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       schemaNameForQueries = "PUBLIC";
   }
 
-  protected static String getJDBCString(String databaseName)
+  protected static String getJDBCString(IThreadContext tc, String databaseName)
     throws ManifoldCFException
   {
     // For local, we use the database name as the name of the database files.
     // For remote, we connect to an instance specified by a different property, and use the database name as the schema name.
-    String protocol = ManifoldCF.getProperty(databaseProtocolProperty);
+    String protocol = LockManagerFactory.getProperty(tc,databaseProtocolProperty);
     if (protocol == null)
       return _localUrl+getFullDatabasePath(databaseName);
     
     // Remote instance.  Build the URL.
     if (legalProtocolValues.get(protocol) == null)
       throw new ManifoldCFException("The value of the '"+databaseProtocolProperty+"' property was illegal; try hsql, http, or https");
-    String server = ManifoldCF.getProperty(databaseServerProperty);
+    String server = LockManagerFactory.getProperty(tc,databaseServerProperty);
     if (server == null)
       throw new ManifoldCFException("HSQLDB remote mode requires '"+databaseServerProperty+"' property, containing a server name or IP address");
-    String port = ManifoldCF.getProperty(databasePortProperty);
+    String port = LockManagerFactory.getProperty(tc,databasePortProperty);
     if (port != null && port.length() > 0)
       server += ":"+port;
-    String instanceName = ManifoldCF.getProperty(databaseInstanceProperty);
+    String instanceName = LockManagerFactory.getProperty(tc,databaseInstanceProperty);
     if (instanceName != null && instanceName.length() > 0)
       server += "/" + instanceName;
     return _remoteUrl + protocol + "://" + server;
   }
   
-  protected static String getDatabaseString(String databaseName)
+  protected static String getDatabaseString(IThreadContext tc, String databaseName)
     throws ManifoldCFException
   {
-    String protocol = ManifoldCF.getProperty(databaseProtocolProperty);
+    String protocol = LockManagerFactory.getProperty(tc,databaseProtocolProperty);
     if (protocol == null)
       return getFullDatabasePath(databaseName);
     return databaseName;
@@ -125,7 +125,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   {
     super.initializeConnection(connection);
     // Set the schema
-    executeViaThread(connection,"SET SCHEMA "+schemaNameForQueries.toUpperCase(),null,false,-1,null,null);
+    executeViaThread(connection,"SET SCHEMA "+schemaNameForQueries.toUpperCase(Locale.ROOT),null,false,-1,null,null);
   }
 
   /** Initialize.  This method is called once per JVM instance, in order to set up
@@ -585,13 +585,13 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
       
       // Now, look for schema
       params.clear();
-      params.add(databaseName.toUpperCase());
+      params.add(databaseName.toUpperCase(Locale.ROOT));
       IResultSet schemaResult = masterDatabase.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_SCHEMAS WHERE TABLE_SCHEM=?",params,
         null,null,null,true,-1,null,null);
       if (schemaResult.getRowCount() == 0)
       {
         // Create the schema
-	masterDatabase.executeQuery("CREATE SCHEMA "+databaseName.toUpperCase()+" AUTHORIZATION "+quoteString(userName),null,
+	masterDatabase.executeQuery("CREATE SCHEMA "+databaseName.toUpperCase(Locale.ROOT)+" AUTHORIZATION "+quoteString(userName),null,
           null,invalidateKeys,null,false,0,null,null);
       }
     }
@@ -766,8 +766,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   {
     StringBuilder query = new StringBuilder();
     List list = new ArrayList();
-    list.add(schemaNameForQueries.toUpperCase());
-    list.add(tableName.toUpperCase());
+    list.add(schemaNameForQueries.toUpperCase(Locale.ROOT));
+    list.add(tableName.toUpperCase(Locale.ROOT));
     query.append("SELECT column_name, is_nullable, data_type, character_maximum_length ")
       .append("FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema=? AND table_name=?");
     IResultSet set = performQuery(query.toString(),list,cacheKeys,queryClass);
@@ -780,7 +780,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     IResultSet primarySet = performQuery(query.toString(),list,cacheKeys,queryClass);
     String primaryKey = null;
     if (primarySet.getRowCount() != 0)
-      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase();
+      primaryKey = ((String)primarySet.getRow(0).getValue("column_name")).toLowerCase(Locale.ROOT);
     if (primaryKey == null)
       primaryKey = "";
     
@@ -790,7 +790,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     while (i < set.getRowCount())
     {
       IResultRow row = set.getRow(i++);
-      String fieldName = ((String)row.getValue("column_name")).toLowerCase();
+      String fieldName = ((String)row.getValue("column_name")).toLowerCase(Locale.ROOT);
       String type = (String)row.getValue("data_type");
       Long width = (Long)row.getValue("character_maximum_length");
       String isNullable = (String)row.getValue("is_nullable");
@@ -823,8 +823,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     String query = "SELECT index_name,column_name,non_unique,ordinal_position FROM INFORMATION_SCHEMA.SYSTEM_INDEXINFO "+
       "WHERE table_schem=? AND TABLE_NAME=? ORDER BY index_name,ordinal_position ASC";
     List list = new ArrayList();
-    list.add(schemaNameForQueries.toUpperCase());
-    list.add(tableName.toUpperCase());
+    list.add(schemaNameForQueries.toUpperCase(Locale.ROOT));
+    list.add(tableName.toUpperCase(Locale.ROOT));
     IResultSet result = performQuery(query,list,cacheKeys,queryClass);
     String lastIndexName = null;
     List<String> indexColumns = null;
@@ -833,8 +833,8 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     while (i < result.getRowCount())
     {
       IResultRow row = result.getRow(i++);
-      String indexName = ((String)row.getValue("index_name")).toLowerCase();
-      String columnName = ((String)row.getValue("column_name")).toLowerCase();
+      String indexName = ((String)row.getValue("index_name")).toLowerCase(Locale.ROOT);
+      String columnName = ((String)row.getValue("column_name")).toLowerCase(Locale.ROOT);
       String nonUnique = row.getValue("non_unique").toString();
       
       if (lastIndexName != null && !lastIndexName.equals(indexName))
@@ -884,7 +884,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
-    list.add(schemaNameForQueries.toUpperCase());
+    list.add(schemaNameForQueries.toUpperCase(Locale.ROOT));
     IResultSet set = performQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema=?",list,cacheKeys,queryClass);
     StringSetBuffer ssb = new StringSetBuffer();
     String columnName = "table_name";
@@ -969,6 +969,33 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
     }
   }
 
+  /** Construct ORDER-BY clause meant for reading from an index.
+  * Supply the field names belonging to the index, in order.
+  * Also supply a corresponding boolean array, where TRUE means "ASC", and FALSE
+  * means "DESC".
+  *@param fieldNames are the names of the fields in the index that is to be used.
+  *@param direction is a boolean describing the sorting order of the first term.
+  *@return a query chunk, including "ORDER BY" text, which is appropriate for
+  * at least ordering by the FIRST column supplied.
+  */
+  public String constructIndexOrderByClause(String[] fieldNames, boolean direction)
+  {
+    if (fieldNames.length == 0)
+      return "";
+    StringBuilder sb = new StringBuilder("ORDER BY ");
+    for (int i = 0; i < fieldNames.length; i++)
+    {
+      if (i > 0)
+        sb.append(", ");
+      sb.append(fieldNames[i]);
+      if (direction)
+        sb.append(" ASC");
+      else
+        sb.append(" DESC");
+    }
+    return sb.toString();
+  }
+  
   /** Construct a cast to a double value.
   * On most databases this cast needs to be explicit, but on some it is implicit (and cannot be in fact
   * specified).
@@ -1462,7 +1489,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
   @Override
   protected String mapLabelName(String rawLabelName)
   {
-    return rawLabelName.toLowerCase();
+    return rawLabelName.toLowerCase(Locale.ROOT);
   }
 
 }

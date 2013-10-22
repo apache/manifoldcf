@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-tests</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -69,7 +69,7 @@
                 <artifactItem>
                   <groupId>org.apache.chemistry.opencmis</groupId>
                   <artifactId>chemistry-opencmis-server-inmemory</artifactId>
-                  <version>0.7.0</version>
+                  <version>0.9.0</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
                   <destFileName>chemistry-opencmis-server-inmemory.war</destFileName>
@@ -144,7 +144,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-server-inmemory</artifactId>
-      <version>0.7.0</version>
+      <version>0.9.0</version>
       <type>war</type>
     </dependency>
     <dependency>
@@ -324,9 +324,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>${commons-httpclient.version}</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.httpclient.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
@@ -343,7 +343,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-client-impl</artifactId>
-      <version>0.7.0</version>
+      <version>0.9.0</version>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>

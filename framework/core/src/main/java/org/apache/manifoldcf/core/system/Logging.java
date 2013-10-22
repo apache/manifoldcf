@@ -45,6 +45,7 @@ public class Logging
   public static Logger cache = null;
   public static Logger keystore = null;
   public static Logger perf = null;
+  public static Logger diagnostics = null;
 
   private static HashMap loggerTable = null;
   private static HashMap logLevelMap = null;
@@ -90,11 +91,13 @@ public class Logging
     cache = newLogger("org.apache.manifoldcf.cache");
     keystore = newLogger("org.apache.manifoldcf.keystore");
     perf = newLogger("org.apache.manifoldcf.perf");
+    diagnostics = newLogger("org.apache.manifoldcf.diagnostics");
   }
 
   /** Reset all loggers
   */
-  public static void setLogLevels()
+  public static void setLogLevels(IThreadContext threadContext)
+    throws ManifoldCFException
   {
     // System.out.println("Setting log levels @ " + new Date().toString());
     Iterator it = loggerTable.entrySet().iterator();
@@ -107,7 +110,7 @@ public class Logging
       String loggername = (String)e.getKey();
 
       // logger level
-      String level = ManifoldCF.getProperty(loggername);
+      String level = LockManagerFactory.getProperty(threadContext, loggername);
 
       Level loglevel = null;
       if (level != null && level.length() > 0)

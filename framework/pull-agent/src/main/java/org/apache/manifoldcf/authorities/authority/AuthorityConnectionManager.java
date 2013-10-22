@@ -39,6 +39,7 @@ import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFacto
  * <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
  * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
  * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
+ * <tr><td>mappingname</td><td>VARCHAR(32)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -55,8 +56,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   protected final static String classNameField = "classname";
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
-
-  protected static Random random = new Random();
+  protected final static String mappingField = "mappingname";
 
   // Cache manager
   ICacheManager cacheManager;
@@ -77,6 +77,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
 
   /** Install the manager.
   */
+  @Override
   public void install()
     throws ManifoldCFException
   {
@@ -93,11 +94,19 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         map.put(classNameField,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
         map.put(maxCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
+        map.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
       {
-        // Upgrade code goes here
+        // Add the mappingField column
+        ColumnDescription cd = (ColumnDescription)existing.get(mappingField);
+        if (cd == null)
+        {
+          Map addMap = new HashMap();
+          addMap.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
       }
 
       // Index management goes here
@@ -108,6 +117,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
 
   /** Uninstall the manager.
   */
+  @Override
   public void deinstall()
     throws ManifoldCFException
   {
@@ -115,11 +125,12 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   }
 
   /** Export configuration */
+  @Override
   public void exportConfiguration(java.io.OutputStream os)
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,1);
+    ManifoldCF.writeDword(os,2);
     // Get the authority list
     IAuthorityConnection[] list = getAllConnections();
     // Write the number of authorities
@@ -134,15 +145,17 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       ManifoldCF.writeString(os,conn.getClassName());
       ManifoldCF.writeString(os,conn.getConfigParams().toXML());
       ManifoldCF.writeDword(os,conn.getMaxConnections());
+      ManifoldCF.writeString(os,conn.getPrerequisiteMapping());
     }
   }
 
   /** Import configuration */
+  @Override
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 1)
+    if (version < 1 || version > 2)
       throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     int i = 0;
@@ -154,6 +167,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       conn.setClassName(ManifoldCF.readString(is));
       conn.getConfigParams().fromXML(ManifoldCF.readString(is));
       conn.setMaxConnections(ManifoldCF.readDword(is));
+      if (version >= 2)
+      {
+        conn.setPrerequisiteMapping(ManifoldCF.readString(is));
+      }
       // Attempt to save this connection
       save(conn);
       i++;
@@ -163,6 +180,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Obtain a list of the repository connections, ordered by name.
   *@return an array of connection objects.
   */
+  @Override
   public IAuthorityConnection[] getAllConnections()
     throws ManifoldCFException
   {
@@ -205,6 +223,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param name is the name of the repository connection.
   *@return the loaded connection object, or null if not found.
   */
+  @Override
   public IAuthorityConnection load(String name)
     throws ManifoldCFException
   {
@@ -215,6 +234,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param names are the names to load.
   *@return the loaded connection objects.
   */
+  @Override
   public IAuthorityConnection[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
@@ -238,6 +258,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Create a new repository connection object.
   *@return the new object.
   */
+  @Override
   public IAuthorityConnection create()
     throws ManifoldCFException
   {
@@ -249,6 +270,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param object is the object to save.
   *@return true if the object is created, false otherwise.
   */
+  @Override
   public boolean save(IAuthorityConnection object)
     throws ManifoldCFException
   {
@@ -281,6 +303,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             values.put(classNameField,object.getClassName());
             values.put(maxCountField,new Long((long)object.getMaxConnections()));
             values.put(configField,object.getConfigParams().toXML());
+            values.put(mappingField,object.getPrerequisiteMapping());
 
             boolean isCreated;
             
@@ -349,6 +372,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param name is the name of the connection to delete.  If the
   * name does not exist, no error is returned.
   */
+  @Override
   public void delete(String name)
     throws ManifoldCFException
   {
@@ -400,9 +424,29 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Get the authority connection name column.
   *@return the name column.
   */
+  @Override
   public String getAuthorityNameColumn()
   {
     return nameField;
+  }
+
+  /** Return true if the specified mapping name is referenced.
+  *@param mappingName is the mapping name.
+  *@return true if referenced, false otherwise.
+  */
+  @Override
+  public boolean isMappingReferenced(String mappingName)
+    throws ManifoldCFException
+  {
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getAuthorityConnectionsKey());
+    StringSet localCacheKeys = new StringSet(ssb);
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(mappingField,mappingName)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
+      localCacheKeys,null);
+    return set.getRowCount() > 0;
   }
 
   // Caching strategy: Individual connection descriptions are cached, and there is a global cache key for the list of
@@ -514,6 +558,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       rc.setDescription((String)row.getValue(descriptionField));
       rc.setClassName((String)row.getValue(classNameField));
       rc.setMaxConnections((int)((Long)row.getValue(maxCountField)).longValue());
+      rc.setPrerequisiteMapping((String)row.getValue(mappingField));
       String xml = (String)row.getValue(configField);
       if (xml != null && xml.length() > 0)
         rc.getConfigParams().fromXML(xml);

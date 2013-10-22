@@ -19,10 +19,21 @@
 
     <import file="../connector-build.xml"/>
 
-    <target name="calculate-run-condition">
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="lib-proprietary" includes="*.jar"/>
+    </path>
+
+    <target name="has-proprietary-materials-check">
         <available file="lib-proprietary/lapi.jar" property="lapiStatus"/>
-        <condition property="libs-present">
+        <condition property="proprietaryMaterialsAvailable">
             <isset property="lapiStatus"/>
+        </condition>
+    </target>
+    
+    <target name="calculate-run-condition" depends="has-proprietary-materials-check">
+        <condition property="libs-present">
+            <isset property="proprietaryMaterialsAvailable"/>
         </condition>
     </target>
     

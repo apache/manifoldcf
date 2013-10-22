@@ -33,19 +33,25 @@
       <p>最新版のManifoldCFのJavadocは以下のリンクから参照することができます：</p>
       <p><a href="../api/framework/index.html">ManifoldCFフレームワーク</a></p>
       <p><a href="../api/activedirectory/index.html">Active Directory権限コネクタ</a></p>
+      <p><a href="../api/alfresco/index.html">Alfrescoコネクタ</a></p>
       <p><a href="../api/cmis/index.html">CMIS権限コネクタ</a></p>
       <p><a href="../api/documentum/index.html">Documentum権限コネクタ</a></p>
+      <p><a href="../api/dropbox/index.html">Dropboxコネクタ</a></p>
       <p><a href="../api/filenet/index.html">FileNetコネクタ</a></p>
-      <p><a href="../api/filesystem/index.html">ファイルシステムコネクタ</a></p>
+      <p><a href="../api/filesystem/index.html">File system repository and output connector</a></p>
+      <p><a href="../api/googledrive/index.html">GoogleDriveコネクタ</a></p>
       <p><a href="../api/gts/index.html">qBase GTS出力コネクタ</a></p>
+      <p><a href="../api/hdfs/index.html">HDFS repository and output connector</a></p>
       <p><a href="../api/jcifs/index.html">CIFSコネクタ</a></p>
       <p><a href="../api/jdbc/index.html">JDBCコネクタ</a></p>
+      <p><a href="../api/jira/index.html">JIRA connector and authority</a></p>
       <p><a href="../api/livelink/index.html">LiveLink権限コネクタ</a></p>
       <p><a href="../api/meridio/index.html">Meridio権限コネクタ</a></p>
       <p><a href="../api/opensearchserver/index.html">OpenSearchServer出力コネクタ</a></p>
       <p><a href="../api/elasticsearch/index.html">ElasticSearch出力コネクタ</a></p>
       <p><a href="../api/nullauthority/index.html">Null権限コネクタ</a></p>
       <p><a href="../api/nulloutput/index.html">Null出力コネクタ</a></p>
+      <p><a href="../api/regexpmapper/index.html">Regular expression mapping connector</a></p>
       <p><a href="../api/rss/index.html">RSSコネクタ</a></p>
       <p><a href="../api/sharepoint/index.html">SharePointコネクタ</a></p>
       <p><a href="../api/solr/index.html">Solr出力コネクタ</a></p>

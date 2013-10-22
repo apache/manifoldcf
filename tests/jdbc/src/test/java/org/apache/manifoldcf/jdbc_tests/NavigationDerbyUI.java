@@ -50,6 +50,16 @@ public class NavigationDerbyUI extends BaseUIDerby
     
     window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
     
+    // Login
+    form = window.findForm(testerInstance.createStringDescription("loginform"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("userID"));
+    textarea.setValue(testerInstance.createStringDescription("admin"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
+    textarea.setValue(testerInstance.createStringDescription("admin"));
+    button = window.findButton(testerInstance.createStringDescription("Login"));
+    button.click();
+    window = testerInstance.findWindow(null);
+
     // Define an output connection via the UI
     link = window.findLink(testerInstance.createStringDescription("List output connections"));
     link.click();
@@ -206,6 +216,70 @@ public class NavigationDerbyUI extends BaseUIDerby
     link = window.findLink(testerInstance.createStringDescription("Delete MyOutputConnection"));
     link.click();
     
+    // Now go on to execute the authority test
+
+    window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
+    
+    // Define an authority connection via the UI
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("List authorities"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Add a new connection"));
+    link.click();
+    // Fill in a name
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
+    textarea.setValue(testerInstance.createStringDescription("MyAuthorityConnection"));
+    link = window.findLink(testerInstance.createStringDescription("Type tab"));
+    link.click();
+    // Select a type
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
+    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.authorities.authorities.jdbc.JDBCAuthority"));
+    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
+    button.click();
+    // Credentials tab
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Credentials tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    textarea = form.findTextarea(testerInstance.createStringDescription("username"));
+    textarea.setValue(testerInstance.createStringDescription("foo"));
+    // Server
+    link = window.findLink(testerInstance.createStringDescription("Server tab"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    // Database Type
+    link = window.findLink(testerInstance.createStringDescription("Database Type tab"));
+    link.click();
+    // Visit all the connector tabs.
+    // Queries
+    window = testerInstance.findWindow(null);
+    form = window.findForm(testerInstance.createStringDescription("editconnection"));
+    link = window.findLink(testerInstance.createStringDescription("Queries tab"));
+    link.click();
+    // Go back to the Name tab
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Name tab"));
+    link.click();
+    // Now save the connection.
+    window = testerInstance.findWindow(null);
+    button = window.findButton(testerInstance.createStringDescription("Save this authority connection"));
+    button.click();
+    
+    // Delete the authority connection
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("List authorities"));
+    link.click();
+    window = testerInstance.findWindow(null);
+    link = window.findLink(testerInstance.createStringDescription("Delete MyAuthorityConnection"));
+    link.click();
+
     testerInstance.executeTest();
   }
   

@@ -145,10 +145,15 @@ public class OpenSearchServerSpecs extends OpenSearchServerParam {
   }
 
   public boolean checkExtension(String extension) {
+    if (extension == null || extension.length() == 0)
+      // Special character to match - see CONNECTORS-707
+      extension = ".";
     return extensionSet.contains(extension);
   }
 
   public boolean checkMimeType(String mimeType) {
+    if (mimeType == null)
+      mimeType = "application/unknown";
     return mimeTypeSet.contains(mimeType);
   }
 }

@@ -23,18 +23,25 @@ import javax.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.system.ManifoldCF;
+
 /** An instance of this class manages a number of (independent) connection pools.
 */
 public class ConnectionPoolManager
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  protected Map<String,ConnectionPool> poolMap;
-  protected ConnectionCloserThread connectionCloserThread;
+  protected final Map<String,ConnectionPool> poolMap;
+  protected final ConnectionCloserThread connectionCloserThread;
   protected volatile AtomicBoolean shuttingDown = new AtomicBoolean(false);
-
-  public ConnectionPoolManager(int count)
+  protected final boolean debug;
+  
+  public ConnectionPoolManager(int count, boolean debug)
+    throws ManifoldCFException
   {
+    this.debug = debug;
     poolMap = new HashMap<String,ConnectionPool>(count);
     connectionCloserThread = new ConnectionCloserThread();
     connectionCloserThread.start();
@@ -54,7 +61,7 @@ public class ConnectionPoolManager
     throws ClassNotFoundException, InstantiationException, IllegalAccessException
   {
     Class.forName(driverClassName).newInstance();
-    ConnectionPool cp = new ConnectionPool(dbURL,userName,password,maxSize,expiration);
+    ConnectionPool cp = new ConnectionPool(dbURL,userName,password,maxSize,expiration,debug);
     poolMap.put(poolKey,cp);
     return cp;
   }

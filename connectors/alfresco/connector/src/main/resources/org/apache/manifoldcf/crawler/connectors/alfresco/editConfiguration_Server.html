@@ -104,6 +104,16 @@
         <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('AlfrescoConnector.SocketTimeoutColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="socketTimeout" name="socketTimeout" type="text" size="10" value="$Encoder.attributeEscape($SOCKETTIMEOUT)" />
+    </td>
+  </tr>
 </table>
 
 #else
@@ -115,6 +125,7 @@
 <input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)" />
 <input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
 <input type="hidden" name="tenantDomain" value="$Encoder.attributeEscape($TENANTDOMAIN)" />
+<input type="hidden" name="socketTimeout" value="$Encoder.attributeEscape($SOCKETTIMEOUT)" />
 
 #end
 

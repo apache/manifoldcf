@@ -287,36 +287,18 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   public void deleteOwner(Long jobID)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
-    {
-      // Delete the intrinsic rows belonging to this job.
-      intrinsicLinkManager.deleteOwner(jobID);
+    // Delete the intrinsic rows belonging to this job.
+    intrinsicLinkManager.deleteOwner(jobID);
 
-      // Delete the deletedeps rows
-      deleteDepsManager.deleteJob(jobID);
+    // Delete the deletedeps rows
+    deleteDepsManager.deleteJob(jobID);
 
-      // Delete our own rows.
-      ArrayList list = new ArrayList();
-      String query = buildConjunctionClause(list,new ClauseDescription[]{
-        new UnitaryClause(jobIDField,jobID)});
-      performDelete("WHERE "+query,list,null);
-      noteModifications(0,0,1);
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    // Delete our own rows.
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID)});
+    performDelete("WHERE "+query,list,null);
+    noteModifications(0,0,1);
   }
 
   /** Reset, at startup time.
@@ -324,25 +306,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   public void reset()
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
-    {
-      intrinsicLinkManager.reset();
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    intrinsicLinkManager.reset();
   }
 
   /** Record a references from a set of documents to the root.  These will be marked as "new" or "existing", and
@@ -403,130 +367,112 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       rval[i] = false;
     }
     
-    beginTransaction();
-    try
+    String[] newReferences = intrinsicLinkManager.recordReferences(jobID,sourceDocumentIDHash,targetDocumentIDHashes,linkType);
+    if (newReferences.length > 0)
     {
-      String[] newReferences = intrinsicLinkManager.recordReferences(jobID,sourceDocumentIDHash,targetDocumentIDHashes,linkType);
-      if (newReferences.length > 0)
-      {
-        // There are added links.
+      // There are added links.
         
 
-        // The add causes hopcount records to be queued for processing (and created if they don't exist).
-        // ALL the hopcount records for the target document ids must be queued, for all the link types
-        // there are for this job.  Other times, the queuing requirement is less stringent, such as
-        // when a hopcount for one linktype changes.  In those cases we only want to queue up hopcount
-        // records corresponding to the changed record.
+      // The add causes hopcount records to be queued for processing (and created if they don't exist).
+      // ALL the hopcount records for the target document ids must be queued, for all the link types
+      // there are for this job.  Other times, the queuing requirement is less stringent, such as
+      // when a hopcount for one linktype changes.  In those cases we only want to queue up hopcount
+      // records corresponding to the changed record.
 
-        // What we need to do is create a queue which contains only the target hopcount table rows, if they
-        // exist.  Then we run the update algorithm until the cache is empty.
+      // What we need to do is create a queue which contains only the target hopcount table rows, if they
+      // exist.  Then we run the update algorithm until the cache is empty.
 
-        if (Logging.hopcount.isDebugEnabled())
-          Logging.hopcount.debug("Queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
+      if (Logging.hopcount.isDebugEnabled())
+        Logging.hopcount.debug("Queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
 
-        // Since we really want efficiency, we can write the answer in place now, based on the current
-        // hopcount rows.  This works even if the current row is out of date, because if we change the
-        // current row's value, the target rows will be requeued at that point.
+      // Since we really want efficiency, we can write the answer in place now, based on the current
+      // hopcount rows.  This works even if the current row is out of date, because if we change the
+      // current row's value, the target rows will be requeued at that point.
 
-        // When we record new links, we must come up with an initial calculation or requeue ALL legal link
-        // types.  If this isn't done, then we cannot guarantee that the target record will exist - and
-        // somebody will then interpret the distance as being 'infinity'.
-        //
-        // It would be possible to change this but we would then also need to change how a missing record
-        // would be interpreted.
+      // When we record new links, we must come up with an initial calculation or requeue ALL legal link
+      // types.  If this isn't done, then we cannot guarantee that the target record will exist - and
+      // somebody will then interpret the distance as being 'infinity'.
+      //
+      // It would be possible to change this but we would then also need to change how a missing record
+      // would be interpreted.
 
-        //if (!(linkType == null || linkType.length() == 0))
-        //      legalLinkTypes = new String[]{linkType};
+      //if (!(linkType == null || linkType.length() == 0))
+      //      legalLinkTypes = new String[]{linkType};
 
-        // So, let's load what we have for hopcount and dependencies for sourceDocumentID.
+      // So, let's load what we have for hopcount and dependencies for sourceDocumentID.
 
-        Answer[] estimates = new Answer[legalLinkTypes.length];
+      Answer[] estimates = new Answer[legalLinkTypes.length];
 
-        if (sourceDocumentIDHash == null || sourceDocumentIDHash.length() == 0)
+      if (sourceDocumentIDHash == null || sourceDocumentIDHash.length() == 0)
+      {
+        for (int i = 0; i < estimates.length; i++)
         {
-          for (int i = 0; i < estimates.length; i++)
-          {
-            estimates[i] = new Answer(0);
-          }
+          estimates[i] = new Answer(0);
         }
-        else
-        {
-          StringBuilder sb = new StringBuilder("SELECT ");
-          ArrayList list = new ArrayList();
-          
-          sb.append(idField).append(",")
-            .append(distanceField).append(",")
-            .append(linkTypeField)
-            .append(" FROM ").append(getTableName()).append(" WHERE ");
-          
-          sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(jobIDField,jobID),
-            new UnitaryClause(parentIDHashField,sourceDocumentIDHash),
-            new MultiClause(linkTypeField,legalLinkTypes)}));
-
-          IResultSet set = performQuery(sb.toString(),list,null,null);
-          Map<String,Answer> answerMap = new HashMap<String,Answer>();
-          for (int i = 0; i < estimates.length; i++)
-          {
-            estimates[i] = new Answer(ANSWER_INFINITY);
-            answerMap.put(legalLinkTypes[i],estimates[i]);
-          }
-
-          for (int i = 0; i < set.getRowCount(); i++)
-          {
-            IResultRow row = set.getRow(i);
-            Long id = (Long)row.getValue(idField);
-            DeleteDependency[] dds;
-            if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
-              dds = deleteDepsManager.getDeleteDependencies(id);
-            else
-              dds = new DeleteDependency[0];
-            Long distance = (Long)row.getValue(distanceField);
-            String recordedLinkType = (String)row.getValue(linkTypeField);
-            Answer a = answerMap.get(recordedLinkType);
-            int recordedDistance = (int)distance.longValue();
-            if (recordedDistance != -1)
-            {
-              a.setAnswer(recordedDistance,dds);
-            }
-          }
-        }
-
-        // Now add these documents to the processing queue
-        boolean[] hasChanged = addToProcessingQueue(jobID,legalLinkTypes,newReferences,estimates,sourceDocumentIDHash,linkType,hopcountMethod);
-
-        // First, note them in return value
-        Map<String,Boolean> changeMap = new HashMap<String,Boolean>();
-        for (int i = 0; i < newReferences.length; i++)
-        {
-          changeMap.put(newReferences[i],new Boolean(hasChanged[i]));
-        }
-        for (int i = 0; i < rval.length; i++)
-        {
-          Boolean x = changeMap.get(targetDocumentIDHashes[i]);
-          if (x != null && x.booleanValue())
-            rval[i] = true;
-        }
-
-        if (Logging.hopcount.isDebugEnabled())
-          Logging.hopcount.debug("Done queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
       }
-      return rval;
+      else
+      {
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+          
+        sb.append(idField).append(",")
+          .append(distanceField).append(",")
+          .append(linkTypeField)
+          .append(" FROM ").append(getTableName()).append(" WHERE ");
+          
+        sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(jobIDField,jobID),
+          new UnitaryClause(parentIDHashField,sourceDocumentIDHash),
+          new MultiClause(linkTypeField,legalLinkTypes)}));
+
+        IResultSet set = performQuery(sb.toString(),list,null,null);
+        Map<String,Answer> answerMap = new HashMap<String,Answer>();
+        for (int i = 0; i < estimates.length; i++)
+        {
+          estimates[i] = new Answer(ANSWER_INFINITY);
+          answerMap.put(legalLinkTypes[i],estimates[i]);
+        }
+
+        for (int i = 0; i < set.getRowCount(); i++)
+        {
+          IResultRow row = set.getRow(i);
+          Long id = (Long)row.getValue(idField);
+          DeleteDependency[] dds;
+          if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
+            dds = deleteDepsManager.getDeleteDependencies(id);
+          else
+            dds = new DeleteDependency[0];
+          Long distance = (Long)row.getValue(distanceField);
+          String recordedLinkType = (String)row.getValue(linkTypeField);
+          Answer a = answerMap.get(recordedLinkType);
+          int recordedDistance = (int)distance.longValue();
+          if (recordedDistance != -1)
+          {
+            a.setAnswer(recordedDistance,dds);
+          }
+        }
+      }
+
+      // Now add these documents to the processing queue
+      boolean[] hasChanged = addToProcessingQueue(jobID,legalLinkTypes,newReferences,estimates,sourceDocumentIDHash,linkType,hopcountMethod);
+
+      // First, note them in return value
+      Map<String,Boolean> changeMap = new HashMap<String,Boolean>();
+      for (int i = 0; i < newReferences.length; i++)
+      {
+        changeMap.put(newReferences[i],new Boolean(hasChanged[i]));
+      }
+      for (int i = 0; i < rval.length; i++)
+      {
+        Boolean x = changeMap.get(targetDocumentIDHashes[i]);
+        if (x != null && x.booleanValue())
+          rval[i] = true;
+      }
+
+      if (Logging.hopcount.isDebugEnabled())
+        Logging.hopcount.debug("Done queueing "+Integer.toString(targetDocumentIDHashes.length)+" documents");
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    return rval;
   }
 
   /** Remove a set of document identifiers specified as a criteria.  This will remove hopcount rows and
@@ -541,33 +487,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   {
     // This should work similarly to deleteDocumentIdentifiers() except that the identifiers
     // come from a subquery rather than a list.
-    beginTransaction();
-    try
+    // This also removes the links themselves...
+    if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
     {
-      // This also removes the links themselves...
-      if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
-      {
-        doDeleteDocuments(jobID,joinTableName,
-          joinTableIDColumn,joinTableJobColumn,
-          joinTableCriteria,joinTableParams);
-      }
-
+      doDeleteDocuments(jobID,joinTableName,
+        joinTableIDColumn,joinTableJobColumn,
+        joinTableCriteria,joinTableParams);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
-
   }
 
 
@@ -577,38 +503,20 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   public void deleteDocumentIdentifiers(Long jobID, String[] legalLinkTypes, String[] documentHashes, int hopcountMethod)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
-    {
-      // What I want to do here is to first perform the invalidation of the cached hopcounts.
-      //
-      // UPDATE hopcount SET markfordeath='X' WHERE EXISTS(SELECT 'x' FROM hopdeletedeps t0 WHERE t0.ownerid=hopcount.id AND t0.jobid=<jobid>
-      //      AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
-      //              AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.childid IN(<sourcedocs>)))
-      //
-      // ... and then, re-evaluate all hopcount records and their dependencies that are marked for delete.
-      //
+    // What I want to do here is to first perform the invalidation of the cached hopcounts.
+    //
+    // UPDATE hopcount SET markfordeath='X' WHERE EXISTS(SELECT 'x' FROM hopdeletedeps t0 WHERE t0.ownerid=hopcount.id AND t0.jobid=<jobid>
+    //      AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
+    //              AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.childid IN(<sourcedocs>)))
+    //
+    // ... and then, re-evaluate all hopcount records and their dependencies that are marked for delete.
+    //
 
 
-      // This also removes the links themselves...
-      if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
-        doDeleteDocuments(jobID,documentHashes);
+    // This also removes the links themselves...
+    if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
+      doDeleteDocuments(jobID,documentHashes);
 
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
   }
 
   /** Calculate a bunch of hop-counts.  The values returned are only guaranteed to be an upper bound, unless
@@ -845,179 +753,160 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       rval[i] = false;
     }
 
-    // Do this in a transaction
-    beginTransaction();
-    try
-    {
-      // I don't think we have to throw a table lock here, because even though we base decisions for insertion on the lack of existence
-      // of a record, there can be only one thread in here at a time.
+    // I don't think we have to throw a table lock here, because even though we base decisions for insertion on the lack of existence
+    // of a record, there can be only one thread in here at a time.
 
-      int maxClause = maxClausePerformFindMissingRecords(jobID,affectedLinkTypes);
-      ArrayList list = new ArrayList();
+    int maxClause = maxClausePerformFindMissingRecords(jobID,affectedLinkTypes);
+    ArrayList list = new ArrayList();
       
-      int k = 0;
-      for (int i = 0; i < documentIDHashes.length; i++)
+    int k = 0;
+    for (int i = 0; i < documentIDHashes.length; i++)
+    {
+      String documentIDHash = documentIDHashes[i];
+        
+      if (k == maxClause)
       {
-        String documentIDHash = documentIDHashes[i];
-        
-        if (k == maxClause)
-        {
-          performFindMissingRecords(jobID,affectedLinkTypes,list,matchMap);
-          k = 0;
-          list.clear();
-        }
-        
-        list.add(documentIDHash);
-        k++;
-      }
-      if (k > 0)
         performFindMissingRecords(jobID,affectedLinkTypes,list,matchMap);
+        k = 0;
+        list.clear();
+      }
+        
+      list.add(documentIDHash);
+      k++;
+    }
+    if (k > 0)
+      performFindMissingRecords(jobID,affectedLinkTypes,list,matchMap);
 
-      // Repeat our pass through the documents and legal link types.  For each document/legal link type,
-      // see if there was an existing row.  If not, we create a row.  If so, we compare the recorded
-      // distance against the distance estimate we would have given it.  If the new distance is LOWER, it gets left around
-      // for queuing.
+    // Repeat our pass through the documents and legal link types.  For each document/legal link type,
+    // see if there was an existing row.  If not, we create a row.  If so, we compare the recorded
+    // distance against the distance estimate we would have given it.  If the new distance is LOWER, it gets left around
+    // for queuing.
 
-      HashMap map = new HashMap();
-      for (int i = 0; i < documentIDHashes.length; i++)
+    HashMap map = new HashMap();
+    for (int i = 0; i < documentIDHashes.length; i++)
+    {
+      String documentIDHash = documentIDHashes[i];
+      for (int j = 0; j < affectedLinkTypes.length; j++)
       {
-        String documentIDHash = documentIDHashes[i];
-        for (int j = 0; j < affectedLinkTypes.length; j++)
+        String affectedLinkType = affectedLinkTypes[j];
+        Question q = new Question(documentIDHash,affectedLinkType);
+
+        // Calculate what our new answer would be.
+        Answer startingAnswer = (Answer)answerMap.get(affectedLinkType);
+        int newAnswerValue = startingAnswer.getAnswer();
+        if (newAnswerValue >= 0 && affectedLinkType.equals(linkType))
+          newAnswerValue++;
+
+        // Now, see if there's a distance already present.
+        Long currentDistance = (Long)matchMap.get(q);
+        if (currentDistance == null)
         {
-          String affectedLinkType = affectedLinkTypes[j];
-          Question q = new Question(documentIDHash,affectedLinkType);
-
-          // Calculate what our new answer would be.
-          Answer startingAnswer = (Answer)answerMap.get(affectedLinkType);
-          int newAnswerValue = startingAnswer.getAnswer();
-          if (newAnswerValue >= 0 && affectedLinkType.equals(linkType))
-            newAnswerValue++;
-
-          // Now, see if there's a distance already present.
-          Long currentDistance = (Long)matchMap.get(q);
-          if (currentDistance == null)
+          // Prepare to do an insert.
+          // The dependencies are the old dependencies, plus the one we are about to add.
+          DeleteDependency dd = new DeleteDependency(linkType,documentIDHash,sourceDocumentIDHash);
+          // Build a new answer, based on the starting answer and the kind of link this is.
+          map.clear();
+          Long hopCountID = new Long(IDFactory.make(threadContext));
+          map.put(idField,hopCountID);
+          map.put(parentIDHashField,q.getDocumentIdentifierHash());
+          map.put(linkTypeField,q.getLinkType());
+          if (newAnswerValue == ANSWER_INFINITY)
+            map.put(distanceField,new Long(-1L));
+          else
+            map.put(distanceField,new Long((long)newAnswerValue));
+          map.put(jobIDField,jobID);
+          map.put(markForDeathField,markToString(MARK_NORMAL));
+          if (Logging.hopcount.isDebugEnabled())
+            Logging.hopcount.debug("Inserting new record for '"+documentIDHash+"' linktype '"+affectedLinkType+"' distance "+Integer.toString(newAnswerValue)+" for job "+jobID);
+          performInsert(map,null);
+          noteModifications(1,0,0);
+          if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
           {
-            // Prepare to do an insert.
-            // The dependencies are the old dependencies, plus the one we are about to add.
-            DeleteDependency dd = new DeleteDependency(linkType,documentIDHash,sourceDocumentIDHash);
-            // Build a new answer, based on the starting answer and the kind of link this is.
-            map.clear();
-            Long hopCountID = new Long(IDFactory.make(threadContext));
-            map.put(idField,hopCountID);
-            map.put(parentIDHashField,q.getDocumentIdentifierHash());
-            map.put(linkTypeField,q.getLinkType());
-            if (newAnswerValue == ANSWER_INFINITY)
-              map.put(distanceField,new Long(-1L));
-            else
-              map.put(distanceField,new Long((long)newAnswerValue));
-            map.put(jobIDField,jobID);
-            map.put(markForDeathField,markToString(MARK_NORMAL));
-            if (Logging.hopcount.isDebugEnabled())
-              Logging.hopcount.debug("Inserting new record for '"+documentIDHash+"' linktype '"+affectedLinkType+"' distance "+Integer.toString(newAnswerValue)+" for job "+jobID);
-            performInsert(map,null);
-            noteModifications(1,0,0);
-            if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
+            deleteDepsManager.writeDependency(hopCountID,jobID,dd);
+            Iterator iter2 = startingAnswer.getDeleteDependencies();
+            while (iter2.hasNext())
             {
+              dd = (DeleteDependency)iter2.next();
               deleteDepsManager.writeDependency(hopCountID,jobID,dd);
-              Iterator iter2 = startingAnswer.getDeleteDependencies();
-              while (iter2.hasNext())
-              {
-                dd = (DeleteDependency)iter2.next();
-                deleteDepsManager.writeDependency(hopCountID,jobID,dd);
-              }
             }
+          }
+        }
+        else
+        {
+          // If the new distance >= saved distance, don't queue anything.  That means, remove it from the hash.
+          int oldAnswerValue = (int)currentDistance.longValue();
+          if (!(newAnswerValue >= 0 && (oldAnswerValue < 0 || newAnswerValue < oldAnswerValue)))
+          {
+            // New answer is no better than the old answer, so don't queue
+            if (Logging.hopcount.isDebugEnabled())
+              Logging.hopcount.debug("Existing record for '"+documentIDHash+"' linktype '"+affectedLinkType+"' has better distance "+Integer.toString(oldAnswerValue)+
+              " than new distance "+Integer.toString(newAnswerValue)+", so not queuing for job "+jobID);
+            matchMap.remove(q);
           }
           else
-          {
-            // If the new distance >= saved distance, don't queue anything.  That means, remove it from the hash.
-            int oldAnswerValue = (int)currentDistance.longValue();
-            if (!(newAnswerValue >= 0 && (oldAnswerValue < 0 || newAnswerValue < oldAnswerValue)))
-            {
-              // New answer is no better than the old answer, so don't queue
-              if (Logging.hopcount.isDebugEnabled())
-                Logging.hopcount.debug("Existing record for '"+documentIDHash+"' linktype '"+affectedLinkType+"' has better distance "+Integer.toString(oldAnswerValue)+
-                " than new distance "+Integer.toString(newAnswerValue)+", so not queuing for job "+jobID);
-              matchMap.remove(q);
-            }
-            else
-              rval[i] = true;
-          }
+            rval[i] = true;
         }
       }
+    }
 
-      // For all the records still in the matchmap, queue them.
+    // For all the records still in the matchmap, queue them.
 
-      // The query I want to run is:
-      // UPDATE hopcount SET markfordeath='Q' WHERE jobID=? AND parentid IN (...)
-      // but postgresql is stupid and won't use the index that way.  So do this instead:
-      // UPDATE hopcount SET markfordeath='Q' WHERE (jobID=? AND parentid=?) OR (jobid=? AND parentid=?)...
+    // The query I want to run is:
+    // UPDATE hopcount SET markfordeath='Q' WHERE jobID=? AND parentid IN (...)
+    // but postgresql is stupid and won't use the index that way.  So do this instead:
+    // UPDATE hopcount SET markfordeath='Q' WHERE (jobID=? AND parentid=?) OR (jobid=? AND parentid=?)...
 
-      maxClause = getMaxOrClause();
-      StringBuilder sb = new StringBuilder();
-      list = new ArrayList();
-      k = 0;
-      for (int i = 0; i < documentIDHashes.length; i++)
+    maxClause = getMaxOrClause();
+    StringBuilder sb = new StringBuilder();
+    list = new ArrayList();
+    k = 0;
+    for (int i = 0; i < documentIDHashes.length; i++)
+    {
+      String documentIDHash = documentIDHashes[i];
+      for (int j = 0; j < affectedLinkTypes.length; j++)
       {
-        String documentIDHash = documentIDHashes[i];
-        for (int j = 0; j < affectedLinkTypes.length; j++)
+        String affectedLinkType = affectedLinkTypes[j];
+
+        Question q = new Question(documentIDHash,affectedLinkType);
+        if (matchMap.get(q) != null)
         {
-          String affectedLinkType = affectedLinkTypes[j];
-
-          Question q = new Question(documentIDHash,affectedLinkType);
-          if (matchMap.get(q) != null)
+          if (k == maxClause)
           {
-            if (k == maxClause)
-            {
-              performMarkAddDeps(sb.toString(),list);
-              k = 0;
-              sb.setLength(0);
-              list.clear();
-            }
-            if (k > 0)
-              sb.append(" OR ");
-
-            // We only want to queue up hopcount records that correspond to the affected link types.
-            //
-            // Also, to reduce deadlock, do not update any records that are already marked as queued.  These would be infrequent,
-            // but they nevertheless seem to cause deadlock very easily.
-            //
-            if (Logging.hopcount.isDebugEnabled())
-              Logging.hopcount.debug("Queuing '"+documentIDHash+"' linktype '"+affectedLinkType+"' for job "+jobID);
-            
-            sb.append(buildConjunctionClause(list,new ClauseDescription[]{
-              new UnitaryClause(jobIDField,jobID),
-              new MultiClause(markForDeathField,new Object[]{
-                markToString(MARK_NORMAL),
-                markToString(MARK_DELETING)}),
-              new UnitaryClause(parentIDHashField,documentIDHash),
-              new UnitaryClause(linkTypeField,affectedLinkType)}));
-              
-            k++;
+            performMarkAddDeps(sb.toString(),list);
+            k = 0;
+            sb.setLength(0);
+            list.clear();
           }
+          if (k > 0)
+            sb.append(" OR ");
+
+          // We only want to queue up hopcount records that correspond to the affected link types.
+          //
+          // Also, to reduce deadlock, do not update any records that are already marked as queued.  These would be infrequent,
+          // but they nevertheless seem to cause deadlock very easily.
+          //
+          if (Logging.hopcount.isDebugEnabled())
+            Logging.hopcount.debug("Queuing '"+documentIDHash+"' linktype '"+affectedLinkType+"' for job "+jobID);
+            
+          sb.append(buildConjunctionClause(list,new ClauseDescription[]{
+            new UnitaryClause(jobIDField,jobID),
+            new MultiClause(markForDeathField,new Object[]{
+              markToString(MARK_NORMAL),
+              markToString(MARK_DELETING)}),
+            new UnitaryClause(parentIDHashField,documentIDHash),
+            new UnitaryClause(linkTypeField,affectedLinkType)}));
+              
+          k++;
         }
       }
-      if (k > 0)
-        performMarkAddDeps(sb.toString(),list);
+    }
+    if (k > 0)
+      performMarkAddDeps(sb.toString(),list);
 
-      // Leave the dependency records for the queued rows.  This will save lots of work if we decide not to
-      // update the distance.  It's safe to leave the old dep records, because they must only record links that furnish
-      // A minimal path, not THE minimal path.
+    // Leave the dependency records for the queued rows.  This will save lots of work if we decide not to
+    // update the distance.  It's safe to leave the old dep records, because they must only record links that furnish
+    // A minimal path, not THE minimal path.
 
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
     noteModifications(0,documentIDHashes.length,0);
     return rval;
   }
@@ -1036,44 +925,24 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   protected void doFinish(Long jobID, String[] legalLinkTypes, String[] sourceDocumentHashes, int hopcountMethod)
     throws ManifoldCFException
   {
-    // Go into a transaction!
-    beginTransaction();
-    try
+    if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
     {
-      if (hopcountMethod == IJobDescription.HOPCOUNT_ACCURATE)
-      {
-        // First, blow the cache.
-        //
-        // To do this, I'd the following queries to occur:
-        //
-        // UPDATE hopcount SET markfordeath='Q' WHERE EXISTS(SELECT 'x' FROM hopdeletedeps t0 WHERE t0.ownerid=hopcount.id AND t0.jobid=<jobid>
-        //      AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
-        //              AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.isnew=<base> AND t1.childid IN(<sourcedocs>)))
-        //
-        // ... and then, get rid of all hopcount records and their dependencies that are marked for delete.
+      // First, blow the cache.
+      //
+      // To do this, I'd the following queries to occur:
+      //
+      // UPDATE hopcount SET markfordeath='Q' WHERE EXISTS(SELECT 'x' FROM hopdeletedeps t0 WHERE t0.ownerid=hopcount.id AND t0.jobid=<jobid>
+      //      AND EXISTS(SELECT 'x' FROM intrinsiclinks t1 WHERE t1.linktype=t0.linktype AND t1.parentid=t0.parentid
+      //              AND t1.childid=t0.childid AND t1.jobid=<jobid> AND t1.isnew=<base> AND t1.childid IN(<sourcedocs>)))
+      //
+      // ... and then, get rid of all hopcount records and their dependencies that are marked for delete.
 
 
-        // Invalidate all links with the given source documents that match the common expression
-        doDeleteInvalidation(jobID,sourceDocumentHashes);
-      }
-      // Make all new and existing links become just "base" again.
-      intrinsicLinkManager.restoreLinks(jobID,sourceDocumentHashes);
+      // Invalidate all links with the given source documents that match the common expression
+      doDeleteInvalidation(jobID,sourceDocumentHashes);
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
-
+    // Make all new and existing links become just "base" again.
+    intrinsicLinkManager.restoreLinks(jobID,sourceDocumentHashes);
   }
 
   /** Invalidate links that start with a specific set of documents, described by
@@ -1446,106 +1315,87 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   protected DocumentNode[] readCachedNodes(Long jobID, Question[] unansweredQuestions)
     throws ManifoldCFException
   {
-    // This all goes in a transaction; we want to insure that the data we grab is self-consistent.
-    beginTransaction();
-    try
+    // We should not ever get requests that are duplications, or are not germane (e.g.
+    // for the root).
+
+    DocumentNode[] rval = new DocumentNode[unansweredQuestions.length];
+
+    // Set the node up as being "infinity" first; we'll change it around later
+    Answer a = new Answer(ANSWER_INFINITY);
+
+    Map indexMap = new HashMap();
+    int i = 0;
+    while (i < unansweredQuestions.length)
     {
-      // We should not ever get requests that are duplications, or are not germane (e.g.
-      // for the root).
+      indexMap.put(unansweredQuestions[i],new Integer(i));
+      // If we wind up deleting a row in the hopcount table, because it's distance is infinity,
+      // we need to treat that here as loading a node with ANSWER_INFINITY as the value.  Right
+      // now, we load UNKNOWN in this case, which is wrong.
+      //
+      // The way in which this deletion occurs is that nodes get marked BEFORE the intrinsic link goes
+      // away (supposedly), and then the intrinsic link(s) are removed.  Plus, all possible nodes are not
+      // added in this case.  Therefore, we should expect questions pertaining to nodes that don't exist
+      // to work.
 
-      DocumentNode[] rval = new DocumentNode[unansweredQuestions.length];
+      DocumentNode dn = new DocumentNode(unansweredQuestions[i]);
+      rval[i] = dn;
 
-      // Set the node up as being "infinity" first; we'll change it around later
-      Answer a = new Answer(ANSWER_INFINITY);
+      // Make the node "complete", since we found a legit value.
+      dn.setStartingAnswer(a);
+      dn.setTrialAnswer(a);
+      // Leave bestPossibleAnswer alone.  It's not used after node is marked complete.
+      dn.makeCompleteNoWrite();
 
-      Map indexMap = new HashMap();
-      int i = 0;
-      while (i < unansweredQuestions.length)
-      {
-        indexMap.put(unansweredQuestions[i],new Integer(i));
-        // If we wind up deleting a row in the hopcount table, because it's distance is infinity,
-        // we need to treat that here as loading a node with ANSWER_INFINITY as the value.  Right
-        // now, we load UNKNOWN in this case, which is wrong.
-        //
-        // The way in which this deletion occurs is that nodes get marked BEFORE the intrinsic link goes
-        // away (supposedly), and then the intrinsic link(s) are removed.  Plus, all possible nodes are not
-        // added in this case.  Therefore, we should expect questions pertaining to nodes that don't exist
-        // to work.
+      i++;
+    }
 
-        DocumentNode dn = new DocumentNode(unansweredQuestions[i]);
-        rval[i] = dn;
+    // Accumulate the ids of rows where I need deps too.  This is keyed by id and has the right answer object as a value.
+    Map depsMap = new HashMap();
 
-        // Make the node "complete", since we found a legit value.
-        dn.setStartingAnswer(a);
-        dn.setTrialAnswer(a);
-        // Leave bestPossibleAnswer alone.  It's not used after node is marked complete.
-        dn.makeCompleteNoWrite();
-
-        i++;
-      }
-
-      // Accumulate the ids of rows where I need deps too.  This is keyed by id and has the right answer object as a value.
-      Map depsMap = new HashMap();
-
-      int maxClause = maxClausePerformGetCachedDistances(jobID);
-      ArrayList list = new ArrayList();
-      ArrayList ltList = new ArrayList();
+    int maxClause = maxClausePerformGetCachedDistances(jobID);
+    ArrayList list = new ArrayList();
+    ArrayList ltList = new ArrayList();
       
-      i = 0;
-      int k = 0;
-      while (i < unansweredQuestions.length)
+    i = 0;
+    int k = 0;
+    while (i < unansweredQuestions.length)
+    {
+      if (k == maxClause)
       {
-        if (k == maxClause)
-        {
-          performGetCachedDistances(rval,indexMap,depsMap,jobID,ltList,list);
-          k = 0;
-          list.clear();
-          ltList.clear();
-        }
-        Question q = unansweredQuestions[i++];
-        ltList.add(q.getLinkType());
-        list.add(q.getDocumentIdentifierHash());
-        k++;
-      }
-      if (k > 0)
         performGetCachedDistances(rval,indexMap,depsMap,jobID,ltList,list);
-
-      // Now, find the required delete dependencies too.
-      maxClause = maxClausePerformGetCachedDistanceDeps();
-      list.clear();
-      k = 0;
-      Iterator iter = depsMap.keySet().iterator();
-      while (iter.hasNext())
-      {
-        Long id = (Long)iter.next();
-        if (k == maxClause)
-        {
-          performGetCachedDistanceDeps(depsMap,list);
-          k = 0;
-          list.clear();
-        }
-        list.add(id);
-        k++;
+        k = 0;
+        list.clear();
+        ltList.clear();
       }
-      if (k > 0)
-        performGetCachedDistanceDeps(depsMap,list);
+      Question q = unansweredQuestions[i++];
+      ltList.add(q.getLinkType());
+      list.add(q.getDocumentIdentifierHash());
+      k++;
+    }
+    if (k > 0)
+      performGetCachedDistances(rval,indexMap,depsMap,jobID,ltList,list);
 
-      return rval;
-    }
-    catch (ManifoldCFException e)
+    // Now, find the required delete dependencies too.
+    maxClause = maxClausePerformGetCachedDistanceDeps();
+    list.clear();
+    k = 0;
+    Iterator iter = depsMap.keySet().iterator();
+    while (iter.hasNext())
     {
-      signalRollback();
-      throw e;
+      Long id = (Long)iter.next();
+      if (k == maxClause)
+      {
+        performGetCachedDistanceDeps(depsMap,list);
+        k = 0;
+        list.clear();
+      }
+      list.add(id);
+      k++;
     }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+    if (k > 0)
+      performGetCachedDistanceDeps(depsMap,list);
+
+    return rval;
   }
 
   protected int maxClausePerformGetCachedDistanceDeps()
@@ -1754,36 +1604,17 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         if (Logging.hopcount.isDebugEnabled())
           Logging.hopcount.debug("Caching infinity for document '"+parentIDHash+"' linktype '"+linkType+"' answer="+Integer.toString(answer.getAnswer()));
 
-        beginTransaction();
-        try
-        {
+        // Delete the old dependencies in any case.
+        deleteDepsManager.deleteOwnerRows(new Long[]{existingID});
 
-          // Delete the old dependencies in any case.
-          deleteDepsManager.deleteOwnerRows(new Long[]{existingID});
+        ArrayList list = new ArrayList();
+        String query = buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(idField,existingID)});
 
-          ArrayList list = new ArrayList();
-          String query = buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(idField,existingID)});
-
-          performDelete("WHERE "+query,list,null);
-          noteModifications(0,0,1);
-          // Since infinity is not a reduction of any kind, we're done here.
-          return;
-        }
-        catch (ManifoldCFException e)
-        {
-          signalRollback();
-          throw e;
-        }
-        catch (Error e)
-        {
-          signalRollback();
-          throw e;
-        }
-        finally
-        {
-          endTransaction();
-        }
+        performDelete("WHERE "+query,list,null);
+        noteModifications(0,0,1);
+        // Since infinity is not a reduction of any kind, we're done here.
+        return;
       }
 
       // It should not be possible for an existing value to be better than the new value,
@@ -1805,27 +1636,24 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         if (Logging.hopcount.isDebugEnabled())
           Logging.hopcount.debug("Updating answer for document '"+parentIDHash+"' linktype '"+linkType+"' answer="+Integer.toString(answer.getAnswer()));
 
-        beginTransaction();
-        try
+        // We need to make sure the delete deps agree with what we have in mind.
+
+        // This is currently the most expensive part of propagating lots of changes, because most of the nodes
+        // have numerous delete dependencies.  I therefore reorganized this code to be incremental where it makes
+        // sense to be.  This could cut back on the number of required operations significantly.
+
+        HashMap existingDepsMap = new HashMap();
+        if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
         {
-          // We need to make sure the delete deps agree with what we have in mind.
+          // If we knew in advance which nodes we'd be writing, we could have read the old
+          // delete deps when we read the old distance value, in one largish query per some 25 nodes.
+          // But we don't know in advance, so it's not clear whether we'd win or lose by such a strategy.
+          //
+          // In any case, I do believe that it will be rare for wholesale changes to occur to these dependencies,
+          // so I've chosen to optimize by reading the old dependencies and just writing out the deltas.
+          DeleteDependency[] existingDeps = deleteDepsManager.getDeleteDependencies(existingID);
 
-          // This is currently the most expensive part of propagating lots of changes, because most of the nodes
-          // have numerous delete dependencies.  I therefore reorganized this code to be incremental where it makes
-          // sense to be.  This could cut back on the number of required operations significantly.
-
-          HashMap existingDepsMap = new HashMap();
-          if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
-          {
-            // If we knew in advance which nodes we'd be writing, we could have read the old
-            // delete deps when we read the old distance value, in one largish query per some 25 nodes.
-            // But we don't know in advance, so it's not clear whether we'd win or lose by such a strategy.
-            //
-            // In any case, I do believe that it will be rare for wholesale changes to occur to these dependencies,
-            // so I've chosen to optimize by reading the old dependencies and just writing out the deltas.
-            DeleteDependency[] existingDeps = deleteDepsManager.getDeleteDependencies(existingID);
-
-            /*  This code demonstrated that once in a while Postgresql forgets to inherit the isolation level properly.  I wound up disabling nested transactions inside
+          /*  This code demonstrated that once in a while Postgresql forgets to inherit the isolation level properly.  I wound up disabling nested transactions inside
             serializable transactions as a result, in DBInterfacePostgresql.
 
             IResultSet set = performQuery("SHOW TRANSACTION ISOLATION LEVEL",null, null,null);
@@ -1840,94 +1668,78 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
               throw new ManifoldCFException("Not in a serializable transaction! "+row.getValue(columnName).toString());
             */
 
-            // Drop these into a hash map.
-            int k = 0;
-            while (k < existingDeps.length)
-            {
-              DeleteDependency dep = existingDeps[k++];
-              existingDepsMap.put(dep,dep);
-            }
-          }
-
-          map.put(distanceField,new Long((long)answerValue));
-          map.put(markForDeathField,markToString(MARK_NORMAL));
-          ArrayList list = new ArrayList();
-          String query = buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(idField,existingID)});
-          performUpdate(map,"WHERE "+query,list,null);
-          noteModifications(0,1,0);
-
-          if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
+          // Drop these into a hash map.
+          int k = 0;
+          while (k < existingDeps.length)
           {
-            // Write either dependencies, or dependency deltas
-            int incrementalOpCount = 0;
+            DeleteDependency dep = existingDeps[k++];
+            existingDepsMap.put(dep,dep);
+          }
+        }
 
-            iter = existingDepsMap.keySet().iterator();
-            while (iter.hasNext())
-            {
-              DeleteDependency dep = (DeleteDependency)iter.next();
-              if (answer.hasDependency(dep) == false)
-                incrementalOpCount++;
-            }
-            iter = answer.getDeleteDependencies();
-            while (iter.hasNext())
-            {
-              DeleteDependency dep = (DeleteDependency)iter.next();
-              if (existingDepsMap.get(dep) == null)
-                incrementalOpCount++;
-            }
+        map.put(distanceField,new Long((long)answerValue));
+        map.put(markForDeathField,markToString(MARK_NORMAL));
+        ArrayList list = new ArrayList();
+        String query = buildConjunctionClause(list,new ClauseDescription[]{
+          new UnitaryClause(idField,existingID)});
+        performUpdate(map,"WHERE "+query,list,null);
+        noteModifications(0,1,0);
 
-            if (incrementalOpCount > 1 + answer.countDeleteDependencies())
-            {
-              deleteDepsManager.deleteOwnerRows(new Long[]{existingID});
-              existingDepsMap.clear();
-            }
+        if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
+        {
+          // Write either dependencies, or dependency deltas
+          int incrementalOpCount = 0;
 
-            // Write the individual deletes...
-            iter = existingDepsMap.keySet().iterator();
-            while (iter.hasNext())
-            {
-              DeleteDependency dep = (DeleteDependency)iter.next();
-              if (answer.hasDependency(dep) == false)
-                deleteDepsManager.deleteDependency(existingID,dep);
-            }
-
-            // Then, inserts...
-            iter = answer.getDeleteDependencies();
-            while (iter.hasNext())
-            {
-              DeleteDependency dep = (DeleteDependency)iter.next();
-              if (existingDepsMap.get(dep) == null)
-                deleteDepsManager.writeDependency(existingID,jobID,dep);
-            }
+          iter = existingDepsMap.keySet().iterator();
+          while (iter.hasNext())
+          {
+            DeleteDependency dep = (DeleteDependency)iter.next();
+            if (answer.hasDependency(dep) == false)
+              incrementalOpCount++;
+          }
+          iter = answer.getDeleteDependencies();
+          while (iter.hasNext())
+          {
+            DeleteDependency dep = (DeleteDependency)iter.next();
+            if (existingDepsMap.get(dep) == null)
+              incrementalOpCount++;
           }
 
-          String[] targetDocumentIDHashes = intrinsicLinkManager.getDocumentUniqueParents(jobID,parentIDHash);
+          if (incrementalOpCount > 1 + answer.countDeleteDependencies())
+          {
+            deleteDepsManager.deleteOwnerRows(new Long[]{existingID});
+            existingDepsMap.clear();
+          }
 
-          // Push the target documents onto the queue!
+          // Write the individual deletes...
+          iter = existingDepsMap.keySet().iterator();
+          while (iter.hasNext())
+          {
+            DeleteDependency dep = (DeleteDependency)iter.next();
+            if (answer.hasDependency(dep) == false)
+              deleteDepsManager.deleteDependency(existingID,dep);
+          }
 
-          // It makes sense to drop in a maximal estimate of the hopcount when we do this queuing,
-          // because that estimate may well be low enough so that the true hopcount value doesn't
-          // need to be calculated for a time.  So, calculate an estimate and pass it in.
-          // The estimate will by definition be larger than the final value.
-
-          addToProcessingQueue(jobID,new String[]{linkType},targetDocumentIDHashes,new Answer[]{answer},parentIDHash,linkType,hopcountMethod);
-        }
-        catch (ManifoldCFException e)
-        {
-          signalRollback();
-          throw e;
-        }
-        catch (Error e)
-        {
-          signalRollback();
-          throw e;
-        }
-        finally
-        {
-          endTransaction();
+          // Then, inserts...
+          iter = answer.getDeleteDependencies();
+          while (iter.hasNext())
+          {
+            DeleteDependency dep = (DeleteDependency)iter.next();
+            if (existingDepsMap.get(dep) == null)
+              deleteDepsManager.writeDependency(existingID,jobID,dep);
+          }
         }
 
+        String[] targetDocumentIDHashes = intrinsicLinkManager.getDocumentUniqueParents(jobID,parentIDHash);
+
+        // Push the target documents onto the queue!
+
+        // It makes sense to drop in a maximal estimate of the hopcount when we do this queuing,
+        // because that estimate may well be low enough so that the true hopcount value doesn't
+        // need to be calculated for a time.  So, calculate an estimate and pass it in.
+        // The estimate will by definition be larger than the final value.
+
+        addToProcessingQueue(jobID,new String[]{linkType},targetDocumentIDHashes,new Answer[]{answer},parentIDHash,linkType,hopcountMethod);
       }
       else
       {
@@ -1960,46 +1772,27 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     if (Logging.hopcount.isDebugEnabled())
       Logging.hopcount.debug("Caching answer for document '"+parentIDHash+"' linktype '"+linkType+"' answer="+Integer.toString(answer.getAnswer()));
 
-    beginTransaction();
-    try
+    // We do NOT expect there to already be a cached entry!  If there is, we've screwed
+    // up somehow, and it's a bug.
+    Long id = new Long(IDFactory.make(threadContext));
+
+    map.put(idField,id);
+    map.put(jobIDField,jobID);
+    if (linkType.length() > 0)
+      map.put(linkTypeField,linkType);
+    map.put(parentIDHashField,parentIDHash);
+    map.put(distanceField,new Long(answer.getAnswer()));
+    performInsert(map,null);
+    noteModifications(1,0,0);
+
+    if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
     {
-      // We do NOT expect there to already be a cached entry!  If there is, we've screwed
-      // up somehow, and it's a bug.
-      Long id = new Long(IDFactory.make(threadContext));
-
-      map.put(idField,id);
-      map.put(jobIDField,jobID);
-      if (linkType.length() > 0)
-        map.put(linkTypeField,linkType);
-      map.put(parentIDHashField,parentIDHash);
-      map.put(distanceField,new Long(answer.getAnswer()));
-      performInsert(map,null);
-      noteModifications(1,0,0);
-
-      if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
+      iter = answer.getDeleteDependencies();
+      while (iter.hasNext())
       {
-        iter = answer.getDeleteDependencies();
-        while (iter.hasNext())
-        {
-          DeleteDependency dep = (DeleteDependency)iter.next();
-          deleteDepsManager.writeDependency(id,jobID,dep);
-        }
+        DeleteDependency dep = (DeleteDependency)iter.next();
+        deleteDepsManager.writeDependency(id,jobID,dep);
       }
-
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
     }
   }
 

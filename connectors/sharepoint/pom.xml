@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-connectors</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -28,21 +28,31 @@
   <name>ManifoldCF - Connectors - SharePoint</name>
 
   <build>
-    <sourceDirectory>connector/src/main/java</sourceDirectory>
-    <testSourceDirectory>connector/src/test/java</testSourceDirectory>
+    <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>
     <resources>
       <resource>
-        <directory>connectors/src/main/resources</directory>
+        <directory>${basedir}/connector/src/main/resources</directory>
+        <includes>
+          <include>**/*.html</include>
+          <include>**/*.js</include>
+        </includes>
       </resource>
-    </resources>
+      <resource>
+        <directory>${basedir}/connector/src/main/native2ascii</directory>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+    </resources> 
+
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>native2ascii-maven-plugin</artifactId>
-        <version>1.0-alpha-1</version>
+        <version>1.0-beta-1</version>
         <configuration>
-            <dest>target/classes</dest>
-            <src>connector/src/main/native2ascii</src>
+            <workDir>target/classes</workDir>
         </configuration>
         <executions>
             <execution>
@@ -52,7 +62,9 @@
                 </goals>
                 <configuration>
                     <encoding>UTF8</encoding>
-                    <includes>**/*.properties</includes>
+                    <includes>
+                      <include>**/*.properties</include>
+                    </includes>
                 </configuration>
             </execution>
         </executions>
@@ -93,33 +105,33 @@
         <artifactId>axistools-maven-plugin</artifactId>
         <version>1.4</version>
         
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.axis</groupId>
-						<artifactId>axis</artifactId>
-						<version>1.4</version>
-					</dependency>
-					<dependency>
-						<groupId>commons-logging</groupId>
-						<artifactId>commons-logging</artifactId>
-						<version>${commons-logging.version}</version>
-					</dependency>
-					<dependency>
-						<groupId>commons-discovery</groupId>
-						<artifactId>commons-discovery</artifactId>
-						<version>0.2</version>
-					</dependency>
-					<dependency>
-						<groupId>javax.xml</groupId>
-						<artifactId>jaxrpc-api</artifactId>
-						<version>1.1</version>
-					</dependency>
-					<dependency>
-						<groupId>wsdl4j</groupId>
-						<artifactId>wsdl4j</artifactId>
-						<version>1.6.2</version>
-					</dependency>
-				</dependencies>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.axis</groupId>
+            <artifactId>axis</artifactId>
+            <version>1.4</version>
+          </dependency>
+          <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons-logging.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>commons-discovery</groupId>
+            <artifactId>commons-discovery</artifactId>
+            <version>0.2</version>
+          </dependency>
+          <dependency>
+            <groupId>javax.xml</groupId>
+            <artifactId>jaxrpc-api</artifactId>
+            <version>1.1</version>
+          </dependency>
+          <dependency>
+            <groupId>wsdl4j</groupId>
+            <artifactId>wsdl4j</artifactId>
+            <version>1.6.2</version>
+          </dependency>
+        </dependencies>
         
         <configuration>
           <sourceDirectory>wsdls</sourceDirectory>
@@ -181,9 +193,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>${commons-httpclient.version}</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.httpclient.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>

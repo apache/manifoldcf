@@ -40,9 +40,8 @@ public class DBInterfaceFactory
     Object x = context.get(dbName);
     if (x == null || !(x instanceof IDBInterface))
     {
-      String implementationClass = ManifoldCF.getProperty(ManifoldCF.databaseImplementation);
-      if (implementationClass == null)
-        implementationClass = "org.apache.manifoldcf.core.database.DBInterfacePostgreSQL";
+      String implementationClass = LockManagerFactory.getStringProperty(context, ManifoldCF.databaseImplementation,
+        "org.apache.manifoldcf.core.database.DBInterfacePostgreSQL");
       try
       {
         Class c = Class.forName(implementationClass);

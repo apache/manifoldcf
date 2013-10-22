@@ -28,46 +28,46 @@ import java.util.*;
 */
 public class WaitJobPaused
 {
-        public static final String _rcsid = "@(#)$Id: WaitJobPaused.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: WaitJobPaused.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private WaitJobPaused()
+  private WaitJobPaused()
+  {
+  }
+
+  // Add: throttle, priority, recrawl interval
+
+  public static void main(String[] args)
+  {
+    if (args.length != 1)
+    {
+      System.err.println("Usage: WaitJobPaused <jobid>");
+      System.exit(1);
+    }
+
+    String jobID = args[0];
+
+
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      while (true)
+      {
+        if (jobManager.checkJobBusy(new Long(jobID)))
         {
+          ManifoldCF.sleep(5000);
+          continue;
         }
-
-        // Add: throttle, priority, recrawl interval
-
-        public static void main(String[] args)
-        {
-                if (args.length != 1)
-                {
-                        System.err.println("Usage: WaitJobPaused <jobid>");
-                        System.exit(1);
-                }
-
-                String jobID = args[0];
-
-
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IJobManager jobManager = JobManagerFactory.make(tc);
-                        while (true)
-                        {
-                                if (jobManager.checkJobBusy(new Long(jobID)))
-                                {
-                                        ManifoldCF.sleep(5000);
-                                        continue;
-                                }
-                                break;
-                        }
-                        System.err.println("Job no longer busy");
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
-                
+        break;
+      }
+      System.err.println("Job no longer busy");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+    
 }

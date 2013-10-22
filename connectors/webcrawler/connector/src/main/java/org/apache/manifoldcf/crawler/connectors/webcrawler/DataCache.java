@@ -26,6 +26,12 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.io.*;
 
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
+
 /** This class is a cache of a specific URL's data.  It's fetched early and kept,
 * so that (1) an accurate data length can be found, and (2) we can compute a version
 * checksum.
@@ -101,7 +107,7 @@ public class DataCache
                 throw new ServiceInterruption("Socket timeout: "+e.getMessage(),e,currentTime + 300000L,
                   currentTime + 12 * 60 * 60000L,-1,false);
               }
-              catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+              catch (ConnectTimeoutException e)
               {
                 Logging.connectors.warn("Socket connect timeout exception reading socket stream: "+e.getMessage(),e);
                 long currentTime = System.currentTimeMillis();
@@ -179,7 +185,7 @@ public class DataCache
         {
           Logging.connectors.warn("WEB: Socket timeout exception closing data stream, ignoring: "+e.getMessage(),e);
         }
-        catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+        catch (ConnectTimeoutException e)
         {
           Logging.connectors.warn("WEB: Socket connect timeout exception closing data stream, ignoring: "+e.getMessage(),e);
         }
@@ -199,7 +205,7 @@ public class DataCache
     {
       throw new ManifoldCFException("Socket timeout exception creating temporary file: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket connect timeout exception creating temporary file: "+e.getMessage(),e);
     }

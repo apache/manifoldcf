@@ -22,7 +22,7 @@ import com.filenet.api.collection.FolderSet;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Folder
+public interface Folder extends IndependentlyPersistableObject, Versionable, Containable, Subscribable
 {
   public FolderSet get_SubFolders();
   public String get_FolderName();

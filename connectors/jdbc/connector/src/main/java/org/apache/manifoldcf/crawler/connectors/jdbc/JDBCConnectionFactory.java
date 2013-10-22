@@ -50,7 +50,7 @@ public class JDBCConnectionFactory
     driverMap.put("mysql:","com.mysql.jdbc.Driver");
     try
     {
-      _pool = new ConnectionPoolManager(120);
+      _pool = new ConnectionPoolManager(120,false);
     }
     catch (Exception e)
     {
@@ -173,7 +173,6 @@ public class JDBCConnectionFactory
   }
 
   public static void releaseConnection(WrappedConnection c)
-    throws ManifoldCFException, ServiceInterruption
   {
     c.release();
   }

@@ -356,6 +356,31 @@
                 <br/><br/>
                 <p>新しいマッピングを追加する場合は、項目「ソース」にメタデータ名、「ターゲット」にSolrの出力項目名を入力して「追加」ボタンを押下してください。Solrに送信しない項目の場合は、「ターゲット」を空に設定してください。</p>
             </section>
+
+            <section id="filesystemoutputconnector">
+                <title>ファイルシステム出力コネクション</title>
+                <p>ファイルシステム出力コネクションは、Unixユーティリティの<em>wget</em>のようにローカルファイルシステムに文書を保管することができます。このコネクションタイプによって格納されたドキュメントは、メタデータまたはセキュリティ情報を含んでいませんが、バイナリ·ファイルのみから構成されています。</p>
+                <p>ファイルシステム出力コネクションタイプの接続構成情報には追加のタブを含みません。しかしながら、付加的なJobタブがあり、「出力パス」と呼びます。タブはこのように見えます。</p>
+                <br/><br/>
+                <figure src="images/en_US/filesystem-job-output-path.PNG" alt="File System Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>ドキュメントを出力したいパスを入力して、「保存」をクリックしてください。</p>
+            </section>
+
+            <section id="hdfsoutputconnector">
+                <title>HDFS出力コネクション</title>
+                <p>HDFS出力コネクションは、Unixユーティリティの<em>wget</em>のようにHDFS(Hadoop Distributed File System)に文書を保管することができます。このコネクションタイプによって格納されたドキュメントは、メタデータまたはセキュリティ情報を含んでいませんが、バイナリ·ファイルのみから構成されています。</p>
+                <p>HDFS出力コネクションタイプのための接続構成情報は「サーバー」タブという追加のタブを1つ含んでいます。このタブこのように見えます。</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-configure-server.PNG" alt="HDFS Output Configuration, Server tab" width="80%"/>
+                <br/><br/>
+                <p>HDFSネームノードのURIおよびHDFSユーザー名に書き入れてください。両方とも必要となります。</p>
+                <p>HDFS出力接続タイプについては、「出力パス」と呼ばれる付加的なJobタブがあります。このタブこのように見えます。</p>
+                <br/><br/>
+                <figure src="images/en_US/hdfs-job-output-path.PNG" alt="HDFS Output Specification, Output Path tab" width="80%"/>
+                <br/><br/>
+                <p>ドキュメントを出力したいパスを入力して、「保存」をクリックしてください。</p>
+            </section>
             
             <section id="osssoutputconnector">
             	<title>OpenSearchServer出力コネクション</title>
@@ -1079,6 +1104,43 @@
                 <p>「パスメタデータ」タブからはコンテンツ毎のパス情報を索引にメタデータとして送るように指定することができます。送るようにする場合は、項目「パス属性名」にメタデータ属性名を入力して、ルールをルール一覧に追加してください。各ルールに一致する正規表現の式で構成されます。変換元と値は格好（「(」と「)」）で囲みます。括弧に囲まれた部分を「グループ」と言います。置き換え文字列は、固定文字と置き換えグループから構成されます。例えば、「$(1)」は最初に一致したグループを示し、「$(1l)」は最初に一致した小文字のグループを示します。同じように「$(1u)」は大文字にマップしたグループを示します。</p>
                 <p>例えば、ルールの一致条件が<code>.*/(.*)/(.*)/.*</code>で置き換え文字列<code>$(1) $(2)/</code>とした場合、パス<code>Project/Folder_1/Folder_2/Filename</code>は<code>Folder_1 Folder_2</code>に変換されます。</p>
                 <p>１つ以上のルールが存在する場合は、上から実行され、上のルールの結果は下のルールで変更されます。</p>
+            </section>
+            
+            <section id="dropboxrepository">
+              <title>Dropboxリポジトリコネクション</title>
+              <p>Dropboxリポジトリコネクションは、<a href="https://www.dropbox.com/home">Dropbox</a>の内容をインデクシングすることができます。</p>
+              <p>それぞれのDropboxコネクションは、ひとつのDropboxリポジトリへのアクセスを管理します。これは、たとえば異なるユーザを使って、複数のDropboxを持っている場合、それぞれのDropboxリポジトリに対してひとつずつコネクションを作り、その関連した権限情報を用意する必要があることを意味します。</p>
+              <br/>
+              <p>ひとつのDropboxコネクションは、次のような設定パラメータを、リポジトリコネクションの編集画面に持っています。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-configuration.PNG" alt="Dropbox Repository Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>コネクションに接続するためには、４つの情報が必要です。Application KeyとApplication Secretは、開発ライセンスであなたのアプリケーションを登録した時に、Dropboxから提供されます。これは基本的には、アプリケーション開発者用の<a href="https://www.dropbox.com/developers/apps">Dropbox website</a>を通して行われます。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-create-application.PNG" alt="Dropbox create application" width="80%"/>
+              <br/><br/>
+              <p>今回の用途としては、DropboxとコミュニケートするためにRESTサービスを使いますので、アプリケーションタイプとして"Core"を選択する必要があります。また、"full access"を選択します。これには少々議論があります。基本的に、情報を格納したり取得したりするアプリケーションでは、アプリケーションの固有フォルダからフルアクセスします。今回のケースでは、ユーザーがユーザーのファイルをそのままアクセスし、manifoldcfの固有フォルダにコピーしないことを想定しています。結果的には、"App folder"の代わりに"full access"を選択しています。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-application-secret-passwords.PNG" alt="Dropbox get key and secret passwords" width="80%"/>
+              <br/><br/>
+              <p>その後、このコネクタで求められる２つの情報、App keyとApp secretを見ることができます。</p>
+              <p>ここで、それぞれのユーザは、ユーザのアプリケーションがDropboxにアクセスできるよう受諾されることを確認しなければなりません。これは普通のOAUTHアプローチを通してなされます。ユーザのアプリケーションのkeyとsecretが提供された後、ユーザは、ユーザのアプリケーションの権限を許可してもらうことを、Dropboxのウェブサイトに対して問い合わせするよう指示されます。彼らがそのリクエストを受諾すると、Dropboxはclient keyとsecretを提供します。このkeyとsecretが、Dropboxコネクタで必要になる最後の２つです。このプロセスの深い内容については、<a href="https://www.dropbox.com/developers/core/authentication">dropbox website</a>で説明されており、どのようにこの２つのclientトークンを生成するかの例が示されています。</p>
+              <br/>
+              <br/><br/>
+              <p>保存ボタンをクリックしたら、コネクションのサマリ画面を見ることになります。これは以下のようなものになります。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-configuration-save.PNG" alt="Dropbox Repository Connection, saving configuration" width="80%"/>
+              <br/><br/>
+              <p>Dropboxリポジトリコネクションを使用するジョブを設定した場合は、追加タブが表示されます。これは、"Dropbox Folder to Index" です。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-job-dropbox-folder-to-index.PNG" alt="Dropbox Repository Connection, Dropbox Folder to Index" width="80%"/>
+              <br/><br/>
+              <p>このタブでは、Dropboxコネクタがインデクシングするディレクトリを指定することができます。Dropboxはunixスタイルのパスを使います。"/"はルートパスを意味します（したがって全体のDropboxを指定することになります）。たとえば、Photosディレクトリをインデクシングしたい場合は、"/Photos"と指定することになります。</p>
+              <p>注意点は、Dropboxコネクタは取り込み処理中、それぞれの結果について、フォルダの階層を見つけた時、そのフォルダの子供のすべてのフォルダを取り込みしようとします。フォルダでなければ、直接ドキュメントを取り込みしようとします。</p>
+              <p>ジョブの設定が終わったら、保存ボタンをクリックし、サマリ画面を見ます。これは以下のようなものになります。</p>
+              <br/><br/>
+              <figure src="images/ja_JP/dropbox-repository-connection-job-save.PNG" alt="CMIS Repository Connection, saving job" width="80%"/>
+              <br/><br/>
             </section>
             
             <section id="livelinkrepository">

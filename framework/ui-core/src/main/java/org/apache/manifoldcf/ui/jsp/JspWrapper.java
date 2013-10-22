@@ -19,26 +19,31 @@
 package org.apache.manifoldcf.ui.jsp;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.ui.beans.AdminProfile;
 import javax.servlet.jsp.*;
 import java.io.*;
 
 /** This class provides an implementation of IHTTPOutput, which provides output
-* services to connector UI interfaces.
+* services to connector UI interfaces.  More broadly, it provides the services that all
+* connectors will need in order to provide UI components.
 */
 public class JspWrapper implements IHTTPOutput
 {
   public static final String _rcsid = "@(#)$Id: JspWrapper.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected JspWriter writer;
+  protected final JspWriter writer;
+  protected final AdminProfile adminProfile;
 
   /** Constructor.
   */
-  public JspWrapper(JspWriter writer)
+  public JspWrapper(JspWriter writer, AdminProfile adminProfile)
   {
     this.writer = writer;
+    this.adminProfile = adminProfile;
   }
 
   /** Flush the stream */
+  @Override
   public void flush()
     throws IOException
   {
@@ -46,6 +51,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a newline */
+  @Override
   public void newLine()
     throws IOException
   {
@@ -53,6 +59,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a boolean */
+  @Override
   public void print(boolean b)
     throws IOException
   {
@@ -60,6 +67,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a char */
+  @Override
   public void print(char c)
     throws IOException
   {
@@ -67,6 +75,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an array of chars */
+  @Override
   public void print(char[] c)
     throws IOException
   {
@@ -74,6 +83,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a double */
+  @Override
   public void print(double d)
     throws IOException
   {
@@ -81,6 +91,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a float */
+  @Override
   public void print(float f)
     throws IOException
   {
@@ -88,6 +99,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an int */
+  @Override
   public void print(int i)
     throws IOException
   {
@@ -95,6 +107,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a long */
+  @Override
   public void print(long l)
     throws IOException
   {
@@ -102,6 +115,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an object */
+  @Override
   public void print(Object o)
     throws IOException
   {
@@ -109,6 +123,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a string */
+  @Override
   public void print(String s)
     throws IOException
   {
@@ -116,6 +131,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a boolean */
+  @Override
   public void println(boolean b)
     throws IOException
   {
@@ -123,6 +139,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a char */
+  @Override
   public void println(char c)
     throws IOException
   {
@@ -130,6 +147,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an array of chars */
+  @Override
   public void println(char[] c)
     throws IOException
   {
@@ -137,6 +155,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a double */
+  @Override
   public void println(double d)
     throws IOException
   {
@@ -144,6 +163,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a float */
+  @Override
   public void println(float f)
     throws IOException
   {
@@ -151,6 +171,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an int */
+  @Override
   public void println(int i)
     throws IOException
   {
@@ -158,6 +179,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a long */
+  @Override
   public void println(long l)
     throws IOException
   {
@@ -165,6 +187,7 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write an object */
+  @Override
   public void println(Object o)
     throws IOException
   {
@@ -172,10 +195,35 @@ public class JspWrapper implements IHTTPOutput
   }
   
   /** Write a string */
+  @Override
   public void println(String s)
     throws IOException
   {
     writer.println(s);
+  }
+
+  /** Map a password to a unique key.
+  * This method works within a specific given browser session to replace an existing password with
+  * a key which can be used to look up the password at a later time.
+  *@param password is the password.
+  *@return the key.
+  */
+  @Override
+  public String mapPasswordToKey(String password)
+  {
+    return adminProfile.getPasswordMapper().mapPasswordToKey(password);
+  }
+  
+  /** Convert a key, created by mapPasswordToKey, back to the original password, within
+  * the lifetime of the browser session.  If the provided key is not an actual key, instead
+  * the key value is assumed to be a new password value.
+  *@param key is the key.
+  *@return the password.
+  */
+  @Override
+  public String mapKeyToPassword(String key)
+  {
+    return adminProfile.getPasswordMapper().mapKeyToPassword(key);
   }
 
 }

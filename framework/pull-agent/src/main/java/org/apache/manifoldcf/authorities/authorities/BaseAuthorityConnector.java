@@ -34,11 +34,19 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
 {
   public static final String _rcsid = "@(#)$Id: BaseAuthorityConnector.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  protected static final AuthorizationResponse RESPONSE_UNREACHABLE = new AuthorizationResponse(new String[]{GLOBAL_DENY_TOKEN},
+    AuthorizationResponse.RESPONSE_UNREACHABLE);
+  protected static final AuthorizationResponse RESPONSE_USERNOTFOUND = new AuthorizationResponse(new String[]{GLOBAL_DENY_TOKEN},
+    AuthorizationResponse.RESPONSE_USERNOTFOUND);
+  protected static final AuthorizationResponse RESPONSE_USERUNAUTHORIZED = new AuthorizationResponse(new String[]{GLOBAL_DENY_TOKEN},
+    AuthorizationResponse.RESPONSE_USERUNAUTHORIZED);
+
   /** Obtain the access tokens for a given user name.
   *@param userName is the user name or identifier.
   *@return the response tokens (according to the current authority).
   * (Should throws an exception only when a condition cannot be properly described within the authorization response object.)
   */
+  @Override
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
@@ -67,6 +75,7 @@ public abstract class BaseAuthorityConnector extends org.apache.manifoldcf.core.
   *@param userName is the user name or identifier.
   *@return the default response tokens, presuming that the connect method fails.
   */
+  @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     String[] acls = getDefaultAccessTokens(userName);

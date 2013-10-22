@@ -28,38 +28,38 @@ import java.util.*;
 */
 public class DeleteAuthorityConnection
 {
-        public static final String _rcsid = "@(#)$Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: DeleteAuthorityConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private DeleteAuthorityConnection()
-        {
-        }
-
-
-        public static void main(String[] args)
-        {
-                if (args.length != 1)
-                {
-                        System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
-                        System.exit(1);
-                }
-
-                String connectionName = args[0];
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
-                        mgr.delete(connectionName);
-
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace(System.err);
-                        System.exit(2);
-                }
-        }
+  private DeleteAuthorityConnection()
+  {
+  }
 
 
+  public static void main(String[] args)
+  {
+    if (args.length != 1)
+    {
+      System.err.println("Usage: DeleteAuthorityConnection <connection_name>");
+      System.exit(1);
+    }
 
-                
+    String connectionName = args[0];
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
+      mgr.delete(connectionName);
+
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace(System.err);
+      System.exit(2);
+    }
+  }
+
+
+
+    
 }

@@ -29,6 +29,7 @@ import org.alfresco.webservice.types.ResultSetRow;
 import org.alfresco.webservice.util.AuthenticationDetails;
 import org.alfresco.webservice.util.AuthenticationUtils;
 import org.alfresco.webservice.util.WebServiceFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ContentModelUtils {
@@ -54,37 +55,52 @@ public class ContentModelUtils {
    * @param node
    * @return TRUE if the reference contains a node that is an Alfresco space, otherwise FALSE
    */
-  public static boolean isFolder(String username, String password, AuthenticationDetails session, Reference node){
+  public static boolean isFolder(String endpoint, String username, String password, int socketTimeout, AuthenticationDetails session, Reference node) throws ManifoldCFException {
     QueryResult queryResult = null;
     try {
+      WebServiceFactory.setEndpointAddress(endpoint);
+      WebServiceFactory.setTimeoutMilliseconds(socketTimeout);
       AuthenticationUtils.startSession(username, password);
       session = AuthenticationUtils.getAuthenticationDetails();
       queryResult = WebServiceFactory.getRepositoryService().queryChildren(node);
+      if(queryResult!=null){
+        ResultSet rs = queryResult.getResultSet();
+        if(rs!=null){
+          ResultSetRow[] rows = rs.getRows();
+          if(rows!=null){
+            if(rows.length>0){
+              return true;
+            }
+          }
+        }
+      }
+      AuthenticationUtils.endSession();
     } catch (RepositoryFault e) {
       Logging.connectors.warn(
           "Alfresco: Repository Error during the queryChildren: "
               + e.getMessage(), e);
+      ContentModelUtils.handleRepositoryFaultException(e);
     } catch (RemoteException e) {
       Logging.connectors.warn(
           "Alfresco: Remote Error during the queryChildren: "
               + e.getMessage(), e);
+      ContentModelUtils.handleRemoteException(e);
     } finally {
-      AuthenticationUtils.endSession();
       session = null;
     }
-    
-    if(queryResult!=null){
-      ResultSet rs = queryResult.getResultSet();
-      if(rs!=null){
-        ResultSetRow[] rows = rs.getRows();
-        if(rows!=null){
-          if(rows.length>0){
-            return true;
-          }
-        }
-      }
-    }
     return false;
+  }
+  
+  public static void handleRepositoryFaultException(RepositoryFault e) 
+      throws ManifoldCFException {
+    throw new ManifoldCFException(
+        "Alfresco: Error during getting children: "+e.getMessage(),e);
+  }
+  
+  public static void handleRemoteException(RemoteException e) 
+      throws ManifoldCFException {
+    throw new ManifoldCFException(
+        "Alfresco: Error during getting children: "+e.getMessage(),e);
   }
   
 }

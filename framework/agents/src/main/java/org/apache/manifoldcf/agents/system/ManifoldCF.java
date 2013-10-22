@@ -37,30 +37,30 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   
   /** Initialize environment.
   */
-  public static void initializeEnvironment()
+  public static void initializeEnvironment(IThreadContext threadContext)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
     {
       // Do core initialization
-      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment();
+      org.apache.manifoldcf.core.system.ManifoldCF.initializeEnvironment(threadContext);
       // Local initialization
-      org.apache.manifoldcf.agents.system.ManifoldCF.localInitialize();
+      org.apache.manifoldcf.agents.system.ManifoldCF.localInitialize(threadContext);
     }
   }
 
   /** Clean up environment.
   */
-  public static void cleanUpEnvironment()
+  public static void cleanUpEnvironment(IThreadContext threadContext)
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.agents.system.ManifoldCF.localCleanup();
-      org.apache.manifoldcf.core.system.ManifoldCF.cleanUpEnvironment();
+      org.apache.manifoldcf.agents.system.ManifoldCF.localCleanup(threadContext);
+      org.apache.manifoldcf.core.system.ManifoldCF.cleanUpEnvironment(threadContext);
     }
   }
   
-  public static void localInitialize()
+  public static void localInitialize(IThreadContext threadContext)
     throws ManifoldCFException
   {
     synchronized (initializeFlagLock)
@@ -73,22 +73,22 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       
       // Initialize the local loggers
       Logging.initializeLoggers();
-      Logging.setLogLevels();
+      Logging.setLogLevels(threadContext);
       agentsInitialized = true;
     }
   }
 
-  public static void localCleanup()
+  public static void localCleanup(IThreadContext threadContext)
   {
   }
   
   /** Reset the environment.
   */
-  public static void resetEnvironment()
+  public static void resetEnvironment(IThreadContext threadContext)
   {
     synchronized (initializeFlagLock)
     {
-      org.apache.manifoldcf.core.system.ManifoldCF.resetEnvironment();
+      org.apache.manifoldcf.core.system.ManifoldCF.resetEnvironment(threadContext);
       synchronized (runningHash)
       {
         stopAgentsRun = false;
@@ -265,7 +265,17 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       return null;
     return node.getValue();
   }
-  
+
+  /** Create an error node with a general error message. */
+  public static void createErrorNode(Configuration output, String errorMessage)
+    throws ManifoldCFException
+  {
+    ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+    error.setValue(errorMessage);
+    output.addChild(output.getChildCount(),error);
+  }
+
+
   /** Handle an exception, by converting it to an error node. */
   public static void createErrorNode(Configuration output, ManifoldCFException e)
     throws ManifoldCFException
@@ -273,9 +283,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
       throw e;
     Logging.api.error(e.getMessage(),e);
-    ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-    error.setValue(e.getMessage());
-    output.addChild(output.getChildCount(),error);
+    createErrorNode(output,e.getMessage());
   }
 
   /** Handle a service interruption, by converting it to a serviceinterruption node. */

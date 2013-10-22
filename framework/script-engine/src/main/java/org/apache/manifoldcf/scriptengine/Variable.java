@@ -53,34 +53,78 @@ public interface Variable
   /** CREATED status attribute */
   public static String ATTRIBUTE_CREATEDSTATUS = "__CREATED__";
   
+  /** Check if the variable has a string value */
+  public boolean hasStringValue()
+    throws ScriptException;
+    
   /** Get the variable's value as a string */
   public String getStringValue()
+    throws ScriptException;
+
+  /** Check if the variable has a script value */
+  public boolean hasScriptValue()
     throws ScriptException;
 
   /** Get the variable's script value */
   public String getScriptValue()
     throws ScriptException;
 
+  /** Check if the variable has a Configuration value */
+  public boolean hasConfigurationValue()
+    throws ScriptException;
+
   /** Get the variable's value as a Configuration object */
   public Configuration getConfigurationValue()
     throws ScriptException;
-    
+  
+  /** Check if the variable has a ConfigurationNode value */
+  public boolean hasConfigurationNodeValue()
+    throws ScriptException;
+
   /** Get the variable's value as a ConfigurationNode object */
   public ConfigurationNode getConfigurationNodeValue()
     throws ScriptException;
-    
+
+  /** Check if the variable has a boolean value */
+  public boolean hasBooleanValue()
+    throws ScriptException;
+
   /** Get the variable's value as a boolean */
   public boolean getBooleanValue()
     throws ScriptException;
   
+  /** Check if the variable has an int value */
+  public boolean hasIntValue()
+    throws ScriptException;
+
   /** Get the variable's value as an integer */
   public int getIntValue()
     throws ScriptException;
   
+  /** Check if the variable has a double value */
+  public boolean hasDoubleValue()
+    throws ScriptException;
+
   /** Get the variable's value as a double */
   public double getDoubleValue()
     throws ScriptException;
+    
+  /** Check if the variable has a query argument value */
+  public boolean hasQueryArgumentValue()
+    throws ScriptException;
+
+  /** Get the variable's value as a properly-encoded query argument */
+  public String getQueryArgumentValue()
+    throws ScriptException;
   
+  /** Check if the variable has a URL path value */
+  public boolean hasURLPathValue()
+    throws ScriptException;
+    
+  /** Get the variable's value as a URL path component */
+  public String getURLPathValue()
+    throws ScriptException;
+    
   // Arithmetic and comparison operators
   
   public VariableReference plus(Variable v)
@@ -150,5 +194,5 @@ public interface Variable
   /** Get an indexed property of the variable */
   public VariableReference getIndexed(Variable index)
     throws ScriptException;
-    
+  
 }

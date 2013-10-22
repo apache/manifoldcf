@@ -44,8 +44,8 @@ public class CheckConfigured
 
                 try
                 {
-                        ManifoldCF.initializeEnvironment();
                         IThreadContext tc = ThreadContextFactory.make();
+                        ManifoldCF.initializeEnvironment(tc);
                         // Now, get a list of the authority connections
                         IAuthorityConnectionManager mgr = AuthorityConnectionManagerFactory.make(tc);
                         if (mgr.getAllConnections().length > 0)

@@ -51,17 +51,14 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   protected boolean useSystemAcls = true;
 
   // Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
-  // However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
+  // However, it is felt that we need to be suspenders-and-belt, so we use the deny token.
   // The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token.
-  protected static final String denyToken = "DEAD_AUTHORITY";
-
-  protected static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_UNREACHABLE);
-  protected static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERNOTFOUND);
-  protected static final AuthorizationResponse userUnauthorizedResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERUNAUTHORIZED);
 
     /** Cache manager. */
   protected ICacheManager cacheManager = null;
 
+  // Set if we have set up session parameters necessary for caching
+  protected boolean hasSessionParameters = false;
   // This is the DFC session; it may be null, or it may be set.
   protected IDocumentum session = null;
   protected long lastSessionFetch = -1L;
@@ -129,23 +126,23 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     }
   }
 
-  /** Get a DFC session.  This will be done every time it is needed.
+  /** Get session parameters.
   */
-  protected void getSession()
+  protected void getSessionParameters()
     throws ManifoldCFException
   {
-    try
+    if (!hasSessionParameters)
     {
-      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
-      LRUsize = Integer.parseInt(this.cacheLRUsize);
-    }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
-    }
+      try
+      {
+        responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+        LRUsize = Integer.parseInt(this.cacheLRUsize);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+      }
 
-    if (session == null)
-    {
       // This is the stuff that used to be in connect()
       if (docbaseName == null || docbaseName.length() < 1)
         throw new ManifoldCFException("Parameter "+CONFIG_PARAM_DOCBASE+" required but not set");
@@ -182,7 +179,18 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
         Logging.authorityConnectors.debug("DCTM: Use system acls enabled");
       }
 
-
+      hasSessionParameters = true;
+    }
+  }
+  
+  /** Get a DFC session.  This will be done every time it is needed.
+  */
+  protected void getSession()
+    throws ManifoldCFException
+  {
+    getSessionParameters();
+    if (session == null)
+    {
       // This actually sets up the connection
       GetSessionThread t = new GetSessionThread();
       try
@@ -515,7 +523,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           {
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("DCTM: No user found for username '" + strUserName + "'");
-            response = userNotFoundResponse;
+            response = RESPONSE_USERNOTFOUND;
             return;
           }
 
@@ -523,7 +531,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           {
             if (Logging.authorityConnectors.isDebugEnabled())
               Logging.authorityConnectors.debug("DCTM: User found for username '" + strUserName + "' but the account is not active.");
-            response = userUnauthorizedResponse;
+            response = RESPONSE_USERUNAUTHORIZED;
             return;
           }
 
@@ -629,6 +637,9 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     if (Logging.authorityConnectors.isDebugEnabled())
       Logging.authorityConnectors.debug("DCTM: Inside AuthorityConnector.getAuthorizationResponse for user '"+strUserNamePassedIn+"'");
 
+    // We need this in order to be able to properly construct an AuthorizationResponseDescription.
+    getSessionParameters();
+    
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(strUserNamePassedIn,docbaseName,userName,password,
       domain,caseInsensitive,useSystemAcls,responseLifetime,LRUsize);
@@ -725,7 +736,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           if (noSession)
           {
             Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
-            return unreachableResponse;
+            return RESPONSE_UNREACHABLE;
           }
           session = null;
           lastSessionFetch = -1L;
@@ -804,7 +815,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
           if (noSession)
           {
             Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
-            return unreachableResponse;
+            return RESPONSE_UNREACHABLE;
           }
           session = null;
           lastSessionFetch = -1L;
@@ -819,7 +830,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       {
         Logging.authorityConnectors.warn("DCTM: Transient error checking authorization: "+e.getMessage(),e);
         // Transient: Treat as if user does not exist, not like credentials invalid.
-        return unreachableResponse;
+        return RESPONSE_UNREACHABLE;
       }
       throw new ManifoldCFException(e.getMessage(),e);
     }
@@ -832,7 +843,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
 
   protected static String insensitiveMatch(boolean insensitive, String field, String value)
@@ -942,6 +953,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
     if (session != null)
     {
       DestroySessionThread t = new DestroySessionThread();
@@ -1111,27 +1123,29 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String docbaseName = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE);
+    String docbaseName = parameters.getParameter(CONFIG_PARAM_DOCBASE);
     if (docbaseName == null)
       docbaseName = "";
 
-    String docbaseUserName = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME);
+    String docbaseUserName = parameters.getParameter(CONFIG_PARAM_USERNAME);
     if (docbaseUserName == null)
       docbaseUserName = "";
 
-    String docbasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD);
+    String docbasePassword = parameters.getObfuscatedParameter(CONFIG_PARAM_PASSWORD);
     if (docbasePassword == null)
       docbasePassword = "";
+    else
+      docbasePassword = out.mapPasswordToKey(docbasePassword);
 
-    String docbaseDomain = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN);
+    String docbaseDomain = parameters.getParameter(CONFIG_PARAM_DOMAIN);
     if (docbaseDomain == null)
       docbaseDomain = "";
 
-    String caseInsensitiveUser = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE);
+    String caseInsensitiveUser = parameters.getParameter(CONFIG_PARAM_CASEINSENSITIVE);
     if (caseInsensitiveUser == null)
       caseInsensitiveUser = "false";
 
-    String useSystemAcls = parameters.getParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS);
+    String useSystemAcls = parameters.getParameter(CONFIG_PARAM_USESYSTEMACLS);
     if (useSystemAcls == null)
       useSystemAcls = "true";
 
@@ -1286,27 +1300,27 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
   {
     String docbaseName = variableContext.getParameter("docbasename");
     if (docbaseName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOCBASE,docbaseName);
+      parameters.setParameter(CONFIG_PARAM_DOCBASE,docbaseName);
 	
     String docbaseUserName = variableContext.getParameter("docbaseusername");
     if (docbaseUserName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USERNAME,docbaseUserName);
+      parameters.setParameter(CONFIG_PARAM_USERNAME,docbaseUserName);
 	
     String docbasePassword = variableContext.getParameter("docbasepassword");
     if (docbasePassword != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_PASSWORD,docbasePassword);
+      parameters.setObfuscatedParameter(CONFIG_PARAM_PASSWORD,variableContext.mapKeyToPassword(docbasePassword));
 	
     String docbaseDomain = variableContext.getParameter("docbasedomain");
     if (docbaseDomain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_DOMAIN,docbaseDomain);
+      parameters.setParameter(CONFIG_PARAM_DOMAIN,docbaseDomain);
 
     String caseInsensitiveUser = variableContext.getParameter("usernamecaseinsensitive");
     if (caseInsensitiveUser != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
+      parameters.setParameter(CONFIG_PARAM_CASEINSENSITIVE,caseInsensitiveUser);
 
     String useSystemAcls = variableContext.getParameter("usesystemacls");
     if (useSystemAcls != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.authorities.DCTM.AuthorityConnector.CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
+      parameters.setParameter(CONFIG_PARAM_USESYSTEMACLS,useSystemAcls);
     
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)

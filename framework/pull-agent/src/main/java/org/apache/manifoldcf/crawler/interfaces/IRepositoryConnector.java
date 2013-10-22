@@ -69,9 +69,19 @@ public interface IRepositoryConnector extends IConnector
   // is the most restrictive that is still accurate.  For example, if MODEL_ADD_CHANGE_DELETE applies, you would
   // return that value rather than MODEL_ADD.
 
+  // For the CHAINED models, what the connector is describing are the documents that will be processed IF the seeded
+  // documents are followed to their leaves.  For instance, imagine a hierarchy where the root document is the only one ever
+  // seeded, but if that document is processed, and its discovered changed children are processed as well, then all documents
+  // that have been added, changed, or deleted will eventually be discovered.  In that case, model
+  // MODEL_CHAINED_ADD_CHANGE_DELETE would be appropriate.  But, if a changed node can only discover child
+  // additions and changes, then MODEL_CHAINED_ADD_CHANGE would be the right choice.
+
   /** Supply all seeds every time.  The connector does not pay any attention to the start time or end time
   * of the request, and simply returns a complete list of seeds. */
   public static final int MODEL_ALL = 0;
+  /** This indicates that the seeds are never complete; the previous seeds are lost and cannot be retrieved. */
+  public static final int MODEL_PARTIAL = 4;
+
   /** Supply at least the documents that have been added since the specified start time.  Connector is
   * aware of the start time and end time of the request, and supplies at least the documents that have been
   * added within the specified time range. */
@@ -80,14 +90,22 @@ public interface IRepositoryConnector extends IConnector
   public static final int MODEL_ADD_CHANGE = 2;
   /** Supply at least the documents that have been added, changed, or deleted within the specified time range. */
   public static final int MODEL_ADD_CHANGE_DELETE = 3;
-  /** This indicates that the seeds are never complete; the previous seeds are lost and cannot be retrieved. */
-  public static final int MODEL_PARTIAL = 4;
 
+  /** Like MODEL_ADD, except considering document discovery */
+  public static final int MODEL_CHAINED_ADD = 9;
+  /** Like MODEL_ADD_CHANGE, except considering document discovery */
+  public static final int MODEL_CHAINED_ADD_CHANGE = 10;
+  /** Like MODEL_ADD_CHANGE_DELETE, except considering document discovery */
+  public static final int MODEL_CHAINED_ADD_CHANGE_DELETE = 11;
+  
   // These are the job modes the connector may want to know about.
   // For a once-only job, it is essential that documents that are processed by processDocuments() always queue up their child links,
   // This is not true for continuous jobs, which never delete unreachable links because they never terminate.
   public static final int JOBMODE_ONCEONLY = IJobDescription.TYPE_SPECIFIED;
   public static final int JOBMODE_CONTINUOUS = IJobDescription.TYPE_CONTINUOUS;
+
+  /** This is the global deny token.  This should be ingested with all documents. */
+  public static final String GLOBAL_DENY_TOKEN = "DEAD_AUTHORITY";
 
   /** Tell the world what model this connector uses for addSeedDocuments().
   * This must return a model value as specified above.  The connector does not have to be connected

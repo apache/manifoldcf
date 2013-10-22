@@ -29,7 +29,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.ApacheManifoldCFListOutputConnections")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.ApacheManifoldCFListOutputConnections")%>
 	</title>
 
 	<script type="text/javascript">
@@ -37,7 +37,7 @@
 
 	function Delete(connectionName)
 	{
-		if (confirm("<%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.DeleteOutputConnection")%> '"+connectionName+"'?"))
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listoutputs.DeleteOutputConnection")%> '"+connectionName+"'?"))
 		{
 			document.listconnections.op.value="Delete";
 			document.listconnections.connname.value=connectionName;
@@ -56,7 +56,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.ListOfOutputConnections")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.ListOfOutputConnections")%></p>
 	<form class="standardform" name="listconnections" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
 		<input type="hidden" name="type" value="output"/>
@@ -76,10 +76,10 @@
 			</tr>
 			<tr class="headerrow">
 				<td class="columnheader"></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.Name")%></nobr></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.Description")%></nobr></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.ConnectionType")%></nobr></td>
-				<td class="columnheader"><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.Max")%></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.Name")%></nobr></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.Description")%></nobr></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.ConnectionType")%></nobr></td>
+				<td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.Max")%></td>
 			</tr>
 <%
 	int i = 0;
@@ -94,13 +94,13 @@
 		String className = connection.getClassName();
 		String connectorName = connectorManager.getDescription(className);
 		if (connectorName == null)
-			connectorName = className + "(uninstalled)";
+			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.uninstalled");;
 		int maxCount = connection.getMaxConnections();
 
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 			<td class="columncell">
-				<a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.View")%></a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%="Edit "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%="Delete "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.Delete")%></a>
+				<a href='<%="viewoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.View")%></a>&nbsp;<a href='<%="editoutput.jsp?connname="+java.net.URLEncoder.encode(name,"UTF-8")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.Delete")%></a>
 			</td>
 			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
 			<td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
@@ -113,7 +113,7 @@
 			<tr>
 				<td class="separator" colspan="5"><hr/></td>
 			</tr>
-			<tr><td class="message" colspan="5"><a href="editoutput.jsp" alt="<%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.AddAnOutputConnection")%>"><%=Messages.getString(pageContext.getRequest().getLocale(),"listoutputs.AddaNewOutputConnection")%></a></td></tr>
+			<tr><td class="message" colspan="5"><a href="editoutput.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.AddAnOutputConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.AddaNewOutputConnection")%></a></td></tr>
 		</table>
 
 <%

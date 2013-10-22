@@ -47,6 +47,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   /** How to create a connection for a DC, keyed by DC name */
   private Map<String,DCConnectionParameters> dCConnectionParameters = null;
   
+  private boolean hasSessionParameters = false;
   private String cacheLifetime = null;
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
@@ -61,14 +62,6 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   
   /** The length of time in milliseconds that the connection remains idle before expiring.  Currently 5 minutes. */
   private static final long expirationInterval = 300000L;
-  
-  /** This is the active directory global deny token.  This should be ingested with all documents. */
-  private static final String globalDenyToken = "DEAD_AUTHORITY";
-  
-  private static final AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private static final AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{globalDenyToken},
-    AuthorizationResponse.RESPONSE_USERNOTFOUND);
   
   /** Constructor.
   */
@@ -110,11 +103,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     dCRules = new ArrayList<DCRule>();
     dCConnectionParameters = new HashMap<String,DCConnectionParameters>();
     // For backwards compatibility, look at old-style parameters
-    String domainControllerName = configParams.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
-    String userName = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
-    String password = configParams.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
-    String authentication = configParams.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
-    String userACLsUsername = configParams.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
+    String domainControllerName = params.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
+    String userName = params.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
+    String password = params.getObfuscatedParameter(ActiveDirectoryConfig.PARAM_PASSWORD);
+    String authentication = params.getParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION);
+    String userACLsUsername = params.getParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME);
     if (domainControllerName != null)
     {
       // Map the old-style parameters into the new-style structures.
@@ -126,9 +119,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     {
       // New-style parameters.  Read from the config info.
       int i = 0;
-      while (i < configParams.getChildCount())
+      while (i < params.getChildCount())
       {
-        ConfigNode cn = configParams.getChild(i++);
+        ConfigNode cn = params.getChild(i++);
         if (cn.getType().equals(ActiveDirectoryConfig.NODE_DOMAINCONTROLLER))
         {
           // Domain controller name is the actual key...
@@ -144,10 +137,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       }
     }
     
-    cacheLifetime = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
+    cacheLifetime = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
       cacheLifetime = "1";
-    cacheLRUsize = configParams.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
+    cacheLRUsize = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
     if (cacheLRUsize == null)
       cacheLRUsize = "1000";    
   }
@@ -176,7 +169,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException
   {
     // Set up the basic session...
-    getSession();
+    getSessionParameters();
     // Clear the DC session info, so we're forced to redo it
     for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
     {
@@ -195,7 +188,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   protected LdapContext createDCSession(String domainController)
     throws ManifoldCFException
   {
-    getSession();
+    getSessionParameters();
     DCConnectionParameters parms = dCConnectionParameters.get(domainController);
     // Find the session in the hash, if it exists
     DCSessionInfo session = sessionInfo.get(domainController);
@@ -228,6 +221,8 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
+
     // Close all connections
     for (Map.Entry<String,DCSessionInfo> sessionEntry : sessionInfo.entrySet())
     {
@@ -249,6 +244,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
+    // This sets up parameters we need to construct the response description
+    getSessionParameters();
+
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
       dCConnectionParameters,dCRules,this.responseLifetime,this.LRUsize);
@@ -302,7 +300,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     for (DCRule rule : dCRules)
     {
       String suffix = rule.getSuffix();
-      if (suffix.length() == 0 || domainPart.toLowerCase().endsWith(suffix.toLowerCase()) &&
+      if (suffix.length() == 0 || domainPart.toLowerCase(Locale.ROOT).endsWith(suffix.toLowerCase(Locale.ROOT)) &&
         (suffix.length() == domainPart.length() || domainPart.charAt((domainPart.length()-suffix.length())-1) == '.'))
       {
         domainController = rule.getDomainControllerName();
@@ -312,7 +310,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (domainController == null)
     {
       // No domain controller found for the user, so return "user not found".
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     }
     
     // Look up connection parameters
@@ -320,7 +318,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (dcParams == null)
     {
       // No domain controller, even though it's mentioned in a rule
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     }
     
     // Use the complete fqn if the field is the "userPrincipalName"
@@ -355,7 +353,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
       String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
       if (searchBase == null)
-        return userNotFoundResponse;
+        return RESPONSE_USERNOTFOUND;
 
       //specify the LDAP search filter
       String searchFilter = "(objectClass=user)";
@@ -406,7 +404,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       }
 
       if (theGroups.size() == 0)
-        return userNotFoundResponse;
+        return RESPONSE_USERNOTFOUND;
       
       // All users get certain well-known groups
       theGroups.add("S-1-1-0");
@@ -425,12 +423,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     catch (NameNotFoundException e)
     {
       // This means that the user doesn't exist
-      return userNotFoundResponse;
+      return RESPONSE_USERNOTFOUND;
     }
     catch (NamingException e)
     {
       // Unreachable
-      return unreachableResponse;
+      return RESPONSE_UNREACHABLE;
     }
   }
 
@@ -442,7 +440,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
     // The default response if the getConnection method fails
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
 
   // UI support methods.
@@ -482,13 +480,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     velocityContext.put("TabName",tabName);
-    fillInDomainControllerTab(velocityContext,parameters);
-    fillInCacheTab(velocityContext,parameters);
+    fillInDomainControllerTab(velocityContext,out,parameters);
+    fillInCacheTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
   }
   
-  protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, ConfigParams parameters)
+  protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
     String domainControllerName = parameters.getParameter(ActiveDirectoryConfig.PARAM_DOMAINCONTROLLER);
     String userName = parameters.getParameter(ActiveDirectoryConfig.PARAM_USERNAME);
@@ -500,7 +498,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     // Backwards compatibility: if domain controller parameter is set, create an entry in the map.
     if (domainControllerName != null)
     {
-      domainControllers.add(createDomainControllerMap("",domainControllerName,userName,password,authentication,userACLsUsername));
+      domainControllers.add(createDomainControllerMap(mapper,"",domainControllerName,userName,password,authentication,userACLsUsername));
     }
     else
     {
@@ -518,14 +516,14 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           String dcPassword = deobfuscate(cn.getAttributeValue(ActiveDirectoryConfig.ATTR_PASSWORD));
           String dcAuthentication = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_AUTHENTICATION);
           String dcUserACLsUsername = cn.getAttributeValue(ActiveDirectoryConfig.ATTR_USERACLsUSERNAME);
-          domainControllers.add(createDomainControllerMap(dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
+          domainControllers.add(createDomainControllerMap(mapper,dcSuffix,dcDomainController,dcUserName,dcPassword,dcAuthentication,dcUserACLsUsername));
         }
       }
     }
     velocityContext.put("DOMAINCONTROLLERS",domainControllers);
   }
 
-  protected static Map<String,String> createDomainControllerMap(String suffix, String domainControllerName,
+  protected static Map<String,String> createDomainControllerMap(IPasswordMapperActivity mapper, String suffix, String domainControllerName,
     String userName, String password, String authentication, String userACLsUsername)
   {
     Map<String,String> defaultMap = new HashMap<String,String>();
@@ -536,7 +534,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (userName != null)
       defaultMap.put("USERNAME",userName);
     if (password != null)
-      defaultMap.put("PASSWORD",password);
+      defaultMap.put("PASSWORD",mapper.mapPasswordToKey(password));
     if (authentication != null)
       defaultMap.put("AUTHENTICATION",authentication);
     if (userACLsUsername != null)
@@ -544,7 +542,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     return defaultMap;
   }
   
-  protected static void fillInCacheTab(Map<String,Object> velocityContext, ConfigParams parameters)
+  protected static void fillInCacheTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
   {
     String cacheLifetime = parameters.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
@@ -605,7 +603,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
             variableContext.getParameter("dcrecord_suffix"),
             variableContext.getParameter("dcrecord_domaincontrollername"),
             variableContext.getParameter("dcrecord_username"),
-            variableContext.getParameter("dcrecord_password"),
+            variableContext.mapKeyToPassword(variableContext.getParameter("dcrecord_password")),
             variableContext.getParameter("dcrecord_authentication"),
             variableContext.getParameter("dcrecord_userACLsUsername"));
         }
@@ -616,7 +614,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
             variableContext.getParameter("dcrecord_suffix_"+i),
             variableContext.getParameter("dcrecord_domaincontrollername_"+i),
             variableContext.getParameter("dcrecord_username_"+i),
-            variableContext.getParameter("dcrecord_password_"+i),
+            variableContext.mapKeyToPassword(variableContext.getParameter("dcrecord_password_"+i)),
             variableContext.getParameter("dcrecord_authentication_"+i),
             variableContext.getParameter("dcrecord_userACLsUsername_"+i));
         }
@@ -677,29 +675,31 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException, IOException
   {
     Map<String,Object> velocityContext = new HashMap<String,Object>();
-    fillInDomainControllerTab(velocityContext,parameters);
-    fillInCacheTab(velocityContext,parameters);
+    fillInDomainControllerTab(velocityContext,out,parameters);
+    fillInCacheTab(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 
   // Protected methods
 
-  /** Basic "session" setup.  This does not set up sessions with any DC's, but only validates the incoming scalar
-  * parameters.  Setting up sessions with specific DC's requires other method calls in addition to this one.
+  /** Get parameters needed for caching.
   */
-  protected void getSession()
+  protected void getSessionParameters()
     throws ManifoldCFException
   {
-    try
+    if (!hasSessionParameters)
     {
-      responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
-      LRUsize = Integer.parseInt(this.cacheLRUsize);
+      try
+      {
+        responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
+        LRUsize = Integer.parseInt(this.cacheLRUsize);
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
+      }
+      hasSessionParameters = true;
     }
-    catch (NumberFormatException e)
-    {
-      throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
-    }
-    
   }
   
   

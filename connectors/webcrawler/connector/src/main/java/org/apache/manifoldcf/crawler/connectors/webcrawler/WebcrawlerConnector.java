@@ -24,22 +24,18 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
-import org.xml.sax.Attributes;
+import org.apache.manifoldcf.core.fuzzyml.*;
 
-import org.apache.manifoldcf.core.common.XMLDoc;
-import org.apache.manifoldcf.agents.common.XMLStream;
-import org.apache.manifoldcf.agents.common.XMLContext;
-import org.apache.manifoldcf.agents.common.XMLStringContext;
-import org.apache.manifoldcf.agents.common.XMLFileContext;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.client.RedirectException;
+import org.apache.http.client.CircularRedirectException;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.HttpException;
 
 import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
-
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
 
 /** This is the Web Crawler implementation of the IRepositoryConnector interface.
 * This connector may be superceded by one that calls out to python, or by a entirely
@@ -626,6 +622,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         // later to detect redirection to login.
         SequenceCredentials sessionCredential = getSequenceCredential(documentIdentifier);
 
+        if (Logging.connectors.isDebugEnabled())
+        {
+          if (sessionCredential != null)
+            Logging.connectors.debug("Web: For document identifier '"+documentIdentifier+"' found session credential key '"+sessionCredential.getSequenceKey()+"'");
+        }
+        
         // Set up the initial state and state variables.
         int sessionState = SESSIONSTATE_NORMAL;
         String currentURI = documentIdentifier;
@@ -710,7 +712,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   // Prepare to perform the fetch, and decide what to do with the document.
                   //
                   IThrottledConnection connection = ThrottledFetcher.getConnection(protocol,ipAddress,port,
-                    credential,trustStore,throttleDescription,binNames,connectionLimit);
+                    credential,trustStore,throttleDescription,binNames,connectionLimit,
+                    proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
                   try
                   {
                     connection.beginFetch((sessionState == SESSIONSTATE_LOGIN)?FETCH_LOGIN:FETCH_STANDARD);
@@ -719,8 +722,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
                       // Execute the fetch!
                       connection.executeFetch(url.getFile(),userAgent,from,connectionTimeoutMilliseconds,
-                        socketTimeoutMilliseconds,false,hostName,formData,lc,
-                        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+                        socketTimeoutMilliseconds,false,hostName,formData,lc);
                       int response = connection.getResponseCode();
 
                       if (response == 200 || response == 302 || response == 301)
@@ -813,6 +815,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   String preferredLink = null;
                   String preferredRedirection = null;
                   formData = null;
+                  String contentLink = null;
                   if (resultSignal == RESULT_VERSION_NEEDED)
                   {
                     // If we get here, we know:
@@ -832,6 +835,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                       boolean seenFormError = false;
                       boolean seenLinkError = false;
                       boolean seenRedirectionError = false;
+                      boolean seenContentError = false;
                       while (iterMatches.hasNext())
                       {
                         seenAnything = true;
@@ -853,6 +857,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                           }
                           else if (!seenFormError)
                           {
+                            // A form overrides links, redirection, or content
                             formData = newFormData;
                             preferredLink = null;
                             preferredRedirection = null;
@@ -872,6 +877,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                             }
                             else if (!seenLinkError && !seenFormError && formData == null)
                             {
+                              // Link overrides redirection and content
                               preferredLink = newPreferredLink;
                               preferredRedirection = null;
                             }
@@ -890,6 +896,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                               else if (!seenRedirectionError && !seenLinkError && !seenFormError && formData == null && preferredLink == null)
                               {
                                 preferredRedirection = newPreferredRedirection;
+                              }
+                            }
+                            else
+                            {
+                              // Look for the content in the page.  The link returned may be an empty string, if matching content
+                              // is discovered but there is no override.  It will be null of the content is not found.
+                              String newContentLink = findSpecifiedContent(currentURI,lp);
+                              if (newContentLink != null)
+                              {
+                                if (contentLink != null)
+                                {
+                                  seenContentError = true;
+                                  contentLink = null;
+                                }
+                                else if (!seenContentError && !seenRedirectionError && !seenLinkError && !seenFormError && formData == null && preferredLink == null && preferredRedirection == null)
+                                {
+                                  contentLink = newContentLink;
+                                }
                               }
                             }
                           }
@@ -916,10 +940,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                           Logging.connectors.debug("WEB: Document '"+currentURI+"' matches preferred redirection, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
                         isLoginPage = true;
                       }
+                      else if (contentLink != null)
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("WEB: Document '"+currentURI+"' matches content, so determined to be login page for sequence '"+sessionCredential.getSequenceKey()+"'");
+                        isLoginPage = true;
+                      }
                       else
                       {
                         if (seenAnything && Logging.connectors.isDebugEnabled())
-                          Logging.connectors.debug("WEB: Document '"+currentURI+"' did not match expected form, link, or redirection content for sequence '"+sessionCredential.getSequenceKey()+"'");
+                          Logging.connectors.debug("WEB: Document '"+currentURI+"' did not match expected form, link, redirection, or content for sequence '"+sessionCredential.getSequenceKey()+"'");
                       }
                     }
 
@@ -996,15 +1026,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                         targetURI = formData.getActionURI();
                       else if (preferredLink != null)
                         targetURI = preferredLink;
-                      else
+                      else if (preferredRedirection != null)
                         targetURI = preferredRedirection;
+                      else /* if (contentLink != null) */
+                        targetURI = contentLink;
 
                       // Definitely we don't want the cached data anymore
                       cache.deleteData(currentURI);
 
-                      // If the target URI is null, it means we could not find a suitable link.  Treat this exactly the same
+                      // If the target URI is null, it means we could not find a suitable link.  If target URI is "",
+                      // it means that we found a designated logon page but the description did not include a link we
+                      // could chase.  Either way, treat this exactly the same
                       // way as if the link found exited login mode.
-                      if (targetURI == null)
+                      if (targetURI == null || targetURI.length() == 0)
                       {
                         //== Exiting login mode ==
                         activities.completeEventSequence(globalSequenceEvent);
@@ -1309,6 +1343,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
           RepositoryDocument rd = new RepositoryDocument();
 
+          // Set the file name
+          String fileName = "";
+          try {
+            fileName = documentIdentifiertoFileName(documentIdentifier);
+          } catch (URISyntaxException e1) {
+            fileName = "";
+          }
+          if (fileName.length() > 0){
+            rd.setFileName(fileName);
+          }
+          
+          // Set the content type
+          rd.setMimeType(cache.getContentType(documentIdentifier));
+          
           // Turn into acls and add into description
           String[] aclArray = new String[acls.size()];
           int j = 0;
@@ -1375,7 +1423,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               {
                 throw new ManifoldCFException("Socket timeout error closing stream: "+e.getMessage(),e);
               }
-              catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+              catch (ConnectTimeoutException e)
               {
                 throw new ManifoldCFException("Socket connect timeout error closing stream: "+e.getMessage(),e);
               }
@@ -1823,6 +1871,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String proxyAuthPassword = parameters.getObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD);
     if (proxyAuthPassword == null)
       proxyAuthPassword = "";
+    else
+      proxyAuthPassword = out.mapPasswordToKey(proxyAuthPassword);
 
     // Proxy tab
     if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Proxy")))
@@ -1936,11 +1986,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
         {
           // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
-          String isCaseInsensitive = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
+          String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
           String maxConnections = null;
           String maxKBPerSecond = null;
           String maxFetchesPerMinute = null;
@@ -1948,12 +1998,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           while (j < cn.getChildCount())
           {
             ConfigNode childNode = cn.getChild(j++);
-            if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
-              maxConnections = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
-              maxKBPerSecond = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-              maxFetchesPerMinute = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+            if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
+              maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
+              maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+              maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
           }
           if (maxConnections == null)
             maxConnections = "";
@@ -2078,11 +2128,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
         {
           // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
-          String isCaseInsensitive = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
+          String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
           String maxConnections = null;
           String maxKBPerSecond = null;
           String maxFetchesPerMinute = null;
@@ -2090,12 +2140,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           while (j < cn.getChildCount())
           {
             ConfigNode childNode = cn.getChild(j++);
-            if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
-              maxConnections = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
-              maxKBPerSecond = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-              maxFetchesPerMinute = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+            if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
+              maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
+              maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+              maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
           }
           if (maxConnections == null)
             maxConnections = "";
@@ -2164,18 +2214,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
         {
           // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-          if (!type.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+          if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
           {
-            String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-            String domain = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+            String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
             if (domain == null)
               domain = "";
-            String userName = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-            String password = org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+            String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
+            String password = out.mapPasswordToKey(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
                                         
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -2265,13 +2315,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
         {
           // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-          if (type.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+          if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
           {
-            String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
                                         
             // It's prefix will be...
             String prefix = "scredential_" + Integer.toString(accessCounter);
@@ -2294,6 +2344,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginURLRegularExpression") + "</nobr></td>\n"+
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageType") + "</nobr></td>\n"+
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.FormNamelinkTargetRegularExpression") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideTargetURL") + "</nobr></td>\n"+
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideFormParameters") + "</nobr></td>\n"+
 "              </tr>\n"
             );
@@ -2302,13 +2353,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             while (q < cn.getChildCount())
             {
               ConfigNode authPageNode = cn.getChild(q++);
-              if (authPageNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+              if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
               {
-                String pageRegexp = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-                String pageType = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-                String matchRegexp = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+                String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+                String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+                String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
                 if (matchRegexp == null)
                   matchRegexp = "";
+                String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
+                if (overrideTargetURL == null)
+                  overrideTargetURL = "";
                 String authpagePrefix = prefix + "_" + authPageCounter;
                 out.print(
 "              <tr class=\""+(((authPageCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
@@ -2323,9 +2377,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "\n"+
 "                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pageRegexp)+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"
+"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(overrideTargetURL)+"\"/></nobr></td>\n"
                 );
-                if (pageType.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+                if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
                   out.print(
 "                <td class=\"boxcell\">\n"+
@@ -2342,17 +2397,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   while (z < authPageNode.getChildCount())
                   {
                     ConfigNode paramNode = authPageNode.getChild(z++);
-                    if (paramNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+                    if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
                     {
-                      String param = paramNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+                      String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
                       if (param == null)
                         param = "";
-                      String value = paramNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+                      String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
                       if (value == null)
                         value = "";
-                      String password = paramNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+                      String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
                       if (password == null)
                         password = "";
+                      else
+                        password = out.mapPasswordToKey(password);
                       String authParamPrefix = authpagePrefix + "_" + paramCounter;
                       out.print(
 "                    <tr class=\""+(((paramCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
@@ -2413,7 +2470,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               }
             }
             out.print(
-"              <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"5\"><hr/></td></tr>\n"+
+"              <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
 "              <tr class=\"formrow\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <a name=\""+prefix+"_loginpage"+"\">\n"+
@@ -2426,12 +2483,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageregexp"+"\" value=\"\"/></nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM+"\" checked=\"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.FormName")+"</nobr><br/>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_LINK+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.LinkTarget")+"</nobr>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_REDIRECTION+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.Redirection")+"</nobr>\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_FORM+"\" checked=\"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.FormName")+"</nobr><br/>\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_LINK+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.LinkTarget")+"</nobr>\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_REDIRECTION+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.RedirectionTo")+"</nobr>\n"+
+"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_CONTENT+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.PageContent")+"</nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpagematchregexp"+"\" value=\"\"/></nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageoverridetargeturl"+"\" value=\"\"/></nobr>\n"+
 "                </td>\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                </td>\n"+
@@ -2485,18 +2546,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
         {
           // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-          if (!type.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+          if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
           {
-            String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-            String domain = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+            String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
             if (domain == null)
               domain = "";
-            String userName = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
-            String password = org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD));
+            String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
+            String password = out.mapPasswordToKey(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
 
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -2521,13 +2582,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
         {
           // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-          if (type.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+          if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
           {
-            String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
             // It's identifier will be...
             String prefix = "scredential_" + Integer.toString(accessCounter);
             out.print(
@@ -2539,37 +2600,43 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             while (q < cn.getChildCount())
             {
               ConfigNode authPageNode = cn.getChild(q++);
-              if (authPageNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+              if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
               {
-                String pageRegexp = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-                String pageType = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-                String matchRegexp = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+                String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+                String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+                String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
                 if (matchRegexp == null)
                   matchRegexp = "";
+                String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
+                if (overrideTargetURL == null)
+                  overrideTargetURL = "";
                 String authpagePrefix = prefix + "_" + authPageCounter;
                 out.print(
 "<input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/>\n"
+"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchRegexp)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(overrideTargetURL)+"\"/>\n"
                 );
-                if (pageType.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+                if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
                   int z = 0;
                   int paramCounter = 0;
                   while (z < authPageNode.getChildCount())
                   {
                     ConfigNode paramNode = authPageNode.getChild(z++);
-                    if (paramNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+                    if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
                     {
-                      String param = paramNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+                      String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
                       if (param == null)
                         param = "";
-                      String value = paramNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+                      String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
                       if (value == null)
                         value = "";
-                      String password = paramNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+                      String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
                       if (password == null)
                         password = "";
+                      else
+                        password = out.mapPasswordToKey(password);
                       String authParamPrefix = authpagePrefix + "_" + paramCounter;
                       out.print(
 "<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(param)+"\"/>\n"+
@@ -2619,13 +2686,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
         {
           // It's prefix will be...
           String prefix = "trust_" + Integer.toString(trustsCounter);
           // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-          String trustEverything = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+          String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
           if (trustEverything != null && trustEverything.equals("true"))
           {
             // We trust everything that matches this regexp
@@ -2651,7 +2718,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           }
           else
           {
-            String trustStore = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+            String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
             IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
             String[] truststoreContents = localTruststore.getContents();
             
@@ -2726,14 +2793,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+        if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
         {
           // It's prefix will be...
           String prefix = "trust_" + Integer.toString(trustsCounter);
 
           // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-          String trustEverything = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+          String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
           if (trustEverything != null && trustEverything.equals("true"))
           {
             // We trust everything that matches this regexp
@@ -2746,7 +2813,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           }
           else
           {
-            String trustStore = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+            String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
             out.print(
 "<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexp)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(trustStore)+"\"/>\n"+
@@ -2797,7 +2864,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       parameters.setParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME,proxyAuthUsername);
     String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
     if (proxyAuthPassword != null)
-      parameters.setObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
+      parameters.setObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD,variableContext.mapKeyToPassword(proxyAuthPassword));
 
     String x = variableContext.getParameter("bandwidth_count");
     if (x != null && x.length() > 0)
@@ -2807,7 +2874,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode node = parameters.getChild(i);
-        if (node.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+        if (node.getType().equals(WebcrawlerConfig.NODE_BINDESC))
           parameters.removeChild(i);
         else
           i++;
@@ -2826,26 +2893,26 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String maxConnections = variableContext.getParameter("connections_"+prefix);
           String rate = variableContext.getParameter("rate_"+prefix);
           String fetches = variableContext.getParameter("fetches_"+prefix);
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
+          ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_BINDESC);
+          node.setAttribute(WebcrawlerConfig.ATTR_BINREGEXP,regexp);
           if (isCaseInsensitive != null && isCaseInsensitive.length() > 0)
-            node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
+            node.setAttribute(WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
           if (maxConnections != null && maxConnections.length() > 0)
           {
-            ConfigNode child = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
-            child.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
+            ConfigNode child = new ConfigNode(WebcrawlerConfig.NODE_MAXCONNECTIONS);
+            child.setAttribute(WebcrawlerConfig.ATTR_VALUE,maxConnections);
             node.addChild(node.getChildCount(),child);
           }
           if (rate != null && rate.length() > 0)
           {
-            ConfigNode child = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
-            child.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
+            ConfigNode child = new ConfigNode(WebcrawlerConfig.NODE_MAXKBPERSECOND);
+            child.setAttribute(WebcrawlerConfig.ATTR_VALUE,rate);
             node.addChild(node.getChildCount(),child);
           }
           if (fetches != null && fetches.length() > 0)
           {
-            ConfigNode child = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
-            child.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
+            ConfigNode child = new ConfigNode(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
+            child.setAttribute(WebcrawlerConfig.ATTR_VALUE,fetches);
             node.addChild(node.getChildCount(),child);
           }
           parameters.addChild(parameters.getChildCount(),node);
@@ -2860,26 +2927,26 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String maxConnections = variableContext.getParameter("connections_bandwidth");
         String rate = variableContext.getParameter("rate_bandwidth");
         String fetches = variableContext.getParameter("fetches_bandwidth");
-        ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP,regexp);
+        ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_BINDESC);
+        node.setAttribute(WebcrawlerConfig.ATTR_BINREGEXP,regexp);
         if (isCaseInsensitive != null && isCaseInsensitive.length() > 0)
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
+          node.setAttribute(WebcrawlerConfig.ATTR_INSENSITIVE,isCaseInsensitive);
         if (maxConnections != null && maxConnections.length() > 0)
         {
-          ConfigNode child = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS);
-          child.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,maxConnections);
+          ConfigNode child = new ConfigNode(WebcrawlerConfig.NODE_MAXCONNECTIONS);
+          child.setAttribute(WebcrawlerConfig.ATTR_VALUE,maxConnections);
           node.addChild(node.getChildCount(),child);
         }
         if (rate != null && rate.length() > 0)
         {
-          ConfigNode child = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND);
-          child.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,rate);
+          ConfigNode child = new ConfigNode(WebcrawlerConfig.NODE_MAXKBPERSECOND);
+          child.setAttribute(WebcrawlerConfig.ATTR_VALUE,rate);
           node.addChild(node.getChildCount(),child);
         }
         if (fetches != null && fetches.length() > 0)
         {
-          ConfigNode child = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
-          child.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,fetches);
+          ConfigNode child = new ConfigNode(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE);
+          child.setAttribute(WebcrawlerConfig.ATTR_VALUE,fetches);
           node.addChild(node.getChildCount(),child);
         }
         parameters.addChild(parameters.getChildCount(),node);
@@ -2894,8 +2961,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode node = parameters.getChild(i);
-        if (node.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
-                                  && !node.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+        if (node.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
+                                  && !node.getAttributeValue(WebcrawlerConfig.ATTR_TYPE).equals(WebcrawlerConfig.ATTRVALUE_SESSION))
           parameters.removeChild(i);
         else
           i++;
@@ -2916,13 +2983,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             domain = "";
           String userName = variableContext.getParameter("username_"+prefix);
           String password = variableContext.getParameter("password_"+prefix);
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
-            org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
+          ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+          node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(WebcrawlerConfig.ATTR_TYPE,type);
+          node.setAttribute(WebcrawlerConfig.ATTR_DOMAIN,domain);
+          node.setAttribute(WebcrawlerConfig.ATTR_USERNAME,userName);
+          node.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,
+            org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
           parameters.addChild(parameters.getChildCount(),node);
         }
         i++;
@@ -2935,12 +3002,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String domain = variableContext.getParameter("domain_acredential");
         String userName = variableContext.getParameter("username_acredential");
         String password = variableContext.getParameter("password_acredential");
-        ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,type);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN,domain);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME,userName);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,
+        ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+        node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+        node.setAttribute(WebcrawlerConfig.ATTR_TYPE,type);
+        node.setAttribute(WebcrawlerConfig.ATTR_DOMAIN,domain);
+        node.setAttribute(WebcrawlerConfig.ATTR_USERNAME,userName);
+        node.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,
           org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
         parameters.addChild(parameters.getChildCount(),node);
       }
@@ -2954,8 +3021,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode node = parameters.getChild(i);
-        if (node.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
-                                  && node.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE).equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+        if (node.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL)
+                                  && node.getAttributeValue(WebcrawlerConfig.ATTR_TYPE).equals(WebcrawlerConfig.ATTRVALUE_SESSION))
           parameters.removeChild(i);
         else
           i++;
@@ -2970,9 +3037,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         {
           // Gather the regexp etc.
           String regexp = variableContext.getParameter(prefix+"_regexp");
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
+          ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+          node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(WebcrawlerConfig.ATTR_TYPE,WebcrawlerConfig.ATTRVALUE_SESSION);
           // How many login pages are there?
           int loginPageCount = Integer.parseInt(variableContext.getParameter(prefix+"_loginpagecount"));
           int q = 0;
@@ -2987,11 +3054,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               String matchRegexp = variableContext.getParameter(authpagePrefix+"_matchregexp");
               if (matchRegexp == null)
                 matchRegexp = "";
-              ConfigNode authPageNode = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
-              authPageNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
-              authPageNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
-              authPageNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
-              if (pageType.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+              String overrideTargetURL = variableContext.getParameter(authpagePrefix+"_overridetargeturl");
+              ConfigNode authPageNode = new ConfigNode(WebcrawlerConfig.NODE_AUTHPAGE);
+              authPageNode.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
+              authPageNode.setAttribute(WebcrawlerConfig.ATTR_TYPE,pageType);
+              authPageNode.setAttribute(WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+              if (overrideTargetURL != null && overrideTargetURL.length() > 0)
+                authPageNode.setAttribute(WebcrawlerConfig.ATTR_OVERRIDETARGETURL,overrideTargetURL);
+              if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
               {
                 // How many parameters are there?
                 int paramCount = Integer.parseInt(variableContext.getParameter(authpagePrefix+"_loginparamcount"));
@@ -3005,12 +3075,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                     String name = variableContext.getParameter(paramPrefix+"_param");
                     String value = variableContext.getParameter(paramPrefix+"_value");
                     String password = variableContext.getParameter(paramPrefix+"_password");
-                    ConfigNode paramNode = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
-                    paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
+                    ConfigNode paramNode = new ConfigNode(WebcrawlerConfig.NODE_AUTHPARAMETER);
+                    paramNode.setAttribute(WebcrawlerConfig.ATTR_NAMEREGEXP,name);
                     if (value != null && value.length() > 0)
-                      paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
+                      paramNode.setAttribute(WebcrawlerConfig.ATTR_VALUE,value);
                     if (password != null && password.length() > 0)
-                      paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
+                      paramNode.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
                     authPageNode.addChild(authPageNode.getChildCount(),paramNode);
                   }
                   z++;
@@ -3023,12 +3093,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   String name = variableContext.getParameter(authpagePrefix+"_loginparamname");
                   String value = variableContext.getParameter(authpagePrefix+"_loginparamvalue");
                   String password = variableContext.getParameter(authpagePrefix+"_loginparampassword");
-                  ConfigNode paramNode = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER);
-                  paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP,name);
+                  ConfigNode paramNode = new ConfigNode(WebcrawlerConfig.NODE_AUTHPARAMETER);
+                  paramNode.setAttribute(WebcrawlerConfig.ATTR_NAMEREGEXP,name);
                   if (value != null && value.length() > 0)
-                    paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,value);
+                    paramNode.setAttribute(WebcrawlerConfig.ATTR_VALUE,value);
                   if (password != null && password.length() > 0)
-                    paramNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
+                    paramNode.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
                   authPageNode.addChild(authPageNode.getChildCount(),paramNode);
                 }
               }
@@ -3046,10 +3116,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             String matchRegexp = variableContext.getParameter(prefix+"_loginpagematchregexp");
             if (matchRegexp == null)
               matchRegexp = "";
-            ConfigNode authPageNode = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE);
-            authPageNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
-            authPageNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,pageType);
-            authPageNode.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+            String overrideTargetURL = variableContext.getParameter(prefix+"_loginpageoverridetargeturl");
+            ConfigNode authPageNode = new ConfigNode(WebcrawlerConfig.NODE_AUTHPAGE);
+            authPageNode.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,pageRegexp);
+            authPageNode.setAttribute(WebcrawlerConfig.ATTR_TYPE,pageType);
+            authPageNode.setAttribute(WebcrawlerConfig.ATTR_MATCHREGEXP,matchRegexp);
+            if (overrideTargetURL != null && overrideTargetURL.length() > 0)
+              authPageNode.setAttribute(WebcrawlerConfig.ATTR_OVERRIDETARGETURL,overrideTargetURL);
             node.addChild(node.getChildCount(),authPageNode);
           }
 
@@ -3061,9 +3134,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       if (addop != null && addop.equals("Add"))
       {
         String regexp = variableContext.getParameter("scredential_regexp");
-        ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-        node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE,org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION);
+        ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_ACCESSCREDENTIAL);
+        node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+        node.setAttribute(WebcrawlerConfig.ATTR_TYPE,WebcrawlerConfig.ATTRVALUE_SESSION);
         parameters.addChild(parameters.getChildCount(),node);
       }
     }
@@ -3076,7 +3149,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < parameters.getChildCount())
       {
         ConfigNode node = parameters.getChild(i);
-        if (node.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+        if (node.getType().equals(WebcrawlerConfig.NODE_TRUST))
           parameters.removeChild(i);
         else
           i++;
@@ -3093,12 +3166,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String regexp = variableContext.getParameter("regexp_"+prefix);
           String trustall = variableContext.getParameter("trustall_"+prefix);
           String truststore = variableContext.getParameter("truststore_"+prefix);
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_TRUST);
+          node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
           if (trustall != null && trustall.equals("true"))
-            node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
+            node.setAttribute(WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
           else
-            node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,truststore);
+            node.setAttribute(WebcrawlerConfig.ATTR_TRUSTSTORE,truststore);
           parameters.addChild(parameters.getChildCount(),node);
         }
         i++;
@@ -3110,9 +3183,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String trustall = variableContext.getParameter("all_trust");
         if (trustall != null && trustall.equals("true"))
         {
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
+          ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_TRUST);
+          node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(WebcrawlerConfig.ATTR_TRUSTEVERYTHING,"true");
           parameters.addChild(parameters.getChildCount(),node);
         }
         else
@@ -3147,9 +3220,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             return "Illegal certificate: "+certError;
           }
 
-          ConfigNode node = new ConfigNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP,regexp);
-          node.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE,mgr.getString());
+          ConfigNode node = new ConfigNode(WebcrawlerConfig.NODE_TRUST);
+          node.setAttribute(WebcrawlerConfig.ATTR_URLREGEXP,regexp);
+          node.setAttribute(WebcrawlerConfig.ATTR_TRUSTSTORE,mgr.getString());
           parameters.addChild(parameters.getChildCount(),node);
         }
       }
@@ -3227,11 +3300,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < parameters.getChildCount())
     {
       ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_BINDESC))
+      if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
       {
         // A bin description node!  Look for all its parameters.
-        String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_BINREGEXP);
-        String isCaseInsensitive = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_INSENSITIVE);
+        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
+        String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
         String maxConnections = null;
         String maxKBPerSecond = null;
         String maxFetchesPerMinute = null;
@@ -3239,12 +3312,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         while (j < cn.getChildCount())
         {
           ConfigNode childNode = cn.getChild(j++);
-          if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXCONNECTIONS))
-            maxConnections = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-          else if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXKBPERSECOND))
-            maxKBPerSecond = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
-          else if (childNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-            maxFetchesPerMinute = childNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+          if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
+            maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
+            maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+            maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
         }
         if (maxConnections == null)
           maxConnections = "Not limited";
@@ -3293,18 +3366,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < parameters.getChildCount())
     {
       ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
       {
         // A bin description node!  Look for all its parameters.
-        String type = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-        if (!type.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+        if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
         {
-          String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
           // Page-based auth
-          String domain = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_DOMAIN);
+          String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
           if (domain == null)
             domain = "";
-          String userName = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_USERNAME);
+          String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
           out.print(
 "        <tr>\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
@@ -3342,13 +3415,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < parameters.getChildCount())
     {
       ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
       {
         // A bin description node!  Look for all its parameters.
-        String type = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-        if (type.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_SESSION))
+        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+        if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
         {
-          String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
           // Session-based auth.  Display this as a nested table.
           out.print(
 "        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
@@ -3360,13 +3433,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           while (q < cn.getChildCount())
           {
             ConfigNode authPageNode = cn.getChild(q++);
-            if (authPageNode.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPAGE))
+            if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
             {
-              String authURLRegexp = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-              String pageType = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TYPE);
-              String authMatchRegexp = authPageNode.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_MATCHREGEXP);
+              String authURLRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+              String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+              String authMatchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
               if (authMatchRegexp == null)
                 authMatchRegexp = "";
+              String authOverrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
+              if (authOverrideTargetURL == null)
+                authOverrideTargetURL = "";
               if (authPageInstanceNumber == 0)
               {
                 out.print(
@@ -3375,6 +3451,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginURLRegularExpression") + "</nobr></td>\n"+
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageType") + "</nobr></td>\n"+
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.FormNamelinkTargetRegularExpression") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideTargetURL") + "</nobr></td>\n"+
 "                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideFormParameters") + "</nobr></td>\n"+
 "              </tr>\n"
                 );
@@ -3384,23 +3461,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authURLRegexp)+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authMatchRegexp)+"</nobr></td>\n"+
+"                <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authOverrideTargetURL)+"</nobr></td>\n"+
 "                <td class=\"formcolumncell\">\n"
               );
-              if (pageType.equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTRVALUE_FORM))
+              if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
               {
                 int z = 0;
                 while (z < authPageNode.getChildCount())
                 {
                   ConfigNode authParameter = authPageNode.getChild(z++);
-                  if (authParameter.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_AUTHPARAMETER))
+                  if (authParameter.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
                   {
-                    String paramName = authParameter.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_NAMEREGEXP);
+                    String paramName = authParameter.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
                     if (paramName == null)
                       paramName = "";
-                    String paramValue = authParameter.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE);
+                    String paramValue = authParameter.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
                     if (paramValue == null)
                       paramValue = "";
-                    String password = authParameter.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_PASSWORD);
+                    String password = authParameter.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
                     if (password != null && password.length() > 0)
                       paramValue = "*****";
                     out.print(
@@ -3461,11 +3539,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < parameters.getChildCount())
     {
       ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_TRUST))
+      if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
       {
         // A bin description node!  Look for all its parameters.
-        String regexp = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_URLREGEXP);
-        String trustEverything = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+        String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
         if (trustEverything != null && trustEverything.equals("true"))
         {
           // We trust everything that matches this regexp
@@ -3479,7 +3557,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         }
         else
         {
-          String trustStore = cn.getAttributeValue(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_TRUSTSTORE);
+          String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
           IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
           String[] truststoreContents = localTruststore.getContents();
             
@@ -3691,37 +3769,37 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
       {
         seeds = sn.getValue();
         if (seeds == null)
           seeds = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
       {
         inclusions = sn.getValue();
         if (inclusions == null)
           inclusions = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
       {
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
       {
         inclusionsIndex = sn.getValue();
         if (inclusionsIndex == null)
           inclusionsIndex = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
       {
         exclusionsIndex = sn.getValue();
         if (exclusionsIndex == null)
           exclusionsIndex = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
       {
         String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
         if (value == null || value.equals("false"))
@@ -4182,13 +4260,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
           ds.removeChild(i);
         else
           i++;
       }
 
-      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS);
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_SEEDS);
       cn.setValue(seeds);
       ds.addChild(ds.getChildCount(),cn);
     }
@@ -4202,13 +4280,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
           ds.removeChild(i);
         else
           i++;
       }
 
-      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES);
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_INCLUDES);
       cn.setValue(inclusions);
       ds.addChild(ds.getChildCount(),cn);
     }
@@ -4222,13 +4300,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
           ds.removeChild(i);
         else
           i++;
       }
 
-      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX);
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_INCLUDESINDEX);
       cn.setValue(inclusionsIndex);
       ds.addChild(ds.getChildCount(),cn);
     }
@@ -4242,15 +4320,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
           ds.removeChild(i);
         else
           i++;
       }
 
       String matchingHosts = variableContext.getParameter("matchinghosts");
-      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS);
-      cn.setAttribute(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.ATTR_VALUE,(matchingHosts==null||matchingHosts.equals("false"))?"false":"true");
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_LIMITTOSEEDS);
+      cn.setAttribute(WebcrawlerConfig.ATTR_VALUE,(matchingHosts==null||matchingHosts.equals("false"))?"false":"true");
       ds.addChild(ds.getChildCount(),cn);
     }
     
@@ -4263,13 +4341,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
           ds.removeChild(i);
         else
           i++;
       }
 
-      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES);
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_EXCLUDES);
       cn.setValue(exclusions);
       ds.addChild(ds.getChildCount(),cn);
     }
@@ -4283,13 +4361,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX))
+        if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
           ds.removeChild(i);
         else
           i++;
       }
 
-      SpecificationNode cn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX);
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_EXCLUDESINDEX);
       cn.setValue(exclusionsIndex);
       ds.addChild(ds.getChildCount(),cn);
     }
@@ -4501,37 +4579,37 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_SEEDS))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
       {
         seeds = sn.getValue();
         if (seeds == null)
           seeds = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDES))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
       {
         inclusions = sn.getValue();
         if (inclusions == null)
           inclusions = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDES))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
       {
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_INCLUDESINDEX))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
       {
         inclusionsIndex = sn.getValue();
         if (inclusionsIndex == null)
           inclusionsIndex = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_EXCLUDESINDEX))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
       {
         exclusionsIndex = sn.getValue();
         if (exclusionsIndex == null)
           exclusionsIndex = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig.NODE_LIMITTOSEEDS))
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
       {
         String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
         if (value == null || value.equals("false"))
@@ -4543,7 +4621,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     out.print(
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Seeds") + "</nobr></td>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.SeedsColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"
     );
     try
@@ -5050,14 +5128,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       try
       {
         IThrottledConnection connection = ThrottledFetcher.getConnection(protocol,hostIPAddress,port,credential,
-          trustStore,throttleDescription,binNames,connectionLimit);
+          trustStore,throttleDescription,binNames,connectionLimit,
+          proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
         try
         {
           connection.beginFetch(FETCH_ROBOTS);
           try
           {
-            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null,
-              proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null);
             long expirationTime = currentTime+1000*60*60*24;
             int code = connection.getResponseCode();
             if (code == 200)
@@ -5113,7 +5191,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e2)
+            catch (ConnectTimeoutException e2)
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
@@ -5127,7 +5205,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
           }
-          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+          catch (ConnectTimeoutException e)
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("Web: Fetch of robots.txt from "+protocol+"://"+hostIPAddressAndPort+"(host='"+hostName+"') generated Socket Connect Timeout Exception: "+e.getMessage(),e);
@@ -5141,7 +5219,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e2)
+            catch (ConnectTimeoutException e2)
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
@@ -5174,7 +5252,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
-            catch (org.apache.commons.httpclient.ConnectTimeoutException e2)
+            catch (ConnectTimeoutException e2)
             {
               Logging.connectors.warn("Web: Couldn't clear robots cache: "+e2.getMessage(),e2);
             }
@@ -5543,7 +5621,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     if (interestingMimeTypeMap.get(contentType) != null)
       return true;
     
-    return activities.checkMimeTypeIndexable(contentType);
+    boolean rval = activities.checkMimeTypeIndexable(contentType);
+    if (rval == false && Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not fetching because output connector does not want mimetype '"+contentType+"'");
+    return rval;
   }
   
   /** Code to check if an already-fetched document should be ingested.
@@ -5555,13 +5636,25 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       return false;
 
     if (activities.checkLengthIndexable(cache.getDataLength(documentIdentifier)) == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector thinks length "+cache.getDataLength(documentIdentifier)+" is too long");
       return false;
-
+    }
+    
     if (activities.checkURLIndexable(documentIdentifier) == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want URL");
       return false;
+    }
 
     if (filter.isDocumentIndexable(documentIdentifier) == false)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because document does not match web job constraints");
       return false;
+    }
     
     // Check if it's a recognized content type
     String contentType = cache.getContentType(documentIdentifier);
@@ -5584,7 +5677,48 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       contentType = contentType.substring(0,pos);
     contentType = contentType.trim();
 
-    return activities.checkMimeTypeIndexable(contentType);
+    boolean rval = activities.checkMimeTypeIndexable(contentType);
+    if (rval == false && Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because output connector does not want mime type '"+contentType+"'");
+    return rval;
+  }
+
+  /** Convert a document identifier to filename.
+   * @param documentIdentifier
+   * @return
+   * @throws URISyntaxException
+   */
+  protected String documentIdentifiertoFileName(String documentIdentifier) 
+    throws URISyntaxException
+  {
+    StringBuffer path = new StringBuffer();
+    URI uri = null;
+
+    uri = new URI(documentIdentifier);
+
+    if (uri.getRawPath() != null) {
+      if (uri.getRawPath().equals("")) {
+        path.append("");
+      } else if (uri.getRawPath().equals("/")) {
+        path.append("index.html");
+      } else if (uri.getRawPath().length() != 0) {
+        if (uri.getRawPath().endsWith("/")) {
+          path.append("index.html");
+        } else {
+          String[] names = uri.getRawPath().split("/"); 
+          path.append(names[names.length - 1]);
+        } 
+      }
+    }
+
+    if (path.length() > 0) {
+      if (uri.getRawQuery() != null) {
+        path.append("?");
+        path.append(uri.getRawQuery());
+      }
+    }
+
+    return path.toString();
   }
 
   /** Find a redirection URI, if it exists */
@@ -5623,9 +5757,23 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     FindPreferredRedirectionHandler handler = new FindPreferredRedirectionHandler(currentURI,lp.getPreferredRedirectionPattern());
     handleRedirects(currentURI,handler);
+    handler.applyOverrides(lp);
     return handler.getTargetURI();
   }
 
+  /** Find existence of specific content on the page (never finds a URL) */
+  protected String findSpecifiedContent(String currentURI, LoginParameters lp)
+    throws ManifoldCFException
+  {
+    if (lp == null || lp.getContentPattern() == null)
+      return null;
+    
+    FindContentHandler handler = new FindContentHandler(currentURI,lp.getContentPattern());
+    handleHTML(currentURI,handler);
+    handler.applyOverrides(lp);
+    return handler.getTargetURI();
+  }
+  
   /** Find HTML link URI, if present, making sure specified preference is matched. */
   protected String findHTMLLinkURI(String currentURI, LoginParameters lp)
     throws ManifoldCFException
@@ -5635,370 +5783,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     FindHTMLHrefHandler handler = new FindHTMLHrefHandler(currentURI,lp.getPreferredLinkPattern());
     handleHTML(currentURI,handler);
+    handler.applyOverrides(lp);
     return handler.getTargetURI();
   }
-
-  /** This class is the handler for redirection parsing during state transitions */
-  protected class FindRedirectionHandler extends FindHandler implements IRedirectionHandler
-  {
-    public FindRedirectionHandler(String parentURI)
-    {
-      super(parentURI);
-    }
-
-  }
-
-  /** This class is the handler for redirection handling during state transitions */
-  protected class FindPreferredRedirectionHandler extends FindHandler implements IRedirectionHandler
-  {
-    protected Pattern redirectionURIPattern;
-
-    public FindPreferredRedirectionHandler(String parentURI, Pattern redirectionURIPattern)
-    {
-      super(parentURI);
-      this.redirectionURIPattern = redirectionURIPattern;
-    }
-
-    /** Override noteDiscoveredLink */
-    public void noteDiscoveredLink(String rawURL)
-      throws ManifoldCFException
-    {
-      if (targetURI == null)
-      {
-        Logging.connectors.debug("WEB: Tried to match raw url '"+rawURL+"'");
-        super.noteDiscoveredLink(rawURL);
-        if (targetURI != null)
-        {
-          Logging.connectors.debug("WEB: Tried to match cooked url '"+targetURI+"'");
-          // Is this a form element we can use?
-          boolean canUse;
-          if (redirectionURIPattern != null)
-          {
-            Matcher m = redirectionURIPattern.matcher(targetURI);
-            canUse = m.find();
-            Logging.connectors.debug("WEB: Redirection link lookup "+((canUse)?"matched":"didn't match")+" '"+targetURI+"'");
-          }
-          else
-          {
-            Logging.connectors.debug("WEB: Redirection link lookup for '"+targetURI+"' had no pattern to match");
-            canUse = true;
-          }
-          if (!canUse)
-            targetURI = null;
-        }
-      }
-    }
-  }
-
-  /** This class is the handler for HTML form parsing during state transitions */
-  protected class FindHTMLFormHandler extends FindHandler implements IHTMLHandler
-  {
-    protected Pattern formNamePattern;
-    protected FormDataAccumulator discoveredFormData = null;
-    protected FormDataAccumulator currentFormData = null;
-
-    public FindHTMLFormHandler(String parentURI, Pattern formNamePattern)
-    {
-      super(parentURI);
-      this.formNamePattern = formNamePattern;
-    }
-
-    public void applyFormOverrides(LoginParameters lp)
-    {
-      if (discoveredFormData != null && lp != null)
-        discoveredFormData.applyOverrides(lp);
-    }
-
-    public FormData getFormData()
-    {
-      return discoveredFormData;
-    }
-
-    /** Note a meta tag */
-    public void noteMetaTag(Map metaAttributes)
-      throws ManifoldCFException
-    {
-    }
-    
-    /** Note the start of a form */
-    public void noteFormStart(Map formAttributes)
-      throws ManifoldCFException
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("WEB: Saw form with name "+((formAttributes.get("name")==null)?"null":"'"+formAttributes.get("name")+"'"));
-
-      // Is this a form element we can use?
-      boolean canUse;
-      if (formNamePattern != null)
-      {
-        String formName = (String)formAttributes.get("name");
-        if (formName == null)
-          formName = "";
-
-        Matcher m = formNamePattern.matcher(formName);
-        canUse = m.find();
-      }
-      else
-        canUse = true;
-
-      if (canUse)
-      {
-        String actionURI = (String)formAttributes.get("action");
-        if (actionURI == null)
-          // Action URI is THIS uri!
-          actionURI = parentURI;
-        else if (actionURI.length() == 0)
-          actionURI = "";
-        noteDiscoveredLink(actionURI);
-        actionURI = getTargetURI();
-        if (actionURI != null)
-        {
-          String method = (String)formAttributes.get("method");
-          if (method == null || method.length() == 0)
-            method = "get";
-          else
-            method = method.toLowerCase();
-
-          // Start a new form
-          currentFormData = new FormDataAccumulator(actionURI,method.equals("post")?FormData.SUBMITMETHOD_POST:FormData.SUBMITMETHOD_GET);
-
-        }
-      }
-    }
-
-    /** Note an input tag */
-    public void noteFormInput(Map inputAttributes)
-      throws ManifoldCFException
-    {
-      if (Logging.connectors.isDebugEnabled())
-      {
-        String type = (String)inputAttributes.get("type");
-        if (type == null)
-          type = "text";
-        String name = (String)inputAttributes.get("name");
-        if (name == null)
-          name = "(null)";
-        Logging.connectors.debug("WEB: Saw form element of type '"+type+"' name '"+name+"'");
-      }
-      if (currentFormData != null)
-        currentFormData.addElement(inputAttributes);
-    }
-
-    /** Note the end of a form */
-    public void noteFormEnd()
-      throws ManifoldCFException
-    {
-      if (currentFormData != null)
-      {
-        discoveredFormData = currentFormData;
-        currentFormData = null;
-      }
-    }
-
-    /** Note discovered href */
-    public void noteAHREF(String rawURL)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note discovered href */
-    public void noteLINKHREF(String rawURL)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note discovered IMG SRC */
-    public void noteIMGSRC(String rawURL)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note discovered FRAME SRC */
-    public void noteFRAMESRC(String rawURL)
-      throws ManifoldCFException
-    {
-    }
-
-  }
-
-
-  /** This class is the handler for HTML parsing during state transitions */
-  protected class FindHTMLHrefHandler extends FindHandler implements IHTMLHandler
-  {
-    protected Pattern preferredLinkPattern;
-
-    public FindHTMLHrefHandler(String parentURI, Pattern preferredLinkPattern)
-    {
-      super(parentURI);
-      this.preferredLinkPattern = preferredLinkPattern;
-    }
-
-    /** Note a meta tag */
-    public void noteMetaTag(Map metaAttributes)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note the start of a form */
-    public void noteFormStart(Map formAttributes)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note an input tag */
-    public void noteFormInput(Map inputAttributes)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note the end of a form */
-    public void noteFormEnd()
-      throws ManifoldCFException
-    {
-    }
-
-    /** Override noteDiscoveredLink */
-    public void noteDiscoveredLink(String rawURL)
-      throws ManifoldCFException
-    {
-      if (targetURI == null)
-      {
-        Logging.connectors.debug("WEB: Tried to match raw url '"+rawURL+"'");
-        super.noteDiscoveredLink(rawURL);
-        if (targetURI != null)
-        {
-          Logging.connectors.debug("WEB: Tried to match cooked url '"+targetURI+"'");
-          // Is this a form element we can use?
-          boolean canUse;
-          if (preferredLinkPattern != null)
-          {
-            Matcher m = preferredLinkPattern.matcher(targetURI);
-            canUse = m.find();
-            Logging.connectors.debug("WEB: Preferred link lookup "+((canUse)?"matched":"didn't match")+" '"+targetURI+"'");
-          }
-          else
-          {
-            Logging.connectors.debug("WEB: Preferred link lookup for '"+targetURI+"' had no pattern to match");
-            canUse = true;
-          }
-          if (!canUse)
-            targetURI = null;
-        }
-      }
-    }
-
-    /** Note discovered href */
-    public void noteAHREF(String rawURL)
-      throws ManifoldCFException
-    {
-      noteDiscoveredLink(rawURL);
-    }
-
-    /** Note discovered href */
-    public void noteLINKHREF(String rawURL)
-      throws ManifoldCFException
-    {
-      noteDiscoveredLink(rawURL);
-    }
-
-    /** Note discovered IMG SRC */
-    public void noteIMGSRC(String rawURL)
-      throws ManifoldCFException
-    {
-    }
-
-    /** Note discovered FRAME SRC */
-    public void noteFRAMESRC(String rawURL)
-      throws ManifoldCFException
-    {
-      noteDiscoveredLink(rawURL);
-    }
-
-  }
-
-  /** This class is used to discover links in a session login context */
-  protected class FindHandler implements IDiscoveredLinkHandler
-  {
-    protected String parentURI;
-    protected String targetURI = null;
-
-    public FindHandler(String parentURI)
-    {
-      this.parentURI = parentURI;
-    }
-
-    /** Inform the world of a discovered link.
-    *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
-    */
-    public void noteDiscoveredLink(String rawURL)
-      throws ManifoldCFException
-    {
-      // Build a complete url, but don't filter or anything
-      try
-      {
-        java.net.URI url;
-        if (parentURI != null)
-        {
-          java.net.URI parentURL = new java.net.URI(parentURI);
-          url = parentURL.resolve(rawURL);
-        }
-        else
-          url = new java.net.URI(rawURL);
-
-        String protocol = url.getScheme();
-        String host = url.getHost();
-
-        // The new URL better darn well have a host and a protocol, and we only know how to deal with
-        // http and https.
-        if (protocol == null || host == null)
-        {
-          return;
-        }
-        if (understoodProtocols.get(protocol) == null)
-        {
-          return;
-        }
-
-        String id = url.toASCIIString();
-        if (id == null)
-          return;
-
-        // As a last basic legality check, go through looking for illegal characters.
-        int i = 0;
-        while (i < id.length())
-        {
-          char x = id.charAt(i++);
-          // Only 7-bit ascii is allowed in URLs - and that has limits too (no control characters)
-          if (x < ' ' || x > 127)
-          {
-            return;
-          }
-        }
-
-        // Set the target.
-        targetURI = id;
-      }
-      catch (java.net.URISyntaxException e)
-      {
-        return;
-      }
-      catch (java.lang.IllegalArgumentException e)
-      {
-        return;
-      }
-      catch (java.lang.NullPointerException e)
-      {
-        // This gets tossed by url.toAsciiString() for reasons I don't understand, but which have to do with a malformed URL.
-        return;
-      }
-    }
-
-    public String getTargetURI()
-    {
-      return targetURI;
-    }
-  }
-
 
   /** Code to extract links from an already-fetched document. */
   protected boolean extractLinks(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
@@ -6006,11 +5793,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     ProcessActivityRedirectionHandler redirectHandler = new ProcessActivityRedirectionHandler(documentIdentifier,activities,filter);
     handleRedirects(documentIdentifier,redirectHandler);
+    if (Logging.connectors.isDebugEnabled() && redirectHandler.shouldIndex() == false)
+      Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of redirection");
     // For html, we don't want any actions, because we don't do form submission.
     ProcessActivityHTMLHandler htmlHandler = new ProcessActivityHTMLHandler(documentIdentifier,activities,filter);
     handleHTML(documentIdentifier,htmlHandler);
+    if (Logging.connectors.isDebugEnabled() && htmlHandler.shouldIndex() == false)
+      Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of HTML robots or content tags prohibiting indexing");
     ProcessActivityXMLHandler xmlHandler = new ProcessActivityXMLHandler(documentIdentifier,activities,filter);
     handleXML(documentIdentifier,xmlHandler);
+    if (Logging.connectors.isDebugEnabled() && xmlHandler.shouldIndex() == false)
+      Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of XML robots or content tags prohibiting indexing");
     // May add more later for other extraction tasks.
     return htmlHandler.shouldIndex() && redirectHandler.shouldIndex() && xmlHandler.shouldIndex();
   }
@@ -6038,6 +5831,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** Inform the world of a discovered link.
     *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
     */
+    @Override
     public void noteDiscoveredLink(String rawURL)
       throws ManifoldCFException
     {
@@ -6091,7 +5885,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       return allowIndex;
     }
     
+    /** Note a character of text.
+    * Structured this way to keep overhead low for handlers that don't use text.
+    */
+    @Override
+    public void noteTextCharacter(char textCharacter)
+      throws ManifoldCFException
+    {
+    }
+
     /** Note a meta tag */
+    @Override
     public void noteMetaTag(Map metaAttributes)
       throws ManifoldCFException
     {
@@ -6134,24 +5938,28 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     /** Note the start of a form */
+    @Override
     public void noteFormStart(Map formAttributes)
       throws ManifoldCFException
     {
     }
 
     /** Note an input tag */
+    @Override
     public void noteFormInput(Map inputAttributes)
       throws ManifoldCFException
     {
     }
 
     /** Note the end of a form */
+    @Override
     public void noteFormEnd()
       throws ManifoldCFException
     {
     }
 
     /** Note discovered href */
+    @Override
     public void noteAHREF(String rawURL)
       throws ManifoldCFException
     {
@@ -6160,6 +5968,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     /** Note discovered href */
+    @Override
     public void noteLINKHREF(String rawURL)
       throws ManifoldCFException
     {
@@ -6168,6 +5977,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     /** Note discovered IMG SRC */
+    @Override
     public void noteIMGSRC(String rawURL)
       throws ManifoldCFException
     {
@@ -6176,6 +5986,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     /** Note discovered FRAME SRC */
+    @Override
     public void noteFRAMESRC(String rawURL)
       throws ManifoldCFException
     {
@@ -6285,8 +6096,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       // from it presuming it is an RSS feed.
 
       String encoding = extractEncoding(contentType);
-      if (encoding == null)
-        encoding = "utf-8";
 
       InputStream is = cache.getData(documentURI);
       if (is == null)
@@ -6296,30 +6105,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
       try
       {
-        // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-        XMLStream x = new XMLStream();
+        // Parse the document.  This will cause various things to occur, within the instantiated XMLParsingContext class.
+        Parser p = new Parser();
+        XMLFuzzyHierarchicalParseState x = new XMLFuzzyHierarchicalParseState();
         OuterContextClass c = new OuterContextClass(x,documentURI,handler);
         x.setContext(c);
         try
         {
-          x.parse(is);
+          p.parseWithCharsetDetection(encoding,is,x);
           c.checkIfValidFeed();
         }
         finally
         {
           x.cleanup();
         }
-      }
-      catch (ManifoldCFException e)
-      {
-        // Ignore XML parsing errors.  These should probably have their own error code, but that requires a core change.
-        if (e.getMessage().indexOf("pars") >= 0)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("WEB: XML document '"+documentURI+"' was unparseable ("+e.getMessage()+"), skipping");
-          return;
-        }
-        throw e;
       }
       finally
       {
@@ -6330,7 +6129,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket connect timeout exception: "+e.getMessage(),e);
     }
@@ -6347,7 +6146,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   }
 
   /** This class handles the outermost XML context for the feed document. */
-  protected class OuterContextClass extends XMLContext
+  protected class OuterContextClass extends XMLParsingContext
   {
     /** Keep track of the number of valid feed signals we saw */
     protected int outerTagCount = 0;
@@ -6356,7 +6155,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** The link handler */
     protected IXMLHandler handler;
 
-    public OuterContextClass(XMLStream theStream, String documentURI, IXMLHandler handler)
+    public OuterContextClass(XMLFuzzyHierarchicalParseState theStream, String documentURI, IXMLHandler handler)
     {
       super(theStream);
       this.documentURI = documentURI;
@@ -6374,47 +6173,49 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     /** Handle the tag beginning to set the correct second-level parsing context */
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
-      if (qName.equals("rss"))
+      if (localName.equals("rss"))
       {
         // RSS feed detected
         outerTagCount++;
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Parsed bottom-level XML for RSS document '"+documentURI+"'");
-        return new RSSContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new RSSContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
-      else if (qName.equals("rdf:RDF"))
+      else if (localName.equals("RDF"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
-        return new RDFContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new RDFContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
-      else if (qName.equals("feed"))
+      else if (localName.equals("feed"))
       {
         // Basic feed detected
         outerTagCount++;
-        return new FeedContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new FeedContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
-      else if (qName.equals("urlset") || qName.equals("sitemapindex"))
+      else if (localName.equals("urlset") || localName.equals("sitemapindex"))
       {
         // Sitemap detected
         outerTagCount++;
-        return new UrlsetContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new UrlsetContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
 
       // The default action is to establish a new default context.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
     /** Handle the tag ending */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
-      if (tagName.equals("rdf:RDF"))
+      XMLParsingContext context = theStream.getContext();
+      String tagName = context.getLocalname();
+      if (tagName.equals("RDF"))
       {
         ((RDFContextClass)context).process();
       }
@@ -6432,40 +6233,42 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   }
 
-  protected class RSSContextClass extends XMLContext
+  protected class RSSContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
     /** Link notification interface */
     protected IXMLHandler handler;
 
-    public RSSContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public RSSContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // Handle each channel
-      if (qName.equals("channel"))
+      if (localName.equals("channel"))
       {
         // Channel detected
-        return new RSSChannelContextClass(theStream,namespaceURI,localName,qName,atts,documentURI,handler);
+        return new RSSChannelContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
 
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
       // If it's our channel tag, process global channel information
-      XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
+      XMLParsingContext context = theStream.getContext();
+      String tagName = context.getLocalname();
       if (tagName.equals("channel"))
       {
         ((RSSChannelContextClass)context).process();
@@ -6475,7 +6278,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RSSChannelContextClass extends XMLContext
+  protected class RSSChannelContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6485,39 +6288,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** TTL value is set on a per-channel basis */
     protected String ttlValue = null;
 
-    public RSSChannelContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public RSSChannelContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new RSSItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new RSSItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("item"))
       {
         // It's an item.
@@ -6549,50 +6354,52 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RSSItemContextClass extends XMLContext
+  protected class RSSItemContextClass extends XMLParsingContext
   {
     protected String guidField = null;
     protected String linkField = null;
 
-    public RSSItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public RSSItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("guid"))
+      else if (localName.equals("guid"))
       {
         // "guid" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("guid"))
       {
-        guidField = ((XMLStringContext)theContext).getValue();
+        guidField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -6621,7 +6428,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RDFContextClass extends XMLContext
+  protected class RDFContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6631,39 +6438,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** ttl value */
     protected String ttlValue = null;
 
-    public RDFContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public RDFContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new RDFItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new RDFItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("item"))
       {
         // It's an item.
@@ -6691,40 +6500,42 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class RDFItemContextClass extends XMLContext
+  protected class RDFItemContextClass extends XMLParsingContext
   {
     protected String linkField = null;
 
-    public RDFItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public RDFItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -6750,7 +6561,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class FeedContextClass extends XMLContext
+  protected class FeedContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6760,39 +6571,41 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** ttl value */
     protected String ttlValue = null;
 
-    public FeedContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public FeedContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("entry"))
+      else if (localName.equals("entry"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new FeedItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new FeedItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("entry"))
       {
         // It's an item.
@@ -6821,29 +6634,32 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class FeedItemContextClass extends XMLContext
+  protected class FeedItemContextClass extends XMLParsingContext
   {
-    protected String linkField = null;
+    protected List<String> linkField = new ArrayList<String>();
 
-    public FeedItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public FeedItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
-        linkField = atts.getValue("href");
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        String ref = atts.get("href");
+        if (ref != null && ref.length() > 0)
+          linkField.add(ref);
+        return super.beginTag(namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
@@ -6851,21 +6667,24 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public void process(IXMLHandler handler)
       throws ManifoldCFException
     {
-      if (linkField != null && linkField.length() > 0)
+      if (linkField.size() > 0)
       {
-        String[] links = linkField.split(", ");
-        int l = 0;
-        while (l < links.length)
+        for (String linkValue : linkField)
         {
-          String rawURL = links[l++].trim();
-          // Process the link
-          handler.noteDiscoveredLink(rawURL);
+          String[] links = linkValue.split(", ");
+          int l = 0;
+          while (l < links.length)
+          {
+            String rawURL = links[l++].trim();
+            // Process the link
+            handler.noteDiscoveredLink(rawURL);
+          }
         }
       }
     }
   }
 
-  protected class UrlsetContextClass extends XMLContext
+  protected class UrlsetContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentURI;
@@ -6875,31 +6694,33 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** ttl value */
     protected String ttlValue = null;
 
-    public UrlsetContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentURI, IXMLHandler handler)
+    public UrlsetContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentURI, IXMLHandler handler)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentURI = documentURI;
       this.handler = handler;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "url", nothing else.
-      if (qName.equals("url") || qName.equals("sitemap"))
+      if (localName.equals("url") || localName.equals("sitemap"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new UrlsetItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new UrlsetItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("url") || theTag.equals("sitemap"))
       {
         // It's an item.
@@ -6931,40 +6752,42 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
   }
 
-  protected class UrlsetItemContextClass extends XMLContext
+  protected class UrlsetItemContextClass extends XMLParsingContext
   {
     protected String linkField = null;
 
-    public UrlsetItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public UrlsetItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "loc", nothing else.
-      if (qName.equals("loc"))
+      if (localName.equals("loc"))
       {
         // "loc" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("loc"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -7025,33 +6848,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         return;
       }
 
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("WEB: Document '"+documentURI+"' is text, with encoding '"+encoding+"'; link extraction starting");
-
       try
       {
-        // Create a reader for the described encoding, if that's possible
-        Reader r = new InputStreamReader(is,encoding);
-        try
-        {
-          // We read characters at a time, understanding the basic form of html.
-          // This code represents a basic bottom-up parser, which is the best thing since we really don't want to code up all the context we'd need
-          // to do a top-down parse.  So, there is a parse state, and the code walks through the document recognizing symbols and modifying the state.
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: Document '"+documentURI+"' is text, with encoding '"+encoding+"'; link extraction starting");
 
-          FormParseState currentParseState = new FormParseState(handler);
-          while (true)
-          {
-            int x = r.read();
-            if (x == -1)
-              break;
-            currentParseState.dealWithCharacter((char)x);
-          }
-          currentParseState.finishUp();
-        }
-        finally
-        {
-          r.close();
-        }
+        // Instantiate the parser, and call the right method
+        Parser p = new Parser();
+        p.parseWithoutCharsetDetection(encoding,is,new FormParseState(handler));
       }
       catch (UnsupportedEncodingException e)
       {
@@ -7069,7 +6873,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       throw new ManifoldCFException("Socket timeout exception: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket connect timeout exception: "+e.getMessage(),e);
     }
@@ -7124,7 +6928,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       throw new ManifoldCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
     }
-    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
+    catch (ConnectTimeoutException e)
     {
       throw new ManifoldCFException("Socket timeout exception accessing cached document: "+e.getMessage(),e);
     }
@@ -7160,10 +6964,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     return ((double)count)/((double)chunkLength) < 0.30;
   }
 
-  /** Check if character is not typical ASCII. */
+  /** Check if character is not typical ASCII or utf-8. */
   protected static boolean isStrange(byte x)
   {
-    return (x > 127 || x < 32) && (!isWhiteSpace(x));
+    return (x >= 0 && x < 32) && (!isWhiteSpace(x));
   }
 
   /** Check if a byte is a whitespace character. */

@@ -20,6 +20,6 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Connection
+public interface Connection extends java.io.Serializable
 {
 }

@@ -153,7 +153,7 @@
           <tr><td>tcpip_socket</td><td>true</td></tr>
           <tr><td>max_connections</td><td>200</td></tr>
           <tr><td>checkpoint_timeout</td><td>900</td></tr>
-          <tr><td>datastyle</td><td>ISO,European</td></tr>
+          <tr><td>datestyle</td><td>ISO,European</td></tr>
           <tr><td>autovacuum</td><td>off</td></tr>
         </table>
         <p>There are some interesting conclusions, for example the use of Solid State Drives for the laptop.  Even though addressable memory was reduced to 4 GB, the system processed twice as much documents than the desktop did with slower disks.  The other interesting fact is that the server had lower performing disks, but 4 times as many processors, and it was twice as fast as the laptop.</p>

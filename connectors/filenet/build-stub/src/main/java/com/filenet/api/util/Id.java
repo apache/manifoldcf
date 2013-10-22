@@ -18,8 +18,9 @@
 */
 package com.filenet.api.util;
 
-/** Stub interface to allow the connector to build fully.
+/** Stub class to allow the connector to build fully.
 */
-public interface Id
+public class Id implements java.io.Serializable, Comparable
 {
+  public int compareTo(Object o) { return 0; }
 }

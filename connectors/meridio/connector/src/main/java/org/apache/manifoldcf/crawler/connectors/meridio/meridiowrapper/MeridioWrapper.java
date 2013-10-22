@@ -40,8 +40,6 @@ import org.apache.log4j.Logger;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.httpclient.protocol.ProtocolFactory;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.axis.EngineConfiguration;
 import org.apache.axis.AxisEngine;
 import org.apache.axis.ConfigurationException;
@@ -73,12 +71,47 @@ import com.meridio.www.MeridioRMWS.ApplyChangesWTResponseApplyChangesWTResult;
 import org.tempuri.*;
 import org.tempuri.holders.*;
 
-import org.apache.manifoldcf.crawler.connectors.meridio.ConnectionConfig;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.HttpHost;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
+
 
 public class MeridioWrapper
 {
 
-  public static final String CONFIGURATION_PROPERTY = "ManifoldCF_Configuration";
+  public static final String HTTPCLIENT_PROPERTY = "ManifoldCF_HttpClient";
+
+  // Current host name
+  private static String currentHost = null;
+  static
+  {
+    // Find the current host name
+    try
+    {
+      java.net.InetAddress addr = java.net.InetAddress.getLocalHost();
+
+      // Get hostname
+      currentHost = addr.getHostName();
+    }
+    catch (UnknownHostException e)
+    {
+    }
+  }
 
   // This is the local cache
   protected long meridioCategoriesTime                    = -1L;
@@ -91,11 +124,14 @@ public class MeridioWrapper
 
   // These are the properties that are set in the constructor.  They are kept around so
   // that we can relogin when necessary.
-  protected ProtocolFactory protocolFactory                       = null;
   protected EngineConfiguration engineConfiguration               = null;
-  protected MultiThreadedHttpConnectionManager connectionManager  = null;
   protected Logger oLog                                   = null;
   protected String clientWorkstation                      = null;
+
+  protected ClientConnectionManager connectionManager = null;
+  protected HttpClient dmwsHttpClient = null;
+  protected HttpClient rmwsHttpClient = null;
+  protected HttpClient mcwsHttpClient = null;
 
   // These are set up during construction of this class.
   protected MeridioDMSoapStub meridioDMWebService_        = null;
@@ -105,10 +141,6 @@ public class MeridioWrapper
   // This is set up as a result of login.  This MUST NOT be a static because
   // multiple different connections may be using this same class!!!
   protected String            loginToken_                 = null;
-
-  // Configuration objects
-  protected ConnectionConfig dmwsConfig = null;
-  protected ConnectionConfig rmwsConfig = null;
 
   public MeridioDMSoapStub getDMWebService ()
   {
@@ -165,27 +197,38 @@ public class MeridioWrapper
     String dmwsProxyPort,
     String rmwsProxyHost,
     String rmwsProxyPort,
-    String metacartawsProxyHost,
-    String metacartawsProxyPort,
+    String mcwsProxyHost,
+    String mcwsProxyPort,
     String userName,
     String password,
     String clientWorkstation,
-    ProtocolFactory protocolFactory,
+    javax.net.ssl.SSLSocketFactory mySSLFactory,
     Class resourceClass,
     String engineConfigurationFile
   )
-    throws RemoteException
+    throws RemoteException, NumberFormatException
   {
     // Initialize local instance variables
     oLog = log;
-    this.protocolFactory = protocolFactory;
     this.engineConfiguration = new ResourceProvider(resourceClass,engineConfigurationFile);
-    this.connectionManager = new MultiThreadedHttpConnectionManager();
-    this.connectionManager.getParams().setMaxTotalConnections(1);
     this.clientWorkstation = clientWorkstation;
 
-    // Set up the configuration info object
-    ConnectionConfig cc;
+    // Set up the pool.
+    // We have a choice: We can either have one httpclient instance, which gets reinitialized for every service
+    // it connects with (because each one has a potentially different proxy setup), OR we can have a different
+    // httpclient for each service.  The latter approach is obviously the more efficient, so I've chosen to do it
+    // that way.
+    PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+    localConnectionManager.setMaxTotal(1);
+    if (mySSLFactory != null)
+    {
+      SSLSocketFactory myFactory = new SSLSocketFactory(mySSLFactory, new BrowserCompatHostnameVerifier());
+      Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+      localConnectionManager.getSchemeRegistry().register(myHttpsProtocol);
+    }
+    connectionManager = localConnectionManager;
+
+    // Parse the user and password values
     int index = userName.indexOf("\\");
     String domainUser;
     String domain;
@@ -212,6 +255,148 @@ public class MeridioWrapper
         oLog.debug("Meridio: Password is null");
     }
 
+    // Initialize the three httpclient objects
+    
+    // dmws first
+    BasicHttpParams dmwsParams = new BasicHttpParams();
+    dmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+    dmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+    dmwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
+    dmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+    dmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+    DefaultHttpClient localDmwsHttpClient = new DefaultHttpClient(connectionManager,dmwsParams);
+    // No retries
+    localDmwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+
+    localDmwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+    if (domainUser != null)
+    {
+      localDmwsHttpClient.getCredentialsProvider().setCredentials(
+        new AuthScope(meridioDmwsUrl.getHost(),meridioDmwsUrl.getPort()),
+        new NTCredentials(domainUser, password, currentHost, domain));
+    }
+    // Initialize proxy
+    if (dmwsProxyHost != null && dmwsProxyHost.length() > 0)
+    {
+      int port = (dmwsProxyPort == null || dmwsProxyPort.length() == 0)?8080:Integer.parseInt(dmwsProxyPort);
+      // Configure proxy authentication
+      if (domainUser != null && domainUser.length() > 0)
+      {
+        localDmwsHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(dmwsProxyHost, port),
+          new NTCredentials(domainUser, password, currentHost, domain));
+      }
+
+      HttpHost proxy = new HttpHost(dmwsProxyHost, port);
+      localDmwsHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+    }
+    dmwsHttpClient = localDmwsHttpClient;
+    
+    // rmws
+    BasicHttpParams rmwsParams = new BasicHttpParams();
+    rmwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+    rmwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+    rmwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
+    rmwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+    rmwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+    DefaultHttpClient localRmwsHttpClient = new DefaultHttpClient(connectionManager,rmwsParams);
+    // No retries
+    localRmwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+      {
+	public boolean retryRequest(
+	  IOException exception,
+	  int executionCount,
+          HttpContext context)
+	{
+	  return false;
+	}
+     
+      });
+
+    localRmwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+    if (domainUser != null)
+    {
+      localRmwsHttpClient.getCredentialsProvider().setCredentials(
+        new AuthScope(meridioRmwsUrl.getHost(),meridioRmwsUrl.getPort()),
+        new NTCredentials(domainUser, password, currentHost, domain));
+    }
+    // Initialize proxy
+    if (rmwsProxyHost != null && rmwsProxyHost.length() > 0)
+    {
+      int port = (rmwsProxyPort == null || rmwsProxyPort.length() == 0)?8080:Integer.parseInt(rmwsProxyPort);
+      // Configure proxy authentication
+      if (domainUser != null && domainUser.length() > 0)
+      {
+        localRmwsHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(rmwsProxyHost, port),
+          new NTCredentials(domainUser, password, currentHost, domain));
+      }
+
+      HttpHost proxy = new HttpHost(rmwsProxyHost, port);
+      localRmwsHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+    }
+    rmwsHttpClient = localRmwsHttpClient;
+
+    // mcws
+    if (meridioManifoldCFWSUrl != null)
+    {
+      BasicHttpParams mcwsParams = new BasicHttpParams();
+      mcwsParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      mcwsParams.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      mcwsParams.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
+      mcwsParams.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+      mcwsParams.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+      DefaultHttpClient localMcwsHttpClient = new DefaultHttpClient(connectionManager,mcwsParams);
+      // No retries
+      localMcwsHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+
+      localMcwsHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+      if (domainUser != null)
+      {
+        localMcwsHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(meridioManifoldCFWSUrl.getHost(),meridioManifoldCFWSUrl.getPort()),
+          new NTCredentials(domainUser, password, currentHost, domain));
+      }
+      // Initialize proxy
+      if (mcwsProxyHost != null && mcwsProxyHost.length() > 0)
+      {
+        int port = (mcwsProxyPort == null || mcwsProxyPort.length() == 0)?8080:Integer.parseInt(mcwsProxyPort);
+        // Configure proxy authentication
+        if (domainUser != null && domainUser.length() > 0)
+        {
+          localMcwsHttpClient.getCredentialsProvider().setCredentials(
+            new AuthScope(mcwsProxyHost, port),
+            new NTCredentials(domainUser, password, currentHost, domain));
+        }
+
+        HttpHost proxy = new HttpHost(mcwsProxyHost, port);
+        localMcwsHttpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+      }
+      mcwsHttpClient = localMcwsHttpClient;
+    }
+    else
+      mcwsHttpClient = null;
+    
     // Set up the stub handles
     /*=================================================================
     * Get a handle to the DMWS
@@ -220,14 +405,9 @@ public class MeridioWrapper
     MeridioDMSoapStub meridioDMWebService = new MeridioDMSoapStub(meridioDmwsUrl, meridioDMLocator);
 
     meridioDMWebService.setPortName(meridioDMLocator.getMeridioDMSoapWSDDServiceName());
-    // I believe that setting the username and password this way is no longer needed...
     meridioDMWebService.setUsername(userName);
     meridioDMWebService.setPassword(password);
-    // Here's the real way to send in user/password
-    cc = new ConnectionConfig(protocolFactory,connectionManager,dmwsProxyHost,(dmwsProxyPort!=null&&dmwsProxyPort.length()>0)?new Integer(dmwsProxyPort):null,
-      domain,domainUser,password);
-    dmwsConfig = cc;
-    meridioDMWebService._setProperty( CONFIGURATION_PROPERTY, cc);
+    meridioDMWebService._setProperty( HTTPCLIENT_PROPERTY, dmwsHttpClient);
 
     meridioDMWebService_ = meridioDMWebService;
 
@@ -240,10 +420,7 @@ public class MeridioWrapper
     meridioRMWebService.setPortName(meridioRMLocator.getMeridioRMSoapWSDDServiceName());
     meridioRMWebService.setUsername(userName);
     meridioRMWebService.setPassword(password);
-    cc = new ConnectionConfig(protocolFactory,connectionManager,rmwsProxyHost,(rmwsProxyPort!=null&&rmwsProxyPort.length()>0)?new Integer(rmwsProxyPort):null,
-      domain,domainUser,password);
-    rmwsConfig = cc;
-    meridioRMWebService._setProperty( CONFIGURATION_PROPERTY, cc);
+    meridioRMWebService._setProperty( HTTPCLIENT_PROPERTY, rmwsHttpClient);
 
     meridioRMWebService_ = meridioRMWebService;
 
@@ -259,7 +436,8 @@ public class MeridioWrapper
       meridioMetaCartaWebService.setPortName(meridioMCWS.getMetaCartaSoapWSDDServiceName());
       meridioMetaCartaWebService.setUsername(userName);
       meridioMetaCartaWebService.setPassword(password);
-      meridioMetaCartaWebService._setProperty( CONFIGURATION_PROPERTY, cc );
+      meridioMetaCartaWebService._setProperty( HTTPCLIENT_PROPERTY, mcwsHttpClient );
+      
       meridioMCWS_ = meridioMetaCartaWebService;
     }
 

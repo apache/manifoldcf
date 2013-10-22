@@ -68,12 +68,14 @@ public class APISanityIT extends BaseDerby
   private static final String ALFRESCO_SERVER = "localhost";
   private static final String ALFRESCO_PORT = "9090";
   private static final String ALFRESCO_PATH = "/alfresco/api";
+  private static final int SOCKET_TIMEOUT = 120000;
   private static final String ALFRESCO_ENDPOINT_TEST_SERVER = 
       ALFRESCO_PROTOCOL+"://"+ALFRESCO_SERVER+":"+ALFRESCO_PORT+ALFRESCO_PATH;
   
   private static final Store STORE = new Store(Constants.WORKSPACE_STORE, "SpacesStore");
   
   public Reference getTestFolder() throws RepositoryFault, RemoteException{
+    WebServiceFactory.setTimeoutMilliseconds(SOCKET_TIMEOUT);
     WebServiceFactory.setEndpointAddress(ALFRESCO_ENDPOINT_TEST_SERVER);
     AuthenticationUtils.startSession(ALFRESCO_USERNAME, ALFRESCO_PASSWORD);
     Reference reference = new Reference();
@@ -141,6 +143,7 @@ public class APISanityIT extends BaseDerby
    */
   public void changeDocument(String name, String newContent) throws RepositoryFault, RemoteException{
     String luceneQuery = StringUtils.replace(ALFRESCO_TEST_QUERY_CHANGE_DOC, REPLACER, name);
+    WebServiceFactory.setTimeoutMilliseconds(SOCKET_TIMEOUT);
     WebServiceFactory.setEndpointAddress(ALFRESCO_ENDPOINT_TEST_SERVER);
     AuthenticationUtils.startSession(ALFRESCO_USERNAME, ALFRESCO_PASSWORD);
     
@@ -171,6 +174,7 @@ public class APISanityIT extends BaseDerby
   
   public void removeDocument(String name) throws RepositoryFault, RemoteException{
     String luceneQuery = StringUtils.replace(ALFRESCO_TEST_QUERY_CHANGE_DOC, REPLACER, name);
+    WebServiceFactory.setTimeoutMilliseconds(SOCKET_TIMEOUT);
     WebServiceFactory.setEndpointAddress(ALFRESCO_ENDPOINT_TEST_SERVER);
     AuthenticationUtils.startSession(ALFRESCO_USERNAME, ALFRESCO_PASSWORD);
     
@@ -362,6 +366,12 @@ public class APISanityIT extends BaseDerby
       alfrescoPathNode.setAttribute("name", AlfrescoConfig.PATH_PARAM);
       alfrescoPathNode.setValue(ALFRESCO_PATH);
       child.addChild(child.getChildCount(), alfrescoPathNode);
+      
+      //socketTimeout
+      ConfigurationNode socketTimeoutNode = new ConfigurationNode("_PARAMETER_");
+      socketTimeoutNode.setAttribute("name", AlfrescoConfig.SOCKET_TIMEOUT_PARAM);
+      socketTimeoutNode.setValue(String.valueOf(SOCKET_TIMEOUT));
+      child.addChild(child.getChildCount(), socketTimeoutNode);
       
       connectionObject.addChild(connectionObject.getChildCount(),child);
 

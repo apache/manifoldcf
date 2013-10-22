@@ -1977,10 +1977,10 @@
   </wsdl:binding>
   <wsdl:service name="UserGroup">
     <wsdl:port name="UserGroupSoap" binding="tns:UserGroupSoap">
-      <soap:address location="http://www.wssdemo.com/_vti_bin/usergroup.asmx" />
+      <soap:address location="http://localhost/_vti_bin/usergroup.asmx" />
     </wsdl:port>
     <wsdl:port name="UserGroupSoap12" binding="tns:UserGroupSoap12">
-      <soap12:address location="http://www.wssdemo.com/_vti_bin/usergroup.asmx" />
+      <soap12:address location="http://localhost/_vti_bin/usergroup.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

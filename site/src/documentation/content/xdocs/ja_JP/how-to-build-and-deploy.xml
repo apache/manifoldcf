@@ -79,9 +79,14 @@
         <ul>
           <li>CMIS connector</li>
           <li>Documentum connector, built against a Documentum API stub</li>
+          <li>DropBox connector</li>
           <li>FileNet connector, built against a FileNet API stub</li>
-          <li>Filesystem connector</li>
+          <li>WGET-compatible filesystem connector</li>
+          <li>Generic XML repository connector</li>
+          <li>Google Drive connector</li>
+          <li>HDFS connector</li>
           <li>JDBC connector, with just the PostgreSQL jdbc driver</li>
+          <li>Jira connector</li>
           <li>LiveLink connector, built against a LiveLink API stub</li>
           <li>Meridio connector, built against modified Meridio API WSDLs and XSDs</li>
           <li>RSS connector</li>
@@ -108,10 +113,12 @@
           <li>Apache Solr output connector</li>
           <li>OpenSearchServer output connector</li>
           <li>ElasticSearch output connector</li>
+          <li>WGET-compatible filesystem output connector</li>
+          <li>HDFS output connector</li>
           <li>Null output connector</li>
         </ul>
         <p></p>
-        <p>Each individual LGPL and proprietary connector's dependencies and build limitations are described in separate sections below.</p>
+        <p>The dependencies and build limitations of each individual LGPL and proprietary connector is described in separate sections below.</p>
         <p></p>
             
         <section>
@@ -120,7 +127,7 @@
           <p>The Alfresco connector requires the Alfresco Web Services Client provided by Alfresco in order to be built. Place this jar into the directory <em>connectors/alfresco/lib-proprietary</em> before you build.
               This will occur automatically if you execute the ant target "make-deps" from the ManifoldCF root directory.</p>
           <p></p>
-          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-war (using "mvn package" inside the folder)
+          <p>To run integration tests for the connector you have to copy the alfresco.war including H2 support created by the Maven module test-materials/alfresco-4-war (using "mvn package" inside the folder)
               into the <em>connectors/alfresco/test-materials-proprietary</em> folder.  Then use the "ant test" or "mvn integration-test" for the standard build to execute integration tests.</p>
           <p></p>
         </section>
@@ -128,9 +135,13 @@
         <section>
           <title>Building and running the Documentum connector</title>
           <p></p>
-          <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.  After building, you must install DFC on the build system, and locate the jars it installs.  Copy
-              these jars to the directory <em>documentum-server-process/lib-proprietary</em>.</p>
-          <p>For a binary distribution, copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
+          <p>The Documentum connector requires EMC's DFC product in order to be run, but is built against a set of stub classes.
+              The stubs mimic the class structure of DFC 6.0.  If your DFC is newer, it is possible that the class structure of the DFC
+              classes might have changed, and you may need to build the connector yourself.</p>
+          <p>If you need to supply DFC classes during build time, copy the DFC and dependent jars to the source directory
+              <em>connectors/documentum/lib-proprietary</em>, and build using "ant build".  The jars will be copied  into
+              the right place in your <em>dist</em> directory automatically.</p>
+          <p>For a binary distribution, just copy the DFC jars to <em>documentum-server-process/lib-proprietary</em> instead.</p>
           <p>If you have done everything right, you should be able to start the Documentum connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
@@ -138,9 +149,13 @@
         <section>
           <title>Building and running the FileNet connector</title>
           <p></p>
-          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is built against a set of stub classes.  After building, install the FileNet P8 API on your system,
-              and copy "Jace.jar" and the other dependent jars from that installation into <em>filenet-server-process/lib-proprietary</em>.</p>
-          <p>If you have downloaded a binary distribution, place the jar in <em>filenet-server-process/lib-proprietary</em>.</p>
+          <p>The FileNet connector requires IBM's FileNet P8 API jar in order to be run, but is usually built against a set of stub classes.
+              The stubs mimic the class structure of FileNet P8 API 4.5.  If your FileNet is newer, it is possible that the class structure of the
+              API might have changed, and you may need to build the connector yourself.</p>
+          <p>If you need to supply your own Jace.jar at build time, copy it to the source directory <em>connectors/filenet/lib-proprietary</em>,
+              and build using "ant build".  The Jace.jar will be copied into the right place in your <em>dist</em> directory automatically.</p>
+          <p>If you do not wish to build, simply copy your Jace.jar and the other dependent jars from that installation into the distribution directory
+              <em>filenet-server-process/lib-proprietary</em>.</p>
           <p>If correctly done, you will be able to start the FileNet connector's registry and server processes, as per the instructions.</p>
           <p></p>
         </section>
@@ -166,9 +181,13 @@
         <section>
           <title>Building and running the LiveLink connector</title>
           <p></p>
-          <p>This connector needs OpenText's LAPI package in order to be run, but is built against a set of stubs.  After building, copy the lapi.jar into the <em>connector-lib-proprietary</em>
-              directory, and uncomment the LiveLink-related connector lines in <em>connectors.xml</em>.</p>
-          <p>If you have downloaded a binary distribution, place the jar in <em>connector-lib-proprietary</em>, and modify the <em>connectors.xml</em> file.</p>
+          <p>This connector needs OpenText's LAPI package in order to be run.  It is usually built against a set of stubs. The stubs, however, mimic the
+              class structure of LAPI 9.7.1.  Later versions (such as 10.x) have a different class structure.  Therefore, you may need to rebuild ManifoldCF
+              against your lapi.jar, in order for the connector to work properly.</p>
+          <p>If you need to supply your own lapi.jar and llssl.jar at build time, copy it to the source directory <em>connectors/livelink/lib-proprietary</em>, and build using "ant build".
+              The lapi.jar will be copied into the right place in your <em>dist</em> directory automatically.</p>
+          <p>If you do not wish to build, simply copy your lapi.jar and llssl.jar into the binary distribution's <em>connector-lib-proprietary</em>
+              directory, and uncomment the LiveLink-related connector lines in <em>connectors.xml</em> file.</p>
           <p></p>
         </section>
         
@@ -227,12 +246,12 @@
         <section>
           <title>Preparation</title>
           <p>Before you begin, you will need to install Maven (if you haven't already) and prepare by downloading the necessary materials to support the LGPL connector builds, just as you would for the Ant
-              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  The script <em>mvn-bootstrap[.sh|.bat]</em> will do this for you.
-              This script takes no arguments, but does require internet access in order to download LGPL jars that are required by the Maven build.</p>
-              <p>Notice that if you have downloaded the source code of the 0.5-incubating release, before building with Maven, you also need to execute the following command from the root folder of the project:</p>
-              <source>
-mvn install:install-file -Dfile=lib/commons-httpclient.jar -DgroupId=commons-httpclient -DartifactId=commons-httpclient-mcf -Dversion=3.1  -Dpackaging=jar
-              </source>
+              build described in the previous section.  Then, you need to push various ManifoldCF-required jars into your local Maven repository.  To do that, please do the following:</p>
+          <ol>
+              <li>Populate your <em>lib</em> directory with the jars necessary.  You can do this either by downloading and unpacking an appropriate lib distribution, or by executing the appropriate Ant commands.
+                  The command <em>ant download-xerces download-xmlsec download-opensaml</em> should be sufficient.</li>
+              <li>Run the script <em>mvn-bootstrap[.sh|.bat]</em>. This script takes no arguments.</li>
+          </ol>
         </section>
         <section>
           <title>How to build</title>
@@ -488,7 +507,7 @@ cd example
             <li>At this point, you should be able to interact with the ManifoldCF UI, which can be accessed via the mcf-crawler-ui web application</li>
           </ul>
           <p></p>
-          <p>The detailed list of commands is presented below:</p>
+          <p>The detailed list of commands is presented below.</p>
           <p></p>
           <section>
             <title>Commands</title>
@@ -533,6 +552,14 @@ cd example
               prevent repository passwords to be stored in clear text. In order to use this functionality, you must enter a salt value to your configuration file. The same passcode along
               with the salt value are used to decrypt the file with the ImportConfiguration command class. See the documentation for the commands and properties above to find the
               correct arguments and settings.</p>
+            <p></p>
+            <table>
+              <tr><th>User Mapping Command Class</th><th>Arguments</th><th>Function</th></tr>
+              <tr><td>org.apache.manifoldcf.authorities.RegisterMapper</td><td><em>classname</em> <em>description</em></td><td>Register a mapping connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterMapper</td><td><em>classname</em></td><td>Un-register a mapping connector class</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterAllMappers</td><td>None</td><td>Un-register all mapping connector classes</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.SynchronizeMappers</td><td>None</td><td>Un-register all registered mapping connector classes that can't be found</td></tr>
+            </table>
             <p></p>
             <table>
               <tr><th>Authority Command Class</th><th>Arguments</th><th>Function</th></tr>
@@ -675,7 +702,7 @@ cd example
             <tr><td>tcpip_socket</td><td>true</td></tr>
             <tr><td>max_connections</td><td>400</td></tr>
             <tr><td>checkpoint_timeout</td><td>900</td></tr>
-            <tr><td>datastyle</td><td>ISO,European</td></tr>
+            <tr><td>datestyle</td><td>ISO,European</td></tr>
             <tr><td>autovacuum</td><td>off</td></tr>
           </table>
           <p></p>
@@ -766,6 +793,8 @@ cd example
           <table>
             <caption>Property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
+            <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
@@ -774,6 +803,7 @@ cd example
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
@@ -789,6 +819,7 @@ cd example
             <tr><td>org.apache.manifoldcf.synchdirectory</td><td>Yes, if file-based synchronization class is used</td><td>Specifies the path of a synchronization directory.  All ManifoldCF process owners <strong>must</strong> have read/write privileges to this directory.</td></tr>
             <tr><td>org.apache.manifoldcf.database.maxhandles</td><td>No</td><td>Specifies the maximum number of database connection handles that will by pooled.  Recommended value is 200.</td></tr>
             <tr><td>org.apache.manifoldcf.database.handletimeout</td><td>No</td><td>Specifies the maximum time a handle is to live before it is presumed dead.  Recommend a value of 604800, which is the maximum allowable.</td></tr>
+            <tr><td>org.apache.manifoldcf.database.connectiontracking</td><td>No</td><td>True or false.  When "true", will track all allocated database connection handles, and will dump an allocation stack trace when the pool is exhausted.  Useful for diagnosing connection leaks.</td></tr>
             <tr><td>org.apache.manifoldcf.logconfigfile</td><td>No</td><td>Specifies location of logging configuration file.</td></tr>
             <tr><td>org.apache.manifoldcf.database.name</td><td>No</td><td>Describes database name for ManifoldCF; defaults to "dbname" if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.database.username</td><td>No</td><td>Describes database user name for ManifoldCF; defaults to "manifoldcf" if not specified.</td></tr>

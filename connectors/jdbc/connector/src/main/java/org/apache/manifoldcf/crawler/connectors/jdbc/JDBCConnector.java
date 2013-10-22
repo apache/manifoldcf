@@ -241,6 +241,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String queryText = sb.toString();
     long startQueryTime = System.currentTimeMillis();
+    // Contract for IDynamicResultset indicates that if successfully obtained, it MUST
+    // be closed.
     try
     {
       idSet = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -357,6 +359,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IDynamicResultSet result;
     String queryText = sb.toString();
     long startTime = System.currentTimeMillis();
+    // Get a dynamic resultset.  Contract for dynamic resultset is that if
+    // one is returned, it MUST be closed, or a connection will leak.
     try
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -368,11 +372,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    // If success, record that too.
-    activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-      createQueryString(queryText,paramList), "OK", null, null);
     try
     {
+      // If success, record that too.
+      activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+        createQueryString(queryText,paramList), "OK", null, null);
       // Now, go through resultset
       while (true)
       {
@@ -442,6 +446,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
     addConstant(vm,JDBCConstants.urlReturnVariable,JDBCConstants.urlReturnColumnName);
     addConstant(vm,JDBCConstants.dataReturnVariable,JDBCConstants.dataReturnColumnName);
+    addConstant(vm,JDBCConstants.contentTypeReturnVariable,JDBCConstants.contentTypeReturnColumnName);
     if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,scanOnly))
       return;
 
@@ -470,6 +475,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IDynamicResultSet result;
     String queryText = sb.toString();
     long startTime = System.currentTimeMillis();
+    // Get a dynamic resultset.  Contract for dynamic resultset is that if
+    // one is returned, it MUST be closed, or a connection will leak.
     try
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -481,12 +488,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    // If success, record that too.
-    activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-      createQueryString(queryText,paramList), "OK", null, null);
-
     try
     {
+      // If success, record that too.
+      activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+        createQueryString(queryText,paramList), "OK", null, null);
+
       while (true)
       {
         IResultRow row = result.getNextRow();
@@ -529,78 +536,102 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 // We will ingest something, so remove this id from the map in order that we know what we still
                 // need to delete when all done.
                 map.remove(id);
-                if (contents instanceof BinaryInput)
-                {
-                  // An ingestion will take place for this document.
-                  RepositoryDocument rd = new RepositoryDocument();
-
-                  applyAccessTokens(rd,version,spec);
-                  applyMetadata(rd,row);
-
-                  BinaryInput bi = (BinaryInput)contents;
-                  try
-                  {
-                    // Read the stream
-                    InputStream is = bi.getStream();
-                    try
-                    {
-                      rd.setBinary(is,bi.getLength());
-                      activities.ingestDocument(id, version, url, rd);
-                    }
-                    finally
-                    {
-                      is.close();
-                    }
-                  }
-                  catch (java.net.SocketTimeoutException e)
-                  {
-                    throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                  }
-                  catch (InterruptedIOException e)
-                  {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                  }
-                  finally
-                  {
-                    bi.discard();
-                  }
-                }
+                String contentType;
+                o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
+                if (o != null)
+                  contentType = readAsString(o);
                 else
+                  contentType = null;
+                
+                if (contentType == null || activities.checkMimeTypeIndexable(contentType))
                 {
-                  // Turn it into a string, and then into a stream
-                  String value = contents.toString();
-                  try
+                  if (contents instanceof BinaryInput)
                   {
-                    byte[] bytes = value.getBytes("utf-8");
+                    // An ingestion will take place for this document.
                     RepositoryDocument rd = new RepositoryDocument();
 
+                    // Default content type is application/octet-stream for binary data
+                    if (contentType == null)
+                      rd.setMimeType("application/octet-stream");
+                    else
+                      rd.setMimeType(contentType);
+                    
                     applyAccessTokens(rd,version,spec);
                     applyMetadata(rd,row);
 
-                    InputStream is = new ByteArrayInputStream(bytes);
+                    BinaryInput bi = (BinaryInput)contents;
                     try
                     {
-                      rd.setBinary(is,bytes.length);
-                      activities.ingestDocument(id, version, url, rd);
+                      // Read the stream
+                      InputStream is = bi.getStream();
+                      try
+                      {
+                        rd.setBinary(is,bi.getLength());
+                        activities.ingestDocument(id, version, url, rd);
+                      }
+                      finally
+                      {
+                        is.close();
+                      }
+                    }
+                    catch (java.net.SocketTimeoutException e)
+                    {
+                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
                     }
                     finally
                     {
-                      is.close();
+                      bi.discard();
                     }
                   }
-                  catch (InterruptedIOException e)
+                  else
                   {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    // Turn it into a string, and then into a stream
+                    String value = contents.toString();
+                    try
+                    {
+                      byte[] bytes = value.getBytes("utf-8");
+                      RepositoryDocument rd = new RepositoryDocument();
+
+                      // Default content type is text/plain for character data
+                      if (contentType == null)
+                        rd.setMimeType("text/plain");
+                      else
+                        rd.setMimeType(contentType);
+                      
+                      applyAccessTokens(rd,version,spec);
+                      applyMetadata(rd,row);
+
+                      InputStream is = new ByteArrayInputStream(bytes);
+                      try
+                      {
+                        rd.setBinary(is,bytes.length);
+                        activities.ingestDocument(id, version, url, rd);
+                      }
+                      finally
+                      {
+                        is.close();
+                      }
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    }
                   }
                 }
+                else
+                  Logging.connectors.warn("JDBC: Document '"+id+"' excluded because of mime type - skipping");
               }
               else
                 Logging.connectors.warn("JDBC: Document '"+id+"' seems to have null data - skipping");
@@ -709,24 +740,26 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String jdbcProvider = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter);
+    String jdbcProvider = parameters.getParameter(JDBCConstants.providerParameter);
     if (jdbcProvider == null)
       jdbcProvider = "oracle:thin:@";
-    String accessMethod = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.methodParameter);
+    String accessMethod = parameters.getParameter(JDBCConstants.methodParameter);
     if (accessMethod == null)
       accessMethod = "name";
-    String host = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter);
+    String host = parameters.getParameter(JDBCConstants.hostParameter);
     if (host == null)
       host = "localhost";
-    String databaseName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter);
+    String databaseName = parameters.getParameter(JDBCConstants.databaseNameParameter);
     if (databaseName == null)
       databaseName = "database";
-    String databaseUser = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName);
+    String databaseUser = parameters.getParameter(JDBCConstants.databaseUserName);
     if (databaseUser == null)
       databaseUser = "";
-    String databasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword);
+    String databasePassword = parameters.getObfuscatedParameter(JDBCConstants.databasePassword);
     if (databasePassword == null)
       databasePassword = "";
+    else
+      databasePassword = out.mapPasswordToKey(databasePassword);
 
     // "Database Type" tab
     if (tabName.equals(Messages.getString(locale,"JDBCConnector.DatabaseType")))
@@ -828,27 +861,27 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     String type = variableContext.getParameter("databasetype");
     if (type != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.providerParameter,type);
+      parameters.setParameter(JDBCConstants.providerParameter,type);
 
     String accessMethod = variableContext.getParameter("accessmethod");
     if (accessMethod != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.methodParameter,accessMethod);
+      parameters.setParameter(JDBCConstants.methodParameter,accessMethod);
 
     String host = variableContext.getParameter("databasehost");
     if (host != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.hostParameter,host);
+      parameters.setParameter(JDBCConstants.hostParameter,host);
 
     String databaseName = variableContext.getParameter("databasename");
     if (databaseName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseNameParameter,databaseName);
+      parameters.setParameter(JDBCConstants.databaseNameParameter,databaseName);
 
     String userName = variableContext.getParameter("username");
     if (userName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databaseUserName,userName);
+      parameters.setParameter(JDBCConstants.databaseUserName,userName);
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.databasePassword,password);
+      parameters.setObfuscatedParameter(JDBCConstants.databasePassword,variableContext.mapKeyToPassword(password));
     
     return null;
   }
@@ -1032,19 +1065,19 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+      if (sn.getType().equals(JDBCConstants.idQueryNode))
       {
         idQuery = sn.getValue();
         if (idQuery == null)
           idQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+      else if (sn.getType().equals(JDBCConstants.versionQueryNode))
       {
         versionQuery = sn.getValue();
         if (versionQuery == null)
           versionQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+      else if (sn.getType().equals(JDBCConstants.dataQueryNode))
       {
         dataQuery = sn.getValue();
         if (dataQuery == null)
@@ -1192,12 +1225,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        if (ds.getChild(i).getType().equals(JDBCConstants.idQueryNode))
           ds.removeChild(i);
         else
           i++;
       }
-      sn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode);
+      sn = new SpecificationNode(JDBCConstants.idQueryNode);
       sn.setValue(idQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
@@ -1206,12 +1239,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        if (ds.getChild(i).getType().equals(JDBCConstants.versionQueryNode))
           ds.removeChild(i);
         else
           i++;
       }
-      sn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode);
+      sn = new SpecificationNode(JDBCConstants.versionQueryNode);
       sn.setValue(versionQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
@@ -1220,12 +1253,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int i = 0;
       while (i < ds.getChildCount())
       {
-        if (ds.getChild(i).getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        if (ds.getChild(i).getType().equals(JDBCConstants.dataQueryNode))
           ds.removeChild(i);
         else
           i++;
       }
-      sn = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode);
+      sn = new SpecificationNode(JDBCConstants.dataQueryNode);
       sn.setValue(dataQuery);
       ds.addChild(ds.getChildCount(),sn);
     }
@@ -1295,19 +1328,19 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+      if (sn.getType().equals(JDBCConstants.idQueryNode))
       {
         idQuery = sn.getValue();
         if (idQuery == null)
           idQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+      else if (sn.getType().equals(JDBCConstants.versionQueryNode))
       {
         versionQuery = sn.getValue();
         if (versionQuery == null)
           versionQuery = "";
       }
-      else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+      else if (sn.getType().equals(JDBCConstants.dataQueryNode))
       {
         dataQuery = sn.getValue();
         if (dataQuery == null)
@@ -1382,6 +1415,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     documentKnownColumns.put(JDBCConstants.idReturnColumnName,"");
     documentKnownColumns.put(JDBCConstants.urlReturnColumnName,"");
     documentKnownColumns.put(JDBCConstants.dataReturnColumnName,"");
+    documentKnownColumns.put(JDBCConstants.contentTypeReturnColumnName,"");
   }
   
   /** Apply metadata to a repository document.
@@ -1752,19 +1786,19 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.idQueryNode))
+        if (sn.getType().equals(JDBCConstants.idQueryNode))
         {
           idQuery = sn.getValue();
           if (idQuery == null)
             idQuery = "";
         }
-        else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.versionQueryNode))
+        else if (sn.getType().equals(JDBCConstants.versionQueryNode))
         {
           versionQuery = sn.getValue();
           if (versionQuery == null)
             versionQuery = "";
         }
-        else if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.jdbc.JDBCConstants.dataQueryNode))
+        else if (sn.getType().equals(JDBCConstants.dataQueryNode))
         {
           dataQuery = sn.getValue();
           if (dataQuery == null)

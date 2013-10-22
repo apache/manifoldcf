@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+    license agreements. See the NOTICE file distributed with this work for additional 
+    information regarding copyright ownership. The ASF licenses this file to 
+    You under the Apache License, Version 2.0 (the "License"); you may not use 
+    this file except in compliance with the License. You may obtain a copy of 
+    the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+    by applicable law or agreed to in writing, software distributed under the 
+    License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+    OF ANY KIND, either express or implied. See the License for the specific 
+    language governing permissions and limitations under the License. -->
+    
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>alfresco-4-war</artifactId>
+    <version>1.5-SNAPSHOT</version>
+    <name>ManifoldCF - Test Materials - Alfresco WAR</name>
+    <description>Alfresco WAR builder</description>
+    <packaging>war</packaging>
+
+    <parent>
+        <groupId>org.apache.manifoldcf</groupId>
+        <artifactId>mcf-test-materials</artifactId>
+        <version>1.5-SNAPSHOT</version>
+    </parent>
+    
+    <properties>
+        <alfresco.groupId>org.alfresco</alfresco.groupId>
+        <alfresco.version>4.2.c</alfresco.version>
+        <app.log.root.level>WARN</app.log.root.level>
+        <alfresco.data.location>alf_data_dev</alfresco.data.location>
+        <!-- This controls which properties will be picked in src/test/properties for embedded run -->
+        <env>local</env>
+        <alfresco.db.name>alf_jetty</alfresco.db.name>
+        <alfresco.db.url>jdbc:h2:${alfresco.data.location}/h2_data/${alfresco.db.name}</alfresco.db.url>
+        <alfresco.db.driver>org.h2.Driver</alfresco.db.driver>
+        <alfresco.db.username>alfresco</alfresco.db.username>
+        <alfresco.db.password>alfresco</alfresco.db.password>
+        <alfresco.db.hibernate.dialect>org.hibernate.dialect.H2Dialect</alfresco.db.hibernate.dialect>
+    </properties>
+    
+    <!-- Here we realize the connection with the Alfresco selected platform (e.g.version and edition) -->
+   <dependencyManagement>
+     <dependencies>
+          <!-- This will import the dependencyManagement for all artifacts in the selected Alfresco plaftorm
+               (see http://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies)
+               NOTE: You still need to define dependencies in your POM, but you can omit version as it's enforced by this dependencyManagement.
+               NOTE: It defaults to the latest version this SDK pom has been tested with, but alfresco version can/should be overridden in your project's pom   
+           -->
+          <dependency>
+              <groupId>${alfresco.groupId}</groupId>
+              <artifactId>alfresco-platform-distribution</artifactId>
+              <version>${alfresco.version}</version>
+              <type>pom</type>
+              <scope>import</scope>
+          </dependency>
+     </dependencies>
+  </dependencyManagement>
+  
+    <!--
+    No more repos are needed since they will be inherited by the parent POM. 
+    This is needed to download the alfresco-plaftorm POM.
+    -->
+    <repositories>
+        <repository>
+            <id>alfresco-artifacts</id>
+            <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>alfresco-artifacts-snapshots</id>
+            <url>https://artifacts.alfresco.com/nexus/content/groups/public-snapshots</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>${alfresco.groupId}</groupId>
+            <artifactId>alfresco</artifactId>
+            <type>war</type>
+        </dependency>
+        <dependency>
+		      <groupId>tk.skuro.alfresco</groupId>
+		      <artifactId>h2-support</artifactId>
+		      <version>1.5</version>
+		    </dependency>
+		    <dependency>
+		        <groupId>com.h2database</groupId>
+		        <artifactId>h2</artifactId>
+		        <version>1.3.172</version>
+		    </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>alfresco</finalName>
+        <!--
+      In certain cases we do build time filtering with the single sourcing
+      alfresco-global.properties
+    -->
+    <filters>
+      <filter>src/main/properties/${env}/alfresco-global.properties</filter>
+    </filters>
+    
+    <resources>
+      <resource>
+        <directory>src/main/properties/${env}</directory>
+        <includes>
+          <include>alfresco-global.properties</include>
+        </includes>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    
+        <plugins>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <!--  Here is can control the order of overlay of your (WAR, AMP, etc.) dependencies
+                        | NOTE: At least one WAR dependency must be uncompressed first
+                        | NOTE: In order to have a dependency effectively added to the WAR you need to 
+                        | explicitly mention it in the overlay section.
+                        | NOTE: First-win resource strategy is used by the WAR plugin
+                         -->
+                    <overlays>
+                        <!-- Current project customizations -->
+                        <overlay/>
+                        <!-- The Alfresco WAR -->
+                        <overlay>
+                            <groupId>${alfresco.groupId}</groupId>
+                            <artifactId>alfresco</artifactId>
+                            <type>war</type>
+                            <!-- To allow inclusion of META-INF -->
+                            <excludes/>
+                        </overlay>
+                    </overlays>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

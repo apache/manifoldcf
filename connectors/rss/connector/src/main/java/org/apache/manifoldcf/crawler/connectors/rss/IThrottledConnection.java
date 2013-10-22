@@ -67,7 +67,6 @@ public interface IThrottledConnection
   * @return the status code: success, static error, or dynamic error.
   */
   public int executeFetch(String protocol, int port, String urlPath, String userAgent, String from,
-    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
     String lastETag, String lastModified)
     throws ManifoldCFException, ServiceInterruption;
 

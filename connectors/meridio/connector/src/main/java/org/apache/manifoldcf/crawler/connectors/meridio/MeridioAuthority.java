@@ -28,10 +28,6 @@ import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
 
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolFactory;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
-
 import java.rmi.RemoteException;
 import java.util.*;
 import java.io.*;
@@ -56,7 +52,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   private URL RmwsURL = null;
   private URL MetaCartawsURL = null;
 
-  private ProtocolFactory myFactory = null;
+  private javax.net.ssl.SSLSocketFactory mySSLFactory = null;
 
   private String DMWSProxyHost = null;
   private String DMWSProxyPort = null;
@@ -76,15 +72,6 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   protected ICacheManager cacheManager = null;
   
   final private static int MANAGE_DOCUMENT_PRIVILEGE = 17;
-
-  /** Deny access token for Meridio.  All tokens begin with "U" or with "G", except the blanket "READ_ALL" that I create.
-  * However, we currently have code in the field, so I will continue ot use "DEAD_AUTHORITY" for that reason.
-  */
-  private final static String denyToken = "DEAD_AUTHORITY";
-
-  private final static AuthorizationResponse unreachableResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_UNREACHABLE);
-  private final static AuthorizationResponse userNotFoundResponse = new AuthorizationResponse(new String[]{denyToken},AuthorizationResponse.RESPONSE_USERNOTFOUND);
-
 
   /** Constructor.
   */
@@ -207,15 +194,11 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
       // Set up ssl if indicated
       String keystoreData = params.getParameter( "MeridioKeystore" );
-      myFactory = new ProtocolFactory();
 
       if (keystoreData != null)
-      {
-        IKeystoreManager keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-        MeridioSecureSocketFactory secureSocketFactory = new MeridioSecureSocketFactory(keystoreManager.getSecureSocketFactory());
-        Protocol myHttpsProtocol = new Protocol("https", (ProtocolSocketFactory)secureSocketFactory, 443);
-        myFactory.registerProtocol("https",myHttpsProtocol);
-      }
+        mySSLFactory = KeystoreManagerFactory.make("",keystoreData).getSecureSocketFactory();
+      else
+        mySSLFactory = null;
 
       try
       {
@@ -247,9 +230,13 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
           DMWSProxyHost, DMWSProxyPort, RMWSProxyHost, RMWSProxyPort, MetaCartaWSProxyHost, MetaCartaWSProxyPort,
           UserName, Password,
           InetAddress.getLocalHost().getHostName(),
-          myFactory,
+          mySSLFactory,
           getClass(),
           "meridio-client-config.wsdd");
+      }
+      catch (NumberFormatException e)
+      {
+        throw new ManifoldCFException("Meridio: bad number: "+e.getMessage(),e);
       }
       catch (UnknownHostException unknownHostException)
       {
@@ -450,7 +437,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
       DmwsURL = null;
       RmwsURL = null;
       MetaCartawsURL = null;
-      myFactory = null;
+      mySSLFactory = null;
       DMWSProxyHost = null;
       DMWSProxyPort = null;
       RMWSProxyHost = null;
@@ -475,6 +462,9 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
+    // We need this here to be able to create an AuthorizationResponseDescription correctly
+    attemptToConnect();
+    
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
       DmwsURL.toString(),RmwsURL.toString(),MetaCartawsURL.toString(),
@@ -552,7 +542,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
         {
           if (Logging.authorityConnectors.isDebugEnabled())
             Logging.authorityConnectors.debug("Meridio: User '" + userName + "' does not exist");
-          return userNotFoundResponse;
+          return RESPONSE_USERNOTFOUND;
         }
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Meridio: Found user - the User Id for '" + userName +
@@ -678,7 +668,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   @Override
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
   {
-    return unreachableResponse;
+    return RESPONSE_UNREACHABLE;
   }
   
   // UI support methods.
@@ -947,6 +937,8 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
     String password = parameters.getObfuscatedParameter("Password");
     if (password == null)
       password = "";
+    else
+      password = out.mapPasswordToKey(password);
 
     String meridioKeystore = parameters.getParameter("MeridioKeystore");
     IKeystoreManager localKeystore;
@@ -1290,7 +1282,7 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("Password",password);
+      parameters.setObfuscatedParameter("Password",variableContext.mapKeyToPassword(password));
 
     String configOp = variableContext.getParameter("configop");
     if (configOp != null)

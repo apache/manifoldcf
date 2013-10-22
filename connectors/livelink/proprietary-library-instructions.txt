@@ -16,8 +16,15 @@
 The LiveLink connector requires a client library from OpenText in
 order to function.  The client jar is call lapi.jar, and the version we
 have tested against can be found in the LAPI 9.7.1 package from
-OpenText.  Copy that jar to this directory, and run ManifoldCF
-using the appropriate means.  More can be found in the
-"how-to-build-and-deploy.html" documentation page.
+OpenText.  For some modes of operation, you may also need llssl.jar
+from the same package.  Copy those jars to this directory, and run
+ManifoldCF using the appropriate means.
 
+If you find there are incompatibilities between your version of lapi.jar
+and the one your release of ManifoldCF was built against, you must build
+ManifoldCF yourself, and include a copy of your jars prior to building,
+in the directory "connectors/livelink/lib-proprietary".
+
+More can be found in the "how-to-build-and-deploy.html"
+documentation page.
 

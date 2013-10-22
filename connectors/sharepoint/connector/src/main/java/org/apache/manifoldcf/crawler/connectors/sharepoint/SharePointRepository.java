@@ -24,8 +24,10 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.*;
+import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 
 import java.io.*;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,25 +36,45 @@ import java.util.Locale;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 import java.net.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.auth.*;
-import org.apache.commons.httpclient.params.*;
-import org.apache.commons.httpclient.protocol.*;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 /** This is the "repository connector" for Microsoft SharePoint.
 * Document identifiers for this connector come in three forms:
 * (1) An "S" followed by the encoded subsite/library path, which represents the encoded relative path from the root site to a library. [deprecated and no longer supported];
 * (2) A "D" followed by a subsite/library/folder/file path, which represents the relative path from the root site to a file. [deprecated and no longer supported]
-* (3) Five different kinds of unencoded path, each of which starts with a "/" at the beginning, where the "/" represents the root site of the connection, as follows:
+* (3) Six different kinds of unencoded path, each of which starts with a "/" at the beginning, where the "/" represents the root site of the connection, as follows:
 *   /sitepath/ - the relative path to a site.  The path MUST both begin and end with a single "/".
 *   /sitepath/libraryname// - the relative path to a library.  The path MUST begin with a single "/" and end with "//".
 *   /sitepath/libraryname//folderfilepath - the relative path to a file.  The path MUST begin with a single "/" and MUST include a "//" after the library, and must NOT end with a "/".
 *   /sitepath/listname/// - the relative path to a list.  The path MUST begin with a single "/" and end with "///".
 *   /sitepath/listname///rowid - the relative path to a list item.  The path MUST begin with a single "/" and MUST include a "///" after the list name, and must NOT end in a "/".
+*   /sitepath/listname///rowid//attachment_filename - the relative path to a list attachment.  The path MUST begin with a single "/", MUST include a "///" after the list name, and
+*      MUST include a "//" separating the rowid from the filename.
 */
 public class SharePointRepository extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
@@ -68,6 +90,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   
   private boolean supportsItemSecurity = false;
   private boolean dspStsWorks = true;
+  private boolean attachmentsSupported = false;
+  
   private String serverProtocol = null;
   private String serverUrl = null;
   private String fileBaseUrl = null;
@@ -87,9 +111,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   // SSL support
   private String keystoreData = null;
   private IKeystoreManager keystoreManager = null;
-  private SharepointSecureSocketFactory secureSocketFactory = null;
-  private ProtocolFactory myFactory = null;
-  private MultiThreadedHttpConnectionManager connectionManager = null;
+  
+  private ClientConnectionManager connectionManager = null;
+  private HttpClient httpClient = null;
 
   // Current host name
   private static String currentHost = null;
@@ -108,8 +132,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
+  // Turn off AXIS debug output that we don't want
+  static
+  {
+    Logger logger = Logger.getLogger("org.apache.axis.ConfigurationException");
+    logger.setLevel(Level.INFO);
+  }
+  
   /** Deny access token for default authority */
-  private final static String defaultAuthorityDenyToken = "DEAD_AUTHORITY";
+  private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
 
   /** Constructor.
   */
@@ -128,6 +159,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         serverVersion = "2.0";
       supportsItemSecurity = !serverVersion.equals("2.0");
       dspStsWorks = !serverVersion.equals("4.0");
+      attachmentsSupported = !serverVersion.equals("2.0");
 
       serverProtocol = params.getParameter( "serverProtocol" );
       if (serverProtocol == null)
@@ -187,24 +219,53 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       // Set up ssl if indicated
       keystoreData = params.getParameter( "keystore" );
-      myFactory = new ProtocolFactory();
+
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+      connectionManager = localConnectionManager;
 
       if (keystoreData != null)
       {
         keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-        secureSocketFactory = new SharepointSecureSocketFactory(keystoreManager.getSecureSocketFactory());
-        Protocol myHttpsProtocol = new Protocol("https", (ProtocolSocketFactory)secureSocketFactory, 443);
-        myFactory.registerProtocol("https",myHttpsProtocol);
+        SSLSocketFactory myFactory = new SSLSocketFactory(keystoreManager.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
+        Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
+        connectionManager.getSchemeRegistry().register(myHttpsProtocol);
       }
-
-      connectionManager = new MultiThreadedHttpConnectionManager();
-      connectionManager.getParams().setMaxTotalConnections(1);
 
       fileBaseUrl = serverUrl + encodedServerLocation;
 
+      BasicHttpParams params = new BasicHttpParams();
+      params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,false);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,60000);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,900000);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+      DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+      localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+      if (strippedUserName != null)
+      {
+        localHttpClient.getCredentialsProvider().setCredentials(
+          new AuthScope(serverName,serverPort),
+          new NTCredentials(strippedUserName, password, currentHost, ntlmDomain));
+      }
+
+      httpClient = localHttpClient;
+      
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, userName, password,
-        myFactory, getClass(), "sharepoint-client-config.wsdd",
-        connectionManager );
+        getClass(), "sharepoint-client-config.wsdd",
+        httpClient );
       
     }
     sessionTimeout = System.currentTimeMillis() + sessionExpirationInterval;
@@ -225,10 +286,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     keystoreData = null;
     keystoreManager = null;
-    secureSocketFactory = null;
-    myFactory = null;
 
     proxy = null;
+    httpClient = null;
     if (connectionManager != null)
       connectionManager.shutdown();
     connectionManager = null;
@@ -275,10 +335,9 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     keystoreData = null;
     keystoreManager = null;
-    secureSocketFactory = null;
-    myFactory = null;
 
     proxy = null;
+    httpClient = null;
     if (connectionManager != null)
       connectionManager.shutdown();
     connectionManager = null;
@@ -307,8 +366,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   @Override
   public int getMaxDocumentRequest()
   {
-    // Since we pick up acls on a per-lib basis, it helps to have this bigger than 1.
-    return 10;
+    // Since we went to a carrydown-based implementation, having this greater than 1 does not help.
+    return 1;
   }
 
   /** Test the connection.  Returns a string describing the connection integrity.
@@ -354,7 +413,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (proxy != null && System.currentTimeMillis() >= sessionTimeout)
       expireSession();
     if (connectionManager != null)
-      connectionManager.closeIdleConnections(60000L);
+      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
   }
 
   /** Request arbitrary connector information.
@@ -389,12 +448,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           sitePath = remainder.substring(index+1);
         }
         
-        Map fieldSet = getLibFieldList(sitePath,library);
-        Iterator iter = fieldSet.keySet().iterator();
+        Map<String,String> fieldSet = getLibFieldList(sitePath,library);
+        Iterator<String> iter = fieldSet.keySet().iterator();
         while (iter.hasNext())
         {
-          String fieldName = (String)iter.next();
-          String displayName = (String)fieldSet.get(fieldName);
+          String fieldName = iter.next();
+          String displayName = fieldSet.get(fieldName);
           ConfigurationNode node = new ConfigurationNode("field");
           ConfigurationNode child;
           child = new ConfigurationNode("name");
@@ -436,12 +495,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           sitePath = remainder.substring(index+1);
         }
         
-        Map fieldSet = getListFieldList(sitePath,listName);
-        Iterator iter = fieldSet.keySet().iterator();
+        Map<String,String> fieldSet = getListFieldList(sitePath,listName);
+        Iterator<String> iter = fieldSet.keySet().iterator();
         while (iter.hasNext())
         {
-          String fieldName = (String)iter.next();
-          String displayName = (String)fieldSet.get(fieldName);
+          String fieldName = iter.next();
+          String displayName = fieldSet.get(fieldName);
           ConfigurationNode node = new ConfigurationNode("field");
           ConfigurationNode child;
           child = new ConfigurationNode("name");
@@ -467,13 +526,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("sites/".length());
-        ArrayList sites = getSites(sitePath);
+        List<NameValue> sites = getSites(sitePath);
         int i = 0;
         while (i < sites.size())
         {
-          String site = (String)sites.get(i++);
+          NameValue site = sites.get(i++);
           ConfigurationNode node = new ConfigurationNode("site");
-          node.setValue(site);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(site.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(site.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -491,13 +556,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("libraries/".length());
-        ArrayList libs = getDocLibsBySite(sitePath);
+        List<NameValue> libs = getDocLibsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
         {
-          String lib = (String)libs.get(i++);
+          NameValue lib = libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("library");
-          node.setValue(lib);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(lib.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(lib.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -515,13 +586,19 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       try
       {
         String sitePath = command.substring("lists/".length());
-        ArrayList libs = getListsBySite(sitePath);
+        List<NameValue> libs = getListsBySite(sitePath);
         int i = 0;
         while (i < libs.size())
         {
-          String lib = (String)libs.get(i++);
+          NameValue lib = libs.get(i++);
           ConfigurationNode node = new ConfigurationNode("list");
-          node.setValue(lib);
+          ConfigurationNode child;
+          child = new ConfigurationNode("name");
+          child.setValue(lib.getValue());
+          node.addChild(node.getChildCount(),child);
+          child = new ConfigurationNode("display_name");
+          child.setValue(lib.getPrettyName());
+          node.addChild(node.getChildCount(),child);
           output.addChild(output.getChildCount(),node);
         }
       }
@@ -601,16 +678,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     getSession();
 
-    // Before we begin looping, make sure we know what to add to the version string to account for the forced acls.
-
-    // Read the forced acls.  A null return indicates that security is disabled!!!
-    // A zero-length return indicates that the native acls should be used.
-    // All of this is germane to how we ingest the document, so we need to note it in
-    // the version string completely.
-    String[] acls = getAcls(spec);
-    // Make sure they are in sorted order, since we need the version strings to be comparable
-    if (acls != null)
-      java.util.Arrays.sort(acls);
+    // Get the forced acls.  (We need this only for the case where documents have their own acls)
+    String[] forcedAcls = getAcls(spec);
 
     // Look at the metadata attributes.
     // So that the version strings are comparable, we will put them in an array first, and sort them.
@@ -633,14 +702,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     }
 
-    // This is the cached map of sitelibstring to library identifier
-    Map<String,String> libIDMap = new HashMap<String,String>();
-    // This is the cached map of siteliststring to list identifier
-    Map<String,String> listIDMap = new HashMap<String,String>();
-    
-    // This is the cached map if guid to field list
-    Map<String,Map<String,String>> fieldListMap = new HashMap<String,Map<String,String>>();
-    
     // Calculate the part of the version string that comes from path name and mapping.
     // This starts with = since ; is used by another optional component (the forced acls)
     StringBuilder pathNameAttributeVersion = new StringBuilder();
@@ -648,10 +709,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       pathNameAttributeVersion.append("=").append(pathAttributeName).append(":").append(matchMap);
 
     String[] rval = new String[documentIdentifiers.length];
-    
-    // Build a cache of the acls for a given site, guid.
-    // The key is the guid, and the value is a String[]
-    Map<String,String[]> ACLmap = new HashMap<String,String[]>();
     
     i = 0;
     while (i < rval.length)
@@ -680,7 +737,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           // === List-style identifier ===
           if (dListSeparatorIndex == documentIdentifier.length() - 3)
           {
-            // List path!
+            // == List path! ==
             if (checkIncludeList(documentIdentifier.substring(0,documentIdentifier.length()-3),spec))
               // This is the path for the list: No versioning
               rval[i] = "";
@@ -693,103 +750,89 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           else
           {
-            // List item path!
+            // == List item or attachment path! ==
             // Convert the modified document path to an unmodified one, plus a library path.
             String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
-            String decodedItemPath = decodedListPath + documentIdentifier.substring(dListSeparatorIndex+2);
-            if (checkIncludeListItem(decodedItemPath,spec))
+            String itemAndAttachment = documentIdentifier.substring(dListSeparatorIndex+2);
+            String decodedItemPath = decodedListPath + itemAndAttachment;
+            
+            int cutoff = decodedListPath.lastIndexOf("/");
+            String sitePath = decodedListPath.substring(0,cutoff);
+            String list = decodedListPath.substring(cutoff+1);
+
+            String encodedSitePath = encodePath(sitePath);
+
+            int attachmentSeparatorIndex = itemAndAttachment.indexOf("//",1);
+            if (attachmentSeparatorIndex == -1)
             {
-              // This file is included, so calculate a version string.  This will include metadata info, so get that first.
-              MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
-
-              int lastIndex = decodedListPath.lastIndexOf("/");
-              String sitePath = decodedListPath.substring(0,lastIndex);
-              String list = decodedListPath.substring(lastIndex+1);
-
-              String encodedSitePath = encodePath(sitePath);
-
-              // Need to get the library id.  Cache it if we need to calculate it.
-              String listID = listIDMap.get(decodedListPath);
-              if (listID == null)
+              // == List item path! ==
+              if (checkIncludeListItem(decodedItemPath,spec))
               {
-                listID = proxy.getListID(encodedSitePath, sitePath, list);
+                // This file is included, so calculate a version string.  This will include metadata info, so get that first.
+                MetadataInformation metadataInfo = getMetadataSpecification(decodedItemPath,spec);
+
+                String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+                String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+                String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
+                String[] listFields = activities.retrieveParentData(documentIdentifier, "fields");
+
+                String listID;
+                if (listIDs.length >= 1)
+                  listID = listIDs[0];
+                else
+                  listID = null;
+
                 if (listID != null)
-                  listIDMap.put(decodedListPath,listID);
-              }
-
-              if (listID != null)
-              {
-                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,listID,fieldListMap);
-                
-                if (sortedMetadataFields != null)
                 {
+                  String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
+                  
+                  // Sort access tokens so they are comparable in the version string
+                  java.util.Arrays.sort(accessTokens);
+                  java.util.Arrays.sort(denyTokens);
+
                   // Next, get the actual timestamp field for the file.
                   ArrayList metadataDescription = new ArrayList();
                   metadataDescription.add("Modified");
+                  metadataDescription.add("Created");
+                  metadataDescription.add("ID");
+                  metadataDescription.add("GUID");
                   // The document path includes the library, with no leading slash, and is decoded.
-                  int cutoff = decodedListPath.lastIndexOf("/");
                   String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
-                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
-                  String modifyDate = (String)values.get("Modified");
-                  if (modifyDate != null)
+                  Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+                  String modifiedDate = values.get("Modified");
+                  String createdDate = values.get("Created");
+                  String id = values.get("ID");
+                  String guid = values.get("GUID");
+                  if (modifiedDate != null)
                   {
+                    // Item has a modified date so we presume it exists.
+                    
+                    Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                    Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+                    
                     // Build version string
-                    String versionToken = modifyDate;
-                    // Revamped version string on 11/8/2006 to make parseability better
-
+                    String versionToken = modifiedDate;
+                      
+                    // Revamped version string on 9/21/2013 to make parseability better
+                    
                     StringBuilder sb = new StringBuilder();
 
                     packList(sb,sortedMetadataFields,'+');
-
-                    // Do the acls.
-                    boolean foundAcls = true;
-                    if (acls != null)
-                    {
-                      sb.append('+');
-
-                      // If there are forced acls, use those in the version string instead.
-                      String[] accessTokens;
-                      if (acls.length == 0)
-                      {
-                        // The goal here is simply to record what should get ingested with the document, so that
-                        // we can compare against future values.
-                        // Grab the acls for this combo, if we haven't already
-                        accessTokens = lookupAccessTokensSorted(encodedSitePath,listID,ACLmap);
-                          
-                        if (accessTokens == null)
-                          foundAcls = false;
-                        
-                      }
-                      else
-                        accessTokens = acls;
-                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
-                      if (foundAcls)
-                      {
-                        packList(sb,accessTokens,'+');
-                        // Added 4/21/2008 to handle case when AD authority is down
-                        pack(sb,defaultAuthorityDenyToken,'+');
-                      }
-                    }
-                    else
-                      sb.append('-');
-                    if (foundAcls)
-                    {
-                      // The rest of this is unparseable
-                      sb.append(versionToken);
-                      sb.append(pathNameAttributeVersion);
-                      // Added 9/7/07
-                      sb.append("_").append(fileBaseUrl);
-                      //
-                      rval[i] = sb.toString();
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                    }
-                    else
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for list '"+decodedListPath+"'; removing list item '"+documentIdentifier+"'");
-                      rval[i] = null;
-                    }
+                    packList(sb,accessTokens,'+');
+                    packList(sb,denyTokens,'+');
+                    packDate(sb,modifiedDateValue);
+                    packDate(sb,createdDateValue);
+                    pack(sb,id,'+');
+                    pack(sb,guid,'+');
+                    // The rest of this is unparseable
+                    sb.append(versionToken);
+                    sb.append(pathNameAttributeVersion);
+                    // Added 9/7/07
+                    sb.append("_").append(fileBaseUrl);
+                    //
+                    rval[i] = sb.toString();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
                   }
                   else
                   {
@@ -801,22 +844,106 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' doesn't respond to metadata requests - removing");
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' does not exist - removing");
                   rval[i] = null;
                 }
               }
               else
               {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because list '"+decodedListPath+"' does not exist - removing");
+                  Logging.connectors.debug("SharePoint: List item '"+documentIdentifier+"' is no longer included - removing");
                 rval[i] = null;
               }
             }
             else
             {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("SharePoint: List item '"+documentIdentifier+"' is no longer included - removing");
-              rval[i] = null;
+              // == List item attachment path! ==
+              if (checkIncludeListItemAttachment(decodedItemPath,spec))
+              {
+
+                // To save work, we retrieve most of what we need in version info from the parent.
+
+                // Retrieve modified and created dates
+                String[] modifiedDateSet = activities.retrieveParentData(documentIdentifier, "modifiedDate");
+                String[] createdDateSet = activities.retrieveParentData(documentIdentifier, "createdDate");
+                String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+                String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+                String[] urlSet = activities.retrieveParentData(documentIdentifier, "url");
+
+                // Only one modifiedDate and createdDate can be used.  If there's more than one, just pick one - the item will be reindexed
+                // anyhow.
+                String modifiedDate;
+                if (modifiedDateSet.length >= 1)
+                  modifiedDate = modifiedDateSet[0];
+                else
+                  modifiedDate = null;
+                String createdDate;
+                if (createdDateSet.length >= 1)
+                  createdDate = createdDateSet[0];
+                else
+                  createdDate = null;
+                String url;
+                if (urlSet.length >=1)
+                  url = urlSet[0];
+                else
+                  url = null;
+
+                // If we have no modified or created date, it means that the parent has gone away, so we go away too.
+                if (modifiedDate != null && url != null)
+                {
+                  // Item has a modified date so we presume it exists.
+                      
+                  Date modifiedDateValue;
+                  if (modifiedDate != null)
+                    modifiedDateValue = new Date(new Long(modifiedDate).longValue());
+                  else
+                    modifiedDateValue = null;
+                  Date createdDateValue;
+                  if (createdDate != null)
+                    createdDateValue = new Date(new Long(createdDate).longValue());
+                  else
+                    createdDateValue = null;
+                      
+                  // Build version string
+                  String versionToken = modifiedDate;
+                      
+                  StringBuilder sb = new StringBuilder();
+
+                  // Pack the URL to get the data from
+                  pack(sb,url,'+');
+                  
+                  // Do the acls.  If we get this far, we are guaranteed to have them, but we need to sort.
+                  java.util.Arrays.sort(accessTokens);
+                  java.util.Arrays.sort(denyTokens);
+                  
+                  packList(sb,accessTokens,'+');
+                  packList(sb,denyTokens,'+');
+                  packDate(sb,modifiedDateValue);
+                  packDate(sb,createdDateValue);
+
+                  // The rest of this is unparseable
+                  sb.append(versionToken);
+                  sb.append(pathNameAttributeVersion);
+                  sb.append("_").append(fileBaseUrl);
+                  //
+                  rval[i] = sb.toString();
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
+                }
+                else
+                {
+                  // Can't look up list ID, which means the list is gone, so delete
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because modified date or attachment url not found");
+                  rval[i] = null;
+                }
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: List item attachment '"+documentIdentifier+"' is no longer included - removing");
+                rval[i] = null;
+              }
             }
           }
         }
@@ -838,7 +965,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           else
           {
-            // Document path!
+            // == Document path ==
             // Convert the modified document path to an unmodified one, plus a library path.
             String decodedLibPath = documentIdentifier.substring(0,dLibSeparatorIndex);
             String decodedDocumentPath = decodedLibPath + documentIdentifier.substring(dLibSeparatorIndex+1);
@@ -851,120 +978,110 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               String sitePath = decodedLibPath.substring(0,lastIndex);
               String lib = decodedLibPath.substring(lastIndex+1);
 
-              String encodedSitePath = encodePath(sitePath);
+              // Retrieve the carry-down data we will be using.
+              // Note well: for sharepoint versions that include document/folder acls, these access tokens will be ignored,
+              // but they will still be carried down nonetheless, in case someone switches versions on us.
+              String[] accessTokens = activities.retrieveParentData(documentIdentifier, "accessTokens");
+              String[] denyTokens = activities.retrieveParentData(documentIdentifier, "denyTokens");
+              String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
+              String[] libFields = activities.retrieveParentData(documentIdentifier, "fields");
 
-              // Need to get the library id.  Cache it if we need to calculate it.
-              String libID = libIDMap.get(decodedLibPath);
-              if (libID == null)
-              {
-                libID = proxy.getDocLibID(encodedSitePath, sitePath, lib);
-                if (libID != null)
-                  libIDMap.put(decodedLibPath,libID);
-              }
-
+              String libID;
+              if (libIDs.length >= 1)
+                libID = libIDs[0];
+              else
+                libID = null;
+              
               if (libID != null)
               {
-                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,encodedSitePath,libID,fieldListMap);
+                String encodedSitePath = encodePath(sitePath);
+                String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,libFields);
                 
-                if (sortedMetadataFields != null)
+                // Sort access tokens
+                java.util.Arrays.sort(accessTokens);
+                java.util.Arrays.sort(denyTokens);
+
+                // Next, get the actual timestamp field for the file.
+                ArrayList metadataDescription = new ArrayList();
+                metadataDescription.add("Last_x0020_Modified");
+                metadataDescription.add("Modified");
+                metadataDescription.add("Created");
+                metadataDescription.add("GUID");
+                // The document path includes the library, with no leading slash, and is decoded.
+                int cutoff = decodedLibPath.lastIndexOf("/");
+                String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
+                Map<String,String> values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+
+                String modifiedDate = values.get("Modified");
+                String createdDate = values.get("Created");
+                String guid = values.get("GUID");
+                String modifyDate = values.get("Last_x0020_Modified");
+
+                if (modifyDate != null)
                 {
-                  // Next, get the actual timestamp field for the file.
-                  ArrayList metadataDescription = new ArrayList();
-                  metadataDescription.add("Last_x0020_Modified");
-                  // The document path includes the library, with no leading slash, and is decoded.
-                  int cutoff = decodedLibPath.lastIndexOf("/");
-                  String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff+1);
-                  Map values = proxy.getFieldValues( metadataDescription, encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
-                  String modifyDate = (String)values.get("Last_x0020_Modified");
-                  if (modifyDate != null)
+                  // Item has a modified date, so we presume it exists
+                  Date modifiedDateValue = DateParser.parseISO8601Date(modifiedDate);
+                  Date createdDateValue = DateParser.parseISO8601Date(createdDate);
+
+                  // Build version string
+                  String versionToken = modifyDate;
+
+                  if (supportsItemSecurity)
                   {
-                    // Build version string
-                    String versionToken = modifyDate;
-                    // Revamped version string on 11/8/2006 to make parseability better
+                    // Do the acls.
+                    if (forcedAcls == null)
+                    {
+                      // Security is off
+                      accessTokens = new String[0];
+                      denyTokens = new String[0];
+                    }
+                    else if (forcedAcls.length > 0)
+                    {
+                      // Security on, forced acls
+                      accessTokens = forcedAcls;
+                      denyTokens = new String[0];
+                    }
+                    else
+                    {
+                      // Security on, is native
+                      accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
+                      denyTokens = new String[]{defaultAuthorityDenyToken};
+                    }
+                  }
+                  
+                  if (accessTokens != null)
+                  {
+                    // Revamped version string on 9/21/2013 to make parseability better
 
                     StringBuilder sb = new StringBuilder();
 
                     packList(sb,sortedMetadataFields,'+');
-
-                    // Do the acls.
-                    boolean foundAcls = true;
-                    if (acls != null)
-                    {
-                      sb.append('+');
-
-                      // If there are forced acls, use those in the version string instead.
-                      String[] accessTokens;
-                      if (acls.length == 0)
-                      {
-                        if (supportsItemSecurity)
-                        {
-                          // For documents, just fetch
-                          accessTokens = proxy.getDocumentACLs( encodedSitePath, encodePath(decodedDocumentPath) );
-                          if (accessTokens != null)
-                          {
-                            java.util.Arrays.sort(accessTokens);
-                            if (Logging.connectors.isDebugEnabled())
-                              Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for '" +decodedDocumentPath+"'");
-                          }
-                          else
-                          {
-                            foundAcls = false;
-                          }
-                        }
-                        else
-                        {
-                          // The goal here is simply to record what should get ingested with the document, so that
-                          // we can compare against future values.
-                          // Grab the acls for this combo, if we haven't already
-                          accessTokens = lookupAccessTokensSorted(encodedSitePath,libID,ACLmap);
-                          
-                          if (accessTokens == null)
-                            foundAcls = false;
-
-                        }
-                      }
-                      else
-                        accessTokens = acls;
-                      // Only pack access tokens if they are non-null; we'll be giving up anyhow otherwise
-                      if (foundAcls)
-                      {
-                        packList(sb,accessTokens,'+');
-                        // Added 4/21/2008 to handle case when AD authority is down
-                        pack(sb,defaultAuthorityDenyToken,'+');
-                      }
-                    }
-                    else
-                      sb.append('-');
-                    if (foundAcls)
-                    {
-                      // The rest of this is unparseable
-                      sb.append(versionToken);
-                      sb.append(pathNameAttributeVersion);
-                      // Added 9/7/07
-                      sb.append("_").append(fileBaseUrl);
-                      //
-                      rval[i] = sb.toString();
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
-                    }
-                    else
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Couldn't get access tokens for library '"+decodedLibPath+"'; removing document '"+documentIdentifier+"'");
-                      rval[i] = null;
-                    }
+                    packList(sb,accessTokens,'+');
+                    packList(sb,denyTokens,'+');
+                    packDate(sb,modifiedDateValue);
+                    packDate(sb,createdDateValue);
+                    pack(sb,guid,'+');
+                    // The rest of this is unparseable
+                    sb.append(versionToken);
+                    sb.append(pathNameAttributeVersion);
+                    // Added 9/7/07
+                    sb.append("_").append(fileBaseUrl);
+                    //
+                    rval[i] = sb.toString();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug( "SharePoint: Complete version string for '"+documentIdentifier+"': " + rval[i]);
                   }
                   else
                   {
                     if (Logging.connectors.isDebugEnabled())
-                      Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
+                      Logging.connectors.debug("SharePoint: Couldn't get access tokens for item '"+decodedDocumentPath+"'; removing document '"+documentIdentifier+"'");
                     rval[i] = null;
                   }
                 }
                 else
                 {
                   if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because library '"+decodedLibPath+"' doesn't respond to metadata requests - removing");
+                    Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has no modify date");
                   rval[i] = null;
                 }
               }
@@ -1007,80 +1124,68 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return rval;
   }
 
-  protected String[] lookupAccessTokensSorted(String encodedSitePath, String guid, Map<String,String[]> ACLmap)
-    throws ManifoldCFException, ServiceInterruption
+  protected static void packDate(StringBuilder sb, Date dateValue)
   {
-    String[] accessTokens = ACLmap.get(guid);
-    if (accessTokens == null)
+    if (dateValue != null)
     {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug( "SharePoint: Compiling acl list for guid "+guid+"... ");
-      accessTokens = proxy.getACLs( encodedSitePath, guid );
-      if (accessTokens != null)
-      {
-        java.util.Arrays.sort(accessTokens);
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug( "SharePoint: Received " + accessTokens.length + " acls for  guid " +guid);
-        ACLmap.put(guid,accessTokens);
-      }
+      sb.append("+");
+      pack(sb,new Long(dateValue.getTime()).toString(),'+');
     }
-    return accessTokens;
+    else
+      sb.append("-");
   }
 
-  protected String[] getInterestingFieldSetSorted(MetadataInformation metadataInfo,
-    String encodedSitePath, String guid, Map<String,Map<String,String>> fieldListMap)
-    throws ManifoldCFException, ServiceInterruption
+  protected static int unpackDate(String value, int index, Date theDate)
   {
-    Set<String> metadataFields = null;
+    if (value.length() > index)
+    {
+      if (value.charAt(index++) == '+')
+      {
+        StringBuilder sb = new StringBuilder();
+        index = unpack(sb,value,index,'+');
+        if (sb.length() > 0)
+        {
+          theDate.setTime(new Long(sb.toString()).longValue());
+        }
+      }
+    }
+    return index;
+  }
+  
+  protected String[] getInterestingFieldSetSorted(MetadataInformation metadataInfo, String[] allFields)
+  {
+    Set<String> metadataFields = new HashSet<String>();
 
     // Figure out the actual metadata fields we will request
     if (metadataInfo.getAllMetadata())
     {
-      // Fetch the fields
-      Map<String,String> fieldNames = fieldListMap.get(guid);
-      if (fieldNames == null)
+      for (String field : allFields)
       {
-        fieldNames = proxy.getFieldList( encodedSitePath, guid );
-        if (fieldNames != null)
-          fieldListMap.put(guid,fieldNames);
-      }
-
-      if (fieldNames != null)
-      {
-        metadataFields = new HashSet<String>();
-        for (Iterator<String> e = fieldNames.keySet().iterator(); e.hasNext();)
-        {
-          String key = e.next();
-          metadataFields.add(key);
-        }
+        metadataFields.add(field);
       }
     }
     else
     {
-      metadataFields = new HashSet<String>();
       String[] fields = metadataInfo.getMetadataFields();
-      int q = 0;
-      while (q < fields.length)
+      for (String field : fields)
       {
-        String field = fields[q++];
         metadataFields.add(field);
       }
     }
-    if (metadataFields == null)
-      return null;
     
     // Convert the hashtable to an array and sort it.
     String[] sortedMetadataFields = new String[metadataFields.size()];
     int z = 0;
-    Iterator<String> iter = metadataFields.iterator();
-    while (iter.hasNext())
+    for (String field : metadataFields)
     {
-      sortedMetadataFields[z++] = iter.next();
+      sortedMetadataFields[z++] = field;
     }
     java.util.Arrays.sort(sortedMetadataFields);
 
     return sortedMetadataFields;
   }
+
+  protected static final String[] attachmentDataNames = new String[]{"createdDate","modifiedDate","accessTokens","denyTokens","url","guids"};
 
   /** Process a set of documents.
   * This is the method that should cause each document to be fetched, processed, and the results either added
@@ -1099,11 +1204,14 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   {
     getSession();
 
+    // Read the forced acls.  A null return indicates that security is disabled!!!
+    // A zero-length return indicates that the native acls should be used.
+    // All of this is germane to how we ingest the document, so we need to note it in
+    // the version string completely.
+    String[] forcedAcls = getAcls(spec);
+
     // Decode the system metadata part of the specification
     SystemMetadataDescription sDesc = new SystemMetadataDescription(spec);
-
-    Map<String,String> docLibIDMap = new HashMap<String,String>();
-    Map<String,String> listIDMap = new HashMap<String,String>();
 
     int i = 0;
     while (i < documentIdentifiers.length)
@@ -1134,19 +1242,68 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug( "SharePoint: Document identifier is a list: '" + siteListPath + "'" );
 
-            // Calculate the start of the path part that would contain the list item name
-            int listItemPathIndex = site.length() + 1 + listName.length();
-
             String listID = proxy.getListID( encodePath(site), site, listName );
             if (listID != null)
             {
-              ListItemStream fs = new ListItemStream( activities, listItemPathIndex, spec );
-              boolean success = proxy.getChildren( fs, encodePath(site) , listID, dspStsWorks );
-              if (!success)
+              String encodedSitePath = encodePath(site);
+              
+              // Get the list's fields
+              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, listID );
+              if (fieldNames != null)
               {
-                // Site/list no longer exists, so delete entry
+                String[] fields = new String[fieldNames.size()];
+                int j = 0;
+                for (String field : fieldNames.keySet())
+                {
+                  fields[j++] = field;
+                }
+                
+                String[] accessTokens;
+                String[] denyTokens;
+                
+                if (forcedAcls == null)
+                {
+                  // Security is off
+                  accessTokens = new String[0];
+                  denyTokens = new String[0];
+                }
+                else if (forcedAcls.length != 0)
+                {
+                  // Forced security
+                  accessTokens = forcedAcls;
+                  denyTokens = new String[0];
+                }
+                else
+                {
+                  // Security enabled, native security
+                  accessTokens = proxy.getACLs( encodedSitePath, listID );
+                  denyTokens = new String[]{defaultAuthorityDenyToken};
+                }
+
+                if (accessTokens != null)
+                {
+                  ListItemStream fs = new ListItemStream( activities, encodedServerLocation, site, siteListPath, spec,
+                    documentIdentifier, accessTokens, denyTokens, listID, fields );
+                  boolean success = proxy.getChildren( fs, encodedSitePath , listID, dspStsWorks );
+                  if (!success)
+                  {
+                    // Site/list no longer exists, so delete entry
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+                    activities.deleteDocument(documentIdentifier,version);
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Access token lookup failed for list '"+siteListPath+"' - deleting");
+                  activities.deleteDocument(documentIdentifier,version);
+                }
+              }
+              else
+              {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: No list found for list '"+siteListPath+"' - deleting");
+                  Logging.connectors.debug("SharePoint: Field list lookup failed for list '"+siteListPath+"' - deleting");
                 activities.deleteDocument(documentIdentifier,version);
               }
             }
@@ -1159,123 +1316,250 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
           else
           {
-            // List item identifier
-            if ( !scanOnly[ i ] )
+            // == List item or attachment identifier ==
+            
+            // Get the item part of the path
+            String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
+            String itemAndAttachment = documentIdentifier.substring(dListSeparatorIndex+2);
+            String decodedItemPath = decodedListPath + itemAndAttachment;
+            
+            // If the item part has a slash, we're looking at an attachment
+            int attachmentSeparatorIndex = itemAndAttachment.indexOf("//",1);
+            if (attachmentSeparatorIndex == -1)
             {
-              // Convert the modified document path to an unmodified one, plus a library path.
-              String decodedListPath = documentIdentifier.substring(0,dListSeparatorIndex);
-              String decodedItemPath = decodedListPath + documentIdentifier.substring(dListSeparatorIndex+2);
+              // == List item identifier ==
               
-              int cutoff = decodedListPath.lastIndexOf("/");
-
-              String encodedItemPath = encodePath(decodedListPath.substring(cutoff) + "/Lists/" + decodedItemPath.substring(cutoff+1));
-
+              // Before we index, we queue up any attachments
               int listCutoff = decodedListPath.lastIndexOf( "/" );
               String site = decodedListPath.substring(0,listCutoff);
               String listName = decodedListPath.substring( listCutoff + 1 );
-
-              // Parse what we need out of version string.
 
               // Placeholder for metadata specification
               ArrayList metadataDescription = new ArrayList();
               int startPosition = unpackList(metadataDescription,version,0,'+');
 
               // Acls
-              ArrayList acls = null;
-              String denyAcl = null;
-              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
+              ArrayList acls = new ArrayList();
+              ArrayList denyAcls = new ArrayList();
+              startPosition = unpackList(acls,version,startPosition,'+');
+              startPosition = unpackList(denyAcls,version,startPosition,'+');
+
+              // Dates
+              Date modifiedDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,modifiedDate);
+              if (modifiedDate.getTime() == 0L)
+                modifiedDate = null;
+              Date createdDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,createdDate);
+              if (createdDate.getTime() == 0L)
+                createdDate = null;
+
+              // ID (for looking up attachments)
+              StringBuilder idBuffer = new StringBuilder();
+              startPosition = unpack(idBuffer,version,startPosition,'+');
+
+              // List item GUID (for metadata)
+              StringBuilder guidBuffer = new StringBuilder();
+              startPosition = unpack(guidBuffer,version,startPosition,'+');
+              String guid = guidBuffer.toString();
+              
+              // We need the list ID, which we've already fetched, so grab that from the parent data.
+              String[] listIDs = activities.retrieveParentData(documentIdentifier, "guids");
+
+              String listID;
+              if (listIDs.length >= 1)
+                listID = listIDs[0];
+              else
+                listID = null;
+
+              if (listID == null)
               {
-                acls = new ArrayList();
-                startPosition = unpackList(acls,version,startPosition,'+');
-                if (startPosition < version.length())
-                {
-                  StringBuilder denyAclBuffer = new StringBuilder();
-                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                  denyAcl = denyAclBuffer.toString();
-                }
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
+                activities.deleteDocument(documentIdentifier,version);
+                i++;
+                continue;
               }
 
-              // Generate the URL we are going to use
-              String itemUrl = fileBaseUrl + encodedItemPath;
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug( "SharePoint: Processing item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
-
-              if (activities.checkLengthIndexable(0L))
+              // Now, do any queuing that is needed.
+              if (attachmentsSupported)
               {
-                InputStream is = new ByteArrayInputStream(new byte[0]);
-                try
+                String itemNumber = idBuffer.toString();
+
+
+                List<NameValue> attachmentNames = proxy.getAttachmentNames( site, listID, itemNumber );
+                // Now, queue up each attachment as a separate entry
+                for (NameValue attachmentName : attachmentNames)
                 {
-                  RepositoryDocument data = new RepositoryDocument();
-                  data.setBinary( is, 0L );
-
-                  setDataACLs(data,acls,denyAcl);
+                  // For attachments, we use the carry-down feature to get the data where we need it.  That's why
+                  // we unpacked the version information early above.
                   
-                  setPathAttribute(data,sDesc,documentIdentifier);
+                  // No check for inclusion; if the list item is included, so is this
+                  String[][] dataValues = new String[attachmentDataNames.length][];
+                  if (createdDate == null)
+                    dataValues[0] = new String[0];
+                  else
+                    dataValues[0] = new String[]{new Long(createdDate.getTime()).toString()};
+                  if (modifiedDate == null)
+                    dataValues[1] = new String[0];
+                  else
+                    dataValues[1] = new String[]{new Long(modifiedDate.getTime()).toString()};
+                  if (acls == null)
+                    dataValues[2] = new String[0];
+                  else
+                    dataValues[2] = (String[])acls.toArray(new String[0]);
+                  if (denyAcls == null)
+                    dataValues[3] = new String[0];
+                  else
+                    dataValues[3] = (String[])denyAcls.toArray(new String[0]);
+                  dataValues[4] = new String[]{attachmentName.getPrettyName()};
+                  dataValues[5] = new String[]{guid};
 
-                  // Retrieve field values from SharePoint
-                  if (metadataDescription.size() > 0)
+                  activities.addDocumentReference(documentIdentifier + "//" + attachmentName.getValue(),
+                    documentIdentifier, null, attachmentDataNames, dataValues);
+                  
+                }
+              }
+              
+              if ( !scanOnly[ i ] )
+              {
+                // Convert the modified document path to an unmodified one, plus a library path.
+                String encodedItemPath = encodePath(decodedListPath.substring(0,listCutoff) + "/Lists/" + decodedItemPath.substring(listCutoff+1));
+                
+                
+                // Generate the URL we are going to use
+                String itemUrl = fileBaseUrl + encodedItemPath;
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug( "SharePoint: Processing list item '"+documentIdentifier+"'; url: '" + itemUrl + "'" );
+
+                // Fetch the metadata we will be indexing
+                Map<String,String> metadataValues = null;
+                if (metadataDescription.size() > 0)
+                {
+                  metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(listCutoff+1), dspStsWorks );
+                  if (metadataValues == null)
                   {
-                    String listID = listIDMap.get(decodedListPath);
-                    if (listID == null)
-                    {
-                      listID = proxy.getListID( encodePath(site), site, listName);
-                      if (listID == null)
-                        listID = "";
-                      listIDMap.put(decodedListPath,listID);
-                    }
+                    // Item has vanished
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
+                    activities.deleteDocument(documentIdentifier,version);
+                    i++;
+                    continue;
+                  }
+                }
+                
+                if (activities.checkLengthIndexable(0L))
+                {
+                  InputStream is = new ByteArrayInputStream(new byte[0]);
+                  try
+                  {
+                    RepositoryDocument data = new RepositoryDocument();
+                    data.setBinary( is, 0L );
 
-                    if (listID.length() == 0)
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: List '"+decodedListPath+"' no longer exists - deleting item '"+documentIdentifier+"'");
-                      activities.deleteDocument(documentIdentifier,version);
-                      i++;
-                      continue;
-                    }
+                    if (modifiedDate != null)
+                      data.setModifiedDate(modifiedDate);
+                    if (createdDate != null)
+                      data.setCreatedDate(createdDate);
+                    
+                    setDataACLs(data,acls,denyAcls);
+                    
+                    setPathAttribute(data,sDesc,documentIdentifier);
 
-                    Map values = proxy.getFieldValues( metadataDescription, encodePath(site), listID, "/Lists/" + decodedItemPath.substring(cutoff+1), dspStsWorks );
-                    if (values != null)
+                    if (metadataValues != null)
                     {
-                      Iterator iter = values.keySet().iterator();
+                      Iterator<String> iter = metadataValues.keySet().iterator();
                       while (iter.hasNext())
                       {
-                        String fieldName = (String)iter.next();
-                        String fieldData = (String)values.get(fieldName);
+                        String fieldName = iter.next();
+                        String fieldData = metadataValues.get(fieldName);
                         data.addField(fieldName,fieldData);
                       }
                     }
-                    else
+                    data.addField("GUID",guid);
+                    
+                    activities.ingestDocument( documentIdentifier, version, itemUrl , data );
+                  }
+                  finally
+                  {
+                    try
                     {
-                      // Item has vanished
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("SharePoint: Item metadata fetch failure indicated that item is gone: '"+documentIdentifier+"' - removing");
-                      activities.deleteDocument(documentIdentifier,version);
-                      i++;
-                      continue;
+                      is.close();
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      // This should never happen; we're closing a bytearrayinputstream
                     }
                   }
-
-                  activities.ingestDocument( documentIdentifier, version, itemUrl , data );
                 }
-                finally
-                {
-                  try
-                  {
-                    is.close();
-                  }
-                  catch (InterruptedIOException e)
-                  {
-                    throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                  }
-                  catch (IOException e)
-                  {
-                    // This should never happen; we're closing a bytearrayinputstream
-                  }
-                }
+                else
+                  // Document too long (should never happen; length is 0)
+                  activities.deleteDocument( documentIdentifier, version );
               }
-              else
-                // Document too long (should never happen; length is 0)
-                activities.deleteDocument( documentIdentifier, version );
+            }
+            else
+            {
+              // == List item attachment identifier ==
+              if (!scanOnly[i])
+              {
+                // Unpack the version info.
+                int startPosition = 0;
+                StringBuilder urlBuffer = new StringBuilder();
+                ArrayList accessTokens = new ArrayList();
+                ArrayList denyTokens = new ArrayList();
+                Date modifiedDate = new Date(0L);
+                Date createdDate = new Date(0L);
+                
+                startPosition = unpack(urlBuffer,version,startPosition,'+');
+                startPosition = unpackList(accessTokens,version,startPosition,'+');
+                startPosition = unpackList(denyTokens,version,startPosition,'+');
+                startPosition = unpackDate(version,startPosition,modifiedDate);
+                startPosition = unpackDate(version,startPosition,createdDate);
+
+                if (modifiedDate.getTime() == 0L)
+                  modifiedDate = null;
+                if (createdDate.getTime() == 0L)
+                  createdDate = null;
+
+                // We need the list ID, which we've already fetched, so grab that from the parent data.
+                String[] guids = activities.retrieveParentData(documentIdentifier, "guids");
+                String guid;
+                if (guids.length >= 1)
+                  guid = guids[0];
+                else
+                  guid = null;
+                
+                if (guid != null)
+                {
+                  String url = urlBuffer.toString();
+                  int lastIndex = url.lastIndexOf("/");
+                  guid = guid + ":" + url.substring(lastIndex+1);
+                  
+                  // Fetch and index.  This also filters documents based on output connector restrictions.
+                  String fileUrl = serverUrl + encodePath(url);
+                  String fetchUrl = fileUrl;
+                  if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, fetchUrl,
+                    accessTokens, denyTokens, createdDate, modifiedDate, null, guid, sDesc))
+                  {
+                    // Document not indexed for whatever reason
+                    activities.deleteDocument(documentIdentifier,version);
+                    i++;
+                    continue;
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Skipping attachment '"+documentIdentifier+"' because no parent guid found");
+                  activities.deleteDocument(documentIdentifier,version);
+                  i++;
+                  continue;
+                }
+                
+              }
             }
           }
         }
@@ -1293,19 +1577,68 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug( "SharePoint: Document identifier is a library: '" + siteLibPath + "'" );
 
-            // Calculate the start of the path part that would contain the folders/file
-            int foldersFilePathIndex = site.length() + 1 + libName.length();
-
             String libID = proxy.getDocLibID( encodePath(site), site, libName );
             if (libID != null)
             {
-              FileStream fs = new FileStream( activities, foldersFilePathIndex, spec );
-              boolean success = proxy.getChildren( fs, encodePath(site) , libID, dspStsWorks );
-              if (!success)
+              String encodedSitePath = encodePath(site);
+              
+              // Get the lib's fields
+              Map<String,String> fieldNames = proxy.getFieldList( encodedSitePath, libID );
+              if (fieldNames != null)
               {
-                // Site/library no longer exists, so delete entry
+                String[] fields = new String[fieldNames.size()];
+                int j = 0;
+                for (String field : fieldNames.keySet())
+                {
+                  fields[j++] = field;
+                }
+                
+                String[] accessTokens;
+                String[] denyTokens;
+                
+                if (forcedAcls == null)
+                {
+                  // Security is off
+                  accessTokens = new String[0];
+                  denyTokens = new String[0];
+                }
+                else if (forcedAcls.length != 0)
+                {
+                  // Forced security
+                  accessTokens = forcedAcls;
+                  denyTokens = new String[0];
+                }
+                else
+                {
+                  // Security enabled, native security
+                  accessTokens = proxy.getACLs( encodedSitePath, libID );
+                  denyTokens = new String[]{defaultAuthorityDenyToken};
+                }
+
+                if (accessTokens != null)
+                {
+                  FileStream fs = new FileStream( activities, encodedServerLocation, site, siteLibPath, spec,
+                    documentIdentifier, accessTokens, denyTokens, libID, fields );
+                  boolean success = proxy.getChildren( fs, encodedSitePath , libID, dspStsWorks );
+                  if (!success)
+                  {
+                    // Site/library no longer exists, so delete entry
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+                    activities.deleteDocument(documentIdentifier,version);
+                  }
+                }
+                else
+                {
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Access token lookup failed for library '"+siteLibPath+"' - deleting");
+                  activities.deleteDocument(documentIdentifier,version);
+                }
+              }
+              else
+              {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("SharePoint: No list found for library '"+siteLibPath+"' - deleting");
+                  Logging.connectors.debug("SharePoint: Field list lookup failed for library '"+siteLibPath+"' - deleting");
                 activities.deleteDocument(documentIdentifier,version);
               }
             }
@@ -1337,319 +1670,74 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               int startPosition = unpackList(metadataDescription,version,0,'+');
 
               // Acls
-              ArrayList acls = null;
-              String denyAcl = null;
-              if (startPosition < version.length() && version.charAt(startPosition++) == '+')
-              {
-                acls = new ArrayList();
-                startPosition = unpackList(acls,version,startPosition,'+');
-                if (startPosition < version.length())
-                {
-                  StringBuilder denyAclBuffer = new StringBuilder();
-                  startPosition = unpack(denyAclBuffer,version,startPosition,'+');
-                  denyAcl = denyAclBuffer.toString();
-                }
-              }
+              ArrayList acls = new ArrayList();
+              ArrayList denyAcls = new ArrayList();
+              startPosition = unpackList(acls,version,startPosition,'+');
+              startPosition = unpackList(denyAcls,version,startPosition,'+');
 
+              // Dates
+              Date modifiedDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,modifiedDate);
+              if (modifiedDate.getTime() == 0L)
+                modifiedDate = null;
+              Date createdDate = new Date(0L);
+              startPosition = unpackDate(version,startPosition,createdDate);
+              if (createdDate.getTime() == 0L)
+                createdDate = null;
+              
+              // Document GUID (for metadata)
+              StringBuilder guidBuffer = new StringBuilder();
+              startPosition = unpack(guidBuffer,version,startPosition,'+');
+              String guid = guidBuffer.toString();
 
               // Generate the URL we are going to use
               String fileUrl = fileBaseUrl + encodedDocumentPath;
               if (Logging.connectors.isDebugEnabled())
                 Logging.connectors.debug( "SharePoint: Processing file '"+documentIdentifier+"'; url: '" + fileUrl + "'" );
 
-              // Set stuff up for fetch activity logging
-              long startFetchTime = System.currentTimeMillis();
-              try
+              // First, fetch the metadata we plan to index.
+              Map<String,String> metadataValues = null;
+              if (metadataDescription.size() > 0)
               {
-                // Read the document into a local temporary file, so I get a reliable length.
-                File tempFile = File.createTempFile("__shp__",".tmp");
-                try
+                // Retrieve the library guid from carrydown data
+                String[] libIDs = activities.retrieveParentData(documentIdentifier, "guids");
+
+                String documentLibID;
+                if (libIDs.length >= 1)
+                  documentLibID = libIDs[0];
+                else
+                  documentLibID = null;
+
+                if (documentLibID == null)
                 {
-                  // Open the output stream
-                  OutputStream os = new FileOutputStream(tempFile);
-                  try
-                  {
-                    // Read the document.
-                    try
-                    {
-                      HttpClient httpClient = new HttpClient(connectionManager);
-                      HostConfiguration clientConf = new HostConfiguration();
-                      clientConf.setParams(new HostParams());
-                      clientConf.setHost(serverName,serverPort,myFactory.getProtocol(serverProtocol));
-
-                      Credentials credentials;
-                      if (strippedUserName != null)
-                        credentials =  new NTCredentials(strippedUserName, password, currentHost, ntlmDomain);
-                      else
-                        credentials = null;
-
-                      if (credentials != null)
-                        httpClient.getState().setCredentials(new AuthScope(serverName,serverPort,null),
-                          credentials);
-
-                      HttpMethodBase method = new GetMethod( encodedServerLocation + encodedDocumentPath );
-                      try
-                      {
-                        // Set up SSL using our keystore
-                        method.getParams().setParameter("http.socket.timeout", new Integer(60000));
-
-                        int returnCode;
-                        ExecuteMethodThread t = new ExecuteMethodThread(httpClient,clientConf,method);
-                        try
-                        {
-                          t.start();
-                          t.join();
-                          Throwable thr = t.getException();
-                          if (thr != null)
-                          {
-                            if (thr instanceof IOException)
-                              throw (IOException)thr;
-                            if (thr instanceof RuntimeException)
-                              throw (RuntimeException)thr;
-                            else
-                              throw (Error)thr;
-                          }
-                          returnCode = t.getResponse();
-                        }
-                        catch (InterruptedException e)
-                        {
-                          t.interrupt();
-                          // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-                          method = null;
-                          throw e;
-                        }
-                        if (returnCode == HttpStatus.SC_NOT_FOUND || returnCode == HttpStatus.SC_UNAUTHORIZED || returnCode == HttpStatus.SC_BAD_REQUEST)
-                        {
-                          // Well, sharepoint thought the document was there, but it really isn't, so delete it.
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("SharePoint: Document at '"+encodedServerLocation+encodedDocumentPath+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
-                          activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                            null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
-                          activities.deleteDocument(documentIdentifier,version);
-                          i++;
-                          continue;
-                        }
-                        if (returnCode != HttpStatus.SC_OK)
-                        {
-                          activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                            null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
-                          throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
-                        }
-
-                        // int contentSize = (int)method.getResponseContentLength();
-                        InputStream is = method.getResponseBodyAsStream();
-                        try
-                        {
-                          byte[] transferBuffer = new byte[65536];
-                          while (true)
-                          {
-                            int amt = is.read(transferBuffer);
-                            if (amt == -1)
-                              break;
-                            os.write(transferBuffer,0,amt);
-                          }
-                        }
-                        finally
-                        {
-                          try
-                          {
-                            is.close();
-                          }
-                          catch (java.net.SocketTimeoutException e)
-                          {
-                            Logging.connectors.warn("SharePoint: Socket timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                          }
-                          catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                          {
-                            Logging.connectors.warn("SharePoint: Connect timeout error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                          }
-                          catch (InterruptedIOException e)
-                          {
-                            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                          }
-                          catch (IOException e)
-                          {
-                            Logging.connectors.warn("SharePoint: Error closing connection to file '"+fileUrl+"': "+e.getMessage(),e);
-                          }
-                        }
-                      }
-                      finally
-                      {
-                        if (method != null)
-                          method.releaseConnection();
-                      }
-
-                      // Log the normal fetch activity
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-                    }
-                    catch (InterruptedException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                    catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                    {
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IllegalArgumentException e)
-                    {
-                      Logging.connectors.error("SharePoint: Illegal argument", e);
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
-                    }
-                    catch (HttpException e)
-                    {
-                      Logging.connectors.warn("SharePoint: HttpException thrown",e);
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                    catch (IOException e)
-                    {
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
-                        new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
-                      Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
-                      long currentTime = System.currentTimeMillis();
-                      throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
-                        currentTime + 12 * 60 * 60000L,-1,true);
-                    }
-                  }
-                  finally
-                  {
-                    os.close();
-                  }
-                  
-                  long documentLength = tempFile.length();
-                  if (activities.checkLengthIndexable(documentLength))
-                  {
-                    InputStream is = new FileInputStream(tempFile);
-                    try
-                    {
-                      RepositoryDocument data = new RepositoryDocument();
-                      data.setBinary( is, documentLength );
-
-                      setDataACLs(data,acls,denyAcl);
-
-                      setPathAttribute(data,sDesc,documentIdentifier);
-                      
-                      // Retrieve field values from SharePoint
-                      if (metadataDescription.size() > 0)
-                      {
-                        String documentLibID = docLibIDMap.get(decodedLibPath);
-                        if (documentLibID == null)
-                        {
-                          documentLibID = proxy.getDocLibID( encodePath(site), site, libName);
-                          if (documentLibID == null)
-                            documentLibID = "";
-                          docLibIDMap.put(decodedLibPath,documentLibID);
-                        }
-
-                        if (documentLibID.length() == 0)
-                        {
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
-                          activities.deleteDocument(documentIdentifier,version);
-                          i++;
-                          continue;
-                        }
-
-                        int cutoff = decodedLibPath.lastIndexOf("/");
-                        Map values = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
-                        if (values != null)
-                        {
-                          Iterator iter = values.keySet().iterator();
-                          while (iter.hasNext())
-                          {
-                            String fieldName = (String)iter.next();
-                            String fieldData = (String)values.get(fieldName);
-                            data.addField(fieldName,fieldData);
-                          }
-                        }
-                        else
-                        {
-                          // Document has vanished
-                          if (Logging.connectors.isDebugEnabled())
-                            Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
-                          activities.deleteDocument(documentIdentifier,version);
-                          i++;
-                          continue;
-                        }
-                      }
-
-                      activities.ingestDocument( documentIdentifier, version, fileUrl , data );
-                    }
-                    finally
-                    {
-                      try
-                      {
-                        is.close();
-                      }
-                      catch (java.net.SocketTimeoutException e)
-                      {
-                        // This is not fatal
-                        Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                      }
-                      catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-                      {
-                        // This is not fatal
-                        Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                      }
-                      catch (InterruptedIOException e)
-                      {
-                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                      }
-                      catch (IOException e)
-                      {
-                        // This is not fatal
-                        Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
-                      }
-                    }
-                  }
-                  else
-                    // Document too long
-                    activities.deleteDocument( documentIdentifier, version );
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Library '"+decodedLibPath+"' no longer exists - deleting document '"+documentIdentifier+"'");
+                  activities.deleteDocument(documentIdentifier,version);
+                  i++;
+                  continue;
                 }
-                finally
+
+                int cutoff = decodedLibPath.lastIndexOf("/");
+                metadataValues = proxy.getFieldValues( metadataDescription, encodePath(site), documentLibID, decodedDocumentPath.substring(cutoff+1), dspStsWorks );
+                if (metadataValues == null)
                 {
-                  tempFile.delete();
+                  // Document has vanished
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Document metadata fetch failure indicated that document is gone: '"+documentIdentifier+"' - removing");
+                  activities.deleteDocument(documentIdentifier,version);
+                  i++;
+                  continue;
                 }
               }
-              catch (java.net.SocketTimeoutException e)
+
+              // Fetch and index.  This also filters documents based on output connector restrictions.
+              if (!fetchAndIndexFile(activities, documentIdentifier, version, fileUrl, serverUrl + encodedServerLocation + encodedDocumentPath,
+                acls, denyAcls, createdDate, modifiedDate, metadataValues, guid, sDesc))
               {
-                throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-              }
-              catch (org.apache.commons.httpclient.ConnectTimeoutException e)
-              {
-                throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
-              }
-              catch (InterruptedIOException e)
-              {
-                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-              }
-              catch (IOException e)
-              {
-                throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+                // Document not indexed for whatever reason
+                activities.deleteDocument(documentIdentifier,version);
+                i++;
+                continue;
               }
             }
           }
@@ -1664,13 +1752,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.debug( "SharePoint: Document identifier is a site: '" + decodedSitePath + "'" );
 
           // Look at subsites
-          ArrayList subsites = proxy.getSites( encodePath(decodedSitePath) );
+          List<NameValue> subsites = proxy.getSites( encodePath(decodedSitePath) );
           if (subsites != null)
           {
             int j = 0;
             while (j < subsites.size())
             {
-              NameValue subSiteName = (NameValue)subsites.get(j++);
+              NameValue subSiteName = subsites.get(j++);
               String newPath = decodedSitePath + "/" + subSiteName.getValue();
 
               String encodedNewPath = encodePath(newPath);
@@ -1685,13 +1773,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at libraries
-          ArrayList libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
+          List<NameValue> libraries = proxy.getDocumentLibraries( encodePath(decodedSitePath), decodedSitePath );
           if (libraries != null)
           {
             int j = 0;
             while (j < libraries.size())
             {
-              NameValue library = (NameValue)libraries.get(j++);
+              NameValue library = libraries.get(j++);
               String newPath = decodedSitePath + "/" + library.getValue();
 
               if (checkIncludeLibrary(newPath,spec))
@@ -1706,13 +1794,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
           }
 
           // Look at lists
-          ArrayList lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
+          List<NameValue> lists = proxy.getLists( encodePath(decodedSitePath), decodedSitePath );
           if (lists != null)
           {
             int j = 0;
             while (j < lists.size())
             {
-              NameValue list = (NameValue)lists.get(j++);
+              NameValue list = lists.get(j++);
               String newPath = decodedSitePath + "/" + list.getValue();
 
               if (checkIncludeList(newPath,spec))
@@ -1735,25 +1823,268 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
-  protected static void setDataACLs(RepositoryDocument data, ArrayList acls, String denyAcl)
+  /** Method that fetches and indexes a file fetched from a SharePoint URL, with appropriate error handling
+  * etc.
+  */
+  protected boolean fetchAndIndexFile(IProcessActivity activities, String documentIdentifier, String version,
+    String fileUrl, String fetchUrl, ArrayList acls, ArrayList denyAcls, Date createdDate, Date modifiedDate,
+    Map<String,String> metadataValues, String guid, SystemMetadataDescription sDesc)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Before we fetch, confirm that the output connector will accept the document
+    if (activities.checkURLIndexable(fileUrl))
+    {
+      // Also check mime type
+      String contentType = mapExtensionToMimeType(documentIdentifier);
+      if (activities.checkMimeTypeIndexable(contentType))
+      {
+        // Set stuff up for fetch activity logging
+        long startFetchTime = System.currentTimeMillis();
+        try
+        {
+          // Read the document into a local temporary file, so I get a reliable length.
+          File tempFile = File.createTempFile("__shp__",".tmp");
+          try
+          {
+            // Open the output stream
+            OutputStream os = new FileOutputStream(tempFile);
+            try
+            {
+              // Catch all exceptions having to do with reading the document
+              try
+              {
+                ExecuteMethodThread emt = new ExecuteMethodThread(httpClient, fetchUrl, os);
+                emt.start();
+                int returnCode = emt.finishUp();
+                  
+                if (returnCode == 404 || returnCode == 401 || returnCode == 400)
+                {
+                  // Well, sharepoint thought the document was there, but it really isn't, so delete it.
+                  if (Logging.connectors.isDebugEnabled())
+                    Logging.connectors.debug("SharePoint: Document at '"+fileUrl+"' failed to fetch with code "+Integer.toString(returnCode)+", deleting");
+                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                    null,documentIdentifier,"Not found",Integer.toString(returnCode),null);
+                  return false;
+                }
+                else if (returnCode != 200)
+                {
+                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                    null,documentIdentifier,"Error","Http status "+Integer.toString(returnCode),null);
+                  throw new ManifoldCFException("Error fetching document '"+fileUrl+"': "+Integer.toString(returnCode));
+                }
+
+                // Log the normal fetch activity
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+                
+              }
+              catch (InterruptedException e)
+              {
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+              }
+              catch (java.net.SocketTimeoutException e)
+              {
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                Logging.connectors.warn("SharePoint: SocketTimeoutException thrown: "+e.getMessage(),e);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              catch (org.apache.http.conn.ConnectTimeoutException e)
+              {
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                Logging.connectors.warn("SharePoint: ConnectTimeoutException thrown: "+e.getMessage(),e);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              catch (InterruptedIOException e)
+              {
+                throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+              }
+              catch (IllegalArgumentException e)
+              {
+                Logging.connectors.error("SharePoint: Illegal argument", e);
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                throw new ManifoldCFException("SharePoint: Illegal argument: "+e.getMessage(),e);
+              }
+              catch (org.apache.http.HttpException e)
+              {
+                Logging.connectors.warn("SharePoint: HttpException thrown",e);
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+              catch (IOException e)
+              {
+                activities.recordActivity(new Long(startFetchTime),ACTIVITY_FETCH,
+                  new Long(tempFile.length()),documentIdentifier,"Error",e.getMessage(),null);
+                Logging.connectors.warn("SharePoint: IOException thrown: "+e.getMessage(),e);
+                long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("SharePoint is down attempting to read '"+fileUrl+"', retrying: "+e.getMessage(),e,currentTime + 300000L,
+                  currentTime + 12 * 60 * 60000L,-1,true);
+              }
+            }
+            finally
+            {
+              os.close();
+            }
+                      
+            // Ingest the document
+            long documentLength = tempFile.length();
+            if (activities.checkLengthIndexable(documentLength))
+            {
+              InputStream is = new FileInputStream(tempFile);
+              try
+              {
+                RepositoryDocument data = new RepositoryDocument();
+                data.setBinary( is, documentLength );
+                
+                data.setFileName(mapToFileName(documentIdentifier));
+                          
+                if (contentType != null)
+                  data.setMimeType(contentType);
+                
+                setDataACLs(data,acls,denyAcls);
+
+                setPathAttribute(data,sDesc,documentIdentifier);
+                          
+                if (modifiedDate != null)
+                  data.setModifiedDate(modifiedDate);
+                if (createdDate != null)
+                  data.setCreatedDate(createdDate);
+
+                if (metadataValues != null)
+                {
+                  Iterator<String> iter = metadataValues.keySet().iterator();
+                  while (iter.hasNext())
+                  {
+                    String fieldName = iter.next();
+                    String fieldData = metadataValues.get(fieldName);
+                    data.addField(fieldName,fieldData);
+                  }
+                }
+                data.addField("GUID",guid);
+                
+                activities.ingestDocument( documentIdentifier, version, fileUrl , data );
+                return true;
+              }
+              finally
+              {
+                try
+                {
+                  is.close();
+                }
+                catch (java.net.SocketTimeoutException e)
+                {
+                  // This is not fatal
+                  Logging.connectors.debug("SharePoint: Timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                }
+                catch (org.apache.http.conn.ConnectTimeoutException e)
+                {
+                  // This is not fatal
+                  Logging.connectors.debug("SharePoint: Connect timeout before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                }
+                catch (InterruptedIOException e)
+                {
+                  throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                }
+                catch (IOException e)
+                {
+                  // This is not fatal
+                  Logging.connectors.debug("SharePoint: Server closed connection before read could finish for '"+fileUrl+"': "+e.getMessage(),e);
+                }
+              }
+            }
+            else
+            {
+              // Document too long
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Document '"+documentIdentifier+"' was too long, according to output connector");
+              return false;
+            }
+          }
+          finally
+          {
+            tempFile.delete();
+          }
+        }
+        catch (java.net.SocketTimeoutException e)
+        {
+          throw new ManifoldCFException("Socket timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+        }
+        catch (org.apache.http.conn.ConnectTimeoutException e)
+        {
+          throw new ManifoldCFException("Connect timeout error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+        }
+        catch (InterruptedIOException e)
+        {
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+        catch (IOException e)
+        {
+          throw new ManifoldCFException("IO error writing '"+fileUrl+"' to temporary file: "+e.getMessage(),e);
+        }
+      }
+      else
+      {
+        // Mime type failed
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says mime type is not indexable");
+        return false;
+      }
+    }
+    else
+    {
+      // URL failed
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Skipping document '"+documentIdentifier+"' because output connector says URL is not indexable");
+      return false;
+    }
+  }
+
+  /** Map an extension to a mime type */
+  protected static String mapExtensionToMimeType(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    int dotIndex = fileName.lastIndexOf(".");
+    if (dotIndex == -1)
+      return null;
+    return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1));
+  }
+
+  /** Map document identifier to file name */
+  protected static String mapToFileName(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    return fileName;
+  }
+  
+  protected static void setDataACLs(RepositoryDocument data, ArrayList acls, ArrayList denyAcls)
   {
     if (acls != null)
     {
       String[] actualAcls = new String[acls.size()];
-      int j = 0;
-      while (j < actualAcls.length)
+      for (int j = 0; j < actualAcls.length; j++)
       {
         actualAcls[j] = (String)acls.get(j);
-        j++;
       }
 
       if (Logging.connectors.isDebugEnabled())
       {
-        j = 0;
         StringBuilder sb = new StringBuilder("SharePoint: Acls: [ ");
-        while (j < actualAcls.length)
+        for (int j = 0; j < actualAcls.length; j++)
         {
-          sb.append(actualAcls[j++]).append(" ");
+          sb.append(actualAcls[j]).append(" ");
         }
         sb.append("]");
         Logging.connectors.debug( sb.toString() );
@@ -1762,9 +2093,25 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       data.setACL( actualAcls );
     }
 
-    if (denyAcl != null)
+    if (denyAcls != null)
     {
-      String[] actualDenyAcls = new String[]{denyAcl};
+      String[] actualDenyAcls = new String[denyAcls.size()];
+      for (int j = 0; j < actualDenyAcls.length; j++)
+      {
+        actualDenyAcls[j] = (String)denyAcls.get(j);
+      }
+
+      if (Logging.connectors.isDebugEnabled())
+      {
+        StringBuilder sb = new StringBuilder("SharePoint: DenyAcls: [ ");
+        for (int j = 0; j < actualDenyAcls.length; j++)
+        {
+          sb.append(actualDenyAcls[j]).append(" ");
+        }
+        sb.append("]");
+        Logging.connectors.debug( sb.toString() );
+      }
+
       data.setDenyACL(actualDenyAcls);
     }
   }
@@ -1787,60 +2134,150 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       Logging.connectors.debug("SharePoint: Path attribute name is null");
   }
 
+  protected final static String[] fileStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
+
   protected class FileStream implements IFileStream
   {
-    protected IProcessActivity activities;
-    protected int foldersFilePathIndex;
-    protected DocumentSpecification spec;
+    protected final IProcessActivity activities;
+    protected final DocumentSpecification spec;
+    protected final String rootPath;
+    protected final String sitePath;
+    protected final String siteLibPath;
     
-    public FileStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    // For carry-down
+    protected final String documentIdentifier;
+    protected final String[][] dataValues;
+    
+    public FileStream(IProcessActivity activities, String rootPath, String sitePath, String siteLibPath, DocumentSpecification spec,
+      String documentIdentifier, String[] accessTokens, String denyTokens[], String libID, String[] fields)
     {
       this.activities = activities;
-      this.foldersFilePathIndex = foldersFilePathIndex;
       this.spec = spec;
+      this.rootPath = rootPath;
+      this.sitePath = sitePath;
+      this.siteLibPath = siteLibPath;
+      this.documentIdentifier = documentIdentifier;
+      this.dataValues = new String[fileStreamDataNames.length][];
+      this.dataValues[0] = accessTokens;
+      this.dataValues[1] = denyTokens;
+      this.dataValues[2] = new String[]{libID};
+      this.dataValues[3] = fields;
     }
     
     public void addFile(String relPath)
       throws ManifoldCFException
     {
-      if ( checkIncludeFile( relPath, spec ) )
-      {
-        // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
-        // The way I've chosen to do this is to use a double slash at that point, as a separator.
-        String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "/" + relPath.substring(foldersFilePathIndex);
 
-        activities.addDocumentReference( modifiedPath );
+      // First, convert the relative path to a full path
+      if ( !relPath.startsWith("/") )
+      {
+        relPath = rootPath + sitePath + "/" + relPath;
+      }
+      
+      // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
+      if ( relPath.startsWith(rootPath) )
+      {
+        relPath = relPath.substring(rootPath.length());
+      
+        if ( checkIncludeFile( relPath, spec ) )
+        {
+          // Since the processing for a file needs to know the library path, we need a way to signal the cutoff between library and folder levels.
+          // The way I've chosen to do this is to use a double slash at that point, as a separator.
+          if (relPath.startsWith(siteLibPath))
+          {
+            // Split at the libpath/file boundary
+            String modifiedPath = siteLibPath + "/" + relPath.substring(siteLibPath.length());
+            activities.addDocumentReference( modifiedPath, documentIdentifier, null, fileStreamDataNames, dataValues );
+          }
+          else
+          {
+            Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+siteLibPath+"'");
+          }
+        }
+      }
+      else
+      {
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+rootPath+"'");
       }
     }
   }
   
+  protected final static String[] listItemStreamDataNames = new String[]{"accessTokens", "denyTokens", "guids", "fields"};
+
   protected class ListItemStream implements IFileStream
   {
-    protected IProcessActivity activities;
-    protected int foldersFilePathIndex;
-    protected DocumentSpecification spec;
-    
-    public ListItemStream(IProcessActivity activities, int foldersFilePathIndex, DocumentSpecification spec)
+    protected final IProcessActivity activities;
+    protected final DocumentSpecification spec;
+    protected final String rootPath;
+    protected final String sitePath;
+    protected final String siteListPath;
+
+    // For carry-down
+    protected final String documentIdentifier;
+    protected final String[][] dataValues;
+
+    public ListItemStream(IProcessActivity activities, String rootPath, String sitePath, String siteListPath, DocumentSpecification spec,
+      String documentIdentifier, String[] accessTokens, String denyTokens[], String listID, String[] fields)
     {
       this.activities = activities;
-      this.foldersFilePathIndex = foldersFilePathIndex;
       this.spec = spec;
+      this.rootPath = rootPath;
+      this.sitePath = sitePath;
+      this.siteListPath = siteListPath;
+      this.documentIdentifier = documentIdentifier;
+      this.dataValues = new String[listItemStreamDataNames.length][];
+      this.dataValues[0] = accessTokens;
+      this.dataValues[1] = denyTokens;
+      this.dataValues[2] = new String[]{listID};
+      this.dataValues[3] = fields;
     }
     
     public void addFile(String relPath)
       throws ManifoldCFException
     {
-      // First, strip "Lists" from relPath
-      if (!relPath.startsWith("/Lists/"))
-        throw new ManifoldCFException("Expected path to start with /Lists/");
-      relPath = relPath.substring("/Lists".length());
-      if ( checkIncludeListItem( relPath, spec ) )
+      // First, convert the relative path to a full path
+      if ( !relPath.startsWith("/") )
       {
-        // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
-        // The way I've chosen to do this is to use a triple slash at that point, as a separator.
-        String modifiedPath = relPath.substring(0,foldersFilePathIndex) + "//" + relPath.substring(foldersFilePathIndex);
+        relPath = rootPath + sitePath + "/" + relPath;
+      }
 
-        activities.addDocumentReference( modifiedPath );
+      // Now, strip away what we don't want - namely, the root path.  This makes the path relative to the root.
+      if ( relPath.startsWith(rootPath) )
+      {
+        relPath = relPath.substring(rootPath.length());
+
+        if (relPath.startsWith(sitePath))
+        {
+          relPath = relPath.substring(sitePath.length());
+          
+          // Now, strip "Lists" from relPath
+          if (!relPath.startsWith("/Lists/"))
+            throw new ManifoldCFException("Expected path to start with /Lists/");
+          relPath = sitePath + relPath.substring("/Lists".length());
+          if ( checkIncludeListItem( relPath, spec ) )
+          {
+            if (relPath.startsWith(siteListPath))
+            {
+              // Since the processing for a item needs to know the list path, we need a way to signal the cutoff between list and item levels.
+              // The way I've chosen to do this is to use a triple slash at that point, as a separator.
+              String modifiedPath = relPath.substring(0,siteListPath.length()) + "//" + relPath.substring(siteListPath.length());
+              
+              activities.addDocumentReference( modifiedPath, documentIdentifier, null, listItemStreamDataNames, dataValues );
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+siteListPath+"'");
+            }
+          }
+        }
+        else
+        {
+          Logging.connectors.warn("SharePoint: Unexpected relPath structure; site path is '"+relPath+"', but expected to see something beginning with '"+sitePath+"'");
+        }
+      }
+      else
+      {
+        Logging.connectors.warn("SharePoint: Unexpected relPath structure; path is '"+relPath+"', but expected to see something beginning with '"+rootPath+"'");
       }
     }
 
@@ -1869,117 +2306,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Server"));
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"function ShpDeleteCertificate(aliasName)\n"+
-"{\n"+
-"  editconnection.shpkeystorealias.value = aliasName;\n"+
-"  editconnection.configop.value = \"Delete\";\n"+
-"  postForm();\n"+
-"}\n"+
-"\n"+
-"function ShpAddCertificate()\n"+
-"{\n"+
-"  if (editconnection.shpcertificate.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.ChooseACertificateFile")+"\");\n"+
-"    editconnection.shpcertificate.focus();\n"+
-"  }\n"+
-"  else\n"+
-"  {\n"+
-"    editconnection.configop.value = \"Add\";\n"+
-"    postForm();\n"+
-"  }\n"+
-"}\n"+
-"\n"+
-"function checkConfig()\n"+
-"{\n"+
-"  if (editconnection.serverPort.value != \"\" && !isInteger(editconnection.serverPort.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSupplyAValidNumber")+"\");\n"+
-"    editconnection.serverPort.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverName.value.indexOf(\"/\") >= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSpecifyAnyServerPathInformation")+"\");\n"+
-"    editconnection.serverName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  var svrloc = editconnection.serverLocation.value;\n"+
-"  if (svrloc != \"\" && svrloc.charAt(0) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathMustBeginWithWCharacter")+"\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (svrloc != \"\" && svrloc.charAt(svrloc.length - 1) == \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathCannotEndWithACharacter")+"\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.AValidSharePointUserNameHasTheForm")+"\");\n"+
-"    editconnection.userName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function checkConfigForSave() \n"+
-"{\n"+
-"  if (editconnection.serverName.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseFillInASharePointServerName")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverName.value.indexOf(\"/\") >= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSpecifyAnyServerPathInformationInTheSitePathField")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  var svrloc = editconnection.serverLocation.value;\n"+
-"  if (svrloc != \"\" && svrloc.charAt(0) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathMustBeginWithWCharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (svrloc != \"\" && svrloc.charAt(svrloc.length - 1) == \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.SitePathCannotEndWithACharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverLocation.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverPort.value != \"\" && !isInteger(editconnection.serverPort.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSupplyASharePointPortNumber")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.serverPort.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.userName.value != \"\" && editconnection.userName.value.indexOf(\"\\\\\") <= 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.TheConnectionRequiresAValidSharePointUserName")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"SharePointRepository.Server") + "\");\n"+
-"    editconnection.userName.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
   
   /** Output the configuration body section.
@@ -1996,151 +2323,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String serverVersion = parameters.getParameter("serverVersion");
-    if (serverVersion == null)
-      serverVersion = "2.0";
-
-    String serverProtocol = parameters.getParameter("serverProtocol");
-    if (serverProtocol == null)
-      serverProtocol = "http";
-
-    String serverName = parameters.getParameter("serverName");
-    if (serverName == null)
-      serverName = "localhost";
-
-    String serverPort = parameters.getParameter("serverPort");
-    if (serverPort == null)
-      serverPort = "";
-
-    String serverLocation = parameters.getParameter("serverLocation");
-    if (serverLocation == null)
-      serverLocation = "";
-      
-    String userName = parameters.getParameter("userName");
-    if (userName == null)
-      userName = "";
-
-    String password = parameters.getObfuscatedParameter("password");
-    if (password == null)
-      password = "";
-
-    String keystore = parameters.getParameter("keystore");
-    IKeystoreManager localKeystore;
-    if (keystore == null)
-      localKeystore = KeystoreManagerFactory.make("");
-    else
-      localKeystore = KeystoreManagerFactory.make("",keystore);
-
-    // "Server" tab
-    // Always send along the keystore.
-    if (keystore != null)
-    {
-      out.print(
-"<input type=\"hidden\" name=\"keystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(keystore)+"\"/>\n"
-      );
-    }
-
-    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Server")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerSharePointVersion") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"serverVersion\">\n"+
-"        <option value=\"2.0\" "+((serverVersion.equals("2.0"))?"selected=\"true\"":"")+">SharePoint Services 2.0 (2003)</option>\n"+
-"        <option value=\"3.0\" "+(serverVersion.equals("3.0")?"selected=\"true\"":"")+">SharePoint Services 3.0 (2007)</option>\n"+
-"        <option value=\"4.0\" "+(serverVersion.equals("4.0")?"selected=\"true\"":"")+">SharePoint Services 4.0 (2010)</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerProtocol") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"serverProtocol\">\n"+
-"        <option value=\"http\" "+((serverProtocol.equals("http"))?"selected=\"true\"":"")+">http</option>\n"+
-"        <option value=\"https\" "+(serverProtocol.equals("https")?"selected=\"true\"":"")+">https</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerName") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"serverName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ServerPort") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverPort\" value=\""+serverPort+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.SitePath") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"serverLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverLocation)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.UserName") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Password") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.SSLCertificateList") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\"configop\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\"shpkeystorealias\" value=\"\"/>\n"+
-"      <table class=\"displaytable\">\n"
-      );
-      // List the individual certificates in the store, with a delete button for each
-      String[] contents = localKeystore.getContents();
-      if (contents.length == 0)
-      {
-        out.print(
-"        <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoCertificatesPresent") + "</td></tr>\n"
-        );
-      }
-      else
-      {
-        int i = 0;
-        while (i < contents.length)
-        {
-          String alias = contents[i];
-          String description = localKeystore.getDescription(alias);
-          if (description.length() > 128)
-            description = description.substring(0,125) + "...";
-          out.print(
-"        <tr>\n"+
-"          <td class=\"value\">\n"+
-"            <input type=\"button\" onclick='Javascript:ShpDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\"/>\n"+
-"          </td>\n"+
-"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"        </tr>\n"
-          );
-
-          i++;
-        }
-      }
-      out.print(
-"      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ShpAddCertificate()' alt=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddCert") + "\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\"/>&nbsp;\n"+
-"      "+Messages.getBodyString(locale,"SharePointRepository.Certificate")+"&nbsp;<input name=\"shpcertificate\" size=\"50\" type=\"file\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Server tab hiddens
-      out.print(
-"<input type=\"hidden\" name=\"serverProtocol\" value=\""+serverProtocol+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverPort\" value=\""+serverPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverLocation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverLocation)+"\"/>\n"+
-"<input type=\"hidden\" name=\"userName\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
-      );
-    }
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TabName",tabName);
+    fillInServerTab(velocityContext,out,parameters);
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Server.html",velocityContext);
   }
+  
   
   /** Process a configuration post.
   * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
@@ -2183,7 +2371,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
     String password = variableContext.getParameter("password");
     if (password != null)
-      parameters.setObfuscatedParameter("password",password);
+      parameters.setObfuscatedParameter("password",variableContext.mapKeyToPassword(password));
 
     String keystoreValue = variableContext.getParameter("keystoredata");
     if (keystoreValue != null)
@@ -2259,44 +2447,79 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Parameters") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"
-    );
-    Iterator iter = parameters.listParameters();
-    while (iter.hasNext())
-    {
-      String param = (String)iter.next();
-      String value = parameters.getParameter(param);
-      if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
-        );
-      }
-      else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore"))
-      {
-        IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+" certificate(s)&gt;</nobr><br/>\n"
-        );
-      }
-      else
-      {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
-        );
-      }
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    fillInServerTab(velocityContext,out,parameters);
+    Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
   
+  protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    String serverVersion = parameters.getParameter("serverVersion");
+    if (serverVersion == null)
+      serverVersion = "2.0";
+
+    String serverProtocol = parameters.getParameter("serverProtocol");
+    if (serverProtocol == null)
+      serverProtocol = "http";
+
+    String serverName = parameters.getParameter("serverName");
+    if (serverName == null)
+      serverName = "localhost";
+
+    String serverPort = parameters.getParameter("serverPort");
+    if (serverPort == null)
+      serverPort = "";
+
+    String serverLocation = parameters.getParameter("serverLocation");
+    if (serverLocation == null)
+      serverLocation = "";
+      
+    String userName = parameters.getParameter("userName");
+    if (userName == null)
+      userName = "";
+
+    String password = parameters.getObfuscatedParameter("password");
+    if (password == null)
+      password = "";
+    else
+      password = out.mapPasswordToKey(password);
+
+    String keystore = parameters.getParameter("keystore");
+    IKeystoreManager localKeystore;
+    if (keystore == null)
+      localKeystore = KeystoreManagerFactory.make("");
+    else
+      localKeystore = KeystoreManagerFactory.make("",keystore);
+
+    List<Map<String,String>> certificates = new ArrayList<Map<String,String>>();
+    
+    String[] contents = localKeystore.getContents();
+    for (String alias : contents)
+    {
+      String description = localKeystore.getDescription(alias);
+      if (description.length() > 128)
+        description = description.substring(0,125) + "...";
+      Map<String,String> certificate = new HashMap<String,String>();
+      certificate.put("ALIAS", alias);
+      certificate.put("DESCRIPTION", description);
+      certificates.add(certificate);
+    }
+    
+    // Fill in context
+    velocityContext.put("SERVERVERSION", serverVersion);
+    velocityContext.put("SERVERPROTOCOL", serverProtocol);
+    velocityContext.put("SERVERNAME", serverName);
+    velocityContext.put("SERVERPORT", serverPort);
+    velocityContext.put("SERVERLOCATION", serverLocation);
+    velocityContext.put("USERNAME", userName);
+    velocityContext.put("PASSWORD", password);
+    if (keystore != null)
+      velocityContext.put("KEYSTORE", keystore);
+    velocityContext.put("CERTIFICATELIST", certificates);
+    
+  }
+
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a repository connection of the current type.  Its purpose is to add the required tabs
   * to the list, and to output any javascript methods that might be needed by the job editing HTML.
@@ -2311,188 +2534,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Paths"));
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Security"));
     tabsArray.add(Messages.getString(locale,"SharePointRepository.Metadata"));
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"\n"+
-"function checkSpecification()\n"+
-"{\n"+
-"  // Does nothing right now.\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function SpecRuleAddPath(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.spectype.value==\"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectATypeFirst")+"\");\n"+
-"    editjob.spectype.focus();\n"+
-"  }\n"+
-"  else if (editjob.specflavor.value==\"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAnActionFirst")+"\");\n"+
-"    editjob.specflavor.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"  \n"+
-"function SpecPathReset(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"specpathop\",\"Reset\",anchorvalue);\n"+
-"}\n"+
-"  \n"+
-"function SpecPathAppendSite(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specsite.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectASiteFirst")+"\");\n"+
-"    editjob.specsite.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendSite\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathAppendLibrary(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.speclibrary.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectALibraryFirst")+"\");\n"+
-"    editjob.speclibrary.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendLibrary\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathAppendList(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.speclist.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAListFirst")+"\");\n"+
-"    editjob.speclist.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendList\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathAppendText(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseProvideMatchTextFirst")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"specpathop\",\"AppendText\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecPathRemove(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"specpathop\",\"Remove\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaRuleAddPath(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metaflavor.value==\"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAnActionFirst")+"\");\n"+
-"    editjob.metaflavor.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metaop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathReset(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"metapathop\",\"Reset\",anchorvalue);\n"+
-"}\n"+
-"  \n"+
-"function MetaPathAppendSite(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metasite.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectASiteFirst")+"\");\n"+
-"    editjob.metasite.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendSite\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathAppendLibrary(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metalibrary.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectALibraryFirst")+"\");\n"+
-"    editjob.metalibrary.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendLibrary\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathAppendList(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metalist.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseSelectAListFirst")+"\");\n"+
-"    editjob.metalist.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendList\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathAppendText(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.metamatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.PleaseProvideMatchTextFirst")+"\");\n"+
-"    editjob.metamatch.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"metapathop\",\"AppendText\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function MetaPathRemove(anchorvalue)\n"+
-"{\n"+
-"  SpecOp(\"metapathop\",\"Remove\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecAddAccessToken(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.spectoken.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.AccessTokenCannotBeNull")+"\");\n"+
-"    editjob.spectoken.focus();\n"+
-"  }\n"+
-"  else\n"+
-"    SpecOp(\"accessop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecAddMapping(anchorvalue)\n"+
-"{\n"+
-"  if (editjob.specmatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.MatchStringCannotBeEmpty")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(editjob.specmatch.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"SharePointRepository.MatchStringMustBeValidRegularExpression")+"\");\n"+
-"    editjob.specmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  SpecOp(\"specmappingop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function SpecOp(n, opValue, anchorvalue)\n"+
-"{\n"+
-"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
-"  postFormSetAnchor(anchorvalue);\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification.js",null);
   }
   
   /** Output the specification body section.
@@ -2507,1346 +2549,439 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, DocumentSpecification ds, String tabName)
     throws ManifoldCFException, IOException
   {
-    int i;
-    int k;
-    int l;
-
-    // Paths tab
-
-
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TabName",tabName);
+    
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInPathsTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
+    
+    // Now, do the part of the tabs that requires context logic
     if (tabName.equals(Messages.getString(locale,"SharePointRepository.Paths")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Type") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      i = 0;
-      l = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String siteLib = site + "/" + lib + "/";
-
-          // Go through all the file/folder rules for the startpoint, and generate new "rules" corresponding to each.
-          int j = 0;
-          while (j < sn.getChildCount())
-          {
-            SpecificationNode node = sn.getChild(j++);
-            if (node.getType().equals("include") || node.getType().equals("exclude"))
-            {
-              String matchPart = node.getAttributeValue("match");
-              String ruleType = node.getAttributeValue("type");
-              
-              String theFlavor = node.getType();
-
-              String pathDescription = "_"+Integer.toString(k);
-              String pathOpName = "specop"+pathDescription;
-              String thePath = siteLib + matchPart;
-              out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+"Insert new rule before rule #"+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"
-              );
-              l++;
-              out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thePath)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"              file\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"+
-"              "+theFlavor+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-              );
-              l++;
-              k++;
-              if (ruleType.equals("file") && !matchPart.startsWith("*"))
-              {
-                // Generate another rule corresponding to all matching paths.
-                pathDescription = "_"+Integer.toString(k);
-                pathOpName = "specop"+pathDescription;
-
-                thePath = siteLib + "*/" + matchPart;
-                out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"
-                );
-                l++;
-                out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thePath)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"              file\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"+
-"              "+theFlavor+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-                );
-                l++;
-                  
-                k++;
-              }
-            }
-          }
-        }
-        else if (sn.getType().equals("pathrule"))
-        {
-          String match = sn.getAttributeValue("match");
-          String type = sn.getAttributeValue("type");
-          String action = sn.getAttributeValue("action");
-          
-          String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "specop"+pathDescription;
-
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\""+type+"\"/>\n"+
-"              "+type+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+action+"\"/>\n"+
-"              "+action+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formmessage\">" + Messages.getBodyString(locale,"SharePointRepository.NoDocumentsCurrentlyIncluded") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"path_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"specop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"specpathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddNewRule") + "\" onClick='Javascript:SpecRuleAddPath(\"path_"+Integer.toString(k)+"\")' alt=\"Add rule\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\"></td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Messages.getBodyString(locale,"SharePointRepository.NewRule")+"</nobr>\n"
-      );
-
-      // The following variables may be in the thread context because postspec.jsp put them there:
-      // (1) "specpath", which contains the rule path as it currently stands;
-      // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library", "list".
-      // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
-      // specsitepath may be in the thread context, put there by postspec.jsp 
-      String pathSoFar = (String)currentContext.get("specpath");
-      String pathState = (String)currentContext.get("specpathstate");
-      String pathLibrary = (String)currentContext.get("specpathlibrary");
-      if (pathState == null)
-      {
-        pathState = "unknown";
-        pathLibrary = null;
-      }
-      if (pathSoFar == null)
-      {
-        pathSoFar = "/";
-        pathState = "site";
-        pathLibrary = null;
-      }
-
-      // Grab next site list and lib list
-      ArrayList childSiteList = null;
-      ArrayList childLibList = null;
-      ArrayList childListList = null;
-      String message = null;
-      if (pathState.equals("site"))
-      {
-        try
-        {
-          String queryPath = pathSoFar;
-          if (queryPath.equals("/"))
-            queryPath = "";
-          childSiteList = getSites(queryPath);
-          if (childSiteList == null)
-          {
-            // Illegal path - state becomes "unknown".
-            pathState = "unknown";
-            pathLibrary = null;
-          }
-          childLibList = getDocLibsBySite(queryPath);
-          if (childLibList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            pathState = "unknown";
-            pathLibrary = null;
-          }
-          childListList = getListsBySite(queryPath);
-          if (childListList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            pathState = "unknown";
-            pathLibrary = null;
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          e.printStackTrace();
-          message = e.getMessage();
-        }
-        catch (ServiceInterruption e)
-        {
-          message = "SharePoint unavailable: "+e.getMessage();
-        }
-      }
-      out.print(
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\"specpathop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"specpathstate\" value=\""+pathState+"\"/>\n"
-      );
-      if (pathLibrary != null)
-      {
-        out.print(
-"              <input type=\"hidden\" name=\"specpathlibrary\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathLibrary)+"\"/>\n"
-        );
-      }
-      out.print(
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"
-      );
-      if (pathState.equals("unknown"))
-      {
-        if (pathLibrary == null)
-        {
-          out.print(
-"              <select name=\"spectype\" size=\"4\">\n"+
-"                <option value=\"file\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.File") + "</option>\n"+
-"                <option value=\"library\">" + Messages.getBodyString(locale,"SharePointRepository.Library") + "</option>\n"+
-"                <option value=\"list\">" + Messages.getBodyString(locale,"SharePointRepository.List") + "</option>\n"+
-"                <option value=\"site\">" + Messages.getBodyString(locale,"SharePointRepository.Site") + "</option>\n"+
-"              </select>\n"
-          );
-        }
-        else
-        {
-          out.print(
-"              <input type=\"hidden\" name=\"spectype\" value=\"file\"/>\n"+
-"              file\n"
-          );
-        }
-      }
-      else
-      {
-        out.print(
-"              <input type=\"hidden\" name=\"spectype\" value=\""+pathState+"\"/>\n"+
-"              "+pathState+"\n"
-        );
-      }
-      out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <select name=\"specflavor\" size=\"2\">\n"+
-"                <option value=\"include\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.Include") + "</option>\n"+
-"                <option value=\"exclude\">" + Messages.getBodyString(locale,"SharePointRepository.Exclude") + "</option>\n"+
-
-"              </select>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"
-      );
-      if (message != null)
-      {
-        // Display the error message, with no widgets
-        out.print(
-"          <td class=\"formmessage\" colspan=\"4\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(message)+"</td>\n"
-        );
-      }
-      else
-      {
-        // What we display depends on the determined state of the path.  If the path is a library or is unknown, all we can do is allow a type-in to append
-        // to it, or allow a reset.  If the path is a site, then we can optionally display libraries, sites, lists, OR allow a type-in.
-        // The path buttons are on the left; they consist of "Reset" (to reset the path), "+" (to add to the path), and "-" (to remove from the path).
-        out.print(
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\"pathwidget\"/>\n"+
-"              <input type=\"button\" value=\"Reset Path\" onClick='Javascript:SpecPathReset(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.ResetRulePath")+"\"/>\n"
-        );
-        if (pathSoFar.length() > 1 && (pathState.equals("site") || pathState.equals("library") || pathState.equals("list")))
-        {
-          out.print(
-"              <input type=\"button\" value=\"-\" onClick='Javascript:SpecPathRemove(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.RemoveFromRulePath")+"\"/>\n"
-          );
-        }
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"3\">\n"+
-"            <nobr>\n"
-        );
-        if (pathState.equals("site") && childSiteList != null && childSiteList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddSite") + "\" onClick='Javascript:SpecPathAppendSite(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddSiteToRulePath")+"\"/>\n"+
-"              <select name=\"specsite\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectSite") + " --</option>\n"
-          );
-          int q = 0;
-          while (q < childSiteList.size())
-          {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childSite = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childSiteList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-        
-        if (pathState.equals("site") && childLibList != null && childLibList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddLibrary") + "\" onClick='Javascript:SpecPathAppendLibrary(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddLibraryToRulePath")+"\"/>\n"+
-"              <select name=\"speclibrary\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectLibrary") + " --</option>\n"
-          );
-          int q = 0;
-          while (q < childLibList.size())
-          {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childLib = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childLibList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-
-        if (pathState.equals("site") && childListList != null && childListList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddList") + "\" onClick='Javascript:SpecPathAppendList(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddListToRulePath")+"\"/>\n"+
-"              <select name=\"speclist\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">-- " + Messages.getBodyString(locale,"SharePointRepository.SelectList") + " --</option>\n"
-          );
-          int q = 0;
-          while (q < childListList.size())
-          {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-        
-        // If it's a list name, we're done; no text allowed
-        if (!pathState.equals("list"))
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:SpecPathAppendText(\"pathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToRulePath")+"\"/>\n"+
-"              <input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/>\n"
-          );
-        }
-        
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"
-        );
-      }
-      out.print(
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for path rules
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String siteLib = site + "/" + lib + "/";
-
-          // Go through all the file/folder rules for the startpoint, and generate new "rules" corresponding to each.
-          int j = 0;
-          while (j < sn.getChildCount())
-          {
-            SpecificationNode node = sn.getChild(j++);
-            if (node.getType().equals("include") || node.getType().equals("exclude"))
-            {
-              String matchPart = node.getAttributeValue("match");
-              String ruleType = node.getAttributeValue("type");
-              
-              String theFlavor = node.getType();
-
-              String pathDescription = "_"+Integer.toString(k);
-              
-              String thePath = siteLib + matchPart;
-              out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"<input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"
-              );
-              k++;
-
-              if (ruleType.equals("file") && !matchPart.startsWith("*"))
-              {
-                // Generate another rule corresponding to all matching paths.
-                pathDescription = "_"+Integer.toString(k);
-
-                thePath = siteLib + "*/" + matchPart;
-                out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thePath)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\"file\"/>\n"+
-"<input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+theFlavor+"\"/>\n"
-                );
-                k++;
-              }
-            }
-          }
-        }
-        else if (sn.getType().equals("pathrule"))
-        {
-          String match = sn.getAttributeValue("match");
-          String type = sn.getAttributeValue("type");
-          String action = sn.getAttributeValue("action");
-          
-          String pathDescription = "_"+Integer.toString(k);
-          out.print(
-"<input type=\"hidden\" name=\""+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"spectype"+pathDescription+"\" value=\""+type+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specflav"+pathDescription+"\" value=\""+action+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"specpathcount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
-
-    // Security tab
-
-    // Find whether security is on or off
-    i = 0;
-    boolean securityOn = true;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("security"))
-      {
-        String securityValue = sn.getAttributeValue("value");
-        if (securityValue.equals("off"))
-          securityOn = false;
-        else if (securityValue.equals("on"))
-          securityOn = true;
-      }
-    }
-
-    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Security")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Security2") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <nobr>\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Enabled")+"&nbsp;\n"+
-"        <input type=\"radio\" name=\"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"SharePointRepository.Disabled")+"\n"+
-"      </nobr>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = "accessop"+accessDescription;
-          String token = sn.getAttributeValue("token");
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+accessOpName+"\",\"Delete\",\"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteToken")+Integer.toString(k)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"</nobr>\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoAccessTokensPresent") + "</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"+
-"      <a name=\""+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Add") + "\" onClick='Javascript:SpecAddAccessToken(\"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddAccessToken")+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
-      );
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue("token");
-          out.print(
-"<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
-
-    // Metadata tab
-
+      fillInTransientPathsInfo(velocityContext);
+    else if (tabName.equals(Messages.getString(locale,"SharePointRepository.Metadata")))
+      fillInTransientMetadataInfo(velocityContext);
+    
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Security.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Paths.html",velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Metadata.html",velocityContext);
+  }
+  
+  /** Fill in metadata tab */
+  protected static void fillInMetadataTab(Map<String,Object> velocityContext, IHTTPOutput out, DocumentSpecification ds)
+  {
     // Find the path-value metadata attribute name
-    i = 0;
     String pathNameAttribute = "";
-    while (i < ds.getChildCount())
+    MatchMap matchMap = new MatchMap();
+    List<Map<String,Object>> metadataRules = new ArrayList<Map<String,Object>>();
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("pathnameattribute"))
       {
         pathNameAttribute = sn.getAttributeValue("value");
       }
-    }
-
-    // Find the path-value mapping data
-    i = 0;
-    org.apache.manifoldcf.crawler.connectors.sharepoint.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.sharepoint.MatchMap();
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathmap"))
+      else if (sn.getType().equals("pathmap"))
       {
         String pathMatch = sn.getAttributeValue("match");
         String pathReplace = sn.getAttributeValue("replace");
         matchMap.appendMatchPair(pathMatch,pathReplace);
       }
-    }
-
-    if (tabName.equals(Messages.getString(locale,"SharePointRepository.Metadata")))
-    {
-      out.print(
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingop\" value=\"\"/>\n"+
-"\n"+
-"<table class=\"displaytable\">\n"+
-"<tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"<tr>\n"+
-"  <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.MetadataRules") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      i = 0;
-      l = 0;
-      k = 0;
-      while (i < ds.getChildCount())
+      else if (sn.getType().equals("startpoint"))
       {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
+        String site = sn.getAttributeValue("site");
+        String lib = sn.getAttributeValue("lib");
+        String path = site + "/" + lib + "/*";
+        String allmetadata = sn.getAttributeValue("allmetadata");
+        StringBuilder metadataFieldList = new StringBuilder();
+        List<String> metadataFieldArray = new ArrayList<String>();
+        if (allmetadata == null || !allmetadata.equals("true"))
         {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String path = site + "/" + lib + "/*";
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          StringBuilder metadataFieldList = new StringBuilder();
-          ArrayList metadataFieldArray = new ArrayList();
+          for (int j = 0; j < sn.getChildCount(); j++)
+          {
+            SpecificationNode node = sn.getChild(j);
+            if (node.getType().equals("metafield"))
+            {
+              if (metadataFieldList.length() > 0)
+                metadataFieldList.append(", ");
+              String val = node.getAttributeValue("value");
+              metadataFieldList.append(val);
+              metadataFieldArray.add(val);
+            }
+          }
+          allmetadata = "false";
+        }
+          
+        if (allmetadata.equals("true") || metadataFieldList.length() > 0)
+        {
+          Map<String,Object> item = new HashMap<String,Object>();
+          item.put("THEPATH",path);
+          item.put("THEACTION","include");
+          item.put("ALLFLAG",allmetadata);
+          item.put("FIELDLIST",metadataFieldArray);
+          item.put("FIELDS",metadataFieldList.toString());
+          metadataRules.add(item);
+        }
+      }
+      else if (sn.getType().equals("metadatarule"))
+      {
+        String path = sn.getAttributeValue("match");
+        String action = sn.getAttributeValue("action");
+        String allmetadata = sn.getAttributeValue("allmetadata");
+        StringBuilder metadataFieldList = new StringBuilder();
+        List<String> metadataFieldArray = new ArrayList<String>();
+        if (action.equals("include"))
+        {
           if (allmetadata == null || !allmetadata.equals("true"))
           {
-            int j = 0;
-            while (j < sn.getChildCount())
+            for (int j = 0; j < sn.getChildCount(); j++)
             {
-              SpecificationNode node = sn.getChild(j++);
+              SpecificationNode node = sn.getChild(j);
               if (node.getType().equals("metafield"))
               {
+                String val = node.getAttributeValue("value");
                 if (metadataFieldList.length() > 0)
                   metadataFieldList.append(", ");
-                String val = node.getAttributeValue("value");
                 metadataFieldList.append(val);
                 metadataFieldArray.add(val);
               }
             }
-            allmetadata = "false";
-          }
-          
-          if (allmetadata.equals("true") || metadataFieldList.length() > 0)
-          {
-            String pathDescription = "_"+Integer.toString(k);
-            String pathOpName = "metaop"+pathDescription;
-            out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewMetadataRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
-"        </tr>\n"
-            );
-            l++;
-            out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteMetadataRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\"include\"/>\n"+
-"              "+Messages.getBodyString(locale,"SharePointRepository.include")+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"+
-"              "+allmetadata+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"
-            );
-            int q = 0;
-            while (q < metadataFieldArray.size())
-            {
-              String field = (String)metadataFieldArray.get(q++);
-              out.print(
-"              <input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
-              );
-            }
-            out.print(
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            l++;
-            k++;
+            allmetadata="false";
           }
         }
-        else if (sn.getType().equals("metadatarule"))
-        {
-          String path = sn.getAttributeValue("match");
-          String action = sn.getAttributeValue("action");
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          StringBuilder metadataFieldList = new StringBuilder();
-          ArrayList metadataFieldArray = new ArrayList();
-          if (action.equals("include"))
-          {
-            if (allmetadata == null || !allmetadata.equals("true"))
-            {
-              int j = 0;
-              while (j < sn.getChildCount())
-              {
-                SpecificationNode node = sn.getChild(j++);
-                if (node.getType().equals("metafield"))
-                {
-                  String val = node.getAttributeValue("value");
-                  if (metadataFieldList.length() > 0)
-                    metadataFieldList.append(", ");
-                  metadataFieldList.append(val);
-                  metadataFieldArray.add(val);
-                }
-              }
-              allmetadata="false";
-            }
-          }
-          else
-            allmetadata = "";
-          
-          String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = "metaop"+pathDescription;
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.InsertNewRule") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Insert Here\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.InsertNewMetadataRuleBeforeRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.Delete") + "\" onClick='Javascript:SpecOp(\""+pathOpName+"\",\"Delete\",\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteMetadataRule")+Integer.toString(k)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\""+action+"\"/>\n"+
-"              "+action+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"+
-"              "+allmetadata+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"
-          );
-          int q = 0;
-          while (q < metadataFieldArray.size())
-          {
-            String field = (String)metadataFieldArray.get(q++);
-            out.print(
-"              <input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
-            );
-          }
-          out.print(
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          l++;
-          k++;
-
-        }
-      }
-
-      if (k == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">"+Messages.getBodyString(locale,"SharePointRepository.NoMetadataIncluded")+"</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\""+"meta_"+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"metaop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"metapathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddNewRule") + "\" onClick='Javascript:MetaRuleAddPath(\"meta_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddRule")+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\"></td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"5\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Messages.getBodyString(locale,"SharePointRepository.NewRule")+"</nobr>\n"
-      );
-      // The following variables may be in the thread context because postspec.jsp put them there:
-      // (1) "metapath", which contains the rule path as it currently stands;
-      // (2) "metapathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
-      // (3) "metapathlibrary" is the library or list path (if this is known yet).
-      // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
-      String metaPathSoFar = (String)currentContext.get("metapath");
-      String metaPathState = (String)currentContext.get("metapathstate");
-      String metaPathLibrary = (String)currentContext.get("metapathlibrary");
-      if (metaPathState == null)
-        metaPathState = "unknown";
-      if (metaPathSoFar == null)
-      {
-        metaPathSoFar = "/";
-        metaPathState = "site";
-      }
-
-      String message = null;
-      String[] fields = null;
-      if (metaPathLibrary != null)
-      {
-        // Look up metadata fields
-        int index = metaPathLibrary.lastIndexOf("/");
-        String site = metaPathLibrary.substring(0,index);
-        String libOrList = metaPathLibrary.substring(index+1);
-        Map metaFieldList = null;
-        try
-        {
-          if (metaPathState.equals("library") || metaPathState.equals("file"))
-            metaFieldList = getLibFieldList(site,libOrList);
-          else if (metaPathState.equals("list"))
-            metaFieldList = getListFieldList(site,libOrList);
-        }
-        catch (ManifoldCFException e)
-        {
-          e.printStackTrace();
-          message = e.getMessage();
-        }
-        catch (ServiceInterruption e)
-        {
-          message = "SharePoint unavailable: "+e.getMessage();
-        }
-        if (metaFieldList != null)
-        {
-          fields = new String[metaFieldList.size()];
-          int j = 0;
-          Iterator iter = metaFieldList.keySet().iterator();
-          while (iter.hasNext())
-          {
-            fields[j++] = (String)iter.next();
-          }
-          java.util.Arrays.sort(fields);
-        }
-      }
-      
-      // Grab next site list and lib list
-      ArrayList childSiteList = null;
-      ArrayList childLibList = null;
-      ArrayList childListList = null;
-
-      if (message == null && metaPathState.equals("site"))
-      {
-        try
-        {
-          String queryPath = metaPathSoFar;
-          if (queryPath.equals("/"))
-            queryPath = "";
-          childSiteList = getSites(queryPath);
-          if (childSiteList == null)
-          {
-            // Illegal path - state becomes "unknown".
-            metaPathState = "unknown";
-            metaPathLibrary = null;
-          }
-          childLibList = getDocLibsBySite(queryPath);
-          if (childLibList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            metaPathState = "unknown";
-            metaPathLibrary = null;
-          }
-          childListList = getListsBySite(queryPath);
-          if (childListList == null)
-          {
-            // Illegal path - state becomes "unknown"
-            metaPathState = "unknown";
-            metaPathLibrary = null;
-          }
-        }
-        catch (ManifoldCFException e)
-        {
-          e.printStackTrace();
-          message = e.getMessage();
-        }
-        catch (ServiceInterruption e)
-        {
-          message = "SharePoint unavailable: "+e.getMessage();
-        }
-      }
-      out.print(
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\"metapathop\" value=\"\"/>\n"+
-"              <input type=\"hidden\" name=\"metapath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metaPathSoFar)+"\"/>\n"+
-"              <input type=\"hidden\" name=\"metapathstate\" value=\""+metaPathState+"\"/>\n"
-      );
-      if (metaPathLibrary != null)
-      {
-        out.print(
-"              <input type=\"hidden\" name=\"metapathlibrary\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(metaPathLibrary)+"\"/>\n"
-        );
-      }
-      out.print(
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metaPathSoFar)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <select name=\"metaflavor\" size=\"2\">\n"+
-"                <option value=\"include\" selected=\"true\">" + Messages.getBodyString(locale,"SharePointRepository.Include") + "</option>\n"+
-"                <option value=\"exclude\">" + Messages.getBodyString(locale,"SharePointRepository.Exclude") + "</option>\n"+
-"              </select>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <input type=\"checkbox\" name=\"metaall\" value=\"true\"/>"+Messages.getBodyString(locale,"SharePointRepository.IncludeAllMetadata")+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"
-      );
-      if (fields != null && fields.length > 0)
-      {
-        out.print(
-"              <select name=\"metafields\" multiple=\"true\" size=\"5\">\n"
-        );
-        int q = 0;
-        while (q < fields.length)
-        {
-          String field = fields[q++];
-          out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(field)+"</option>\n"
-          );
-        }
-        out.print(
-"              </select>\n"
-        );
-      }
-      out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"        <tr class=\"formrow\"><td colspan=\"5\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"
-      );
-      if (message != null)
-      {
-        out.print(
-"          <td class=\"formmessage\" colspan=\"5\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(message)+"</td></tr>\n"
-        );
-      }
-      else
-      {
-        // What we display depends on the determined state of the path.  If the path is a library or is unknown, all we can do is allow a type-in to append
-        // to it, or allow a reset.  If the path is a site, then we can optionally display libraries, sites, OR allow a type-in.
-        // The path buttons are on the left; they consist of "Reset" (to reset the path), "+" (to add to the path), and "-" (to remove from the path).
-        out.print(
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>\n"+
-"              <a name=\"metapathwidget\"/>\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.ResetPath") + "\" onClick='Javascript:MetaPathReset(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.ResetMetadataRulePath")+"\"/>\n"
-        );
-        if (metaPathSoFar.length() > 1 && (metaPathState.equals("site") || metaPathState.equals("library")))
-        {
-          out.print(
-"              <input type=\"button\" value=\"-\" onClick='Javascript:MetaPathRemove(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.RemoveFromMetadataRulePath")+"\"/>\n"
-          );
-        }
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\" colspan=\"4\">\n"+
-"            <nobr>\n"
-        );
-        if (metaPathState.equals("site") && childSiteList != null && childSiteList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddSite") + "\" onClick='Javascript:MetaPathAppendSite(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddSiteToMetadataRulePath")+"\"/>\n"+
-"              <select name=\"metasite\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectSite")+"</option>\n"
-          );
-          int q = 0;
-          while (q < childSiteList.size())
-          {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childSite = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childSiteList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childSite.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childSite.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
+        else
+          allmetadata = "";
         
-        if (metaPathState.equals("site") && childLibList != null && childLibList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddLibrary") + "\" onClick='Javascript:MetaPathAppendLibrary(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddLibraryToMetadataRulePath")+"\"/>\n"+
-"              <select name=\"metalibrary\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectLibrary")+"</option>\n"
-          );
-          int q = 0;
-          while (q < childLibList.size())
-          {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childLib = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childLibList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childLib.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childLib.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-        
-        if (metaPathState.equals("site") && childListList != null && childListList.size() > 0)
-        {
-          out.print(
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddList") + "\" onClick='Javascript:MetaPathAppendList(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddListToMetadataRulePath")+"\"/>\n"+
-"              <select name=\"metalist\" size=\"5\">\n"+
-"                <option value=\"\" selected=\"true\">"+Messages.getBodyString(locale,"SharePointRepository.SelectList")+"</option>\n"
-          );
-          int q = 0;
-          while (q < childListList.size())
-          {
-            org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue childList = (org.apache.manifoldcf.crawler.connectors.sharepoint.NameValue)childListList.get(q++);
-            out.print(
-"                <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList.getValue())+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList.getPrettyName())+"</option>\n"
-            );
-          }
-          out.print(
-"              </select>\n"
-          );
-        }
-
-        if (!metaPathState.equals("list"))
-        {
-          out.print(
-  "              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"SharePointRepository.AddText") + "\" onClick='Javascript:MetaPathAppendText(\"metapathwidget\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.AddTextToMetadataRulePath")+"\"/>\n"+
-  "              <input type=\"text\" name=\"metamatch\" size=\"32\" value=\"\"/>\n"
-          );
-        }
-        
-        out.print(
-"            </nobr>\n"+
-"          </td>\n"
-        );
+        Map<String,Object> item = new HashMap<String,Object>();
+        item.put("THEPATH",path);
+        item.put("THEACTION",action);
+        item.put("ALLFLAG",allmetadata);
+        item.put("FIELDLIST",metadataFieldArray);
+        item.put("FIELDS",metadataFieldList.toString());
+        metadataRules.add(item);
       }
-      out.print(
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMetadata") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"displaytable\">\n"+
-"        <tr>\n"+
-"          <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AttributeName") + "</nobr></td>\n"+
-"          <td class=\"value\" colspan=\"3\">\n"+
-"            <nobr>\n"+
-"              <input type=\"text\" name=\"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"        <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
-      {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"        <tr>\n"+
-"          <td class=\"description\">\n"+
-"            <input type=\"hidden\" name=\""+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"            <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"              <input type=\"button\" onClick='Javascript:SpecOp(\"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"SharePointRepository.DeleteMapping")+Integer.toString(i)+"\" value=\""+Messages.getAttributeString(locale,"SharePointRepository.DeletePathMapping")+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"value\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"          <td class=\"value\">==></td>\n"+
-"          <td class=\"value\">\n"+
-"            <nobr>\n"+
-"              <input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"+
-"              "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
-"            </nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-        );
-        i++;
-      }
-      if (i == 0)
-      {
-        out.print(
-"        <tr><td colspan=\"4\" class=\"message\">" + Messages.getBodyString(locale,"SharePointRepository.NoMappingsSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"\n"+
-"        <tr>\n"+
-"          <td class=\"description\">\n"+
-"            <a name=\""+"mapping_"+Integer.toString(i)+"\">\n"+
-"              <input type=\"button\" onClick='Javascript:SpecAddMapping(\"mapping_"+Integer.toString(i+1)+"\")' alt=\"Add to mappings\" value=\"Add Path Mapping\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"value\"><nobr>"+Messages.getBodyString(locale,"SharePointRepository.MatchRegexp") + "&nbsp;<input type=\"text\" name=\"specmatch\" size=\"32\" value=\"\"/></nobr></td>\n"+
-"          <td class=\"value\">==></td>\n"+
-"          <td class=\"value\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.ReplaceString") + "&nbsp;<input type=\"text\" name=\"specreplace\" size=\"32\" value=\"\"/></nobr></td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
     }
-    else
+    
+    List<Map<String,String>> mapList = new ArrayList<Map<String,String>>();
+    for (int i = 0; i < matchMap.getMatchCount(); i++)
     {
-      // Hiddens for metadata rules
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
+      String matchString = matchMap.getMatchString(i);
+      String replaceString = matchMap.getReplaceString(i);
+
+      Map<String,String> item = new HashMap<String,String>();
+      item.put("MATCH",matchString);
+      item.put("REPLACE",replaceString);
+      mapList.add(item);
+    }
+    
+    velocityContext.put("PATHNAMEATTRIBUTE",pathNameAttribute);
+    velocityContext.put("MAPLIST",mapList);
+    velocityContext.put("METADATARULES",metadataRules);
+  }
+  
+  /** Fill in transient metadata info */
+  protected void fillInTransientMetadataInfo(Map<String,Object> velocityContext)
+  {
+    // The following variables may be in the thread context because postspec.jsp put them there:
+    // (1) "metapath", which contains the rule path as it currently stands;
+    // (2) "metapathstate", which describes what the current path represents.  Values are "unknown", "site", "library".
+    // (3) "metapathlibrary" is the library or list path (if this is known yet).
+    // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
+    String metaPathSoFar = (String)currentContext.get("metapath");
+    String metaPathState = (String)currentContext.get("metapathstate");
+    String metaPathLibrary = (String)currentContext.get("metapathlibrary");
+    if (metaPathState == null)
+      metaPathState = "unknown";
+    if (metaPathSoFar == null)
+    {
+      metaPathSoFar = "/";
+      metaPathState = "site";
+    }
+
+    String message = null;
+    List<NameValue> fieldList = null;
+    if (metaPathLibrary != null)
+    {
+      // Look up metadata fields
+      int index = metaPathLibrary.lastIndexOf("/");
+      String site = metaPathLibrary.substring(0,index);
+      String libOrList = metaPathLibrary.substring(index+1);
+      Map<String,String> metaFieldList = null;
+      try
       {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String site = sn.getAttributeValue("site");
-          String lib = sn.getAttributeValue("lib");
-          String path = site + "/" + lib + "/*";
-          
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          ArrayList metadataFieldArray = new ArrayList();
-          if (allmetadata == null || !allmetadata.equals("true"))
-          {
-            int j = 0;
-            while (j < sn.getChildCount())
-            {
-              SpecificationNode node = sn.getChild(j++);
-              if (node.getType().equals("metafield"))
-              {
-                String val = node.getAttributeValue("value");
-                metadataFieldArray.add(val);
-              }
-            }
-            allmetadata = "false";
-          }
-          
-          if (allmetadata.equals("true") || metadataFieldArray.size() > 0)
-          {
-            String pathDescription = "_"+Integer.toString(k);
-            out.print(
-"<input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(path)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\"include\"/>\n"+
-"<input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"
-            );
-            int q = 0;
-            while (q < metadataFieldArray.size())
-            {
-              String field = (String)metadataFieldArray.get(q++);
-              out.print(
-"<input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(field)+"\"/>\n"
-              );
-            }
-            k++;
-          }
-        }
-        else if (sn.getType().equals("metadatarule"))
-        {
-          String match = sn.getAttributeValue("match");
-          String action = sn.getAttributeValue("action");
-          String allmetadata = sn.getAttributeValue("allmetadata");
-          
-          String pathDescription = "_"+Integer.toString(k);
-          out.print(
-"<input type=\"hidden\" name=\""+"metapath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"metaflav"+pathDescription+"\" value=\""+action+"\"/>\n"
-          );
-          if (action.equals("include"))
-          {
-            if (allmetadata == null || allmetadata.length() == 0)
-              allmetadata = "false";
-            out.print(
-"<input type=\"hidden\" name=\""+"metaall"+pathDescription+"\" value=\""+allmetadata+"\"/>\n"
-            );
-            int j = 0;
-            while (j < sn.getChildCount())
-            {
-              SpecificationNode node = sn.getChild(j++);
-              if (node.getType().equals("metafield"))
-              {
-                String value = node.getAttributeValue("value");
-                out.print(
-"<input type=\"hidden\" name=\""+"metafields"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
-                );
-              }
-            }
-          }
-          k++;
-        }
+        if (metaPathState.equals("library") || metaPathState.equals("file"))
+          metaFieldList = getLibFieldList(site,libOrList);
+        else if (metaPathState.equals("list"))
+          metaFieldList = getListFieldList(site,libOrList);
       }
-      out.print(
-"<input type=\"hidden\" name=\"metapathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"\n"+
-"<input type=\"hidden\" name=\"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"<input type=\"hidden\" name=\"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
+      catch (ManifoldCFException e)
       {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"<input type=\"hidden\" name=\""+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
-        );
-        i++;
+        e.printStackTrace();
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "SharePoint unavailable: "+e.getMessage();
+      }
+      if (metaFieldList != null)
+      {
+        String[] fields = new String[metaFieldList.size()];
+        int j = 0;
+        Iterator<String> iter = metaFieldList.keySet().iterator();
+        while (iter.hasNext())
+        {
+          fields[j++] = iter.next();
+        }
+        java.util.Arrays.sort(fields);
+        fieldList = new ArrayList<NameValue>();
+        for (String field : fields)
+        {
+          fieldList.add(new NameValue(field,metaFieldList.get(field)));
+        }
       }
     }
+      
+    // Grab next site list and lib list
+    List<NameValue> childSiteList = null;
+    List<NameValue> childLibList = null;
+    List<NameValue> childListList = null;
+
+    if (message == null && metaPathState.equals("site"))
+    {
+      try
+      {
+        String queryPath = metaPathSoFar;
+        if (queryPath.equals("/"))
+          queryPath = "";
+        childSiteList = getSites(queryPath);
+        if (childSiteList == null)
+        {
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          // Illegal path - state becomes "unknown".
+          metaPathState = "unknown";
+          metaPathLibrary = null;
+        }
+        childLibList = getDocLibsBySite(queryPath);
+        if (childLibList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          metaPathState = "unknown";
+          metaPathLibrary = null;
+        }
+        childListList = getListsBySite(queryPath);
+        if (childListList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          metaPathState = "unknown";
+          metaPathLibrary = null;
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        Logging.connectors.warn(e.getMessage(),e);
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "SharePoint unavailable: "+e.getMessage();
+      }
+    }
+    
+    if (metaPathSoFar != null)
+      velocityContext.put("METAPATHSOFAR",metaPathSoFar);
+    if (metaPathState != null)
+      velocityContext.put("METAPATHSTATE",metaPathState);
+    if (metaPathLibrary != null)
+      velocityContext.put("METAPATHLIBRARY",metaPathLibrary);
+    if (message != null)
+      velocityContext.put("METAMESSAGE",message);
+    if (fieldList != null)
+      velocityContext.put("METAFIELDLIST",fieldList);
+    if (childSiteList != null)
+      velocityContext.put("METACHILDSITELIST",childSiteList);
+    if (childLibList != null)
+      velocityContext.put("METACHILDLIBLIST",childLibList);
+    if (childListList != null)
+      velocityContext.put("METACHILDLISTLIST",childListList);
+  }
+  
+  /** Fill in paths tab */
+  protected static void fillInPathsTab(Map<String,Object> velocityContext, IHTTPOutput out, DocumentSpecification ds)
+  {
+    List<Map<String,String>> rules = new ArrayList<Map<String,String>>();
+    for (int i = 0; i < ds.getChildCount(); i++)
+    {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals("startpoint"))
+      {
+        String site = sn.getAttributeValue("site");
+        String lib = sn.getAttributeValue("lib");
+        String siteLib = site + "/" + lib + "/";
+
+        // Go through all the file/folder rules for the startpoint, and generate new "rules" corresponding to each.
+        for (int j = 0; j < sn.getChildCount(); j++)
+        {
+          SpecificationNode node = sn.getChild(j);
+          if (node.getType().equals("include") || node.getType().equals("exclude"))
+          {
+            String matchPart = node.getAttributeValue("match");
+            String ruleType = node.getAttributeValue("type");
+            String theFlavor = node.getType();
+            String thePath = siteLib + matchPart;
+            
+            Map<String,String> item = new HashMap<String,String>();
+            item.put("THEPATH",thePath);
+            item.put("THETYPE","file");
+            item.put("THEACTION",theFlavor);
+            rules.add(item);
+            
+            if (ruleType.equals("file") && !matchPart.startsWith("*"))
+            {
+              thePath = siteLib + "*/" + matchPart;
+              item = new HashMap<String,String>();
+              item.put("THEPATH",thePath);
+              item.put("THETYPE","file");
+              item.put("THEACTION",theFlavor);
+              rules.add(item);
+            }
+          }
+        }
+      }
+      else if (sn.getType().equals("pathrule"))
+      {
+        String match = sn.getAttributeValue("match");
+        String type = sn.getAttributeValue("type");
+        String action = sn.getAttributeValue("action");
+        
+        Map<String,String> item = new HashMap<String,String>();
+        item.put("THEPATH",match);
+        item.put("THETYPE",type);
+        item.put("THEACTION",action);
+        rules.add(item);
+        
+      }
+    }
+    
+    velocityContext.put("RULES",rules);
+  }
+  
+  /** Fill in the transient portion of the Paths tab */
+  protected void fillInTransientPathsInfo(Map<String,Object> velocityContext)
+  {
+    // The following variables may be in the thread context because postspec.jsp put them there:
+    // (1) "specpath", which contains the rule path as it currently stands;
+    // (2) "specpathstate", which describes what the current path represents.  Values are "unknown", "site", "library", "list".
+    // Once the widget is in the state "unknown", it can only be reset, and cannot be further modified
+    // specsitepath may be in the thread context, put there by postspec.jsp 
+    String pathSoFar = (String)currentContext.get("specpath");
+    String pathState = (String)currentContext.get("specpathstate");
+    String pathLibrary = (String)currentContext.get("specpathlibrary");
+    if (pathState == null)
+    {
+      pathState = "unknown";
+      pathLibrary = null;
+    }
+    if (pathSoFar == null)
+    {
+      pathSoFar = "/";
+      pathState = "site";
+      pathLibrary = null;
+    }
+
+    // Grab next site list and lib list
+    List<NameValue> childSiteList = null;
+    List<NameValue> childLibList = null;
+    List<NameValue> childListList = null;
+    String message = null;
+    if (pathState.equals("site"))
+    {
+      try
+      {
+        String queryPath = pathSoFar;
+        if (queryPath.equals("/"))
+          queryPath = "";
+        childSiteList = getSites(queryPath);
+        if (childSiteList == null)
+        {
+          // Illegal path - state becomes "unknown".
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          pathState = "unknown";
+          pathLibrary = null;
+        }
+        childLibList = getDocLibsBySite(queryPath);
+        if (childLibList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          pathState = "unknown";
+          pathLibrary = null;
+        }
+        childListList = getListsBySite(queryPath);
+        if (childListList == null)
+        {
+          // Illegal path - state becomes "unknown"
+          if (queryPath.length() == 0)
+            throw new ManifoldCFException("Root site is unreachable, or user has no permissions");
+          pathState = "unknown";
+          pathLibrary = null;
+        }
+      }
+      catch (ManifoldCFException e)
+      {
+        Logging.connectors.warn(e.getMessage(),e);
+        message = e.getMessage();
+      }
+      catch (ServiceInterruption e)
+      {
+        message = "SharePoint unavailable: "+e.getMessage();
+      }
+    }
+      
+    if (pathSoFar != null)
+      velocityContext.put("PATHSOFAR",pathSoFar);
+    if (pathState != null)
+      velocityContext.put("PATHSTATE",pathState);
+    if (pathLibrary != null)
+      velocityContext.put("PATHLIBRARY",pathLibrary);
+    if (message != null)
+      velocityContext.put("MESSAGE",message);
+    if (childSiteList != null)
+      velocityContext.put("CHILDSITELIST",childSiteList);
+    if (childLibList != null)
+      velocityContext.put("CHILDLIBLIST",childLibList);
+    if (childListList != null)
+      velocityContext.put("CHILDLISTLIST",childListList);
+  }
+  
+  /** Fill in security tab */
+  protected static void fillInSecurityTab(Map<String,Object> velocityContext, IHTTPOutput out, DocumentSpecification ds)
+  {
+    // Security tab
+    String security = "on";
+    List<String> accessTokens = new ArrayList<String>();
+    for (int i = 0; i < ds.getChildCount(); i++)
+    {
+      SpecificationNode sn = ds.getChild(i);
+      if (sn.getType().equals("security"))
+      {
+        security = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("access"))
+      {
+        String token = sn.getAttributeValue("token");
+        accessTokens.add(token);
+      }
+    }
+
+    velocityContext.put("SECURITY",security);
+    velocityContext.put("ACCESSTOKENS",accessTokens);
   }
   
   /** Process a specification post.
@@ -4427,428 +3562,70 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
-    // Display path rules
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"
-    );
-    int i = 0;
-    int l = 0;
-    boolean seenAny = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("startpoint"))
-      {
-        String site = sn.getAttributeValue("site");
-        String lib = sn.getAttributeValue("lib");
-        String siteLib = site + "/" + lib + "/";
-
-        // Old-style path.
-        // There will be an inclusion or exclusion rule for every entry in the path rules for this startpoint, so loop through them.
-        int j = 0;
-        while (j < sn.getChildCount())
-        {
-          SpecificationNode node = sn.getChild(j++);
-          if (node.getType().equals("include") || node.getType().equals("exclude"))
-          {
-            String matchPart = node.getAttributeValue("match");
-            String ruleType = node.getAttributeValue("type");
-            // Whatever happens, we're gonna display a rule here, so go ahead and set that up.
-            if (seenAny == false)
-            {
-              seenAny = true;
-              out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.RuleType") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"        </tr>\n"
-              );
-            }
-            String action = node.getType();
-            // Display the path rule corresponding to this match rule
-            // The first part comes from the site/library
-            String completePath;
-            // The match applies to only the file portion.  Therefore, there are TWO rules needed to emulate: sitelib/<match>, and sitelib/*/<match>
-            completePath = siteLib + matchPart;
-            out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(completePath)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.file") + "</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+action+"</nobr></td>\n"+
-"        </tr>\n"
-            );
-            l++;
-            if (ruleType.equals("file") && !matchPart.startsWith("*"))
-            {
-              completePath = siteLib + "*/" + matchPart;
-              out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(completePath)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.file") + "</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+action+"</nobr></td>\n"+
-"        </tr>\n"
-              );
-              l++;
-            }
-          }
-        }
-      }
-      else if (sn.getType().equals("pathrule"))
-      {
-        String path = sn.getAttributeValue("match");
-        String action = sn.getAttributeValue("action");
-        String ruleType = sn.getAttributeValue("type");
-        if (seenAny == false)
-        {
-          seenAny = true;
-          out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathRules") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.RuleType") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"        </tr>\n"
-          );
-        }
-        out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+ruleType+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+action+"</nobr></td>\n"+
-"        </tr>\n"
-        );
-        l++;
-      }
-    }
-    if (seenAny)
-    {
-      out.print(
-"      </table>\n"+
-"    </td>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"    <td colspan=\"2\" class=\"message\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.NoDocumentsWillBeIncluded") + "</nobr></td>\n"
-      );
-    }
-    out.print(
-"  </tr>\n"
-    );
-  
-    // Finally, display metadata rules
-    out.print(
-"  <tr>\n"
-    );
-
-    i = 0;
-    l = 0;
-    seenAny = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("startpoint"))
-      {
-        // Old-style
-        String site = sn.getAttributeValue("site");
-        String lib = sn.getAttributeValue("lib");
-        String path = site + "/" + lib + "/*";
-        
-        String allmetadata = sn.getAttributeValue("allmetadata");
-        StringBuilder metadataFieldList = new StringBuilder();
-        if (allmetadata == null || !allmetadata.equals("true"))
-        {
-          int j = 0;
-          while (j < sn.getChildCount())
-          {
-            SpecificationNode node = sn.getChild(j++);
-            if (node.getType().equals("metafield"))
-            {
-              String value = node.getAttributeValue("value");
-              if (metadataFieldList.length() > 0)
-                metadataFieldList.append(", ");
-              metadataFieldList.append(value);
-            }
-          }
-          allmetadata = "false";
-        }
-        if (allmetadata.equals("true") || metadataFieldList.length() > 0)
-        {
-          if (seenAny == false)
-          {
-            seenAny = true;
-            out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Metadata2") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
-"        </tr>\n"
-            );
-          }
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.include2") + "</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allmetadata+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"</td>\n"+
-"        </tr>\n"
-          );
-          l++;
-        }
-      }
-      else if (sn.getType().equals("metadatarule"))
-      {
-        String path = sn.getAttributeValue("match");
-        String action = sn.getAttributeValue("action");
-        String allmetadata = sn.getAttributeValue("allmetadata");
-        StringBuilder metadataFieldList = new StringBuilder();
-        if (action.equals("include"))
-        {
-          if (allmetadata == null || !allmetadata.equals("true"))
-          {
-            int j = 0;
-            while (j < sn.getChildCount())
-            {
-              SpecificationNode node = sn.getChild(j++);
-              if (node.getType().equals("metafield"))
-              {
-                String fieldName = node.getAttributeValue("value");
-                if (metadataFieldList.length() > 0)
-                  metadataFieldList.append(", ");
-                metadataFieldList.append(fieldName);
-              }
-            }
-            allmetadata = "false";
-          }
-        }
-        else
-          allmetadata = "";
-        if (seenAny == false)
-        {
-          seenAny = true;
-          out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Metadata2") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMatch") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Action") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AllMetadata") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Fields") + "</nobr></td>\n"+
-"        </tr>\n"
-          );
-        }
-        out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(path)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+action+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allmetadata+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(metadataFieldList.toString())+"</td>\n"+
-"        </tr>\n"
-        );
-        l++;
-      }
-    }
-    if (seenAny)
-    {
-      out.print(
-"      </table>\n"+
-"    </td>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"    <td colspan=\"2\" class=\"message\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.NoMetadataWillBeIncluded") + "</nobr></td>\n"
-      );
-    }
-    out.print(
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    // Find whether security is on or off
-    i = 0;
-    boolean securityOn = true;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("security"))
-      {
-        String securityValue = sn.getAttributeValue("value");
-        if (securityValue.equals("off"))
-          securityOn = false;
-        else if (securityValue.equals("on"))
-          securityOn = true;
-      }
-    }
-    out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.Security2") + "</nobr></td>\n"+
-"    <td class=\"value\"><nobr>"+(securityOn?Messages.getBodyString(locale,"SharePointRepository.Enabled2"):Messages.getBodyString(locale,"SharePointRepository.Disabled"))+"</nobr></td>\n"+
-"  </tr>\n"+
-"\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    // Go through looking for access tokens
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("access"))
-      {
-        if (seenAny == false)
-        {
-          out.print(
-"  <tr><td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.AccessToken") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-          );
-          seenAny = true;
-        }
-        String token = sn.getAttributeValue("token");
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"</nobr><br/>\n"
-        );
-      }
-    }
-
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoAccessTokensSpecified") + "</td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    // Find the path-name metadata attribute name
-    i = 0;
-    String pathNameAttribute = "";
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathnameattribute"))
-      {
-        pathNameAttribute = sn.getAttributeValue("value");
-      }
-    }
-    out.print(
-"  <tr>\n"
-    );
-    if (pathNameAttribute.length() > 0)
-    {
-      out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathMetadataAttributeName") + "</nobr></td>\n"+
-"    <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</nobr></td>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoPathNameMetadataAttributeSpecified") + "</td>\n"
-      );
-    }
-    out.print(
-"  </tr>\n"+
-"\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"\n"+
-"  <tr>\n"+
-"\n"
-    );
-    // Find the path-value mapping data
-    i = 0;
-    org.apache.manifoldcf.crawler.connectors.sharepoint.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.sharepoint.MatchMap();
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathmap"))
-      {
-        String pathMatch = sn.getAttributeValue("match");
-        String pathReplace = sn.getAttributeValue("replace");
-        matchMap.appendMatchPair(pathMatch,pathReplace);
-      }
-    }
-    if (matchMap.getMatchCount() > 0)
-    {
-      out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharePointRepository.PathValueMapping") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <table class=\"displaytable\">\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
-      {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"        <tr>\n"+
-"          <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</nobr></td>\n"+
-"          <td class=\"value\">==></td>\n"+
-"          <td class=\"value\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</nobr></td>\n"+
-"        </tr>\n"
-        );
-        i++;
-      }
-      out.print(
-"      </table>\n"+
-"    </td>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"SharePointRepository.NoMappingsSpecified") + "</td>\n"
-      );
-    }
-    out.print(
-"  </tr>\n"+
-"</table>\n"
-    );
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInPathsTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
+    
+    Messages.outputResourceWithVelocity(out,locale,"viewSpecification.html",velocityContext);
   }
 
   protected static class ExecuteMethodThread extends Thread
   {
-    protected HttpClient client;
-    protected HostConfiguration hostConfiguration;
-    protected HttpMethodBase executeMethod;
-    protected Throwable exception = null;
-    protected int rval = 0;
+    protected final HttpClient httpClient;
+    protected final String url;
+    protected final OutputStream os;
 
-    public ExecuteMethodThread(HttpClient client, HostConfiguration hostConfiguration, HttpMethodBase executeMethod)
+    protected Throwable exception = null;
+    protected int returnCode = 0;
+
+    public ExecuteMethodThread( HttpClient httpClient, String url, OutputStream os )
     {
       super();
       setDaemon(true);
-      this.client = client;
-      this.hostConfiguration = hostConfiguration;
-      this.executeMethod = executeMethod;
+      this.httpClient = httpClient;
+      this.url = url;
+      this.os = os;
     }
 
     public void run()
     {
       try
       {
-        // Call the execute method appropriately
-        rval = client.executeMethod(hostConfiguration,executeMethod,null);
+        HttpGet method = new HttpGet( url );
+        // Try block to insure that the connection gets cleaned up
+        try
+        {
+          // Begin the fetch
+          HttpResponse response = httpClient.execute(method);
+          returnCode = response.getStatusLine().getStatusCode();
+          
+          if (returnCode == 200)
+          {
+            // Process the data
+            HttpEntity entity = response.getEntity();
+            if (entity != null)
+            {
+              InputStream is = entity.getContent();
+              // Figure out what to do with the data. 
+              byte[] transferBuffer = new byte[65536];
+              while (true)
+              {
+                int amt = is.read(transferBuffer);
+                if (amt == -1)
+                  break;
+                os.write(transferBuffer,0,amt);
+              }
+            }
+          }
+        }
+        finally
+        {
+          // Consumes and closes the stream, releasing the connection
+          method.abort();
+        }
+
       }
       catch (Throwable e)
       {
@@ -4856,14 +3633,24 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       }
     }
 
-    public Throwable getException()
+    public int finishUp()
+      throws InterruptedException, IOException, org.apache.http.HttpException
     {
-      return exception;
-    }
-
-    public int getResponse()
-    {
-      return rval;
+      join();
+      if (exception != null)
+      {
+        if (exception instanceof IOException)
+          throw (IOException)exception;
+        else if (exception instanceof Error)
+          throw (Error)exception;
+        else if (exception instanceof org.apache.http.HttpException)
+          throw (org.apache.http.HttpException)exception;
+        else if (exception instanceof RuntimeException)
+          throw (RuntimeException)exception;
+        else
+          throw new RuntimeException("Unexpected exception type thrown: "+exception.getClass().getName());
+      }
+      return returnCode;
     }
   }
 
@@ -4875,11 +3662,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param docLibrary name
   * @return list of the fields
   */
-  public Map getLibFieldList( String parentSite, String docLibrary )
+  public Map<String,String> getLibFieldList( String parentSite, String docLibrary )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getDocLibID( encodePath(parentSite), parentSite, docLibrary ) );
   }
 
   /**
@@ -4888,11 +3675,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param docLibrary name
   * @return list of the fields
   */
-  public Map getListFieldList( String parentSite, String listName )
+  public Map<String,String> getListFieldList( String parentSite, String listName )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
-    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName) );
+    return proxy.getFieldList( encodePath(parentSite), proxy.getListID( encodePath(parentSite), parentSite, listName ) );
   }
 
   /**
@@ -4900,7 +3687,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site path to search for subsites, empty for root.
   * @return list of the sites
   */
-  public ArrayList getSites( String parentSite )
+  public List<NameValue> getSites( String parentSite )
     throws ServiceInterruption, ManifoldCFException
   {
     getSession();
@@ -4912,7 +3699,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site to search for libraries, empty for root.
   * @return list of the libraries
   */
-  public ArrayList getDocLibsBySite( String parentSite )
+  public List<NameValue> getDocLibsBySite( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -4924,7 +3711,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   * @param parentSite the unencoded parent site to search for lists, empty for root.
   * @return list of the lists
   */
-  public ArrayList getListsBySite( String parentSite )
+  public List<NameValue> getListsBySite( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
@@ -5366,6 +4153,20 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     return false;
   }
 
+  /** Check if a list item attachment should be included.
+  *@param attachmentPath is the path to the attachment, including sites and list name, beneath the root site.
+  *@param documentSpecification is the document specification.
+  *@return true if file should be included.
+  */
+  protected boolean checkIncludeListItemAttachment( String attachmentPath, DocumentSpecification documentSpecification )
+  {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug( "SharePoint: Checking whether to include list item attachment '" + attachmentPath + "'" );
+
+    // There are no attachment rules, so they are always included
+    return true;
+  }
+
   /** Check if a list item should be included.
   *@param itemPath is the path to the item, including sites and list name, beneath the root site.
   *@param documentSpecification is the document specification.
@@ -5776,205 +4577,5 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     }
   }
 
-  /** Socket factory for our https implementation.
-  */
-  protected static class MySSLSocketFactory implements org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory
-  {
-    protected javax.net.ssl.SSLSocketFactory thisSocketFactory = null;
-    protected IKeystoreManager keystore;
-
-    /** Constructor.  Pass the keystore.
-    */
-    public MySSLSocketFactory(IKeystoreManager keystore)
-      throws ManifoldCFException
-    {
-      this.keystore = keystore;
-      thisSocketFactory = keystore.getSecureSocketFactory();
-    }
-
-
-    public Socket createSocket(String host,
-      int port,
-      InetAddress clientHost,
-      int clientPort)
-      throws IOException, UnknownHostException
-    {
-      return thisSocketFactory.createSocket(host,
-        port,
-        clientHost,
-        clientPort);
-    }
-
-
-    public Socket createSocket(final String host,
-      final int port,
-      final InetAddress localAddress,
-      final int localPort,
-      final HttpConnectionParams params)
-      throws IOException, UnknownHostException, ConnectTimeoutException
-    {
-      if (params == null)
-      {
-        throw new IllegalArgumentException("Parameters may not be null");
-      }
-      int timeout = params.getConnectionTimeout();
-      if (timeout == 0)
-      {
-        return createSocket(host, port, localAddress, localPort);
-      }
-      else
-      {
-        return createSocket(host, port, localAddress, localPort);
-
-        /*
-        return thisSocketFactory.createSocket(host,
-          port,
-          localAddress,
-          localPort,
-          timeout);
-        */
-      }
-    }
-
-    public Socket createSocket(String host, int port)
-      throws IOException, UnknownHostException
-    {
-      return thisSocketFactory.createSocket(host,port);
-    }
-
-    public Socket createSocket(Socket socket,
-      String host,
-      int port,
-      boolean autoClose)
-      throws IOException, UnknownHostException
-    {
-      return thisSocketFactory.createSocket(socket,
-        host,
-        port,
-        autoClose);
-    }
-
-
-    /** There's a socket factory per keystore;
-    * look at the keystore to do the comparison.
-    */
-    public boolean equals(Object obj)
-    {
-      if (obj == null || !(obj instanceof MySSLSocketFactory))
-        return false;
-      MySSLSocketFactory other = (MySSLSocketFactory)obj;
-      try
-      {
-        return keystore.getString().equals(other.keystore.getString());
-      }
-      catch (ManifoldCFException e)
-      {
-        return false;
-      }
-    }
-
-    public int hashCode()
-    {
-      try
-      {
-        return keystore.getString().hashCode();
-      }
-      catch (ManifoldCFException e)
-      {
-        return 0;
-      }
-    }
-
-
-  }
-
-  /** HTTPClient secure socket factory, which implements SecureProtocolSocketFactory
-  */
-  protected static class SharepointSecureSocketFactory implements SecureProtocolSocketFactory
-  {
-    /** This is the javax.net socket factory.
-    */
-    protected javax.net.ssl.SSLSocketFactory socketFactory;
-
-    /** Constructor */
-    public SharepointSecureSocketFactory(javax.net.ssl.SSLSocketFactory socketFactory)
-    {
-      this.socketFactory = socketFactory;
-    }
-
-    public Socket createSocket(
-      String host,
-      int port,
-      InetAddress clientHost,
-      int clientPort)
-      throws IOException, UnknownHostException
-    {
-      return socketFactory.createSocket(
-        host,
-        port,
-        clientHost,
-        clientPort
-      );
-    }
-
-    public Socket createSocket(
-      final String host,
-      final int port,
-      final InetAddress localAddress,
-      final int localPort,
-      final HttpConnectionParams params
-    ) throws IOException, UnknownHostException, ConnectTimeoutException
-    {
-      if (params == null)
-      {
-        throw new IllegalArgumentException("Parameters may not be null");
-      }
-      int timeout = params.getConnectionTimeout();
-      if (timeout == 0)
-      {
-        return createSocket(host, port, localAddress, localPort);
-      }
-      else
-        throw new IllegalArgumentException("This implementation does not handle non-zero connection timeouts");
-    }
-
-    public Socket createSocket(String host, int port)
-      throws IOException, UnknownHostException
-    {
-      return socketFactory.createSocket(
-        host,
-        port
-      );
-    }
-
-    public Socket createSocket(
-      Socket socket,
-      String host,
-      int port,
-      boolean autoClose)
-      throws IOException, UnknownHostException
-    {
-      return socketFactory.createSocket(
-        socket,
-        host,
-        port,
-        autoClose
-      );
-    }
-
-    public boolean equals(Object obj)
-    {
-      if (obj == null || !(obj instanceof SharepointSecureSocketFactory))
-        return false;
-      // Each object is unique
-      return super.equals(obj);
-    }
-
-    public int hashCode()
-    {
-      return super.hashCode();
-    }
-
-  }
 
 }

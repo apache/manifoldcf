@@ -27,12 +27,50 @@ public class SolrConfig
 
   // Configuration parameters
 
+  /** Solr type */
+  public static final String PARAM_SOLR_TYPE = "Solr type";
+  /** Type: Standard */
+  public static final String SOLR_TYPE_STANDARD = "standard";
+  /** Type: Solr Cloud */
+  public static final String SOLR_TYPE_SOLRCLOUD = "solrcloud";
+  
+  // SolrCloud zookeeper parameters
+  
+  // Zookeeper hosts, as nodes
+  /** Zookeeper node */
+  public static final String NODE_ZOOKEEPER = "zookeeper";
+  /** Zookeeper hostname */
+  public static final String ATTR_HOST = "host";
+  /** Zookeeper port */
+  public static final String ATTR_PORT = "port";
+  
+  /** Zookeeper znode path */
+  public static final String PARAM_ZOOKEEPER_ZNODE_PATH = "ZooKeeper znode path";
+  
+  /** ZooKeeper client timeout */
+  public static final String PARAM_ZOOKEEPER_CLIENT_TIMEOUT = "ZooKeeper client timeout";
+  /** ZooKeeper connect timeout */
+  public static final String PARAM_ZOOKEEPER_CONNECT_TIMEOUT = "ZooKeeper connect timeout";
+  /** Collection name */
+  public static final String PARAM_COLLECTION = "Collection";
+  
+  // General indexing parameters
+  
   /** Protocol */
   public static final String PARAM_PROTOCOL = "Server protocol";
+  /** Protocol: http */
+  public static final String PROTOCOL_TYPE_HTTP = "http";
+  /** Protocol: https */
+  public static final String PROTOCOL_TYPE_HTTPS = "https";
+  
   /** Server name */
   public static final String PARAM_SERVER = "Server name";
   /** Port */
   public static final String PARAM_PORT = "Server port";
+  /** Connection timeout */
+  public static final String PARAM_CONNECTION_TIMEOUT = "Connection timeout";
+  /** Socket timeout */
+  public static final String PARAM_SOCKET_TIMEOUT = "Socket timeout";
   /** Webapp */
   public static final String PARAM_WEBAPPNAME = "Server web application";
   /** Core */
@@ -45,6 +83,16 @@ public class SolrConfig
   public static final String PARAM_STATUSPATH = "Server status handler";
   /** Id field */
   public static final String PARAM_IDFIELD = "Solr id field name";
+  /** Optional modified date field */
+  public static final String PARAM_MODIFIEDDATEFIELD = "Solr modified date field name";
+  /** Optional created date field */
+  public static final String PARAM_CREATEDDATEFIELD = "Solr created date field name";
+  /** Optional indexed date field */
+  public static final String PARAM_INDEXEDDATEFIELD = "Solr indexed date field name";
+  /** Optional file name field */
+  public static final String PARAM_FILENAMEFIELD = "Solr filename field name";
+  /** Optional mime type field */
+  public static final String PARAM_MIMETYPEFIELD = "Solr mime type field name";
   /** Optional basic auth realm */
   public static final String PARAM_REALM = "Realm";
   /** Optional user ID */

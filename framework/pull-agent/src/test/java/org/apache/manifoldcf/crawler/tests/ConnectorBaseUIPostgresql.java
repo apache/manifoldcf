@@ -33,7 +33,17 @@ import org.apache.manifoldcf.core.tests.HTMLTester;
 public class ConnectorBaseUIPostgresql extends BaseITPostgresql
 {
   protected HTMLTester testerInstance = null;
+
+  public ConnectorBaseUIPostgresql()
+  {
+    super();
+  }
   
+  public ConnectorBaseUIPostgresql(boolean singleWar)
+  {
+    super(singleWar);
+  }
+
   @Before
   public void setupHTMLTester()
     throws Exception

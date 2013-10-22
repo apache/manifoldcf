@@ -25,9 +25,22 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.params.HttpClientParams;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
@@ -85,10 +98,13 @@ public class ElasticSearchConnector extends BaseOutputConnector
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
 
+  /** Connection expiration interval */
+  private static final long EXPIRATION_INTERVAL = 60000L;
 
-  private MultiThreadedHttpConnectionManager connectionManager = null;
+  private ClientConnectionManager connectionManager = null;
   private HttpClient client = null;
-
+  private long expirationTime = -1L;
+  
   public ElasticSearchConnector()
   {
   }
@@ -97,9 +113,59 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public void connect(ConfigParams configParams)
   {
     super.connect(configParams);
-    connectionManager = new MultiThreadedHttpConnectionManager();
-    connectionManager.getParams().setMaxTotalConnections(1);
-    client = new HttpClient(connectionManager);
+  }
+  
+  protected HttpClient getSession()
+    throws ManifoldCFException
+  {
+    if (client == null)
+    {
+      PoolingClientConnectionManager localConnectionManager = new PoolingClientConnectionManager();
+      localConnectionManager.setMaxTotal(1);
+      connectionManager = localConnectionManager;
+      
+      int socketTimeout = 900000;
+      int connectionTimeout = 60000;
+      
+      BasicHttpParams params = new BasicHttpParams();
+      // This one is essential to prevent us from reading from the content stream before necessary during auth, but
+      // is incompatible with some proxies.
+      params.setBooleanParameter(CoreProtocolPNames.USE_EXPECT_CONTINUE,true);
+      // Enabled for Solr, but probably not necessary for better-behaved ES
+      //params.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,true);
+      params.setBooleanParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK,true);
+      params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
+      params.setIntParameter(CoreConnectionPNames.SO_TIMEOUT,socketTimeout);
+      params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeout);
+      params.setBooleanParameter(ClientPNames.HANDLE_REDIRECTS,true);
+      DefaultHttpClient localClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+       
+        });
+      client = localClient;
+    }
+    expirationTime = System.currentTimeMillis() + EXPIRATION_INTERVAL;
+    return client;
+  }
+
+  protected void closeSession()
+  {
+    if (connectionManager != null)
+    {
+      connectionManager.shutdown();
+      connectionManager = null;
+    }
+    client = null;
+    expirationTime = -1L;
   }
   
   @Override
@@ -107,18 +173,22 @@ public class ElasticSearchConnector extends BaseOutputConnector
     throws ManifoldCFException
   {
     super.disconnect();
-    connectionManager.shutdown();
-    connectionManager = null;
-    client = null;
+    closeSession();
   }
+  
   
   @Override
   public void poll()
     throws ManifoldCFException
   {
     super.poll();
-    // Free idle connections in the pool.
-    // MHL
+    if (connectionManager != null)
+    {
+      if (System.currentTimeMillis() > expirationTime)
+      {
+        closeSession();
+      }
+    }
   }
   
   @Override
@@ -272,9 +342,23 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public boolean checkDocumentIndexable(String outputDescription, File localFile)
       throws ManifoldCFException, ServiceInterruption
   {
+    // No filtering here; we don't look inside the file and don't know its extension.  That's done via the url
+    // filter
+    return true;
+  }
+  
+  /** Pre-determine whether a document's URL is indexable by this connector.  This method is used by participating repository connectors
+  * to help filter out documents that are not worth indexing.
+  *@param outputDescription is the document's output version.
+  *@param url is the URL of the document.
+  *@return true if the file is indexable.
+  */
+  @Override
+  public boolean checkURLIndexable(String outputDescription, String url)
+    throws ManifoldCFException, ServiceInterruption
+  {
     ElasticSearchSpecs specs = getSpecsCache(outputDescription);
-    return specs
-        .checkExtension(FilenameUtils.getExtension(localFile.getName()));
+    return specs.checkExtension(FilenameUtils.getExtension(url));
   }
 
   @Override
@@ -316,17 +400,23 @@ public class ElasticSearchConnector extends BaseOutputConnector
       IOutputAddActivity activities) throws ManifoldCFException,
       ServiceInterruption
   {
+    HttpClient client = getSession();
     ElasticSearchConfig config = getConfigParameters(null);
     InputStream inputStream = document.getBinaryStream();
     long startTime = System.currentTimeMillis();
-    ElasticSearchIndex oi = new ElasticSearchIndex(client, documentURI, 
-        document, inputStream, config);
-    activities.recordActivity(startTime, ELASTICSEARCH_INDEXATION_ACTIVITY,
-      document.getBinaryLength(), documentURI, oi.getResult().name(),
-      oi.getResultDescription());
-    if (oi.getResult() != Result.OK)
-      return DOCUMENTSTATUS_REJECTED;
-    return DOCUMENTSTATUS_ACCEPTED;
+    ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
+    try
+    {
+      oi.execute(documentURI, document, inputStream);
+      if (oi.getResult() != Result.OK)
+        return DOCUMENTSTATUS_REJECTED;
+      return DOCUMENTSTATUS_ACCEPTED;
+    }
+    finally
+    {
+      activities.recordActivity(startTime, ELASTICSEARCH_INDEXATION_ACTIVITY,
+        document.getBinaryLength(), documentURI, oi.getResult().name(), oi.getResultDescription());
+    }
   }
 
   @Override
@@ -334,34 +424,56 @@ public class ElasticSearchConnector extends BaseOutputConnector
       IOutputRemoveActivity activities) throws ManifoldCFException,
       ServiceInterruption
   {
+    HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    ElasticSearchDelete od = new ElasticSearchDelete(client, documentURI,
-        getConfigParameters(null));
-    activities.recordActivity(startTime, ELASTICSEARCH_DELETION_ACTIVITY, null,
-        documentURI, od.getResult().name(), od.getResultDescription());
+    ElasticSearchDelete od = new ElasticSearchDelete(client, getConfigParameters(null));
+    try
+    {
+      od.execute(documentURI);
+    }
+    finally
+    {
+      activities.recordActivity(startTime, ELASTICSEARCH_DELETION_ACTIVITY, null,
+          documentURI, od.getResult().name(), od.getResultDescription());
+    }
   }
 
   @Override
   public String check() throws ManifoldCFException
   {
-    ElasticSearchAction oss = new ElasticSearchAction(client, CommandEnum._status,
-      getConfigParameters(null), true);
-    String resultName = oss.getResult().name();
-    if (resultName.equals("OK"))
-      return super.check();
-    return resultName + " " + oss.getResultDescription();
+    HttpClient client = getSession();
+    ElasticSearchAction oss = new ElasticSearchAction(client, getConfigParameters(null));
+    try
+    {
+      oss.execute(CommandEnum._status, true);
+      String resultName = oss.getResult().name();
+      if (resultName.equals("OK"))
+        return super.check();
+      return resultName + " " + oss.getResultDescription();
+    }
+    catch (ServiceInterruption e)
+    {
+      return "Transient exception: "+e.getMessage();
+    }
   }
 
   @Override
   public void noteJobComplete(IOutputNotifyActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
+    HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    ElasticSearchAction oo = new ElasticSearchAction(client, CommandEnum._optimize,
-        getConfigParameters(null), false);
-    activities.recordActivity(startTime, ELASTICSEARCH_OPTIMIZE_ACTIVITY, null,
-        oo.getCallUrlSnippet(), oo.getResult().name(),
-        oo.getResultDescription());
+    ElasticSearchAction oo = new ElasticSearchAction(client, getConfigParameters(null));
+    try
+    {
+      oo.execute(CommandEnum._optimize, false);
+    }
+    finally
+    {
+      activities.recordActivity(startTime, ELASTICSEARCH_OPTIMIZE_ACTIVITY, null,
+          oo.getCallUrlSnippet(), oo.getResult().name(),
+          oo.getResultDescription());
+    }
   }
 
 }

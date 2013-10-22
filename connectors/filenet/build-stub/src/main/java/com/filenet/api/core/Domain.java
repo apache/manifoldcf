@@ -20,6 +20,6 @@ package com.filenet.api.core;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface Domain
+public interface Domain extends InstantiatingScope, IndependentlyPersistableObject
 {
 }

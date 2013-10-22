@@ -33,11 +33,11 @@ public class AuthCheckThread extends Thread
   public static final String _rcsid = "@(#)$Id: AuthCheckThread.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Local data
-  protected RequestQueue requestQueue;
+  protected RequestQueue<AuthRequest> requestQueue;
 
   /** Constructor.
   */
-  public AuthCheckThread(String id, RequestQueue requestQueue)
+  public AuthCheckThread(String id, RequestQueue<AuthRequest> requestQueue)
     throws ManifoldCFException
   {
     super();
@@ -72,55 +72,59 @@ public class AuthCheckThread extends Thread
         AuthorizationResponse response = null;
         Throwable exception = null;
 
-        try
+        // Grab an authorization response only if there's a user
+        if (theRequest.getUserID() != null)
         {
-          IAuthorityConnector connector = AuthorityConnectorFactory.grab(threadContext,
-            theRequest.getClassName(),
-            theRequest.getConfigurationParams(),
-            theRequest.getMaxConnections());
-          // If this is null, we MUST treat this as an "unauthorized" condition!!
-          // We signal that by setting the exception value.
           try
           {
-            if (connector == null)
-              exception = new ManifoldCFException("Authority connector "+theRequest.getClassName()+" is not registered.");
-            else
+            IAuthorityConnector connector = AuthorityConnectorFactory.grab(threadContext,
+              theRequest.getClassName(),
+              theRequest.getConfigurationParams(),
+              theRequest.getMaxConnections());
+            // If this is null, we MUST treat this as an "unauthorized" condition!!
+            // We signal that by setting the exception value.
+            try
             {
-              // Get the acl for the user
-              try
+              if (connector == null)
+                exception = new ManifoldCFException("Authority connector "+theRequest.getClassName()+" is not registered.");
+              else
               {
-                response = connector.getAuthorizationResponse(theRequest.getUserID());
-              }
-              catch (ManifoldCFException e)
-              {
-                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-                  throw e;
-                Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
-                response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-              }
+                // Get the acl for the user
+                try
+                {
+                  response = connector.getAuthorizationResponse(theRequest.getUserID());
+                }
+                catch (ManifoldCFException e)
+                {
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    throw e;
+                  Logging.authorityService.warn("Authority error: "+e.getMessage(),e);
+                  response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
+                }
 
+              }
+            }
+            finally
+            {
+              AuthorityConnectorFactory.release(connector);
             }
           }
-          finally
+          catch (ManifoldCFException e)
           {
-            AuthorityConnectorFactory.release(connector);
+            if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+              throw e;
+            Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
+            response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
+            if (response == null)
+              exception = e;
           }
-        }
-        catch (ManifoldCFException e)
-        {
-          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-            throw e;
-          Logging.authorityService.warn("Authority connection exception: "+e.getMessage(),e);
-          response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-          if (response == null)
-            exception = e;
-        }
-        catch (Throwable e)
-        {
-          Logging.authorityService.warn("Authority connection error: "+e.getMessage(),e);
-          response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
-          if (response == null)
-            exception = e;
+          catch (Throwable e)
+          {
+            Logging.authorityService.warn("Authority connection error: "+e.getMessage(),e);
+            response = AuthorityConnectorFactory.getDefaultAuthorizationResponse(threadContext,theRequest.getClassName(),theRequest.getUserID());
+            if (response == null)
+              exception = e;
+          }
         }
 
         // The request is complete

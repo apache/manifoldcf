@@ -38,10 +38,10 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   private static final String _driver = "org.postgresql.Driver";
 
   /** A lock manager handle. */
-  protected ILockManager lockManager;
+  protected final ILockManager lockManager;
   
   // Database cache key
-  protected String cacheKey;
+  protected final String cacheKey;
 	
   // Postgresql serializable transactions are broken in that transactions that occur within them do not in fact work properly.
   // So, once we enter the serializable realm, STOP any additional transactions from doing anything at all.
@@ -78,17 +78,18 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   public DBInterfacePostgreSQL(IThreadContext tc, String databaseName, String userName, String password)
     throws ManifoldCFException
   {
-    super(tc,getJdbcUrl(databaseName),_driver,databaseName,userName,password);
+    super(tc,getJdbcUrl(tc,databaseName),_driver,databaseName,userName,password);
     cacheKey = CacheKeyFactory.makeDatabaseKey(this.databaseName);
     lockManager = LockManagerFactory.make(tc);
   }
   
-  private static String getJdbcUrl(final String databaseName)
+  private static String getJdbcUrl(final IThreadContext tc, final String databaseName)
+    throws ManifoldCFException
   {
     String jdbcUrl = _defaultUrl + databaseName;
-    final String hostname = ManifoldCF.getProperty(postgresqlHostnameProperty);
-    final String ssl = ManifoldCF.getProperty(postgresqlSslProperty);
-    final String port = ManifoldCF.getProperty(postgresqlPortProperty);
+    final String hostname = LockManagerFactory.getProperty(tc,postgresqlHostnameProperty);
+    final String ssl = LockManagerFactory.getProperty(tc,postgresqlSslProperty);
+    final String port = LockManagerFactory.getProperty(tc,postgresqlPortProperty);
     if (hostname != null && hostname.length() > 0)
     {
       jdbcUrl = "jdbc:postgresql://" + hostname;
@@ -108,6 +109,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   /** Initialize.  This method is called once per JVM instance, in order to set up
   * database communication.
   */
+  @Override
   public void openDatabase()
     throws ManifoldCFException
   {
@@ -117,6 +119,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   /** Uninitialize.  This method is called during JVM shutdown, in order to close
   * all database communication.
   */
+  @Override
   public void closeDatabase()
     throws ManifoldCFException
   {
@@ -126,6 +129,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   /** Get the database general cache key.
   *@return the general cache key for the database.
   */
+  @Override
   public String getDatabaseCacheKey()
   {
     return cacheKey;
@@ -137,6 +141,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * invalidated.
   *@param parameterMap is the map of column name/values to write.
   */
+  @Override
   public void performInsert(String tableName, Map<String,Object> parameterMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -190,6 +195,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
+  @Override
   public void performUpdate(String tableName, Map<String,Object> parameterMap, String whereClause,
     List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
@@ -256,6 +262,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param whereClause is the where clause describing the match (including the WHERE), or null if none.
   *@param whereParameters are the parameters that come with the where clause, if any.
   */
+  @Override
   public void performDelete(String tableName, String whereClause, List whereParameters, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -282,6 +289,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * layer.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void performCreate(String tableName, Map<String,ColumnDescription> columnMap, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -341,6 +349,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param columnDeleteList is the list of column names to delete.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void performAlter(String tableName, Map<String,ColumnDescription> columnMap,
     Map<String,ColumnDescription> columnModifyMap, List<String> columnDeleteList,
     StringSet invalidateKeys)
@@ -435,6 +444,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param columnList is the list of columns that need to be included
   * in the index, in order.
   */
+  @Override
   public void addTableIndex(String tableName, boolean unique, List<String> columnList)
     throws ManifoldCFException
   {
@@ -453,6 +463,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param indexName is the optional name of the table index.  If null, a name will be chosen automatically.
   *@param description is the index description.
   */
+  @Override
   public void performAddIndex(String indexName, String tableName, IndexDescription description)
     throws ManifoldCFException
   {
@@ -489,6 +500,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param indexName is the name of the index to remove.
   *@param tableName is the table the index belongs to.
   */
+  @Override
   public void performRemoveIndex(String indexName, String tableName)
     throws ManifoldCFException
   {
@@ -500,6 +512,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param tableName is the name of the table to drop.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void performDrop(String tableName, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -511,6 +524,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void createUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -565,6 +579,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param adminPassword is the admin password.
   *@param invalidateKeys are the cache keys that should be invalidated, if any.
   */
+  @Override
   public void dropUserAndDatabase(String adminUserName, String adminPassword, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -623,6 +638,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param params are the parameterized values, if needed.
   *@param invalidateKeys are the cache keys to invalidate.
   */
+  @Override
   public void performModification(String query, List params, StringSet invalidateKeys)
     throws ManifoldCFException
   {
@@ -643,6 +659,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@return a map of column names and ColumnDescription objects, describing the schema, or null if the
   * table doesn't exist.
   */
+  @Override
   public Map<String,ColumnDescription> getTableSchema(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -687,6 +704,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return a map of index names and IndexDescription objects, describing the indexes.
   */
+  @Override
   public Map<String,IndexDescription> getTableIndexes(String tableName, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -770,6 +788,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param queryClass is the name of the query class, or null.
   *@return the set of tables.
   */
+  @Override
   public StringSet getAllTables(StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -795,6 +814,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * or null if no LRU behavior desired.
   *@return a resultset.
   */
+  @Override
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass)
     throws ManifoldCFException
   {
@@ -818,6 +838,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
+  @Override
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ILimitChecker returnLimit)
     throws ManifoldCFException
@@ -843,6 +864,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param returnLimit is a description of how to limit the return result, or null if no limit.
   *@return a resultset.
   */
+  @Override
   public IResultSet performQuery(String query, List params, StringSet cacheKeys, String queryClass,
     int maxResults, ResultSpecification resultSpec, ILimitChecker returnLimit)
     throws ManifoldCFException
@@ -863,6 +885,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param value is the value to be cast.
   *@return the query chunk needed.
   */
+  @Override
   public String constructDoubleCastClause(String value)
   {
     return "CAST("+value+" AS DOUBLE PRECISION)";
@@ -874,6 +897,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param column is the column string to be counted.
   *@return the query chunk needed.
   */
+  @Override
   public String constructCountClause(String column)
   {
     return "COUNT("+column+")";
@@ -886,6 +910,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param caseInsensitive is true of the regular expression match is to be case insensitive.
   *@return the query chunk needed, not padded with spaces on either side.
   */
+  @Override
   public String constructRegexpClause(String column, String regularExpression, boolean caseInsensitive)
   {
     return column + "~" + (caseInsensitive?"*":"") + regularExpression;
@@ -899,6 +924,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param caseInsensitive is true if the regular expression match is to be case insensitive.
   *@return the expression chunk needed, not padded with spaces on either side.
   */
+  @Override
   public String constructSubstringClause(String column, String regularExpression, boolean caseInsensitive)
   {
     StringBuilder sb = new StringBuilder();
@@ -923,6 +949,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param afterOrderBy is true if this offset/limit comes after an ORDER BY.
   *@return the proper clause, with no padding spaces on either side.
   */
+  @Override
   public String constructOffsetLimitClause(int offset, int limit, boolean afterOrderBy)
   {
     StringBuilder sb = new StringBuilder();
@@ -951,6 +978,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   *@param otherFields are the rest of the fields to return, keyed by the AS name, value being the base query column value, e.g. "value AS key"
   *@return a revised query that performs the necessary DISTINCT ON operation.  The list outputParameters will also be appropriately filled in.
   */
+  @Override
   public String constructDistinctOnClause(List outputParameters, String baseQuery, List baseParameters,
     String[] distinctFields, String[] orderFields, boolean[] orderFieldsAscending, Map<String,String> otherFields)
   {
@@ -1014,6 +1042,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * to drop.
   *@return the maximum number of IN clause members.
   */
+  @Override
   public int getMaxInClause()
   {
     return 100;
@@ -1024,6 +1053,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * to drop.
   *@return the maximum number of OR clause members.
   */
+  @Override
   public int getMaxOrClause()
   {
     return 25;
@@ -1033,6 +1063,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * that can reasonably be expected to complete in an acceptable time.
   *@return the maximum number of rows.
   */
+  @Override
   public int getWindowedReportMaxRows()
   {
     return 5000;
@@ -1046,6 +1077,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * calls to executeQuery().  After this should be a catch for every exception type, including Error, which should call the
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   */
+  @Override
   public void beginTransaction()
     throws ManifoldCFException
   {
@@ -1061,6 +1093,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   * signalRollback() method, and rethrow the exception.  Then, after that a finally{} block which calls endTransaction().
   *@param transactionType is the kind of transaction desired.
   */
+  @Override
   public void beginTransaction(int transactionType)
     throws ManifoldCFException
   {
@@ -1106,6 +1139,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
 
   /** Signal that a rollback should occur on the next endTransaction().
   */
+  @Override
   public void signalRollback()
   {
     if (serializableDepth == 0)
@@ -1115,6 +1149,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   /** End a database transaction, either performing a commit or a rollback (depending on whether
   * signalRollback() was called within the transaction).
   */
+  @Override
   public void endTransaction()
     throws ManifoldCFException
   {
@@ -1143,6 +1178,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   }
 
   /** Abstract method to start a transaction */
+  @Override
   protected void startATransaction()
     throws ManifoldCFException
   {
@@ -1157,6 +1193,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   }
 
   /** Abstract method to commit a transaction */
+  @Override
   protected void commitCurrentTransaction()
     throws ManifoldCFException
   {
@@ -1172,6 +1209,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   }
   
   /** Abstract method to roll back a transaction */
+  @Override
   protected void rollbackCurrentTransaction()
     throws ManifoldCFException
   {
@@ -1186,20 +1224,38 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   }
   
   /** Abstract method for explaining a query */
+  @Override
   protected void explainQuery(String query, List params)
     throws ManifoldCFException
   {
-    IResultSet x = executeUncachedQuery("EXPLAIN "+query,params,true,
+    // We really can't retry at this level; it's not clear what the transaction nesting is etc.
+    // So if the EXPLAIN fails due to deadlock, we just give up.
+    IResultSet x;
+    String queryType = "EXPLAIN ";
+    if ("SELECT".equalsIgnoreCase(query.substring(0,6)))
+      queryType += "ANALYZE ";
+    x = executeUncachedQuery(queryType+query,params,true,
       -1,null,null);
-    int k = 0;
-    while (k < x.getRowCount())
+    for (int k = 0; k < x.getRowCount(); k++)
     {
-      IResultRow row = x.getRow(k++);
+      IResultRow row = x.getRow(k);
       Iterator<String> iter = row.getColumns();
       String colName = (String)iter.next();
       Logging.db.warn(" Plan: "+row.getValue(colName).toString());
     }
     Logging.db.warn("");
+
+    if (query.indexOf("jobqueue") != -1)
+    {
+      // Dump jobqueue stats
+      x = executeUncachedQuery("select n_distinct, most_common_vals, most_common_freqs from pg_stats where tablename='jobqueue' and attname='status'",null,true,-1,null,null);
+      for (int k = 0; k < x.getRowCount(); k++)
+      {
+        IResultRow row = x.getRow(k);
+        Logging.db.warn(" Stats: n_distinct="+row.getValue("n_distinct").toString()+" most_common_vals="+row.getValue("most_common_vals").toString()+" most_common_freqs="+row.getValue("most_common_freqs").toString());
+      }
+      Logging.db.warn("");
+    }
   }
 
   
@@ -1365,7 +1421,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.reindex."+tableName,250000);
+        reindexThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1410,7 +1466,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       lockManager.leaveWriteCriticalSection(tableStatisticsLock);
     }
     
-      // Analysis.
+    // Analysis.
     // Here we count tuple addition.
     eventCount = modifyCount + insertCount;
     tableStatisticsLock = statslockAnalyzePrefix+tableName;
@@ -1422,7 +1478,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.postgres.analyze."+tableName,5000);
+        analyzeThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,2000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else

@@ -37,9 +37,8 @@ import org.apache.manifoldcf.crawler.system.Logging;
 import com.microsoft.schemas.sharepoint.dsp.*;
 import com.microsoft.schemas.sharepoint.soap.*;
 
-import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolFactory;
-import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.http.client.HttpClient;
+
 import org.apache.axis.EngineConfiguration;
 
 import javax.xml.namespace.QName;
@@ -68,8 +67,7 @@ import org.w3c.dom.Document;
 public class SPSProxyHelper {
 
 
-  public static final String PROTOCOL_FACTORY_PROPERTY = "ManifoldCF_Protocol_Factory";
-  public static final String CONNECTION_MANAGER_PROPERTY = "ManifoldCF_Connection_Manager";
+  public static final String HTTPCLIENT_PROPERTY = "ManifoldCF_HttpClient";
 
   private String serverUrl;
   private String serverLocation;
@@ -77,9 +75,8 @@ public class SPSProxyHelper {
   private String baseUrl;
   private String userName;
   private String password;
-  private ProtocolFactory myFactory;
   private EngineConfiguration configuration;
-  private HttpConnectionManager connectionManager;
+  private HttpClient httpClient;
 
   /**
   *
@@ -88,7 +85,7 @@ public class SPSProxyHelper {
   * @param password
   */
   public SPSProxyHelper( String serverUrl, String serverLocation, String decodedServerLocation, String userName, String password,
-    ProtocolFactory myFactory, Class resourceClass, String configFileName, HttpConnectionManager connectionManager )
+    Class resourceClass, String configFileName, HttpClient httpClient )
   {
     this.serverUrl = serverUrl;
     this.serverLocation = serverLocation;
@@ -99,9 +96,8 @@ public class SPSProxyHelper {
       baseUrl = serverUrl + serverLocation;
     this.userName = userName;
     this.password = password;
-    this.myFactory = myFactory;
     this.configuration = new ResourceProvider(resourceClass,configFileName);
-    this.connectionManager = connectionManager;
+    this.httpClient = httpClient;
   }
 
   /**
@@ -118,10 +114,10 @@ public class SPSProxyHelper {
     try
     {
       if ( site.compareTo("/") == 0 ) site = ""; // root case
-        UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager  );
+        UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
-      PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
       com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
       com.microsoft.schemas.sharepoint.soap.directory.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( guid, "List" );
@@ -318,13 +314,19 @@ public class SPSProxyHelper {
 
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: Getting document acls for site '"+site+"' file '"+file+"': Encoded relative path is '"+encodedRelativePath+"'");
-      UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager  );
+      UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
-      MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
       com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
       com.microsoft.sharepoint.webpartpages.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( encodedRelativePath, "Item" );
+      if (aclResult == null)
+      {
+        Logging.connectors.debug("SharePoint: document acls were null");
+        return null;
+      }
+      
       org.apache.axis.message.MessageElement[] aclList = aclResult.get_any();
 
       if (Logging.connectors.isDebugEnabled())
@@ -516,7 +518,7 @@ public class SPSProxyHelper {
       if ( site.equals("/") ) site = ""; // root case
       if ( dspStsWorks )
       {
-        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, configuration, httpClient );
         StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
         String[] vArray = new String[1];
@@ -587,21 +589,6 @@ public class SPSProxyHelper {
           Object node = nodeDocs.get(j);
           Logging.connectors.debug( node.toString() );
           String relPath = docs.getData( docs.getElement( node, "FileRef" ) );
-
-          // This relative path is apparently from the domain on down; if there's a location offset we therefore
-          // need to get rid of it before checking the document against the site/library tuples.  The recorded
-          // document identifier should also not include it.
-
-          if (!relPath.toLowerCase().startsWith(serverLocation.toLowerCase()))
-          {
-            // Unexpected processing error; the path to the folder or document did not start with the location
-            // offset, so throw up.
-            throw new ManifoldCFException("Internal error: Relative path '"+relPath+"' was expected to start with '"+
-              serverLocation+"'");
-          }
-
-          relPath = relPath.substring(serverLocation.length());
-
           fileStream.addFile( relPath );
         }
       }
@@ -609,7 +596,7 @@ public class SPSProxyHelper {
       {
         // New code
         
-        MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        MCPermissionsWS itemService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap itemCall = itemService.getPermissionsSoapHandler( );
 
         int startingIndex = 0;
@@ -647,9 +634,6 @@ public class SPSProxyHelper {
                 {
                   resultCount++;
                   String relPath = result.getAttribute("FileRef");
-
-                  relPath = "/" + relPath;
-
                   fileStream.addFile( relPath );
                 }
               }
@@ -766,6 +750,7 @@ public class SPSProxyHelper {
     }
   }
 
+
   /**
   *
   * @param parentSite
@@ -792,7 +777,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -813,7 +798,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -831,22 +816,29 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the library name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-
-            if ( pathpart.equals(docLibrary) )
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              // We found it!
-              // Return its ID
-              return doc.getValue( o, "ID" );
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the library name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+
+              if ( pathpart.equals(docLibrary) )
+              {
+                // We found it!
+                // Return its ID
+                return doc.getValue( o, "ID" );
+              }
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Library view url is not in the expected form: '"+urlPath+"'; it should start with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -981,7 +973,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -1002,7 +994,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -1020,29 +1012,36 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-            if("Lists".equals(pathpart))
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              int k = urlPath.indexOf("/",index+1);
-              if (k == -1)
-                throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
-              pathpart = urlPath.substring(index+1,k);
-            }
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the Lists/listname part of the name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+              if("Lists".equals(pathpart))
+              {
+                int k = urlPath.indexOf("/",index+1);
+                if (k == -1)
+                  throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+                pathpart = urlPath.substring(index+1,k);
+              }
 
-            if ( pathpart.equals(listName) )
+              if ( pathpart.equals(listName) )
+              {
+                // We found it!
+                // Return its ID
+                return doc.getValue( o, "ID" );
+              }
+            }
+            else
             {
-              // We found it!
-              // Return its ID
-              return doc.getValue( o, "ID" );
+              Logging.connectors.warn("SharePoint: List view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -1166,7 +1165,7 @@ public class SPSProxyHelper {
     try
     {
       if ( site.compareTo("/") == 0 ) site = ""; // root case
-        VersionsWS versionsService = new VersionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        VersionsWS versionsService = new VersionsWS( baseUrl + site, userName, password, configuration, httpClient );
       VersionsSoap versionsCall = versionsService.getVersionsSoapHandler( );
 
       GetVersionsResponseGetVersionsResult versionsResp = versionsCall.getVersions( docPath );
@@ -1444,7 +1443,7 @@ public class SPSProxyHelper {
         site = "";
 
       // Attempt a listservice call
-      ListsWS listService = new ListsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
       ListsSoap listCall = listService.getListsSoapHandler();
       listCall.getListCollection();
 
@@ -1453,13 +1452,8 @@ public class SPSProxyHelper {
       {
         // The web service allows us to get acls for a site, so that's what we will attempt
 
-        // This fails:
-        MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        MCPermissionsWS aclService = new MCPermissionsWS( baseUrl + site, userName, password, configuration, httpClient );
         com.microsoft.sharepoint.webpartpages.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
-
-        // This works:
-        //PermissionsWS aclService = new PermissionsWS( baseUrl + site, userName, password, myFactory, configuration );
-        //com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap aclCall = aclService.getPermissionsSoapHandler( );
 
         aclCall.getPermissionCollection( "/", "Web" );
       }
@@ -1497,7 +1491,7 @@ public class SPSProxyHelper {
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Http error "+httpErrorCode+" while reading from "+baseUrl+site+" - check IIS and SharePoint security settings! "+e.getMessage(),e);
 	  else if (httpErrorCode.equals("302"))
-	    throw new ManifoldCFException("ManifoldCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
+	    throw new ManifoldCFException("The correct version of ManifoldCF's MCPermissions web service may not be installed on the target SharePoint server.  MCPermissions service is needed for SharePoint repositories version 3.0 or higher, to allow access to security information for files and folders.  Consult your system administrator.");
           else
             throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
         }
@@ -1537,6 +1531,125 @@ public class SPSProxyHelper {
     }
   }
 
+  /** Gets a list of attachment URLs, given a site, list name, and list item ID.  These will be returned
+  * as name/value pairs; the "name" is the name of the attachment, and the "value" is the full URL.
+  */
+  public List<NameValue> getAttachmentNames( String site, String listName, String itemID )
+    throws ManifoldCFException, ServiceInterruption
+  {
+    long currentTime;
+    try
+    {
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
+      
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: In getAttachmentNames; site='"+site+"', listName='"+listName+"', itemID='"+itemID+"'");
+
+      // The docLibrary must be a GUID, because we don't have  title.
+
+      if ( site.compareTo( "/") == 0 )
+        site = "";
+      ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
+      ListsSoap listCall = listService.getListsSoapHandler();
+
+      GetAttachmentCollectionResponseGetAttachmentCollectionResult listResponse =
+        listCall.getAttachmentCollection( listName, itemID );
+      org.apache.axis.message.MessageElement[] List = listResponse.get_any();
+
+      XMLDoc doc = new XMLDoc( List[0].toString() );
+      ArrayList nodeList = new ArrayList();
+
+      doc.processPath(nodeList, "*", null);
+      if (nodeList.size() != 1)
+      {
+        throw new ManifoldCFException("Bad xml - missing outer node - there are "+Integer.toString(nodeList.size())+" nodes");
+      }
+
+      Object attachments = nodeList.get(0);
+      if ( !doc.getNodeName(attachments).equals("ns1:Attachments") )
+        throw new ManifoldCFException( "Bad xml - outer node '" + doc.getNodeName(attachments) + "' is not 'ns1:Attachments'");
+
+      nodeList.clear();
+      doc.processPath(nodeList, "*", attachments);
+
+      int i = 0;
+      while (i < nodeList.size())
+      {
+        Object o = nodeList.get( i++ );
+        if ( !doc.getNodeName(o).equals("ns1:Attachment") )
+          throw new ManifoldCFException( "Bad xml - inner node '" + doc.getNodeName(o) + "' is not 'ns1:Attachment'");
+        String attachmentURL = doc.getData( o );
+        if (attachmentURL != null)
+        {
+          int index = attachmentURL.lastIndexOf("/");
+          if (index == -1)
+            throw new ManifoldCFException("Unexpected attachment URL form: '"+attachmentURL+"'");
+          result.add(new NameValue(attachmentURL.substring(index+1), new java.net.URL(attachmentURL).getPath()));
+        }
+      }
+
+      return result;
+    }
+    catch (java.net.MalformedURLException e)
+    {
+      throw new ManifoldCFException("Bad SharePoint url: "+e.getMessage(),e);
+    }
+    catch (javax.xml.rpc.ServiceException e)
+    {
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Got a service exception getting attachments for site "+site+" listName "+listName+" itemID "+itemID+" - retrying",e);
+      currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Service exception: "+e.getMessage(), e, currentTime + 300000L,
+        currentTime + 12 * 60 * 60000L,-1,true);
+    }
+    catch (org.apache.axis.AxisFault e)
+    {
+      if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
+      {
+        org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
+        if (elem != null)
+        {
+          elem.normalize();
+          String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
+          if (httpErrorCode.equals("404"))
+            return null;
+          else if (httpErrorCode.equals("403"))
+            throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
+          else if (httpErrorCode.equals("401"))
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("SharePoint: Crawl user does not have sufficient privileges to get attachment list for site "+site+" listName "+listName+" itemID "+itemID+" - skipping",e);
+            return null;
+          }
+          throw new ManifoldCFException("Unexpected http error code "+httpErrorCode+" accessing SharePoint at "+baseUrl+site+": "+e.getMessage(),e);
+        }
+        throw new ManifoldCFException("Unknown http error occurred: "+e.getMessage(),e);
+      }
+
+      if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://schemas.xmlsoap.org/soap/envelope/","Server.userException")))
+      {
+        String exceptionName = e.getFaultString();
+        if (exceptionName.equals("java.lang.InterruptedException"))
+          throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+
+      // I don't know if this is what you get when the library is missing, but here's hoping.
+      if (e.getMessage().indexOf("List does not exist") != -1)
+        return null;
+
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: Got a remote exception getting attachments for site "+site+" listName "+listName+" itemID "+itemID+" - retrying",e);
+      currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Remote procedure exception: "+e.getMessage(), e, currentTime + 300000L,
+        currentTime + 3 * 60 * 60000L,-1,false);
+    }
+    catch (java.rmi.RemoteException e)
+    {
+      throw new ManifoldCFException("Unexpected remote exception occurred: "+e.getMessage(),e);
+    }
+
+  }
+  
   /**
   * Gets a list of field names of the given document library
   * @param site
@@ -1556,8 +1669,9 @@ public class SPSProxyHelper {
 
       // The docLibrary must be a GUID, because we don't have  title.
 
-      if ( site.compareTo( "/") == 0 ) site = "";
-        ListsWS listService = new ListsWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+      if ( site.compareTo( "/") == 0 )
+        site = "";
+      ListsWS listService = new ListsWS( baseUrl + site, userName, password, configuration, httpClient );
       ListsSoap listCall = listService.getListsSoapHandler();
 
       GetListResponseGetListResult listResponse = listCall.getList( listName );
@@ -1672,19 +1786,19 @@ public class SPSProxyHelper {
   * @param docId
   * @return set of the field values
   */
-  public Map getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
+  public Map<String,String> getFieldValues( ArrayList fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      HashMap result = new HashMap();
+      HashMap<String,String> result = new HashMap<String,String>();
 
       if ( site.compareTo("/") == 0 ) site = ""; // root case
 
       if ( dspStsWorks )
       {
-        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        StsAdapterWS listService = new StsAdapterWS( baseUrl + site, userName, password, configuration, httpClient );
         StsAdapterSoapStub stub = (StsAdapterSoapStub)listService.getStsAdapterSoapHandler();
 
         String[] vArray = new String[1];
@@ -1805,10 +1919,10 @@ public class SPSProxyHelper {
       {
         // SharePoint 2010: Get field values some other way
         // Sharepoint 2010; use Lists service instead
-        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, myFactory, configuration, connectionManager );
+        ListsWS lservice = new ListsWS(baseUrl + site, userName, password, configuration, httpClient );
         ListsSoapStub stub1 = (ListsSoapStub)lservice.getListsSoapHandler();
         
-        String sitePlusDocId = serverLocation + site + "/" + docId;
+        String sitePlusDocId = serverLocation + site + docId;
         if (sitePlusDocId.startsWith("/"))
           sitePlusDocId = sitePlusDocId.substring(1);
         
@@ -1867,7 +1981,7 @@ public class SPSProxyHelper {
           String attrValue = doc.getValue(o,"ows_"+(String)attrName);
           if (attrValue != null)
           {
-            result.put(attrName,valueMunge(attrValue));
+            result.put(attrName.toString(),valueMunge(attrValue));
           }
         }
       }
@@ -1942,16 +2056,17 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for subsites, empty string for root
   * @return lists of sites as an arraylist of NameValue objects
   */
-  public ArrayList getSites( String parentSite )
+  public List<NameValue> getSites( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
+      // Call the webs service
       if ( parentSite.equals( "/") ) parentSite = "";
-        WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, myFactory, configuration, connectionManager );
+        WebsWS webService = new WebsWS( baseUrl + parentSite, userName, password, configuration, httpClient );
       WebsSoap webCall = webService.getWebsSoapHandler();
 
       GetWebCollectionResponseGetWebCollectionResult webResp = webCall.getWebCollection();
@@ -1984,7 +2099,7 @@ public class SPSProxyHelper {
         // Leave here for now
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("SharePoint: Subsite list: '"+url+"', '"+title+"'");
-
+        
         // A full path to the site is tacked on the front of each one of these.  However, due to nslookup differences, we cannot guarantee that
         // the server name part of the path will actually match what got passed in.  Therefore, we want to look only at the last path segment, whatever that is.
         if (url != null && url.length() > 0)
@@ -2002,7 +2117,7 @@ public class SPSProxyHelper {
           }
         }
       }
-
+      
       return result;
     }
     catch (java.net.MalformedURLException e)
@@ -2066,13 +2181,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for document libraries, empty string for root
   * @return lists of NameValue objects, representing document libraries
   */
-  public ArrayList getDocumentLibraries( String parentSite, String parentSiteDecoded )
+  public List<NameValue> getDocumentLibraries( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       String parentSiteRequest = parentSite;
 
@@ -2082,7 +2197,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -2105,7 +2220,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -2129,22 +2244,29 @@ public class SPSProxyHelper {
           // It's a library.  If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("Library view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("Library view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the library name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-
-            if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              if (title == null || title.length() == 0)
-                title = pathpart;
-              result.add( new NameValue(pathpart, title) );
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the library name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad library view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+
+              if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+              {
+                if (title == null || title.length() == 0)
+                  title = pathpart;
+                result.add( new NameValue(pathpart, title) );
+              }
+            }
+            else
+            {
+              Logging.connectors.warn("SharePoint: Library view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -2210,13 +2332,13 @@ public class SPSProxyHelper {
   * @param parentSite the site to search for lists, empty string for root
   * @return lists of NameValue objects, representing lists
   */
-  public ArrayList getLists( String parentSite, String parentSiteDecoded )
+  public List<NameValue> getLists( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
     long currentTime;
     try
     {
-      ArrayList result = new ArrayList();
+      ArrayList<NameValue> result = new ArrayList<NameValue>();
 
       String parentSiteRequest = parentSite;
 
@@ -2226,7 +2348,7 @@ public class SPSProxyHelper {
         parentSiteDecoded = "";
       }
 
-      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, myFactory, configuration, connectionManager );
+      ListsWS listsService = new ListsWS( baseUrl + parentSiteRequest, userName, password, configuration, httpClient );
       ListsSoap listsCall = listsService.getListsSoapHandler( );
 
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
@@ -2249,7 +2371,7 @@ public class SPSProxyHelper {
       nodeList.clear();
       doc.processPath(nodeList, "*", parent);  // <ns1:Lists>
 
-      int chuckIndex = decodedServerLocation.length() + parentSiteDecoded.length();
+      String prefixPath = decodedServerLocation + parentSiteDecoded + "/";
 
       int i = 0;
       while (i < nodeList.size())
@@ -2273,30 +2395,37 @@ public class SPSProxyHelper {
           // If it has no view url, we don't have any idea what to do with it
           if (urlPath != null && urlPath.length() > 0)
           {
-            if (urlPath.length() < chuckIndex)
-              throw new ManifoldCFException("List view url is not in the expected form: '"+urlPath+"'");
-            urlPath = urlPath.substring(chuckIndex);
+            // Normalize conditionally
             if (!urlPath.startsWith("/"))
-              throw new ManifoldCFException("List view url without site is not in the expected form: '"+urlPath+"'");
-            // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
-            int index = urlPath.indexOf("/",1);
-            if (index == -1)
-              throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
-            String pathpart = urlPath.substring(1,index);
-
-            if("Lists".equals(pathpart))
+              urlPath = prefixPath + urlPath;
+            // Get rid of what we don't want, unconditionally
+            if (urlPath.startsWith(prefixPath))
             {
-              int k = urlPath.indexOf("/",index+1);
-              if (k == -1)
-                throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
-              pathpart = urlPath.substring(index+1,k);
+              urlPath = urlPath.substring(prefixPath.length());
+              // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
+              int index = urlPath.indexOf("/");
+              if (index == -1)
+                throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+              String pathpart = urlPath.substring(0,index);
+
+              if("Lists".equals(pathpart))
+              {
+                int k = urlPath.indexOf("/",index+1);
+                if (k == -1)
+                  throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+                pathpart = urlPath.substring(index+1,k);
+              }
+
+              if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+              {
+                if (title == null || title.length() == 0)
+                  title = pathpart;
+                result.add( new NameValue(pathpart, title) );
+              }
             }
-
-            if ( pathpart.length() != 0 && !pathpart.equals("_catalogs"))
+            else
             {
-              if (title == null || title.length() == 0)
-                title = pathpart;
-              result.add( new NameValue(pathpart, title) );
+              Logging.connectors.warn("SharePoint: List view url is not in the expected form: '"+urlPath+"'; expected something beginning with '"+prefixPath+"'; skipping");
             }
           }
         }
@@ -2520,18 +2649,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public PermissionsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public PermissionsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/Permissions.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.directory.PermissionsSoap getPermissionsSoapHandler( )
@@ -2541,10 +2668,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getPermissionsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient);
       return _stub;
     }
   }
@@ -2561,18 +2685,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public MCPermissionsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public MCPermissionsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/MCPermissions.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.sharepoint.webpartpages.PermissionsSoap getPermissionsSoapHandler( )
@@ -2582,10 +2704,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getPermissionsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2602,18 +2721,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public UserGroupWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public UserGroupWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/usergroup.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap getUserGroupSoapHandler( )
@@ -2623,10 +2740,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getUserGroupSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2643,18 +2757,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public StsAdapterWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public StsAdapterWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/dspsts.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.dsp.StsAdapterSoap getStsAdapterSoapHandler( )
@@ -2664,10 +2776,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getStsAdapterSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2684,18 +2793,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public ListsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public ListsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/lists.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.ListsSoap getListsSoapHandler( )
@@ -2705,10 +2812,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getListsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2725,18 +2829,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public VersionsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public VersionsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/versions.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.VersionsSoap getVersionsSoapHandler( )
@@ -2746,10 +2848,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getVersionsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }
@@ -2766,18 +2865,16 @@ public class SPSProxyHelper {
     private java.net.URL endPoint;
     private String userName;
     private String password;
-    private ProtocolFactory myFactory;
-    private HttpConnectionManager connectionManager;
+    private HttpClient httpClient;
 
-    public WebsWS ( String siteUrl, String userName, String password, ProtocolFactory myFactory, EngineConfiguration configuration, HttpConnectionManager connectionManager )
+    public WebsWS ( String siteUrl, String userName, String password, EngineConfiguration configuration, HttpClient httpClient )
       throws java.net.MalformedURLException
     {
       super(configuration);
       endPoint = new java.net.URL(siteUrl + "/_vti_bin/webs.asmx");
       this.userName = userName;
       this.password = password;
-      this.myFactory = myFactory;
-      this.connectionManager = connectionManager;
+      this.httpClient = httpClient;
     }
 
     public com.microsoft.schemas.sharepoint.soap.WebsSoap getWebsSoapHandler( )
@@ -2787,10 +2884,7 @@ public class SPSProxyHelper {
       _stub.setPortName(getWebsSoapWSDDServiceName());
       _stub.setUsername( userName );
       _stub.setPassword( password );
-      if (myFactory != null)
-        _stub._setProperty( PROTOCOL_FACTORY_PROPERTY, myFactory );
-      if (connectionManager != null)
-        _stub._setProperty( CONNECTION_MANAGER_PROPERTY, connectionManager );
+      _stub._setProperty( HTTPCLIENT_PROPERTY, httpClient );
       return _stub;
     }
   }

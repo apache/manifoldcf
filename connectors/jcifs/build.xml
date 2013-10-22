@@ -44,7 +44,13 @@
 
     <target name="download-jcifs">
         <property name="jcifs-version" value="1.3.17"/>
-        <get src="http://jcifs.samba.org/src/jcifs-${jcifs-version}.jar" dest="lib-proprietary/jcifs.jar"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="jcifs"/>
+            <param name="artifact-version" value="${jcifs-version}"/>
+            <param name="target" value="lib-proprietary"/>
+            <param name="artifact-name" value="jcifs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
     <target name="download-dependencies" depends="download-jcifs"/>

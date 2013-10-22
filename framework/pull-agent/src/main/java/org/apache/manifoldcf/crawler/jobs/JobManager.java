@@ -98,7 +98,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,2);
+    ManifoldCF.writeDword(os,3);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
@@ -136,6 +136,7 @@ public class JobManager implements IJobManager
         writeEnumeratedValues(os,sr.getMinutesOfHour());
         ManifoldCF.writeString(os,sr.getTimezone());
         ManifoldCF.writeLong(os,sr.getDuration());
+        ManifoldCF.writeByte(os,sr.getRequestMinimum()?1:0);
       }
 
       // Write hop count filters
@@ -174,7 +175,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 2)
+    if (version != 2 && version != 3)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     int i = 0;
@@ -208,9 +209,14 @@ public class JobManager implements IJobManager
         EnumeratedValues minutesOfHour = readEnumeratedValues(is);
         String timezone = ManifoldCF.readString(is);
         Long duration = ManifoldCF.readLong(is);
+        boolean requestMinimum;
+        if (version >= 3)
+          requestMinimum = (ManifoldCF.readByte(is) != 0);
+        else
+          requestMinimum = false;
 
         ScheduleRecord sr = new ScheduleRecord(dayOfWeek, monthOfYear, dayOfMonth, year,
-          hourOfDay, minutesOfHour, timezone, duration);
+          hourOfDay, minutesOfHour, timezone, duration, requestMinimum);
         job.addScheduleRecord(sr);
         j++;
       }
@@ -638,13 +644,16 @@ public class JobManager implements IJobManager
         hopCount.reset();
         // Clean up carrydown stuff
         carryDown.reset();
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         Logging.jobs.debug("Reset complete");
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -657,6 +666,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -680,12 +690,15 @@ public class JobManager implements IJobManager
       try
       {
         jobQueue.resetDocumentWorkerStatus();
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -698,6 +711,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -725,7 +739,9 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc deleting status");
+    TrackerClass.notePrecommit();
     jobQueue.resetDocDeleteWorkerStatus();
+    TrackerClass.noteCommit();
     Logging.jobs.debug("Reset complete");
   }
 
@@ -735,7 +751,9 @@ public class JobManager implements IJobManager
     throws ManifoldCFException
   {
     Logging.jobs.debug("Resetting doc cleaning status");
+    TrackerClass.notePrecommit();
     jobQueue.resetDocCleanupWorkerStatus();
+    TrackerClass.noteCommit();
     Logging.jobs.debug("Reset complete");
   }
 
@@ -989,8 +1007,10 @@ public class JobManager implements IJobManager
           rval[i++] = dd;
           jobQueue.setCleaningStatus(dd.getID());
         }
-        
+
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
@@ -1001,11 +1021,13 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -1251,7 +1273,9 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Done pruning unindexable docs after "+new Long(System.currentTimeMillis()-startTime).toString()+" ms.");
@@ -1262,11 +1286,13 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -1343,11 +1369,12 @@ public class JobManager implements IJobManager
     sb.append("SELECT t0.").append(jobQueue.docHashField).append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE ")
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new MultiClause("t0."+jobQueue.docHashField,docList)})).append(" AND ")
-      .append("t0.").append(jobQueue.statusField).append(" IN (?,?,?,?) AND ");
+      .append("t0.").append(jobQueue.statusField).append(" IN (?,?,?,?,?) AND ");
 
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDINGPURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_UNCHANGED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ELIGIBLEFORDELETE));
     
     sb.append("EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t1 WHERE ")
@@ -1424,6 +1451,7 @@ public class JobManager implements IJobManager
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(jobQueue.statusField,new Object[]{
         jobQueue.statusToString(JobQueue.STATUS_COMPLETE),
+        jobQueue.statusToString(JobQueue.STATUS_UNCHANGED),
         jobQueue.statusToString(JobQueue.STATUS_PURGATORY)}),
       new UnitaryClause(jobQueue.prioritySetField,"<",new Long(currentTime))})).append(" ");
       
@@ -1490,6 +1518,7 @@ public class JobManager implements IJobManager
       .append(database.buildConjunctionClause(list,new ClauseDescription[]{
         new MultiClause("t1."+jobs.statusField,new Object[]{
           Jobs.statusToString(Jobs.STATUS_STARTINGUP),
+          Jobs.statusToString(Jobs.STATUS_STARTINGUPMINIMAL),
           Jobs.statusToString(Jobs.STATUS_ACTIVE),
           Jobs.statusToString(Jobs.STATUS_ACTIVESEEDING),
           Jobs.statusToString(Jobs.STATUS_ACTIVE_UNINSTALLED),
@@ -1811,7 +1840,9 @@ public class JobManager implements IJobManager
           jobQueue.updateActiveRecord(dd.getID(),((Integer)statusMap.get(compositeDocID)).intValue());
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         
         return new DocumentSetAndFlags(rval, rvalBoolean);
 
@@ -1819,6 +1850,7 @@ public class JobManager implements IJobManager
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -1831,6 +1863,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -2104,7 +2137,7 @@ public class JobManager implements IJobManager
     sb.append(jobQueue.docPriorityField).append(",").append(jobQueue.jobIDField).append(",")
       .append(jobQueue.docHashField).append(",").append(jobQueue.docIDField)
       .append(" FROM ").append(jobQueue.getTableName())
-      .append(" t0 WHERE ");
+      .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
       
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
       //new UnitaryClause(jobQueue.docPriorityField,">=",new Long(0L)),
@@ -2122,11 +2155,9 @@ public class JobManager implements IJobManager
         new JoinClause("t1."+jobs.idField,"t0."+jobQueue.jobIDField)}))
       .append(") ");
       
-    sb.append(" ORDER BY ")
-      .append(jobQueue.docPriorityField).append(" ASC,")
-      .append(jobQueue.statusField).append(" ASC,")
-      .append(jobQueue.checkActionField).append(" ASC,")
-      .append(jobQueue.checkTimeField).append(" ASC ")
+    sb.append(" ").append(database.constructIndexOrderByClause(new String[]{
+      jobQueue.docPriorityField, jobQueue.statusField, jobQueue.checkActionField, jobQueue.checkTimeField},
+      true)).append(" ")
       .append(database.constructOffsetLimitClause(0,1,true));
 
     IResultSet set = database.performQuery(sb.toString(),list,null,null,1,null);
@@ -2134,7 +2165,7 @@ public class JobManager implements IJobManager
     {
       IResultRow row = set.getRow(0);
       Double docPriority = (Double)row.getValue(jobQueue.docPriorityField);
-      if (docPriority != null)
+      if (docPriority != null && docPriority.doubleValue() < jobQueue.noDocPriorityValue)
         scanRecord.addBins(docPriority);
     }
     return rval;
@@ -2161,7 +2192,8 @@ public class JobManager implements IJobManager
       .append(jobQueue.statusField).append(",t0.")
       .append(jobQueue.failTimeField).append(",t0.")
       .append(jobQueue.failCountField).append(",t0.")
-      .append(jobQueue.prioritySetField).append(" FROM ").append(jobQueue.getTableName()).append(" t0 WHERE ");
+      .append(jobQueue.prioritySetField).append(" FROM ").append(jobQueue.getTableName())
+      .append(" t0 ").append(jobQueue.getGetNextDocumentsIndexHint()).append(" WHERE ");
     
     sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
       //new UnitaryClause("t0."+jobQueue.docPriorityField,">=",new Long(0L)),
@@ -2200,12 +2232,9 @@ public class JobManager implements IJobManager
       .append(jobQueue.prereqEventManager.eventNameField).append("=t4.").append(eventManager.eventNameField)
       .append(")");
 
-    sb.append(" ORDER BY ")
-      .append("t0.").append(jobQueue.docPriorityField).append(" ASC,")
-      .append("t0.").append(jobQueue.statusField).append(" ASC,")
-      .append("t0.").append(jobQueue.checkActionField).append(" ASC,")
-      .append("t0.").append(jobQueue.checkTimeField).append(" ASC ");
-
+    sb.append(" ").append(database.constructIndexOrderByClause(new String[]{
+      "t0."+jobQueue.docPriorityField, "t0."+jobQueue.statusField, "t0."+jobQueue.checkActionField, "t0."+jobQueue.checkTimeField},
+      true)).append(" ");
 
     // Before entering the transaction, we must provide the throttlelimit object with all the connector
     // instances it could possibly need.  The purpose for doing this is to prevent a deadlock where
@@ -2320,7 +2349,9 @@ public class JobManager implements IJobManager
 
             i++;
           }
+          TrackerClass.notePrecommit();
           database.performCommit();
+          TrackerClass.noteCommit();
           break;
         }
         catch (ManifoldCFException e)
@@ -2424,8 +2455,10 @@ public class JobManager implements IJobManager
           ArrayList list = new ArrayList();
           String query = database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobQueue.idField,dd.getID())});
+          TrackerClass.notePreread(dd.getID());
           IResultSet set = database.performQuery("SELECT "+jobQueue.statusField+" FROM "+jobQueue.getTableName()+" WHERE "+
             query+" FOR UPDATE",list,null,null);
+          TrackerClass.noteRead(dd.getID());
           if (set.getRowCount() > 0)
           {
             IResultRow row = set.getRow(0);
@@ -2436,12 +2469,15 @@ public class JobManager implements IJobManager
           }
           i++;
         }
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -2455,6 +2491,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -2572,8 +2609,10 @@ public class JobManager implements IJobManager
           ArrayList list = new ArrayList();
           String query = database.buildConjunctionClause(list,new ClauseDescription[]{
             new UnitaryClause(jobQueue.idField,dd.getID())});
+          TrackerClass.notePreread(dd.getID());
           IResultSet set = database.performQuery("SELECT "+jobQueue.statusField+" FROM "+jobQueue.getTableName()+" WHERE "+
             query+" FOR UPDATE",list,null,null);
+          TrackerClass.noteRead(dd.getID());
           if (set.getRowCount() > 0)
           {
             IResultRow row = set.getRow(0);
@@ -2601,12 +2640,15 @@ public class JobManager implements IJobManager
         // Since hopcount inheritance and prerequisites came from the addDocument() method,
         // we don't delete them here.
         
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         return rval;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -2620,6 +2662,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -2981,17 +3024,21 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3188,12 +3235,15 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3206,6 +3256,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -3283,12 +3334,15 @@ public class JobManager implements IJobManager
           i++;
         }
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3301,6 +3355,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -3518,7 +3573,9 @@ public class JobManager implements IJobManager
         if (legalLinkTypes.length > 0)
           hopCount.recordSeedReferences(jobID,legalLinkTypes,reorderedDocIDHashes,hopcountMethod);
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
@@ -3539,6 +3596,7 @@ public class JobManager implements IJobManager
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -3552,6 +3610,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -3912,7 +3971,8 @@ public class JobManager implements IJobManager
   *@param jobID is the job identifier.
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHashes are the local document identifier hashes.
-  *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none.
+  *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none. 
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is the desired method for managing hopcounts.
@@ -4148,7 +4208,9 @@ public class JobManager implements IJobManager
         if (reactivateRemovedHopcountRecords)
           jobQueue.reactivateHopcountRemovedRecords(jobID);
 
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         
         if (Logging.perf.isDebugEnabled())
           Logging.perf.debug("Took "+new Long(System.currentTimeMillis()-startTime).toString()+" ms to add "+Integer.toString(reorderedDocIDHashes.length)+
@@ -4168,6 +4230,7 @@ public class JobManager implements IJobManager
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           sleepAmt = getRandomAmount();
@@ -4181,6 +4244,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -4200,6 +4264,7 @@ public class JobManager implements IJobManager
   *@param legalLinkTypes is the set of legal link types that this connector generates.
   *@param docIDHash is the local document identifier hash value.
   *@param parentIdentifierHash is the optional parent identifier hash of this document.  Pass null if none.
+  *       MUST be present in the case of carrydown information.
   *@param relationshipType is the optional link type between this document and its parent.  Pass null if there
   *       is no relationship with a parent.
   *@param hopcountMethod is the desired method for managing hopcounts.
@@ -4683,223 +4748,239 @@ public class JobManager implements IJobManager
     // Note well: We can't combine locks across both our lock manager and the database unless we do it consistently.  The
     // consistent practice throughout CF is to do the external locks first, then the database locks.  This particular method
     // thus cannot use cached job description information, because it must throw database locks first against the jobs table.
-    database.beginTransaction();
-    try
+    while (true)
     {
-      // First, query the appropriate fields of all jobs.
-      StringBuilder sb = new StringBuilder("SELECT ");
-      ArrayList list = new ArrayList();
-      
-      sb.append(jobs.idField).append(",")
-        .append(jobs.lastTimeField).append(",")
-        .append(jobs.statusField).append(",")
-        .append(jobs.startMethodField).append(",")
-        .append(jobs.outputNameField).append(",")
-        .append(jobs.connectionNameField)
-        .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
-        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-          new MultiClause(jobs.statusField,new Object[]{
-            jobs.statusToString(jobs.STATUS_INACTIVE),
-            jobs.statusToString(jobs.STATUS_ACTIVEWAIT),
-            jobs.statusToString(jobs.STATUS_ACTIVEWAITSEEDING),
-            jobs.statusToString(jobs.STATUS_PAUSEDWAIT),
-            jobs.statusToString(jobs.STATUS_PAUSEDWAITSEEDING)})})).append(" AND ")
-        .append(jobs.startMethodField).append("!=? FOR UPDATE");
-      
-      list.add(jobs.startMethodToString(IJobDescription.START_DISABLE));
-      
-      IResultSet set = database.performQuery(sb.toString(),list,null,null);
-
-      // Next, we query for the schedule information.  In order to do that, we amass a list of job identifiers that we want schedule info
-      // for.
-      Long[] jobIDSet = new Long[set.getRowCount()];
-      int i = 0;
-      while (i < set.getRowCount())
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
       {
-        IResultRow row = set.getRow(i);
-        jobIDSet[i++] = (Long)row.getValue(jobs.idField);
-      }
+        // First, query the appropriate fields of all jobs.
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+        
+        sb.append(jobs.idField).append(",")
+          .append(jobs.lastTimeField).append(",")
+          .append(jobs.statusField).append(",")
+          .append(jobs.startMethodField).append(",")
+          .append(jobs.outputNameField).append(",")
+          .append(jobs.connectionNameField)
+          .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
+          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+            new MultiClause(jobs.statusField,new Object[]{
+              jobs.statusToString(jobs.STATUS_INACTIVE),
+              jobs.statusToString(jobs.STATUS_ACTIVEWAIT),
+              jobs.statusToString(jobs.STATUS_ACTIVEWAITSEEDING),
+              jobs.statusToString(jobs.STATUS_PAUSEDWAIT),
+              jobs.statusToString(jobs.STATUS_PAUSEDWAITSEEDING)})})).append(" AND ")
+          .append(jobs.startMethodField).append("!=? FOR UPDATE");
+        
+        list.add(jobs.startMethodToString(IJobDescription.START_DISABLE));
+        
+        IResultSet set = database.performQuery(sb.toString(),list,null,null);
 
-      ScheduleRecord[][] srSet = jobs.readScheduleRecords(jobIDSet);
-
-      i = 0;
-      while (i < set.getRowCount())
-      {
-        IResultRow row = set.getRow(i);
-
-        Long jobID = (Long)row.getValue(jobs.idField);
-        int startMethod = jobs.stringToStartMethod((String)row.getValue(jobs.startMethodField));
-        String outputName = (String)row.getValue(jobs.outputNameField);
-        String connectionName = (String)row.getValue(jobs.connectionNameField);
-        ScheduleRecord[] thisSchedule = srSet[i++];
-
-        // Run at specific times
-
-        // We need to start with the start time as given, plus one
-        long startInterval = ((Long)row.getValue(jobs.lastTimeField)).longValue() + 1;
-        if (Logging.jobs.isDebugEnabled())
-          Logging.jobs.debug("Checking if job "+jobID.toString()+" needs to be started; it was last checked at "+
-          new Long(startInterval).toString()+", and now it is "+new Long(currentTime).toString());
-
-        // Proceed to the current time, and find a match if there is one to be found.
-        // If not -> continue
-
-        // We go through *all* the schedule records.  The one that matches that has the latest
-        // end time is the one we take.
-        int l = 0;
-        Long matchTime = null;
-        Long duration = null;
-        while (l < thisSchedule.length)
+        // Next, we query for the schedule information.  In order to do that, we amass a list of job identifiers that we want schedule info
+        // for.
+        Long[] jobIDSet = new Long[set.getRowCount()];
+        int i = 0;
+        while (i < set.getRowCount())
         {
-          long trialStartInterval = startInterval;
-          ScheduleRecord sr = thisSchedule[l++];
-          Long thisDuration = sr.getDuration();
-          if (startMethod == IJobDescription.START_WINDOWINSIDE &&
-            thisDuration != null)
+          IResultRow row = set.getRow(i);
+          jobIDSet[i++] = (Long)row.getValue(jobs.idField);
+        }
+
+        ScheduleRecord[][] srSet = jobs.readScheduleRecords(jobIDSet);
+
+        i = 0;
+        while (i < set.getRowCount())
+        {
+          IResultRow row = set.getRow(i);
+
+          Long jobID = (Long)row.getValue(jobs.idField);
+          int startMethod = jobs.stringToStartMethod((String)row.getValue(jobs.startMethodField));
+          String outputName = (String)row.getValue(jobs.outputNameField);
+          String connectionName = (String)row.getValue(jobs.connectionNameField);
+          ScheduleRecord[] thisSchedule = srSet[i++];
+
+          // Run at specific times
+
+          // We need to start with the start time as given, plus one
+          long startInterval = ((Long)row.getValue(jobs.lastTimeField)).longValue() + 1;
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Checking if job "+jobID.toString()+" needs to be started; it was last checked at "+
+            new Long(startInterval).toString()+", and now it is "+new Long(currentTime).toString());
+
+          // Proceed to the current time, and find a match if there is one to be found.
+          // If not -> continue
+
+          // We go through *all* the schedule records.  The one that matches that has the latest
+          // end time is the one we take.
+          Long matchTime = null;
+          Long duration = null;
+          boolean requestMinimum = false;
+          
+          for (int l = 0; l < thisSchedule.length; l++)
           {
-            // Bump the start interval back before the beginning of the current interval.
-            // This will guarantee a start as long as there is time in the window.
-            long trialStart = currentTime - thisDuration.longValue();
-            if (trialStart < trialStartInterval)
-              trialStartInterval = trialStart;
+            long trialStartInterval = startInterval;
+            ScheduleRecord sr = thisSchedule[l];
+            Long thisDuration = sr.getDuration();
+            if (startMethod == IJobDescription.START_WINDOWINSIDE &&
+              thisDuration != null)
+            {
+              // Bump the start interval back before the beginning of the current interval.
+              // This will guarantee a start as long as there is time in the window.
+              long trialStart = currentTime - thisDuration.longValue();
+              if (trialStart < trialStartInterval)
+                trialStartInterval = trialStart;
+            }
+
+            Long thisMatchTime = checkTimeMatch(trialStartInterval,currentTime,
+              sr.getDayOfWeek(),
+              sr.getDayOfMonth(),
+              sr.getMonthOfYear(),
+              sr.getYear(),
+              sr.getHourOfDay(),
+              sr.getMinutesOfHour(),
+              sr.getTimezone(),
+              thisDuration);
+
+            if (thisMatchTime == null)
+            {
+              if (Logging.jobs.isDebugEnabled())
+                Logging.jobs.debug(" No time match found within interval "+new Long(trialStartInterval).toString()+
+                " to "+new Long(currentTime).toString());
+              continue;
+            }
+
+            if (Logging.jobs.isDebugEnabled())
+              Logging.jobs.debug(" Time match FOUND within interval "+new Long(trialStartInterval).toString()+
+              " to "+new Long(currentTime).toString());
+
+            if (matchTime == null || thisDuration == null ||
+              (duration != null && thisMatchTime.longValue() + thisDuration.longValue() >
+                matchTime.longValue() + duration.longValue()))
+            {
+              matchTime = thisMatchTime;
+              duration = thisDuration;
+              requestMinimum = sr.getRequestMinimum();
+            }
           }
 
-          Long thisMatchTime = checkTimeMatch(trialStartInterval,currentTime,
-            sr.getDayOfWeek(),
-            sr.getDayOfMonth(),
-            sr.getMonthOfYear(),
-            sr.getYear(),
-            sr.getHourOfDay(),
-            sr.getMinutesOfHour(),
-            sr.getTimezone(),
-            thisDuration);
-
-          if (thisMatchTime == null)
+          if (matchTime == null)
           {
-            if (Logging.jobs.isDebugEnabled())
-              Logging.jobs.debug(" No time match found within interval "+new Long(trialStartInterval).toString()+
-              " to "+new Long(currentTime).toString());
+            jobs.updateLastTime(jobID,currentTime);
             continue;
           }
 
-          if (Logging.jobs.isDebugEnabled())
-            Logging.jobs.debug(" Time match FOUND within interval "+new Long(trialStartInterval).toString()+
-            " to "+new Long(currentTime).toString());
+          int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
 
-          if (matchTime == null || thisDuration == null ||
-            (duration != null && thisMatchTime.longValue() + thisDuration.longValue() >
-          matchTime.longValue() + duration.longValue()))
+
+          // Calculate the end of the window
+          Long windowEnd = null;
+          if (duration != null)
           {
-            matchTime = thisMatchTime;
-            duration = thisDuration;
+            windowEnd = new Long(matchTime.longValue()+duration.longValue());
           }
-        }
 
-        if (matchTime == null)
+          if (Logging.jobs.isDebugEnabled())
+          {
+            Logging.jobs.debug("Job '"+jobID+"' is within run window at "+new Long(currentTime).toString()+" ms. (which starts at "+
+              matchTime.toString()+" ms."+((duration==null)?"":(" and goes for "+duration.toString()+" ms."))+")");
+          }
+
+          int newJobState;
+          switch (status)
+          {
+          case Jobs.STATUS_INACTIVE:
+            // If job was formerly "inactive", do the full startup.
+            // Start this job!  but with no end time.
+            // This does not get logged because the startup thread does the logging.
+            jobs.startJob(jobID,windowEnd,requestMinimum);
+            jobQueue.clearFailTimes(jobID);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Signalled for job start for job "+jobID);
+            }
+            break;
+          case Jobs.STATUS_ACTIVEWAIT:
+            unwaitList.add(jobID);
+            jobs.unwaitJob(jobID,Jobs.STATUS_RESUMING,windowEnd);
+            jobQueue.clearFailTimes(jobID);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Un-waited job "+jobID);
+            }
+            break;
+          case Jobs.STATUS_ACTIVEWAITSEEDING:
+            unwaitList.add(jobID);
+            jobs.unwaitJob(jobID,Jobs.STATUS_RESUMINGSEEDING,windowEnd);
+            jobQueue.clearFailTimes(jobID);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Un-waited job "+jobID);
+            }
+            break;
+          case Jobs.STATUS_PAUSEDWAIT:
+            unwaitList.add(jobID);
+            jobs.unwaitJob(jobID,jobs.STATUS_PAUSED,windowEnd);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
+            }
+            break;
+          case Jobs.STATUS_PAUSEDWAITSEEDING:
+            unwaitList.add(jobID);
+            jobs.unwaitJob(jobID,jobs.STATUS_PAUSEDSEEDING,windowEnd);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
+            }
+            break;
+          case Jobs.STATUS_PAUSINGWAITING:
+            unwaitList.add(jobID);
+            jobs.unwaitJob(jobID,jobs.STATUS_PAUSING,windowEnd);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
+            }
+            break;
+          case Jobs.STATUS_PAUSINGWAITINGSEEDING:
+            unwaitList.add(jobID);
+            jobs.unwaitJob(jobID,jobs.STATUS_PAUSINGSEEDING,windowEnd);
+            if (Logging.jobs.isDebugEnabled())
+            {
+              Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
+            }
+            break;
+          default:
+            break;
+          }
+
+        }
+        database.performCommit();
+        return;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
-          jobs.updateLastTime(jobID,currentTime);
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction resetting for restart: "+e.getMessage());
+          sleepAmt = getRandomAmount();
           continue;
         }
-
-        int status = jobs.stringToStatus(row.getValue(jobs.statusField).toString());
-
-
-        // Calculate the end of the window
-        Long windowEnd = null;
-        if (duration != null)
-        {
-          windowEnd = new Long(matchTime.longValue()+duration.longValue());
-        }
-
-        if (Logging.jobs.isDebugEnabled())
-        {
-          Logging.jobs.debug("Job '"+jobID+"' is within run window at "+new Long(currentTime).toString()+" ms. (which starts at "+
-            matchTime.toString()+" ms."+((duration==null)?"":(" and goes for "+duration.toString()+" ms."))+")");
-        }
-
-        int newJobState;
-        switch (status)
-        {
-        case Jobs.STATUS_INACTIVE:
-          // If job was formerly "inactive", do the full startup.
-          // Start this job!  but with no end time.
-          // This does not get logged because the startup thread does the logging.
-          jobs.startJob(jobID,windowEnd);
-          jobQueue.clearFailTimes(jobID);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Signalled for job start for job "+jobID);
-          }
-          break;
-        case Jobs.STATUS_ACTIVEWAIT:
-          unwaitList.add(jobID);
-          jobs.unwaitJob(jobID,Jobs.STATUS_RESUMING,windowEnd);
-          jobQueue.clearFailTimes(jobID);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Un-waited job "+jobID);
-          }
-          break;
-        case Jobs.STATUS_ACTIVEWAITSEEDING:
-          unwaitList.add(jobID);
-          jobs.unwaitJob(jobID,Jobs.STATUS_RESUMINGSEEDING,windowEnd);
-          jobQueue.clearFailTimes(jobID);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Un-waited job "+jobID);
-          }
-          break;
-        case Jobs.STATUS_PAUSEDWAIT:
-          unwaitList.add(jobID);
-          jobs.unwaitJob(jobID,jobs.STATUS_PAUSED,windowEnd);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
-          }
-          break;
-        case Jobs.STATUS_PAUSEDWAITSEEDING:
-          unwaitList.add(jobID);
-          jobs.unwaitJob(jobID,jobs.STATUS_PAUSEDSEEDING,windowEnd);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
-          }
-          break;
-        case Jobs.STATUS_PAUSINGWAITING:
-          unwaitList.add(jobID);
-          jobs.unwaitJob(jobID,jobs.STATUS_PAUSING,windowEnd);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
-          }
-          break;
-        case Jobs.STATUS_PAUSINGWAITINGSEEDING:
-          unwaitList.add(jobID);
-          jobs.unwaitJob(jobID,jobs.STATUS_PAUSINGSEEDING,windowEnd);
-          if (Logging.jobs.isDebugEnabled())
-          {
-            Logging.jobs.debug("Un-waited (but still paused) job "+jobID);
-          }
-          break;
-        default:
-          break;
-        }
-
+        throw e;
       }
-    }
-    catch (ManifoldCFException e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      database.signalRollback();
-      throw e;
-    }
-    finally
-    {
-      database.endTransaction();
+      catch (Error e)
+      {
+        database.signalRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
     }
   }
   
@@ -5246,6 +5327,18 @@ public class JobManager implements IJobManager
   public void manualStart(Long jobID)
     throws ManifoldCFException
   {
+    manualStart(jobID,false);
+  }
+  
+  /** Manually start a job.  The specified job will be run REGARDLESS of the timed windows, and
+  * will not cease until complete.  If the job is already running, this operation will assure that
+  * the job does not pause when its window ends.  The job can be manually paused, or manually aborted.
+  *@param jobID is the ID of the job to start.
+  *@param requestMinimum is true if a minimal job run is requested.
+  */
+  public void manualStart(Long jobID, boolean requestMinimum)
+    throws ManifoldCFException
+  {
     database.beginTransaction();
     try
     {
@@ -5274,8 +5367,9 @@ public class JobManager implements IJobManager
         Logging.jobs.debug("Manually starting job "+jobID);
       }
       // Start this job!  but with no end time.
-      jobs.startJob(jobID,null);
+      jobs.startJob(jobID,null,requestMinimum);
       jobQueue.clearFailTimes(jobID);
+      
       if (Logging.jobs.isDebugEnabled())
       {
         Logging.jobs.debug("Manual job start signal for job "+jobID+" successfully sent");
@@ -5342,7 +5436,130 @@ public class JobManager implements IJobManager
   {
     // No special treatment needed for hopcount or carrydown, since these all get deleted at once
     // at the end of the job delete process.
+    TrackerClass.notePrecommit();
     jobQueue.prepareDeleteScan(jobID);
+    TrackerClass.noteCommit();
+  }
+  
+  /** Prepare a job to be run.
+  * This method is called regardless of the details of the job; what differs is only the flags that are passed in.
+  * The code inside will determine the appropriate procedures.
+  * (This method replaces prepareFullScan() and prepareIncrementalScan(). )
+  *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
+  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
+  *@param connectorModel is the model used by the connector for the job.
+  *@param continuousJob is true if the job is a continuous one.
+  *@param fromBeginningOfTime is true if the job is running starting from time 0.
+  *@param requestMinimum is true if the minimal amount of work is requested for the job run.
+  */
+  public void prepareJobScan(Long jobID, String[] legalLinkTypes, int hopcountMethod,
+    int connectorModel, boolean continuousJob, boolean fromBeginningOfTime,
+    boolean requestMinimum)
+    throws ManifoldCFException
+  {
+
+    // (1) If the connector has MODEL_ADD_CHANGE_DELETE, then
+    // we let the connector run the show; there's no purge phase, and therefore the
+    // documents are left in a COMPLETED state if they don't show up in the list
+    // of seeds that require the attention of the connector.  However, we do need to
+    // preload the queue with all the existing documents, if there was any change to the
+    // specification information (which will mean that fromBeginningOfTime is set).
+    //
+    // (2) If the connector has MODEL_ALL, then it's a full crawl no matter what, so
+    // we do a full scan initialization.
+    //
+    // (3) If the connector has some other model, we look at the start time.  A start
+    // time of 0 implies a full scan, while any other start time implies an incremental
+    // scan.
+
+    // Complete connector model is told everything, so no delete phase.
+    if (connectorModel == IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
+    {
+      if (fromBeginningOfTime)
+        queueAllExisting(jobID,legalLinkTypes);
+      return;
+    }
+    
+    // If the connector model is complete via chaining, then we just need to make
+    // sure discovery works to queue the changes.
+    if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE_DELETE)
+    {
+      if (fromBeginningOfTime)
+        queueAllExisting(jobID,legalLinkTypes);
+      else
+        jobQueue.preparePartialScan(jobID);
+      return;
+    }
+    
+    // Similarly, minimal crawl attempts no delete phase unless the connector explicitly forbids it, or unless
+    // the job criteria have changed.
+    if (requestMinimum && connectorModel != IRepositoryConnector.MODEL_ALL && !fromBeginningOfTime)
+    {
+      // If it is a chained model, do the partial prep.
+      if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD ||
+        connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE)
+        jobQueue.preparePartialScan(jobID);
+      return;
+    }
+    
+    if (!continuousJob && connectorModel != IRepositoryConnector.MODEL_PARTIAL &&
+      (connectorModel == IRepositoryConnector.MODEL_ALL || fromBeginningOfTime))
+      prepareFullScan(jobID,legalLinkTypes,hopcountMethod);
+    else
+      jobQueue.prepareIncrementalScan(jobID);
+  }
+
+  /** Queue all existing.
+  *@param jobID is the job id.
+  *@param legalLinkTypes are the link types allowed for the job.
+  */
+  protected void queueAllExisting(Long jobID, String[] legalLinkTypes)
+    throws ManifoldCFException
+  {
+    while (true)
+    {
+      long sleepAmt = 0L;
+      database.beginTransaction();
+      try
+      {
+        if (legalLinkTypes.length > 0)
+        {
+          jobQueue.reactivateHopcountRemovedRecords(jobID);
+        }
+
+        jobQueue.queueAllExisting(jobID);
+        TrackerClass.notePrecommit();
+        database.performCommit();
+        TrackerClass.noteCommit();
+        break;
+      }
+      catch (ManifoldCFException e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+        {
+          if (Logging.perf.isDebugEnabled())
+            Logging.perf.debug("Aborted transaction during queueAllExisting: "+e.getMessage());
+          sleepAmt = getRandomAmount();
+          continue;
+        }
+        throw e;
+      }
+      catch (Error e)
+      {
+        database.signalRollback();
+        TrackerClass.noteRollback();
+        throw e;
+      }
+      finally
+      {
+        database.endTransaction();
+        sleepFor(sleepAmt);
+      }
+    }
+
   }
   
   /** Prepare for a full scan.
@@ -5350,7 +5567,7 @@ public class JobManager implements IJobManager
   *@param legalLinkTypes are the link types allowed for the job.
   *@param hopcountMethod describes how to handle deletions for hopcount purposes.
   */
-  public void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
+  protected void prepareFullScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
     throws ManifoldCFException
   {
     while (true)
@@ -5360,7 +5577,7 @@ public class JobManager implements IJobManager
       database.beginTransaction(database.TRANSACTION_SERIALIZED);
       try
       {
-        // Delete all documents that match a given criteria
+        // Delete the documents we have never fetched, including any hopcount records we've calculated.
         if (legalLinkTypes.length > 0)
         {
           ArrayList list = new ArrayList();
@@ -5375,12 +5592,15 @@ public class JobManager implements IJobManager
         }
 
         jobQueue.prepareFullScan(jobID);
+        TrackerClass.notePrecommit();
         database.performCommit();
+        TrackerClass.noteCommit();
         break;
       }
       catch (ManifoldCFException e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
         {
           if (Logging.perf.isDebugEnabled())
@@ -5393,6 +5613,7 @@ public class JobManager implements IJobManager
       catch (Error e)
       {
         database.signalRollback();
+        TrackerClass.noteRollback();
         throw e;
       }
       finally
@@ -5401,17 +5622,6 @@ public class JobManager implements IJobManager
         sleepFor(sleepAmt);
       }
     }
-  }
-
-  /** Prepare for an incremental scan.
-  *@param jobID is the job id.
-  *@param legalLinkTypes are the link types allowed for the job.
-  *@param hopcountMethod describes how to handle deletions for hopcount purposes.
-  */
-  public void prepareIncrementalScan(Long jobID, String[] legalLinkTypes, int hopcountMethod)
-    throws ManifoldCFException
-  {
-    jobQueue.prepareIncrementalScan(jobID);
   }
 
   /** Manually abort a running job.  The job will be permanently stopped, and will not run again until
@@ -5469,8 +5679,9 @@ public class JobManager implements IJobManager
   /** Manually restart a running job.  The job will be stopped and restarted.  Any schedule affinity will be lost,
   * until the job finishes on its own.
   *@param jobID is the job to abort.
+  *@param requestMinimum is true if a minimal job run is requested.
   */
-  public void manualAbortRestart(Long jobID)
+  public void manualAbortRestart(Long jobID, boolean requestMinimum)
     throws ManifoldCFException
   {
     if (Logging.jobs.isDebugEnabled())
@@ -5483,7 +5694,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobs.abortRestartJob(jobID);
+        jobs.abortRestartJob(jobID,requestMinimum);
         database.performCommit();
         break;
       }
@@ -5514,6 +5725,16 @@ public class JobManager implements IJobManager
     {
       Logging.jobs.debug("Job "+jobID+" restart signal successfully sent");
     }
+  }
+
+  /** Manually restart a running job.  The job will be stopped and restarted.  Any schedule affinity will be lost,
+  * until the job finishes on its own.
+  *@param jobID is the job to abort.
+  */
+  public void manualAbortRestart(Long jobID)
+    throws ManifoldCFException
+  {
+    manualAbortRestart(jobID,false);
   }
 
   /** Abort a running job due to a fatal error condition.
@@ -5677,7 +5898,7 @@ public class JobManager implements IJobManager
   *@return jobs that are active and are running in adaptive mode.  These will be seeded
   * based on what the connector says should be added to the queue.
   */
-  public JobStartRecord[] getJobsReadyForSeeding(long currentTime)
+  public JobSeedingRecord[] getJobsReadyForSeeding(long currentTime)
     throws ManifoldCFException
   {
     while (true)
@@ -5705,7 +5926,7 @@ public class JobManager implements IJobManager
         
         IResultSet set = database.performQuery(sb.toString(),list,null,null);
         // Update them all
-        JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
+        JobSeedingRecord[] rval = new JobSeedingRecord[set.getRowCount()];
         int i = 0;
         while (i < rval.length)
         {
@@ -5731,7 +5952,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Marked job "+jobID+" for seeding");
           }
 
-          rval[i] = new JobStartRecord(jobID,synchTime);
+          rval[i] = new JobSeedingRecord(jobID,synchTime);
           i++;
         }
         database.performCommit();
@@ -5765,7 +5986,7 @@ public class JobManager implements IJobManager
   /** Get the list of jobs that are ready for deletion.
   *@return jobs that were in the "readyfordelete" state.
   */
-  public JobStartRecord[] getJobsReadyForDelete()
+  public JobDeleteRecord[] getJobsReadyForDelete()
     throws ManifoldCFException
   {
     while (true)
@@ -5785,7 +6006,7 @@ public class JobManager implements IJobManager
             
         IResultSet set = database.performQuery(sb.toString(),list,null,null);
         // Update them all
-        JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
+        JobDeleteRecord[] rval = new JobDeleteRecord[set.getRowCount()];
         int i = 0;
         while (i < rval.length)
         {
@@ -5799,7 +6020,7 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Marked job "+jobID+" for delete startup");
           }
 
-          rval[i] = new JobStartRecord(jobID,0L);
+          rval[i] = new JobDeleteRecord(jobID);
           i++;
         }
         database.performCommit();
@@ -5847,10 +6068,13 @@ public class JobManager implements IJobManager
         ArrayList list = new ArrayList();
         
         sb.append(jobs.idField).append(",")
-          .append(jobs.lastCheckTimeField)
+          .append(jobs.lastCheckTimeField).append(",")
+          .append(jobs.statusField)
           .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
           .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new UnitaryClause(jobs.statusField,jobs.statusToString(jobs.STATUS_READYFORSTARTUP))}))
+            new MultiClause(jobs.statusField,new Object[]{
+              jobs.statusToString(jobs.STATUS_READYFORSTARTUP),
+              jobs.statusToString(jobs.STATUS_READYFORSTARTUPMINIMAL)})}))
           .append(" FOR UPDATE");
             
         IResultSet set = database.performQuery(sb.toString(),list,null,null);
@@ -5862,18 +6086,22 @@ public class JobManager implements IJobManager
           IResultRow row = set.getRow(i);
           Long jobID = (Long)row.getValue(jobs.idField);
           Long x = (Long)row.getValue(jobs.lastCheckTimeField);
+          int status = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+
+          boolean requestMinimum = (status == jobs.STATUS_READYFORSTARTUPMINIMAL);
+          
           long synchTime = 0;
           if (x != null)
             synchTime = x.longValue();
 
           // Mark status of job as "starting"
-          jobs.writeStatus(jobID,jobs.STATUS_STARTINGUP);
+          jobs.writeStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP);
           if (Logging.jobs.isDebugEnabled())
           {
             Logging.jobs.debug("Marked job "+jobID+" for startup");
           }
 
-          rval[i] = new JobStartRecord(jobID,synchTime);
+          rval[i] = new JobStartRecord(jobID,synchTime,requestMinimum);
           i++;
         }
         database.performCommit();
@@ -6141,7 +6369,15 @@ public class JobManager implements IJobManager
           // Set the state of the job back to "ReadyForStartup"
           jobs.writeStatus(jobID,jobs.STATUS_READYFORSTARTUP);
           break;
+        case Jobs.STATUS_STARTINGUPMINIMAL:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'ReadyForStartupMinimal' state");
+
+          // Set the state of the job back to "ReadyForStartupMinimal"
+          jobs.writeStatus(jobID,jobs.STATUS_READYFORSTARTUPMINIMAL);
+          break;
         case Jobs.STATUS_ABORTINGSTARTINGUP:
+        case Jobs.STATUS_ABORTINGSTARTINGUPMINIMAL:
           if (Logging.jobs.isDebugEnabled())
             Logging.jobs.debug("Setting job "+jobID+" to 'Aborting' state");
           jobs.writeStatus(jobID,jobs.STATUS_ABORTING);
@@ -6151,10 +6387,17 @@ public class JobManager implements IJobManager
             Logging.jobs.debug("Setting job "+jobID+" to 'AbortingForRestart' state");
           jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
           break;
+        case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" to 'AbortingForRestartMinimal' state");
+          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
+          break;
 
         case Jobs.STATUS_READYFORSTARTUP:
+        case Jobs.STATUS_READYFORSTARTUPMINIMAL:
         case Jobs.STATUS_ABORTING:
         case Jobs.STATUS_ABORTINGFORRESTART:
+        case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
           // ok
           break;
         default:
@@ -6281,8 +6524,17 @@ public class JobManager implements IJobManager
           jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTART);
           break;
 
+        case Jobs.STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
+          if (Logging.jobs.isDebugEnabled())
+            Logging.jobs.debug("Setting job "+jobID+" back to 'AbortingForRestartMinimal' state");
+
+          // Set the state of the job back to "Active"
+          jobs.writeStatus(jobID,jobs.STATUS_ABORTINGFORRESTARTMINIMAL);
+          break;
+
         case Jobs.STATUS_ABORTING:
         case Jobs.STATUS_ABORTINGFORRESTART:
+        case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
         case Jobs.STATUS_ACTIVE:
         case Jobs.STATUS_ACTIVE_UNINSTALLED:
         case Jobs.STATUS_ACTIVE_NOOUTPUT:
@@ -6534,7 +6786,7 @@ public class JobManager implements IJobManager
   /** Find the list of jobs that need to have their connectors notified of job completion.
   *@return the ID's of jobs that need their output connectors notified in order to become inactive.
   */
-  public JobStartRecord[] getJobsReadyForInactivity()
+  public JobNotifyRecord[] getJobsReadyForInactivity()
     throws ManifoldCFException
   {
     while (true)
@@ -6554,7 +6806,7 @@ public class JobManager implements IJobManager
             
         IResultSet set = database.performQuery(sb.toString(),list,null,null);
         // Return them all
-        JobStartRecord[] rval = new JobStartRecord[set.getRowCount()];
+        JobNotifyRecord[] rval = new JobNotifyRecord[set.getRowCount()];
         int i = 0;
         while (i < rval.length)
         {
@@ -6566,7 +6818,7 @@ public class JobManager implements IJobManager
           {
             Logging.jobs.debug("Found job "+jobID+" in need of notification");
           }
-          rval[i++] = new JobStartRecord(jobID,0L);
+          rval[i++] = new JobNotifyRecord(jobID);
         }
         database.performCommit();
         return rval;
@@ -6662,6 +6914,7 @@ public class JobManager implements IJobManager
         new MultiClause(jobs.statusField,new Object[]{
           jobs.statusToString(jobs.STATUS_ABORTING),
           jobs.statusToString(jobs.STATUS_ABORTINGFORRESTART),
+          jobs.statusToString(jobs.STATUS_ABORTINGFORRESTARTMINIMAL),
           jobs.statusToString(jobs.STATUS_PAUSING),
           jobs.statusToString(jobs.STATUS_PAUSINGSEEDING),
           jobs.statusToString(jobs.STATUS_ACTIVEWAITING),
@@ -6811,6 +7064,7 @@ public class JobManager implements IJobManager
   /** Get the status of a job.
   *@return the status object for the specified job.
   */
+  @Override
   public JobStatus getStatus(Long jobID)
     throws ManifoldCFException
   {
@@ -6820,6 +7074,7 @@ public class JobManager implements IJobManager
   /** Get a list of all jobs, and their status information.
   *@return an ordered array of job status objects.
   */
+  @Override
   public JobStatus[] getAllStatus()
     throws ManifoldCFException
   {
@@ -6829,6 +7084,7 @@ public class JobManager implements IJobManager
   /** Get a list of running jobs.  This is for status reporting.
   *@return an array of the job status objects.
   */
+  @Override
   public JobStatus[] getRunningJobs()
     throws ManifoldCFException
   {
@@ -6838,6 +7094,7 @@ public class JobManager implements IJobManager
   /** Get a list of completed jobs, and their statistics.
   *@return an array of the job status objects.
   */
+  @Override
   public JobStatus[] getFinishedJobs()
     throws ManifoldCFException
   {
@@ -6845,21 +7102,15 @@ public class JobManager implements IJobManager
   }
 
   /** Get the status of a job.
+  *@param jobID is the job ID.
   *@param includeCounts is true if document counts should be included.
   *@return the status object for the specified job.
   */
   public JobStatus getStatus(Long jobID, boolean includeCounts)
     throws ManifoldCFException
   {
-    ArrayList list = new ArrayList();
-    String whereClause = Jobs.idField+"=?";
-    list.add(jobID);
-    JobStatus[] records = makeJobStatus(whereClause,list,includeCounts);
-    if (records.length == 0)
-      return null;
-    return records[0];
+    return getStatus(jobID, includeCounts, Integer.MAX_VALUE);
   }
-
 
   /** Get a list of all jobs, and their status information.
   *@param includeCounts is true if document counts should be included.
@@ -6868,7 +7119,7 @@ public class JobManager implements IJobManager
   public JobStatus[] getAllStatus(boolean includeCounts)
     throws ManifoldCFException
   {
-    return makeJobStatus(null,null,includeCounts);
+    return getAllStatus(includeCounts, Integer.MAX_VALUE);
   }
 
   /** Get a list of running jobs.  This is for status reporting.
@@ -6876,6 +7127,57 @@ public class JobManager implements IJobManager
   *@return an array of the job status objects.
   */
   public JobStatus[] getRunningJobs(boolean includeCounts)
+    throws ManifoldCFException
+  {
+    return getRunningJobs(includeCounts, Integer.MAX_VALUE);
+  }
+
+  /** Get a list of completed jobs, and their statistics.
+  *@param includeCounts is true if document counts should be included.
+  *@return an array of the job status objects.
+  */
+  public JobStatus[] getFinishedJobs(boolean includeCounts)
+    throws ManifoldCFException
+  {
+    return getFinishedJobs(includeCounts, Integer.MAX_VALUE);
+  }
+
+  /** Get the status of a job.
+  *@param includeCounts is true if document counts should be included.
+  *@return the status object for the specified job.
+  */
+  @Override
+  public JobStatus getStatus(Long jobID, boolean includeCounts, int maxCount)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String whereClause = Jobs.idField+"=?";
+    list.add(jobID);
+    JobStatus[] records = makeJobStatus(whereClause,list,includeCounts,maxCount);
+    if (records.length == 0)
+      return null;
+    return records[0];
+  }
+
+
+  /** Get a list of all jobs, and their status information.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an ordered array of job status objects.
+  */
+  public JobStatus[] getAllStatus(boolean includeCounts, int maxCount)
+    throws ManifoldCFException
+  {
+    return makeJobStatus(null,null,includeCounts,maxCount);
+  }
+
+  /** Get a list of running jobs.  This is for status reporting.
+  *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
+  *@return an array of the job status objects.
+  */
+  @Override
+  public JobStatus[] getRunningJobs(boolean includeCounts, int maxCount)
     throws ManifoldCFException
   {
     ArrayList whereParams = new ArrayList();
@@ -6906,14 +7208,16 @@ public class JobManager implements IJobManager
         Jobs.statusToString(Jobs.STATUS_RESUMINGSEEDING)
         })});
     
-    return makeJobStatus(whereClause,whereParams,includeCounts);
+    return makeJobStatus(whereClause,whereParams,includeCounts,maxCount);
   }
 
   /** Get a list of completed jobs, and their statistics.
   *@param includeCounts is true if document counts should be included.
+  *@param maxCount is the maximum number of documents we want to count for each status.
   *@return an array of the job status objects.
   */
-  public JobStatus[] getFinishedJobs(boolean includeCounts)
+  @Override
+  public JobStatus[] getFinishedJobs(boolean includeCounts, int maxCount)
     throws ManifoldCFException
   {
     StringBuilder sb = new StringBuilder();
@@ -6923,7 +7227,7 @@ public class JobManager implements IJobManager
       new UnitaryClause(Jobs.statusField,Jobs.statusToString(Jobs.STATUS_INACTIVE))})).append(" AND ")
     .append(Jobs.endTimeField).append(" IS NOT NULL");
       
-    return makeJobStatus(sb.toString(),whereParams,includeCounts);
+    return makeJobStatus(sb.toString(),whereParams,includeCounts,maxCount);
   }
 
   // Protected methods and classes
@@ -6932,7 +7236,7 @@ public class JobManager implements IJobManager
   *@param whereClause is the where clause for the jobs we are interested in.
   *@return the status array.
   */
-  protected JobStatus[] makeJobStatus(String whereClause, ArrayList whereParams, boolean includeCounts)
+  protected JobStatus[] makeJobStatus(String whereClause, ArrayList whereParams, boolean includeCounts, int maxCount)
     throws ManifoldCFException
   {
     IResultSet set = database.performQuery("SELECT t0."+
@@ -6945,129 +7249,48 @@ public class JobManager implements IJobManager
       " FROM "+jobs.getTableName()+" t0 "+((whereClause==null)?"":(" WHERE "+whereClause))+" ORDER BY "+Jobs.descriptionField+" ASC",
       whereParams,null,null);
 
-    IResultSet set2 = null;
-    IResultSet set3 = null;
-    IResultSet set4 = null;
+    // Build hashes for set2 and set3
+    Map<Long,Long> set2Hash = new HashMap<Long,Long>();
+    Map<Long,Long> set3Hash = new HashMap<Long,Long>();
+    Map<Long,Long> set4Hash = new HashMap<Long,Long>();
+    Map<Long,Boolean> set2Exact = new HashMap<Long,Boolean>();
+    Map<Long,Boolean> set3Exact = new HashMap<Long,Boolean>();
+    Map<Long,Boolean> set4Exact = new HashMap<Long,Boolean>();
     
     if (includeCounts)
     {
-      StringBuilder sb = new StringBuilder("SELECT ");
-      ArrayList list = new ArrayList();
-      
-      sb.append(JobQueue.jobIDField).append(",")
-        .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
-      
-      if (whereClause != null)
+      // If we are counting all of them anyway, do this via GROUP BY since it will be the fastest.  But
+      // otherwise, fire off an individual query at a time.
+      if (maxCount == Integer.MAX_VALUE)
       {
-        sb.append(" WHERE EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
-          .append(whereClause)
-          .append(")");
-        list.addAll(whereParams);
+        buildCountsUsingGroupBy(whereClause,whereParams,set2Hash,set3Hash,set4Hash,set2Exact,set3Exact,set4Exact);
       }
-      
-      sb.append(" GROUP BY ").append(JobQueue.jobIDField);
-      
-      set2 = database.performQuery(sb.toString(),list,null,null);
-
-      sb = new StringBuilder("SELECT ");
-      list.clear();
-      
-      sb.append(JobQueue.jobIDField).append(",")
-        .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
-        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-          new MultiClause(JobQueue.statusField,new Object[]{
-            JobQueue.statusToString(JobQueue.STATUS_ACTIVE),
-            JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCAN),
-            JobQueue.statusToString(JobQueue.STATUS_PENDING),
-            JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
-            JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
-            JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)})}));
-      if (whereClause != null)
+      else
       {
-        sb.append(" AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
-          .append(whereClause)
-          .append(")");
-        if (whereParams != null)
-          list.addAll(whereParams);
+        // Check if the total matching jobqueue rows exceeds the limit.  If not, we can still use the cheaper query.
+        StringBuilder sb = new StringBuilder("SELECT ");
+        ArrayList list = new ArrayList();
+            
+        sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+          .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
+        addWhereClause(sb,list,whereClause,whereParams,false);
+        sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+        IResultSet countResult = database.performQuery(sb.toString(),list,null,null);
+        if (countResult.getRowCount() > 0 && ((Long)countResult.getRow(0).getValue("doccount")).longValue() > maxCount)
+        {
+          // Too many items in queue; do it the hard way
+          buildCountsUsingIndividualQueries(whereClause,whereParams,maxCount,set2Hash,set3Hash,set4Hash,set2Exact,set3Exact,set4Exact);
+        }
+        else
+        {
+          // Cheap way should still work.
+          buildCountsUsingGroupBy(whereClause,whereParams,set2Hash,set3Hash,set4Hash,set2Exact,set3Exact,set4Exact);
+        }
       }
-      sb.append(" GROUP BY ").append(JobQueue.jobIDField);
-      
-      set3 = database.performQuery(sb.toString(),list,null,null);
-
-      sb = new StringBuilder("SELECT ");
-      list.clear();
-      
-      sb.append(JobQueue.jobIDField).append(",")
-        .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
-        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-          new MultiClause(JobQueue.statusField,new Object[]{
-            JobQueue.statusToString(JobQueue.STATUS_COMPLETE),
-            JobQueue.statusToString(JobQueue.STATUS_PURGATORY),
-            JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
-            JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
-            JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)})}));
-      
-      if (whereClause != null)
-      {
-        sb.append(" AND EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
-          .append(database.buildConjunctionClause(list,new ClauseDescription[]{
-            new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
-          .append(whereClause)
-          .append(")");
-
-        if (whereParams != null)
-          list.addAll(whereParams);
-      }
-      
-      sb.append(" GROUP BY ").append(JobQueue.jobIDField);
-      
-      set4 = database.performQuery(sb.toString(),list,null,null);
     }
     
-    int i;
-    
-    // Build hashes for set2 and set3
-    HashMap set2Hash = new HashMap();
-    if (set2 != null)
-    {
-      i = 0;
-      while (i < set2.getRowCount())
-      {
-        IResultRow row = set2.getRow(i++);
-        set2Hash.put(row.getValue(JobQueue.jobIDField),row.getValue("doccount"));
-      }
-    }
-    HashMap set3Hash = new HashMap();
-    if (set3 != null)
-    {
-      i = 0;
-      while (i < set3.getRowCount())
-      {
-        IResultRow row = set3.getRow(i++);
-        set3Hash.put(row.getValue(JobQueue.jobIDField),row.getValue("doccount"));
-      }
-    }
-    HashMap set4Hash = new HashMap();
-    if (set4 != null)
-    {
-      i = 0;
-      while (i < set4.getRowCount())
-      {
-        IResultRow row = set4.getRow(i++);
-        set4Hash.put(row.getValue(JobQueue.jobIDField),row.getValue("doccount"));
-      }
-    }
-
     JobStatus[] rval = new JobStatus[set.getRowCount()];
-    i = 0;
-    while (i < rval.length)
+    for (int i = 0; i < rval.length; i++)
     {
       IResultRow row = set.getRow(i);
       Long jobID = (Long)row.getValue(Jobs.idField);
@@ -7121,11 +7344,15 @@ public class JobManager implements IJobManager
       case Jobs.STATUS_ABORTING:
       case Jobs.STATUS_ABORTINGSEEDING:
       case Jobs.STATUS_ABORTINGSTARTINGUP:
+      case Jobs.STATUS_ABORTINGSTARTINGUPMINIMAL:
         rstatus = JobStatus.JOBSTATUS_ABORTING;
         break;
       case Jobs.STATUS_ABORTINGFORRESTART:
+      case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
       case Jobs.STATUS_ABORTINGFORRESTARTSEEDING:
+      case Jobs.STATUS_ABORTINGFORRESTARTSEEDINGMINIMAL:
       case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTART:
+      case Jobs.STATUS_ABORTINGSTARTINGUPFORRESTARTMINIMAL:
         rstatus = JobStatus.JOBSTATUS_RESTARTING;
         break;
       case Jobs.STATUS_PAUSING:
@@ -7153,7 +7380,9 @@ public class JobManager implements IJobManager
         rstatus = JobStatus.JOBSTATUS_PAUSED;
         break;
       case Jobs.STATUS_STARTINGUP:
+      case Jobs.STATUS_STARTINGUPMINIMAL:
       case Jobs.STATUS_READYFORSTARTUP:
+      case Jobs.STATUS_READYFORSTARTUPMINIMAL:
         rstatus = JobStatus.JOBSTATUS_STARTING;
         break;
       case Jobs.STATUS_DELETESTARTINGUP:
@@ -7166,18 +7395,232 @@ public class JobManager implements IJobManager
         break;
       }
 
-      Long set2Value = (Long)set2Hash.get(jobID);
-      Long set3Value = (Long)set3Hash.get(jobID);
-      Long set4Value = (Long)set4Hash.get(jobID);
-
-      rval[i++] = new JobStatus(jobID.toString(),description,rstatus,((set2Value==null)?0L:set2Value.longValue()),
+      Long set2Value = set2Hash.get(jobID);
+      Long set3Value = set3Hash.get(jobID);
+      Long set4Value = set4Hash.get(jobID);
+      Boolean set2ExactValue = set2Exact.get(jobID);
+      Boolean set3ExactValue = set3Exact.get(jobID);
+      Boolean set4ExactValue = set4Exact.get(jobID);
+      
+      rval[i] = new JobStatus(jobID.toString(),description,rstatus,((set2Value==null)?0L:set2Value.longValue()),
         ((set3Value==null)?0L:set3Value.longValue()),
         ((set4Value==null)?0L:set4Value.longValue()),
+        ((set2ExactValue==null)?true:set2ExactValue.booleanValue()),
+        ((set3ExactValue==null)?true:set3ExactValue.booleanValue()),
+        ((set4ExactValue==null)?true:set4ExactValue.booleanValue()),
         startTime,endTime,errorText);
     }
     return rval;
   }
 
+  protected static ClauseDescription buildOutstandingClause()
+    throws ManifoldCFException
+  {
+    return new MultiClause(JobQueue.statusField,new Object[]{
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVE),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCAN),
+    JobQueue.statusToString(JobQueue.STATUS_PENDING),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)});
+  }
+    
+  protected static ClauseDescription buildProcessedClause()
+    throws ManifoldCFException
+  {
+    return new MultiClause(JobQueue.statusField,new Object[]{
+    JobQueue.statusToString(JobQueue.STATUS_COMPLETE),
+    JobQueue.statusToString(JobQueue.STATUS_UNCHANGED),
+    JobQueue.statusToString(JobQueue.STATUS_PURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVEPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_ACTIVENEEDRESCANPURGATORY),
+    JobQueue.statusToString(JobQueue.STATUS_PENDINGPURGATORY)});
+  }
+
+  protected void buildCountsUsingIndividualQueries(String whereClause, ArrayList whereParams, int maxCount,
+    Map<Long,Long> set2Hash, Map<Long,Long> set3Hash, Map<Long,Long> set4Hash,
+    Map<Long,Boolean> set2Exact, Map<Long,Boolean> set3Exact, Map<Long,Boolean> set4Exact)
+    throws ManifoldCFException
+  {
+    // Fire off an individual query with a limit for each job
+    
+    // First, get the list of jobs that we are interested in.
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
+
+    sb.append(Jobs.idField).append(" FROM ").append(jobs.getTableName()).append(" t0");
+    if (whereClause != null)
+    {
+      sb.append(" WHERE ")
+        .append(whereClause);
+      if (whereParams != null)
+        list.addAll(whereParams);
+    }
+    
+    IResultSet jobSet = database.performQuery(sb.toString(),list,null,null);
+
+    // Scan the set of jobs
+    for (int i = 0; i < jobSet.getRowCount(); i++)
+    {
+      IResultRow row = jobSet.getRow(i);
+      Long jobID = (Long)row.getValue(Jobs.idField);
+      
+      // Now, for each job, fire off a separate, limited, query for each count we care about
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      
+      IResultSet totalSet = database.performQuery(sb.toString(),list,null,null);
+      if (totalSet.getRowCount() > 0)
+      {
+        long rowCount = ((Long)totalSet.getRow(0).getValue("doccount")).longValue();
+        if (rowCount > maxCount)
+        {
+          set2Hash.put(jobID,new Long(maxCount));
+          set2Exact.put(jobID,new Boolean(false));
+        }
+        else
+        {
+          set2Hash.put(jobID,new Long(rowCount));
+          set2Exact.put(jobID,new Boolean(true));
+        }
+      }
+          
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      
+      IResultSet outstandingSet = database.performQuery(sb.toString(),list,null,null);
+      if (outstandingSet.getRowCount() > 0)
+      {
+        long rowCount = ((Long)outstandingSet.getRow(0).getValue("doccount")).longValue();
+        if (rowCount > maxCount)
+        {
+          set3Hash.put(jobID,new Long(maxCount));
+          set3Exact.put(jobID,new Boolean(false));
+        }
+        else
+        {
+          set3Hash.put(jobID,new Long(rowCount));
+          set3Exact.put(jobID,new Boolean(true));
+        }
+      }
+
+      sb = new StringBuilder("SELECT ");
+      list.clear();
+      sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+        .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
+      sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
+      
+      IResultSet processedSet = database.performQuery(sb.toString(),list,null,null);
+      if (processedSet.getRowCount() > 0)
+      {
+        long rowCount = ((Long)processedSet.getRow(0).getValue("doccount")).longValue();
+        if (rowCount > maxCount)
+        {
+          set4Hash.put(jobID,new Long(maxCount));
+          set4Exact.put(jobID,new Boolean(false));
+        }
+        else
+        {
+          set4Hash.put(jobID,new Long(rowCount));
+          set4Exact.put(jobID,new Boolean(true));
+        }
+      }
+    }
+  }
+
+  protected void buildCountsUsingGroupBy(String whereClause, ArrayList whereParams,
+    Map<Long,Long> set2Hash, Map<Long,Long> set3Hash, Map<Long,Long> set4Hash,
+    Map<Long,Boolean> set2Exact, Map<Long,Boolean> set3Exact, Map<Long,Boolean> set4Exact)
+    throws ManifoldCFException
+  {
+    StringBuilder sb = new StringBuilder("SELECT ");
+    ArrayList list = new ArrayList();
+        
+    sb.append(JobQueue.jobIDField).append(",")
+      .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+      .append(" FROM ").append(jobQueue.getTableName()).append(" t1");
+    addWhereClause(sb,list,whereClause,whereParams,false);
+    sb.append(" GROUP BY ").append(JobQueue.jobIDField);
+    
+    IResultSet set2 = database.performQuery(sb.toString(),list,null,null);
+
+    sb = new StringBuilder("SELECT ");
+    list.clear();
+        
+    sb.append(JobQueue.jobIDField).append(",")
+      .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+      .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
+    addWhereClause(sb,list,whereClause,whereParams,true);
+    sb.append(" GROUP BY ").append(JobQueue.jobIDField);
+        
+    IResultSet set3 = database.performQuery(sb.toString(),list,null,null);
+
+    sb = new StringBuilder("SELECT ");
+    list.clear();
+        
+    sb.append(JobQueue.jobIDField).append(",")
+      .append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
+      .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ")
+      .append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
+    addWhereClause(sb,list,whereClause,whereParams,true);
+    sb.append(" GROUP BY ").append(JobQueue.jobIDField);
+        
+    IResultSet set4 = database.performQuery(sb.toString(),list,null,null);
+        
+    for (int j = 0; j < set2.getRowCount(); j++)
+    {
+      IResultRow row = set2.getRow(j);
+      Long jobID = (Long)row.getValue(JobQueue.jobIDField);
+      set2Hash.put(jobID,(Long)row.getValue("doccount"));
+      set2Exact.put(jobID,new Boolean(true));
+    }
+    for (int j = 0; j < set3.getRowCount(); j++)
+    {
+      IResultRow row = set3.getRow(j);
+      Long jobID = (Long)row.getValue(JobQueue.jobIDField);
+      set3Hash.put(jobID,(Long)row.getValue("doccount"));
+      set3Exact.put(jobID,new Boolean(true));
+    }
+    for (int j = 0; j < set4.getRowCount(); j++)
+    {
+      IResultRow row = set4.getRow(j);
+      Long jobID = (Long)row.getValue(JobQueue.jobIDField);
+      set4Hash.put(jobID,(Long)row.getValue("doccount"));
+      set4Exact.put(jobID,new Boolean(true));
+    }
+  }
+
+  protected void addWhereClause(StringBuilder sb, ArrayList list, String whereClause, ArrayList whereParams, boolean wherePresent)
+  {
+    if (whereClause != null)
+    {
+      if (wherePresent)
+        sb.append(" AND");
+      else
+        sb.append(" WHERE");
+      
+      sb.append(" EXISTS(SELECT 'x' FROM ").append(jobs.getTableName()).append(" t0 WHERE ")
+        .append(database.buildConjunctionClause(list,new ClauseDescription[]{
+          new JoinClause("t0."+Jobs.idField,"t1."+JobQueue.jobIDField)})).append(" AND ")
+        .append(whereClause)
+        .append(")");
+      if (whereParams != null)
+        list.addAll(whereParams);
+    }
+  }
+  
   // These methods generate reports for direct display in the UI.
 
   /** Run a 'document status' report.
@@ -7211,6 +7654,7 @@ public class JobManager implements IJobManager
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
+      .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Processed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
       .append(" WHEN ").append("t0.").append(jobQueue.statusField).append("=? THEN 'Being removed'")
@@ -7219,7 +7663,7 @@ public class JobManager implements IJobManager
       .append(" END AS state,")
       .append("CASE")
       .append(" WHEN ")
-      .append("t0.").append(jobQueue.statusField).append(" IN (?,?)")
+      .append("t0.").append(jobQueue.statusField).append(" IN (?,?,?)")
       .append(" THEN 'Inactive'")
       .append(" WHEN ")
       .append("t0.").append(jobQueue.statusField).append(" IN (?,?)")
@@ -7279,6 +7723,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVEPURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVENEEDRESCANPURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_UNCHANGED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED));
@@ -7286,6 +7731,7 @@ public class JobManager implements IJobManager
     list.add(jobQueue.statusToString(jobQueue.STATUS_HOPCOUNTREMOVED));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_UNCHANGED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_PENDING));
@@ -7368,7 +7814,7 @@ public class JobManager implements IJobManager
     sb.append(" AS idbucket,")
       .append("CASE")
       .append(" WHEN ")
-      .append(jobQueue.statusField).append(" IN (?,?)")
+      .append(jobQueue.statusField).append(" IN (?,?,?)")
       .append(" THEN 1 ELSE 0")
       .append(" END")
       .append(" AS inactive,")
@@ -7440,6 +7886,7 @@ public class JobManager implements IJobManager
     sb.append(" FROM ").append(jobQueue.getTableName());
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_COMPLETE));
+    list.add(jobQueue.statusToString(jobQueue.STATUS_UNCHANGED));
     list.add(jobQueue.statusToString(jobQueue.STATUS_PURGATORY));
     
     list.add(jobQueue.statusToString(jobQueue.STATUS_ACTIVE));
@@ -7566,6 +8013,7 @@ public class JobManager implements IJobManager
             jobQueue.statusToString(jobQueue.STATUS_BEINGDELETED),
             jobQueue.statusToString(jobQueue.STATUS_BEINGCLEANED),
             jobQueue.statusToString(jobQueue.STATUS_COMPLETE),
+            jobQueue.statusToString(jobQueue.STATUS_UNCHANGED),
             jobQueue.statusToString(jobQueue.STATUS_PURGATORY)})}));
         break;
       case DOCSTATE_OUTOFSCOPE:
@@ -7592,6 +8040,7 @@ public class JobManager implements IJobManager
         sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(fieldPrefix+jobQueue.statusField,new Object[]{
             jobQueue.statusToString(jobQueue.STATUS_COMPLETE),
+            jobQueue.statusToString(jobQueue.STATUS_UNCHANGED),
             jobQueue.statusToString(jobQueue.STATUS_PURGATORY)})}));
         break;
       case DOCSTATUS_PROCESSING:

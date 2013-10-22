@@ -20,6 +20,6 @@ package com.filenet.api.collection;
 
 /** Stub interface to allow the connector to build fully.
 */
-public interface PropertyDescriptionList extends DependentObjectList
+public interface PropertyDescriptionList extends DependentObjectList, EngineCollection
 {
 }

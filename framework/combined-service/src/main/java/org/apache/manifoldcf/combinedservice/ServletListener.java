@@ -36,9 +36,8 @@ public class ServletListener implements ServletContextListener
   {
     try
     {
-      ManifoldCF.initializeEnvironment();
-
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
 
       ManifoldCF.createSystemDatabase(tc);
       ManifoldCF.installTables(tc);
@@ -55,16 +54,16 @@ public class ServletListener implements ServletContextListener
   
   public void contextDestroyed(ServletContextEvent sce)
   {
+    IThreadContext tc = ThreadContextFactory.make();
     try
     {
-      IThreadContext tc = ThreadContextFactory.make();
       ManifoldCF.stopAgents(tc);
     }
     catch (ManifoldCFException e)
     {
       throw new RuntimeException("Cannot shutdown servlet cleanly; "+e.getMessage(),e);
     }
-    ManifoldCF.cleanUpEnvironment();
+    ManifoldCF.cleanUpEnvironment(tc);
   }
 
 }

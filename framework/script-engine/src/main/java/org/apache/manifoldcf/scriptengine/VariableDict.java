@@ -33,6 +33,7 @@ public class VariableDict extends VariableBase
   }
   
   /** Get a named attribute of the variable; e.g. xxx.yyy */
+  @Override
   public VariableReference getAttribute(String attributeName)
     throws ScriptException
   {
@@ -43,6 +44,7 @@ public class VariableDict extends VariableBase
   }
   
   /** Get an indexed property of the variable */
+  @Override
   public VariableReference getIndexed(Variable index)
     throws ScriptException
   {

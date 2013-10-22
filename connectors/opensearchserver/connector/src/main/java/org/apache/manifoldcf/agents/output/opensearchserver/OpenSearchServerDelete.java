@@ -17,18 +17,20 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
-import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerDelete extends OpenSearchServerConnection {
 
-  public OpenSearchServerDelete(String documentURI,
+  public OpenSearchServerDelete(HttpClient client, String documentURI,
       OpenSearchServerConfig config) throws ManifoldCFException {
-    super(config);
+    super(client, config);
     StringBuffer url = getApiUrl("delete");
     url.append("&uniq=");
     url.append(urlEncode(documentURI));
-    GetMethod method = new GetMethod(url.toString());
+    HttpGet method = new HttpGet(url.toString());
     call(method);
     if ("OK".equals(checkXPath(xPathStatus)))
       return;

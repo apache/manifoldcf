@@ -56,22 +56,24 @@ java -cp ... org.apache.manifoldcf.scriptengine.ScriptParser &lt;script_file&gt;
       <section>
         <title>Running the script interpreter by hand</title>
         <p></p>
-        <p>When you build ManifoldCF, the required dependent jars for the scripting language are copied to <em>dist/script-engine/jar</em>.
+        <p>When you build ManifoldCF, the required dependent jars for the scripting language are copied to <em>dist/script-engine/lib</em>.
           You can run the interpreter in interactive mode by typing:</p>
         <source>
-cd dist
-script-engine\script\run-script.bat &lt;args&gt;
+cd dist\script-engine
+run-script.bat &lt;args&gt;
         </source>
         <p>Or, on Linux:</p>
         <source>
-cd dist
-script-engine/script/run-script.sh &lt;args&gt;
+cd dist/script-engine
+run-script.sh &lt;args&gt;
         </source>
+        <p>You will need to set the environment variable <strong>ENGINE_HOME</strong> to point at the <em>dist/script-engine</em> directory beforehand, so that
+            the scripts can locate the appropriate jars.</p>
       </section>
       <section>
         <title>Running the script interpreter using Ant</title>
         <p></p>
-        <p>You can also start the script interpreter with all the correct required jars using Ant.  Simple type the following:</p>
+        <p>You can also start the script interpreter with all the correct required jars using Ant.  Simply type the following:</p>
         <source>
 ant run-script-interpreter
         </source>
@@ -153,6 +155,11 @@ expression:
 newexpression:
 --&gt; 'url' expression
 --&gt; 'connectionname' expression
+--&gt; 'configuration'
+--&gt; 'configurationnode' expression
+--&gt; 'array'
+--&gt; 'dictionary'
+--&gt; 'queryarg' expression ['=' expression] 
 
       </source>  
     </section>
@@ -295,7 +302,7 @@ print "3".__int__+7;
       </section>
       <section>
         <title>Dictionaries</title>
-        <p>Array variable types are created using the "new" operator, e.g. <strong>new</strong> <strong>dictionary</strong>.</p>
+        <p>Dictionary variable types are created using the "new" operator, e.g. <strong>new</strong> <strong>dictionary</strong>.</p>
         <p>The operations supported for this variable type, and their meanings, are listed in the table below:</p>
         <table>
           <caption>Array operations</caption>
@@ -308,14 +315,14 @@ print "3".__int__+7;
       <section>
         <title>Configurations</title>
         <p>Configuration variables contain the equivalent of the JSON used to communicate with the ManifoldCF API.  They can be created using an initializer
-          of the form <strong>{</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>}</strong>.  For example, the script code '{ &lt; "outputconnector" : "" :  : , &lt; "description" : "Solr" :  :  &gt;, &lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt; &gt; }'
+          of the form <strong>{</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ...]] <strong>}</strong>.  For example, the script code '{ &lt;&lt; "outputconnector" : "" :  : , &lt;&lt; "description" : "Solr" :  :  &gt;&gt;, &lt;&lt; "class_name" : "org.apache.manifoldcf.agents.output.solr.SolrConnector" :  :  &gt;&gt; &gt;&gt; }'
           would create a configuration variable equivalent to one that might be returned from the ManifoldCF API if it was queried for the output connectors registered by the system.</p>
         <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
         <table>
           <caption>Configuration operations</caption>
           <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
           <tr><td>subscript []</td><td>Find the specified child configuration node variable, yielding the variable</td><td>myconfig [0]</td></tr>
-          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt; "something" : "somethingvalue" : : &gt;</td></tr>
+          <tr><td>binary +</td><td>Append a configuration child node variable to the list</td><td>myconfig + &lt;&lt; "something" : "somethingvalue" : : &gt;&gt;</td></tr>
         </table>
         <p>In addition, the standard attributes <em>__script__</em>, <em>__dict__</em>, and <em>__size__</em> are supported 
           by configuration variable types, as well as the <em>insert</em> and <em>remove</em> statements.</p>
@@ -331,7 +338,7 @@ print "3".__int__+7;
         </ul>
         <p>Configuration node variable types can be created using an initializer of the form <strong>&lt;&lt;</strong> <em>expression</em> <strong>:</strong> <em>expression</em> <strong>:</strong> [<em>expression</em> <strong>=</strong> <em>expression</em> [<strong>,</strong> <em>expression</em> <strong>=</strong> <em>expression</em> ...]] <strong>:</strong> [<em>expression</em> [<strong>,</strong> <em>expression</em> ... ]] '&gt;&gt;'.
           The first expression represents the type of the node.  The second is the node's value.  The series of '=' expressions represents attribute names and values.  The last series represents
-          the children of the node.  For example, the script code '&lt; "description" : "Solr" :  :  &gt;' represents a node of type 'description' with a value of 'Solr', with no attributes or children.</p>
+          the children of the node.  For example, the script code '&lt;&lt; "description" : "Solr" :  :  &gt;&gt;' represents a node of type 'description' with a value of 'Solr', with no attributes or children.</p>
         <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
         <table>
           <caption>Configuration node operations</caption>
@@ -353,10 +360,27 @@ print "3".__int__+7;
           <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
           <tr><td>binary ==</td><td>Equals comparison, yielding a boolean</td><td>url1 == url2</td></tr>
           <tr><td>binary !=</td><td>Non-equals comparison, yielding a boolean</td><td>url1 != url2</td></tr>
-          <tr><td>binary +</td><td>Append and encode another path element, yielding a URL</td><td>url1 + "repositoryconnections"</td></tr>
+          <tr><td>binary +</td><td>Append and encode another path or query argument element, yielding a URL</td><td>url1 + "repositoryconnections"</td></tr>
         </table>
         <p>In addition, the standard attributes <em>__script__</em> and <em>__string__</em>  are supported 
           by URL variable types.</p>
+      </section>
+      <section>
+        <title>Query Arguments</title>
+        <p>Query Argument variable types exist to take care of the details of URL encoding while assembling the query arguments of a REST URL for ManifoldCF's REST API.  A Query Argument variable
+          type can be created using a 'new' operation of the form <strong>new</strong> <strong>queryarg</strong> <em>expression</em> [<strong>=</strong> <em>expression</em>], where the first expression is the
+          query argument name, and the second optional expression is the query argument value.  For example, the script code 'new queryarg "report" = "simple"'
+          would create a Query Argument variable type representing the query argument "report=simple".  To add query arguments to a URL, simply add them using the '+' operator,
+          for example "urlvar = urlvar + new queryarg 'report' = 'simple';" .</p>
+        <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
+        <table>
+          <caption>Query Argument operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>binary ==</td><td>Equals comparison, yielding a boolean</td><td>arg1 == arg2</td></tr>
+          <tr><td>binary !=</td><td>Non-equals comparison, yielding a boolean</td><td>arg1 != arg2</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em> and <em>__string__</em>  are supported 
+          by Query Argument variable types.</p>
       </section>
       <section>
         <title>Connection names</title>

@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-connectors</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -30,14 +30,22 @@
   <build>
     <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
     <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/connector/src/main/native2ascii</directory>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+    </resources> 
+
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>native2ascii-maven-plugin</artifactId>
-        <version>1.0-alpha-1</version>
+        <version>1.0-beta-1</version>
         <configuration>
-            <dest>target/classes</dest>
-            <src>connector/src/main/native2ascii</src>
+            <workDir>target/classes</workDir>
         </configuration>
         <executions>
             <execution>
@@ -47,7 +55,9 @@
                 </goals>
                 <configuration>
                     <encoding>UTF8</encoding>
-                    <includes>**/*.properties</includes>
+                    <includes>
+                      <include>**/*.properties</include>
+                    </includes>
                 </configuration>
             </execution>
         </executions>
@@ -89,9 +99,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>${commons-httpclient.version}</version>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpcomponent.httpclient.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>

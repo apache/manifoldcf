@@ -56,6 +56,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   protected String domain = null;
   protected String webtopBaseURL = null;
 
+  protected boolean hasSessionParameters = false;
   protected IDocumentum session = null;
   protected long lastSessionFetch = -1L;
 
@@ -64,7 +65,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   /** Documentum has no "deny" tokens, and its document acls cannot be empty, so no local authority deny token is required.
   * However, it is felt that we need to be suspenders-and-belt, so here is the deny token.
   * The documentum tokens are of the form xxx:yyy, so they cannot collide with the standard deny token. */
-  private static final String denyToken = "DEAD_AUTHORITY";
+  private static final String denyToken = GLOBAL_DENY_TOKEN;
 
   protected class GetSessionThread extends Thread
   {
@@ -98,12 +99,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
   }
 
-  /** Get a DFC session.  This will be done every time it is needed.
+  /** Establish session parameters.
   */
-  protected void getSession()
-    throws ManifoldCFException, ServiceInterruption
+  protected void getSessionParameters()
+    throws ManifoldCFException
   {
-    if (session == null)
+    if (!hasSessionParameters)
     {
       // Perform basic parameter checking, and debug output.
       if (docbaseName == null || docbaseName.length() < 1)
@@ -132,6 +133,18 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       else
         Logging.connectors.debug("DCTM: Domain = '" + domain + "'");
 
+      hasSessionParameters = true;
+    }
+  }
+  
+  /** Get a DFC session.  This will be done every time it is needed.
+  */
+  protected void getSession()
+    throws ManifoldCFException, ServiceInterruption
+  {
+    getSessionParameters();
+    if (session == null)
+    {
       long currentTime;
       GetSessionThread t = new GetSessionThread();
       try
@@ -646,6 +659,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   public void disconnect()
     throws ManifoldCFException
   {
+    hasSessionParameters = false;
     if (session != null)
     {
       DestroySessionThread t = new DestroySessionThread();
@@ -1573,6 +1587,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             
             String objName = object.getObjectName();
 
+            String contentType = object.getContentType();
+            
             // This particular way of getting content failed, because DFC loaded the
             // whole object into memory (very very bad DFC!)
             // InputStream is = objIDfSysObject.getContent();
@@ -1609,6 +1625,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
             rval = new RepositoryDocument();
 
+            if (contentType != null)
+              rval.setMimeType(contentType);
+            
             // Handle the metadata.
             // The start of the version string contains the names of the metadata.  We parse it out of the
             // version string, because we don't want the chance of somebody changing something after we got
@@ -1995,19 +2014,21 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String docbaseName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE);
+    String docbaseName = parameters.getParameter(CONFIG_PARAM_DOCBASE);
     if (docbaseName == null)
       docbaseName = "";
-    String docbaseUserName = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_USERNAME);
+    String docbaseUserName = parameters.getParameter(CONFIG_PARAM_USERNAME);
     if (docbaseUserName == null)
       docbaseUserName = "";
-    String docbasePassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PASSWORD);
+    String docbasePassword = parameters.getObfuscatedParameter(CONFIG_PARAM_PASSWORD);
     if (docbasePassword == null)
       docbasePassword = "";
-    String docbaseDomain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOMAIN);
+    else
+      docbasePassword = out.mapPasswordToKey(docbasePassword);
+    String docbaseDomain = parameters.getParameter(CONFIG_PARAM_DOMAIN);
     if (docbaseDomain == null)
       docbaseDomain = "";
-    String webtopBaseUrl = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_WEBTOPBASEURL);
+    String webtopBaseUrl = parameters.getParameter(CONFIG_PARAM_WEBTOPBASEURL);
     if (webtopBaseUrl == null)
       webtopBaseUrl = "http://localhost/webtop/";
 
@@ -2080,23 +2101,23 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   {
     String docbaseName = variableContext.getParameter("docbasename");
     if (docbaseName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOCBASE,docbaseName);
+      parameters.setParameter(CONFIG_PARAM_DOCBASE,docbaseName);
 
     String docbaseUserName = variableContext.getParameter("docbaseusername");
     if (docbaseUserName != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_USERNAME,docbaseUserName);
+      parameters.setParameter(CONFIG_PARAM_USERNAME,docbaseUserName);
 
     String docbasePassword = variableContext.getParameter("docbasepassword");
     if (docbasePassword != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PASSWORD,docbasePassword);
+      parameters.setObfuscatedParameter(CONFIG_PARAM_PASSWORD,variableContext.mapKeyToPassword(docbasePassword));
 
     String docbaseDomain = variableContext.getParameter("docbasedomain");
     if (docbaseDomain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_DOMAIN,docbaseDomain);
+      parameters.setParameter(CONFIG_PARAM_DOMAIN,docbaseDomain);
 
     String webtopBaseUrl = variableContext.getParameter("webtopbaseurl");
     if (webtopBaseUrl != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_WEBTOPBASEURL,webtopBaseUrl);
+      parameters.setParameter(CONFIG_PARAM_WEBTOPBASEURL,webtopBaseUrl);
 
     return null;
   }
@@ -2263,7 +2284,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+        if (sn.getType().equals(CONFIG_PARAM_LOCATION))
         {
           String pathDescription = "_" + Integer.toString(k);
           String pathOpName = "pathop" + pathDescription;
@@ -2378,7 +2399,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+        if (sn.getType().equals(CONFIG_PARAM_LOCATION))
         {
           String pathDescription = "_" + Integer.toString(k);
           out.print(
@@ -2511,7 +2532,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
+      if (sn.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
         String token = sn.getAttributeValue("token");
         if (token != null && token.length() > 0)
@@ -2527,7 +2548,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             while (kk < sn.getChildCount())
             {
               SpecificationNode dsn = sn.getChild(kk++);
-              if (dsn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME))
+              if (dsn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
               {
                 String attr = dsn.getAttributeValue("attrname");
                 attrMap.put(attr,attr);
@@ -2687,7 +2708,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
+      if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
         String token = sn.getAttributeValue("value");
         if (token != null && token.length() > 0)
@@ -2789,7 +2810,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
+      if (sn.getType().equals(CONFIG_PARAM_MAXLENGTH))
       {
         maxDocLength = sn.getAttributeValue("value");
       }
@@ -2827,7 +2848,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
+      if (sn.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
       {
         pathNameAttribute = sn.getAttributeValue("value");
       }
@@ -2839,7 +2860,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
+      if (sn.getType().equals(CONFIG_PARAM_PATHMAP))
       {
         String pathMatch = sn.getAttributeValue("match");
         String pathReplace = sn.getAttributeValue("replace");
@@ -2944,7 +2965,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+      	if (sn.getType().equals(CONFIG_PARAM_LOCATION))
           ds.removeChild(i);
       	else
           i++;
@@ -2967,7 +2988,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       	}
       	// Path inserts won't happen until the very end
       	String path = variableContext.getParameter("specpath"+pathDescription);
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_LOCATION);
       	node.setAttribute("path",path);
       	ds.addChild(ds.getChildCount(),node);
       	i++;
@@ -2978,7 +2999,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       if (op != null && op.equals("Add"))
       {
       	String path = variableContext.getParameter("specpath");
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_LOCATION);
       	node.setAttribute("path",path);
       	ds.addChild(ds.getChildCount(),node);
       }
@@ -3081,7 +3102,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
+      	if (sn.getType().equals(CONFIG_PARAM_OBJECTTYPE))
           ds.removeChild(i);
       	else
           i++;
@@ -3092,7 +3113,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < y.length)
       {
       	String fileType = y[i++];
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_OBJECTTYPE);
       	node.setAttribute("token",fileType);
       	String isAll = variableContext.getParameter("specfileallattrs_"+fileType);
       	if (isAll != null)
@@ -3103,7 +3124,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           int k = 0;
           while (k < z.length)
           {
-            SpecificationNode attrNode = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME);
+            SpecificationNode attrNode = new SpecificationNode(CONFIG_PARAM_ATTRIBUTENAME);
             attrNode.setAttribute("attrname",z[k++]);
             node.addChild(node.getChildCount(),attrNode);
           }
@@ -3120,7 +3141,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
+      	if (sn.getType().equals(CONFIG_PARAM_FORMAT))
           ds.removeChild(i);
       	else
           i++;
@@ -3131,7 +3152,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < y.length)
       {
       	String fileType = y[i++];
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_FORMAT);
       	node.setAttribute("value",fileType);
       	ds.addChild(ds.getChildCount(),node);
       }
@@ -3145,7 +3166,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
+      	if (sn.getType().equals(CONFIG_PARAM_MAXLENGTH))
           ds.removeChild(i);
       	else
           i++;
@@ -3153,7 +3174,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
       if (x.length() > 0)
       {
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_MAXLENGTH);
       	node.setAttribute("value",x);
       	ds.addChild(ds.getChildCount(),node);
       }
@@ -3167,14 +3188,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
+      	if (sn.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
           ds.removeChild(i);
       	else
           i++;
       }
       if (xc.length() > 0)
       {
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_PATHNAMEATTRIBUTE);
       	node.setAttribute("value",xc);
       	ds.addChild(ds.getChildCount(),node);
       }
@@ -3188,7 +3209,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
+      	if (sn.getType().equals(CONFIG_PARAM_PATHMAP))
           ds.removeChild(i);
       	else
           i++;
@@ -3213,7 +3234,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       	// Inserts won't happen until the very end
       	String match = variableContext.getParameter("specmatch"+pathDescription);
       	String replace = variableContext.getParameter("specreplace"+pathDescription);
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_PATHMAP);
       	node.setAttribute("match",match);
       	node.setAttribute("replace",replace);
       	ds.addChild(ds.getChildCount(),node);
@@ -3226,7 +3247,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       {
       	String match = variableContext.getParameter("specmatch");
       	String replace = variableContext.getParameter("specreplace");
-      	SpecificationNode node = new SpecificationNode(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP);
+      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_PATHMAP);
       	node.setAttribute("match",match);
       	node.setAttribute("replace",replace);
       	ds.addChild(ds.getChildCount(),node);
@@ -3254,7 +3275,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_LOCATION))
+      if (sn.getType().equals(CONFIG_PARAM_LOCATION))
       {
         if (seenAny == false)
         {
@@ -3293,7 +3314,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_OBJECTTYPE))
+      if (sn.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
         if (seenAny == false)
         {
@@ -3323,7 +3344,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           while (k < sn.getChildCount())
           {
             SpecificationNode dsn = sn.getChild(k++);
-            if (dsn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_ATTRIBUTENAME))
+            if (dsn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
             {
               String attrName = dsn.getAttributeValue("attrname");
               out.print(
@@ -3363,7 +3384,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_FORMAT))
+      if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
         if (seenAny == false)
         {
@@ -3402,7 +3423,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_MAXLENGTH))
+      if (sn.getType().equals(CONFIG_PARAM_MAXLENGTH))
       {
         maxDocumentLength = sn.getAttributeValue("value");
       }
@@ -3492,7 +3513,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHNAMEATTRIBUTE))
+      if (sn.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
       {
         pathNameAttribute = sn.getAttributeValue("value");
       }
@@ -3529,7 +3550,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(org.apache.manifoldcf.crawler.connectors.DCTM.DCTM.CONFIG_PARAM_PATHMAP))
+      if (sn.getType().equals(CONFIG_PARAM_PATHMAP))
       {
         String pathMatch = sn.getAttributeValue("match");
         String pathReplace = sn.getAttributeValue("replace");

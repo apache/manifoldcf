@@ -114,7 +114,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       String userID = params.getParameter(GTSConfig.PARAM_USERID);
       String password = params.getObfuscatedParameter(GTSConfig.PARAM_PASSWORD);
       String realm = params.getParameter(GTSConfig.PARAM_REALM);
-      poster = new HttpPoster(realm,userID,password,ingestURI);
+      poster = new HttpPoster(currentContext,realm,userID,password,ingestURI);
     }
   }
 

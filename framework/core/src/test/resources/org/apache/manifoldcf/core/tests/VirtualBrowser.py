@@ -19,6 +19,8 @@
 import Javascript
 import urllib
 import urllib2
+import httplib
+import cookielib
 import HTMLParser
 import base64
 import re
@@ -735,18 +737,60 @@ class VirtualLink:
     def set_bodytext( self, bodytext ):
         self.linktext = bodytext
 
+# Dummy request (so we can use cookiejar)
+class DummyRequest:
+    """
+    Dummy request (for interfacing with cookiejar).
+    """
+
+    def __init__( self, protocol, host, url ):
+        self.protocol = protocol
+        self.host = host
+        self.url = url
+        self.headers = {}
+
+    def has_header( self, name ):
+        return name in self.headers
+
+    def add_header( self, key, val ):
+        self.headers[key.capitalize()] = val
+
+    def add_unredirected_header(self, key, val):
+        self.headers[key.capitalize()] = val
+
+    def is_unverifiable( self ):
+        return True
+
+    def get_type( self ):
+        return self.protocol
+
+    def get_full_url( self ):
+        return self.url
+
+    def get_header( self, header_name, default=None ):
+        return self.headers.get( header_name, default )
+
+    def get_host( self ):
+        return self.host
+
+    get_origin_req_host = get_host
+
+    def get_headers( self ):
+        return self.headers
+
 # Class that describes a virtual browser window.  Each virtual window has some set of forms and links,
 # as well as a set of dialog boxes (which can be popped up due to various actions, and dismissed
 # by virtual user activity)
 class VirtualWindow:
 
     def __init__( self, browser_instance, window_name, data, parent, current_url ):
-        print "Loading window '%s' with data from url %s" % (window_name, current_url)
+        print >>sys.stderr, "Loading window '%s' with data from url %s" % (window_name, current_url)
         self.links = { }
         self.buttons = { }
         self.forms = { }
         self.window_name = window_name
         self.data = data
+        #print >>sys.stderr, data
         self.parent = parent
         self.browser_instance = browser_instance
         self.is_open = True
@@ -993,16 +1037,19 @@ class VirtualBrowser:
         self.password = password
         self.win_host = win_host
         self.language = language
+        self.cookiejar = cookielib.CookieJar()
         if win_host == None and username != None:
             # Set up basic auth
-            self.urllibopener = urllib2.build_opener( urllib2.HTTPHandler ( ) )
+            pass
+            #self.urllibopener = urllib2.build_opener( urllib2.HTTPHandler ( ) )
         elif win_host != None and username != None:
             # Proxy-based auth
             # MHL
             raise Exception("Feature not yet implemented")
         else:
             # Use standard opener
-            self.urllibopener = urllib2.build_opener( urllib2.HTTPHandler ( ) )
+            pass
+            #self.urllibopener = urllib2.build_opener( urllib2.HTTPHandler ( ) )
 
     # Public part of the Virtual Browser interface
 
@@ -1073,6 +1120,7 @@ class VirtualBrowser:
         window_data = self.fetch_data_with_get( url )
         self.reload_window( window_name, window_data, url )
 
+    """
     def fetch_and_decode( self, req ):
         f = self.urllibopener.open( req )
         fetch_info = f.info()
@@ -1083,10 +1131,13 @@ class VirtualBrowser:
             if charset_index != -1:
                 encoding = content_type[charset_index+8:len(content_type)]
         return f.read( ).decode(encoding)
+    """
 
     # Read a url with get.  Returns the data as a string.
     def fetch_data_with_get( self, url ):
         print >> sys.stderr, "Getting url '%s'..." % url
+        return self.talk_to_server(url)
+        """
         req = urllib2.Request( url )
         if self.language != None:
             req.add_header("Accept-Language", self.language)
@@ -1097,11 +1148,14 @@ class VirtualBrowser:
         # MHL - not yet implemented
         # req.add_header('Referer', 'http://www.python.org/')
         return self.fetch_and_decode( req )
+        """
 
     # Read a url with post.  Pass the parameters as an array of ( name, value ) tuples.
     def fetch_data_with_post( self, parameters, url ):
         paramstring = urllib.urlencode( parameters, doseq=True )
         print >> sys.stderr, "Posting url '%s' with parameters '%s'..." % (url, paramstring)
+        return self.talk_to_server( url, method="POST", body=paramstring, content_type="application/x-www-form-urlencoded" )
+        """
         req = urllib2.Request( url, paramstring )
         if self.language != None:
             req.add_header("Accept-Language", self.language)
@@ -1111,6 +1165,7 @@ class VirtualBrowser:
         # Add cookies by domain
         # MHL
         return self.fetch_and_decode( req )
+        """
 
     # Private method to post using multipart forms
     def fetch_data_with_multipart_post( self, parameters, files, url ):
@@ -1121,17 +1176,6 @@ class VirtualBrowser:
             filecount = len(files)
         print >> sys.stderr, "Multipart posting url '%s' with parameters '%s' and %d files..." % (url, paramstring, filecount)
 
-        # Turn URL into protocol, host, and selector
-        urlpieces = url.split("://")
-        protocol = urlpieces[0]
-        uri = urlpieces[1]
-        # Split uri at the first /
-        uripieces = uri.split("/")
-        host = uripieces[0]
-        selector = uri[len(host):len(uri)]
-
-        import httplib
-
         """
         Post fields and files to an http host as multipart/form-data.
         fields is a sequence of (name, value) elements for regular form fields.
@@ -1139,52 +1183,100 @@ class VirtualBrowser:
         Return the server's response page.
         """
         content_type, body = encode_multipart_formdata(parameters, files)
-        if protocol == "http":
-            h = httplib.HTTPConnection(host)
-        elif protocol == "https":
-            h = httplib.HTTPSConnection(host)
-        else:
-            raise Exception("Unknown protocol: %s" % protocol)
+        return self.talk_to_server(url, method="POST", content_type=content_type, body=body)
 
-        h.connect()
-        try:
-            # Set the request type and url
-            h.putrequest("POST", selector)
+    def talk_to_server(self, url, method="GET", content_type=None, body=None):
+        
+        # Redirection loop
+        while True:
 
-            # Set the content type and length
-            h.putheader("content-type", content_type)
-            h.putheader("content-length", str(len(body)))
+            # Turn URL into protocol, host, and selector
+            urlpieces = url.split("://")
+            protocol = urlpieces[0]
+            uri = urlpieces[1]
+            # Split uri at the first /
+            uripieces = uri.split("/")
+            host = uripieces[0]
+            selector = uri[len(host):len(uri)]
 
-            # Add cookies by domain
-            # MHL
+            if protocol == "http":
+                h = httplib.HTTPConnection(host)
+            elif protocol == "https":
+                h = httplib.HTTPSConnection(host)
+            else:
+                raise Exception("Unknown protocol: %s" % protocol)
 
-            if self.language != None:
-                h.putheader("Accept-Language", self.language)
+            h.connect()
+            try:
+                # Set the request type and url
+                h.putrequest(method, selector)
 
-            # Add basic auth credentials, if needed.
-            if self.username != None:
-                base64string = base64.encodestring("%s:%s" % (self.username, self.password))[:-1]
-                h.putheader("Authorization", "Basic %s" % base64string)
+                # Set the content type and length
+                if content_type != None:
+                    h.putheader("content-type", content_type)
+                if body != None:
+                    h.putheader("content-length", str(len(body)))
 
-            h.endheaders()
+                # Add cookies by domain.  To do this with httplib and cookielib,
+                # we create a dummy urllib2 request.
+                urllib2_request = DummyRequest( protocol, host, url )
 
-            # Send the body
-            h.send(body)
-            response = h.getresponse()
-            status = response.status
-            headers = response.getheaders()
-            encoding = "iso-8859-1"
-            content_type = response.getheader("Content-type","text/html; charset=iso-8859-1")
-            charset_index = content_type.find("charset=")
-            if charset_index != -1:
-                encoding = content_type[charset_index+8:len(content_type)]
+                # add cookies to fake request
+                self.cookiejar.add_cookie_header( urllib2_request )
+                
+                # apply cookie headers to actual request
+                for header in urllib2_request.get_headers().keys():
+                    header_value = urllib2_request.get_headers()[header]
+                    h.putheader( header, header_value )
 
-            value = response.read().decode(encoding)
-            if status != 200:
-                raise Exception("Received an error response %d from url: '%s'" % (status,url) )
-            return value
-        finally:
-            h.close()
+                if self.language != None:
+                    h.putheader("Accept-Language", self.language)
+
+                # Add basic auth credentials, if needed.
+                if self.username != None:
+                    base64string = base64.encodestring("%s:%s" % (self.username, self.password))[:-1]
+                    h.putheader("Authorization", "Basic %s" % base64string)
+
+                h.endheaders()
+
+                # Send the body
+                if body != None:
+                    h.send(body)
+                response = h.getresponse()
+                status = response.status
+                headers = response.getheaders()
+                encoding = "iso-8859-1"
+                content_type = response.getheader("Content-type","text/html; charset=iso-8859-1")
+                charset_index = content_type.find("charset=")
+                if charset_index != -1:
+                    encoding = content_type[charset_index+8:len(content_type)]
+
+                value = response.read().decode(encoding)
+
+                # HACK: pretend we're urllib2 response for cookielib
+                response.info = lambda : response.msg
+
+                # read and store cookies from response
+                self.cookiejar.extract_cookies(response, urllib2_request)
+
+                # If redirection, go around again
+                if status == 301 or status == 302:
+                    # Redirection!  New url to process.
+                    location_header = response.msg.getheader("location")
+                    if location_header != None:
+                        print >>sys.stderr, "Redirecting from url '%s' to url '%s'..." % ( url, location_header )
+                        url = location_header
+                        continue
+                    else:
+                        raise Exception("Missing redirection location header")
+
+                # If NOT a redirection, handle it.
+                if status != 200:
+                    raise Exception("Received an error response %d from url: '%s'" % (status,url) )
+
+                return value
+            finally:
+                h.close()
 
 # Static method for multipart encoding
 def encode_multipart_formdata(fields, files):
@@ -1236,7 +1328,7 @@ class JSConfirmMethod( Javascript.JSObject ):
             raise Exception("confirm method requires one string argument")
         # Evaluate to string
         message = argset[0].str_value( )
-        print "CONFIRM: "+message
+        print >>sys.stderr, "CONFIRM: "+message
         # Now, decide whether we return true or false.
         return Javascript.JSBoolean( self.window_instance.get_answer( message, True ) )
 
@@ -1254,7 +1346,7 @@ class JSAlertMethod( Javascript.JSObject ):
             raise Exception("alert method requires one string argument")
         # Evaluate just to be sure there's no error
         message = argset[0].str_value( )
-        print "ALERT: "+message
+        print >>sys.stderr, "ALERT: "+message
         # Always click "OK"
         return Javascript.JSBoolean( True )
 
@@ -1299,7 +1391,7 @@ class JSFocusMethod( Javascript.JSObject ):
         self.owner = owner
 
     def call( self, argset, context ):
-        print "FOCUS: On field '%s'" % self.owner.get_name( )
+        print >>sys.stderr, "FOCUS: On field '%s'" % self.owner.get_name( )
         return Javascript.JSBoolean( True )
 
 # JS object representing a window in Javascript
@@ -1556,7 +1648,7 @@ class VirtualActionParser( HTMLParser.HTMLParser ):
                 multipart = False
             if method == "POST" and multipart == True:
                 method = "MULTIPART"
-            print "Form of type %s detected" % method
+            print >>sys.stderr, "Form of type %s detected" % method
             self.current_form_instance = VirtualForm( self.window_instance, name, action, method )
             self.window_instance.add_form( self.current_form_instance )
         except:

@@ -20,47 +20,11 @@ package org.apache.manifoldcf.core.interfaces;
 
 import java.util.*;
 
-/** This interface represents parameters that get posted during UI interaction.
+/** This interface represents resources that are made available to connector methods
+* during UI post operations.
 */
-public interface IPostParameters
+public interface IPostParameters extends IParameterActivity, IPasswordMapperActivity
 {
   public static final String _rcsid = "@(#)$Id: IPostParameters.java 988245 2010-08-23 18:39:35Z kwright $";
-
-  /** Read an array of parameter values.
-  *@param name is the parameter name.
-  *@return the array of values, or null if it doesn't exist.
-  */
-  public String[] getParameterValues(String name);
-  
-  /** Get single parameter value.
-  *@param name is the parameter name.
-  *@return the value, or null if it doesn't exist.
-  */
-  public String getParameter(String name);
-  
-  /** Get a file parameter, as a binary input stream.
-  *@param name is the parameter name.
-  *@return the value, or null if it doesn't exist.
-  */
-  public BinaryInput getBinaryStream(String name)
-    throws ManifoldCFException;
-  
-  /** Get file parameter, as a byte array.
-  *@param name is the parameter name.
-  *@return the binary parameter as an array of bytes.
-  */
-  public byte[] getBinaryBytes(String name);
-  
-  /** Set a parameter value.
-  *@param name is the parameter name.
-  *@param value is the desired value.
-  */
-  public void setParameter(String name, String value);
-  
-  /** Set an array of parameter values.
-  *@param name is the parameter name.
-  *@param values is the array of desired values.
-  */
-  public void setParameterValues(String name, String[] values);
 
 }

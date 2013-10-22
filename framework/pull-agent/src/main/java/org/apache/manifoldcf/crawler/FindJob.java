@@ -48,8 +48,8 @@ public class FindJob
 
     try
     {
-      ManifoldCF.initializeEnvironment();
       IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
       IJobManager jobManager = JobManagerFactory.make(tc);
       IJobDescription[] jobs = jobManager.getAllJobs();
       int i = 0;

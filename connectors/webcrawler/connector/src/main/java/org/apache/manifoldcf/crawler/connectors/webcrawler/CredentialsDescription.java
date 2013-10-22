@@ -23,9 +23,9 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import java.util.*;
 import java.util.regex.*;
 
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.params.*;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
 
 /** This class describes credential information pulled from a configuration.
 * The data contained is organized by regular expression performed on a url.  What we store
@@ -108,6 +108,9 @@ public class CredentialsDescription
                 String authPageRegexp = child.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
                 String pageType = child.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
                 String matchRegexp = child.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
+		String overrideTargetURL = child.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
+		if (overrideTargetURL != null && overrideTargetURL.length() == 0)
+		  overrideTargetURL = null;
                 Pattern authPattern;
                 try
                 {
@@ -128,15 +131,19 @@ public class CredentialsDescription
                 }
                 if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,null,null,matchRegexp,matchPattern,null,null);
+                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,matchRegexp,matchPattern,null,null,null,null);
                 }
                 else if (pageType.equals(WebcrawlerConfig.ATTRVALUE_LINK))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,matchRegexp,matchPattern,null,null,null,null);
+                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,matchRegexp,matchPattern,null,null,null,null,null,null);
                 }
                 else if (pageType.equals(WebcrawlerConfig.ATTRVALUE_REDIRECTION))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,null,null,null,null,matchRegexp,matchPattern);
+                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,null,null,matchRegexp,matchPattern,null,null);
+                }
+                else if (pageType.equals(WebcrawlerConfig.ATTRVALUE_CONTENT))
+                {
+                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,null,null,null,null,matchRegexp,matchPattern);
                 }
                 else
                   throw new ManifoldCFException("Invalid page type: "+pageType);
@@ -315,38 +322,50 @@ public class CredentialsDescription
   protected static class SessionCredentialItem implements LoginParameters
   {
     /** url regexp */
-    protected String regexp;
+    protected final String regexp;
     /** Url match pattern */
-    protected Pattern pattern;
+    protected final Pattern pattern;
+    /** Override target URL */
+    protected final String overrideTargetURL;
     /** The preferred redirection regexp */
-    protected String preferredRedirectionRegexp;
+    protected final String preferredRedirectionRegexp;
     /** The preferred redirection pattern, or null if there's no preferred redirection */
-    protected Pattern preferredRedirectionPattern;
+    protected final Pattern preferredRedirectionPattern;
     /** The preferred link regexp */
-    protected String preferredLinkRegexp;
+    protected final String preferredLinkRegexp;
     /** The preferred link pattern, or null if there's no preferred link */
-    protected Pattern preferredLinkPattern;
+    protected final Pattern preferredLinkPattern;
     /** The form name regexp */
-    protected String formNameRegexp;
+    protected final String formNameRegexp;
     /** The form name pattern, or null if no form is expected */
-    protected Pattern formNamePattern;
+    protected final Pattern formNamePattern;
+    /** The content regexp */
+    protected final String contentRegexp;
+    /** The content pattern, or null if no content is sought for */
+    protected final Pattern contentPattern;
+    
     /** The list of the parameters we want to add for this pattern. */
-    protected List parameters = new ArrayList();
+    protected final List parameters = new ArrayList();
 
     /** Constructor */
     public SessionCredentialItem(String regexp, Pattern p,
+      String overrideTargetURL,
       String preferredLinkRegexp, Pattern preferredLinkPattern,
       String formNameRegexp, Pattern formNamePattern,
-      String preferredRedirectionRegexp, Pattern preferredRedirectionPattern)
+      String preferredRedirectionRegexp, Pattern preferredRedirectionPattern,
+      String contentRegexp, Pattern contentPattern)
     {
       this.regexp = regexp;
       this.pattern = p;
+      this.overrideTargetURL = overrideTargetURL;
       this.preferredLinkRegexp = preferredLinkRegexp;
       this.preferredLinkPattern = preferredLinkPattern;
       this.formNameRegexp = formNameRegexp;
       this.formNamePattern = formNamePattern;
       this.preferredRedirectionRegexp = preferredRedirectionRegexp;
       this.preferredRedirectionPattern = preferredRedirectionPattern;
+      this.contentRegexp = contentRegexp;
+      this.contentPattern = contentPattern;
     }
 
     /** Add parameter */
@@ -359,6 +378,13 @@ public class CredentialsDescription
     public Pattern getPattern()
     {
       return pattern;
+    }
+
+    /** Get the override target URL.
+    */
+    public String getOverrideTargetURL()
+    {
+      return overrideTargetURL;
     }
 
     /** Get the preferred redirection pattern.
@@ -380,6 +406,13 @@ public class CredentialsDescription
     public Pattern getFormNamePattern()
     {
       return formNamePattern;
+    }
+
+    /** Get the content pattern.
+    */
+    public Pattern getContentPattern()
+    {
+      return contentPattern;
     }
 
     /** Get the name of the i'th parameter.
@@ -440,6 +473,14 @@ public class CredentialsDescription
       else if (!formNameRegexp.equals(sci.formNameRegexp))
         return false;
 
+      if (contentRegexp == null || sci.contentRegexp == null)
+      {
+        if (contentRegexp != sci.contentRegexp)
+          return false;
+      }
+      else if (!contentRegexp.equals(sci.contentRegexp))
+        return false;
+
       if (parameters.size() != sci.parameters.size())
         return false;
       int i = 0;
@@ -457,7 +498,8 @@ public class CredentialsDescription
     {
       int rval = regexp.hashCode() + ((preferredRedirectionRegexp==null)?0:preferredRedirectionRegexp.hashCode()) +
         ((preferredLinkRegexp==null)?0:preferredLinkRegexp.hashCode()) +
-        ((formNameRegexp==null)?0:formNameRegexp.hashCode());
+        ((formNameRegexp==null)?0:formNameRegexp.hashCode()) +
+	((contentRegexp==null)?0:contentRegexp.hashCode());
       int i = 0;
       while (i < parameters.size())
       {
@@ -539,15 +581,19 @@ public class CredentialsDescription
 
     /** Add an auth page */
     public void addAuthPage(String urlregexp, Pattern urlPattern,
+      String overrideTargetURL,
       String preferredLinkRegexp, Pattern preferredLinkPattern,
       String formNameRegexp, Pattern formNamePattern,
-      String preferredRedirectionRegexp, Pattern preferredRedirectionPattern)
+      String preferredRedirectionRegexp, Pattern preferredRedirectionPattern,
+      String contentRegexp, Pattern contentPattern)
       throws ManifoldCFException
     {
       sessionPages.put(urlregexp,new SessionCredentialItem(urlregexp,urlPattern,
+	overrideTargetURL,
         preferredLinkRegexp,preferredLinkPattern,
         formNameRegexp,formNamePattern,
-        preferredRedirectionRegexp,preferredRedirectionPattern));
+        preferredRedirectionRegexp,preferredRedirectionPattern,
+	contentRegexp,contentPattern));
     }
 
     /** Add a page parameter */

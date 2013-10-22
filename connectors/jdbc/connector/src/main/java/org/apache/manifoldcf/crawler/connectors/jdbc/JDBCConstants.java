@@ -52,7 +52,9 @@ public class JDBCConstants
   public static String urlReturnColumnName = "lcf__url";
   /** The name of the data return column */
   public static String dataReturnColumnName = "lcf__data";
-
+  /** The name of the content type return column */
+  public static String contentTypeReturnColumnName = "lcf__contenttype";
+  
   /** The name of the id return variable */
   public static String idReturnVariable = "IDCOLUMN";
   /** The name of the version return variable */
@@ -61,6 +63,8 @@ public class JDBCConstants
   public static String urlReturnVariable = "URLCOLUMN";
   /** The name of the data return variable */
   public static String dataReturnVariable = "DATACOLUMN";
+  /** The name of the content type return variable */
+  public static String contentTypeReturnVariable = "CONTENTTYPE";
   /** The name of the start time variable */
   public static String startTimeVariable = "STARTTIME";
   /** The name of the end time variable */
@@ -68,6 +72,15 @@ public class JDBCConstants
   /** The name of the id list */
   public static String idListVariable = "IDLIST";
 
+  /** JDBCAuthority */
+  /** Query returning user Id parameter name */
+  public static String databaseUserIdQuery = "User Id Query";
+  /** Query returning user tokens parameter name */
+  public static String databaseTokensQuery = "User Tokens Query";
+  /** The name of the user name variable */
+  public static String userNameVariable = "USERNAME";
+  /** The name of the user id variable */
+  public static String userIDVariable = "UID";
 }
 
 

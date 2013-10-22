@@ -19,6 +19,8 @@
 
 package org.apache.manifoldcf.scriptengine;
 
+import java.io.*;
+import java.net.*;
 
 /** Variable class representing a ManifoldCF API URL connection name segment.  In conjunction
 * with the URL variable, this variable will properly character-stuff the connection name to make
@@ -35,11 +37,13 @@ public class VariableConnectionName extends VariableBase
     this.encodedConnectionName = encode(connectionName);
   }
 
+  @Override
   public int hashCode()
   {
     return connectionName.hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableConnectionName))
@@ -47,7 +51,16 @@ public class VariableConnectionName extends VariableBase
     return ((VariableConnectionName)o).connectionName.equals(connectionName);
   }
 
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -65,13 +78,46 @@ public class VariableConnectionName extends VariableBase
     return sb.toString();
   }
   
+  /** Check if the variable has a URL path value */
+  @Override
+  public boolean hasURLPathValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Get the variable's value as a URL path component */
+  @Override
+  public String getURLPathValue()
+    throws ScriptException
+  {
+    try
+    {
+      return URLEncoder.encode(encodedConnectionName,"utf-8").replace("+","%20");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      throw new ScriptException(composeMessage(e.getMessage()),e);
+    }
+  }
+
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
     return encodedConnectionName;
   }
 
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -80,6 +126,7 @@ public class VariableConnectionName extends VariableBase
     return new VariableBoolean(encodedConnectionName.equals(v.getStringValue()));
   }
 
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {

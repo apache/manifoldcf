@@ -28,38 +28,38 @@ import java.util.*;
 */
 public class DeleteRepositoryConnection
 {
-        public static final String _rcsid = "@(#)$Id: DeleteRepositoryConnection.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: DeleteRepositoryConnection.java 988245 2010-08-23 18:39:35Z kwright $";
 
-        private DeleteRepositoryConnection()
-        {
-        }
-
-
-        public static void main(String[] args)
-        {
-                if (args.length != 1)
-                {
-                        System.err.println("Usage: DeleteRepositoryConnection <connection_name>");
-                        System.exit(1);
-                }
-
-                String connectionName = args[0];
-                try
-                {
-                        ManifoldCF.initializeEnvironment();
-                        IThreadContext tc = ThreadContextFactory.make();
-                        IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
-                        mgr.delete(connectionName);
-
-                }
-                catch (Exception e)
-                {
-                        e.printStackTrace();
-                        System.exit(2);
-                }
-        }
+  private DeleteRepositoryConnection()
+  {
+  }
 
 
+  public static void main(String[] args)
+  {
+    if (args.length != 1)
+    {
+      System.err.println("Usage: DeleteRepositoryConnection <connection_name>");
+      System.exit(1);
+    }
 
-                
+    String connectionName = args[0];
+    try
+    {
+      IThreadContext tc = ThreadContextFactory.make();
+      ManifoldCF.initializeEnvironment(tc);
+      IRepositoryConnectionManager mgr = RepositoryConnectionManagerFactory.make(tc);
+      mgr.delete(connectionName);
+
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      System.exit(2);
+    }
+  }
+
+
+
+    
 }
