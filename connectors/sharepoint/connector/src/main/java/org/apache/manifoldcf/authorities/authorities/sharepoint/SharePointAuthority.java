@@ -395,9 +395,59 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     int index = userName.indexOf("@");
     if (index == -1)
       throw new ManifoldCFException("Username is in unexpected form (no @): '"+userName+"'");
+
     String userPart = userName.substring(0,index);
     String domainPart = userName.substring(index+1);
+
+    List<String> theGroups = new ArrayList<String>();
     
+    // First, look up user in SharePoint.
+    getSharePointSession();
+    List<String> sharePointTokens = proxy.getAccessTokens("/", domainPart + "\\" + userPart);
+    if (sharePointTokens == null)
+      return RESPONSE_USERNOTFOUND;
+    theGroups.addAll(sharePointTokens);
+    
+    // Use AD only if Claim Space
+    if (isClaimSpace)
+    {
+      try
+      {
+        List<String> adTokens = getADTokens(userPart,domainPart);
+        // User not present in AD is perfectly OK provided the user exists in SharePoint
+        if (adTokens != null)
+          theGroups.addAll(adTokens);
+      }
+      catch (NameNotFoundException e)
+      {
+        // This means that the user doesn't exist
+        return RESPONSE_USERNOTFOUND;
+      }
+      catch (NamingException e)
+      {
+        // Unreachable
+        return RESPONSE_UNREACHABLE;
+      }
+    }
+    
+    return new AuthorizationResponse(theGroups.toArray(new String[0]),AuthorizationResponse.RESPONSE_OK);
+  }
+
+  /** Obtain the default access tokens for a given user name.
+  *@param userName is the user name or identifier.
+  *@return the default response tokens, presuming that the connect method fails.
+  */
+  @Override
+  public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
+  {
+    // The default response if the getConnection method fails
+    return RESPONSE_UNREACHABLE;
+  }
+
+  /** Get the AD-derived access tokens for a user and domain */
+  protected List<String> getADTokens(String userPart, String domainPart)
+    throws NameNotFoundException, NamingException, ManifoldCFException
+  {
     // Now, look through the rules for the matching domain controller
     String domainController = null;
     for (DCRule rule : dCRules)
@@ -410,26 +460,23 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         break;
       }
     }
+    
     if (domainController == null)
-    {
-      // No domain controller found for the user, so return "user not found".
-      return RESPONSE_USERNOTFOUND;
-    }
+      // No AD user
+      return null;
     
     // Look up connection parameters
     DCConnectionParameters dcParams = dCConnectionParameters.get(domainController);
     if (dcParams == null)
-    {
-      // No domain controller, even though it's mentioned in a rule
-      return RESPONSE_USERNOTFOUND;
-    }
-    
+      // No AD user
+      return null;
+        
     // Use the complete fqn if the field is the "userPrincipalName"
     String userACLsUsername = dcParams.getUserACLsUsername();
     if (userACLsUsername != null && userACLsUsername.equals("userPrincipalName")){
-    	userPart = userName;
+      userPart = userName;
     }
-    
+        
     //Build the DN searchBase from domain part
     StringBuilder domainsb = new StringBuilder();
     int j = 0;
@@ -448,104 +495,75 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       j = k+1;
     }
 
-    try
-    {
-      // Establish a session with the selected domain controller
-      LdapContext ctx = createDCSession(domainController);  
-    
-      //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
-      String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
-      if (searchBase == null)
-        return RESPONSE_USERNOTFOUND;
-
-      //specify the LDAP search filter
-      String searchFilter = "(objectClass=user)";
-
-      //Create the search controls for finding the access tokens	
-      SearchControls searchCtls = new SearchControls();
-
-      //Specify the search scope, must be base level search for tokenGroups
-      searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
-   
-      //Specify the attributes to return
-      String returnedAtts[]={"tokenGroups","objectSid"};
-      searchCtls.setReturningAttributes(returnedAtts);
-
-      //Search for tokens.  Since every user *must* have a SID, the "no user" detection should be safe.
-      NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
-
-      ArrayList theGroups = new ArrayList();
-
-      //Loop through the search results
-      while (answer.hasMoreElements())
-      {
-        SearchResult sr = (SearchResult)answer.next();
- 
-        //the sr.GetName should be null, as it is relative to the base object
+    // Establish a session with the selected domain controller
+    LdapContext ctx = createDCSession(domainController);  
         
-        Attributes attrs = sr.getAttributes();
-        if (attrs != null)
-        {
-          try
-          {
-            for (NamingEnumeration ae = attrs.getAll();ae.hasMore();) 
-            {
-              Attribute attr = (Attribute)ae.next();
-              for (NamingEnumeration e = attr.getAll();e.hasMore();)
-              {
-                theGroups.add(sid2String((byte[])e.next()));
-              }
-            }
- 
-          }	 
-          catch (NamingException e)
-          {
-            throw new ManifoldCFException(e.getMessage(),e);
-          }
-				
-        }
-      }
+    //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
+    String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
+    if (searchBase == null)
+      return null;
 
-      if (theGroups.size() == 0)
-        return RESPONSE_USERNOTFOUND;
-      
-      // All users get certain well-known groups
-      theGroups.add("S-1-1-0");
+    //specify the LDAP search filter
+    String searchFilter = "(objectClass=user)";
 
-      String[] tokens = new String[theGroups.size()];
-      int k = 0;
-      while (k < tokens.length)
+    //Create the search controls for finding the access tokens	
+    SearchControls searchCtls = new SearchControls();
+
+    //Specify the search scope, must be base level search for tokenGroups
+    searchCtls.setSearchScope(SearchControls.OBJECT_SCOPE);
+       
+    //Specify the attributes to return
+    String returnedAtts[]={"tokenGroups","objectSid"};
+    searchCtls.setReturningAttributes(returnedAtts);
+
+    //Search for tokens.  Since every user *must* have a SID, the "no user" detection should be safe.
+    NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
+
+    List<String> theGroups = new ArrayList<String>();
+
+    //Loop through the search results
+    while (answer.hasMoreElements())
+    {
+      SearchResult sr = (SearchResult)answer.next();
+     
+      //the sr.GetName should be null, as it is relative to the base object
+            
+      Attributes attrs = sr.getAttributes();
+      if (attrs != null)
       {
-        tokens[k] = (String)theGroups.get(k);
-        k++;
+        try
+        {
+          for (NamingEnumeration ae = attrs.getAll();ae.hasMore();) 
+          {
+            Attribute attr = (Attribute)ae.next();
+            for (NamingEnumeration e = attr.getAll();e.hasMore();)
+            {
+              theGroups.add(groupTokenFromSID(sid2String((byte[])e.next())));
+            }
+          }
+        }	 
+        catch (NamingException e)
+        {
+          throw new ManifoldCFException(e.getMessage(),e);
+        }
+                                    
       }
-      
-      return new AuthorizationResponse(tokens,AuthorizationResponse.RESPONSE_OK);
+    }
 
-    }
-    catch (NameNotFoundException e)
-    {
-      // This means that the user doesn't exist
-      return RESPONSE_USERNOTFOUND;
-    }
-    catch (NamingException e)
-    {
-      // Unreachable
-      return RESPONSE_UNREACHABLE;
-    }
+    if (theGroups.size() == 0)
+      return null;
+    
+    // User is in AD, so add the 'everyone' group
+    theGroups.add(groupTokenFromSID("S-1-1-0"));
+    return theGroups;
   }
 
-  /** Obtain the default access tokens for a given user name.
-  *@param userName is the user name or identifier.
-  *@return the default response tokens, presuming that the connect method fails.
-  */
-  @Override
-  public AuthorizationResponse getDefaultAuthorizationResponse(String userName)
+  protected String groupTokenFromSID(String SID)
   {
-    // The default response if the getConnection method fails
-    return RESPONSE_UNREACHABLE;
+    // MHL; called only if Claim Space enabled
+    return SID;
   }
-
+  
   // UI support methods.
   //
   // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the

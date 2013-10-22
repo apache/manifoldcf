@@ -103,7 +103,7 @@ public class SPSProxyHelper {
   /**
   * Get the access tokens for a user principal.
   */
-  public String[] getAccessTokens(String site )
+  public List<String> getAccessTokens( String site, String userLoginName )
     throws ManifoldCFException
   {
     try
@@ -114,14 +114,112 @@ public class SPSProxyHelper {
       UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
-      // Temporary, so that the exceptions still get thrown
-      String userLogin = "xxx";
-      com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLogin );
-      org.apache.axis.message.MessageElement[] userList = userResp.get_any();
+      com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLoginName );
+      org.apache.axis.message.MessageElement[] usersList = userResp.get_any();
 
+      /* Response looks like this:
+          <GetUserInfo xmlns="http://schemas.microsoft.com/sharepoint/soap/directory/">
+             <User ID="4" Sid="S-1-5-21-2127521184-1604012920-1887927527-34577" Name="User1_Display_Name" 
+                LoginName="DOMAIN\User1_Alias" Email="User1_E-mail" 
+                Notes="Notes" IsSiteAdmin="False" IsDomainGroup="False" />
+          </GetUserInfo>
+        */
+
+      if (usersList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserInfo' node, saw "+Integer.toString(usersList.length));
+      
+      if (Logging.authorityConnectors.isDebugEnabled()){
+        Logging.authorityConnectors.debug("SharePoint authority: getUserInfo xml response: '" + usersList[0].toString() + "'");
+      }
+
+      MessageElement users = usersList[0];
+      if (!users.getElementName().getLocalName().equals("GetUserInfo"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserInfo' node");
+          
+      String userID = null;
+      
+      Iterator userIter = users.getChildElements();
+      while (userIter.hasNext())
+      {
+        MessageElement child = (MessageElement)userIter.next();
+        if (child.getElementName().getLocalName().equals("User"))
+        {
+          userID = child.getAttribute("ID");
+        }
+      }
+
+      // If userID is null, no such user
+      if (userID == null)
+        return null;
+
+      List<String> accessTokens = new ArrayList<String>();
+      accessTokens.add("U"+userID);
+      
+      com.microsoft.schemas.sharepoint.soap.directory.GetGroupCollectionFromUserResponseGetGroupCollectionFromUserResult userGroupResp =
+        userCall.getGroupCollectionFromUser( userLoginName );
+      org.apache.axis.message.MessageElement[] groupsList = userGroupResp.get_any();
+      
+      /* Response looks like this:
+          <GetGroupCollectionFromUser xmlns=
+             "http://schemas.microsoft.com/sharepoint/soap/directory/">
+             <Groups>
+                <Group ID="3" Name="Group1" Description="Description" OwnerID="1" 
+                   OwnerIsUser="False" />
+                <Group ID="15" Name="Group2" Description="Description" 
+                   OwnerID="12" OwnerIsUser="True" />
+                <Group ID="16" Name="Group3" Description="Description" 
+                   OwnerID="7" OwnerIsUser="False" />
+             </Groups>
+          </GetGroupCollectionFromUser>
+        */
+
+      if (groupsList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetGroupCollectionFromUser' node, saw "+Integer.toString(groupsList.length));
+
+      if (Logging.authorityConnectors.isDebugEnabled()){
+        Logging.authorityConnectors.debug("SharePoint authority: getGroupCollectionFromUser xml response: '" + groupsList[0].toString() + "'");
+      }
+
+      MessageElement groups = groupsList[0];
+      if (!users.getElementName().getLocalName().equals("GetGroupCollectionFromUser"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetGroupCollectionFromUser' node");
+          
+      Iterator groupsIter = groups.getChildElements();
+      while (groupsIter.hasNext())
+      {
+        MessageElement child = (MessageElement)groupsIter.next();
+        if (child.getElementName().getLocalName().equals("Groups"))
+        {
+          Iterator groupIter = child.getChildElements();
+          while (groupIter.hasNext())
+          {
+            MessageElement group = (MessageElement)groupIter.next();
+            if (group.getElementName().getLocalName().equals("Group"))
+            {
+              String groupID = group.getAttribute("ID");
+              String groupName = group.getAttribute("Name");
+              // Add to the access token list
+              accessTokens.add("G"+groupID);
+            }
+          }
+        }
+      }
+
+      com.microsoft.schemas.sharepoint.soap.directory.GetRoleCollectionFromUserResponseGetRoleCollectionFromUserResult userRoleResp =
+        userCall.getRoleCollectionFromUser( userLoginName );
+      org.apache.axis.message.MessageElement[] rolesList = userRoleResp.get_any();
+
+      if (rolesList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetRoleCollectionFromUser' node, saw "+Integer.toString(rolesList.length));
+      
+      if (Logging.authorityConnectors.isDebugEnabled()){
+        Logging.authorityConnectors.debug("SharePoint authority: getRoleCollectionFromUser xml response: '" + rolesList[0].toString() + "'");
+      }
+
+      // Not specified in doc and must be determined experimentally
       // MHL
       
-      return new String[0];
+      return accessTokens;
     }
     catch (java.net.MalformedURLException e)
     {
