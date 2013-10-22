@@ -227,7 +227,7 @@ public class SPSProxyHelper {
       */
       
       MessageElement roles = rolesList[0];
-      if (!groups.getElementName().getLocalName().equals("GetRoleCollectionFromUser"))
+      if (!roles.getElementName().getLocalName().equals("GetRoleCollectionFromUser"))
         throw new ManifoldCFException("Bad response - outer node should have been 'GetRoleCollectionFromUser' node");
           
       Iterator rolesIter = roles.getChildElements();
