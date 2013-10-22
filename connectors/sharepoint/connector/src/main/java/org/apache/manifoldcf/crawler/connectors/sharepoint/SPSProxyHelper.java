@@ -1312,28 +1312,29 @@ public class SPSProxyHelper {
       com.microsoft.schemas.sharepoint.soap.directory.GetUserInfoResponseGetUserInfoResult userResp = userCall.getUserInfo( userLogin );
       org.apache.axis.message.MessageElement[] userList = userResp.get_any();
 
-      XMLDoc doc = new XMLDoc( userList[0].toString() );
-      ArrayList nodeList = new ArrayList();
-
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
+      if (userList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserInfo' node, saw "+Integer.toString(userList.length));
+      
+      MessageElement users = userList[0];
+      if (!users.getElementName().getLocalName().equals("GetUserInfo"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserInfo' node");
+          
+      String userID = null;
+      
+      Iterator userIter = users.getChildElements();
+      while (userIter.hasNext())
       {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:GetUserInfo' node - there are "+Integer.toString(nodeList.size())+" nodes");
+        MessageElement child = (MessageElement)userIter.next();
+        if (child.getElementName().getLocalName().equals("User"))
+        {
+          userID = child.getAttribute("Sid");
+        }
       }
-      Object parent = nodeList.get(0);
-      if (!doc.getNodeName(parent).equals("ns1:GetUserInfo"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:GetUserInfo'");
+      
+      if (userID == null)
+        throw new ManifoldCFException("Could not find user login '"+userLogin+"' so could not get SID");
 
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);  // ns1:User
-
-      if ( nodeList.size() != 1 )
-      {
-        throw new ManifoldCFException( " No User found." );
-      }
-      parent = nodeList.get(0);
-      nodeList.clear();
-      rval = doc.getValue( parent, "Sid" );
+      rval = userID;
     }
     return rval;
   }
@@ -1362,36 +1363,30 @@ public class SPSProxyHelper {
       com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromGroupResponseGetUserCollectionFromGroupResult roleResp = userCall.getUserCollectionFromGroup(groupName);
       org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
 
-      XMLDoc doc = new XMLDoc(roleList[0].toString());
-      ArrayList nodeList = new ArrayList();
+      if (roleList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserCollectionFromGroup' node, saw "+Integer.toString(roleList.length));
 
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
+      MessageElement roles = roleList[0];
+      if (!roles.getElementName().getLocalName().equals("GetUserCollectionFromGroup"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserCollectionFromGroup' node");
+
+      Iterator rolesIter = roles.getChildElements();
+      while (rolesIter.hasNext())
       {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:GetUserCollectionFromGroup' node - there are "
-        + Integer.toString(nodeList.size()) + " nodes");
-      }
-      Object parent = nodeList.get(0);
-      if (!doc.getNodeName(parent).equals("ns1:GetUserCollectionFromGroup"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:GetUserCollectionFromGroup'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent); // <ns1:Users>
-
-      if (nodeList.size() != 1)
-      {
-        throw new ManifoldCFException(" No Users collection found.");
-      }
-      parent = nodeList.get(0);
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent); // <ns1:User>
-
-      int i = 0;
-      while (i < nodeList.size())
-      {
-        Object o = nodeList.get(i++);
-        rval.add(doc.getValue(o, "Sid"));
-      }
+        MessageElement child = (MessageElement)rolesIter.next();
+        if (child.getElementName().getLocalName().equals("Users"))
+        {
+          Iterator usersIterator = child.getChildElements();
+          while (usersIterator.hasNext())
+          {
+            MessageElement user = (MessageElement)usersIterator.next();
+            if (user.getElementName().getLocalName().equals("User"))
+            {
+              rval.add(user.getAttribute("Sid"));
+            }
+          }
+        }
+      }      
     }
     return rval;
   }
@@ -1419,35 +1414,30 @@ public class SPSProxyHelper {
       com.microsoft.schemas.sharepoint.soap.directory.GetUserCollectionFromRoleResponseGetUserCollectionFromRoleResult roleResp = userCall.getUserCollectionFromRole( roleName );
       org.apache.axis.message.MessageElement[] roleList = roleResp.get_any();
 
-      XMLDoc doc = new XMLDoc( roleList[0].toString() );
-      ArrayList nodeList = new ArrayList();
+      if (roleList.length != 1)
+        throw new ManifoldCFException("Bad response - expecting one outer 'GetUserCollectionFromRole' node, saw "+Integer.toString(roleList.length));
 
-      doc.processPath(nodeList, "*", null);
-      if (nodeList.size() != 1)
+      MessageElement roles = roleList[0];
+      if (!roles.getElementName().getLocalName().equals("GetUserCollectionFromRole"))
+        throw new ManifoldCFException("Bad response - outer node should have been 'GetUserCollectionFromRole' node");
+
+      Iterator rolesIter = roles.getChildElements();
+      while (rolesIter.hasNext())
       {
-        throw new ManifoldCFException("Bad xml - missing outer 'ns1:GetUserCollectionFromRole' node - there are "+Integer.toString(nodeList.size())+" nodes");
-      }
-      Object parent = nodeList.get(0);
-      if (!doc.getNodeName(parent).equals("ns1:GetUserCollectionFromRole"))
-        throw new ManifoldCFException("Bad xml - outer node is not 'ns1:GetUserCollectionFromRole'");
-
-      nodeList.clear();
-      doc.processPath(nodeList, "*", parent);  // <ns1:Users>
-
-      if ( nodeList.size() != 1 )
-      {
-        throw new ManifoldCFException( " No Users collection found." );
-      }
-      parent = nodeList.get(0);
-      nodeList.clear();
-      doc.processPath( nodeList, "*", parent ); // <ns1:User>
-
-      int i = 0;
-      while (i < nodeList.size())
-      {
-        Object o = nodeList.get( i++ );
-        rval.add( doc.getValue( o, "Sid" ) );
-      }
+        MessageElement child = (MessageElement)rolesIter.next();
+        if (child.getElementName().getLocalName().equals("Users"))
+        {
+          Iterator usersIterator = child.getChildElements();
+          while (usersIterator.hasNext())
+          {
+            MessageElement user = (MessageElement)usersIterator.next();
+            if (user.getElementName().getLocalName().equals("User"))
+            {
+              rval.add(user.getAttribute("Sid"));
+            }
+          }
+        }
+      }      
     }
     return rval;
   }
