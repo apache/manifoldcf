@@ -999,7 +999,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       // Authority needs to do nothing with SharePoint version right now.
       
       String authorizationModel = params.getParameter( SharePointConfig.PARAM_AUTHORIZATIONMODEL );
-      isClaimSpace = authorizationModel.equals("ClaimSpace");
+      isClaimSpace = (authorizationModel != null &&authorizationModel.equals("ClaimSpace"));
 
       serverProtocol = params.getParameter( SharePointConfig.PARAM_SERVERPROTOCOL );
       if (serverProtocol == null)
