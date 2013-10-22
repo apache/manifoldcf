@@ -181,7 +181,7 @@ public class SPSProxyHelper {
       }
 
       MessageElement groups = groupsList[0];
-      if (!users.getElementName().getLocalName().equals("GetGroupCollectionFromUser"))
+      if (!groups.getElementName().getLocalName().equals("GetGroupCollectionFromUser"))
         throw new ManifoldCFException("Bad response - outer node should have been 'GetGroupCollectionFromUser' node");
           
       Iterator groupsIter = groups.getChildElements();
@@ -268,6 +268,11 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String sharepointErrorCode = elem.getFirstChild().getNodeValue().trim();
+          if (sharepointErrorCode.equals("0x80131600"))
+          {
+            // No such user
+            return null;
+          }
           if (Logging.authorityConnectors.isDebugEnabled())
           {
             org.w3c.dom.Element elem2 = e.lookupFaultDetail(new javax.xml.namespace.QName("http://schemas.microsoft.com/sharepoint/soap/","errorstring"));
@@ -280,7 +285,7 @@ public class SPSProxyHelper {
           throw new ManifoldCFException("SharePoint server error code: "+sharepointErrorCode);
         }
         if (Logging.authorityConnectors.isDebugEnabled())
-          Logging.authorityConnectors.debug("SharePoint: Unknown SharePoint server error getting the acls for site "+site+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
+          Logging.authorityConnectors.debug("SharePoint: Unknown SharePoint server error getting usergroups for site "+site+" - axis fault = "+e.getFaultCode().getLocalPart()+", detail = "+e.getFaultString(),e);
 
         throw new ManifoldCFException("Unknown SharePoint server error: "+e.getMessage());
       }
