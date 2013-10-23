@@ -310,6 +310,7 @@
             <tr><td>"max_connections"</td><td>The total number of outstanding connections allowed to exist at a time</td></tr>
             <tr><td>"configuration"</td><td>The configuration object for the connection, which is specific to the connection class</td></tr>
             <tr><td>"prerequisite"</td><td>The mapping connection prerequisite, if any</td></tr>
+            <tr><td>"authdomain"</td><td>The authorization domain for the authority connection, if any</td></tr>
           </table>
           <p></p>
         </section>
