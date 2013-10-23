@@ -40,6 +40,7 @@ import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFacto
  * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
  * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>mappingname</td><td>VARCHAR(32)</td><td></td></tr>
+ * <tr><td>authdomainname</td><td>VARCHAR(32)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -57,6 +58,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
   protected final static String mappingField = "mappingname";
+  protected final static String authDomainField = "authdomainname";
 
   // Cache manager
   ICacheManager cacheManager;
@@ -95,6 +97,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         map.put(maxCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
+        map.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -107,9 +110,37 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
           addMap.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
           performAlter(addMap,null,null,null);
         }
+        // Add the authDomainField column
+        cd = (ColumnDescription)existing.get(authDomainField);
+        if (cd == null)
+        {
+          Map addMap = new HashMap();
+          addMap.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
       }
 
       // Index management goes here
+      IndexDescription authDomainIndex = new IndexDescription(false,new String[]{authDomainField});
+
+      // Get rid of indexes that shouldn't be there
+      Map indexes = getTableIndexes(null,null);
+      Iterator iter = indexes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String indexName = (String)iter.next();
+        IndexDescription id = (IndexDescription)indexes.get(indexName);
+
+        if (authDomainIndex != null && id.equals(authDomainIndex))
+          authDomainIndex = null;
+        else if (indexName.indexOf("_pkey") == -1)
+          // This index shouldn't be here; drop it
+          performRemoveIndex(indexName);
+      }
+
+      // Add the ones we didn't find
+      if (authDomainIndex != null)
+        performAddIndex(null,authDomainIndex);
 
       break;
     }
@@ -130,7 +161,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,2);
+    ManifoldCF.writeDword(os,3);
     // Get the authority list
     IAuthorityConnection[] list = getAllConnections();
     // Write the number of authorities
@@ -146,6 +177,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       ManifoldCF.writeString(os,conn.getConfigParams().toXML());
       ManifoldCF.writeDword(os,conn.getMaxConnections());
       ManifoldCF.writeString(os,conn.getPrerequisiteMapping());
+      ManifoldCF.writeString(os,conn.getAuthDomain());
     }
   }
 
@@ -170,6 +202,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       if (version >= 2)
       {
         conn.setPrerequisiteMapping(ManifoldCF.readString(is));
+        if (version >= 3)
+        {
+          conn.setAuthDomain(ManifoldCF.readString(is));
+        }
       }
       // Attempt to save this connection
       save(conn);
@@ -304,6 +340,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             values.put(maxCountField,new Long((long)object.getMaxConnections()));
             values.put(configField,object.getConfigParams().toXML());
             values.put(mappingField,object.getPrerequisiteMapping());
+            values.put(authDomainField,object.getAuthDomain());
 
             boolean isCreated;
             
@@ -559,6 +596,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       rc.setClassName((String)row.getValue(classNameField));
       rc.setMaxConnections((int)((Long)row.getValue(maxCountField)).longValue());
       rc.setPrerequisiteMapping((String)row.getValue(mappingField));
+      rc.setAuthDomain((String)row.getValue(authDomainField));
       String xml = (String)row.getValue(configField);
       if (xml != null && xml.length() > 0)
         rc.getConfigParams().fromXML(xml);
