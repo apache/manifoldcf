@@ -51,6 +51,13 @@ public interface IAuthorityConnectionManager
   public IAuthorityConnection[] getAllConnections()
     throws ManifoldCFException;
 
+  /** Obtain a list of the authority connections which correspond to an auth domain.
+  *@param authDomain is the domain to get connections for.
+  *@return an array of connection objects.
+  */
+  public IAuthorityConnection[] getDomainConnections(String authDomain)
+    throws ManifoldCFException;
+
   /** Load a authority connection by name.
   *@param name is the name of the authority connection.
   *@return the loaded connection object, or null if not found.

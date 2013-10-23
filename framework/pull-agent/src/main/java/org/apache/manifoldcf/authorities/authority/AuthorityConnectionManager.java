@@ -213,7 +213,53 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     }
   }
 
-  /** Obtain a list of the repository connections, ordered by name.
+  /** Obtain a list of the authority connections which correspond to an auth domain.
+  *@param authDomain is the domain to get connections for.
+  *@return an array of connection objects.
+  */
+  @Override
+  public IAuthorityConnection[] getDomainConnections(String authDomain)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      // Read the connections for the domain
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getAuthorityConnectionsKey());
+      StringSet localCacheKeys = new StringSet(ssb);
+      StringBuilder sb = new StringBuilder("SELECT ");
+      ArrayList list = new ArrayList();
+      sb.append(nameField).append(" FROM ").append(getTableName()).append(" WHERE ");
+      sb.append(buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(authDomainField,authDomain)}));
+      IResultSet set = performQuery(sb.toString(),list,localCacheKeys,null);
+      String[] names = new String[set.getRowCount()];
+      int i = 0;
+      while (i < names.length)
+      {
+        IResultRow row = set.getRow(i);
+        names[i] = row.getValue(nameField).toString();
+        i++;
+      }
+      return loadMultiple(names);
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+  
+  /** Obtain a list of the authority connections, ordered by name.
   *@return an array of connection objects.
   */
   @Override
