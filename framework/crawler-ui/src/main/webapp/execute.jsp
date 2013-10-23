@@ -249,7 +249,7 @@
 					if (x != null)
 						connection.setClassName(x);
 					x = variableContext.getParameter("maxconnections");
-					if (x != null && x.length() > 0)
+					if (x != null)
 						connection.setMaxConnections(Integer.parseInt(x));
 					x = variableContext.getParameter("prerequisites_present");
 					if (x != null && x.equals("true"))
@@ -260,7 +260,7 @@
 						connection.setPrerequisiteMapping(y);
 					}
 					x = variableContext.getParameter("authdomain");
-					if (x != null && x.length() > 0)
+					if (x != null)
 						connection.setAuthDomain(x);
 
 					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
