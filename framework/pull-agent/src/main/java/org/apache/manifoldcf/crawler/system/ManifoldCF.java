@@ -4528,6 +4528,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String CONNECTIONNODE_MATCH = "match";
   protected static final String CONNECTIONNODE_MATCHDESCRIPTION = "match_description";
   protected static final String CONNECTIONNODE_RATE = "rate";
+  protected static final String CONNECTIONNODE_AUTHDOMAIN = "authdomain";
   
   // Output connection API support.
   
@@ -4691,6 +4692,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           throw new ManifoldCFException("Connection prerequisite node requires a value");
         connection.setPrerequisiteMapping(child.getValue());
       }
+      else if (childType.equals(CONNECTIONNODE_AUTHDOMAIN))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection authdomain node requires a value");
+        connection.setAuthDomain(child.getValue());
+      }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
@@ -4752,6 +4759,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       child = new ConfigurationNode(CONNECTIONNODE_DESCRIPTION);
       child.setValue(connection.getDescription());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    if (connection.getAuthDomain() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_AUTHDOMAIN);
+      child.setValue(connection.getAuthDomain());
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
