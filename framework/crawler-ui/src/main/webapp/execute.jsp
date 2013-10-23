@@ -259,7 +259,10 @@
 							y = null;
 						connection.setPrerequisiteMapping(y);
 					}
-					
+					x = variableContext.getParameter("authdomain");
+					if (x != null && x.length() > 0)
+						connection.setAuthDomain(x);
+
 					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 					
 					if (error != null)

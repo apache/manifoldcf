@@ -61,6 +61,7 @@
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
 	String prereq = null;
+	String authDomain = "";
 
 	if (connection != null)
 	{
@@ -72,6 +73,9 @@
 		parameters = connection.getConfigParams();
 		maxConnections = connection.getMaxConnections();
 		prereq = connection.getPrerequisiteMapping();
+		authDomain = connection.getAuthDomain();
+		if (authDomain == null)
+			authDomain = "";
 	}
 	else
 		connectionName = null;
@@ -390,6 +394,10 @@
 %>
 				</td>
 			</tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
+				<td class="value" colspan="4"><nobr><input type="text" name="authdomain" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/></nobr></td>
+			</tr>
 		    </table>
 <%
 	  }
@@ -398,6 +406,7 @@
 		// Hiddens for the "Type" tab
 %>
 		    <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+		    <input type="hidden" name="authdomain" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/>
 <%
 	  }
 

@@ -84,6 +84,9 @@
 			connectorName = className + Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.uninstalled");
 		int maxCount = connection.getMaxConnections();
 		String prereq = connection.getPrerequisiteMapping();
+		String authDomain = connection.getAuthDomain();
+		if (authDomain == null)
+			authDomain = "";
 		
 		ConfigParams parameters = connection.getConfigParams();
 
@@ -141,7 +144,7 @@
 			</tr>
 			<tr>
 				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.PrerequisiteUserMappingColon")%></nobr></td>
-				<td class="value" colspan="3">
+				<td class="value" colspan="1">
 <%
 		if (prereq != null)
 		{
@@ -157,6 +160,8 @@
 		}
 %>
 				</td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorizationDomainColon")%></nobr></td>
+				<td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authDomain)%></nobr></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
