@@ -414,7 +414,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     {
       try
       {
-        List<String> adTokens = getADTokens(userPart,domainPart);
+        List<String> adTokens = getADTokens(userPart,domainPart,userName);
         // User not present in AD is perfectly OK provided the user exists in SharePoint
         if (adTokens != null)
           theGroups.addAll(adTokens);
@@ -446,7 +446,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
   }
 
   /** Get the AD-derived access tokens for a user and domain */
-  protected List<String> getADTokens(String userPart, String domainPart)
+  protected List<String> getADTokens(String userPart, String domainPart, String userName)
     throws NameNotFoundException, NamingException, ManifoldCFException
   {
     // Now, look through the rules for the matching domain controller
@@ -473,9 +473,14 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       return null;
         
     // Use the complete fqn if the field is the "userPrincipalName"
+    String userBase;
     String userACLsUsername = dcParams.getUserACLsUsername();
     if (userACLsUsername != null && userACLsUsername.equals("userPrincipalName")){
-      userPart = userName;
+      userBase = userName;
+    }
+    else
+    {
+      userBase = userPart;
     }
         
     //Build the DN searchBase from domain part
@@ -500,7 +505,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     LdapContext ctx = createDCSession(domainController);  
         
     //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
-    String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
+    String searchBase = getDistinguishedName(ctx, userBase, domainsb.toString(), userACLsUsername);
     if (searchBase == null)
       return null;
 
@@ -521,7 +526,10 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
 
     List<String> theGroups = new ArrayList<String>();
-
+    String userToken = userTokenFromLoginName(domainPart + "\\" + userPart);
+    if (userToken != null)
+      theGroups.add(userToken);
+    
     //Loop through the search results
     while (answer.hasMoreElements())
     {
@@ -539,7 +547,9 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
             Attribute attr = (Attribute)ae.next();
             for (NamingEnumeration e = attr.getAll();e.hasMore();)
             {
-              theGroups.add(groupTokenFromSID(sid2String((byte[])e.next())));
+              String sid = sid2String((byte[])e.next());
+              String token = attr.getID().equals("objectSid")?userTokenFromSID(sid):groupTokenFromSID(sid);
+              theGroups.add(token);
             }
           }
         }	 
@@ -547,7 +557,6 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         {
           throw new ManifoldCFException(e.getMessage(),e);
         }
-                                    
       }
     }
 
@@ -555,14 +564,40 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
       return null;
     
     // User is in AD, so add the 'everyone' group
-    theGroups.add(groupTokenFromSID("S-1-1-0"));
+    theGroups.add(everyoneGroup());
     return theGroups;
   }
 
+  protected String everyoneGroup()
+  {
+    if (isClaimSpace)
+      return "c:0!.s|windows";
+    else
+      return "S-1-1-0";
+  }
+  
   protected String groupTokenFromSID(String SID)
   {
-    // MHL; called only if Claim Space enabled
-    return SID;
+    if (isClaimSpace)
+      return "c:0+.w|"+SID.toLowerCase(Locale.ROOT);
+    else
+      return SID;
+  }
+
+  protected String userTokenFromSID(String SID)
+  {
+    if (isClaimSpace)
+      return "i:0+.w|"+SID.toLowerCase(Locale.ROOT);
+    else
+      return SID;
+  }
+  
+  protected String userTokenFromLoginName(String loginName)
+  {
+    if (isClaimSpace)
+      return "i:0#.w|"+URLEncoder.encode(loginName);
+    else
+      return null;
   }
   
   // UI support methods.

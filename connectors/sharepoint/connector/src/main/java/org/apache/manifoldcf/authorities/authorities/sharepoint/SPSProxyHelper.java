@@ -137,6 +137,7 @@ public class SPSProxyHelper {
         throw new ManifoldCFException("Bad response - outer node should have been 'GetUserInfo' node");
           
       String userID = null;
+      String userName = null;
       
       Iterator userIter = users.getChildElements();
       while (userIter.hasNext())
@@ -145,6 +146,7 @@ public class SPSProxyHelper {
         if (child.getElementName().getLocalName().equals("User"))
         {
           userID = child.getAttribute("ID");
+          userName = child.getAttribute("LoginName");
         }
       }
 
@@ -153,7 +155,7 @@ public class SPSProxyHelper {
         return null;
 
       List<String> accessTokens = new ArrayList<String>();
-      accessTokens.add("U"+userID);
+      accessTokens.add("U"+userName);
       
       com.microsoft.schemas.sharepoint.soap.directory.GetGroupCollectionFromUserResponseGetGroupCollectionFromUserResult userGroupResp =
         userCall.getGroupCollectionFromUser( userLoginName );
@@ -199,7 +201,7 @@ public class SPSProxyHelper {
               String groupID = group.getAttribute("ID");
               String groupName = group.getAttribute("Name");
               // Add to the access token list
-              accessTokens.add("G"+groupID);
+              accessTokens.add("G"+groupName);
             }
           }
         }
@@ -245,7 +247,7 @@ public class SPSProxyHelper {
               String roleID = role.getAttribute("ID");
               String roleName = role.getAttribute("Name");
               // Add to the access token list
-              accessTokens.add("R"+roleID);
+              accessTokens.add("R"+roleName);
             }
           }
         }
