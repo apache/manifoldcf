@@ -1,4 +1,4 @@
-/* $Id: IAuthorityConnectionManager.java 996524 2010-09-13 13:38:01Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,11 +21,11 @@ package org.apache.manifoldcf.authorities.interfaces;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;
 
-/** This interface describes the functionality in the authority connection manager.
-* The authority connection manager manages the definitions of individual connections,
+/** This interface describes the functionality in the authority group manager.
+* The authority group manager manages the definitions of individual groups,
 * and allows them to be defined, edited, and removed.
 */
-public interface IAuthorityConnectionManager
+public interface IAuthorityGroupManager
 {
   /** Install the manager.
   */
@@ -45,55 +45,41 @@ public interface IAuthorityConnectionManager
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException;
 
-  /** Return true if the specified authority group name is referenced.
-  *@param authorityGroup is the authority group name.
-  *@return true if referenced, false otherwise.
+  /** Obtain a list of the authority groups, ordered by name.
+  *@return an array of group objects.
   */
-  public boolean isReferenced(String authorityGroup)
+  public IAuthorityGroup[] getAllGroups()
     throws ManifoldCFException;
 
-  /** Obtain a list of the authority connections, ordered by name.
-  *@return an array of connection objects.
+  /** Load a authority group by name.
+  *@param name is the name of the authority group.
+  *@return the loaded group object, or null if not found.
   */
-  public IAuthorityConnection[] getAllConnections()
+  public IAuthorityGroup load(String name)
     throws ManifoldCFException;
 
-  /** Obtain a list of the authority connections which correspond to an auth domain.
-  *@param authDomain is the domain to get connections for.
-  *@return an array of connection objects.
-  */
-  public IAuthorityConnection[] getDomainConnections(String authDomain)
-    throws ManifoldCFException;
-
-  /** Load a authority connection by name.
-  *@param name is the name of the authority connection.
-  *@return the loaded connection object, or null if not found.
-  */
-  public IAuthorityConnection load(String name)
-    throws ManifoldCFException;
-
-  /** Load multiple repository connections by name.
+  /** Load multiple authority groups by name.
   *@param names are the names to load.
-  *@return the loaded connection objects.
+  *@return the loaded group objects.
   */
-  public IAuthorityConnection[] loadMultiple(String[] names)
+  public IAuthorityGroup[] loadMultiple(String[] names)
     throws ManifoldCFException;
 
-  /** Create a new authority connection object.
+  /** Create a new authority group object.
   *@return the new object.
   */
-  public IAuthorityConnection create()
+  public IAuthorityGroup create()
     throws ManifoldCFException;
 
-  /** Save an authority connection object.
+  /** Save an authority group object.
   *@param object is the object to save.
   *@return true if the object was created, false otherwise.
   */
-  public boolean save(IAuthorityConnection object)
+  public boolean save(IAuthorityGroup object)
     throws ManifoldCFException;
 
-  /** Delete an authority connection.
-  *@param name is the name of the connection to delete.  If the
+  /** Delete an authority group.
+  *@param name is the name of the group to delete.  If the
   * name does not exist, no error is returned.
   */
   public void delete(String name)
@@ -109,13 +95,6 @@ public interface IAuthorityConnectionManager
   /** Get the authority connection name column.
   *@return the name column.
   */
-  public String getAuthorityNameColumn();
-
-  /** Return true if the specified mapping name is referenced.
-  *@param mappingName is the mapping name.
-  *@return true if referenced, false otherwise.
-  */
-  public boolean isMappingReferenced(String mappingName)
-    throws ManifoldCFException;
+  public String getGroupNameColumn();
 
 }

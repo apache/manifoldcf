@@ -85,11 +85,11 @@ public interface IRepositoryConnectionManager
   public void delete(String name)
     throws ManifoldCFException;
 
-  /** Return true if the specified authority name is referenced.
-  *@param authorityName is the authority name.
+  /** Return true if the specified authority group name is referenced.
+  *@param authorityGroup is the authority group name.
   *@return true if referenced, false otherwise.
   */
-  public boolean isReferenced(String authorityName)
+  public boolean isReferenced(String authorityGroup)
     throws ManifoldCFException;
 
   /** Get a list of repository connections that share the same connector.

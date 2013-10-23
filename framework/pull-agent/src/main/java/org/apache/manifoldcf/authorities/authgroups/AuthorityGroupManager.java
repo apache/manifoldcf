@@ -1,4 +1,4 @@
-/* $Id: AuthorityConnectionManager.java 996524 2010-09-13 13:38:01Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.authorities.authority;
+package org.apache.manifoldcf.authorities.authgroups;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
@@ -27,38 +27,25 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.interfaces.IRepositoryConnectionManager;
 import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFactory;
 
-/** Implementation of the authority connection manager functionality.
+/** Implementation of the authority group manager functionality.
  * 
  * <br><br>
- * <b>authconnectors</b>
+ * <b>authgroups</b>
  * <table border="1" cellpadding="3" cellspacing="0">
  * <tr class="TableHeadingColor">
  * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
- * <tr><td>authorityname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
+ * <tr><td>groupname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>
  * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>
- * <tr><td>classname</td><td>VARCHAR(255)</td><td></td></tr>
- * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
- * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
- * <tr><td>mappingname</td><td>VARCHAR(32)</td><td></td></tr>
- * <tr><td>authdomainname</td><td>VARCHAR(32)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
  */
-public class AuthorityConnectionManager extends org.apache.manifoldcf.core.database.BaseTable implements IAuthorityConnectionManager
+public class AuthorityGroupManager extends org.apache.manifoldcf.core.database.BaseTable implements IAuthorityGroupManager
 {
-  public static final String _rcsid = "@(#)$Id: AuthorityConnectionManager.java 996524 2010-09-13 13:38:01Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
-  // Special field suffix
-  private final static String passwordSuffix = "password";
-
-  protected final static String nameField = "authorityname";      // Changed this to work around a bug in postgresql
+  protected final static String nameField = "groupname";
   protected final static String descriptionField = "description";
-  protected final static String classNameField = "classname";
-  protected final static String maxCountField = "maxcount";
-  protected final static String configField = "configxml";
-  protected final static String mappingField = "mappingname";
-  protected final static String authDomainField = "authdomainname";
 
   // Cache manager
   ICacheManager cacheManager;
@@ -68,10 +55,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Constructor.
   *@param threadContext is the thread context.
   */
-  public AuthorityConnectionManager(IThreadContext threadContext, IDBInterface database)
+  public AuthorityGroupManager(IThreadContext threadContext, IDBInterface database)
     throws ManifoldCFException
   {
-    super(database,"authconnections");
+    super(database,"authgroups");
 
     cacheManager = CacheManagerFactory.make(threadContext);
     this.threadContext = threadContext;
@@ -93,54 +80,14 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         HashMap map = new HashMap();
         map.put(nameField,new ColumnDescription("VARCHAR(32)",true,false,null,null,false));
         map.put(descriptionField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-        map.put(classNameField,new ColumnDescription("VARCHAR(255)",false,false,null,null,false));
-        map.put(maxCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
-        map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
-        map.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
-        map.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
       {
-        // Add the mappingField column
-        ColumnDescription cd = (ColumnDescription)existing.get(mappingField);
-        if (cd == null)
-        {
-          Map addMap = new HashMap();
-          addMap.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
-        // Add the authDomainField column
-        cd = (ColumnDescription)existing.get(authDomainField);
-        if (cd == null)
-        {
-          Map addMap = new HashMap();
-          addMap.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
-          performAlter(addMap,null,null,null);
-        }
+        // Upgrade, when needed
       }
 
       // Index management goes here
-      IndexDescription authDomainIndex = new IndexDescription(false,new String[]{authDomainField});
-
-      // Get rid of indexes that shouldn't be there
-      Map indexes = getTableIndexes(null,null);
-      Iterator iter = indexes.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String indexName = (String)iter.next();
-        IndexDescription id = (IndexDescription)indexes.get(indexName);
-
-        if (authDomainIndex != null && id.equals(authDomainIndex))
-          authDomainIndex = null;
-        else if (indexName.indexOf("_pkey") == -1)
-          // This index shouldn't be here; drop it
-          performRemoveIndex(indexName);
-      }
-
-      // Add the ones we didn't find
-      if (authDomainIndex != null)
-        performAddIndex(null,authDomainIndex);
 
       break;
     }
@@ -161,23 +108,18 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,3);
+    ManifoldCF.writeDword(os,1);
     // Get the authority list
-    IAuthorityConnection[] list = getAllConnections();
-    // Write the number of authorities
+    IAuthorityGroup[] list = getAllGroups();
+    // Write the number of groups
     ManifoldCF.writeDword(os,list.length);
-    // Loop through the list and write the individual authority info
+    // Loop through the list and write the individual group info
     int i = 0;
     while (i < list.length)
     {
-      IAuthorityConnection conn = list[i++];
+      IAuthorityGroup conn = list[i++];
       ManifoldCF.writeString(os,conn.getName());
       ManifoldCF.writeString(os,conn.getDescription());
-      ManifoldCF.writeString(os,conn.getClassName());
-      ManifoldCF.writeString(os,conn.getConfigParams().toXML());
-      ManifoldCF.writeDword(os,conn.getMaxConnections());
-      ManifoldCF.writeString(os,conn.getPrerequisiteMapping());
-      ManifoldCF.writeString(os,conn.getAuthDomain());
     }
   }
 
@@ -187,94 +129,26 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version < 1 || version > 2)
-      throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
+    if (version < 1 || version > 1)
+      throw new java.io.IOException("Unknown authority group configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     int i = 0;
     while (i < count)
     {
-      IAuthorityConnection conn = create();
+      IAuthorityGroup conn = create();
       conn.setName(ManifoldCF.readString(is));
       conn.setDescription(ManifoldCF.readString(is));
-      conn.setClassName(ManifoldCF.readString(is));
-      conn.getConfigParams().fromXML(ManifoldCF.readString(is));
-      conn.setMaxConnections(ManifoldCF.readDword(is));
-      if (version >= 2)
-      {
-        conn.setPrerequisiteMapping(ManifoldCF.readString(is));
-        if (version >= 3)
-        {
-          conn.setAuthDomain(ManifoldCF.readString(is));
-        }
-      }
       // Attempt to save this connection
       save(conn);
       i++;
     }
   }
 
-  /** Return true if the specified authority group name is referenced.
-  *@param authorityGroup is the authority group name.
-  *@return true if referenced, false otherwise.
-  */
-  public boolean isReferenced(String authorityGroup)
-    throws ManifoldCFException
-  {
-    // MHL
-    return false;
-  }
-
-  /** Obtain a list of the authority connections which correspond to an auth domain.
-  *@param authDomain is the domain to get connections for.
+  /** Obtain a list of the authority grouops, ordered by name.
   *@return an array of connection objects.
   */
   @Override
-  public IAuthorityConnection[] getDomainConnections(String authDomain)
-    throws ManifoldCFException
-  {
-    beginTransaction();
-    try
-    {
-      // Read the connections for the domain
-      StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getAuthorityConnectionsKey());
-      StringSet localCacheKeys = new StringSet(ssb);
-      StringBuilder sb = new StringBuilder("SELECT ");
-      ArrayList list = new ArrayList();
-      sb.append(nameField).append(" FROM ").append(getTableName()).append(" WHERE ");
-      sb.append(buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(authDomainField,authDomain)}));
-      IResultSet set = performQuery(sb.toString(),list,localCacheKeys,null);
-      String[] names = new String[set.getRowCount()];
-      int i = 0;
-      while (i < names.length)
-      {
-        IResultRow row = set.getRow(i);
-        names[i] = row.getValue(nameField).toString();
-        i++;
-      }
-      return loadMultiple(names);
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
-  }
-  
-  /** Obtain a list of the authority connections, ordered by name.
-  *@return an array of connection objects.
-  */
-  @Override
-  public IAuthorityConnection[] getAllConnections()
+  public IAuthorityGroup[] getAllGroups()
     throws ManifoldCFException
   {
     beginTransaction();
@@ -282,7 +156,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     {
       // Read all the tools
       StringSetBuffer ssb = new StringSetBuffer();
-      ssb.add(getAuthorityConnectionsKey());
+      ssb.add(getAuthorityGroupsKey());
       StringSet localCacheKeys = new StringSet(ssb);
       IResultSet set = performQuery("SELECT "+nameField+",lower("+nameField+") AS sortfield FROM "+getTableName()+" ORDER BY sortfield ASC",null,
         localCacheKeys,null);
@@ -312,64 +186,64 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     }
   }
 
-  /** Load a repository connection by name.
-  *@param name is the name of the repository connection.
-  *@return the loaded connection object, or null if not found.
+  /** Load an authority group by name.
+  *@param name is the name of the authority group.
+  *@return the loaded group object, or null if not found.
   */
   @Override
-  public IAuthorityConnection load(String name)
+  public IAuthorityGroup load(String name)
     throws ManifoldCFException
   {
     return loadMultiple(new String[]{name})[0];
   }
 
-  /** Load multiple repository connections by name.
+  /** Load multiple authority groups by name.
   *@param names are the names to load.
-  *@return the loaded connection objects.
+  *@return the loaded group objects.
   */
   @Override
-  public IAuthorityConnection[] loadMultiple(String[] names)
+  public IAuthorityGroup[] loadMultiple(String[] names)
     throws ManifoldCFException
   {
     // Build description objects
-    AuthorityConnectionDescription[] objectDescriptions = new AuthorityConnectionDescription[names.length];
+    AuthorityGroupDescription[] objectDescriptions = new AuthorityGroupDescription[names.length];
     int i = 0;
     StringSetBuffer ssb = new StringSetBuffer();
     while (i < names.length)
     {
       ssb.clear();
-      ssb.add(getAuthorityConnectionKey(names[i]));
-      objectDescriptions[i] = new AuthorityConnectionDescription(names[i],new StringSet(ssb));
+      ssb.add(getAuthorityGroupKey(names[i]));
+      objectDescriptions[i] = new AuthorityGroupDescription(names[i],new StringSet(ssb));
       i++;
     }
 
-    AuthorityConnectionExecutor exec = new AuthorityConnectionExecutor(this,objectDescriptions);
+    AuthorityGroupExecutor exec = new AuthorityGroupExecutor(this,objectDescriptions);
     cacheManager.findObjectsAndExecute(objectDescriptions,null,exec,getTransactionID());
     return exec.getResults();
   }
 
-  /** Create a new repository connection object.
+  /** Create a new authority group object.
   *@return the new object.
   */
   @Override
-  public IAuthorityConnection create()
+  public IAuthorityGroup create()
     throws ManifoldCFException
   {
-    AuthorityConnection rval = new AuthorityConnection();
+    AuthorityGroup rval = new AuthorityGroup();
     return rval;
   }
 
-  /** Save a repository connection object.
+  /** Save an authority group object.
   *@param object is the object to save.
   *@return true if the object is created, false otherwise.
   */
   @Override
-  public boolean save(IAuthorityConnection object)
+  public boolean save(IAuthorityGroup object)
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getAuthorityConnectionsKey());
-    ssb.add(getAuthorityConnectionKey(object.getName()));
+    ssb.add(getAuthorityGroupsKey());
+    ssb.add(getAuthorityGroupKey(object.getName()));
     StringSet cacheKeys = new StringSet(ssb);
     while (true)
     {
@@ -393,11 +267,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
               query+" FOR UPDATE",params,null,null);
             HashMap values = new HashMap();
             values.put(descriptionField,object.getDescription());
-            values.put(classNameField,object.getClassName());
-            values.put(maxCountField,new Long((long)object.getMaxConnections()));
-            values.put(configField,object.getConfigParams().toXML());
-            values.put(mappingField,object.getPrerequisiteMapping());
-            values.put(authDomainField,object.getAuthDomain());
 
             boolean isCreated;
             
@@ -405,7 +274,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             {
               // If the object is supposedly new, it is bad that we found one that already exists.
               if (isNew)
-                throw new ManifoldCFException("Authority connection '"+object.getName()+"' already exists");
+                throw new ManifoldCFException("Authority group '"+object.getName()+"' already exists");
               isCreated = false;
               // Update
               params.clear();
@@ -417,7 +286,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             {
               // If the object is not supposed to be new, it is bad that we did not find one.
               if (!isNew)
-                throw new ManifoldCFException("Authority connection '"+object.getName()+"' no longer exists");
+                throw new ManifoldCFException("Authority group '"+object.getName()+"' no longer exists");
               isCreated = true;
               // Insert
               values.put(nameField,object.getName());
@@ -462,8 +331,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     }
   }
 
-  /** Delete an authority connection.
-  *@param name is the name of the connection to delete.  If the
+  /** Delete an authority group.
+  *@param name is the name of the group to delete.  If the
   * name does not exist, no error is returned.
   */
   @Override
@@ -472,10 +341,11 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   {
     // Grab repository connection manager handle, to check on legality of deletion.
     IRepositoryConnectionManager repoManager = RepositoryConnectionManagerFactory.make(threadContext);
-
+    IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
+    
     StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getAuthorityConnectionsKey());
-    ssb.add(getAuthorityConnectionKey(name));
+    ssb.add(getAuthorityGroupsKey());
+    ssb.add(getAuthorityGroupKey(name));
     StringSet cacheKeys = new StringSet(ssb);
     ICacheHandle ch = cacheManager.enterCache(null,cacheKeys,getTransactionID());
     try
@@ -483,9 +353,11 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       beginTransaction();
       try
       {
-        // Check if anything refers to this connection name
+        // Check if anything refers to this group name
         if (repoManager.isReferenced(name))
-          throw new ManifoldCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
+          throw new ManifoldCFException("Can't delete authority group '"+name+"': existing repository connections refer to it");
+        if (authManager.isReferenced(name))
+          throw new ManifoldCFException("Can't delete authority group '"+name+"': existing authority connections refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -515,32 +387,13 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
 
   }
 
-  /** Get the authority connection name column.
+  /** Get the authority group name column.
   *@return the name column.
   */
   @Override
-  public String getAuthorityNameColumn()
+  public String getGroupNameColumn()
   {
     return nameField;
-  }
-
-  /** Return true if the specified mapping name is referenced.
-  *@param mappingName is the mapping name.
-  *@return true if referenced, false otherwise.
-  */
-  @Override
-  public boolean isMappingReferenced(String mappingName)
-    throws ManifoldCFException
-  {
-    StringSetBuffer ssb = new StringSetBuffer();
-    ssb.add(getAuthorityConnectionsKey());
-    StringSet localCacheKeys = new StringSet(ssb);
-    ArrayList params = new ArrayList();
-    String query = buildConjunctionClause(params,new ClauseDescription[]{
-      new UnitaryClause(mappingField,mappingName)});
-    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
-      localCacheKeys,null);
-    return set.getRowCount() > 0;
   }
 
   // Caching strategy: Individual connection descriptions are cached, and there is a global cache key for the list of
@@ -549,36 +402,36 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   /** Construct a key which represents the general list of repository connectors.
   *@return the cache key.
   */
-  protected static String getAuthorityConnectionsKey()
+  protected static String getAuthorityGroupsKey()
   {
-    return CacheKeyFactory.makeAuthorityConnectionsKey();
+    return CacheKeyFactory.makeAuthorityGroupsKey();
   }
 
-  /** Construct a key which represents an individual repository connection.
-  *@param connectionName is the name of the connector.
+  /** Construct a key which represents an individual authority group.
+  *@param groupName is the name of the group.
   *@return the cache key.
   */
-  protected static String getAuthorityConnectionKey(String connectionName)
+  protected static String getAuthorityGroupKey(String groupName)
   {
-    return CacheKeyFactory.makeAuthorityConnectionKey(connectionName);
+    return CacheKeyFactory.makeAuthorityGroupKey(groupName);
   }
 
   // Other utility methods.
 
-  /** Fetch multiple repository connections at a single time.
-  *@param connectionNames are a list of connection names.
-  *@return the corresponding repository connection objects.
+  /** Fetch multiple authority groups at a single time.
+  *@param groupNames are a list of group names.
+  *@return the corresponding authority group objects.
   */
-  protected AuthorityConnection[] getAuthorityConnectionsMultiple(String[] connectionNames)
+  protected AuthorityGroup[] getAuthorityGroupsMultiple(String[] groupNames)
     throws ManifoldCFException
   {
-    AuthorityConnection[] rval = new AuthorityConnection[connectionNames.length];
+    AuthorityGroup[] rval = new AuthorityGroup[groupNames.length];
     HashMap returnIndex = new HashMap();
     int i = 0;
-    while (i < connectionNames.length)
+    while (i < groupNames.length)
     {
       rval[i] = null;
-      returnIndex.put(connectionNames[i],new Integer(i));
+      returnIndex.put(groupNames[i],new Integer(i));
       i++;
     }
     beginTransaction();
@@ -587,21 +440,21 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       i = 0;
       ArrayList params = new ArrayList();
       int j = 0;
-      int maxIn = maxClauseGetAuthorityConnectionsChunk();
-      while (i < connectionNames.length)
+      int maxIn = maxClauseGetAuthorityGroupsChunk();
+      while (i < groupNames.length)
       {
         if (j == maxIn)
         {
-          getAuthorityConnectionsChunk(rval,returnIndex,params);
+          getAuthorityGroupsChunk(rval,returnIndex,params);
           params.clear();
           j = 0;
         }
-        params.add(connectionNames[i]);
+        params.add(groupNames[i]);
         i++;
         j++;
       }
       if (j > 0)
-        getAuthorityConnectionsChunk(rval,returnIndex,params);
+        getAuthorityGroupsChunk(rval,returnIndex,params);
       return rval;
     }
     catch (Error e)
@@ -622,17 +475,17 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
 
   /** Find the maximum number of clauses for getAuthorityConnectionsChunk.
   */
-  protected int maxClauseGetAuthorityConnectionsChunk()
+  protected int maxClauseGetAuthorityGroupsChunk()
   {
     return findConjunctionClauseMax(new ClauseDescription[]{});
   }
     
-  /** Read a chunk of authority connections.
+  /** Read a chunk of authority groups.
   *@param rval is the place to put the read policies.
   *@param returnIndex is a map from the object id (resource id) and the rval index.
   *@param params is the set of parameters.
   */
-  protected void getAuthorityConnectionsChunk(AuthorityConnection[] rval, Map returnIndex, ArrayList params)
+  protected void getAuthorityGroupsChunk(AuthorityGroup[] rval, Map returnIndex, ArrayList params)
     throws ManifoldCFException
   {
     ArrayList list = new ArrayList();
@@ -646,58 +499,51 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       IResultRow row = set.getRow(i++);
       String name = row.getValue(nameField).toString();
       int index = ((Integer)returnIndex.get(name)).intValue();
-      AuthorityConnection rc = new AuthorityConnection();
+      AuthorityGroup rc = new AuthorityGroup();
       rc.setIsNew(false);
       rc.setName(name);
       rc.setDescription((String)row.getValue(descriptionField));
-      rc.setClassName((String)row.getValue(classNameField));
-      rc.setMaxConnections((int)((Long)row.getValue(maxCountField)).longValue());
-      rc.setPrerequisiteMapping((String)row.getValue(mappingField));
-      rc.setAuthDomain((String)row.getValue(authDomainField));
-      String xml = (String)row.getValue(configField);
-      if (xml != null && xml.length() > 0)
-        rc.getConfigParams().fromXML(xml);
       rval[index] = rc;
     }
   }
 
-  // The cached instance will be a AuthorityConnection.  The cached version will be duplicated when it is returned
+  // The cached instance will be a AuthorityGroup.  The cached version will be duplicated when it is returned
   // from the cache.
   //
   // The description object is based completely on the name.
 
-  /** This is the object description for a repository connection object.
+  /** This is the object description for an authority group object.
   */
-  protected static class AuthorityConnectionDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
+  protected static class AuthorityGroupDescription extends org.apache.manifoldcf.core.cachemanager.BaseDescription
   {
-    protected String connectionName;
+    protected String groupName;
     protected String criticalSectionName;
     protected StringSet cacheKeys;
 
-    public AuthorityConnectionDescription(String connectionName, StringSet invKeys)
+    public AuthorityGroupDescription(String groupName, StringSet invKeys)
     {
-      super("authorityconnectioncache");
-      this.connectionName = connectionName;
-      criticalSectionName = getClass().getName()+"-"+connectionName;
+      super("authoritygroupcache");
+      this.groupName = groupName;
+      criticalSectionName = getClass().getName()+"-"+groupName;
       cacheKeys = invKeys;
     }
 
-    public String getConnectionName()
+    public String getGroupName()
     {
-      return connectionName;
+      return groupName;
     }
 
     public int hashCode()
     {
-      return connectionName.hashCode();
+      return groupName.hashCode();
     }
 
     public boolean equals(Object o)
     {
-      if (!(o instanceof AuthorityConnectionDescription))
+      if (!(o instanceof AuthorityGroupDescription))
         return false;
-      AuthorityConnectionDescription d = (AuthorityConnectionDescription)o;
-      return d.connectionName.equals(connectionName);
+      AuthorityGroupDescription d = (AuthorityGroupDescription)o;
+      return d.groupName.equals(groupName);
     }
 
     public String getCriticalSectionName()
@@ -717,28 +563,28 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
 
   }
 
-  /** This is the executor object for locating repository connection objects.
+  /** This is the executor object for locating authority group objects.
   */
-  protected static class AuthorityConnectionExecutor extends org.apache.manifoldcf.core.cachemanager.ExecutorBase
+  protected static class AuthorityGroupExecutor extends org.apache.manifoldcf.core.cachemanager.ExecutorBase
   {
     // Member variables
-    protected AuthorityConnectionManager thisManager;
-    protected AuthorityConnection[] returnValues;
+    protected AuthorityGroupManager thisManager;
+    protected AuthorityGroup[] returnValues;
     protected HashMap returnMap = new HashMap();
 
     /** Constructor.
-    *@param manager is the ToolManager.
+    *@param manager is the AuthorityGroupManager.
     *@param objectDescriptions are the object descriptions.
     */
-    public AuthorityConnectionExecutor(AuthorityConnectionManager manager, AuthorityConnectionDescription[] objectDescriptions)
+    public AuthorityGroupExecutor(AuthorityGroupManager manager, AuthorityGroupDescription[] objectDescriptions)
     {
       super();
       thisManager = manager;
-      returnValues = new AuthorityConnection[objectDescriptions.length];
+      returnValues = new AuthorityGroup[objectDescriptions.length];
       int i = 0;
       while (i < objectDescriptions.length)
       {
-        returnMap.put(objectDescriptions[i].getConnectionName(),new Integer(i));
+        returnMap.put(objectDescriptions[i].getGroupName(),new Integer(i));
         i++;
       }
     }
@@ -746,7 +592,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     /** Get the result.
     *@return the looked-up or read cached instances.
     */
-    public AuthorityConnection[] getResults()
+    public AuthorityGroup[] getResults()
     {
       return returnValues;
     }
@@ -761,17 +607,17 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     */
     public Object[] create(ICacheDescription[] objectDescriptions) throws ManifoldCFException
     {
-      // Turn the object descriptions into the parameters for the ToolInstance requests
-      String[] connectionNames = new String[objectDescriptions.length];
+      // Turn the object descriptions into the parameters for the AuthorityGroup requests
+      String[] groupNames = new String[objectDescriptions.length];
       int i = 0;
-      while (i < connectionNames.length)
+      while (i < groupNames.length)
       {
-        AuthorityConnectionDescription desc = (AuthorityConnectionDescription)objectDescriptions[i];
-        connectionNames[i] = desc.getConnectionName();
+        AuthorityGroupDescription desc = (AuthorityGroupDescription)objectDescriptions[i];
+        groupNames[i] = desc.getGroupName();
         i++;
       }
 
-      return thisManager.getAuthorityConnectionsMultiple(connectionNames);
+      return thisManager.getAuthorityGroupsMultiple(groupNames);
     }
 
 
@@ -785,8 +631,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     public void exists(ICacheDescription objectDescription, Object cachedObject) throws ManifoldCFException
     {
       // Cast what came in as what it really is
-      AuthorityConnectionDescription objectDesc = (AuthorityConnectionDescription)objectDescription;
-      AuthorityConnection ci = (AuthorityConnection)cachedObject;
+      AuthorityGroupDescription objectDesc = (AuthorityGroupDescription)objectDescription;
+      AuthorityGroup ci = (AuthorityGroup)cachedObject;
 
       // Duplicate it!
       if (ci != null)
@@ -794,7 +640,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
 
       // In order to make the indexes line up, we need to use the hashtable built by
       // the constructor.
-      returnValues[((Integer)returnMap.get(objectDesc.getConnectionName())).intValue()] = ci;
+      returnValues[((Integer)returnMap.get(objectDesc.getGroupName())).intValue()] = ci;
     }
 
     /** Perform the desired operation.  This method is called after either createGetObject()
