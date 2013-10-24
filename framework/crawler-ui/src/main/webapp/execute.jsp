@@ -262,6 +262,9 @@
 					x = variableContext.getParameter("authdomain");
 					if (x != null)
 						connection.setAuthDomain(x);
+					x = variableContext.getParameter("authoritygroup");
+					if (x != null)
+						connection.setAuthGroup(x);
 
 					String error = AuthorityConnectorFactory.processConfigurationPost(threadContext,connection.getClassName(),variableContext,pageContext.getRequest().getLocale(),connection.getConfigParams());
 					

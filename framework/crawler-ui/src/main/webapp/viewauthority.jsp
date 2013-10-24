@@ -87,7 +87,10 @@
 		String authDomain = connection.getAuthDomain();
 		if (authDomain == null)
 			authDomain = "";
-		
+		String groupName = connection.getAuthGroup();
+		if (groupName == null)
+			groupName = "";
+
 		ConfigParams parameters = connection.getConfigParams();
 
 		// Do stuff so we can call out to display the parameters
@@ -144,7 +147,7 @@
 			</tr>
 			<tr>
 				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.PrerequisiteUserMappingColon")%></nobr></td>
-				<td class="value" colspan="1">
+				<td class="value" colspan="3">
 <%
 		if (prereq != null)
 		{
@@ -160,8 +163,15 @@
 		}
 %>
 				</td>
+			</tr>
+			<tr>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
 				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorizationDomainColon")%></nobr></td>
 				<td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authDomain)%></nobr></td>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorityGroupColon")%></nobr></td>
+				<td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr></td>
 			</tr>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>

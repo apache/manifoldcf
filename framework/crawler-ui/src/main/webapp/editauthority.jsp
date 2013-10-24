@@ -34,7 +34,9 @@
 	IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(threadContext);
 	// Get the mapping connection manager
 	IMappingConnectionManager mappingConnMgr = MappingConnectionManagerFactory.make(threadContext);
-
+	// Get the group manager
+	IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
+	
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
@@ -62,7 +64,8 @@
 	ConfigParams parameters = new ConfigParams();
 	String prereq = null;
 	String authDomain = "";
-
+	String groupName = "";
+	
 	if (connection != null)
 	{
 		// Set up values
@@ -76,6 +79,9 @@
 		authDomain = connection.getAuthDomain();
 		if (authDomain == null)
 			authDomain = "";
+		groupName = connection.getAuthGroup();
+		if (groupName == null)
+			groupName = "";
 	}
 	else
 		connectionName = null;
@@ -154,6 +160,13 @@
 				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAName")%>");
 				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Name")%>");
 				document.editconnection.connname.focus();
+				return;
+			}
+			if (editconnection.authoritygroup.value == "")
+			{
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAGroup")%>");
+				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Type")%>");
+				document.editconnection.authoritygroup.focus();
 				return;
 			}
 			if (window.checkConfigForSave)
@@ -394,9 +407,36 @@
 %>
 				</td>
 			</tr>
+			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
 				<td class="value" colspan="4"><nobr><input type="text" name="authdomain" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/></nobr></td>
+			</tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
+				<td class="value" colspan="4">
+<%
+	    IAuthorityGroup[] set2 = authGroupManager.getAllGroups();
+	    int i = 0;
+%>
+					<select name="authoritygroup" size="1">
+						<option value=""><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.SelectAGroup")%></option>
+<%
+	    while (i < set2.length)
+	    {
+		IAuthorityGroup row = set2[i++];
+		String thisAuthorityName = row.getName();
+		String thisDescription = row.getDescription();
+		if (thisDescription == null || thisDescription.length() == 0)
+			thisDescription = thisAuthorityName;
+%>
+						<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'
+							<%=(groupName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+<%
+	    }
+%>
+					</select>
+				</td>
 			</tr>
 		    </table>
 <%
@@ -407,6 +447,7 @@
 %>
 		    <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 		    <input type="hidden" name="authdomain" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/>
+		    <input type="hidden" name="authoritygroup" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(groupName)%>'/>
 <%
 	  }
 
