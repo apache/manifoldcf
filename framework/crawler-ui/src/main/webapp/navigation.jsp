@@ -34,15 +34,11 @@
 		<nobr><a class="menulink" href="listoutputs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listoutputconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%></a></nobr>
 	</li>
 </ul>
-<p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.UserMappings")%></nobr></p>
-<ul class="menusecond">
-	<li class="menuitem">
-		<nobr><a class="menulink" href="listmappers.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listusermappings")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListUserMappings")%></a></nobr>
-	</li>
-</ul>
 <p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Authorities")%></nobr></p>
 <ul class="menusecond">
 	<li class="menuitem">
+		<nobr><a class="menulink" href="listmappers.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listusermappings")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListUserMappings")%></a></nobr>
+		<nobr><a class="menulink" href="listgroups.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthoritygroups")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityGroups")%></a></nobr>
 		<nobr><a class="menulink" href="listauthorities.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthorities")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%></a></nobr>
 	</li>
 </ul>
