@@ -101,4 +101,14 @@ public interface IAuthorityConnection
   */
   public String getAuthDomain();
   
+  /** Set authorization group.
+  *@param groupName is the name of the group.
+  */
+  public void setAuthGroup(String groupName);
+  
+  /** Get the authorization group.
+  *@return the group.
+  */
+  public String getAuthGroup();
+  
 }
