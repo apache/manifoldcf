@@ -1084,6 +1084,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
@@ -1145,6 +1146,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             java.util.zip.ZipEntry outputEntry = new java.util.zip.ZipEntry("outputs");
             zos.putNextEntry(outputEntry);
             outputManager.exportConfiguration(zos);
+            zos.closeEntry();
+
+            java.util.zip.ZipEntry groupEntry = new java.util.zip.ZipEntry("groups");
+            zos.putNextEntry(groupEntry);
+            groupManager.exportConfiguration(zos);
             zos.closeEntry();
 
             java.util.zip.ZipEntry mappingEntry = new java.util.zip.ZipEntry("mappings");
@@ -1218,6 +1224,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
@@ -1275,6 +1282,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               String name = z.getName();
               if (name.equals("outputs"))
                 outputManager.importConfiguration(zis);
+              else if (name.equals("groups"))
+                groupManager.importConfiguration(zis);
               else if (name.equals("mappings"))
                 mappingManager.importConfiguration(zis);
               else if (name.equals("authorities"))

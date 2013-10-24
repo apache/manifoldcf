@@ -96,6 +96,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       ManifoldCF.getMasterDatabaseUsername(),
       ManifoldCF.getMasterDatabasePassword());
 
+    IAuthorityGroupManager groupMgr = AuthorityGroupManagerFactory.make(threadcontext);
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
     IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
@@ -105,6 +106,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     try
     {
       connMgr.install();
+      groupMgr.install();
       authConnMgr.install();
       mappingConnectorMgr.install();
       mappingConnectionMgr.install();
@@ -140,6 +142,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     ManifoldCFException se = null;
 
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
+    IAuthorityGroupManager groupMgr = AuthorityGroupManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
     IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
     IMappingConnectionManager mappingConnectionMgr = MappingConnectionManagerFactory.make(threadcontext);
@@ -150,6 +153,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       mappingConnectionMgr.deinstall();
       mappingConnectorMgr.deinstall();
       authConnMgr.deinstall();
+      groupMgr.deinstall();
       connMgr.deinstall();
     }
     catch (ManifoldCFException e)
