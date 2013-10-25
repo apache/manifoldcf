@@ -239,6 +239,8 @@
 
 	// Get connectors, since this will be needed to determine what to display.
 	IResultSet set = connectorManager.getConnectors();
+	// Same for authority groups
+	IAuthorityGroup[] set2 = authGroupManager.getAllGroups();
 
 %>
 
@@ -250,10 +252,15 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="darkwindow">
-
-
 <%
-	if (set.getRowCount() == 0)
+	if (set2.length == 0)
+	{
+%>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityGroupsDefinedCreateOneFirst")%></td></tr></table>
+<%
+	}
+	else if (set.getRowCount() == 0)
 	{
 %>
 	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
@@ -416,7 +423,6 @@
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
 				<td class="value" colspan="4">
 <%
-	    IAuthorityGroup[] set2 = authGroupManager.getAllGroups();
 	    int i = 0;
 %>
 					<select name="authoritygroup" size="1">
