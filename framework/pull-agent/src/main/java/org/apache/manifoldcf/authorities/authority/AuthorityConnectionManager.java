@@ -243,6 +243,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException
   {
+    IAuthorityGroupManager authMgr = AuthorityGroupManagerFactory.make(threadContext);
     int version = ManifoldCF.readDword(is);
     if (version < 1 || version > 2)
       throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
@@ -251,8 +252,10 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     while (i < count)
     {
       IAuthorityConnection conn = create();
-      conn.setName(ManifoldCF.readString(is));
-      conn.setDescription(ManifoldCF.readString(is));
+      String name = ManifoldCF.readString(is);
+      String description = ManifoldCF.readString(is);
+      conn.setName(name);
+      conn.setDescription(description);
       conn.setClassName(ManifoldCF.readString(is));
       conn.getConfigParams().fromXML(ManifoldCF.readString(is));
       conn.setMaxConnections(ManifoldCF.readDword(is));
@@ -265,6 +268,21 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
           conn.setAuthGroup(ManifoldCF.readString(is));
         }
       }
+      // For importing older than MCF 1.5 import files...
+      if (conn.getAuthGroup() == null || conn.getAuthGroup().length() == 0)
+      {
+        // Create a matching auth group.
+        IAuthorityGroup grp = authMgr.load(name);
+        if (grp == null)
+        {
+          grp = authMgr.create();
+          grp.setName(name);
+          grp.setDescription(description);
+          authMgr.save(grp);
+        }
+        conn.setAuthGroup(name);
+      }
+      
       // Attempt to save this connection
       save(conn);
       i++;
