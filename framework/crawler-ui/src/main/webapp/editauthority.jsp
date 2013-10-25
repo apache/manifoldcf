@@ -28,6 +28,8 @@
     // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
     try
     {
+	// Get the domain manager handle
+	IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadContext);
 	// Get the connection manager handle
 	IAuthorityConnectionManager connMgr = AuthorityConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
@@ -365,6 +367,7 @@
 	  // "Type" tab
 	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
 	  {
+	    IResultSet domainSet = domainMgr.getDomains();
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
@@ -417,16 +420,13 @@
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
-				<td class="value" colspan="4">
-<%
-	    int i = 0;
-%>
+				<td class="value" colspan="1">
 					<select name="authoritygroup" size="1">
 						<option value=""><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.SelectAGroup")%></option>
 <%
-	    while (i < set2.length)
+	    for (int i = 0; i < set2.length; i++)
 	    {
-		IAuthorityGroup row = set2[i++];
+		IAuthorityGroup row = set2[i];
 		String thisAuthorityName = row.getName();
 		String thisDescription = row.getDescription();
 		if (thisDescription == null || thisDescription.length() == 0)
@@ -439,10 +439,26 @@
 %>
 					</select>
 				</td>
-			</tr>
-			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
-				<td class="value" colspan="4"><nobr><input type="text" name="authdomain" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/></nobr></td>
+				<td class="value" colspan="1">
+					<select name="authdomain" size="1">
+						<option value="" <%=(authDomain == null || authDomain.length() == 0)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DefaultDomainNone")%></option>
+<%
+	    for (int i = 0; i < domainSet.getRowCount(); i++)
+	    {
+		IResultRow row = domainSet.getRow(i);
+		String domainName = (String)row.getValue("domainname");
+		String thisDescription = (String)row.getValue("description");
+		if (thisDescription == null || thisDescription.length() == 0)
+			thisDescription = domainName;
+%>
+						<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainName)%>'
+							<%=(authDomain!=null && domainName.equals(authDomain))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+<%
+	    }
+%>
+					</select>
+				</td>
 			</tr>
 		    </table>
 <%
