@@ -416,10 +416,6 @@
 			</tr>
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
 			<tr>
-				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
-				<td class="value" colspan="4"><nobr><input type="text" name="authdomain" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/></nobr></td>
-			</tr>
-			<tr>
 				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
 				<td class="value" colspan="4">
 <%
@@ -443,6 +439,10 @@
 %>
 					</select>
 				</td>
+			</tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
+				<td class="value" colspan="4"><nobr><input type="text" name="authdomain" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/></nobr></td>
 			</tr>
 		    </table>
 <%
