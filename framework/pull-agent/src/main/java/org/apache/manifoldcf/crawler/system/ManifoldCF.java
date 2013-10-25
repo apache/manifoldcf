@@ -230,12 +230,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   // Connectors configuration file
+  protected static final String NODE_AUTHORIZATIONDOMAIN = "authorizationdomain";
   protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
   protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
   protected static final String ATTRIBUTE_NAME = "name";
   protected static final String ATTRIBUTE_CLASS = "class";
+  protected static final String ATTRIBUTE_DOMAIN = "domain";
   
   /** Unregister all connectors which don't match a specified connector list.
   */
@@ -249,12 +251,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
 
+    Map<String,String> desiredDomains = new HashMap<String,String>();
+
     if (c != null)
     {
       for (int i = 0; i < c.getChildCount(); i++)
       {
         ConfigurationNode cn = c.findChild(i);
-        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        if (cn.getType().equals(NODE_AUTHORIZATIONDOMAIN))
+        {
+          String domainName = cn.getAttributeValue(ATTRIBUTE_DOMAIN);
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          desiredDomains.put(domainName,name);
+        }
+        else if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
@@ -287,6 +297,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabaseUsername(),
       ManifoldCF.getMasterDatabasePassword());
 
+    // Domains...
+    {
+      IAuthorizationDomainManager mgr = AuthorizationDomainManagerFactory.make(tc);
+      IResultSet domains = mgr.getDomains();
+      for (int i = 0; i < domains.getRowCount(); i++)
+      {
+        IResultRow row = domains.getRow(i);
+        String domainName = (String)row.getValue("domainname");
+        String description = (String)row.getValue("description");
+        if (desiredDomains.get(domainName) == null || !desiredDomains.get(domainName).equals(description))
+        {
+          mgr.unregisterDomain(domainName);
+        }
+      }
+      System.err.println("Successfully unregistered all domains");
+    }
+    
     // Output connectors...
     {
       IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
@@ -430,7 +457,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       while (i < c.getChildCount())
       {
         ConfigurationNode cn = c.findChild(i++);
-        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        if (cn.getType().equals(NODE_AUTHORIZATIONDOMAIN))
+        {
+          String domainName = cn.getAttributeValue(ATTRIBUTE_DOMAIN);
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          IAuthorizationDomainManager mgr = AuthorizationDomainManagerFactory.make(tc);
+          mgr.registerDomain(name,domainName);
+        }
+        else if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
