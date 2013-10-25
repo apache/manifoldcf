@@ -45,6 +45,7 @@
 		// Make a few things we will need
 		// Get the job manager handle
 		IJobManager manager = JobManagerFactory.make(threadContext);
+		IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
 		IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
 		IAuthorityConnectionManager authConnManager = AuthorityConnectionManagerFactory.make(threadContext);
 		IMappingConnectionManager mappingConnManager = MappingConnectionManagerFactory.make(threadContext);
@@ -211,6 +212,105 @@
 				<jsp:forward page="error.jsp"/>
 <%
 			}
+		}
+		else if (type != null && op != null && type.equals("group"))
+		{
+			// -- Group editing operations --
+			if (op.equals("Save") || op.equals("Continue"))
+			{
+				try
+				{
+					// Set up a connection object that is a merge of an existing connection object plus what was posted.
+					IAuthorityGroup group = null;
+					boolean isNew = true;
+					String x = variableContext.getParameter("isnewconnection");
+					if (x != null)
+						isNew = x.equals("true");
+
+					String groupName = variableContext.getParameter("groupname");
+					// If the groupname is not null, load the group and prepopulate everything with what comes from it.
+					if (groupName != null && groupName.length() > 0 && !isNew)
+					{
+						group = authGroupManager.load(groupName);
+					}
+					
+					if (group == null)
+					{
+						group = authGroupManager.create();
+						if (groupName != null && groupName.length() > 0)
+							group.setName(groupName);
+					}
+
+					// Gather all the data from the form.
+					group.setIsNew(isNew);
+					x = variableContext.getParameter("description");
+					if (x != null)
+						group.setDescription(x);
+
+					if (op.equals("Continue"))
+					{
+						threadContext.save("GroupObject",group);
+%>
+						<jsp:forward page="editgroup.jsp"/>
+<%
+					}
+					else if (op.equals("Save"))
+					{
+						authGroupManager.save(group);
+						variableContext.setParameter("groupname",groupName);
+%>
+						<jsp:forward page="viewgroup.jsp"/>
+<%
+					}
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listgroups.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Delete"))
+			{
+				try
+				{
+					String groupName = variableContext.getParameter("groupname");
+					if (groupName == null)
+						throw new ManifoldCFException("Missing group name parameter");
+					authGroupManager.delete(groupName);
+%>
+					<jsp:forward page="listgroups.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listgroups.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
+			else if (op.equals("Cancel"))
+			{
+%>
+				<jsp:forward page="listgroups.jsp"/>
+<%
+			}
+			else
+			{
+				// Error
+				variableContext.setParameter("text","Illegal parameter to authority group execution page");
+				variableContext.setParameter("target","listgroups.jsp");
+%>
+				<jsp:forward page="error.jsp"/>
+<%
+			}
+
 		}
 		else if (type != null && op != null && type.equals("authority"))
 		{
