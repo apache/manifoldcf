@@ -555,7 +555,8 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param groupName is the group name.
   *@return true if referenced, false otherwise.
   */
-  public boolean isReferenced(String groupName)
+  @Override
+  public boolean isGroupReferenced(String groupName)
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();

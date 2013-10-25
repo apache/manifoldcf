@@ -354,9 +354,9 @@ public class AuthorityGroupManager extends org.apache.manifoldcf.core.database.B
       try
       {
         // Check if anything refers to this group name
-        if (repoManager.isReferenced(name))
+        if (repoManager.isGroupReferenced(name))
           throw new ManifoldCFException("Can't delete authority group '"+name+"': existing repository connections refer to it");
-        if (authManager.isReferenced(name))
+        if (authManager.isGroupReferenced(name))
           throw new ManifoldCFException("Can't delete authority group '"+name+"': existing authority connections refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();

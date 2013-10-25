@@ -275,7 +275,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   *@param groupName is the authority group name.
   *@return true if referenced, false otherwise.
   */
-  public boolean isReferenced(String groupName)
+  @Override
+  public boolean isGroupReferenced(String groupName)
     throws ManifoldCFException
   {
     StringSetBuffer ssb = new StringSetBuffer();
@@ -536,8 +537,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void delete(String name)
     throws ManifoldCFException
   {
-    // Grab repository connection manager handle, to check on legality of deletion.
-    IRepositoryConnectionManager repoManager = RepositoryConnectionManagerFactory.make(threadContext);
 
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getAuthorityConnectionsKey());
@@ -549,9 +548,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       beginTransaction();
       try
       {
-        // Check if anything refers to this connection name
-        if (repoManager.isReferenced(name))
-          throw new ManifoldCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{

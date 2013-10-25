@@ -49,7 +49,7 @@ public interface IAuthorityConnectionManager
   *@param authorityGroup is the authority group name.
   *@return true if referenced, false otherwise.
   */
-  public boolean isReferenced(String authorityGroup)
+  public boolean isGroupReferenced(String authorityGroup)
     throws ManifoldCFException;
 
   /** Obtain a list of the authority connections, ordered by name.

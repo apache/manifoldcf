@@ -89,7 +89,7 @@ public interface IRepositoryConnectionManager
   *@param authorityGroup is the authority group name.
   *@return true if referenced, false otherwise.
   */
-  public boolean isReferenced(String authorityGroup)
+  public boolean isGroupReferenced(String authorityGroup)
     throws ManifoldCFException;
 
   /** Get a list of repository connections that share the same connector.
