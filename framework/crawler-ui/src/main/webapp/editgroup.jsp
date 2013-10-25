@@ -154,10 +154,6 @@
 
 	function checkForm()
 	{
-		if (!checkConnectionCount())
-			return false;
-		if (window.checkConfig)
-			return checkConfig();
 		return true;
 	}
 
@@ -173,9 +169,9 @@
        <td class="darkwindow">
 
 
-	<form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
+	<form class="standardform" name="editgroup" action="execute.jsp" method="POST" enctype="multipart/form-data">
 	  <input type="hidden" name="op" value="Continue"/>
-	  <input type="hidden" name="type" value="authority"/>
+	  <input type="hidden" name="type" value="group"/>
 	  <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
 	  <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 	    <table class="tabtable">
