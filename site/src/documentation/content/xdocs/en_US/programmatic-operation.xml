@@ -79,10 +79,15 @@
           <p></p>
           <table>
             <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format/query args</th><th>Output format</th></tr>
+            <tr><td>authorizationdomains</td><td>GET</td><td>List all registered authorization domains</td><td>N/A</td><td>{"authorizationdomain":[<em>&lt;list_of_authorization_domain_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>outputconnectors</td><td>GET</td><td>List all registered output connectors</td><td>N/A</td><td>{"outputconnector":[<em>&lt;list_of_output_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>mappingconnectors</td><td>GET</td><td>List all registered mapping connectors</td><td>N/A</td><td>{"mappingconnector":[<em>&lt;list_of_mapping_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authorityconnectors</td><td>GET</td><td>List all registered authority connectors</td><td>N/A</td><td>{"authorityconnector":[<em>&lt;list_of_authority_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>repositoryconnectors</td><td>GET</td><td>List all registered repository connectors</td><td>N/A</td><td>{"repositoryconnector":[<em>&lt;list_of_repository_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authoritygroups</td><td>GET</td><td>List all authority groups</td><td>N/A</td><td>{"authoritygroup":[<em>&lt;list_of_authority_group_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authoritygroups/<em>&lt;encoded_group_name&gt;</em></td><td>GET</td><td>Get a specific authority group</td><td>N/A</td><td>{"authoritygroup":<em>&lt;authority_group_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authoritygroups/<em>&lt;encoded_group_name&gt;</em></td><td>PUT</td><td>Save or create an authority group</td><td>{"authoritygroup":<em>&lt;authority_group_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>authoritygroups/<em>&lt;encoded_group_name&gt;</em></td><td>DELETE</td><td>Delete an authority group</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>outputconnections</td><td>GET</td><td>List all output connections</td><td>N/A</td><td>{"outputconnection":[<em>&lt;list_of_output_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific output connection</td><td>N/A</td><td>{"outputconnection":<em>&lt;output_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>outputconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create an output connection</td><td>{"outputconnection":<em>&lt;output_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
@@ -195,6 +200,18 @@
           </table>
         </section>
         <section>
+          <title>Authorization domain objects</title>
+          <p></p>
+          <p>The JSON fields an authorization domain object has are as follows:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"description"</td><td>The optional description of the authorization domain</td></tr>
+            <tr><td>"domain_name"</td><td>The internal name of the authorization domain, i.e. what is sent to the Authority Service</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
           <title>Output connector objects</title>
           <p></p>
           <p>The JSON fields an output connector object has are as follows:</p>
@@ -239,6 +256,26 @@
             <tr><th>Field</th><th>Meaning</th></tr>
             <tr><td>"description"</td><td>The optional description of the connector</td></tr>
             <tr><td>"class_name"</td><td>The class name of the class implementing the connector</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
+          <title>Authority group objects</title>
+          <p></p>
+          <p>Authority group names, when they are part of a URL, should be encoded as follows:</p>
+          <p></p>
+          <ol>
+            <li>All instances of '.' should be replaced by '..'.</li>
+            <li>All instances of '/' should be replaced by '.+'.</li>
+            <li>The URL should be encoded using standard URL utf-8-based %-encoding.</li>
+          </ol>
+          <p></p>
+          <p>The JSON fields an authority group object has are as follows:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"name"</td><td>The unique name of the group</td></tr>
+            <tr><td>"description"</td><td>The description of the group</td></tr>
           </table>
           <p></p>
         </section>
@@ -311,6 +348,7 @@
             <tr><td>"configuration"</td><td>The configuration object for the connection, which is specific to the connection class</td></tr>
             <tr><td>"prerequisite"</td><td>The mapping connection prerequisite, if any</td></tr>
             <tr><td>"authdomain"</td><td>The authorization domain for the authority connection, if any</td></tr>
+            <tr><td>"authgroup"</td><td>The required authority group for the authority connection</td></tr>
           </table>
           <p></p>
         </section>
@@ -334,7 +372,7 @@
             <tr><td>"class_name"</td><td>The java class name of the class implementing the connection</td></tr>
             <tr><td>"max_connections"</td><td>The total number of outstanding connections allowed to exist at a time</td></tr>
             <tr><td>"configuration"</td><td>The configuration object for the connection, which is specific to the connection class</td></tr>
-            <tr><td>"acl_authority"</td><td>The (optional) name of the authority that will enforce security for this connection</td></tr>
+            <tr><td>"acl_authority"</td><td>The (optional) name of the authority group that will enforce security for this connection</td></tr>
             <tr><td>"throttle"</td><td>An array of throttle objects, which control how quickly documents can be requested from this connection</td></tr>
           </table>
           <p></p>
