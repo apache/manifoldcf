@@ -40,6 +40,7 @@ import org.apache.manifoldcf.crawler.interfaces.RepositoryConnectionManagerFacto
  * <tr><td>maxcount</td><td>BIGINT</td><td></td></tr>
  * <tr><td>configxml</td><td>LONGTEXT</td><td></td></tr>
  * <tr><td>mappingname</td><td>VARCHAR(32)</td><td></td></tr>
+ * <tr><td>authdomainname</td><td>VARCHAR(32)</td><td></td></tr>
  * </table>
  * <br><br>
  * 
@@ -57,7 +58,9 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   protected final static String maxCountField = "maxcount";
   protected final static String configField = "configxml";
   protected final static String mappingField = "mappingname";
-
+  protected final static String authDomainField = "authdomainname";
+  protected final static String groupNameField = "groupname";
+  
   // Cache manager
   ICacheManager cacheManager;
   // Thread context
@@ -81,6 +84,9 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void install()
     throws ManifoldCFException
   {
+    // First, get the authority manager table name and name column
+    IAuthorityGroupManager authMgr = AuthorityGroupManagerFactory.make(threadContext);
+
     // Always do a loop, in case upgrade needs it.
     while (true)
     {
@@ -95,6 +101,9 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
         map.put(maxCountField,new ColumnDescription("BIGINT",false,false,null,null,false));
         map.put(configField,new ColumnDescription("LONGTEXT",false,true,null,null,false));
         map.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
+        map.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+        map.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,false,
+          authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
         performCreate(map,null);
       }
       else
@@ -107,10 +116,88 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
           addMap.put(mappingField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
           performAlter(addMap,null,null,null);
         }
+        // Add the authDomainField column
+        cd = (ColumnDescription)existing.get(authDomainField);
+        if (cd == null)
+        {
+          Map addMap = new HashMap();
+          addMap.put(authDomainField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+          performAlter(addMap,null,null,null);
+        }
+        cd = (ColumnDescription)existing.get(groupNameField);
+        if (cd == null)
+        {
+          Map addMap = new HashMap();
+          addMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,true,
+            authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
+          performAlter(addMap,null,null,null);
+          try
+          {
+            ArrayList params = new ArrayList();
+            IResultSet set = performQuery("SELECT "+nameField+","+descriptionField+" FROM "+getTableName(),null,null,null);
+            for (int i = 0 ; i < set.getRowCount() ; i++)
+            {
+              IResultRow row = set.getRow(i);
+              String authName = (String)row.getValue(nameField);
+              String authDescription = (String)row.getValue(descriptionField);
+              IAuthorityGroup gp = authMgr.load(authName);
+              if (gp == null)
+              {
+                // Create an authority group with this name
+                gp = authMgr.create();
+                gp.setName(authName);
+                if (authDescription != null)
+                  gp.setDescription(authDescription);
+                authMgr.save(gp);
+              }
+              Map<String,String> map = new HashMap<String,String>();
+              map.put(groupNameField,authName);
+              params.clear();
+              String query = buildConjunctionClause(params,new ClauseDescription[]{
+                new UnitaryClause(nameField,authName)});
+              performUpdate(map," WHERE "+query,params,null);
+            }
+            Map modifyMap = new HashMap();
+            modifyMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,false,
+              authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
+            performAlter(null,modifyMap,null,null);
+          }
+          finally
+          {
+            // Upgrade failed; back out our changes
+            List<String> deleteList = new ArrayList<String>();
+            deleteList.add(groupNameField);
+            performAlter(null,null,deleteList,null);
+          }
+        }
       }
 
       // Index management goes here
+      IndexDescription authDomainIndex = new IndexDescription(false,new String[]{authDomainField});
+      IndexDescription authorityIndex = new IndexDescription(false,new String[]{groupNameField});
 
+      // Get rid of indexes that shouldn't be there
+      Map indexes = getTableIndexes(null,null);
+      Iterator iter = indexes.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String indexName = (String)iter.next();
+        IndexDescription id = (IndexDescription)indexes.get(indexName);
+
+        if (authDomainIndex != null && id.equals(authDomainIndex))
+          authDomainIndex = null;
+        if (authorityIndex != null && id.equals(authorityIndex))
+          authorityIndex = null;
+        else if (indexName.indexOf("_pkey") == -1)
+          // This index shouldn't be here; drop it
+          performRemoveIndex(indexName);
+      }
+
+      // Add the ones we didn't find
+      if (authDomainIndex != null)
+        performAddIndex(null,authDomainIndex);
+      if (authorityIndex != null)
+        performAddIndex(null,authorityIndex);
       break;
     }
   }
@@ -130,7 +217,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,2);
+    ManifoldCF.writeDword(os,3);
     // Get the authority list
     IAuthorityConnection[] list = getAllConnections();
     // Write the number of authorities
@@ -146,6 +233,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       ManifoldCF.writeString(os,conn.getConfigParams().toXML());
       ManifoldCF.writeDword(os,conn.getMaxConnections());
       ManifoldCF.writeString(os,conn.getPrerequisiteMapping());
+      ManifoldCF.writeString(os,conn.getAuthDomain());
+      ManifoldCF.writeString(os,conn.getAuthGroup());
     }
   }
 
@@ -154,6 +243,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void importConfiguration(java.io.InputStream is)
     throws java.io.IOException, ManifoldCFException
   {
+    IAuthorityGroupManager authMgr = AuthorityGroupManagerFactory.make(threadContext);
     int version = ManifoldCF.readDword(is);
     if (version < 1 || version > 2)
       throw new java.io.IOException("Unknown authority configuration version: "+Integer.toString(version));
@@ -162,22 +252,109 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
     while (i < count)
     {
       IAuthorityConnection conn = create();
-      conn.setName(ManifoldCF.readString(is));
-      conn.setDescription(ManifoldCF.readString(is));
+      String name = ManifoldCF.readString(is);
+      String description = ManifoldCF.readString(is);
+      conn.setName(name);
+      conn.setDescription(description);
       conn.setClassName(ManifoldCF.readString(is));
       conn.getConfigParams().fromXML(ManifoldCF.readString(is));
       conn.setMaxConnections(ManifoldCF.readDword(is));
       if (version >= 2)
       {
         conn.setPrerequisiteMapping(ManifoldCF.readString(is));
+        if (version >= 3)
+        {
+          conn.setAuthDomain(ManifoldCF.readString(is));
+          conn.setAuthGroup(ManifoldCF.readString(is));
+        }
       }
+      // For importing older than MCF 1.5 import files...
+      if (conn.getAuthGroup() == null || conn.getAuthGroup().length() == 0)
+      {
+        // Create a matching auth group.
+        IAuthorityGroup grp = authMgr.load(name);
+        if (grp == null)
+        {
+          grp = authMgr.create();
+          grp.setName(name);
+          grp.setDescription(description);
+          authMgr.save(grp);
+        }
+        conn.setAuthGroup(name);
+      }
+      
       // Attempt to save this connection
       save(conn);
       i++;
     }
   }
 
-  /** Obtain a list of the repository connections, ordered by name.
+  /** Return true if the specified authority group name is referenced.
+  *@param groupName is the authority group name.
+  *@return true if referenced, false otherwise.
+  */
+  @Override
+  public boolean isGroupReferenced(String groupName)
+    throws ManifoldCFException
+  {
+    StringSetBuffer ssb = new StringSetBuffer();
+    ssb.add(getAuthorityConnectionsKey());
+    StringSet localCacheKeys = new StringSet(ssb);
+    ArrayList params = new ArrayList();
+    String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(groupNameField,groupName)});
+    IResultSet set = performQuery("SELECT "+nameField+" FROM "+getTableName()+" WHERE "+query,params,
+      localCacheKeys,null);
+    return set.getRowCount() > 0;
+  }
+
+  /** Obtain a list of the authority connections which correspond to an auth domain.
+  *@param authDomain is the domain to get connections for.
+  *@return an array of connection objects.
+  */
+  @Override
+  public IAuthorityConnection[] getDomainConnections(String authDomain)
+    throws ManifoldCFException
+  {
+    beginTransaction();
+    try
+    {
+      // Read the connections for the domain
+      StringSetBuffer ssb = new StringSetBuffer();
+      ssb.add(getAuthorityConnectionsKey());
+      StringSet localCacheKeys = new StringSet(ssb);
+      StringBuilder sb = new StringBuilder("SELECT ");
+      ArrayList list = new ArrayList();
+      sb.append(nameField).append(" FROM ").append(getTableName()).append(" WHERE ");
+      sb.append(buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(authDomainField,authDomain)}));
+      IResultSet set = performQuery(sb.toString(),list,localCacheKeys,null);
+      String[] names = new String[set.getRowCount()];
+      int i = 0;
+      while (i < names.length)
+      {
+        IResultRow row = set.getRow(i);
+        names[i] = row.getValue(nameField).toString();
+        i++;
+      }
+      return loadMultiple(names);
+    }
+    catch (ManifoldCFException e)
+    {
+      signalRollback();
+      throw e;
+    }
+    catch (Error e)
+    {
+      signalRollback();
+      throw e;
+    }
+    finally
+    {
+      endTransaction();
+    }
+  }
+  
+  /** Obtain a list of the authority connections, ordered by name.
   *@return an array of connection objects.
   */
   @Override
@@ -304,6 +481,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             values.put(maxCountField,new Long((long)object.getMaxConnections()));
             values.put(configField,object.getConfigParams().toXML());
             values.put(mappingField,object.getPrerequisiteMapping());
+            values.put(authDomainField,object.getAuthDomain());
+            values.put(groupNameField,object.getAuthGroup());
 
             boolean isCreated;
             
@@ -376,8 +555,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
   public void delete(String name)
     throws ManifoldCFException
   {
-    // Grab repository connection manager handle, to check on legality of deletion.
-    IRepositoryConnectionManager repoManager = RepositoryConnectionManagerFactory.make(threadContext);
 
     StringSetBuffer ssb = new StringSetBuffer();
     ssb.add(getAuthorityConnectionsKey());
@@ -389,9 +566,6 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       beginTransaction();
       try
       {
-        // Check if anything refers to this connection name
-        if (repoManager.isReferenced(name))
-          throw new ManifoldCFException("Can't delete authority connection '"+name+"': existing repository connections refer to it");
         ManifoldCF.noteConfigurationChange();
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
@@ -559,6 +733,8 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
       rc.setClassName((String)row.getValue(classNameField));
       rc.setMaxConnections((int)((Long)row.getValue(maxCountField)).longValue());
       rc.setPrerequisiteMapping((String)row.getValue(mappingField));
+      rc.setAuthDomain((String)row.getValue(authDomainField));
+      rc.setAuthGroup((String)row.getValue(groupNameField));
       String xml = (String)row.getValue(configField);
       if (xml != null && xml.length() > 0)
         rc.getConfigParams().fromXML(xml);

@@ -3,6 +3,14 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-792: Introduce concepts of authorization domain
+and authority group, and appropriate UI, API, etc. changes.  This
+is to support federated authorization models such as what SharePoint
+Claim Space fundamentally does, where there are multiple authorities
+per repository.
+WARNING: Schema change!
+(Karl Wright)
+
 ======================= Release 1.4 =====================
 
 CONNECTORS-791: Broken WHERE clause in job status query.

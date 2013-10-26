@@ -91,4 +91,24 @@ public interface IAuthorityConnection
   */
   public String getPrerequisiteMapping();
 
+  /** Set the authorization domain.
+  *@param domain is the authorization domain.
+  */
+  public void setAuthDomain(String domain);
+  
+  /** Get the authorization domain.
+  *@return the authorization domain.
+  */
+  public String getAuthDomain();
+  
+  /** Set authorization group.
+  *@param groupName is the name of the group.
+  */
+  public void setAuthGroup(String groupName);
+  
+  /** Get the authorization group.
+  *@return the group.
+  */
+  public String getAuthGroup();
+  
 }

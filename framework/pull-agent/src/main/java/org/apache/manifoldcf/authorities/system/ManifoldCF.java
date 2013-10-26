@@ -96,6 +96,8 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       ManifoldCF.getMasterDatabaseUsername(),
       ManifoldCF.getMasterDatabasePassword());
 
+    IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadcontext);
+    IAuthorityGroupManager groupMgr = AuthorityGroupManagerFactory.make(threadcontext);
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
     IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
@@ -104,9 +106,11 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     mainDatabase.beginTransaction();
     try
     {
+      domainMgr.install();
       connMgr.install();
-      authConnMgr.install();
       mappingConnectorMgr.install();
+      groupMgr.install();
+      authConnMgr.install();
       mappingConnectionMgr.install();
     }
     catch (ManifoldCFException e)
@@ -139,7 +143,9 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 
     ManifoldCFException se = null;
 
+    IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadcontext);
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
+    IAuthorityGroupManager groupMgr = AuthorityGroupManagerFactory.make(threadcontext);
     IAuthorityConnectionManager authConnMgr = AuthorityConnectionManagerFactory.make(threadcontext);
     IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
     IMappingConnectionManager mappingConnectionMgr = MappingConnectionManagerFactory.make(threadcontext);
@@ -148,9 +154,11 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     try
     {
       mappingConnectionMgr.deinstall();
-      mappingConnectorMgr.deinstall();
       authConnMgr.deinstall();
+      groupMgr.deinstall();
+      mappingConnectorMgr.deinstall();
       connMgr.deinstall();
+      domainMgr.deinstall();
     }
     catch (ManifoldCFException e)
     {
