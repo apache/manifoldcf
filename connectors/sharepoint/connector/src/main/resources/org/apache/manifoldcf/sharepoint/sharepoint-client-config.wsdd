@@ -20,7 +20,7 @@
   <globalConfiguration> 
     <parameter name="disablePrettyXML" value="true"/> 
   </globalConfiguration> 
-  <transport name="http" pivot="java:org.apache.manifoldcf.crawler.connectors.sharepoint.CommonsHTTPSender"> 
+  <transport name="http" pivot="java:org.apache.manifoldcf.sharepoint.CommonsHTTPSender"> 
     <parameter name="SO_TIMEOUT" locked="false">60000</parameter>
   </transport>
   <!-- transport name="http" pivot="java:org.apache.axis.transport.http.HTTPSender"/ --> 
