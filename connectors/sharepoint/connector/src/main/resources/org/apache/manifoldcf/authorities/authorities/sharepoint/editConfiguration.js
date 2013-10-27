@@ -19,26 +19,6 @@
 <!--
 function checkConfig()
 {
-  var i = 0;
-  var count = editconnection.dcrecord_count.value;
-  while (i < count)
-  {
-    var username = eval("editconnection.dcrecord_username_"+i+".value");
-    if (username == "")
-    {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserNameCannotBeNull'))");
-      eval("editconnection.dcrecord_username_"+i+".focus()");
-      return false;
-    }
-    var authentication = eval("editconnection.dcrecord_authentication_"+i+".value");
-    if (authentication == "")
-    {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AuthenticationCannotBeNull'))");
-      eval("editconnection.dcrecord_authentication_"+i+".focus()");
-      return false;
-    }
-    i += 1;
-  }
   if (editconnection.serverPort.value != "" && !isInteger(editconnection.serverPort.value))
   {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.PleaseSupplyAValidNumber'))");
@@ -147,60 +127,6 @@ function checkConfigForSave()
     return false;
   }
   return true;
-}
-
-function deleteDC(i)
-{
-  eval("editconnection.dcrecord_op_"+i+".value=\"Delete\"");
-  postFormSetAnchor("dcrecord");
-}
-
-function insertDC(i)
-{
-  if (editconnection.dcrecord_domaincontrollername.value == "")
-  {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.EnterADomainControllerServerName'))");
-    editconnection.dcrecord_domaincontrollername.focus();
-    return;
-  }
-  if (editconnection.dcrecord_username.value == "")
-  {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserNameCannotBeNull'))");
-    editconnection.dcrecord_username.focus();
-    return;
-  }
-  if (editconnection.dcrecord_authentication.value == "")
-  {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AuthenticationCannotBeNull'))");
-    editconnection.dcrecord_authentication.focus();
-    return;
-  }
-  eval("editconnection.dcrecord_op_"+i+".value=\"Insert\"");
-  postFormSetAnchor("dcrecord_"+i);
-}
-
-function addDC()
-{
-  if (editconnection.dcrecord_domaincontrollername.value == "")
-  {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.EnterADomainControllerServerName'))");
-    editconnection.dcrecord_domaincontrollername.focus();
-    return;
-  }
-  if (editconnection.dcrecord_username.value == "")
-  {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AdministrativeUserNameCannotBeNull'))");
-    editconnection.dcrecord_username.focus();
-    return;
-  }
-  if (editconnection.dcrecord_authentication.value == "")
-  {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SharePointAuthority.AuthenticationCannotBeNull'))");
-    editconnection.dcrecord_authentication.focus();
-    return;
-  }
-  editconnection.dcrecord_op.value="Add";
-  postFormSetAnchor("dcrecord");
 }
 
 function ShpDeleteCertificate(aliasName)

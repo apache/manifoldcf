@@ -2414,7 +2414,12 @@
         </antcall>
         <antcall target="general-add-authority-connector">
             <param name="connector-name" value="sharepoint"/>
-            <param name="connector-label" value="SharePoint"/>
+            <param name="connector-label" value="SharePoint/ActiveDirectory"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointADAuthority"/>
+        </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-name" value="sharepoint"/>
+            <param name="connector-label" value="SharePoint/Native"/>
             <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointAuthority"/>
         </antcall>
     </target>

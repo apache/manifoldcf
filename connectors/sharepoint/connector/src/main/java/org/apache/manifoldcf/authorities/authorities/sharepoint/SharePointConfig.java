@@ -49,9 +49,6 @@ public class SharePointConfig
   /** SharePoint server certificate store */
   public static final String PARAM_SERVERKEYSTORE = "keystore";
 
-  /** SharePoint authorization model */
-  public static final String PARAM_AUTHORIZATIONMODEL = "authorizationModel";
-  
   // Nodes
   
   /** Domain controller node */
