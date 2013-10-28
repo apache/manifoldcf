@@ -110,7 +110,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     System.setProperty("jcifs.smb.client.responseTimeout","120000");
     System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
     System.setProperty("jcifs.smb.client.listCount","20");
-    System.setProperty("jcifs.sm.client.dfs.strictView","true");
+    System.setProperty("jcifs.smb.client.dfs.strictView","true");
   }
   
   private String smbconnectionPath = null;
