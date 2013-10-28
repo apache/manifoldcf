@@ -75,7 +75,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected String username = null;
   protected String password = null;
   protected String protocol = null;
-  protected Map<String, String> properties = new HashMap<>();
+  protected Map<String, String> properties = new HashMap<String,String>();
   private String folderName = null;
   private Folder folder;
   private Store store;
@@ -442,7 +442,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     DocumentSpecification spec, boolean[] scanOnly, int jobMode)
     throws ManifoldCFException, ServiceInterruption {
     int i = 0, count=0;
-    List<String> requiredMetadata = new ArrayList<>();
+    List<String> requiredMetadata = new ArrayList<String>();
     try {
       initializeConnection();
 
