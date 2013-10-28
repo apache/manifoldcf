@@ -1855,6 +1855,9 @@ curl -XGET http://localhost:9200/index/_mapping
 
             <section id="filenetrepository">
                 <title>IBM FileNet P8 Repository Connection</title>
+                <p>The IBM FileNet P8 connection type allows you to index content from a FileNet P8 server instance.  A connection allows you to reach all files
+                      kept on that server.  Multiple connections are required to support multiple servers.</p>
+                <p>This connection type secures documents using the Active Directory authority.</p>
                 <p>More here later</p>
             </section>
             
