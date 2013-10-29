@@ -18,114 +18,97 @@ limitations under the License.
 #if($TabName == $ResourceBundle.getString('EmailConnector.Filter'))
 
 <table class="displaytable">
-    <tr>
-        <td class="separator" colspan="2">
-            <hr/>
-        </td>
-    </tr>
-    <tr>
-        <td class="description">
-            <nobr>Matches:</nobr>
-        </td>
-        <td class="boxcell">
-            <table class="formtable">
-                <tr class="formheaderrow">
-                    <td class="formcolumnheader"></td>
-                    <td class="formcolumnheader">
-                        <nobr>Metadata name</nobr>
-                    </td>
-                    <td class="formcolumnheader">
-                        <nobr>Value</nobr>
-                    </td>
-                </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.MatchesColon'))</nobr>
+    </td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader">
+            <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.MetadataName'))</nobr>
+          </td>
+          <td class="formcolumnheader">
+            <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.Value'))</nobr>
+          </td>
+        </tr>
 
-                #set($k = 0)
-                #foreach($match in $MATCHES)
+  #set($k = 0)
+  #foreach($match in $MATCHES)
 
-                #if(($k % 2) == 0)
-                <tr class="evenformrow">
-                    #else
-                <tr class="oddformrow">
-                    #end
+    #if(($k % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <input type="hidden" name="findop_$k" value=""/>
+            <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($match.get('name'))"/>
+            <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($match.get('value'))"/>
+            <a name="find_$k">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Delete'))" onClick='Javascript:FindDelete("$k")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.DeleteMatchNumber'))$k"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($match.get('name'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($match.get('value'))</nobr>
+          </td>
+        </tr>
 
-                    <td class="formcolumncell">
-                        <input type="hidden" name="findop_$k" value=""/>
-                        <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($match.get('name'))"/>
-                        <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($match.get('value'))"/>
-                        <a name="find_$k">
-                            <input type="button" value="Delete" onClick='Javascript:FindDelete("$k")'
-                                   alt="Delete match #$k"/>
-                        </a>
-                    </td>
-                    <td class="formcolumncell">
-                        <nobr>
-                            $Encoder.bodyEscape($match.get('name'))
-                        </nobr>
-                    </td>
-                    <td class="formcolumncell">
-                        <nobr>
-                            $Encoder.bodyEscape($match.get('value'))
-                        </nobr>
-                    </td>
-                </tr>
+    #set($k = $k + 1)
+  #end
 
-                #set($k = $k + 1)
-                #end
+  #if($k == 0)
+        <tr class="formrow">
+          <td class="formcolumnmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.NoMetadataSpecified'))</td>
+        </tr>
+  #end
 
-                #if($k == 0)
-                <tr class="formrow">
-                    <td class="formcolumnmessage" colspan="3">No metadata specified</td>
-                </tr>
-                #end
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+  #set($nextk = $k + 1)
 
-                <tr class="formrow">
-                    <td class="formseparator" colspan="3">
-                        <hr/>
-                    </td>
-                </tr>
-                #set($nextk = $k + 1)
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <nobr>
+              <a name="find_$k">
+                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Add'))" onClick='Javascript:FindAdd("$nextk")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.AddNewMatch'))"/>
+                <input type="hidden" name="findcount" value="$k"/>
+                <input type="hidden" name="findop" value=""/>
+              </a>
+            </nobr>
+          </td>
+          <td class="formcolumncell">
+            <select name="findname">
+              <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SelectMetadataName'))</option>
+  #foreach($name in $SEARCHABLEATTRIBUTES)
+              <option value="$Encoder.attributeEscape($name)">$Encoder.bodyEscape($name)</option>
+  #end
+            </select>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="32" name="findvalue" value=""/></nobr>
+          </td>
+        </tr>
 
-                <tr class="formrow">
-                    <td class="formcolumncell">
-                        <nobr>
-                            <a name="find_$k">
-                                <input type="button" value="Add" onClick='Javascript:FindAdd("$nextk")'
-                                       alt="Add new match"/>
-                                <input type="hidden" name="findcount" value="$k"/>
-                                <input type="hidden" name="findop" value=""/>
-                            </a>
-                        </nobr>
-                    </td>
-                    <td class="formcolumncell">
-                        <select name="findname">
-                            <option value="" selected="true">--Select metadata name --</option>
-                            #foreach($name in $SEARCHABLEATTRIBUTES)
-                            <option value="$Encoder.attributeEscape($name)">$Encoder.bodyEscape($name)</option>
-                            #end
-                        </select>
-                    </td>
-                    <td class="formcolumncell">
-                        <nobr>
-                            <input type="text" size="32" name="findvalue" value=""/>
-                        </nobr>
-                    </td>
-                </tr>
-
-            </table>
-        </td>
-    </tr>
+      </table>
+    </td>
+  </tr>
 </table>
 
 #else
 
-#set($k = 0)
-#foreach($match in $MATCHES)
+  #set($k = 0)
+  #foreach($match in $MATCHES)
 
 <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($match.get('name'))"/>
 <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($match.get('value'))"/>
 
-#set($k = $k + 1)
-#end
+    #set($k = $k + 1)
+  #end
 
 <input type="hidden" name="findcount" value="$k"/>
 

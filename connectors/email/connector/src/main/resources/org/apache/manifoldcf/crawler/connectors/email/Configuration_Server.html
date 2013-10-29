@@ -104,7 +104,7 @@ limitations under the License.
             <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($property.get('name'))"/>
             <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($property.get('value'))"/>
             <a name="find_$k">
-              <input type="button" value="Delete" onClick='Javascript:FindDelete("$k")' alt="Delete match #$k"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Delete'))" onClick='Javascript:FindDelete("$k")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.DeleteMatchNumber'))$k"/>
             </a>
           </td>
           <td class="formcolumncell">
