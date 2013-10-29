@@ -17,13 +17,14 @@
 
 <script type="text/javascript">
 <!--
+
 function checkSpecification()
 {
   if (checkDocumentsTab() == false)
-      return false;
-    if (checkMetadataTab() == false)
-      return false;
-    return true;
+    return false;
+  if (checkMetadataTab() == false)
+    return false;
+  return true;
 }
  
 function SpecOp(n, opValue, anchorvalue)
@@ -51,17 +52,18 @@ function FindAdd(n)
 {
   if (editjob.findname.value == "")
   {
-    alert("Please select a metadata name first.");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PleaseSelectAMetadataName'))");
     editjob.findname.focus();
     return;
   }
   if (editjob.findvalue.value == "")
   {
-    alert("Metadata value cannot be blank.");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ValueCannotBeBlank'))");
     editjob.findvalue.focus();
     return;
   }
   SpecOp("findop", "Add", "find_"+n);
 }
+
 //-->
 </script>
