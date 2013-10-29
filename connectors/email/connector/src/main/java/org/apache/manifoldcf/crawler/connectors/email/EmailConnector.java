@@ -581,7 +581,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException {
-    tabsArray.add("Server");
+    tabsArray.add(Messages.getString(locale, "EmailConnector.Server"));
     // Map the parameters
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
@@ -589,7 +589,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     fillInServerConfigurationMap(paramMap, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
-    outputResource("ConfigurationHeader.js", out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "ConfigurationHeader.js", paramMap);
   }
 
   @Override
@@ -603,7 +603,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, parameters);
     Messages.outputResourceWithVelocity(out, locale, "Configuration_Server.html", paramMap);
-
   }
 
   private void fillInServerConfigurationMap(Map<String, Object> paramMap, ConfigParams parameters) {
@@ -767,21 +766,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
-    outputResource("ConfigurationView.html", out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "ConfigurationView.html", paramMap);
   }
 
-  /**
-  * Read the content of a resource, replace the variable ${PARAMNAME} with the
-  * value and copy it to the out.
-  *
-  * @param resName
-  * @param out
-  * @throws ManifoldCFException
-  */
-  private static void outputResource(String resName, IHTTPOutput out,
-    Locale locale, Map<String, Object> paramMap) throws ManifoldCFException {
-    Messages.outputResourceWithVelocity(out, locale, resName, paramMap);
-  }
 
   /////////////////////////////////End of configuration UI////////////////////////////////////////////////////
 
@@ -805,9 +792,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     DocumentSpecification ds, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     // Add the tabs
-    tabsArray.add("Metadata");
-    tabsArray.add("Filter");
-    outputResource("SpecificationHeader.js", out, locale, null);
+    tabsArray.add(Messages.getString(locale, "EmailConnector.Metadata"));
+    tabsArray.add(Messages.getString(locale, "EmailConnector.Filter"));
+    Messages.outputResourceWithVelocity(out, locale, "SpecificationHeader.js", null);
   }
 
   /**
@@ -841,7 +828,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("TabName", tabName);
     fillInMetadataTab(paramMap, ds);
     fillInMetadataAttributes(paramMap);
-    outputResource("Specification_Metadata.html", out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "Specification_Metadata.html", paramMap);
   }
 
   /**
@@ -876,7 +863,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("TabName", tabName);
     fillInFilterTab(paramMap, ds);
     fillInSearchableAttributes(paramMap);
-    outputResource("Specification_Filter.html", out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "Specification_Filter.html", paramMap);
   }
 
   private void fillInSearchableAttributes(Map<String, Object> paramMap) {
@@ -1025,7 +1012,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     Map<String, Object> paramMap = new HashMap<String, Object>();
     fillInFilterTab(paramMap, ds);
     fillInMetadataTab(paramMap, ds);
-    outputResource("SpecificationView.html", out, locale, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "SpecificationView.html", paramMap);
   }
 
   ///////////////////////////////////////End of specification UI///////////////////////////////////////////////
