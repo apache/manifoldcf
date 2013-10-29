@@ -20,19 +20,18 @@ limitations under the License.
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>Include:</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.IncludeColon'))</nobr></td>
     <td class="value">
 
 
-    #foreach($metadataattribute in $METADATAATTRIBUTES)
-      #if($METADATASELECTIONS.contains($metadataattribute))
-      <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)"
-        checked="true"/>
-      #else
+  #foreach($metadataattribute in $METADATAATTRIBUTES)
+    #if($METADATASELECTIONS.contains($metadataattribute))
+      <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)" checked="true"/>
+    #else
       <input type="checkbox" name="metadata" value="$Encoder.attributeEscape($metadataattribute)"/>
-      #end
-      $Encoder.bodyEscape($metadataattribute)<br/>
     #end
+      $Encoder.bodyEscape($metadataattribute)<br/>
+  #end
     </td>
 
   </tr>
