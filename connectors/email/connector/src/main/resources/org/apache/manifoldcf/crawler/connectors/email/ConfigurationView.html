@@ -17,38 +17,61 @@ limitations under the License.
 
 <table class="displaytable">
   <tr>
-    <td class="description" colspan="1">
-      <nobr>
-        Parameters:
-      </nobr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.UserNameColon'))</nobr>
     </td>
-    <td class="value" colspan="3">
-      <nobr>
-        Username: $Encoder.bodyEscape($USERNAME)
-      </nobr>
-      <br />
-      <nobr>
-        Password: ********
-      </nobr>
-      <br />
-      <nobr>
-        Protocol: $Encoder.bodyEscape($PROTOCOL)
-      </nobr>
-      <br />
-      <nobr>
-        Server: $Encoder.bodyEscape($SERVER)
-      </nobr>
-      <br />
-      <nobr>
-        Port: $Encoder.bodyEscape($PORT)
-      </nobr>
-      <br />
-        #foreach( $property in $PROPERTIES )
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($USERNAME)</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.PasswordColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>********</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ProtocolColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PROTOCOL)</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.EmailServerURLColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($SERVER)</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.PortColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PORT)</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.MatchesColon'))</nobr>
+    </td>
+    <td class="value">
+#foreach( $property in $PROPERTIES )
         <nobr>
             $Encoder.bodyEscape($property.get('name')) : $Encoder.bodyEscape($property.get('value'))
         </nobr>
-        <br />
-        #end
+        <br/>
+#end
 
     </td>
   </tr>
