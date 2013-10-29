@@ -589,7 +589,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     fillInServerConfigurationMap(paramMap, parameters);
 
     // Output the Javascript - only one Velocity template for all tabs
-    outputResource("configurationHeader.js", out, locale, paramMap);
+    outputResource("ConfigurationHeader.js", out, locale, paramMap);
   }
 
   @Override
@@ -602,7 +602,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("TabName", tabName);
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, parameters);
-    Messages.outputResourceWithVelocity(out, locale, "ConfigurationServer.html", paramMap);
+    Messages.outputResourceWithVelocity(out, locale, "Configuration_Server.html", paramMap);
 
   }
 
@@ -767,7 +767,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, parameters);
 
-    outputResource("viewConfiguration.html", out, locale, paramMap);
+    outputResource("ConfigurationView.html", out, locale, paramMap);
   }
 
   /**
@@ -841,7 +841,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("TabName", tabName);
     fillInMetadataTab(paramMap, ds);
     fillInMetadataAttributes(paramMap);
-    outputResource("SpecificationMetadata.html", out, locale, paramMap);
+    outputResource("Specification_Metadata.html", out, locale, paramMap);
   }
 
   /**
@@ -876,7 +876,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     paramMap.put("TabName", tabName);
     fillInFilterTab(paramMap, ds);
     fillInSearchableAttributes(paramMap);
-    outputResource("SpecificationFilter.html", out, locale, paramMap);
+    outputResource("Specification_Filter.html", out, locale, paramMap);
   }
 
   private void fillInSearchableAttributes(Map<String, Object> paramMap) {
