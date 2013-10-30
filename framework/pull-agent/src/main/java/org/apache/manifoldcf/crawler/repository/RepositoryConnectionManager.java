@@ -140,15 +140,19 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
             String authName = (String)row.getValue(authorityNameField);
             if (authName != null && authName.length() > 0)
             {
-              ArrayList list = new ArrayList();
-              list.add(authName);
-              IResultSet set2 = dbInterface.performQuery("SELECT 'x' FROM "+authMgr.getTableName()+" WHERE "+authMgr.getGroupNameColumn()+"=?",list,null,null);
-              if (set2.getRowCount() == 0)
+              // Attempt to create a matching auth group.  This will fail if the group
+              // already exists
+              IAuthorityGroup grp = authMgr.create();
+              grp.setName(authName);
+              try
               {
-                // Create an authority group with this name
-                Map<String,Object> groupMap = new HashMap<String,Object>();
-                groupMap.put(authMgr.getGroupNameColumn(),authName);
-                dbInterface.performInsert(authMgr.getTableName(),groupMap,null);
+                authMgr.save(grp);
+              }
+              catch (ManifoldCFException e)
+              {
+                if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+                  throw e;
+                // Fall through; the row exists already
               }
               Map<String,String> map = new HashMap<String,String>();
               map.put(groupNameField,authName);
