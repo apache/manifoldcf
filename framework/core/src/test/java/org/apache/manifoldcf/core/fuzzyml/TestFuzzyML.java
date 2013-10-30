@@ -30,6 +30,15 @@ public class TestFuzzyML
 {
   
   protected final static String fuzzyTestString = 
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
+"<rss version=\"2.0\"\n"+
+"	xmlns:content=\"http://purl.org/rss/1.0/modules/content/\"\n"+
+"	xmlns:wfw=\"http://wellformedweb.org/CommentAPI/\"\n"+
+"	xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"+
+"	xmlns:atom=\"http://www.w3.org/2005/Atom\"\n"+
+"	xmlns:sy=\"http://purl.org/rss/1.0/modules/syndication/\"\n"+
+"	xmlns:slash=\"http://purl.org/rss/1.0/modules/slash/\"\n"+
+"	>\n"+
 "		<item>\n"+
 "		<title>fme File Exchange Plattform – Austausch mit Externen leichtgemacht</title>\n"+
 "		<link>http://blog.fme.de/allgemein/2013-07/fme-file-exchange-plattform-austausch-mit-externen-leichtgemacht</link>\n"+
@@ -174,12 +183,12 @@ public class TestFuzzyML
   public void testFailure()
     throws IOException, ManifoldCFException
   {
+    org.apache.manifoldcf.core.system.Logging.misc = org.apache.log4j.Logger.getLogger("test");
     InputStream is = new ByteArrayInputStream(fuzzyTestString.getBytes("utf-8"));
     Parser p = new Parser();
     // Parse the document.  This will cause various things to occur, within the instantiated XMLParsingContext class.
     XMLFuzzyHierarchicalParseState x = new XMLFuzzyHierarchicalParseState();
-    //OuterContextClass c = new OuterContextClass(x,documentIdentifier,activities,filter);
-    //x.setContext(c);
+    x.setContext(new TestParsingContext(x));
     try
     {
       // Believe it or not, there are no parsing errors we can get back now.
@@ -191,4 +200,35 @@ public class TestFuzzyML
     }
   }
 
+  protected static class TestParsingContext extends XMLParsingContext
+  {
+    protected String thisTag = null;
+    
+    public TestParsingContext(XMLFuzzyHierarchicalParseState theStream)
+    {
+      super(theStream);
+    }
+    
+    public TestParsingContext(XMLFuzzyHierarchicalParseState theStream, String namespace, String localname, String qname, Map<String,String> theseAttributes)
+    {
+      super(theStream,namespace,localname,qname,theseAttributes);
+    }
+    
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
+    {
+      thisTag = qName;
+      return new TestParsingContext(theStream,namespace,localName,qName,atts);
+    }
+
+    @Override
+    protected void endTag()
+      throws ManifoldCFException
+    {
+      super.endTag();
+    }
+
+  }
+  
 }
