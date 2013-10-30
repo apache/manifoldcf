@@ -131,6 +131,7 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
           addMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,true,
             authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
           performAlter(addMap,null,null,null);
+          boolean revert = true;
           try
           {
             ArrayList params = new ArrayList();
@@ -163,14 +164,17 @@ public class AuthorityConnectionManager extends org.apache.manifoldcf.core.datab
             modifyMap.put(groupNameField,new ColumnDescription("VARCHAR(32)",false,false,
               authMgr.getTableName(),authMgr.getGroupNameColumn(),false));
             performAlter(null,modifyMap,null,null);
+            revert = false;
           }
-          catch (ManifoldCFException e)
+          finally
           {
-            // Upgrade failed; back out our changes
-            List<String> deleteList = new ArrayList<String>();
-            deleteList.add(groupNameField);
-            performAlter(null,null,deleteList,null);
-            throw e;
+            if (revert)
+            {
+              // Upgrade failed; back out our changes
+              List<String> deleteList = new ArrayList<String>();
+              deleteList.add(groupNameField);
+              performAlter(null,null,deleteList,null);
+            }
           }
         }
       }
