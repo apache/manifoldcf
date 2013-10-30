@@ -396,6 +396,15 @@ public class AuthorityGroupManager extends org.apache.manifoldcf.core.database.B
     return nameField;
   }
 
+  /** Get the authority connection description column.
+  *@return the description column.
+  */
+  @Override
+  public String getGroupDescriptionColumn()
+  {
+    return descriptionField;
+  }
+
   // Caching strategy: Individual connection descriptions are cached, and there is a global cache key for the list of
   // repository connections.
 

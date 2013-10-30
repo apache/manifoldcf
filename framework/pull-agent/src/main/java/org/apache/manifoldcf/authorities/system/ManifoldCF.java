@@ -91,11 +91,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   public static void installSystemTables(IThreadContext threadcontext)
     throws ManifoldCFException
   {
-    IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-      ManifoldCF.getMasterDatabaseName(),
-      ManifoldCF.getMasterDatabaseUsername(),
-      ManifoldCF.getMasterDatabasePassword());
-
     IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadcontext);
     IAuthorityGroupManager groupMgr = AuthorityGroupManagerFactory.make(threadcontext);
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
@@ -103,31 +98,12 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
     IMappingConnectionManager mappingConnectionMgr = MappingConnectionManagerFactory.make(threadcontext);
 
-    mainDatabase.beginTransaction();
-    try
-    {
-      domainMgr.install();
-      connMgr.install();
-      mappingConnectorMgr.install();
-      groupMgr.install();
-      authConnMgr.install();
-      mappingConnectionMgr.install();
-    }
-    catch (ManifoldCFException e)
-    {
-      mainDatabase.signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      mainDatabase.signalRollback();
-      throw e;
-    }
-    finally
-    {
-      mainDatabase.endTransaction();
-    }
-
+    domainMgr.install();
+    connMgr.install();
+    mappingConnectorMgr.install();
+    groupMgr.install();
+    authConnMgr.install();
+    mappingConnectionMgr.install();
   }
 
   /** Uninstall all the authority manager system tables.
@@ -136,13 +112,6 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
   public static void deinstallSystemTables(IThreadContext threadcontext)
     throws ManifoldCFException
   {
-    IDBInterface mainDatabase = DBInterfaceFactory.make(threadcontext,
-      ManifoldCF.getMasterDatabaseName(),
-      ManifoldCF.getMasterDatabaseUsername(),
-      ManifoldCF.getMasterDatabasePassword());
-
-    ManifoldCFException se = null;
-
     IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadcontext);
     IAuthorityConnectorManager connMgr = AuthorityConnectorManagerFactory.make(threadcontext);
     IAuthorityGroupManager groupMgr = AuthorityGroupManagerFactory.make(threadcontext);
@@ -150,33 +119,12 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     IMappingConnectorManager mappingConnectorMgr = MappingConnectorManagerFactory.make(threadcontext);
     IMappingConnectionManager mappingConnectionMgr = MappingConnectionManagerFactory.make(threadcontext);
 
-    mainDatabase.beginTransaction();
-    try
-    {
-      mappingConnectionMgr.deinstall();
-      authConnMgr.deinstall();
-      groupMgr.deinstall();
-      mappingConnectorMgr.deinstall();
-      connMgr.deinstall();
-      domainMgr.deinstall();
-    }
-    catch (ManifoldCFException e)
-    {
-      mainDatabase.signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      mainDatabase.signalRollback();
-      throw e;
-    }
-    finally
-    {
-      mainDatabase.endTransaction();
-    }
-    if (se != null)
-      throw se;
-
+    mappingConnectionMgr.deinstall();
+    authConnMgr.deinstall();
+    groupMgr.deinstall();
+    mappingConnectorMgr.deinstall();
+    connMgr.deinstall();
+    domainMgr.deinstall();
   }
 
   /** Start the authority system.

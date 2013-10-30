@@ -576,8 +576,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static void deinstallSystemTables(IThreadContext threadcontext)
     throws ManifoldCFException
   {
-    ManifoldCFException se = null;
-
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
@@ -585,8 +583,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     repCon.deinstall();
     repConnMgr.deinstall();
     org.apache.manifoldcf.authorities.system.ManifoldCF.deinstallSystemTables(threadcontext);
-    if (se != null)
-      throw se;
   }
 
 

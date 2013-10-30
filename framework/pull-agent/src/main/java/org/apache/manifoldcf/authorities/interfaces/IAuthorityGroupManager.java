@@ -97,4 +97,9 @@ public interface IAuthorityGroupManager
   */
   public String getGroupNameColumn();
 
+  /** Get the authority connection description column.
+  *@return the description column.
+  */
+  public String getGroupDescriptionColumn();
+
 }
