@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-796: Fix NPE in RSS connector having to do with
+tags that aren't nested as expected.
+(Benjamin Brandmeier, Karl Wright)
+
 CONNECTORS-792: Introduce concepts of authorization domain
 and authority group, and appropriate UI, API, etc. changes.  This
 is to support federated authorization models such as what SharePoint
