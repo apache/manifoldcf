@@ -150,7 +150,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
               }
               catch (ManifoldCFException e)
               {
-                if (e.getErrorCode() != ManifoldCFException.DATABASE_TRANSACTION_ABORT)
+                if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
                   throw e;
                 // Fall through; the row exists already
               }
