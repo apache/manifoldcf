@@ -41,7 +41,7 @@ limitations under the License.
   
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.EmailServerURLColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.HostNameColon'))</nobr>
     </td>
     <td class="value">
       <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
@@ -56,7 +56,9 @@ limitations under the License.
       <input type="text" id="port" name="port" value="$Encoder.attributeEscape($PORT)"/>
     </td>
   </tr>
-  
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.UserNameColon'))</nobr>
@@ -74,10 +76,12 @@ limitations under the License.
       <input type="password" id="password" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
     </td>
   </tr>
-  
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.MatchesColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ConfigurationPropertiesColon'))</nobr>
     </td>
     <td class="boxcell">
       <table class="formtable">
@@ -104,7 +108,7 @@ limitations under the License.
             <input type="hidden" name="findname_$k" value="$Encoder.attributeEscape($property.get('name'))"/>
             <input type="hidden" name="findvalue_$k" value="$Encoder.attributeEscape($property.get('value'))"/>
             <a name="find_$k">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Delete'))" onClick='Javascript:FindDelete("$k")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.DeleteMatchNumber'))$k"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Delete'))" onClick='Javascript:FindDelete("$k")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.DeletePropertyNumber'))$k"/>
             </a>
           </td>
           <td class="formcolumncell">
@@ -132,7 +136,7 @@ limitations under the License.
           <td class="formcolumncell">
             <nobr>
               <a name="find_$k">
-                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Add'))" onClick='Javascript:FindAdd("$nextk")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.AddNewMatch'))"/>
+                <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.Add'))" onClick='Javascript:FindAdd("$nextk")' alt="$Encoder.attributeEscape($ResourceBundle.getString('EmailConnector.AddNewProperty'))"/>
                 <input type="hidden" name="findcount" value="$k"/>
                 <input type="hidden" name="findop" value=""/>
               </a>

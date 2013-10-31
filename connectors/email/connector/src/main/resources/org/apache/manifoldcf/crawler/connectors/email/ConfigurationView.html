@@ -16,6 +16,36 @@ limitations under the License.
 -->
 
 <table class="displaytable">
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ProtocolColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PROTOCOL)</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.HostNameColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($SERVER)</nobr>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.PortColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PORT)</nobr>
+    </td>
+  </tr>
+
+  <tr><td  class="separator" colspan="2"><hr/></td></tr>
+  
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.UserNameColon'))</nobr>
@@ -33,37 +63,12 @@ limitations under the License.
       <nobr>********</nobr>
     </td>
   </tr>
-  
+
+  <tr><td  class="separator" colspan="2"><hr/></td></tr>
+
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ProtocolColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($PROTOCOL)</nobr>
-    </td>
-  </tr>
-  
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.EmailServerURLColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($SERVER)</nobr>
-    </td>
-  </tr>
-  
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.PortColon'))</nobr>
-    </td>
-    <td class="value">
-      <nobr>$Encoder.bodyEscape($PORT)</nobr>
-    </td>
-  </tr>
-  
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.MatchesColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ConfigurationPropertiesColon'))</nobr>
     </td>
     <td class="value">
 #foreach( $property in $PROPERTIES )
@@ -75,5 +80,6 @@ limitations under the License.
 
     </td>
   </tr>
+  
 </table>
 

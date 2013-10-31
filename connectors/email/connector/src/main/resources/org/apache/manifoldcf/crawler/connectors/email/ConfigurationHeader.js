@@ -21,7 +21,7 @@ function checkConfigForSave()
 {
   if (editconnection.server.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.EnterAMailServerURL'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.EnterAMailServerHostName'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.Server'))");
     editconnection.server.focus();
     return false;
@@ -49,7 +49,7 @@ function FindAdd(n)
 {
   if (editconnection.findname.value == "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PleaseSelectAMetadataName'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.PleaseSelectAConfigurationParameterName'))");
     editconnection.findname.focus();
     return;
   }
