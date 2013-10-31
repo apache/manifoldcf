@@ -637,12 +637,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     if (port == null)
       port = EmailConfig.PORT_DEFAULT_VALUE;
 
-    paramMap.put(EmailConfig.USERNAME_PARAM, username);
-    paramMap.put(EmailConfig.PASSWORD_PARAM, password);
-    paramMap.put(EmailConfig.PROTOCOL_PARAM, protocol);
-    paramMap.put(EmailConfig.SERVER_PARAM, server);
-    paramMap.put(EmailConfig.PORT_PARAM, port);
-    paramMap.put(EmailConfig.PROPERTIES_PARAM, list);
+    paramMap.put("USERNAME", username);
+    paramMap.put("PASSWORD", password);
+    paramMap.put("PROTOCOL", protocol);
+    paramMap.put("SERVER", server);
+    paramMap.put("PORT", port);
+    paramMap.put("PROPERTIES", list);
 
   }
 
@@ -664,32 +664,22 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
     ConfigParams parameters) throws ManifoldCFException {
 
-    String userName = variableContext.getParameter(EmailConfig.USERNAME_PARAM);
+    String userName = variableContext.getParameter("username");
     if (userName != null)
       parameters.setParameter(EmailConfig.USERNAME_PARAM, userName);
 
-    String password = variableContext.getParameter(EmailConfig.PASSWORD_PARAM);
+    String password = variableContext.getParameter("password");
     if (password != null)
       parameters.setParameter(EmailConfig.PASSWORD_PARAM, password);
 
-    String protocol = variableContext.getParameter(EmailConfig.PROTOCOL_PARAM);
-    if (protocol != null) {
-
-      if (protocol.equals(EmailConfig.PROTOCOL_IMAP)) {
-        protocol = EmailConfig.PROTOCOL_IMAP_PROVIDER;
-      }
-
-      if (protocol.equals(EmailConfig.PROTOCOL_POP3)) {
-        protocol = EmailConfig.PROTOCOL_POP3_PROVIDER;
-      }
-
+    String protocol = variableContext.getParameter("protocol");
+    if (protocol != null)
       parameters.setParameter(EmailConfig.PROTOCOL_PARAM, protocol);
-    }
 
-    String server = variableContext.getParameter(EmailConfig.SERVER_PARAM);
+    String server = variableContext.getParameter("server");
     if (server != null)
       parameters.setParameter(EmailConfig.SERVER_PARAM, server);
-    String port = variableContext.getParameter(EmailConfig.PORT_PARAM);
+    String port = variableContext.getParameter("port");
     if (port != null)
       parameters.setParameter(EmailConfig.PORT_PARAM, port);
     // Remove old find parameter document specification information
