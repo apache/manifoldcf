@@ -7470,7 +7470,7 @@ public class JobManager implements IJobManager
       list.clear();
       sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
         .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
-      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(JobQueue.jobIDField,jobID)}));
       sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
       
       IResultSet totalSet = database.performQuery(sb.toString(),list,null,null);
@@ -7493,7 +7493,7 @@ public class JobManager implements IJobManager
       list.clear();
       sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
         .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
-      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(JobQueue.jobIDField,jobID)}));
       sb.append(" AND ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildOutstandingClause()}));
       sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
@@ -7517,8 +7517,8 @@ public class JobManager implements IJobManager
       sb = new StringBuilder("SELECT ");
       list.clear();
       sb.append(database.constructCountClause(JobQueue.docHashField)).append(" AS doccount")
-        .append(" FROM ").append(jobQueue.getTableName()).append(" t1 WHERE ");
-      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(Jobs.idField,jobID)}));
+        .append(" FROM ").append(jobQueue.getTableName()).append(" WHERE ");
+      sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{new UnitaryClause(JobQueue.jobIDField,jobID)}));
       sb.append(" AND ");
       sb.append(database.buildConjunctionClause(list,new ClauseDescription[]{buildProcessedClause()}));
       sb.append(" ").append(database.constructOffsetLimitClause(0,maxCount+1,false));
