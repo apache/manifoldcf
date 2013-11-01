@@ -76,6 +76,10 @@ public abstract class CharacterInput
   public abstract InputStream getUtf8Stream()
     throws ManifoldCFException;
 
+  /** Get binary UTF8 stream length directly */
+  public abstract long getUtf8StreamLength()
+    throws ManifoldCFException;
+
   /** Transfer to a new object; this causes the current object to become "already discarded" */
   public abstract CharacterInput transfer();
 

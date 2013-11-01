@@ -591,6 +591,52 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                       bi.discard();
                     }
                   }
+                  else if (contents instanceof CharacterInput)
+                  {
+                    // An ingestion will take place for this document.
+                    RepositoryDocument rd = new RepositoryDocument();
+
+                    // Default content type is application/octet-stream for binary data
+                    if (contentType == null)
+                      rd.setMimeType("text/plain; charset=utf-8");
+                    else
+                      rd.setMimeType(contentType);
+                    
+                    applyAccessTokens(rd,version,spec);
+                    applyMetadata(rd,row);
+
+                    CharacterInput ci = (CharacterInput)contents;
+                    try
+                    {
+                      // Read the stream
+                      InputStream is = ci.getUtf8Stream();
+                      try
+                      {
+                        rd.setBinary(is,ci.getUtf8StreamLength());
+                        activities.ingestDocument(id, version, url, rd);
+                      }
+                      finally
+                      {
+                        is.close();
+                      }
+                    }
+                    catch (java.net.SocketTimeoutException e)
+                    {
+                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                    }
+                    catch (InterruptedIOException e)
+                    {
+                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                    }
+                    catch (IOException e)
+                    {
+                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                    }
+                    finally
+                    {
+                      ci.discard();
+                    }
+                  }
                   else
                   {
                     // Turn it into a string, and then into a stream

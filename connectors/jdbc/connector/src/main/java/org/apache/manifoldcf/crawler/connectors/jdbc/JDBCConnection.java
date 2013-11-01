@@ -451,9 +451,8 @@ public class JDBCConnection
           else if (isCLOB(rsmd,colnum))
           {
             Clob clob = getCLOB(rs,colnum);
-            // Note well: we have not figured out how to handle characters outside of ASCII!
             if (clob != null)
-              value = new TempFileInput(clob.getAsciiStream(),clob.length());
+              value = new TempFileCharacterInput(clob.getCharacterStream(),clob.length());
           }
           else
           {
@@ -558,42 +557,50 @@ public class JDBCConnection
           // letting database do lame conversion!
           ps.setString(i+1, value);
         }
-        if (x instanceof BinaryInput)
+        else if (x instanceof BinaryInput)
         {
           BinaryInput value = (BinaryInput)x;
+          ps.setBinaryStream(i+1,value.getStream(),value.getLength());
+          // Hopefully with the introduction of CharacterInput below, this hackery is no longer needed.
           // System.out.println("Blob length on write = "+Long.toString(value.getLength()));
           // The oracle driver does a binary conversion to base 64 when writing data
           // into a clob column using a binary stream operator.  Since at this
           // point there is no way to distinguish the two, and since our tests use CLOB,
           // this code doesn't work for them.
           // So, for now, use the ascii stream method.
-          //ps.setBinaryStream(i+1,value.getStream(),(int)value.getLength());
-          ps.setAsciiStream(i+1,value.getStream(),(int)value.getLength());
+          //ps.setAsciiStream(i+1,value.getStream(),value.getLength());
         }
-        if (x instanceof java.util.Date)
+        else if (x instanceof CharacterInput)
+        {
+          CharacterInput value = (CharacterInput)x;
+          ps.setCharacterStream(i+1,value.getStream(),value.getCharacterLength());
+        }
+        else if (x instanceof java.util.Date)
         {
           ps.setDate(i+1,new java.sql.Date(((java.util.Date)x).getTime()));
         }
-        if (x instanceof Long)
+        else if (x instanceof Long)
         {
           ps.setLong(i+1,((Long)x).longValue());
         }
-        if (x instanceof TimeMarker)
+        else if (x instanceof TimeMarker)
         {
           ps.setTimestamp(i+1,new java.sql.Timestamp(((Long)x).longValue()));
         }
-        if (x instanceof Double)
+        else if (x instanceof Double)
         {
           ps.setDouble(i+1,((Double)x).doubleValue());
         }
-        if (x instanceof Integer)
+        else if (x instanceof Integer)
         {
           ps.setInt(i+1,((Integer)x).intValue());
         }
-        if (x instanceof Float)
+        else if (x instanceof Float)
         {
           ps.setFloat(i+1,((Float)x).floatValue());
         }
+        else
+          throw new ManifoldCFException("Unknown data type: "+x.getClass().getName());
       }
     }
   }
@@ -613,6 +620,11 @@ public class JDBCConnection
         if (x instanceof BinaryInput)
         {
           BinaryInput value = (BinaryInput)x;
+          value.doneWithStream();
+        }
+        else if (x instanceof CharacterInput)
+        {
+          CharacterInput value = (CharacterInput)x;
           value.doneWithStream();
         }
       }

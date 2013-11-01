@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-798: Bring JDBC connector support for CLOBs into the
+modern era.  This also required extension of the CharacterInputFile
+paradigm slightly - a new method to find the utf8 byte length was needed.
+(Karl Wright)
+
 CONNECTORS-797: Bad query when maxcount was exceeded in the
 database table for the jobstatus screen.
 (Graeme Seaton, Karl Wright)
