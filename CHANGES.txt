@@ -3,6 +3,12 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-801: Refactor JDBC authority to bring it into compliance with current
+conventions in JDBC connector.  Warning: this change is not backwards
+compatible!  JDBC authority queries now require explicit return column
+names for the user id and token queries!
+(Karl Wright)
+
 CONNECTORS-798: Bring JDBC connector support for CLOBs into the
 modern era.  This also required extension of the CharacterInputFile
 paradigm slightly - a new method to find the utf8 byte length was needed.
@@ -13,7 +19,7 @@ database table for the jobstatus screen.
 (Graeme Seaton, Karl Wright)
 
 CONNECTORS-796: Fix NPE in RSS connector having to do with
-tags that aren't nested as expected.
+tags that aren't nested as expected.  CDATA parsing was also broken.
 (Benjamin Brandmeier, Karl Wright)
 
 CONNECTORS-792: Introduce concepts of authorization domain

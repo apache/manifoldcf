@@ -23,6 +23,9 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.database.*;
+import org.apache.manifoldcf.jdbc.JDBCConnection;
+import org.apache.manifoldcf.jdbc.JDBCConstants;
+import org.apache.manifoldcf.jdbc.IDynamicResultSet;
 
 import java.sql.*;
 import javax.naming.*;
@@ -169,6 +172,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     connection = null;
     host = null;
     jdbcProvider = null;
+    accessMethod = null;
     databaseName = null;
     userName = null;
     password = null;

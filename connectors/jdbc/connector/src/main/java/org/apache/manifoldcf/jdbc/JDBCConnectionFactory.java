@@ -1,4 +1,4 @@
-/* $Id: JDBCConnectionFactory.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.jdbc;
+package org.apache.manifoldcf.jdbc;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.jdbcpool.*;
@@ -34,7 +34,7 @@ import java.util.*;
 */
 public class JDBCConnectionFactory
 {
-  public static final String _rcsid = "@(#)$Id: JDBCConnectionFactory.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id$";
 
   private static Map driverMap;
 

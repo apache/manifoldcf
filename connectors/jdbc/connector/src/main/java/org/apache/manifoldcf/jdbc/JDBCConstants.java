@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.jdbc;
+package org.apache.manifoldcf.jdbc;
 
 /** These are the constant strings needed by the Oracle connector.
 */
@@ -54,6 +54,8 @@ public class JDBCConstants
   public static String dataReturnColumnName = "lcf__data";
   /** The name of the content type return column */
   public static String contentTypeReturnColumnName = "lcf__contenttype";
+  /** The name of the token return column */
+  public static String tokenReturnColumnName = "lcf__token";
   
   /** The name of the id return variable */
   public static String idReturnVariable = "IDCOLUMN";
@@ -71,6 +73,8 @@ public class JDBCConstants
   public static String endTimeVariable = "ENDTIME";
   /** The name of the id list */
   public static String idListVariable = "IDLIST";
+  /** The name of token return variable */
+  public static String tokenReturnVariable = "TOKENCOLUMN";
 
   /** JDBCAuthority */
   /** Query returning user Id parameter name */
