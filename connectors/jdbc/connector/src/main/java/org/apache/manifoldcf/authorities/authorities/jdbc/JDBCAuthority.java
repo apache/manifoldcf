@@ -49,7 +49,7 @@ import org.apache.manifoldcf.core.interfaces.IResultRow;
 import org.apache.manifoldcf.jdbc.JDBCConnection;
 import org.apache.manifoldcf.jdbc.JDBCConstants;
 import org.apache.manifoldcf.jdbc.IDynamicResultSet;
-import org.apache.manifoldcf.crawler.connectors.jdbc.Messages;
+import org.apache.manifoldcf.jdbc.IDynamicResultRow;
 import org.apache.manifoldcf.authorities.system.Logging;
 
 /**
@@ -236,14 +236,25 @@ public class JDBCAuthority extends BaseAuthorityConnector {
         throw e;
       }
 
-      IResultRow row = idSet.getNextRow();
-      if (row == null)
-        return RESPONSE_USERNOTFOUND;
-      
-      Object oUid = row.getValue(JDBCConstants.idReturnColumnName);
-      if (oUid == null)
-        throw new ManifoldCFException("Bad id query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
-      String uid = oUid.toString();
+      String uid;
+      try {
+        IDynamicResultRow row = idSet.getNextRow();
+        if (row == null)
+          return RESPONSE_USERNOTFOUND;
+        try
+        {
+          Object oUid = row.getValue(JDBCConstants.idReturnColumnName);
+          if (oUid == null)
+            throw new ManifoldCFException("Bad id query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          uid = JDBCConnection.readAsString(oUid);
+        }
+        finally
+        {
+          row.close();
+        }
+      } finally {
+        idSet.close();
+      }
 
       if (uid.isEmpty()) {
         return RESPONSE_USERNOTFOUND;
@@ -271,20 +282,30 @@ public class JDBCAuthority extends BaseAuthorityConnector {
       }
 
       ArrayList<String> tokenArray = new ArrayList<String>();
-      while (true)
-      {
-        row = idSet.getNextRow();
-        if (row == null)
-          break;
-        
-        Object oToken = row.getValue(JDBCConstants.tokenReturnColumnName);
-        if (oToken == null)
-          throw new ManifoldCFException("Bad token query; doesn't return $(TOKENCOLUMN) column.  Try using quotes around $(TOKENCOLUMN) variable, e.g. \"$(TOKENCOLUMN)\".");
-        String token = oToken.toString();
+      try {
+        while (true)
+        {
+          IDynamicResultRow row = idSet.getNextRow();
+          if (row == null)
+            break;
+          try
+          {
+            Object oToken = row.getValue(JDBCConstants.tokenReturnColumnName);
+            if (oToken == null)
+              throw new ManifoldCFException("Bad token query; doesn't return $(TOKENCOLUMN) column.  Try using quotes around $(TOKENCOLUMN) variable, e.g. \"$(TOKENCOLUMN)\".");
+            String token = JDBCConnection.readAsString(oToken);
 
-        if (!token.isEmpty()) {
-          tokenArray.add(token);
+            if (!token.isEmpty()) {
+              tokenArray.add(token);
+            }
+          }
+          finally
+          {
+            row.close();
+          }
         }
+      } finally {
+        idSet.close();
       }
       return new AuthorizationResponse(tokenArray.toArray(new String[0]), AuthorizationResponse.RESPONSE_OK);
     }
@@ -426,10 +447,10 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AccessMethod") + "</nobr></td><td class=\"value\">\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCAuthority.AccessMethod") + "</nobr></td><td class=\"value\">\n"+
 "      <select multiple=\"false\" name=\"accessmethod\" size=\"2\">\n"+
-"        <option value=\"name\" "+(lAccessMethod.equals("name")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCConnector.ByName")+"</option>\n"+
-"        <option value=\"label\" "+(lAccessMethod.equals("label")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCConnector.ByLabel")+"</option>\n"+
+"        <option value=\"name\" "+(lAccessMethod.equals("name")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCAuthority.ByName")+"</option>\n"+
+"        <option value=\"label\" "+(lAccessMethod.equals("label")?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"JDBCAuthority.ByLabel")+"</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+

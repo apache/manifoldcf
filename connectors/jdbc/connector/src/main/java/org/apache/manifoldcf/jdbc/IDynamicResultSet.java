@@ -33,7 +33,7 @@ public interface IDynamicResultSet
   /** Get the next row from the resultset.
   *@return the immutable row description, or null if there is no such row.
   */
-  public IResultRow getNextRow()
+  public IDynamicResultRow getNextRow()
     throws ManifoldCFException, ServiceInterruption;
 
   /** Close this resultset.

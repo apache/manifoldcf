@@ -993,10 +993,8 @@ public abstract class Database
                 {
                   String columnName = (String)iter.next();
                   Object colValue = m.getValue(columnName);
-                  if (colValue instanceof BinaryInput)
-                    ((BinaryInput)colValue).discard();
-                  else if (colValue instanceof CharacterInput)
-                    ((CharacterInput)colValue).discard();
+                  if (colValue instanceof PersistentDatabaseObject)
+                    ((PersistentDatabaseObject)colValue).discard();
                 }
               }
             }
@@ -1021,10 +1019,8 @@ public abstract class Database
         {
           String colName = (String)iter.next();
           Object o = row.getValue(colName);
-          if (o instanceof BinaryInput)
-            ((BinaryInput)o).discard();
-          else if (o instanceof CharacterInput)
-            ((CharacterInput)o).discard();
+          if (o instanceof PersistentDatabaseObject)
+            ((PersistentDatabaseObject)o).discard();
         }
       }
       if (e instanceof ManifoldCFException)
@@ -1103,18 +1099,11 @@ public abstract class Database
   {
     if (data != null)
     {
-      for (int i = 0; i < data.size(); i++)
+      for (Object x : data)
       {
-        // If the input type is a string, then set it as such.
-        // Otherwise, if it's an input stream, we make a blob out of it.
-        Object x = data.get(i);
-        if (x instanceof BinaryInput)
+        if (x instanceof PersistentDatabaseObject)
         {
-          ((BinaryInput)x).doneWithStream();
-        }
-        else if (x instanceof CharacterInput)
-        {
-          ((CharacterInput)x).doneWithStream();
+          ((PersistentDatabaseObject)x).doneWithStream();
         }
       }
     }
@@ -1362,10 +1351,8 @@ public abstract class Database
     }
     catch (Throwable e)
     {
-      if (result instanceof CharacterInput)
-        ((CharacterInput)result).discard();
-      else if (result instanceof BinaryInput)
-        ((BinaryInput)result).discard();
+      if (result instanceof PersistentDatabaseObject)
+        ((PersistentDatabaseObject)result).discard();
       if (e instanceof ManifoldCFException)
         throw (ManifoldCFException)e;
       if (e instanceof RuntimeException)

@@ -55,29 +55,14 @@ public class JDBCConnection
     this.password = password;
   }
 
-  protected static IResultRow readNextResultRowViaThread(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
+  protected static IDynamicResultRow readNextResultRowViaThread(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
     throws ManifoldCFException, ServiceInterruption
   {
     NextResultRowThread t = new NextResultRowThread(rs,rsmd,resultCols);
     try
     {
       t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null)
-      {
-        if (thr instanceof java.sql.SQLException)
-          throw new ManifoldCFException("Error fetching next JDBC result row: "+thr.getMessage(),thr);
-        else if (thr instanceof ManifoldCFException)
-          throw (ManifoldCFException)thr;
-        else if (thr instanceof ServiceInterruption)
-          throw (ServiceInterruption)thr;
-        else if (thr instanceof RuntimeException)
-          throw (RuntimeException)thr;
-        else
-          throw (Error)thr;
-      }
-      return t.getResponse();
+      return t.finishUp();
     }
     catch (InterruptedException e)
     {
@@ -93,7 +78,7 @@ public class JDBCConnection
     protected String[] resultCols;
 
     protected Throwable exception = null;
-    protected IResultRow response = null;
+    protected IDynamicResultRow response = null;
 
     public NextResultRowThread(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
     {
@@ -116,18 +101,30 @@ public class JDBCConnection
       }
     }
 
-    public Throwable getException()
+    public IDynamicResultRow finishUp()
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
-      return exception;
-    }
-
-    public IResultRow getResponse()
-    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof java.sql.SQLException)
+          throw new ManifoldCFException("Error fetching next JDBC result row: "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else
+          throw (Error)thr;
+      }
       return response;
     }
+    
   }
 
-  protected static IResultRow readNextResultRow(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
+  protected static IDynamicResultRow readNextResultRow(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
     throws ManifoldCFException, ServiceInterruption
   {
     try
@@ -193,21 +190,7 @@ public class JDBCConnection
     try
     {
       t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null)
-      {
-        if (thr instanceof java.sql.SQLException)
-          throw new ManifoldCFException("Error doing JDBC connection test: "+thr.getMessage(),thr);
-        else if (thr instanceof ManifoldCFException)
-          throw (ManifoldCFException)thr;
-        else if (thr instanceof ServiceInterruption)
-          throw (ServiceInterruption)thr;
-        else if (thr instanceof RuntimeException)
-          throw (RuntimeException)thr;
-        else
-          throw (Error)thr;
-      }
+      t.finishUp();
     }
     catch (InterruptedException e)
     {
@@ -239,9 +222,24 @@ public class JDBCConnection
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof java.sql.SQLException)
+          throw new ManifoldCFException("Error doing JDBC connection test: "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else
+          throw (Error)thr;
+      }
     }
   }
 
@@ -265,26 +263,88 @@ public class JDBCConnection
     try
     {
       t.start();
-      t.join();
-      Throwable thr = t.getException();
-      if (thr != null)
-      {
-        if (thr instanceof java.sql.SQLException)
-          throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
-        else if (thr instanceof ManifoldCFException)
-          throw (ManifoldCFException)thr;
-        else if (thr instanceof ServiceInterruption)
-          throw (ServiceInterruption)thr;
-        else if (thr instanceof RuntimeException)
-          throw (RuntimeException)thr;
-        else
-          throw (Error)thr;
-      }
+      t.finishUp();
     }
     catch (InterruptedException e)
     {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+    }
+  }
+
+  /** Read object as a string */
+  public static String readAsString(Object o)
+    throws ManifoldCFException
+  {
+    if (o instanceof BinaryInput)
+    {
+      // Convert this input to a string, since mssql can mess us up with the wrong column types here.
+      BinaryInput bi = (BinaryInput)o;
+      try
+      {
+        InputStream is = bi.getStream();
+        try
+        {
+          InputStreamReader reader = new InputStreamReader(is,"utf-8");
+          StringBuilder sb = new StringBuilder();
+          while (true)
+          {
+            int x = reader.read();
+            if (x == -1)
+              break;
+            sb.append((char)x);
+          }
+          return sb.toString();
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      catch (IOException e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e);
+      }
+      finally
+      {
+        bi.doneWithStream();
+      }
+    }
+    else if (o instanceof CharacterInput)
+    {
+      CharacterInput ci = (CharacterInput)o;
+      try
+      {
+        Reader reader = ci.getStream();
+        try
+        {
+          StringBuilder sb = new StringBuilder();
+          while (true)
+          {
+            int x = reader.read();
+            if (x == -1)
+              break;
+            sb.append((char)x);
+          }
+          return sb.toString();
+        }
+        finally
+        {
+          reader.close();
+        }
+      }
+      catch (IOException e)
+      {
+        throw new ManifoldCFException(e.getMessage(),e);
+      }
+      finally
+      {
+        ci.doneWithStream();
+      }
+    }
+    else
+    {
+      return o.toString();
     }
   }
 
@@ -323,9 +383,24 @@ public class JDBCConnection
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof java.sql.SQLException)
+          throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else
+          throw (Error)thr;
+      }
     }
   }
 
@@ -416,13 +491,13 @@ public class JDBCConnection
   }
 
   /** Read the current row from the resultset */
-  protected static IResultRow readResultRow(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
+  protected static IDynamicResultRow readResultRow(ResultSet rs, ResultSetMetaData rsmd, String[] resultCols)
     throws ManifoldCFException, ServiceInterruption
   {
     try
     {
       Object value = null;
-      RRow m = new RRow();
+      RDynamicRow m = new RDynamicRow();
 
       // We have 'colcount' cols to look thru
       for (int i = 0; i < resultCols.length; i++)
@@ -605,6 +680,31 @@ public class JDBCConnection
     }
   }
 
+  /** Permanently discard database object.
+  */
+  protected static void discardDatabaseObject(Object x)
+    throws ManifoldCFException
+  {
+    if (x instanceof PersistentDatabaseObject)
+    {
+      PersistentDatabaseObject value = (PersistentDatabaseObject)x;
+      value.discard();
+    }
+  }
+  
+  /** Call this method on every parameter or result object, when we're done with it, if it's possible that the object is a BLOB
+  * or CLOB.
+  */
+  protected static void cleanupDatabaseObject(Object x)
+    throws ManifoldCFException
+  {
+    if (x instanceof PersistentDatabaseObject)
+    {
+      PersistentDatabaseObject value = (PersistentDatabaseObject)x;
+      value.doneWithStream();
+    }
+  }
+  
   /** Clean up parameters after query has been triggered.
   */
   protected static void cleanupParameters(ArrayList data)
@@ -612,21 +712,9 @@ public class JDBCConnection
   {
     if (data != null)
     {
-      for (int i = 0; i < data.size(); i++)
+      for (Object x : data)
       {
-        // If the input type is a string, then set it as such.
-        // Otherwise, if it's an input stream, we make a blob out of it.
-        Object x = data.get(i);
-        if (x instanceof BinaryInput)
-        {
-          BinaryInput value = (BinaryInput)x;
-          value.doneWithStream();
-        }
-        else if (x instanceof CharacterInput)
-        {
-          CharacterInput value = (CharacterInput)x;
-          value.doneWithStream();
-        }
+        cleanupDatabaseObject(x);
       }
     }
   }
@@ -825,21 +913,7 @@ public class JDBCConnection
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          if (thr instanceof java.sql.SQLException)
-            throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
-          else if (thr instanceof ManifoldCFException)
-            throw (ManifoldCFException)thr;
-          else if (thr instanceof ServiceInterruption)
-            throw (ServiceInterruption)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         connection = t.getConnection();
         stmt = t.getStatement();
         rs = t.getResultSet();
@@ -856,12 +930,12 @@ public class JDBCConnection
     /** Get the next row from the resultset.
     *@return the immutable row description, or null if there is no such row.
     */
-    public IResultRow getNextRow()
+    public IDynamicResultRow getNextRow()
       throws ManifoldCFException, ServiceInterruption
     {
       if (maxResults == -1 || maxResults > 0)
       {
-        IResultRow row = readNextResultRowViaThread(rs,rsmd,resultCols);
+        IDynamicResultRow row = readNextResultRowViaThread(rs,rsmd,resultCols);
         if (row != null && maxResults != -1)
           maxResults--;
         return row;
@@ -1039,9 +1113,24 @@ public class JDBCConnection
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        if (thr instanceof java.sql.SQLException)
+          throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else
+          throw (Error)thr;
+      }
     }
 
     public WrappedConnection getConnection()
@@ -1090,23 +1179,7 @@ public class JDBCConnection
       try
       {
         t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null)
-        {
-          // Cleanup of parameters happens even if exception doing query
-          cleanupParameters(params);
-          if (thr instanceof java.sql.SQLException)
-            throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
-          else if (thr instanceof ManifoldCFException)
-            throw (ManifoldCFException)thr;
-          else if (thr instanceof ServiceInterruption)
-            throw (ServiceInterruption)thr;
-          else if (thr instanceof RuntimeException)
-            throw (RuntimeException)thr;
-          else
-            throw (Error)thr;
-        }
+        t.finishUp();
         connection = t.getConnection();
         ps = t.getPreparedStatement();
         rs = t.getResultSet();
@@ -1124,12 +1197,12 @@ public class JDBCConnection
     /** Get the next row from the resultset.
     *@return the immutable row description, or null if there is no such row.
     */
-    public IResultRow getNextRow()
+    public IDynamicResultRow getNextRow()
       throws ManifoldCFException, ServiceInterruption
     {
       if (maxResults == -1 || maxResults > 0)
       {
-        IResultRow row = readNextResultRowViaThread(rs,rsmd,resultCols);
+        IDynamicResultRow row = readNextResultRowViaThread(rs,rsmd,resultCols);
         if (row != null && maxResults != -1)
           maxResults--;
         return row;
@@ -1333,9 +1406,26 @@ public class JDBCConnection
       }
     }
 
-    public Throwable getException()
+    public void finishUp()
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
-      return exception;
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+        // Cleanup of parameters happens even if exception doing query
+        cleanupParameters(params);
+        if (thr instanceof java.sql.SQLException)
+          throw new ManifoldCFException("Exception doing connector query '"+query+"': "+thr.getMessage(),thr);
+        else if (thr instanceof ManifoldCFException)
+          throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption)thr;
+        else if (thr instanceof RuntimeException)
+          throw (RuntimeException)thr;
+        else
+          throw (Error)thr;
+      }
     }
 
     public WrappedConnection getConnection()
@@ -1364,4 +1454,29 @@ public class JDBCConnection
     }
   }
 
+  /** Dynamic result row implementation */
+  protected static class RDynamicRow extends RRow implements IDynamicResultRow
+  {
+    public RDynamicRow()
+    {
+      super();
+    }
+    
+    /** Close this resultrow.
+    */
+    public void close()
+      throws ManifoldCFException
+    {
+      // Discard everything permanently from the row
+      Iterator<String> columns = getColumns();
+      while (columns.hasNext())
+      {
+        String column = columns.next();
+        Object o = getValue(column);
+        discardDatabaseObject(o);
+      }
+    }
+
+  }
+  
 }

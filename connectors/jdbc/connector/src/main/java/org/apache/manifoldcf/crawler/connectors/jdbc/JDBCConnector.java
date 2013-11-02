@@ -26,6 +26,7 @@ import org.apache.manifoldcf.core.database.*;
 import org.apache.manifoldcf.jdbc.JDBCConnection;
 import org.apache.manifoldcf.jdbc.JDBCConstants;
 import org.apache.manifoldcf.jdbc.IDynamicResultSet;
+import org.apache.manifoldcf.jdbc.IDynamicResultRow;
 
 import java.sql.*;
 import javax.naming.*;
@@ -274,14 +275,21 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       while (true)
       {
-        IResultRow row = idSet.getNextRow();
+        IDynamicResultRow row = idSet.getNextRow();
         if (row == null)
           break;
-        Object o = row.getValue(JDBCConstants.idReturnColumnName);
-        if (o == null)
-          throw new ManifoldCFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
-        String idValue = o.toString();
-        activities.addSeedDocument(idValue);
+        try
+        {
+          Object o = row.getValue(JDBCConstants.idReturnColumnName);
+          if (o == null)
+            throw new ManifoldCFException("Bad seed query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          String idValue = JDBCConnection.readAsString(o);
+          activities.addSeedDocument(idValue);
+        }
+        finally
+        {
+          row.close();
+        }
       }
     }
     finally
@@ -384,36 +392,43 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       // Now, go through resultset
       while (true)
       {
-        IResultRow row = result.getNextRow();
+        IDynamicResultRow row = result.getNextRow();
         if (row == null)
           break;
-        Object o = row.getValue(JDBCConstants.idReturnColumnName);
-        if (o == null)
-          throw new ManifoldCFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
-        String idValue = o.toString();
-        o = row.getValue(JDBCConstants.versionReturnColumnName);
-        String versionValue;
-        // Null version is OK; make it a ""
-        if (o == null)
-          versionValue = "";
-        else
+        try
         {
-          // A real version string!  Any acls must be added to the front, if they are present...
-          sb = new StringBuilder();
-          packList(sb,acls,'+');
-          if (acls.length > 0)
-          {
-            sb.append('+');
-            pack(sb,defaultAuthorityDenyToken,'+');
-          }
+          Object o = row.getValue(JDBCConstants.idReturnColumnName);
+          if (o == null)
+            throw new ManifoldCFException("Bad version query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          String idValue = JDBCConnection.readAsString(o);
+          o = row.getValue(JDBCConstants.versionReturnColumnName);
+          String versionValue;
+          // Null version is OK; make it a ""
+          if (o == null)
+            versionValue = "";
           else
-            sb.append('-');
+          {
+            // A real version string!  Any acls must be added to the front, if they are present...
+            sb = new StringBuilder();
+            packList(sb,acls,'+');
+            if (acls.length > 0)
+            {
+              sb.append('+');
+              pack(sb,defaultAuthorityDenyToken,'+');
+            }
+            else
+              sb.append('-');
 
-          sb.append(o.toString()).append("=").append(ts.dataQuery);
-          versionValue = sb.toString();
+            sb.append(JDBCConnection.readAsString(o)).append("=").append(ts.dataQuery);
+            versionValue = sb.toString();
+          }
+          // Versions that are "", when processed, will have their acls fetched at that time...
+          versionsReturned[((Integer)map.get(idValue)).intValue()] = versionValue;
         }
-        // Versions that are "", when processed, will have their acls fetched at that time...
-        versionsReturned[((Integer)map.get(idValue)).intValue()] = versionValue;
+        finally
+        {
+          row.close();
+        }
       }
     }
     finally
@@ -500,197 +515,196 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       while (true)
       {
-        IResultRow row = result.getNextRow();
+        IDynamicResultRow row = result.getNextRow();
         if (row == null)
           break;
-        Object o = row.getValue(JDBCConstants.idReturnColumnName);
-        if (o == null)
-          throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
-        String id = readAsString(o);
-        String version = (String)map.get(id);
-        if (version != null)
+        try
         {
-          // This document was marked as "not scan only", so we expect to find it.
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("JDBC: Document data result found for '"+id+"'");
-          o = row.getValue(JDBCConstants.urlReturnColumnName);
-          if (o != null)
+          Object o = row.getValue(JDBCConstants.idReturnColumnName);
+          if (o == null)
+            throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\".");
+          String id = JDBCConnection.readAsString(o);
+          String version = (String)map.get(id);
+          if (version != null)
           {
-            // This is not right - url can apparently be a BinaryInput
-            String url = readAsString(o);
-            boolean validURL;
-            try
+            // This document was marked as "not scan only", so we expect to find it.
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("JDBC: Document data result found for '"+id+"'");
+            o = row.getValue(JDBCConstants.urlReturnColumnName);
+            if (o != null)
             {
-              // Check to be sure url is valid
-              new java.net.URI(url);
-              validURL = true;
-            }
-            catch (java.net.URISyntaxException e)
-            {
-              validURL = false;
-            }
-
-            if (validURL)
-            {
-              // Process the document itself
-              Object contents = row.getValue(JDBCConstants.dataReturnColumnName);
-              // Null data is allowed; we just ignore these
-              if (contents != null)
+              // This is not right - url can apparently be a BinaryInput
+              String url = JDBCConnection.readAsString(o);
+              boolean validURL;
+              try
               {
-                // We will ingest something, so remove this id from the map in order that we know what we still
-                // need to delete when all done.
-                map.remove(id);
-                String contentType;
-                o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
-                if (o != null)
-                  contentType = readAsString(o);
-                else
-                  contentType = null;
-                
-                if (contentType == null || activities.checkMimeTypeIndexable(contentType))
+                // Check to be sure url is valid
+                new java.net.URI(url);
+                validURL = true;
+              }
+              catch (java.net.URISyntaxException e)
+              {
+                validURL = false;
+              }
+
+              if (validURL)
+              {
+                // Process the document itself
+                Object contents = row.getValue(JDBCConstants.dataReturnColumnName);
+                // Null data is allowed; we just ignore these
+                if (contents != null)
                 {
-                  if (contents instanceof BinaryInput)
-                  {
-                    // An ingestion will take place for this document.
-                    RepositoryDocument rd = new RepositoryDocument();
-
-                    // Default content type is application/octet-stream for binary data
-                    if (contentType == null)
-                      rd.setMimeType("application/octet-stream");
-                    else
-                      rd.setMimeType(contentType);
-                    
-                    applyAccessTokens(rd,version,spec);
-                    applyMetadata(rd,row);
-
-                    BinaryInput bi = (BinaryInput)contents;
-                    try
-                    {
-                      // Read the stream
-                      InputStream is = bi.getStream();
-                      try
-                      {
-                        rd.setBinary(is,bi.getLength());
-                        activities.ingestDocument(id, version, url, rd);
-                      }
-                      finally
-                      {
-                        is.close();
-                      }
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                    }
-                    finally
-                    {
-                      bi.discard();
-                    }
-                  }
-                  else if (contents instanceof CharacterInput)
-                  {
-                    // An ingestion will take place for this document.
-                    RepositoryDocument rd = new RepositoryDocument();
-
-                    // Default content type is application/octet-stream for binary data
-                    if (contentType == null)
-                      rd.setMimeType("text/plain; charset=utf-8");
-                    else
-                      rd.setMimeType(contentType);
-                    
-                    applyAccessTokens(rd,version,spec);
-                    applyMetadata(rd,row);
-
-                    CharacterInput ci = (CharacterInput)contents;
-                    try
-                    {
-                      // Read the stream
-                      InputStream is = ci.getUtf8Stream();
-                      try
-                      {
-                        rd.setBinary(is,ci.getUtf8StreamLength());
-                        activities.ingestDocument(id, version, url, rd);
-                      }
-                      finally
-                      {
-                        is.close();
-                      }
-                    }
-                    catch (java.net.SocketTimeoutException e)
-                    {
-                      throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
-                    }
-                    catch (InterruptedIOException e)
-                    {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-                    }
-                    catch (IOException e)
-                    {
-                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
-                    }
-                    finally
-                    {
-                      ci.discard();
-                    }
-                  }
+                  // We will ingest something, so remove this id from the map in order that we know what we still
+                  // need to delete when all done.
+                  map.remove(id);
+                  String contentType;
+                  o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
+                  if (o != null)
+                    contentType = JDBCConnection.readAsString(o);
                   else
+                    contentType = null;
+                  
+                  if (contentType == null || activities.checkMimeTypeIndexable(contentType))
                   {
-                    // Turn it into a string, and then into a stream
-                    String value = contents.toString();
-                    try
+                    if (contents instanceof BinaryInput)
                     {
-                      byte[] bytes = value.getBytes("utf-8");
+                      // An ingestion will take place for this document.
                       RepositoryDocument rd = new RepositoryDocument();
 
-                      // Default content type is text/plain for character data
+                      // Default content type is application/octet-stream for binary data
                       if (contentType == null)
-                        rd.setMimeType("text/plain");
+                        rd.setMimeType("application/octet-stream");
                       else
                         rd.setMimeType(contentType);
                       
                       applyAccessTokens(rd,version,spec);
                       applyMetadata(rd,row);
 
-                      InputStream is = new ByteArrayInputStream(bytes);
+                      BinaryInput bi = (BinaryInput)contents;
                       try
                       {
-                        rd.setBinary(is,bytes.length);
-                        activities.ingestDocument(id, version, url, rd);
+                        // Read the stream
+                        InputStream is = bi.getStream();
+                        try
+                        {
+                          rd.setBinary(is,bi.getLength());
+                          activities.ingestDocument(id, version, url, rd);
+                        }
+                        finally
+                        {
+                          is.close();
+                        }
                       }
-                      finally
+                      catch (java.net.SocketTimeoutException e)
                       {
-                        is.close();
+                        throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                      }
+                      catch (InterruptedIOException e)
+                      {
+                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      }
+                      catch (IOException e)
+                      {
+                        throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
                       }
                     }
-                    catch (InterruptedIOException e)
+                    else if (contents instanceof CharacterInput)
                     {
-                      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      // An ingestion will take place for this document.
+                      RepositoryDocument rd = new RepositoryDocument();
+
+                      // Default content type is application/octet-stream for binary data
+                      if (contentType == null)
+                        rd.setMimeType("text/plain; charset=utf-8");
+                      else
+                        rd.setMimeType(contentType);
+                      
+                      applyAccessTokens(rd,version,spec);
+                      applyMetadata(rd,row);
+
+                      CharacterInput ci = (CharacterInput)contents;
+                      try
+                      {
+                        // Read the stream
+                        InputStream is = ci.getUtf8Stream();
+                        try
+                        {
+                          rd.setBinary(is,ci.getUtf8StreamLength());
+                          activities.ingestDocument(id, version, url, rd);
+                        }
+                        finally
+                        {
+                          is.close();
+                        }
+                      }
+                      catch (java.net.SocketTimeoutException e)
+                      {
+                        throw new ManifoldCFException("Socket timeout reading database data: "+e.getMessage(),e);
+                      }
+                      catch (InterruptedIOException e)
+                      {
+                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      }
+                      catch (IOException e)
+                      {
+                        throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                      }
                     }
-                    catch (IOException e)
+                    else
                     {
-                      throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                      // Turn it into a string, and then into a stream
+                      String value = contents.toString();
+                      try
+                      {
+                        byte[] bytes = value.getBytes("utf-8");
+                        RepositoryDocument rd = new RepositoryDocument();
+
+                        // Default content type is text/plain for character data
+                        if (contentType == null)
+                          rd.setMimeType("text/plain");
+                        else
+                          rd.setMimeType(contentType);
+                        
+                        applyAccessTokens(rd,version,spec);
+                        applyMetadata(rd,row);
+
+                        InputStream is = new ByteArrayInputStream(bytes);
+                        try
+                        {
+                          rd.setBinary(is,bytes.length);
+                          activities.ingestDocument(id, version, url, rd);
+                        }
+                        finally
+                        {
+                          is.close();
+                        }
+                      }
+                      catch (InterruptedIOException e)
+                      {
+                        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+                      }
+                      catch (IOException e)
+                      {
+                        throw new ManifoldCFException("Error reading database data: "+e.getMessage(),e);
+                      }
                     }
                   }
+                  else
+                    Logging.connectors.warn("JDBC: Document '"+id+"' excluded because of mime type - skipping");
                 }
                 else
-                  Logging.connectors.warn("JDBC: Document '"+id+"' excluded because of mime type - skipping");
+                  Logging.connectors.warn("JDBC: Document '"+id+"' seems to have null data - skipping");
               }
               else
-                Logging.connectors.warn("JDBC: Document '"+id+"' seems to have null data - skipping");
+                Logging.connectors.warn("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
             }
             else
-              Logging.connectors.warn("JDBC: Document '"+id+"' has an illegal url: '"+url+"' - skipping");
+              Logging.connectors.warn("JDBC: Document '"+id+"' has a null url - skipping");
           }
-          else
-            Logging.connectors.warn("JDBC: Document '"+id+"' has a null url - skipping");
+        }
+        finally
+        {
+          row.close();
         }
       }
       // Now, go through the original id's, and see which ones are still in the map.  These
@@ -1722,49 +1736,6 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     return sb.toString();
   }
 
-  /** Make sure we read this field as a string */
-  protected static String readAsString(Object o)
-    throws ManifoldCFException
-  {
-    if (o instanceof BinaryInput)
-    {
-      // Convert this input to a string, since mssql can mess us up with the wrong column types here.
-      BinaryInput bi = (BinaryInput)o;
-      try
-      {
-        InputStream is = bi.getStream();
-        try
-        {
-          InputStreamReader reader = new InputStreamReader(is,"utf-8");
-          StringBuilder sb = new StringBuilder();
-          while (true)
-          {
-            int x = reader.read();
-            if (x == -1)
-              break;
-            sb.append((char)x);
-          }
-          return sb.toString();
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      catch (IOException e)
-      {
-        throw new ManifoldCFException(e.getMessage(),e);
-      }
-      finally
-      {
-        bi.doneWithStream();
-      }
-    }
-    else
-    {
-      return o.toString();
-    }
-  }
 
   /** Variable map entry.
   */
