@@ -1857,7 +1857,37 @@ curl -XGET http://localhost:9200/index/_mapping
                 <title>IBM FileNet P8 Repository Connection</title>
                 <p>The IBM FileNet P8 connection type allows you to index content from a FileNet P8 server instance.  A connection allows you to reach all files
                       kept on that server.  Multiple connections are required to support multiple servers.</p>
-                <p>This connection type secures documents using the Active Directory authority.</p>
+                <p>This connection type secures documents using the Active Directory authority.  If you have not yet created an Active Directory authority, but would like your
+                    documents to be secured, please follow the direction in the section titled "Active Directory Authority Connection".</p>
+                <p>A FileNet connection has the following special tabs: "Server", "Object Store", "Document URL", and "Credentials".  The "Server" tab allows you to
+                      connect to a specific FileNet P8 Server, while the "Object store" tab allows you to specify the desired FileNet object store.  The "Document URL"
+                      tab allows you to set up the parameters of each indexed document's URL, while the "Credentials" tab allows you to specify the credentials to use
+                      to access the FileNet object store.</p>
+                <p>The "Server" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-server.PNG" alt="FileNet Connection, Server tab" width="80%"/>
+                <br/><br/>
+                <p>Select the appropriate protocol, and provide the server name, port, and service location.</p>
+                <p>The "Object Store" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-objectstore.PNG" alt="FileNet Connection, Object Store tab" width="80%"/>
+                <br/><br/>
+                <p>Type in the name of the FileNet domain you want to connect to, and the name of the FileNet object store within that domain.</p>
+                <p>The "Document URL" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-documenturl.PNG" alt="FileNet Connection, Document URL tab" width="80%"/>
+                <br/><br/>
+                <p>This tab allows you to provide the basic URL that will be how each indexed document will be loaded for the user.  Select the
+                      protocol.  Type in the host name.  Type in the port.  And, type in the location.</p>
+                <p>The "Credentials" tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-configure-credentials.PNG" alt="FileNet Connection, Credentials tab" width="80%"/>
+                <br/><br/>
+                <p>Type in the FileNet user ID and password to allow the FileNet connection type access to the FileNet repository.</p>
+                <p>When you are done filling in the connection information, click the "Save" button.  You should see something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/filenet-status.PNG" alt="FileNet Connection Status" width="80%"/>
+                <br/><br/>
                 <p>More here later</p>
             </section>
             
