@@ -32,6 +32,7 @@
     
     <path id="framework-classpath">
         <fileset dir="../lib">
+            <include name="zookeeper*.jar"/>
             <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
@@ -308,6 +309,7 @@
         <mkdir dir="build/webapp/authority-service/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -346,6 +348,7 @@
         <mkdir dir="build/webapp/authority-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -389,6 +392,7 @@
         <mkdir dir="build/webapp/api-service/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -428,6 +432,7 @@
         <mkdir dir="build/webapp/api-service-proprietary/WEB-INF/lib"/>
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -473,6 +478,7 @@
         <copy todir="build/webapp/crawler-ui/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -520,6 +526,7 @@
         <copy todir="build/webapp/crawler-ui-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -574,6 +581,7 @@
         <copy todir="build/webapp/combined-service/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -623,6 +631,7 @@
         <copy todir="build/webapp/combined-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -740,6 +749,7 @@
         <mkdir dir="dist/multiprocess-example/processes/lib"/>
         <copy todir="dist/multiprocess-example/processes/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -780,6 +790,7 @@
         <mkdir dir="dist/multiprocess-example-proprietary/processes/lib"/>
         <copy todir="dist/multiprocess-example-proprietary/processes/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -836,6 +847,7 @@
         <mkdir dir="dist/multiprocess-example/lib"/>
         <copy todir="dist/multiprocess-example/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
@@ -876,6 +888,7 @@
         <mkdir dir="dist/multiprocess-example-proprietary/lib"/>
         <copy todir="dist/multiprocess-example-proprietary/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-logging*.jar"/>
                 <include name="log4j*.jar"/>
@@ -932,6 +945,7 @@
         <mkdir dir="dist/example/lib"/>
         <copy todir="dist/example/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -1059,6 +1073,7 @@
         <mkdir dir="dist/example-proprietary/lib"/>
         <copy todir="dist/example-proprietary/lib">
             <fileset dir="../lib">
+                <include name="zookeeper*.jar"/>
                 <include name="json*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
