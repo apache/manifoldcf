@@ -37,11 +37,22 @@ public class TempFileCharacterInput extends CharacterInput
 
   protected final static int CHUNK_SIZE = 65536;
 
-  /** Construct from a length-delimited reader.
+  /** Construct from a non-length-delimited reader.
   *@param is is a reader to transfer from, to the end of the data.  This will, as a side effect, also calculate the character length
   *          and hash value for the data.
   */
   public TempFileCharacterInput(Reader is)
+    throws ManifoldCFException
+  {
+    this(is,-1L);
+  }
+
+  /** Construct from a length-delimited reader.
+  *@param is is a reader to transfer from, to the end of the data.  This will, as a side effect, also calculate the character length
+  *          and hash value for the data.
+  *@param length is the length limit to transfer, or -1 if no limit
+  */
+  public TempFileCharacterInput(Reader is, long length)
     throws ManifoldCFException
   {
     super();
@@ -68,7 +79,13 @@ public class TempFileCharacterInput extends CharacterInput
           long totalMoved = 0;
           while (true)
           {
-            int moveAmount = CHUNK_SIZE;
+            int moveAmount;
+            if (length == -1L || length-totalMoved > CHUNK_SIZE)
+              moveAmount = CHUNK_SIZE;
+            else
+              moveAmount = (int)(length-totalMoved);
+            if (moveAmount == 0)
+              break;
             // Read character data in 64K chunks
             int readsize = is.read(buffer,0,moveAmount);
             if (readsize == -1)
@@ -150,6 +167,16 @@ public class TempFileCharacterInput extends CharacterInput
       }
     }
     return null;
+  }
+
+  /** Get binary UTF8 stream length directly */
+  @Override
+  public long getUtf8StreamLength()
+    throws ManifoldCFException
+  {
+    if (file != null)
+      return file.length();
+    return 0L;
   }
 
   @Override

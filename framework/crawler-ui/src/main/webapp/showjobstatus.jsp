@@ -110,9 +110,11 @@ if (maintenanceUnderway == false)
 <%
     try
     {
+	// Get the max count
+	int maxCount = LockManagerFactory.getIntProperty(threadContext,"org.apache.manifoldcf.ui.maxstatuscount",500000);
 	// Get the job manager handle
 	IJobManager manager = JobManagerFactory.make(threadContext);
-	JobStatus[] jobs = manager.getAllStatus();
+	JobStatus[] jobs = manager.getAllStatus(true,maxCount);
 %>
 		<table class="datatable">
 			<tr>
@@ -250,10 +252,10 @@ if (maintenanceUnderway == false)
 		}
 %>
 			</td>
-			<td class="columncell"><%="<!--jobid="+js.getJobID()+"-->"%><%=js.getDescription()%></td><td class="columncell"><%=statusName%></td><td class="columncell"><%=startTime%></td><td class="columncell"><%=endTime%></td>
-			<td class="columncell"><%=new Long(js.getDocumentsInQueue()).toString()%></td>
-			<td class="columncell"><%=new Long(js.getDocumentsOutstanding()).toString()%></td>
-			<td class="columncell"><%=new Long(js.getDocumentsProcessed()).toString()%></td>
+			<td class="columncell"><%="<!--jobid="+js.getJobID()+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(js.getDescription())%></td><td class="columncell"><%=statusName%></td><td class="columncell"><%=startTime%></td><td class="columncell"><%=endTime%></td>
+			<td class="columncell"><%=(js.getQueueCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsInQueue()).toString()%></td>
+			<td class="columncell"><%=(js.getOutstandingCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsOutstanding()).toString()%></td>
+			<td class="columncell"><%=(js.getProcessedCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsProcessed()).toString()%></td>
 		</tr>
 <%
 	}

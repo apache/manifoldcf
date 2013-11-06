@@ -61,11 +61,12 @@ public class HDFSSession {
     info.put("Name Node", nameNode);
     info.put("Config", config.toString());
     info.put("User", user);
+    // Commented much of this out because each timeout is too long if there's no connection
     info.put("Canonical Service Name", fileSystem.getCanonicalServiceName());
-    info.put("Default Block Size", Long.toString(fileSystem.getDefaultBlockSize()));
-    info.put("Default Replication", Short.toString(fileSystem.getDefaultReplication()));
-    info.put("Home Directory", fileSystem.getHomeDirectory().toUri().toString());
-    info.put("Working Directory", fileSystem.getWorkingDirectory().toUri().toString());
+    //info.put("Default Block Size", Long.toString(fileSystem.getDefaultBlockSize()));
+    //info.put("Default Replication", Short.toString(fileSystem.getDefaultReplication()));
+    //info.put("Home Directory", fileSystem.getHomeDirectory().toUri().toString());
+    //info.put("Working Directory", fileSystem.getWorkingDirectory().toUri().toString());
     return info;
   }
 

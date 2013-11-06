@@ -1,7 +1,65 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.4-dev =====================
+======================= 1.5-dev =====================
+
+CONNECTORS-801: Refactor JDBC authority to bring it into compliance with current
+conventions in JDBC connector.  Warning: this change is not backwards
+compatible!  JDBC authority queries now require explicit return column
+names for the user id and token queries!
+(Karl Wright)
+
+CONNECTORS-798: Bring JDBC connector support for CLOBs into the
+modern era.  This also required extension of the CharacterInputFile
+paradigm slightly - a new method to find the utf8 byte length was needed.
+(Karl Wright)
+
+CONNECTORS-797: Bad query when maxcount was exceeded in the
+database table for the jobstatus screen.
+(Graeme Seaton, Karl Wright)
+
+CONNECTORS-796: Fix NPE in RSS connector having to do with
+tags that aren't nested as expected.  CDATA parsing was also broken.
+(Benjamin Brandmeier, Karl Wright)
+
+CONNECTORS-792: Introduce concepts of authorization domain
+and authority group, and appropriate UI, API, etc. changes.  This
+is to support federated authorization models such as what SharePoint
+Claim Space fundamentally does, where there are multiple authorities
+per repository.
+WARNING: Schema change!
+(Karl Wright)
+
+======================= Release 1.4 =====================
+
+CONNECTORS-791: Broken WHERE clause in job status query.
+(Karl Wright)
+
+CONNECTORS-790: Fix NPE when reading job status via API.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-789: Fix broken metadata field display in SharePoint
+connector UI.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-786: Fix broken Discussion Groups in SharePoint.
+(Mark Libucha, Karl Wright)
+
+CONNECTORS-785: Turn of debug logging for Axis configuration
+exception, to remove spurious log noise.
+(Karl Wright)
+
+CONNECTORS-771: Include new versions of SharePoint plugins in
+distribution.
+(Karl Wright)
+
+CONNECTORS-784: Fix incorrect no-day-of-month-selected message
+when viewing a schedule record.
+(Adrian Conlon, Karl Wright)
+
+CONNECTORS-783: Add support for limiting the amount of counting
+needed for the job status page.
+(Hiroshi Tatsumi, Karl Wright)
 
 CONNECTORS-782: Add unique-ID metadata in SharePoint connector.
 (Dmitry Goldenberg, Karl Wright)

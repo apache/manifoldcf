@@ -70,6 +70,14 @@ public class NullCharacterInput extends CharacterInput
     return new ByteArrayInputStream(new byte[]{});
   }
 
+  /** Get binary UTF8 stream length directly */
+  @Override
+  public long getUtf8StreamLength()
+    throws ManifoldCFException
+  {
+    return 0L;
+  }
+
   /** Transfer to a new object; this causes the current object to become "already discarded" */
   @Override
   public CharacterInput transfer()

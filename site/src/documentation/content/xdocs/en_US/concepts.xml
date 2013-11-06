@@ -62,18 +62,36 @@
           would be an Active Directory SID (e.g. "S-1-23-4-1-45").  But, for example, for documents protected by Livelink a wholly different string would be used.</p>
         <p></p>
         <p>In the ManifoldCF security model, it is the job of an <em>authority</em> to provide a list of access tokens for a given searching user.  Multiple authorities cooperate
-          in that each one can add to the list of access tokens describing a given user's security.  The resulting access tokens are handed to the search engine as part of every
+          in that each one can add to the list of access tokens describing a given user's security.  A user is described in terms of a set of <em>authorization domains</em>
+          and user name tuples.  Any given authority will provide access tokens for a user name corresponding to one authorization domain.  For example,
+          an authority that understands FaceBook users would only respond to a FaceBook user name.  Access tokens from all applicable authorities are added into the final list that is handed to the search engine as part of every
           search request, so that the search engine may properly exclude documents that the user is not allowed to see.</p>
         <p></p>
         <p>When document indexing is done, therefore, it is the job of the crawler to hand access tokens to the search engine, so that it may categorize the documents properly
-          according to their accessibility.  Note that the access tokens so provided are meaningful only within the space of the governing authority.  Access tokens can be provided
-          as "grant" tokens, or as "deny" tokens.  Finally, there are multiple levels of tokens, which correspond to Active Directory's concepts of "share" security, "directory" security,
-          or "file" security.  (The latter concepts are rarely used except for documents that come from Windows or Samba systems.)</p>
+          according to their accessibility.  The access tokens the crawler attaches to a document are meaningful only within the space of the governing <em>authority group</em>.  An
+          authority group describes a set of authorities which all can cooperate to provide access tokens for a single given document.  Each authority belongs
+          to exactly one authority group.  Authority groups serve to separate access tokens into different spaces so that they cannot interfere with one another.</p>
+        <p></p>
+        <p>For example, say that you would want to crawl documents from a LiveLink repository, as well as from a Windows shared drive.
+          You will therefore have two kinds of documents that are each secured in an entirely different way.  There is a LiveLink authority connection, which provides LiveLink
+          access tokens, and there is an Active Directory authority connection, which provides Windows access tokens.  Now, you don't want there to be any chance
+          that a LiveLink access token could be confused with an Active Directory SID, so the way you do that in ManifoldCF is to create two distinct
+          authority groups, each of which provides access tokens meant for specific kinds of repository documents.  Thus, documents secured by Active
+          Directory SIDs should be indexed against an Active Directory authority group, and documents secured by LiveLink access tokens should have a LiveLink
+          authority group.  Finally, the Active Directory authority connection should then belong to the Active Directory authority group, and the LiveLink authority connection should
+          belong to the LiveLink authority group.</p>
+        <p></p>
+        <p>In addition to specifying the correct authority group, access tokens can be attached to documents as "grant" tokens, or as "deny" tokens.
+          "Grant" tokens provide access, "deny" tokens restrict it.  "Deny" tokens, if matched, always win over "grant" tokens.
+          And finally, there are multiple levels of tokens, which correspond to Active Directory's concepts
+          of "share" security, specific "directory" security, or "file" security.  (The latter concepts are rarely used except for documents that come from
+          Windows or Samba systems.)  Each level provided must agree that the document is to be visible for the document to appear in search
+          results.</p>
         <p></p>
         <p>Once all these documents and their access tokens are handed to the search engine, it is the search engine's job to enforce security by excluding inappropriate documents
           from the search results.  For Solr and for ElasticSearch, this infrastructure has been included in ManifoldCF releases as a Solr plugin (both 3.x and 4.x varieties) and an
-          ElasticSearch plugin.  Bear in mind that this plug-in is still not a complete solution, as it requires an authenticated user
-          name to be passed to it from some upstream source, possibly a JAAS authenticator within an application server framework.</p>
+          ElasticSearch plugin.  Bear in mind that this plug-in is still not a complete solution, as it requires one or more authenticated user
+          names to be passed to it from some upstream source, possibly a JAAS authenticator within an application server framework.</p>
         <p></p>
       </section>
       <section>
@@ -143,6 +161,24 @@
           <p></p>
           <p>Jobs are allowed to share the same repository connection, and thus they can overlap in the set of documents they describe.  ManifoldCF permits this situation, although 
             when it occurs it is probably an accident.</p>
+        </section>
+        <section>
+          <title>Authorization domains</title>
+          <p></p>
+          <p>ManifoldCF supports a federated concept of a user.  The same user, for instance, may have one login name for FaceBook, another for Windows,
+            and yet another for Google.  We can describe this user as having three different authorization domains: "FaceBook", "Windows", and "Google".</p>
+          <p>In ManifoldCF, each authority understands user names or ids from one specific authorization domain.  This allows ManifoldCF to be configured
+            so that access tokens generated from multiple independent sources are amalgamated, even if the incoming user names differ from source to
+            source.</p>
+        </section>
+        <section>
+          <title>Authority groups</title>
+          <p></p>
+          <p>ManifoldCF groups authority connections together in groups, so that multiple authorities can furnish security for a single document.  An authority
+            group is nothing more than a name and a description that is referenced by authority connections that are part of that group, and is referenced also
+            by repository connections that wish to be secured by that group.  For most simple repositories, there is one authority group per authority.  But
+            repositories capable of federated security (e.g. SharePoint with Claim Space support) can use multiple authorities to describe security for a single
+            document.  Authority groups allow configuration of the appropriate many-to-many relationship for this situation.</p>
         </section>
       </section>
     </section>

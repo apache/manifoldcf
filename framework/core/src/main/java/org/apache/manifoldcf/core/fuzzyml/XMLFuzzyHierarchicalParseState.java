@@ -83,7 +83,11 @@ public class XMLFuzzyHierarchicalParseState extends XMLFuzzyParseState
     throws ManifoldCFException
   {
     // This sets currentContext == null as a side effect, unless an error occurs during cleanup!!
-    currentContext.cleanup();
+    if (currentContext != null)
+    {
+      currentContext.cleanup();
+      currentContext = null;
+    }
   }
 
   /** Map version of the noteTag method.

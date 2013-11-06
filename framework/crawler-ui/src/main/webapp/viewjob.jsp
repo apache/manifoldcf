@@ -446,7 +446,7 @@
 					if (srDayOfMonth == null)
 					{
 						if (srDayOfWeek == null && srHourOfDay == null && srMinutesOfHour == null)
-							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.onthe1stofthemonth"));
+							out.println(" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.onanydayofthemonth"));
 					}
 					else
 					{

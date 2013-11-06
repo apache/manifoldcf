@@ -554,6 +554,12 @@ cd example
               correct arguments and settings.</p>
             <p></p>
             <table>
+              <tr><th>Authorization Domain Command Class</th><th>Arguments</th><th>Function</th></tr>
+              <tr><td>org.apache.manifoldcf.authorities.RegisterDomain</td><td><em>domainname</em> <em>description</em></td><td>Register an authorization domain</td></tr>
+              <tr><td>org.apache.manifoldcf.authorities.UnRegisterDomain</td><td><em>domainname</em></td><td>Un-register an authorization domain</td></tr>
+            </table>
+            <p></p>
+            <table>
               <tr><th>User Mapping Command Class</th><th>Arguments</th><th>Function</th></tr>
               <tr><td>org.apache.manifoldcf.authorities.RegisterMapper</td><td><em>classname</em> <em>description</em></td><td>Register a mapping connector class</td></tr>
               <tr><td>org.apache.manifoldcf.authorities.UnRegisterMapper</td><td><em>classname</em></td><td>Un-register a mapping connector class</td></tr>
@@ -760,6 +766,8 @@ cd example
             when operating without any apparent stalls due to the above issues, Derby is still only about 1/4 as fast as PostgreSQL.  At the moment this limits Derby's utility for
             ManifoldCF to demonstration and testing.</p>
         </section>
+        
+        
       </section>
         
       <section>
@@ -803,6 +811,7 @@ cd example
             <tr><td>org.apache.manifoldcf.connectorsconfigurationfile</td><td>No</td><td>Location of connectors.xml file, for QuickStart, so ManifoldCF can register connectors.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperusername</td><td>No</td><td>Database superuser name, for QuickStart, so ManifoldCF can create database instance.</td></tr>
             <tr><td>org.apache.manifoldcf.dbsuperuserpassword</td><td>No</td><td>Database superuser password, for QuickStart, so ManifoldCF can create database instance.</td></tr>
+            <tr><td>org.apache.manifoldcf.ui.maxstatuscount</td><td>No</td><td>The maximum number of documents ManifoldCF will try to count for the job status display.  Defaults to 500000.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.hostname</td><td>No</td><td>PostgreSQL server host name, or localhost if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.port</td><td>No</td><td>PostgreSQL server port, or standard port if not specified.</td></tr>
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
@@ -933,7 +942,47 @@ mvn exec:exec
         <p>In a multi process setup, all of the ManifoldCF processes might as well exist on their own.  You can learn how to programmatically start the agents process by looking at the code
           in the AgentRun command class, as described above.  Similarly, the command classes that register connectors are very small and should be easy to understand.</p>
       </section>
-      
+
+      <section>
+          <title>Integrating ManifoldCF with a search engine</title>
+          <p></p>
+          <p>ManifoldCF's Authority Service is designed to allow maximum flexibility in integrating ManifoldCF security with search engines.  The
+                service receives a user identity (as a set of authorization domain/user name tuples), and produces a set of tokens.  It also returns a 
+                summary of the status of all authorities that were involved in the assembly of the set of tokens, as a nicety.  A search engine user
+                interface could thus signal the user when the results they might be seeing are incomplete, and why.</p>
+          <p>The Authority Service expects the following arguments, passed as URL arguments and properly URL encoded:</p>
+          <p></p>
+          <table>
+            <caption>Authority Service URL parameters</caption>
+            <tr><th>Authority Service URL parameter</th><th>Meaning</th></tr>
+            <tr><td>username</td><td>the username, if there is only one authorization domain</td></tr>
+            <tr><td>domain</td><td>the optional authorization domain if there is only one authorization domain (defaults to empty string)</td></tr>
+            <tr><td>username_<em>XX</em></td><td>username number <em>XX</em>, where <em>XX</em> is an integer starting at zero</td></tr>
+            <tr><td>domain_<em>XX</em></td><td>authorization domain <em>XX</em>, where <em>XX</em> is an integer starting at zero</td></tr>
+          </table>
+          <p></p>
+          <p>Access tokens and authority statuses are returned in the HTTP response separated by newline characters.  Each line has a prefix
+                as follows:</p>
+          <p></p>
+          <table>
+            <caption>Authority Service response prefixes</caption>
+            <tr><th>Authority Service response prefix</th><th>Meaning</th></tr>
+            <tr><td>TOKEN:</td><td>An access token</td></tr>
+            <tr><td>AUTHORIZED:</td><td>The name of an authority that found the user to be authorized</td></tr>
+            <tr><td>UNREACHABLEAUTHORITY:</td><td>The name of an authority that was found to be unreachable or unusable</td></tr>
+            <tr><td>UNAUTHORIZED:</td><td>The name of an authority that found the user to be unauthorized</td></tr>
+            <tr><td>USERNOTFOUND:</td><td>The name of an authority that could not find the user</td></tr>
+          </table>
+          <p></p>
+          <p>It is important to remember that only the "TOKEN:" lines actually matter for security.  Even if any of the error conditions apply, the set
+                of tokens returned by the Authority Service will be correctly supplied in order to apply appropriate security to documents being searched.</p>
+          <p>If you choose to deploy a search-engine plugin supplied by the Apache ManifoldCF project (for example, the Solr plugin), you will not need
+                know any of the above, since part of the plugin's purpose is to communicate with the Authority Service and apply the access tokens that are
+                returned to the search query automatically.  Some plugins, such as the ElasticSearch plugin, are more or less like toolkits, but still hide most
+                of the above from the integrator.  In a more highly customized system, however, you may need to develop your own code which interacts
+                with the Authority Service in order to meet your goals.</p>
+      </section>
+
     </section>
   </body>
 

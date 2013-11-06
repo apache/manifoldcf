@@ -230,12 +230,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   // Connectors configuration file
+  protected static final String NODE_AUTHORIZATIONDOMAIN = "authorizationdomain";
   protected static final String NODE_OUTPUTCONNECTOR = "outputconnector";
   protected static final String NODE_MAPPINGCONNECTOR = "mappingconnector";
   protected static final String NODE_AUTHORITYCONNECTOR = "authorityconnector";
   protected static final String NODE_REPOSITORYCONNECTOR = "repositoryconnector";
   protected static final String ATTRIBUTE_NAME = "name";
   protected static final String ATTRIBUTE_CLASS = "class";
+  protected static final String ATTRIBUTE_DOMAIN = "domain";
   
   /** Unregister all connectors which don't match a specified connector list.
   */
@@ -249,12 +251,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     Map<String,String> desiredAuthorityConnectors = new HashMap<String,String>();
     Map<String,String> desiredRepositoryConnectors = new HashMap<String,String>();
 
+    Map<String,String> desiredDomains = new HashMap<String,String>();
+
     if (c != null)
     {
       for (int i = 0; i < c.getChildCount(); i++)
       {
         ConfigurationNode cn = c.findChild(i);
-        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        if (cn.getType().equals(NODE_AUTHORIZATIONDOMAIN))
+        {
+          String domainName = cn.getAttributeValue(ATTRIBUTE_DOMAIN);
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          desiredDomains.put(domainName,name);
+        }
+        else if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
@@ -287,6 +297,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabaseUsername(),
       ManifoldCF.getMasterDatabasePassword());
 
+    // Domains...
+    {
+      IAuthorizationDomainManager mgr = AuthorizationDomainManagerFactory.make(tc);
+      IResultSet domains = mgr.getDomains();
+      for (int i = 0; i < domains.getRowCount(); i++)
+      {
+        IResultRow row = domains.getRow(i);
+        String domainName = (String)row.getValue("domainname");
+        String description = (String)row.getValue("description");
+        if (desiredDomains.get(domainName) == null || !desiredDomains.get(domainName).equals(description))
+        {
+          mgr.unregisterDomain(domainName);
+        }
+      }
+      System.err.println("Successfully unregistered all domains");
+    }
+    
     // Output connectors...
     {
       IOutputConnectorManager mgr = OutputConnectorManagerFactory.make(tc);
@@ -430,7 +457,14 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       while (i < c.getChildCount())
       {
         ConfigurationNode cn = c.findChild(i++);
-        if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
+        if (cn.getType().equals(NODE_AUTHORIZATIONDOMAIN))
+        {
+          String domainName = cn.getAttributeValue(ATTRIBUTE_DOMAIN);
+          String name = cn.getAttributeValue(ATTRIBUTE_NAME);
+          IAuthorizationDomainManager mgr = AuthorizationDomainManagerFactory.make(tc);
+          mgr.registerDomain(name,domainName);
+        }
+        else if (cn.getType().equals(NODE_OUTPUTCONNECTOR))
         {
           String name = cn.getAttributeValue(ATTRIBUTE_NAME);
           String className = cn.getAttributeValue(ATTRIBUTE_CLASS);
@@ -542,8 +576,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static void deinstallSystemTables(IThreadContext threadcontext)
     throws ManifoldCFException
   {
-    ManifoldCFException se = null;
-
     IConnectorManager repConnMgr = ConnectorManagerFactory.make(threadcontext);
     IRepositoryConnectionManager repCon = RepositoryConnectionManagerFactory.make(threadcontext);
     IJobManager jobManager = JobManagerFactory.make(threadcontext);
@@ -551,8 +583,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     repCon.deinstall();
     repConnMgr.deinstall();
     org.apache.manifoldcf.authorities.system.ManifoldCF.deinstallSystemTables(threadcontext);
-    if (se != null)
-      throw se;
   }
 
 
@@ -1084,6 +1114,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of writing configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
@@ -1145,6 +1176,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
             java.util.zip.ZipEntry outputEntry = new java.util.zip.ZipEntry("outputs");
             zos.putNextEntry(outputEntry);
             outputManager.exportConfiguration(zos);
+            zos.closeEntry();
+
+            java.util.zip.ZipEntry groupEntry = new java.util.zip.ZipEntry("groups");
+            zos.putNextEntry(groupEntry);
+            groupManager.exportConfiguration(zos);
             zos.closeEntry();
 
             java.util.zip.ZipEntry mappingEntry = new java.util.zip.ZipEntry("mappings");
@@ -1218,6 +1254,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       ManifoldCF.getMasterDatabasePassword());
     // Also create the following managers, which will handle the actual details of reading configuration data
     IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+    IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(threadContext);
     IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
     IMappingConnectionManager mappingManager = MappingConnectionManagerFactory.make(threadContext);
     IAuthorityConnectionManager authManager = AuthorityConnectionManagerFactory.make(threadContext);
@@ -1275,6 +1312,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
               String name = z.getName();
               if (name.equals("outputs"))
                 outputManager.importConfiguration(zis);
+              else if (name.equals("groups"))
+                groupManager.importConfiguration(zis);
               else if (name.equals("mappings"))
                 mappingManager.importConfiguration(zis);
               else if (name.equals("authorities"))
@@ -1663,6 +1702,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   protected static final String API_JOBNODE = "job";
   protected static final String API_JOBSTATUSNODE = "jobstatus";
+  protected static final String API_AUTHORIZATIONDOMAINNODE = "authorizationdomain";
+  protected static final String API_AUTHORITYGROUPNODE = "authoritygroup";
   protected static final String API_REPOSITORYCONNECTORNODE = "repositoryconnector";
   protected static final String API_OUTPUTCONNECTORNODE = "outputconnector";
   protected static final String API_AUTHORITYCONNECTORNODE = "authorityconnector";
@@ -1683,6 +1724,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Connector nodes
   protected static final String CONNECTORNODE_DESCRIPTION = "description";
   protected static final String CONNECTORNODE_CLASSNAME = "class_name";
+  
+  // Authorization domain nodes
+  protected static final String AUTHORIZATIONDOMAINNODE_DESCRIPTION = "description";
+  protected static final String AUTHORIZATIONDOMAINNODE_DOMAINNAME = "domain_name";
   
   /** Decode path element.
   * Path elements in the API world cannot have "/" characters, or they become impossible to parse.  This method undoes
@@ -1936,6 +1981,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  
   /** Read an output connection's info */
   protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
     throws ManifoldCFException
@@ -2001,13 +2047,47 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get api job statuses */
-  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output)
+  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output, Map<String,List<String>> queryParameters)
+    throws ManifoldCFException
+  {
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
+    int maxCount;
+    List<String> maxCountList = queryParameters.get("maxcount");
+    if (maxCountList == null || maxCountList.size() == 0)
+      maxCount = Integer.MAX_VALUE;
+    else if (maxCountList.size() > 1)
+      throw new ManifoldCFException("Multiple values for maxcount parameter");
+    else
+      maxCount = new Integer(maxCountList.get(0)).intValue();
+      
+    try
+    {
+      IJobManager jobManager = JobManagerFactory.make(tc);
+      JobStatus[] jobStatuses = jobManager.getAllStatus(true,maxCount);
+      int i = 0;
+      while (i < jobStatuses.length)
+      {
+        ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
+        formatJobStatus(jobStatusNode,jobStatuses[i++]);
+        output.addChild(output.getChildCount(),jobStatusNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
+  /** Get api job statuses */
+  protected static int apiReadJobStatusesNoCounts(IThreadContext tc, Configuration output)
     throws ManifoldCFException
   {
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
-      JobStatus[] jobStatuses = jobManager.getAllStatus();
+      JobStatus[] jobStatuses = jobManager.getAllStatus(false);
       int i = 0;
       while (i < jobStatuses.length)
       {
@@ -2024,13 +2104,24 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Get api job status */
-  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID, Map<String,List<String>> queryParameters)
     throws ManifoldCFException
   {
+    if (queryParameters == null)
+      queryParameters = new HashMap<String,List<String>>();
+    int maxCount;
+    List<String> maxCountList = queryParameters.get("maxcount");
+    if (maxCountList == null || maxCountList.size() == 0)
+      maxCount = Integer.MAX_VALUE;
+    else if (maxCountList.size() > 1)
+      throw new ManifoldCFException("Multiple values for maxcount parameter");
+    else
+      maxCount = new Integer(maxCountList.get(0)).intValue();
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
-      JobStatus status = jobManager.getStatus(jobID);
+      JobStatus status = jobManager.getStatus(jobID,true,maxCount);
       if (status != null)
       {
         ConfigurationNode jobStatusNode = new ConfigurationNode(API_JOBSTATUSNODE);
@@ -2067,6 +2158,57 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
   
+  /** Get authority groups */
+  protected static int apiReadAuthorityGroups(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      IAuthorityGroup[] groups = groupManager.getAllGroups();
+      int i = 0;
+      while (i < groups.length)
+      {
+        ConfigurationNode groupNode = new ConfigurationNode(API_AUTHORITYGROUPNODE);
+        formatAuthorityGroup(groupNode,groups[i++]);
+        output.addChild(output.getChildCount(),groupNode);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+  
+  /** Read authority group */
+  protected static int apiReadAuthorityGroup(IThreadContext tc, Configuration output, String groupName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      IAuthorityGroup group = groupManager.load(groupName);
+      if (group != null)
+      {
+        // Fill the return object with job information
+        ConfigurationNode groupNode = new ConfigurationNode(API_AUTHORITYGROUPNODE);
+        formatAuthorityGroup(groupNode,group);
+        output.addChild(output.getChildCount(),groupNode);
+      }
+      else
+      {
+        createErrorNode(output,"Authority group '"+groupName+"' does not exist.");
+        return READRESULT_NOTFOUND;
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+  }
+
   /** Get output connections */
   protected static int apiReadOutputConnections(IThreadContext tc, Configuration output)
     throws ManifoldCFException
@@ -2382,6 +2524,44 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return READRESULT_FOUND;
   }
 
+  /** List authorization domains */
+  protected static int apiReadAuthorizationDomains(IThreadContext tc, Configuration output)
+    throws ManifoldCFException
+  {
+    // List registered authorization domains
+    try
+    {
+      IAuthorizationDomainManager manager = AuthorizationDomainManagerFactory.make(tc);
+      IResultSet resultSet = manager.getDomains();
+      int j = 0;
+      while (j < resultSet.getRowCount())
+      {
+        IResultRow row = resultSet.getRow(j++);
+        ConfigurationNode child = new ConfigurationNode(API_AUTHORIZATIONDOMAINNODE);
+        String description = (String)row.getValue("description");
+        String domainName = (String)row.getValue("domainname");
+        ConfigurationNode node;
+        if (description != null)
+        {
+          node = new ConfigurationNode(AUTHORIZATIONDOMAINNODE_DESCRIPTION);
+          node.setValue(description);
+          child.addChild(child.getChildCount(),node);
+        }
+        node = new ConfigurationNode(AUTHORIZATIONDOMAINNODE_DOMAINNAME);
+        node.setValue(domainName);
+        child.addChild(child.getChildCount(),node);
+
+        output.addChild(output.getChildCount(),child);
+      }
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return READRESULT_FOUND;
+
+  }
+  
   /** List repository connectors */
   protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
     throws ManifoldCFException
@@ -3147,17 +3327,30 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else if (path.equals("jobstatuses"))
     {
-      return apiReadJobStatuses(tc,output);
+      return apiReadJobStatuses(tc,output,queryParameters);
     }
     else if (path.startsWith("jobstatuses/"))
     {
       Long jobID = new Long(path.substring("jobstatuses/".length()));
-      return apiReadJobStatus(tc,output,jobID);
+      return apiReadJobStatus(tc,output,jobID,queryParameters);
+    }
+    else if (path.equals("jobstatusesnocounts"))
+    {
+      return apiReadJobStatusesNoCounts(tc,output);
     }
     else if (path.startsWith("jobstatusesnocounts/"))
     {
       Long jobID = new Long(path.substring("jobstatusesnocounts/".length()));
       return apiReadJobStatusNoCounts(tc,output,jobID);
+    }
+    else if (path.equals("authoritygroups"))
+    {
+      return apiReadAuthorityGroups(tc,output);
+    }
+    else if (path.startsWith("authoritygroups/"))
+    {
+      String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
+      return apiReadAuthorityGroup(tc,output,groupName);
     }
     else if (path.equals("outputconnections"))
     {
@@ -3210,7 +3403,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.equals("repositoryconnectors"))
     {
       return apiReadRepositoryConnectors(tc,output);
-    }   
+    }
+    else if (path.equals("authorizationdomains"))
+    {
+      return apiReadAuthorizationDomains(tc,output);
+    }
     else
     {
       createErrorNode(output,"Unrecognized resource.");
@@ -3408,6 +3605,41 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       // Save the job.
       IJobManager jobManager = JobManagerFactory.make(tc);
       jobManager.save(job);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return WRITERESULT_FOUND;
+  }
+
+  /** Write authority group.
+  */
+  protected static int apiWriteAuthorityGroup(IThreadContext tc, Configuration output, Configuration input, String groupName)
+    throws ManifoldCFException
+  {
+    ConfigurationNode groupNode = findConfigurationNode(input,API_AUTHORITYGROUPNODE);
+    if (groupNode == null)
+      throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYGROUPNODE+"' field");
+      
+    // Turn the configuration node into an AuthorityGroup
+    org.apache.manifoldcf.authorities.authgroups.AuthorityGroup authorityGroup = new org.apache.manifoldcf.authorities.authgroups.AuthorityGroup();
+    processAuthorityGroup(authorityGroup,groupNode);
+      
+    if (authorityGroup.getName() == null)
+      authorityGroup.setName(groupName);
+    else
+    {
+      if (!authorityGroup.getName().equals(groupName))
+        throw new ManifoldCFException("Authority group name in path and in object must agree");
+    }
+      
+    try
+    {
+      // Save the connection.
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      if (groupManager.save(authorityGroup))
+        return WRITERESULT_CREATED;
     }
     catch (ManifoldCFException e)
     {
@@ -3623,6 +3855,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       Long jobID = new Long(path.substring("jobs/".length()));
       return apiWriteJob(tc,output,input,jobID);
     }
+    else if (path.startsWith("authoritygroups/"))
+    {
+      String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
+      return apiWriteAuthorityGroup(tc,output,input,groupName);
+    }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
@@ -3694,6 +3931,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     return DELETERESULT_FOUND;
   }
   
+  /** Delete authority group.
+  */
+  protected static int apiDeleteAuthorityGroup(IThreadContext tc, Configuration output, String groupName)
+    throws ManifoldCFException
+  {
+    try
+    {
+      IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
+      groupManager.delete(groupName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+
   /** Delete output connection.
   */
   protected static int apiDeleteOutputConnection(IThreadContext tc, Configuration output, String connectionName)
@@ -3758,6 +4012,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       Long jobID = new Long(path.substring("jobs/".length()));
       return apiDeleteJob(tc,output,jobID);
+    }
+    else if (path.startsWith("authoritygroups/"))
+    {
+      String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
+      return apiDeleteAuthorityGroup(tc,output,groupName);
     }
     else if (path.startsWith("outputconnections/"))
     {
@@ -4348,6 +4607,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBSTATUSNODE_DOCUMENTSINQUEUE = "documents_in_queue";
   protected static final String JOBSTATUSNODE_DOCUMENTSOUTSTANDING = "documents_outstanding";
   protected static final String JOBSTATUSNODE_DOCUMENTSPROCESSED = "documents_processed";
+  protected static final String JOBSTATUSNODE_QUEUEEXACT = "queue_exact";
+  protected static final String JOBSTATUSNODE_OUTSTANDINGEXACT = "outstanding_exact";
+  protected static final String JOBSTATUSNODE_PROCESSEDEXACT = "processed_exact";
   
   /** Format a job status.
   */
@@ -4406,6 +4668,19 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     child.setValue(new Long(jobStatus.getDocumentsProcessed()).toString());
     jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
 
+    // Exact flags
+    child = new ConfigurationNode(JOBSTATUSNODE_QUEUEEXACT);
+    child.setValue(new Boolean(jobStatus.getQueueCountExact()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    child = new ConfigurationNode(JOBSTATUSNODE_OUTSTANDINGEXACT);
+    child.setValue(new Boolean(jobStatus.getOutstandingCountExact()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
+    child = new ConfigurationNode(JOBSTATUSNODE_PROCESSEDEXACT);
+    child.setValue(new Boolean(jobStatus.getProcessedCountExact()).toString());
+    jobStatusNode.addChild(jobStatusNode.getChildCount(),child);
+
   }
 
   protected static String statusMap(int status)
@@ -4449,6 +4724,73 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   // End of jobstatus API support.
   
+  // Authority group API
+  
+  protected static final String AUTHGROUPNODE_ISNEW = "isnew";
+  protected static final String AUTHGROUPNODE_NAME = "name";
+  protected static final String AUTHGROUPNODE_DESCRIPTION = "description";
+  
+  // Output connection API support.
+  
+  /** Convert input hierarchy into an AuthorityGroup object.
+  */
+  protected static void processAuthorityGroup(org.apache.manifoldcf.authorities.authgroups.AuthorityGroup group, ConfigurationNode groupNode)
+    throws ManifoldCFException
+  {
+    // Walk through the node's children
+    int i = 0;
+    while (i < groupNode.getChildCount())
+    {
+      ConfigurationNode child = groupNode.findChild(i++);
+      String childType = child.getType();
+      if (childType.equals(AUTHGROUPNODE_ISNEW))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Authority group isnew node requires a value");
+        group.setIsNew(child.getValue().equals("true"));
+      }
+      else if (childType.equals(AUTHGROUPNODE_NAME))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Authority group name node requires a value");
+        group.setName(child.getValue());
+      }
+      else if (childType.equals(AUTHGROUPNODE_DESCRIPTION))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Authority group description node requires a value");
+        group.setDescription(child.getValue());
+      }
+      else
+        throw new ManifoldCFException("Unrecognized authority group field: '"+childType+"'");
+    }
+
+  }
+  
+  /** Format an authority group.
+  */
+  protected static void formatAuthorityGroup(ConfigurationNode groupNode, IAuthorityGroup group)
+  {
+    ConfigurationNode child;
+    int j;
+
+    child = new ConfigurationNode(AUTHGROUPNODE_ISNEW);
+    child.setValue(group.getIsNew()?"true":"false");
+    groupNode.addChild(groupNode.getChildCount(),child);
+
+    child = new ConfigurationNode(AUTHGROUPNODE_NAME);
+    child.setValue(group.getName());
+    groupNode.addChild(groupNode.getChildCount(),child);
+
+    if (group.getDescription() != null)
+    {
+      child = new ConfigurationNode(AUTHGROUPNODE_DESCRIPTION);
+      child.setValue(group.getDescription());
+      groupNode.addChild(groupNode.getChildCount(),child);
+    }
+    
+  }
+
   // Connection API
   
   protected static final String CONNECTIONNODE_ISNEW = "isnew";
@@ -4463,6 +4805,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String CONNECTIONNODE_MATCH = "match";
   protected static final String CONNECTIONNODE_MATCHDESCRIPTION = "match_description";
   protected static final String CONNECTIONNODE_RATE = "rate";
+  protected static final String CONNECTIONNODE_AUTHDOMAIN = "authdomain";
+  protected static final String CONNECTIONNODE_AUTHGROUP = "authgroup";
   
   // Output connection API support.
   
@@ -4626,6 +4970,18 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           throw new ManifoldCFException("Connection prerequisite node requires a value");
         connection.setPrerequisiteMapping(child.getValue());
       }
+      else if (childType.equals(CONNECTIONNODE_AUTHDOMAIN))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection authdomain node requires a value");
+        connection.setAuthDomain(child.getValue());
+      }
+      else if (childType.equals(CONNECTIONNODE_AUTHGROUP))
+      {
+        if (child.getValue() == null)
+          throw new ManifoldCFException("Connection authgroup node requires a value");
+        connection.setAuthGroup(child.getValue());
+      }
       else if (childType.equals(CONNECTIONNODE_DESCRIPTION))
       {
         if (child.getValue() == null)
@@ -4690,6 +5046,17 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
+    if (connection.getAuthDomain() != null)
+    {
+      child = new ConfigurationNode(CONNECTIONNODE_AUTHDOMAIN);
+      child.setValue(connection.getAuthDomain());
+      connectionNode.addChild(connectionNode.getChildCount(),child);
+    }
+    
+    child = new ConfigurationNode(CONNECTIONNODE_AUTHGROUP);
+    child.setValue(connection.getAuthGroup());
+    connectionNode.addChild(connectionNode.getChildCount(),child);
+
     ConfigParams cp = connection.getConfigParams();
     child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
     j = 0;

@@ -51,7 +51,7 @@
         <tr><td>OpenSearchServer</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with OpenSearchServer 1.2.1, 1.2.2, 1.2.3 </td></tr>
         <tr><td>ElasticSearch</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with ElasticSearch 0.18.3, 0.18.4, 0.18.5, 0.18.6, 0.18.7 </td></tr>
         <tr><td>Documentum (EMC)</td><td> Win, RedHat </td><td> Win, RedHat </td><td> Tested with DFC 5.3 SP5 </td><td> Tested against 5.3, 6.0, and 6.5 servers </td></tr>
-        <tr><td>SharePoint (MSFT)</td><td>Pure Java </td><td>Win</td><td> N/A </td><td> Tested with SharePoint 2003 (2.0), 2007 (3.0), 2010 (4.0) </td></tr>
+        <tr><td>SharePoint (MSFT)</td><td>Pure Java </td><td>Win</td><td> N/A </td><td> Tested with SharePoint 2003 (2.0), 2007 (3.0), 2010 (4.0) (without Claim Space Auth enabled) </td></tr>
         <tr><td>Meridio (Autonomy)</td><td> Pure Java </td><td> Win </td><td> N/A </td><td> Tested with Meridio 4.1, 5.0 </td></tr>
         <tr><td>FileNet (IBM)</td><td>Pure Java</td><td>Win, RedHat</td><td>Tested with P8 V4.1, V4.5</td><td>Tested with P8 V4.1, V4.5</td></tr>
       </table>

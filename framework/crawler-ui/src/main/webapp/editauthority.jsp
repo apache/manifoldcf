@@ -28,13 +28,17 @@
     // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
     try
     {
+	// Get the domain manager handle
+	IAuthorizationDomainManager domainMgr = AuthorizationDomainManagerFactory.make(threadContext);
 	// Get the connection manager handle
 	IAuthorityConnectionManager connMgr = AuthorityConnectionManagerFactory.make(threadContext);
 	// Also get the list of available connectors
 	IAuthorityConnectorManager connectorManager = AuthorityConnectorManagerFactory.make(threadContext);
 	// Get the mapping connection manager
 	IMappingConnectionManager mappingConnMgr = MappingConnectionManagerFactory.make(threadContext);
-
+	// Get the group manager
+	IAuthorityGroupManager authGroupManager = AuthorityGroupManagerFactory.make(threadContext);
+	
 	// Figure out what the current tab name is.
 	String tabName = variableContext.getParameter("tabname");
 	if (tabName == null || tabName.length() == 0)
@@ -61,7 +65,9 @@
 	int maxConnections = 10;
 	ConfigParams parameters = new ConfigParams();
 	String prereq = null;
-
+	String authDomain = "";
+	String groupName = "";
+	
 	if (connection != null)
 	{
 		// Set up values
@@ -72,6 +78,12 @@
 		parameters = connection.getConfigParams();
 		maxConnections = connection.getMaxConnections();
 		prereq = connection.getPrerequisiteMapping();
+		authDomain = connection.getAuthDomain();
+		if (authDomain == null)
+			authDomain = "";
+		groupName = connection.getAuthGroup();
+		if (groupName == null)
+			groupName = "";
 	}
 	else
 		connectionName = null;
@@ -152,6 +164,13 @@
 				document.editconnection.connname.focus();
 				return;
 			}
+			if (editconnection.authoritygroup.value == "")
+			{
+				alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAGroup")%>");
+				SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Type")%>");
+				document.editconnection.authoritygroup.focus();
+				return;
+			}
 			if (window.checkConfigForSave)
 			{
 				if (!checkConfigForSave())
@@ -222,6 +241,8 @@
 
 	// Get connectors, since this will be needed to determine what to display.
 	IResultSet set = connectorManager.getConnectors();
+	// Same for authority groups
+	IAuthorityGroup[] set2 = authGroupManager.getAllGroups();
 
 %>
 
@@ -233,10 +254,15 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="darkwindow">
-
-
 <%
-	if (set.getRowCount() == 0)
+	if (set2.length == 0)
+	{
+%>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityGroupsDefinedCreateOneFirst")%></td></tr></table>
+<%
+	}
+	else if (set.getRowCount() == 0)
 	{
 %>
 	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
@@ -341,6 +367,7 @@
 	  // "Type" tab
 	  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
 	  {
+	    IResultSet domainSet = domainMgr.getDomains();
 %>
 		    <table class="displaytable">
 			<tr><td class="separator" colspan="5"><hr/></td></tr>
@@ -390,6 +417,49 @@
 %>
 				</td>
 			</tr>
+			<tr><td class="separator" colspan="5"><hr/></td></tr>
+			<tr>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
+				<td class="value" colspan="1">
+					<select name="authoritygroup" size="1">
+						<option value=""><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.SelectAGroup")%></option>
+<%
+	    for (int i = 0; i < set2.length; i++)
+	    {
+		IAuthorityGroup row = set2[i];
+		String thisAuthorityName = row.getName();
+		String thisDescription = row.getDescription();
+		if (thisDescription == null || thisDescription.length() == 0)
+			thisDescription = thisAuthorityName;
+%>
+						<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'
+							<%=(groupName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+<%
+	    }
+%>
+					</select>
+				</td>
+				<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
+				<td class="value" colspan="1">
+					<select name="authdomain" size="1">
+						<option value="" <%=(authDomain == null || authDomain.length() == 0)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DefaultDomainNone")%></option>
+<%
+	    for (int i = 0; i < domainSet.getRowCount(); i++)
+	    {
+		IResultRow row = domainSet.getRow(i);
+		String domainName = (String)row.getValue("domainname");
+		String thisDescription = (String)row.getValue("description");
+		if (thisDescription == null || thisDescription.length() == 0)
+			thisDescription = domainName;
+%>
+						<option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainName)%>'
+							<%=(authDomain!=null && domainName.equals(authDomain))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+<%
+	    }
+%>
+					</select>
+				</td>
+			</tr>
 		    </table>
 <%
 	  }
@@ -398,6 +468,8 @@
 		// Hiddens for the "Type" tab
 %>
 		    <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+		    <input type="hidden" name="authdomain" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/>
+		    <input type="hidden" name="authoritygroup" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(groupName)%>'/>
 <%
 	  }
 
