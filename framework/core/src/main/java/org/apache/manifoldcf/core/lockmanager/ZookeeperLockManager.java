@@ -36,11 +36,44 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
 {
   public static final String _rcsid = "@(#)$Id: LockManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  protected final static String zookeeperConnectStringParameter = "org.apache.manifoldcf.zookeeper.connectstring";
+  protected final static String zookeeperSessionTimeoutParameter = "org.apache.manifoldcf.zookeeper.sessiontimeout";
+  
+  // Zookeeper construction values
+  protected final String connectString;
+  protected final int sessionTimeout;
+
+  // One zookeeper client per thread
+  protected ZooKeeper zookeeper = null;
+  protected ZookeeperWatcher zookeeperWatcher = null;
+
   /** Constructor */
   public ZookeeperLockManager()
     throws ManifoldCFException
   {
-    // MHL
+    connectString = ManifoldCF.getStringProperty(zookeeperConnectStringParameter,null);
+    if (connectString != null)
+      throw new ManifoldCFException("Zookeeper lock manager requires a valid "+zookeeperConnectStringParameter+" property");
+    sessionTimeout = ManifoldCF.getIntProperty(zookeeperSessionTimeoutParameter,300000);
+  }
+  
+  public ZooKeeper getSession()
+    throws ManifoldCFException
+  {
+    if (zookeeper == null)
+    {
+      try
+      {
+        ZookeeperWatcher zookeeperWatcher = new ZookeeperWatcher();
+        zookeeper = new ZooKeeper(connectString, sessionTimeout, zookeeperWatcher);
+        this.zookeeperWatcher = zookeeperWatcher;
+      }
+      catch (IOException e)
+      {
+        throw new ManifoldCFException("Zookeeper initialization error: "+e.getMessage(),e);
+      }
+    }
+    return zookeeper;
   }
   
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
@@ -124,6 +157,36 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
   public void enterWriteLock(String lockKey)
     throws ManifoldCFException
   {
+    // From Zookeeper recipes
+
+    /*
+    1. Call create( ) to create a node with pathname "guid-/write-". This is the lock node
+       spoken of later in the protocol. Make sure to set both sequence and ephemeral flags.
+       If a recoverable error occurs calling create() the client should call getChildren() and
+       check for a node containing the guid used in the path name. This handles the case
+       (noted above) of the create() succeeding on the server but the server crashing before
+       returning the name of the new node.
+    */
+
+    /*
+    2. Call getChildren( ) on the lock node without setting the watch flag - this is important,
+       as it avoids the herd effect.
+    */
+
+    /*
+    3. If there are no children with a lower sequence number than the node created in step
+       1, the client has the lock and the client exits the protocol.
+    */
+
+    /*
+    4. Call exists( ), with watch flag set, on the node with the pathname that has the next
+       lowest sequence number.
+    */
+
+    /* 5. If exists( ) returns false, goto step 2. Otherwise, wait for a notification for the
+       pathname from the previous step before going to step 2.
+    */
+
     // MHL
   }
 
@@ -149,6 +212,12 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
   public void leaveWriteLock(String lockKey)
     throws ManifoldCFException
   {
+    // From Zookeeper recipes
+    
+    /*
+    Delete the node we created in step 1 above.
+    */
+
     // MHL
   }
 
@@ -204,6 +273,41 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
   public void enterReadLock(String lockKey)
     throws ManifoldCFException
   {
+
+    // From Zookeeper recipes
+    
+    /*
+    1. Call create( ) to create a node with pathname "guid-/read-". This is the lock node use later in the
+       protocol. Make sure to set both the sequence and ephemeral flags.
+       If a recoverable error occurs calling create() the client should call getChildren() and
+       check for a node containing the guid used in the path name. This handles the case
+       (noted above) of the create() succeeding on the server but the server crashing before
+       returning the name of the new node.
+    */
+
+    /*
+    2. Call getChildren( ) on the lock node without setting the watch flag - this is important, as it
+       avoids the herd effect.
+    */
+
+    /*
+    3. If there are no children with a pathname starting with "write-" and having a lower
+       sequence number than the node created in step 1, the client has the lock and can exit the protocol.
+    */
+
+    /*
+    4. Otherwise, call exists( ), with watch flag, set on the node in lock directory with pathname
+       staring with "write-" having the next lowest sequence number.
+    */
+
+    /*
+    5. If exists( ) returns false, goto step 2.
+    */
+
+    /*
+    6. Otherwise, wait for a notification for the pathname from the previous step before going to step 2
+    */
+
     // MHL
   }
 
@@ -228,6 +332,12 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
   public void leaveReadLock(String lockKey)
     throws ManifoldCFException
   {
+    // From Zookeeper recipes
+    
+    /*
+    Delete the node we created in step 1 above.
+    */
+
     // MHL
   }
 
@@ -284,4 +394,18 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
     // MHL
   }
 
+  /** Watcher class for zookeeper, so we get notified about zookeeper events. */
+  protected static class ZookeeperWatcher implements Watcher
+  {
+    public ZookeeperWatcher()
+    {
+      // MHL
+    }
+    
+    public void process(WatchedEvent event)
+    {
+      // MHL
+    }
+
+  }
 }
