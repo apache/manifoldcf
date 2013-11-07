@@ -176,6 +176,13 @@ public class BaseLockManager implements ILockManager
     }
   }
 
+  /** Override this method to change the nature of global locks.
+  */
+  protected LockPool getGlobalLockPool()
+  {
+    return myLocks;
+  }
+  
   /** Enter a non-exclusive write-locked area (blocking out all readers, but letting in other "writers").
   * This kind of lock is designed to be used in conjunction with read locks.  It is used typically in
   * a situation where the read lock represents a query and the non-exclusive write lock represents a modification
@@ -183,26 +190,26 @@ public class BaseLockManager implements ILockManager
   * interfere with one another (use of another, standard, write lock per item can guarantee this).
   */
   @Override
-  public void enterNonExWriteLock(String lockKey)
+  public final void enterNonExWriteLock(String lockKey)
     throws ManifoldCFException
   {
-    enterNonExWrite(lockKey, "lock", localLocks, myLocks);
+    enterNonExWrite(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
   public final void enterNonExWriteLockNoWait(String lockKey)
     throws ManifoldCFException, LockException
   {
-    enterNonExWriteNoWait(lockKey, "lock", localLocks, myLocks);
+    enterNonExWriteNoWait(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   /** Leave a non-exclusive write lock.
   */
   @Override
-  public void leaveNonExWriteLock(String lockKey)
+  public final void leaveNonExWriteLock(String lockKey)
     throws ManifoldCFException
   {
-    leaveNonExWrite(lockKey, "lock", localLocks, myLocks);
+    leaveNonExWrite(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   /** Enter a write locked area (i.e., block out both readers and other writers)
@@ -216,17 +223,17 @@ public class BaseLockManager implements ILockManager
   }
   
   @Override
-  public void enterWriteLockNoWait(String lockKey)
+  public final void enterWriteLockNoWait(String lockKey)
     throws ManifoldCFException, LockException
   {
-    enterWriteNoWait(lockKey, "lock", localLocks, myLocks);
+    enterWriteNoWait(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
-  public void leaveWriteLock(String lockKey)
+  public final void leaveWriteLock(String lockKey)
     throws ManifoldCFException
   {
-    leaveWrite(lockKey, "lock", localLocks, myLocks);
+    leaveWrite(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   /** Enter a read-only locked area (i.e., block ONLY if there's a writer)
@@ -235,53 +242,53 @@ public class BaseLockManager implements ILockManager
   public final void enterReadLock(String lockKey)
     throws ManifoldCFException
   {
-    enterRead(lockKey, "lock", localLocks, myLocks);
+    enterRead(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
-  public void enterReadLockNoWait(String lockKey)
+  public final void enterReadLockNoWait(String lockKey)
     throws ManifoldCFException, LockException
   {
-    enterReadNoWait(lockKey, "lock", localLocks, myLocks);
+    enterReadNoWait(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
   public final void leaveReadLock(String lockKey)
     throws ManifoldCFException
   {
-    leaveRead(lockKey, "lock", localLocks, myLocks);
+    leaveRead(lockKey, "lock", localLocks, getGlobalLockPool());
   }
   
   /** Enter multiple locks
   */
   @Override
-  public void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
+  public final void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
     throws ManifoldCFException
   {
-    enter(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, myLocks);
+    enter(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
   }
 
   @Override
-  public void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
+  public final void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
     throws ManifoldCFException, LockException
   {
-    enterNoWait(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, myLocks);
+    enterNoWait(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
   }
 
   /** Leave multiple locks
   */
   @Override
-  public void leaveLocks(String[] readLocks, String[] writeNonExLocks, String[] writeLocks)
+  public final void leaveLocks(String[] readLocks, String[] writeNonExLocks, String[] writeLocks)
     throws ManifoldCFException
   {
-    leave(readLocks, writeNonExLocks, writeLocks, "lock", localLocks, myLocks);
+    leave(readLocks, writeNonExLocks, writeLocks, "lock", localLocks, getGlobalLockPool());
   }
   
   @Override
-  public void clearLocks()
+  public final void clearLocks()
     throws ManifoldCFException
   {
-    clear("lock", localLocks, myLocks);
+    clear("lock", localLocks, getGlobalLockPool());
   }
   
   /** Enter a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
