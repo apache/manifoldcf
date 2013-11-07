@@ -159,6 +159,8 @@ public class ZookeeperLockManager extends LockManager implements ILockManager
   {
     // From Zookeeper recipes
 
+    ZooKeeper zk = getSession();
+    
     /*
     1. Call create( ) to create a node with pathname "guid-/write-". This is the lock node
        spoken of later in the protocol. Make sure to set both sequence and ephemeral flags.

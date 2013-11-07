@@ -32,7 +32,7 @@ public class LockPool
     LockObject lo = (LockObject)myLocks.get(lockKey);
     if (lo == null)
     {
-      lo = new LockObject(this,lockKey,synchDir);
+      lo = new FileLockObject(this,lockKey,synchDir);
       myLocks.put(lockKey,lo);
     }
     return lo;
