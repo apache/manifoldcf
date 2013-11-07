@@ -189,6 +189,200 @@ public class BaseLockManager implements ILockManager
     enterNonExWrite(lockKey, "lock", localLocks, myLocks);
   }
   
+  @Override
+  public final void enterNonExWriteLockNoWait(String lockKey)
+    throws ManifoldCFException, LockException
+  {
+    enterNonExWriteNoWait(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  /** Leave a non-exclusive write lock.
+  */
+  @Override
+  public void leaveNonExWriteLock(String lockKey)
+    throws ManifoldCFException
+  {
+    leaveNonExWrite(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  /** Enter a write locked area (i.e., block out both readers and other writers)
+  * NOTE: Can't enter until all readers have left.
+  */
+  @Override
+  public final void enterWriteLock(String lockKey)
+    throws ManifoldCFException
+  {
+    enterWrite(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  @Override
+  public void enterWriteLockNoWait(String lockKey)
+    throws ManifoldCFException, LockException
+  {
+    enterWriteNoWait(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  @Override
+  public void leaveWriteLock(String lockKey)
+    throws ManifoldCFException
+  {
+    leaveWrite(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  /** Enter a read-only locked area (i.e., block ONLY if there's a writer)
+  */
+  @Override
+  public final void enterReadLock(String lockKey)
+    throws ManifoldCFException
+  {
+    enterRead(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  @Override
+  public void enterReadLockNoWait(String lockKey)
+    throws ManifoldCFException, LockException
+  {
+    enterReadNoWait(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  @Override
+  public final void leaveReadLock(String lockKey)
+    throws ManifoldCFException
+  {
+    leaveRead(lockKey, "lock", localLocks, myLocks);
+  }
+  
+  /** Enter multiple locks
+  */
+  @Override
+  public void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
+    throws ManifoldCFException
+  {
+    enter(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, myLocks);
+  }
+
+  @Override
+  public void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
+    throws ManifoldCFException, LockException
+  {
+    enterNoWait(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, myLocks);
+  }
+
+  /** Leave multiple locks
+  */
+  @Override
+  public void leaveLocks(String[] readLocks, String[] writeNonExLocks, String[] writeLocks)
+    throws ManifoldCFException
+  {
+    leave(readLocks, writeNonExLocks, writeLocks, "lock", localLocks, myLocks);
+  }
+  
+  @Override
+  public void clearLocks()
+    throws ManifoldCFException
+  {
+    clear("lock", localLocks, myLocks);
+  }
+  
+  /** Enter a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
+  * Critical section names do not collide with lock names; they have a distinct namespace.
+  *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
+  * section at a time.
+  */
+  @Override
+  public final void enterReadCriticalSection(String sectionKey)
+    throws ManifoldCFException
+  {
+    enterRead(sectionKey, "critical section", localSections, mySections);
+  }
+
+  /** Leave a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
+  * Critical section names do not collide with lock names; they have a distinct namespace.
+  *@param sectionKey is the name of the section to leave.  Only one thread can be in any given named
+  * section at a time.
+  */
+  @Override
+  public final void leaveReadCriticalSection(String sectionKey)
+    throws ManifoldCFException
+  {
+    leaveRead(sectionKey, "critical section", localSections, mySections);
+  }
+
+  /** Enter a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
+  * Critical section names do not collide with lock names; they have a distinct namespace.
+  *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
+  * section at a time.
+  */
+  @Override
+  public final void enterNonExWriteCriticalSection(String sectionKey)
+    throws ManifoldCFException
+  {
+    enterNonExWrite(sectionKey, "critical section", localSections, mySections);
+  }
+
+  /** Leave a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
+  * Critical section names do not collide with lock names; they have a distinct namespace.
+  *@param sectionKey is the name of the section to leave.  Only one thread can be in any given named
+  * section at a time.
+  */
+  @Override
+  public final void leaveNonExWriteCriticalSection(String sectionKey)
+    throws ManifoldCFException
+  {
+    leaveNonExWrite(sectionKey, "critical section", localSections, mySections);
+  }
+  
+  /** Enter a named, exclusive critical section (NOT a lock).  Critical sections never cross JVM boundaries.
+  * Critical section names should be distinct from all lock names.
+  *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
+  * section at a time.
+  */
+  @Override
+  public final void enterWriteCriticalSection(String sectionKey)
+    throws ManifoldCFException
+  {
+    enterWrite(sectionKey, "critical section", localSections, mySections);
+  }
+  
+  /** Leave a named, exclusive critical section (NOT a lock).  Critical sections never cross JVM boundaries.
+  * Critical section names should be distinct from all lock names.
+  *@param sectionKey is the name of the section to leave.  Only one thread can be in any given named
+  * section at a time.
+  */
+  @Override
+  public final void leaveWriteCriticalSection(String sectionKey)
+    throws ManifoldCFException
+  {
+    leaveWrite(sectionKey, "critical section", localSections, mySections);
+  }
+
+  /** Enter multiple critical sections simultaneously.
+  *@param readSectionKeys is an array of read section descriptors, or null if there are no read sections desired.
+  *@param nonExSectionKeys is an array of non-ex write section descriptors, or null if none desired.
+  *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
+  */
+  @Override
+  public final void enterCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
+    throws ManifoldCFException
+  {
+    enter(readSectionKeys, nonExSectionKeys, writeSectionKeys, "critical section", localSections, mySections);
+  }
+
+  /** Leave multiple critical sections simultaneously.
+  *@param readSectionKeys is an array of read section descriptors, or null if there are no read sections desired.
+  *@param nonExSectionKeys is an array of non-ex write section descriptors, or null if none desired.
+  *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
+  */
+  @Override
+  public final void leaveCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
+    throws ManifoldCFException
+  {
+    leave(readSectionKeys, nonExSectionKeys, writeSectionKeys, "critical section", localSections, mySections);
+  }
+
+
+  // Protected methods
+
   protected static void enterNonExWrite(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -237,13 +431,6 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  @Override
-  public final void enterNonExWriteLockNoWait(String lockKey)
-    throws ManifoldCFException, LockException
-  {
-    enterNonExWriteNoWait(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void enterNonExWriteNoWait(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
@@ -305,15 +492,6 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  /** Leave a non-exclusive write lock.
-  */
-  @Override
-  public void leaveNonExWriteLock(String lockKey)
-    throws ManifoldCFException
-  {
-    leaveNonExWrite(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void leaveNonExWrite(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -365,16 +543,6 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  /** Enter a write locked area (i.e., block out both readers and other writers)
-  * NOTE: Can't enter until all readers have left.
-  */
-  @Override
-  public final void enterWriteLock(String lockKey)
-    throws ManifoldCFException
-  {
-    enterWrite(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void enterWrite(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -424,13 +592,6 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  @Override
-  public void enterWriteLockNoWait(String lockKey)
-    throws ManifoldCFException, LockException
-  {
-    enterWriteNoWait(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void enterWriteNoWait(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
@@ -494,13 +655,6 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  @Override
-  public void leaveWriteLock(String lockKey)
-    throws ManifoldCFException
-  {
-    leaveWrite(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void leaveWrite(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -549,15 +703,6 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  /** Enter a read-only locked area (i.e., block ONLY if there's a writer)
-  */
-  @Override
-  public final void enterReadLock(String lockKey)
-    throws ManifoldCFException
-  {
-    enterRead(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void enterRead(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -600,13 +745,6 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  @Override
-  public void enterReadLockNoWait(String lockKey)
-    throws ManifoldCFException, LockException
-  {
-    enterReadNoWait(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void enterReadNoWait(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
@@ -660,13 +798,6 @@ public class BaseLockManager implements ILockManager
       Logging.lock.debug(" Successfully obtained "+description+"!");
   }
 
-  @Override
-  public final void leaveReadLock(String lockKey)
-    throws ManifoldCFException
-  {
-    leaveRead(lockKey, "lock", localLocks, myLocks);
-  }
-  
   protected static void leaveRead(String lockKey, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -714,13 +845,6 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  @Override
-  public void clearLocks()
-    throws ManifoldCFException
-  {
-    clear("lock", localLocks, myLocks);
-  }
-  
   protected static void clear(String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -739,15 +863,6 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  /** Enter multiple locks
-  */
-  @Override
-  public void enterLocks(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ManifoldCFException
-  {
-    enter(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, myLocks);
-  }
-  
   protected static void enter(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -933,13 +1048,6 @@ public class BaseLockManager implements ILockManager
     }
   }
 
-  @Override
-  public void enterLocksNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks)
-    throws ManifoldCFException, LockException
-  {
-    enterNoWait(readLocks, nonExWriteLocks, writeLocks, "lock", localLocks, myLocks);
-  }
-  
   protected static void enterNoWait(String[] readLocks, String[] nonExWriteLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException, LockException
   {
@@ -1142,15 +1250,6 @@ public class BaseLockManager implements ILockManager
 
   }
 
-  /** Leave multiple locks
-  */
-  @Override
-  public void leaveLocks(String[] readLocks, String[] writeNonExLocks, String[] writeLocks)
-    throws ManifoldCFException
-  {
-    leave(readLocks, writeNonExLocks, writeLocks, "lock", localLocks, myLocks);
-  }
-  
   protected static void leave(String[] readLocks, String[] writeNonExLocks, String[] writeLocks, String description, LocalLockPool localLocks, LockPool crossLocks)
     throws ManifoldCFException
   {
@@ -1188,102 +1287,6 @@ public class BaseLockManager implements ILockManager
     {
       throw ae;
     }
-  }
-
-  /** Enter a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
-  * Critical section names do not collide with lock names; they have a distinct namespace.
-  *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
-  * section at a time.
-  */
-  @Override
-  public final void enterReadCriticalSection(String sectionKey)
-    throws ManifoldCFException
-  {
-    enterRead(sectionKey, "critical section", localSections, mySections);
-  }
-
-  /** Leave a named, read critical section (NOT a lock).  Critical sections never cross JVM boundaries.
-  * Critical section names do not collide with lock names; they have a distinct namespace.
-  *@param sectionKey is the name of the section to leave.  Only one thread can be in any given named
-  * section at a time.
-  */
-  @Override
-  public final void leaveReadCriticalSection(String sectionKey)
-    throws ManifoldCFException
-  {
-    leaveRead(sectionKey, "critical section", localSections, mySections);
-  }
-
-  /** Enter a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
-  * Critical section names do not collide with lock names; they have a distinct namespace.
-  *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
-  * section at a time.
-  */
-  @Override
-  public final void enterNonExWriteCriticalSection(String sectionKey)
-    throws ManifoldCFException
-  {
-    enterNonExWrite(sectionKey, "critical section", localSections, mySections);
-  }
-
-  /** Leave a named, non-exclusive write critical section (NOT a lock).  Critical sections never cross JVM boundaries.
-  * Critical section names do not collide with lock names; they have a distinct namespace.
-  *@param sectionKey is the name of the section to leave.  Only one thread can be in any given named
-  * section at a time.
-  */
-  @Override
-  public final void leaveNonExWriteCriticalSection(String sectionKey)
-    throws ManifoldCFException
-  {
-    leaveNonExWrite(sectionKey, "critical section", localSections, mySections);
-  }
-  
-  /** Enter a named, exclusive critical section (NOT a lock).  Critical sections never cross JVM boundaries.
-  * Critical section names should be distinct from all lock names.
-  *@param sectionKey is the name of the section to enter.  Only one thread can be in any given named
-  * section at a time.
-  */
-  @Override
-  public final void enterWriteCriticalSection(String sectionKey)
-    throws ManifoldCFException
-  {
-    enterWrite(sectionKey, "critical section", localSections, mySections);
-  }
-  
-  /** Leave a named, exclusive critical section (NOT a lock).  Critical sections never cross JVM boundaries.
-  * Critical section names should be distinct from all lock names.
-  *@param sectionKey is the name of the section to leave.  Only one thread can be in any given named
-  * section at a time.
-  */
-  @Override
-  public final void leaveWriteCriticalSection(String sectionKey)
-    throws ManifoldCFException
-  {
-    leaveWrite(sectionKey, "critical section", localSections, mySections);
-  }
-
-  /** Enter multiple critical sections simultaneously.
-  *@param readSectionKeys is an array of read section descriptors, or null if there are no read sections desired.
-  *@param nonExSectionKeys is an array of non-ex write section descriptors, or null if none desired.
-  *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
-  */
-  @Override
-  public final void enterCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-    throws ManifoldCFException
-  {
-    enter(readSectionKeys, nonExSectionKeys, writeSectionKeys, "critical section", localSections, mySections);
-  }
-
-  /** Leave multiple critical sections simultaneously.
-  *@param readSectionKeys is an array of read section descriptors, or null if there are no read sections desired.
-  *@param nonExSectionKeys is an array of non-ex write section descriptors, or null if none desired.
-  *@param writeSectionKeys is an array of write section descriptors, or null if there are none desired.
-  */
-  @Override
-  public final void leaveCriticalSections(String[] readSectionKeys, String[] nonExSectionKeys, String[] writeSectionKeys)
-    throws ManifoldCFException
-  {
-    leave(readSectionKeys, nonExSectionKeys, writeSectionKeys, "critical section", localSections, mySections);
   }
 
   /** Process inbound locks into a sorted vector of most-restrictive unique locks
