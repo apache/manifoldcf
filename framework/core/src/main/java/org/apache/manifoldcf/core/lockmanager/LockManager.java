@@ -40,12 +40,13 @@ public class LockManager implements ILockManager
   protected final static int TYPE_WRITE = 3;
 
   // These are for locks (which cross JVM boundaries)
-  protected HashMap localLocks = new HashMap();
-  protected static LockPool myLocks = new LockPool();
+  protected final HashMap localLocks = new HashMap();
+  protected final static Integer lockPoolInitialization = new Integer(0);
+  protected static LockPool myLocks = null;
 
   // These are for critical sections (which do not cross JVM boundaries)
-  protected HashMap localSections = new HashMap();
-  protected static LockPool mySections = new LockPool();
+  protected final HashMap localSections = new HashMap();
+  protected final static LockPool mySections = new LockPool(new LockObjectFactory());
 
   // This is the directory used for cross-JVM synchronization, or null if off
   protected File synchDirectory = null;
@@ -53,11 +54,18 @@ public class LockManager implements ILockManager
   public LockManager()
     throws ManifoldCFException
   {
-    synchDirectory = ManifoldCF.getFileProperty(synchDirectoryProperty);
-    if (synchDirectory != null)
+    synchronized(lockPoolInitialization)
     {
-      if (!synchDirectory.isDirectory())
-        throw new ManifoldCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",ManifoldCFException.SETUP_ERROR);
+      if (myLocks == null)
+      {
+        synchDirectory = ManifoldCF.getFileProperty(synchDirectoryProperty);
+        if (synchDirectory != null)
+        {
+          if (!synchDirectory.isDirectory())
+            throw new ManifoldCFException("Property "+synchDirectoryProperty+" must point to an existing, writeable directory!",ManifoldCFException.SETUP_ERROR);
+        }
+        myLocks = new LockPool(new FileLockObjectFactory(synchDirectory));
+      }
     }
   }
 
@@ -334,7 +342,7 @@ public class LockManager implements ILockManager
     // to know if we already have a a read lock.
     while (true)
     {
-      LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+      LockObject lo = myLocks.getObject(lockKey);
       try
       {
         lo.enterNonExWriteLock();
@@ -384,7 +392,7 @@ public class LockManager implements ILockManager
     // to know if we already have a a read lock.
     while (true)
     {
-      LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+      LockObject lo = myLocks.getObject(lockKey);
       try
       {
         synchronized (lo)
@@ -438,7 +446,7 @@ public class LockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+        LockObject lo = myLocks.getObject(lockKey);
         try
         {
           lo.leaveNonExWriteLock();
@@ -507,7 +515,7 @@ public class LockManager implements ILockManager
     // it's illegal.
     while (true)
     {
-      LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+      LockObject lo = myLocks.getObject(lockKey);
       try
       {
         lo.enterWriteLock();
@@ -557,7 +565,7 @@ public class LockManager implements ILockManager
     // it's illegal.
     while (true)
     {
-      LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+      LockObject lo = myLocks.getObject(lockKey);
       try
       {
         synchronized (lo)
@@ -606,7 +614,7 @@ public class LockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+        LockObject lo = myLocks.getObject(lockKey);
         try
         {
           lo.leaveWriteLock();
@@ -667,7 +675,7 @@ public class LockManager implements ILockManager
     // We don't own a local read lock.  Get one.
     while (true)
     {
-      LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+      LockObject lo = myLocks.getObject(lockKey);
       try
       {
         lo.enterReadLock();
@@ -709,7 +717,7 @@ public class LockManager implements ILockManager
     // We don't own a local read lock.  Get one.
     while (true)
     {
-      LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+      LockObject lo = myLocks.getObject(lockKey);
       try
       {
         synchronized (lo)
@@ -758,7 +766,7 @@ public class LockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+        LockObject lo = myLocks.getObject(lockKey);
         try
         {
           lo.leaveReadLock();
@@ -881,7 +889,7 @@ public class LockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+              LockObject lo = myLocks.getObject(lockKey);
               try
               {
                 lo.enterWriteLock();
@@ -909,7 +917,7 @@ public class LockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+              LockObject lo = myLocks.getObject(lockKey);
               try
               {
                 lo.enterNonExWriteLock();
@@ -930,7 +938,7 @@ public class LockManager implements ILockManager
             // We don't own a local read lock.  Get one.
             while (true)
             {
-              LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+              LockObject lo = myLocks.getObject(lockKey);
               try
               {
                 lo.enterReadLock();
@@ -1067,7 +1075,7 @@ public class LockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+              LockObject lo = myLocks.getObject(lockKey);
               synchronized (lo)
               {
                 try
@@ -1098,7 +1106,7 @@ public class LockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+              LockObject lo = myLocks.getObject(lockKey);
               synchronized (lo)
               {
                 try
@@ -1122,7 +1130,7 @@ public class LockManager implements ILockManager
             // We don't own a local read lock.  Get one.
             while (true)
             {
-              LockObject lo = myLocks.getObject(lockKey,synchDirectory);
+              LockObject lo = myLocks.getObject(lockKey);
               synchronized (lo)
               {
                 try
@@ -1268,7 +1276,7 @@ public class LockManager implements ILockManager
     // We don't own a local read lock.  Get one.
     while (true)
     {
-      LockObject lo = mySections.getObject(sectionKey,null);
+      LockObject lo = mySections.getObject(sectionKey);
       try
       {
         lo.enterReadLock();
@@ -1301,7 +1309,7 @@ public class LockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = mySections.getObject(sectionKey,null);
+        LockObject lo = mySections.getObject(sectionKey);
         try
         {
           lo.leaveReadLock();
@@ -1365,7 +1373,7 @@ public class LockManager implements ILockManager
     // to know if we already have a a read lock.
     while (true)
     {
-      LockObject lo = mySections.getObject(sectionKey,null);
+      LockObject lo = mySections.getObject(sectionKey);
       try
       {
         lo.enterNonExWriteLock();
@@ -1401,7 +1409,7 @@ public class LockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = mySections.getObject(sectionKey,null);
+        LockObject lo = mySections.getObject(sectionKey);
         try
         {
           lo.leaveNonExWriteLock();
@@ -1465,7 +1473,7 @@ public class LockManager implements ILockManager
     // it's illegal.
     while (true)
     {
-      LockObject lo = mySections.getObject(sectionKey,null);
+      LockObject lo = mySections.getObject(sectionKey);
       try
       {
         lo.enterWriteLock();
@@ -1499,7 +1507,7 @@ public class LockManager implements ILockManager
     {
       while (true)
       {
-        LockObject lo = mySections.getObject(sectionKey,null);
+        LockObject lo = mySections.getObject(sectionKey);
         try
         {
           lo.leaveWriteLock();
@@ -1570,7 +1578,7 @@ public class LockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = mySections.getObject(lockKey,null);
+              LockObject lo = mySections.getObject(lockKey);
               try
               {
                 lo.enterWriteLock();
@@ -1598,7 +1606,7 @@ public class LockManager implements ILockManager
             // We don't own a local write lock.  Get one.
             while (true)
             {
-              LockObject lo = mySections.getObject(lockKey,null);
+              LockObject lo = mySections.getObject(lockKey);
               try
               {
                 lo.enterNonExWriteLock();
@@ -1619,7 +1627,7 @@ public class LockManager implements ILockManager
             // We don't own a local read lock.  Get one.
             while (true)
             {
-              LockObject lo = mySections.getObject(lockKey,null);
+              LockObject lo = mySections.getObject(lockKey);
               try
               {
                 lo.enterReadLock();
