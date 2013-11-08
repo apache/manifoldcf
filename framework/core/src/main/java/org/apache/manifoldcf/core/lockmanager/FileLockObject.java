@@ -70,7 +70,7 @@ public class FileLockObject extends LockObject
 
   @Override
   protected void obtainGlobalWriteLock()
-    throws LockException, InterruptedException
+    throws ManifoldCFException, LockException, InterruptedException
   {
     if (isSync)
     {
@@ -93,7 +93,7 @@ public class FileLockObject extends LockObject
 
   @Override
   protected void clearGlobalWriteLock()
-    throws LockException, InterruptedException
+    throws ManifoldCFException, LockException, InterruptedException
   {
     if (isSync)
     {
@@ -110,8 +110,8 @@ public class FileLockObject extends LockObject
   }
 
   @Override
-  protected void enterGlobalNonExWriteLock()
-    throws LockException, InterruptedException
+  protected void obtainGlobalNonExWriteLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
     // Attempt to obtain a global write lock
     if (isSync)
@@ -136,8 +136,8 @@ public class FileLockObject extends LockObject
   }
 
   @Override
-  protected void leaveGlobalNonExWriteLock()
-    throws LockException, InterruptedException
+  protected void clearGlobalNonExWriteLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
     if (isSync)
     {
@@ -160,8 +160,8 @@ public class FileLockObject extends LockObject
   }
 
   @Override
-  protected void enterGlobalReadLock()
-    throws LockException, InterruptedException
+  protected void obtainGlobalReadLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
     // Attempt to obtain a global read lock
     if (isSync)
@@ -185,8 +185,8 @@ public class FileLockObject extends LockObject
   }
 
   @Override
-  protected void leaveGlobalReadLock()
-    throws LockException, InterruptedException
+  protected void clearGlobalReadLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
     if (isSync)
     {

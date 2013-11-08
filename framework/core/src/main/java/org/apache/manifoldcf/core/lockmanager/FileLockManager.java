@@ -60,9 +60,16 @@ public class FileLockManager extends BaseLockManager
   public FileLockManager()
     throws ManifoldCFException
   {
-    this(ManifoldCF.getFileProperty(synchDirectoryProperty));
+    this(getSynchDirectoryProperty());
   }
 
+  /** Get the synch directory property. */
+  public static File getSynchDirectoryProperty()
+    throws ManifoldCFException
+  {
+    return ManifoldCF.getFileProperty(synchDirectoryProperty);
+  }
+  
   /** Calculate the name of a flag resource.
   *@param flagName is the name of the flag.
   *@return the name for the flag resource.

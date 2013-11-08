@@ -29,8 +29,9 @@ public class LockObject
 {
   public static final String _rcsid = "@(#)$Id: LockObject.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  protected Object lockKey;
+
   private LockPool lockPool;
-  private Object lockKey;
   private boolean obtainedWrite = false;  // Set to true if this object already owns the permission to exclusively write
   private int obtainedRead = 0;           // Set to a count if this object already owns the permission to read
   private int obtainedNonExWrite = 0;     // Set to a count if this object already owns the permission to non-exclusively write
@@ -54,7 +55,7 @@ public class LockObject
   * first time for a given thread.
   */
   public void enterWriteLock()
-    throws InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     while (true)
     {
@@ -95,7 +96,7 @@ public class LockObject
   * exclusive write area.
   */
   public synchronized void enterWriteLockNoWait()
-    throws LockException, LocalLockException, InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, LockException, LocalLockException, InterruptedException, ExpiredObjectException
   {
     if (lockPool == null)
       throw new ExpiredObjectException("Invalid");
@@ -112,13 +113,13 @@ public class LockObject
   }
 
   protected void obtainGlobalWriteLock()
-    throws LockException, InterruptedException
+    throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
 
   public void leaveWriteLock()
-    throws InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     while (true)
     {
@@ -169,12 +170,12 @@ public class LockObject
   }
 
   protected void clearGlobalWriteLock()
-    throws LockException, InterruptedException
+    throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
   public void enterNonExWriteLock()
-    throws InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     while (true)
     {
@@ -216,7 +217,7 @@ public class LockObject
   * exclusive write area.
   */
   public synchronized void enterNonExWriteLockNoWait()
-    throws LockException, LocalLockException, InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, LockException, LocalLockException, InterruptedException, ExpiredObjectException
   {
     if (lockPool == null)
       throw new ExpiredObjectException("Invalid");
@@ -230,18 +231,18 @@ public class LockObject
       obtainedNonExWrite++;
       return;
     }
-    enterGlobalNonExWriteLock();
+    obtainGlobalNonExWriteLock();
     obtainedNonExWrite++;
   }
 
-  protected void enterGlobalNonExWriteLock()
-    throws LockException, InterruptedException
+  protected void obtainGlobalNonExWriteLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
 
   public void leaveNonExWriteLock()
-    throws InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     // System.out.println("Releasing non-ex-write lock for resource "+lockFileName.toString());
     while (true)
@@ -261,7 +262,7 @@ public class LockObject
 
           try
           {
-            leaveGlobalNonExWriteLock();
+            clearGlobalNonExWriteLock();
           }
           catch (LockException le)
           {
@@ -295,14 +296,14 @@ public class LockObject
     // System.out.println("Non-ex Write lock released for resource "+lockFileName.toString());
   }
 
-  protected void leaveGlobalNonExWriteLock()
-    throws LockException, InterruptedException
+  protected void clearGlobalNonExWriteLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
 
   public void enterReadLock()
-    throws InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     // if (lockFileName != null)
     //      System.out.println("Entering read lock for resource "+lockFileName.toString()+" "+toString());
@@ -340,7 +341,7 @@ public class LockObject
   }
 
   public synchronized void enterReadLockNoWait()
-    throws LockException, LocalLockException, InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, LockException, LocalLockException, InterruptedException, ExpiredObjectException
   {
     if (lockPool == null)
       throw new ExpiredObjectException("Invalid");
@@ -353,19 +354,19 @@ public class LockObject
       return;
     }
     // Got the read token locally!
-    enterGlobalReadLock();
+    obtainGlobalReadLock();
 
     obtainedRead = 1;
   }
 
-  protected void enterGlobalReadLock()
-    throws LockException, InterruptedException
+  protected void obtainGlobalReadLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
 
   public void leaveReadLock()
-    throws InterruptedException, ExpiredObjectException
+    throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     while (true)
     {
@@ -385,7 +386,7 @@ public class LockObject
           }
           try
           {
-            leaveGlobalReadLock();
+            clearGlobalReadLock();
           }
           catch (LockException le)
           {
@@ -418,8 +419,8 @@ public class LockObject
     }
   }
 
-  protected void leaveGlobalReadLock()
-    throws LockException, InterruptedException
+  protected void clearGlobalReadLock()
+    throws ManifoldCFException, LockException, InterruptedException
   {
   }
   
