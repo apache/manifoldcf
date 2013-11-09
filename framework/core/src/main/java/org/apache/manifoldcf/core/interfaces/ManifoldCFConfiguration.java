@@ -104,6 +104,24 @@ public class ManifoldCFConfiguration extends Configuration
     }
   }
 
+  /** Read a long property, either from the system properties, or from the local configuration file.
+  */
+  public long getLongProperty(String s, long defaultValue)
+    throws ManifoldCFException
+  {
+    String value = getProperty(s);
+    if (value == null)
+      return defaultValue;
+    try
+    {
+      return Long.parseLong(value);
+    }
+    catch (NumberFormatException e)
+    {
+      throw new ManifoldCFException("Illegal property value for long property '"+s+"': '"+value+"': "+e.getMessage(),e,ManifoldCFException.SETUP_ERROR);
+    }
+  }
+
   /** Read a float property, either from the system properties, or from the local configuration file.
   */
   public double getDoubleProperty(String s, double defaultValue)

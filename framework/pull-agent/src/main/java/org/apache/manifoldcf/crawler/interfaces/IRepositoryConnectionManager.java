@@ -121,6 +121,18 @@ public interface IRepositoryConnectionManager
 
   // Reporting and analysis related
 
+  /** Delete history rows related to a specific connection, upon user request.
+  *@param connectionName is the connection whose history records should be removed.
+  */
+  public void cleanUpHistoryData(String connectionName)
+    throws ManifoldCFException;
+  
+  /** Delete history rows older than a specified timestamp.
+  *@param timeCutoff is the timestamp to delete older rows before.
+  */
+  public void cleanUpHistoryData(long timeCutoff)
+    throws ManifoldCFException;
+
   // Activities the Connector Framework records
 
   /** Start a job */

@@ -73,6 +73,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static SeedingThread seedingThread = null;
   protected static IdleCleanupThread idleCleanupThread = null;
   protected static SetPriorityThread setPriorityThread = null;
+  protected static HistoryCleanupThread historyCleanupThread = null;
 
   // Reset managers
   /** Worker thread pool reset manager */
@@ -640,6 +641,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor);
       expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager);
       setPriorityThread = new SetPriorityThread(queueTracker,numWorkerThreads,blockingDocuments);
+      historyCleanupThread = new HistoryCleanupThread();
 
       workerThreads = new WorkerThread[numWorkerThreads];
       int i = 0;
@@ -755,6 +757,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         stufferThread.start();
         expireStufferThread.start();
         setPriorityThread.start();
+        historyCleanupThread.start();
 
         i = 0;
         while (i < numWorkerThreads)
@@ -820,7 +823,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         finisherThread != null || notificationThread != null || workerThreads != null || expireStufferThread != null || expireThreads != null ||
         deleteStufferThread != null || deleteThreads != null ||
         cleanupStufferThread != null || cleanupThreads != null ||
-        jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null)
+        jobResetThread != null || seedingThread != null || idleCleanupThread != null || setPriorityThread != null || historyCleanupThread != null)
       {
         // Send an interrupt to all threads that are still there.
         // In theory, this only needs to be done once.  In practice, I have seen cases where the thread loses track of the fact that it has been
@@ -828,6 +831,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         if (initializationThread != null)
         {
           initializationThread.interrupt();
+        }
+        if (historyCleanupThread != null)
+        {
+          historyCleanupThread.interrupt();
         }
         if (setPriorityThread != null)
         {
@@ -940,6 +947,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         {
           if (!initializationThread.isAlive())
             initializationThread = null;
+        }
+        if (historyCleanupThread != null)
+        {
+          if (!historyCleanupThread.isAlive())
+            historyCleanupThread = null;
         }
         if (setPriorityThread != null)
         {

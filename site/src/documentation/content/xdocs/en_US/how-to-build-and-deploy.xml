@@ -836,6 +836,7 @@ cd example
             <tr><td>org.apache.manifoldcf.crawler.expirethreads</td><td>No</td><td>Number of crawler expiration threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.cleanupthreads</td><td>No</td><td>Number of crawler cleanup threads created.  Suggest a value of 10.</td></tr>
             <tr><td>org.apache.manifoldcf.crawler.deletethreads</td><td>No</td><td>Number of crawler delete threads created.  Suggest a value of 10.</td></tr>
+            <tr><td>org.apache.manifoldcf.crawler.historycleanupinterval</td><td>No</td><td>Milliseconds to retain history records.  Default is 0.  Zero means "forever".</td></tr>
             <tr><td>org.apache.manifoldcf.misc</td><td>No</td><td>Miscellaneous debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.db</td><td>No</td><td>Database debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>
             <tr><td>org.apache.manifoldcf.lock</td><td>No</td><td>Lock management debugging output.  Legal values INFO, WARN, or DEBUG.</td></tr>

@@ -203,6 +203,28 @@
 				<jsp:forward page="listconnections.jsp"/>
 <%
 			}
+			else if (op.equals("ClearHistory"))
+			{
+				try
+				{
+					String connectionName = variableContext.getParameter("connname");
+					if (connectionName == null)
+						throw new ManifoldCFException("Missing connection parameter");
+					connManager.cleanUpHistoryData(connectionName);
+%>
+					<jsp:forward page="listconnections.jsp"/>
+<%
+				}
+				catch (ManifoldCFException e)
+				{
+					e.printStackTrace();
+					variableContext.setParameter("text",e.getMessage());
+					variableContext.setParameter("target","listconnections.jsp");
+%>
+					<jsp:forward page="error.jsp"/>
+<%
+				}
+			}
 			else
 			{
 				// Error

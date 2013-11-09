@@ -45,6 +45,16 @@
 		}
 	}
 
+	function ClearHistory(connectionName)
+	{
+		if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewconnection.Thiscommandwillclearallhistoryrelatedto")%> '"+connectionName+"' <%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewconnection.period")%>"))
+		{
+			document.viewconnection.op.value="ClearHistory";
+			document.viewconnection.connname.value=connectionName;
+			document.viewconnection.submit();
+		}
+	}
+
 	//-->
 	</script>
 
@@ -207,8 +217,12 @@
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="4"><a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a>
-		</td></tr>
+			<tr>
+				<td class="message" colspan="4">
+					<nobr><a href='<%="viewconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>&nbsp;<a href='<%="editconnection.jsp?connname="+java.net.URLEncoder.encode(connectionName,"UTF-8")%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a></nobr>
+					<nobr><a href="javascript:void()" onclick='<%="javascript:ClearHistory(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.ClearHistoryAssociatedWithThisConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ClearAllRelatedHistory")%></a></nobr>
+				</td>
+			</tr>
 		</table>
 
 <%

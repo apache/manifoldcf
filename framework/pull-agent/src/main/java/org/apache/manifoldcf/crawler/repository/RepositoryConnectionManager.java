@@ -528,7 +528,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
           throw new ManifoldCFException("Can't delete repository connection '"+name+"': existing jobs refer to it");
         ManifoldCF.noteConfigurationChange();
         throttleSpecManager.deleteRows(name);
-        historyManager.deleteOwner(name,null);
+        historyManager.deleteOwner(name);
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
           new UnitaryClause(nameField,name)});
@@ -580,6 +580,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param className is the class name of the connector.
   *@return the repository connections that use that connector.
   */
+  @Override
   public String[] findConnectionsForConnector(String className)
     throws ManifoldCFException
   {
@@ -607,6 +608,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   *@param name is the name of the connection to check.
   *@return true if the underlying connector is registered.
   */
+  @Override
   public boolean checkConnectorExists(String name)
     throws ManifoldCFException
   {
@@ -648,6 +650,7 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
   /** Return the name column.
   *@return the name column.
   */
+  @Override
   public String getConnectionNameColumn()
   {
     return nameField;
@@ -656,7 +659,26 @@ public class RepositoryConnectionManager extends org.apache.manifoldcf.core.data
 
   // Reporting and analysis related
 
-
+  /** Delete history rows related to a specific connection, upon user request.
+  *@param connectionName is the connection whose history records should be removed.
+  */
+  @Override
+  public void cleanUpHistoryData(String connectionName)
+    throws ManifoldCFException
+  {
+    historyManager.deleteOwner(connectionName);
+  }
+  
+  /** Delete history rows older than a specified timestamp.
+  *@param timeCutoff is the timestamp to delete older rows before.
+  */
+  @Override
+  public void cleanUpHistoryData(long timeCutoff)
+    throws ManifoldCFException
+  {
+    historyManager.deleteOldRows(timeCutoff);
+  }
+  
   /** Record time-stamped information about the activity of the connection.  This information can originate from
   * either the connector or from the framework.  The reason it is here is that it is viewed as 'belonging' to an
   * individual connection, and is segregated accordingly.

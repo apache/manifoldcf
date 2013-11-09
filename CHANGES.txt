@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-803: Add automatic and manual ability to clean out
+repohistory rows.
+(Marcello Lorenzi, Karl Wright)
+
 CONNECTORS-801: Refactor JDBC authority to bring it into compliance with current
 conventions in JDBC connector.  Warning: this change is not backwards
 compatible!  JDBC authority queries now require explicit return column

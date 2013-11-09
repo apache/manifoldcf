@@ -393,6 +393,14 @@ public class ManifoldCF
     return localConfiguration.getIntProperty(s, defaultValue);
   }
 
+  /** Read a long property, either from the system properties, or from the local configuration file.
+  */
+  public static long getLongProperty(String s, long defaultValue)
+    throws ManifoldCFException
+  {
+    return localConfiguration.getLongProperty(s, defaultValue);
+  }
+
   /** Read a float property, either from the system properties, or from the local configuration file.
   */
   public static double getDoubleProperty(String s, double defaultValue)
