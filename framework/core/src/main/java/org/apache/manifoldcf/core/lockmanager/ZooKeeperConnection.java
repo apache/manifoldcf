@@ -240,9 +240,7 @@ public class ZooKeeperConnection
     {
       try
       {
-        List<ACL> aclList = new ArrayList<ACL>();
-        // MHL
-        zookeeper.create(resourcePath, data, aclList, CreateMode.PERSISTENT);
+        zookeeper.create(resourcePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       }
       catch (KeeperException e)
       {
@@ -262,9 +260,7 @@ public class ZooKeeperConnection
   {
     try
     {
-      List<ACL> acls = new ArrayList<ACL>();
-      // MHL
-      zookeeper.create(flagPath, new byte[0], acls, CreateMode.PERSISTENT);
+      zookeeper.create(flagPath, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
     catch (KeeperException e)
     {
@@ -320,11 +316,9 @@ public class ZooKeeperConnection
   protected String createSequentialChild(String mainNode, String childPrefix)
     throws KeeperException, InterruptedException
   {
-    List<ACL> aclList = new ArrayList<ACL>();
-    // MHL for the right ACL.
     try
     {
-      zookeeper.create(mainNode, new byte[0], aclList, CreateMode.PERSISTENT);
+      zookeeper.create(mainNode, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
     catch (KeeperException e)
     {
@@ -332,7 +326,7 @@ public class ZooKeeperConnection
         throw e;
     }
     
-    return zookeeper.create(mainNode + "/" + childPrefix, new byte[0], aclList, CreateMode.EPHEMERAL_SEQUENTIAL);
+    return zookeeper.create(mainNode + "/" + childPrefix, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
   }
 
   /** Watcher class for zookeeper, so we get notified about zookeeper events. */
