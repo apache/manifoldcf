@@ -108,11 +108,11 @@ public class LockObject
     if (obtainedRead > 0 || obtainedNonExWrite > 0)
       throw new LocalLockException(LOCKEDANOTHERTHREAD);
     // Attempt to obtain a global write lock
-    obtainGlobalWriteLock();
+    obtainGlobalWriteLockNoWait();
     obtainedWrite = true;
   }
 
-  protected void obtainGlobalWriteLock()
+  protected void obtainGlobalWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
   }
@@ -231,11 +231,11 @@ public class LockObject
       obtainedNonExWrite++;
       return;
     }
-    obtainGlobalNonExWriteLock();
+    obtainGlobalNonExWriteLockNoWait();
     obtainedNonExWrite++;
   }
 
-  protected void obtainGlobalNonExWriteLock()
+  protected void obtainGlobalNonExWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
   }
@@ -354,12 +354,12 @@ public class LockObject
       return;
     }
     // Got the read token locally!
-    obtainGlobalReadLock();
+    obtainGlobalReadLockNoWait();
 
     obtainedRead = 1;
   }
 
-  protected void obtainGlobalReadLock()
+  protected void obtainGlobalReadLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
   }

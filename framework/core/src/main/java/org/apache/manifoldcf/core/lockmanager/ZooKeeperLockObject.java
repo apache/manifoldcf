@@ -30,11 +30,13 @@ public class ZooKeeperLockObject extends LockObject
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  private final static String LOCK_PATH_PREFIX = "org.apache.manifoldcf.locks/";
+  private final static String LOCK_PATH_PREFIX = "org.apache.manifoldcf.locks-";
 
   private final ZooKeeperConnectionPool pool;
   private final String lockPath;
   
+  private ZooKeeperConnection currentConnection = null;
+
   public ZooKeeperLockObject(LockPool lockPool, Object lockKey, ZooKeeperConnectionPool pool)
   {
     super(lockPool,lockKey);
@@ -43,17 +45,26 @@ public class ZooKeeperLockObject extends LockObject
   }
 
   @Override
-  protected void obtainGlobalWriteLock()
+  protected void obtainGlobalWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
-    ZooKeeperConnection connection = pool.grab();
+    if (currentConnection != null)
+      throw new IllegalStateException("Already have a connection before write locking: "+lockPath);
+    boolean succeeded = false;
+    currentConnection = pool.grab();
     try
     {
-      connection.obtainGlobalWriteLock(lockPath);
+      succeeded = currentConnection.obtainWriteLockNoWait(lockPath);
+      if (!succeeded)
+        throw new LockException(LOCKEDANOTHERJVM);
     }
     finally
     {
-      pool.release(connection);
+      if (!succeeded)
+      {
+        pool.release(currentConnection);
+        currentConnection = null;
+      }
     }
   }
 
@@ -61,29 +72,32 @@ public class ZooKeeperLockObject extends LockObject
   protected void clearGlobalWriteLock()
     throws ManifoldCFException, LockException, InterruptedException
   {
-    ZooKeeperConnection connection = pool.grab();
-    try
-    {
-      connection.clearGlobalWriteLock(lockPath);
-    }
-    finally
-    {
-      pool.release(connection);
-    }
+    if (currentConnection == null)
+      throw new IllegalStateException("Cannot clear write lock we don't have: "+lockPath);
+    clearLock();
   }
-
+  
   @Override
-  protected void obtainGlobalNonExWriteLock()
+  protected void obtainGlobalNonExWriteLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
-    ZooKeeperConnection connection = pool.grab();
+    if (currentConnection != null)
+      throw new IllegalStateException("Already have a connection before non-ex-write locking: "+lockPath);
+    boolean succeeded = false;
+    currentConnection = pool.grab();
     try
     {
-      connection.obtainGlobalNonExWriteLock(lockPath);
+      succeeded = currentConnection.obtainNonExWriteLockNoWait(lockPath);
+      if (!succeeded)
+        throw new LockException(LOCKEDANOTHERJVM);
     }
     finally
     {
-      pool.release(connection);
+      if (!succeeded)
+      {
+        pool.release(currentConnection);
+        currentConnection = null;
+      }
     }
   }
 
@@ -91,29 +105,32 @@ public class ZooKeeperLockObject extends LockObject
   protected void clearGlobalNonExWriteLock()
     throws ManifoldCFException, LockException, InterruptedException
   {
-    ZooKeeperConnection connection = pool.grab();
-    try
-    {
-      connection.clearGlobalNonExWriteLock(lockPath);
-    }
-    finally
-    {
-      pool.release(connection);
-    }
+    if (currentConnection == null)
+      throw new IllegalStateException("Cannot clear non-ex-write lock we don't have: "+lockPath);
+    clearLock();
   }
 
   @Override
-  protected void obtainGlobalReadLock()
+  protected void obtainGlobalReadLockNoWait()
     throws ManifoldCFException, LockException, InterruptedException
   {
-    ZooKeeperConnection connection = pool.grab();
+    if (currentConnection != null)
+      throw new IllegalStateException("Already have a connection before read locking: "+lockPath);
+    boolean succeeded = false;
+    currentConnection = pool.grab();
     try
     {
-      connection.obtainGlobalReadLock(lockPath);
+      succeeded = currentConnection.obtainReadLockNoWait(lockPath);
+      if (!succeeded)
+        throw new LockException(LOCKEDANOTHERJVM);
     }
     finally
     {
-      pool.release(connection);
+      if (!succeeded)
+      {
+        pool.release(currentConnection);
+        currentConnection = null;
+      }
     }
   }
 
@@ -121,17 +138,18 @@ public class ZooKeeperLockObject extends LockObject
   protected void clearGlobalReadLock()
     throws ManifoldCFException, LockException, InterruptedException
   {
-    ZooKeeperConnection connection = pool.grab();
-    try
-    {
-      connection.clearGlobalReadLock(lockPath);
-    }
-    finally
-    {
-      pool.release(connection);
-    }
+    if (currentConnection == null)
+      throw new IllegalStateException("Cannot clear read lock we don't have: "+lockPath);
+    clearLock();
   }
 
+  protected void clearLock()
+    throws ManifoldCFException, InterruptedException
+  {
+    currentConnection.releaseLock();
+    pool.release(currentConnection);
+    currentConnection = null;
+  }
 
 }
 

@@ -23,6 +23,8 @@ import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Stat;
 
 import java.util.*;
 import java.io.*;
@@ -35,10 +37,17 @@ import java.io.*;
 public class ZooKeeperConnection
 {
   public static final String _rcsid = "@(#)$Id$";
-	
-  // One zookeeper client per thread
+
+  private static final String READ_PREFIX = "read-";
+  private static final String NONEXWRITE_PREFIX = "nonexwrite-";
+  private static final String WRITE_PREFIX = "write-";
+
+  // Our zookeeper client
   protected ZooKeeper zookeeper = null;
   protected ZooKeeperWatcher zookeeperWatcher = null;
+
+  // Transient state
+  protected String lockNode = null;
 
   /** Constructor. */
   public ZooKeeperConnection(String connectString, int sessionTimeout)
@@ -59,161 +68,282 @@ public class ZooKeeperConnection
     }
   }
 
-  public void obtainGlobalWriteLock(String lockPath)
-    throws ManifoldCFException, LockException, InterruptedException
+  /** Obtain a write lock, with no wait.
+  *@param lockPath is the lock node path.
+  *@return true if the lock was obtained, false otherwise.
+  */
+  public boolean obtainWriteLockNoWait(String lockPath)
+    throws ManifoldCFException, InterruptedException
   {
-    /*
-      1. Call create( ) to create a node with pathname "guid-/write-". This is the lock node
-         spoken of later in the protocol. Make sure to set both sequence and ephemeral flags.
-         If a recoverable error occurs calling create() the client should call getChildren() and
-         check for a node containing the guid used in the path name. This handles the case
-         (noted above) of the create() succeeding on the server but the server crashing before
-         returning the name of the new node.
-    */
+    if (lockNode != null)
+      throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also write lock '"+lockPath+"'");
 
-    /*
-      2. Call getChildren( ) on the lock node without setting the watch flag - this is important,
-         as it avoids the herd effect.
-    */
-
-    /*
-      3. If there are no children with a lower sequence number than the node created in step
-         1, the client has the lock and the client exits the protocol.
-    */
-
-    /*
-      4. Call exists( ), with watch flag set, on the node with the pathname that has the next
-         lowest sequence number.
-    */
-
-    /* 5. If exists( ) returns false, goto step 2. Otherwise, wait for a notification for the
-         pathname from the previous step before going to step 2.
-    */
-
-    // MHL
+    try
+    {
+      // Assert that we want a read lock
+      lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
+      String lockSequenceNumber = lockNode.substring(WRITE_PREFIX.length());
+      // See if we got it
+      List<String> children = zookeeper.getChildren(lockPath,false);
+      for (String x : children)
+      {
+        String otherLock;
+        if (x.startsWith(WRITE_PREFIX))
+          otherLock = x.substring(WRITE_PREFIX.length());
+        else if (x.startsWith(NONEXWRITE_PREFIX))
+          otherLock = x.substring(NONEXWRITE_PREFIX.length());
+        else if (x.startsWith(READ_PREFIX))
+          otherLock = x.substring(READ_PREFIX.length());
+        else
+          continue;
+        if (otherLock.compareTo(lockSequenceNumber) < 0)
+        {
+          // We didn't get the lock.  Clean up and exit
+          zookeeper.delete(lockNode,-1);
+          lockNode = null;
+          return false;
+        }
+      }
+      // We got it!
+      return true;
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
-  public void clearGlobalWriteLock(String lockPath)
-    throws ManifoldCFException, LockException, InterruptedException
+  /** Obtain a non-ex-write lock, with no wait.
+  *@param lockPath is the lock node path.
+  *@return true if the lock was obtained, false otherwise.
+  */
+  public boolean obtainNonExWriteLockNoWait(String lockPath)
+    throws ManifoldCFException, InterruptedException
   {
-    /*
-      Delete the node we created in step 1 above.
-    */
-    // MHL
+    if (lockNode != null)
+      throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also non-ex write lock '"+lockPath+"'");
+
+    try
+    {
+      // Assert that we want a read lock
+      lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
+      String lockSequenceNumber = lockNode.substring(NONEXWRITE_PREFIX.length());
+      // See if we got it
+      List<String> children = zookeeper.getChildren(lockPath,false);
+      for (String x : children)
+      {
+        String otherLock;
+        if (x.startsWith(WRITE_PREFIX))
+          otherLock = x.substring(WRITE_PREFIX.length());
+        else if (x.startsWith(READ_PREFIX))
+          otherLock = x.substring(READ_PREFIX.length());
+        else
+          continue;
+        if (otherLock.compareTo(lockSequenceNumber) < 0)
+        {
+          // We didn't get the lock.  Clean up and exit
+          zookeeper.delete(lockNode,-1);
+          lockNode = null;
+          return false;
+        }
+      }
+      // We got it!
+      return true;
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
 
-  public void obtainGlobalNonExWriteLock(String lockPath)
-    throws ManifoldCFException, LockException, InterruptedException
+  /** Obtain a read lock, with no wait.
+  *@param lockPath is the lock node path.
+  *@return true if the lock was obtained, false otherwise.
+  */
+  public boolean obtainReadLockNoWait(String lockPath)
+    throws ManifoldCFException, InterruptedException
   {
-    // MHL
-  }
+    if (lockNode != null)
+      throw new IllegalStateException("Already have a lock in place: '"+lockNode+"'; can't also read lock '"+lockPath+"'");
 
-  public void clearGlobalNonExWriteLock(String lockPath)
-    throws ManifoldCFException, LockException, InterruptedException
-  {
-    // MHL
+    try
+    {
+      // Assert that we want a read lock
+      lockNode = createSequentialChild(lockPath,READ_PREFIX);
+      String lockSequenceNumber = lockNode.substring(READ_PREFIX.length());
+      // See if we got it
+      List<String> children = zookeeper.getChildren(lockPath,false);
+      for (String x : children)
+      {
+        String otherLock;
+        if (x.startsWith(WRITE_PREFIX))
+          otherLock = x.substring(WRITE_PREFIX.length());
+        else if (x.startsWith(NONEXWRITE_PREFIX))
+          otherLock = x.substring(NONEXWRITE_PREFIX.length());
+        else
+          continue;
+        if (otherLock.compareTo(lockSequenceNumber) < 0)
+        {
+          // We didn't get the lock.  Clean up and exit
+          zookeeper.delete(lockNode,-1);
+          lockNode = null;
+          return false;
+        }
+      }
+      // We got it!
+      return true;
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
-  public void obtainGlobalReadLock(String lockPath)
-    throws ManifoldCFException, LockException, InterruptedException
+  /** Release the (saved) lock.
+  */
+  public void releaseLock()
+    throws ManifoldCFException, InterruptedException
   {
-    /*
-      1. Call create( ) to create a node with pathname "guid-/read-". This is the lock node use later in the
-         protocol. Make sure to set both the sequence and ephemeral flags.
-         If a recoverable error occurs calling create() the client should call getChildren() and
-         check for a node containing the guid used in the path name. This handles the case
-         (noted above) of the create() succeeding on the server but the server crashing before
-         returning the name of the new node.
-    */
-
-    /*
-      2. Call getChildren( ) on the lock node without setting the watch flag - this is important, as it
-         avoids the herd effect.
-    */
-
-    /*
-      3. If there are no children with a pathname starting with "write-" and having a lower
-         sequence number than the node created in step 1, the client has the lock and can exit the protocol.
-    */
-
-    /*
-      4. Otherwise, call exists( ), with watch flag, set on the node in lock directory with pathname
-         staring with "write-" having the next lowest sequence number.
-    */
-
-    /*
-      5. If exists( ) returns false, goto step 2.
-    */
-
-    /*
-      6. Otherwise, wait for a notification for the pathname from the previous step before going to step 2
-    */
-
-    // MHL
-
-  }
-  
- public void clearGlobalReadLock(String lockPath)
-    throws ManifoldCFException, LockException, InterruptedException
-  {
-    /*
-      Delete the node we created in step 1 above.
-    */
-    // MHL
+    if (lockNode == null)
+      throw new IllegalStateException("Can't release lock we don't hold");
+    try
+    {
+      zookeeper.delete(lockNode,-1);
+      lockNode = null;
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
 
   public byte[] readData(String resourcePath)
     throws ManifoldCFException, InterruptedException
   {
-    // MHL
-    return null;
+    try
+    {
+      Stat s = zookeeper.exists(resourcePath,false);
+      if (s == null)
+        return null;
+      return zookeeper.getData(resourcePath,null,s);
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   public void writeData(String resourcePath, byte[] data)
     throws ManifoldCFException, InterruptedException
   {
-    // MHL
+    try
+    {
+      try
+      {
+        List<ACL> aclList = new ArrayList<ACL>();
+        // MHL
+        zookeeper.create(resourcePath, data, aclList, CreateMode.PERSISTENT);
+      }
+      catch (KeeperException e)
+      {
+        if (!(e instanceof KeeperException.NodeExistsException))
+          throw e;
+        zookeeper.setData(resourcePath, data, -1);
+      }
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
 
   public void setGlobalFlag(String flagPath)
     throws ManifoldCFException, InterruptedException
   {
-    // MHL
+    try
+    {
+      List<ACL> acls = new ArrayList<ACL>();
+      // MHL
+      zookeeper.create(flagPath, new byte[0], acls, CreateMode.PERSISTENT);
+    }
+    catch (KeeperException e)
+    {
+      if (!(e instanceof KeeperException.NodeExistsException))
+        throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
 
   public void clearGlobalFlag(String flagPath)
     throws ManifoldCFException, InterruptedException
   {
-    // MHL
+    try
+    {
+      zookeeper.delete(flagPath,-1);
+    }
+    catch (KeeperException e)
+    {
+      if (!(e instanceof KeeperException.NoNodeException))
+        return;
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   public boolean checkGlobalFlag(String flagPath)
     throws ManifoldCFException, InterruptedException
   {
-    // MHL
-    return false;
+    try
+    {
+      Stat s = zookeeper.exists(flagPath,false);
+      return s != null;
+    }
+    catch (KeeperException e)
+    {
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
   }
   
   /** Close this connection. */
   public void close()
     throws InterruptedException
   {
+    if (lockNode != null)
+      throw new IllegalStateException("Should not be closing handles that have open locks!  Locknode: '"+lockNode+"'");
     zookeeper.close();
     zookeeper = null;
     zookeeperWatcher = null;
   }
   
+  // Protected methods
+  
+  /** Create a node and a sequential child node.  Neither node has any data.
+  */
+  protected String createSequentialChild(String mainNode, String childPrefix)
+    throws KeeperException, InterruptedException
+  {
+    List<ACL> aclList = new ArrayList<ACL>();
+    // MHL for the right ACL.
+    try
+    {
+      zookeeper.create(mainNode, new byte[0], aclList, CreateMode.PERSISTENT);
+    }
+    catch (KeeperException e)
+    {
+      if (!(e instanceof KeeperException.NodeExistsException))
+        throw e;
+    }
+    
+    return zookeeper.create(mainNode + "/" + childPrefix, new byte[0], aclList, CreateMode.EPHEMERAL_SEQUENTIAL);
+  }
+
   /** Watcher class for zookeeper, so we get notified about zookeeper events. */
   protected static class ZooKeeperWatcher implements Watcher
   {
     public ZooKeeperWatcher()
     {
-      // MHL
     }
     
     public void process(WatchedEvent event)
     {
-      // MHL
     }
 
   }
