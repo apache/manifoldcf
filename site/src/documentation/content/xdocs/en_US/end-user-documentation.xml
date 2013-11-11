@@ -1480,16 +1480,21 @@ curl -XGET http://localhost:9200/index/_mapping
                     <li>A redirection to a specific URL, as described by a regular expression</li>
                     <li>A page that has a form of a particular name on it, as described by a regular expression</li>
                     <li>A page that has a link on it to a specific target, as described by a regular expression</li>
+                    <li>A page that has specific content on it, as described by a regular expression</li>
                 </ul>
                 <br/>
-                <p>Note that in all three case above that there is an implicit flow through the login sequence that you describe by specifying the pages in the login sequence. For
+                <p>Note that in three of the cases above that there is an implicit flow through the login sequence that you describe by specifying the pages in the login sequence. For
                       example, if upon session timeout you expect to see a redirection to a link, or family of links (remember, it's a regexp, so you can describe that easily), then as part
                       of identifying the redirection as belonging to the login sequence, the web connector also now has a new link to fetch - the redirection link - which is what it does next. The same applies
                       to forms.  If the form name that was specified is found, then the web connector submits that form using values for the form elements that you specify, and using
                       the submission type described in the actual form tag (GET, POST, or multi-part). Any other elements of the form are left in whatever state that the HTML specified;
                       no Javascript is ever evaluated. Thus, if you think a form element's value is being set by Javascript, you have to figure out what it is being set to and enter this
                       value by hand as part of the specification for the "form" type of login page. Typically this amounts to a user name and password.</p>
-                      
+                <p>In the fourth login sequence case, where specific page content is matched to determine that a page belongs in the login sequence, there is no
+                      implicit flow to a subsequent page.  In this case you must supply an <em>override URL</em>,
+                      which describes which page to go to to continue the login sequence.  In fact, you are allowed to provide an override URL for all four cases above,
+                      but this is only recommended when the web connector would not automatically find the right subsequent page URL on its own.</p>
+      
                 <p>To add a session authentication rule, fill in a regular expression describing the site pages that are being protected, and click the "Add" button:</p>
                 <br/><br/>
                 <figure src="images/en_US/web-configure-access-credentials-session.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
