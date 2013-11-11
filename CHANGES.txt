@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.5-dev =====================
 
+CONNECTORS-806: Web connector session passwords were not being
+handled in the UI properly.
+(Karl Wright)
+
 CONNECTORS-803: Add automatic and manual ability to clean out
 repohistory rows.
 (Marcello Lorenzi, Karl Wright)

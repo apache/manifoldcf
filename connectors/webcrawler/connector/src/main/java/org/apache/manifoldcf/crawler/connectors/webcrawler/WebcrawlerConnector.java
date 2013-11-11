@@ -2225,7 +2225,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (domain == null)
               domain = "";
             String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-            String password = out.mapPasswordToKey(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
+            String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
                                         
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -2409,7 +2409,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                       if (password == null)
                         password = "";
                       else
-                        password = out.mapPasswordToKey(password);
+                        password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
                       String authParamPrefix = authpagePrefix + "_" + paramCounter;
                       out.print(
 "                    <tr class=\""+(((paramCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
@@ -2426,7 +2426,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(password))+"\"/></nobr>\n"+
+"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/></nobr>\n"+
 "                      </td>\n"+
 "                    </tr>\n"
                       );
@@ -2557,7 +2557,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             if (domain == null)
               domain = "";
             String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-            String password = out.mapPasswordToKey(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
+            String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
 
             // It's prefix will be...
             String prefix = "acredential_" + Integer.toString(accessCounter);
@@ -2636,12 +2636,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                       if (password == null)
                         password = "";
                       else
-                        password = out.mapPasswordToKey(password);
+                        password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
                       String authParamPrefix = authpagePrefix + "_" + paramCounter;
                       out.print(
 "<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(param)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(org.apache.manifoldcf.crawler.system.ManifoldCF.deobfuscate(password))+"\"/>\n"
+"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"
                       );
                       paramCounter++;
                     }
@@ -2989,7 +2989,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           node.setAttribute(WebcrawlerConfig.ATTR_DOMAIN,domain);
           node.setAttribute(WebcrawlerConfig.ATTR_USERNAME,userName);
           node.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,
-            org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
+            ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
           parameters.addChild(parameters.getChildCount(),node);
         }
         i++;
@@ -3007,8 +3007,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         node.setAttribute(WebcrawlerConfig.ATTR_TYPE,type);
         node.setAttribute(WebcrawlerConfig.ATTR_DOMAIN,domain);
         node.setAttribute(WebcrawlerConfig.ATTR_USERNAME,userName);
-        node.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,
-          org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
+        node.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,ManifoldCF.obfuscate(password));
         parameters.addChild(parameters.getChildCount(),node);
       }
     }
@@ -3080,7 +3079,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                     if (value != null && value.length() > 0)
                       paramNode.setAttribute(WebcrawlerConfig.ATTR_VALUE,value);
                     if (password != null && password.length() > 0)
-                      paramNode.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
+                      paramNode.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
                     authPageNode.addChild(authPageNode.getChildCount(),paramNode);
                   }
                   z++;
@@ -3098,7 +3097,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                   if (value != null && value.length() > 0)
                     paramNode.setAttribute(WebcrawlerConfig.ATTR_VALUE,value);
                   if (password != null && password.length() > 0)
-                    paramNode.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,org.apache.manifoldcf.crawler.system.ManifoldCF.obfuscate(password));
+                    paramNode.setAttribute(WebcrawlerConfig.ATTR_PASSWORD,ManifoldCF.obfuscate(password));
                   authPageNode.addChild(authPageNode.getChildCount(),paramNode);
                 }
               }
